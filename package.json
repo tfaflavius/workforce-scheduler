@@ -1,0 +1,15 @@
+{
+  "name": "workforce-scheduler",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:backend": "cd backend && npm install",
+    "build:backend": "cd backend && npm run build",
+    "start:backend": "cd backend && npm run start:prod",
+    "build": "npm run install:backend && npm run build:backend",
+    "start": "npm run start:backend"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
