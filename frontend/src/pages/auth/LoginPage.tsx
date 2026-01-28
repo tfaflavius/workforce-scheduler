@@ -157,10 +157,11 @@ export const LoginPage = () => {
       sx={{
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       }}
     >
-      {/* Left Side - Branding */}
+      {/* Left Side - Branding (hidden on mobile) */}
       <Box
         sx={{
           flex: 1,
@@ -220,17 +221,16 @@ export const LoginPage = () => {
       {/* Right Side - Auth Forms */}
       <Box
         sx={{
-          flex: { xs: 1, md: 0 },
-          width: { md: 500 },
+          width: { xs: '100%', md: 500 },
+          minHeight: { xs: '100vh', md: 'auto' },
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          flexDirection: 'column',
           bgcolor: 'white',
           p: { xs: 2, sm: 4 },
           overflowY: 'auto',
         }}
       >
-        <Container maxWidth="sm">
+        <Container maxWidth="sm" sx={{ my: 'auto', py: 2 }}>
           {/* Mobile Logo */}
           <Box
             sx={{
