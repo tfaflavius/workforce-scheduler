@@ -3,6 +3,16 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { SupabaseModule } from './common/supabase/supabase.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { DepartmentsModule } from './modules/departments/departments.module';
+import { SchedulesModule } from './modules/schedules/schedules.module';
+import { User } from './modules/users/entities/user.entity';
+import { Department } from './modules/departments/entities/department.entity';
+import { WorkSchedule } from './modules/schedules/entities/work-schedule.entity';
+import { ScheduleAssignment } from './modules/schedules/entities/schedule-assignment.entity';
+import { ShiftType } from './modules/schedules/entities/shift-type.entity';
 
 @Module({
   imports: [
@@ -10,6 +20,7 @@ import { AppService } from './app.service';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    SupabaseModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST || 'localhost',
@@ -17,10 +28,15 @@ import { AppService } from './app.service';
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [],
-      synchronize: false, // Use migrations in production
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType],
+      synchronize: true,
       logging: process.env.NODE_ENV === 'development',
+      ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
+    AuthModule,
+    UsersModule,
+    DepartmentsModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
