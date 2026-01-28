@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '../pages/auth/LoginPage';
-import { RegisterPage } from '../pages/auth/RegisterPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import SchedulesPage from '../pages/schedules/SchedulesPage';
 import CreateSchedulePage from '../pages/schedules/CreateSchedulePage';
@@ -25,7 +24,7 @@ export const AppRoutes = () => {
       />
       <Route
         path="/register"
-        element={token ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
+        element={<Navigate to="/login" replace />}
       />
 
       {/* Protected routes with MainLayout */}

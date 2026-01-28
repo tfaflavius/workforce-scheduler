@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -11,7 +11,9 @@ import {
   InputAdornment,
   IconButton,
   Stack,
-  Link,
+  Tabs,
+  Tab,
+  Collapse,
 } from '@mui/material';
 import {
   Visibility,
@@ -19,27 +21,48 @@ import {
   Email as EmailIcon,
   Lock as LockIcon,
   CalendarMonth as CalendarIcon,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
 } from '@mui/icons-material';
 import { useAppDispatch } from '../../store/hooks';
 import { setCredentials } from '../../store/slices/auth.slice';
 import { supabase } from '../../lib/supabase';
 
 export const LoginPage = () => {
+  const [activeTab, setActiveTab] = useState(0); // 0 = Login, 1 = Register
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setFullName('');
+    setPhone('');
+    setError(null);
+    setSuccess(null);
+  };
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+    resetForm();
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      // Sign in with Supabase
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -50,7 +73,6 @@ export const LoginPage = () => {
       }
 
       if (authData.session) {
-        // Get user data from backend
         const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${authData.session.access_token}`,
@@ -67,7 +89,64 @@ export const LoginPage = () => {
       }
     } catch (err: any) {
       console.error('Login failed:', err);
-      setError(err.message || 'Login failed');
+      setError('Email sau parolă incorecte. Încearcă din nou.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError('Parolele nu coincid');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Parola trebuie să aibă cel puțin 6 caractere');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          phone: phone || undefined,
+          role: 'ANGAJAT',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Înregistrarea a eșuat');
+      }
+
+      dispatch(setCredentials({ user: data.user, token: data.accessToken }));
+      setSuccess('Cont creat cu succes!');
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+
+    } catch (err: any) {
+      console.error('Registration failed:', err);
+      if (err.message.includes('already exists')) {
+        setError('Un cont cu acest email există deja');
+      } else {
+        setError(err.message || 'Înregistrarea a eșuat. Încearcă din nou.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +217,7 @@ export const LoginPage = () => {
         </Box>
       </Box>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Auth Forms */}
       <Box
         sx={{
           flex: { xs: 1, md: 0 },
@@ -148,6 +227,7 @@ export const LoginPage = () => {
           justifyContent: 'center',
           bgcolor: 'white',
           p: { xs: 2, sm: 4 },
+          overflowY: 'auto',
         }}
       >
         <Container maxWidth="sm">
@@ -158,7 +238,7 @@ export const LoginPage = () => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 1,
-              mb: 4,
+              mb: 3,
             }}
           >
             <CalendarIcon sx={{ fontSize: 40, color: 'primary.main' }} />
@@ -167,104 +247,292 @@ export const LoginPage = () => {
             </Typography>
           </Box>
 
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Bine ai venit!
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            Autentifică-te pentru a accesa platforma
-          </Typography>
-
-          {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              Email sau parolă incorecte. Încearcă din nou.
-            </Alert>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              label="Adresa de Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              margin="normal"
-              required
-              autoComplete="email"
-              autoFocus
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ mb: 2 }}
-            />
-
-            <TextField
-              fullWidth
-              label="Parolă"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              margin="normal"
-              required
-              autoComplete="current-password"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockIcon color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ mb: 3 }}
-            />
-
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              size="large"
-              disabled={isLoading}
+          {/* Tabs */}
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+            <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              variant="fullWidth"
               sx={{
-                py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 600,
-                textTransform: 'none',
-                borderRadius: 2,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%)',
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '1rem',
                 },
               }}
             >
-              {isLoading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Autentificare'
-              )}
-            </Button>
-          </form>
-
-          <Box sx={{ mt: 3, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Nu ai cont?{' '}
-              <Link component={RouterLink} to="/register" underline="hover">
-                Înregistrează-te
-              </Link>
-            </Typography>
+              <Tab label="Autentificare" />
+              <Tab label="Înregistrare" />
+            </Tabs>
           </Box>
 
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {success}
+            </Alert>
+          )}
+
+          {/* Login Form */}
+          <Collapse in={activeTab === 0}>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              Bine ai venit!
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Autentifică-te pentru a accesa platforma
+            </Typography>
+
+            <form onSubmit={handleLogin}>
+              <TextField
+                fullWidth
+                label="Adresa de Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                margin="normal"
+                required
+                autoComplete="email"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 1 }}
+              />
+
+              <TextField
+                fullWidth
+                label="Parolă"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                margin="normal"
+                required
+                autoComplete="current-password"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 3 }}
+              />
+
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={isLoading}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%)',
+                  },
+                }}
+              >
+                {isLoading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Autentificare'
+                )}
+              </Button>
+            </form>
+
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Nu ai cont?{' '}
+                <Typography
+                  component="span"
+                  variant="body2"
+                  color="primary"
+                  sx={{ cursor: 'pointer', fontWeight: 500 }}
+                  onClick={() => setActiveTab(1)}
+                >
+                  Înregistrează-te
+                </Typography>
+              </Typography>
+            </Box>
+          </Collapse>
+
+          {/* Register Form */}
+          <Collapse in={activeTab === 1}>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>
+              Creează un cont
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Completează datele pentru a te înregistra
+            </Typography>
+
+            <form onSubmit={handleRegister}>
+              <TextField
+                fullWidth
+                label="Nume complet"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                margin="normal"
+                required
+                autoComplete="name"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 1 }}
+              />
+
+              <TextField
+                fullWidth
+                label="Adresa de Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                margin="normal"
+                required
+                autoComplete="email"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 1 }}
+              />
+
+              <TextField
+                fullWidth
+                label="Telefon (opțional)"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                margin="normal"
+                autoComplete="tel"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 1 }}
+              />
+
+              <TextField
+                fullWidth
+                label="Parolă"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                margin="normal"
+                required
+                autoComplete="new-password"
+                helperText="Minim 6 caractere"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 1 }}
+              />
+
+              <TextField
+                fullWidth
+                label="Confirmă parola"
+                type={showPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                margin="normal"
+                required
+                autoComplete="new-password"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 2 }}
+              />
+
+              <Button
+                fullWidth
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={isLoading || !!success}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%)',
+                  },
+                }}
+              >
+                {isLoading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Creează cont'
+                )}
+              </Button>
+            </form>
+
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Typography variant="body2" color="text.secondary">
+                Ai deja un cont?{' '}
+                <Typography
+                  component="span"
+                  variant="body2"
+                  color="primary"
+                  sx={{ cursor: 'pointer', fontWeight: 500 }}
+                  onClick={() => setActiveTab(0)}
+                >
+                  Autentifică-te
+                </Typography>
+              </Typography>
+            </Box>
+          </Collapse>
         </Container>
       </Box>
     </Box>
