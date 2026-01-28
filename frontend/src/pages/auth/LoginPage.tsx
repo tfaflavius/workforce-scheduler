@@ -10,8 +10,6 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
-  Divider,
-  Paper,
   Stack,
 } from '@mui/material';
 import {
@@ -20,10 +18,6 @@ import {
   Email as EmailIcon,
   Lock as LockIcon,
   CalendarMonth as CalendarIcon,
-  Person as PersonIcon,
-  AdminPanelSettings as AdminIcon,
-  SupervisorAccount as ManagerIcon,
-  Badge as EmployeeIcon,
 } from '@mui/icons-material';
 import { useAppDispatch } from '../../store/hooks';
 import { setCredentials } from '../../store/slices/auth.slice';
@@ -77,38 +71,6 @@ export const LoginPage = () => {
       setIsLoading(false);
     }
   };
-
-  const handleQuickLogin = (userEmail: string, userPassword: string) => {
-    setEmail(userEmail);
-    setPassword(userPassword);
-  };
-
-  const testAccounts = [
-    {
-      role: 'Administrator',
-      email: 'admin@workforce.com',
-      password: 'admin123',
-      icon: <AdminIcon sx={{ color: '#d32f2f' }} />,
-      color: '#ffebee',
-      borderColor: '#d32f2f',
-    },
-    {
-      role: 'Manager',
-      email: 'manager@workforce.com',
-      password: 'manager123',
-      icon: <ManagerIcon sx={{ color: '#ed6c02' }} />,
-      color: '#fff3e0',
-      borderColor: '#ed6c02',
-    },
-    {
-      role: 'Angajat',
-      email: 'angajat@workforce.com',
-      password: 'angajat123',
-      icon: <EmployeeIcon sx={{ color: '#0288d1' }} />,
-      color: '#e3f2fd',
-      borderColor: '#0288d1',
-    },
-  ];
 
   return (
     <Box
@@ -293,58 +255,6 @@ export const LoginPage = () => {
             </Button>
           </form>
 
-          <Divider sx={{ my: 4 }}>
-            <Typography variant="body2" color="text.secondary">
-              Conturi de test
-            </Typography>
-          </Divider>
-
-          {/* Test Accounts */}
-          <Stack spacing={1.5}>
-            {testAccounts.map((account) => (
-              <Paper
-                key={account.role}
-                elevation={0}
-                sx={{
-                  p: 2,
-                  cursor: 'pointer',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                  transition: 'all 0.2s',
-                  '&:hover': {
-                    bgcolor: account.color,
-                    borderColor: account.borderColor,
-                    transform: 'translateX(4px)',
-                  },
-                }}
-                onClick={() => handleQuickLogin(account.email, account.password)}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {account.icon}
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle2" fontWeight="medium">
-                      {account.role}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {account.email}
-                    </Typography>
-                  </Box>
-                  <PersonIcon color="action" fontSize="small" />
-                </Box>
-              </Paper>
-            ))}
-          </Stack>
-
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            display="block"
-            textAlign="center"
-            sx={{ mt: 4 }}
-          >
-            Click pe un cont pentru a completa automat credențialele
-          </Typography>
         </Container>
       </Box>
     </Box>
