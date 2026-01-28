@@ -12,6 +12,7 @@ export interface User {
   departmentId: string | null;
   avatarUrl: string | null;
   isActive: boolean;
+  emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
   lastLogin: string | null;

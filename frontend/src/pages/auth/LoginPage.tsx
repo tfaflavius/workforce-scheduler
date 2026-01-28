@@ -133,12 +133,12 @@ export const LoginPage = () => {
         throw new Error(data.message || 'Înregistrarea a eșuat');
       }
 
-      dispatch(setCredentials({ user: data.user, token: data.accessToken }));
-      setSuccess('Cont creat cu succes!');
+      // Show success message - don't auto-login (requires email verification + admin approval)
+      setSuccess(data.message || 'Cont creat cu succes! Verifică emailul pentru confirmare. După aceea, un administrator va aproba contul tău.');
 
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+      // Reset form
+      resetForm();
+      setSuccess(data.message || 'Cont creat cu succes! Verifică emailul pentru confirmare.');
 
     } catch (err: any) {
       console.error('Registration failed:', err);

@@ -25,7 +25,7 @@ export class AuthService {
     }
 
     try {
-      // Create user in Supabase Auth
+      // Create user in Supabase Auth (will send confirmation email)
       const supabaseUser = await this.supabaseService.signUp(
         registerDto.email,
         registerDto.password,
@@ -36,6 +36,8 @@ export class AuthService {
       );
 
       // Create user in our database with Supabase ID
+      // isActive: false - requires admin approval
+      // emailVerified: false - requires email confirmation
       const user = this.userRepository.create({
         id: supabaseUser.user.id, // Use Supabase user ID
         email: registerDto.email,
@@ -44,19 +46,18 @@ export class AuthService {
         phone: registerDto.phone,
         role: registerDto.role,
         departmentId: registerDto.departmentId,
+        isActive: false, // Requires admin approval
+        emailVerified: false, // Requires email confirmation
       });
 
       await this.userRepository.save(user);
 
-      // Login the user to get token
-      const loginResult = await this.supabaseService.signIn(
-        registerDto.email,
-        registerDto.password
-      );
-
+      // Don't auto-login - user needs to verify email first
       return {
+        message: 'Cont creat cu succes! Verifică emailul pentru a confirma adresa. După confirmare, un administrator va aproba contul tău.',
         user: this.sanitizeUser(user),
-        accessToken: loginResult.session.access_token,
+        requiresEmailVerification: true,
+        requiresAdminApproval: true,
       };
     } catch (error) {
       throw new BadRequestException(error.message || 'Failed to create user');
@@ -81,8 +82,20 @@ export class AuthService {
         throw new UnauthorizedException('User not found');
       }
 
+      // Check email verification from Supabase
+      const supabaseUser = await this.supabaseService.getUser(loginResult.session.access_token);
+      if (supabaseUser.email_confirmed_at && !user.emailVerified) {
+        // Update our DB if Supabase has confirmed email
+        user.emailVerified = true;
+        await this.userRepository.save(user);
+      }
+
+      if (!user.emailVerified) {
+        throw new UnauthorizedException('Te rugăm să confirmi adresa de email. Verifică inbox-ul pentru linkul de confirmare.');
+      }
+
       if (!user.isActive) {
-        throw new UnauthorizedException('Account is inactive');
+        throw new UnauthorizedException('Contul tău așteaptă aprobarea unui administrator. Vei primi acces în curând.');
       }
 
       // Update last login

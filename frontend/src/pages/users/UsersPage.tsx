@@ -43,6 +43,8 @@ import {
   Block as InactiveIcon,
   Home as HomeIcon,
   FilterList as FilterIcon,
+  HourglassEmpty as PendingIcon,
+  VerifiedUser as VerifiedIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -93,7 +95,15 @@ const UsersPage: React.FC = () => {
     filters.isActive = false;
   }
 
-  const { data: users, isLoading, error } = useGetUsersQuery(filters);
+  const { data: allUsers, isLoading, error } = useGetUsersQuery(filters);
+
+  // Filter for pending users (not active and email verified or waiting for email)
+  const users = statusFilter === 'pending'
+    ? allUsers?.filter(u => !u.isActive)
+    : allUsers;
+
+  // Count pending users for badge
+  const pendingUsersCount = allUsers?.filter(u => !u.isActive).length || 0;
   const { data: departments } = useGetDepartmentsQuery();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
@@ -278,7 +288,7 @@ const UsersPage: React.FC = () => {
               </Select>
             </FormControl>
 
-            <FormControl sx={{ minWidth: 150 }}>
+            <FormControl sx={{ minWidth: 180 }}>
               <InputLabel>Status</InputLabel>
               <Select
                 value={statusFilter}
@@ -286,6 +296,7 @@ const UsersPage: React.FC = () => {
                 label="Status"
               >
                 <MenuItem value="">Toate</MenuItem>
+                <MenuItem value="pending">În așteptare aprobare</MenuItem>
                 <MenuItem value="active">Activ</MenuItem>
                 <MenuItem value="inactive">Inactiv</MenuItem>
               </Select>
@@ -296,6 +307,25 @@ const UsersPage: React.FC = () => {
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
             A apărut o eroare la încărcarea utilizatorilor
+          </Alert>
+        )}
+
+        {pendingUsersCount > 0 && statusFilter !== 'pending' && (
+          <Alert
+            severity="info"
+            sx={{ mb: 3 }}
+            icon={<PendingIcon />}
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => setStatusFilter('pending')}
+              >
+                Vezi
+              </Button>
+            }
+          >
+            <strong>{pendingUsersCount}</strong> {pendingUsersCount === 1 ? 'cont așteaptă' : 'conturi așteaptă'} aprobare
           </Alert>
         )}
 
@@ -351,7 +381,18 @@ const UsersPage: React.FC = () => {
                             {user.department ? user.department.name : '-'}
                           </TableCell>
                           <TableCell>
-                            <UserStatusChip isActive={user.isActive} />
+                            <Stack direction="row" spacing={1}>
+                              <UserStatusChip isActive={user.isActive} />
+                              {!user.isActive && (
+                                <Chip
+                                  icon={user.emailVerified ? <VerifiedIcon /> : <PendingIcon />}
+                                  label={user.emailVerified ? 'Email verificat' : 'Așteaptă email'}
+                                  size="small"
+                                  color={user.emailVerified ? 'success' : 'warning'}
+                                  variant="outlined"
+                                />
+                              )}
+                            </Stack>
                           </TableCell>
                           <TableCell>
                             {user.lastLogin
