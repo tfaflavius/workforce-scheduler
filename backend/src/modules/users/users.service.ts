@@ -13,12 +13,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserFiltersDto } from './dto/user-filters.dto';
+import { SupabaseService } from '../../common/supabase/supabase.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -103,15 +105,19 @@ export class UsersService {
 
     const user = await this.findOne(userId);
 
-    // If not admin, verify old password
-    if (!isAdmin) {
-      const isMatch = await bcrypt.compare(dto.oldPassword, user.password);
-      if (!isMatch) {
+    // If not admin, verify old password using Supabase
+    if (!isAdmin && dto.oldPassword) {
+      try {
+        await this.supabaseService.signIn(user.email, dto.oldPassword);
+      } catch {
         throw new UnauthorizedException('Old password is incorrect');
       }
     }
 
-    // Hash and save new password
+    // Update password in Supabase Auth
+    await this.supabaseService.updateUserPassword(userId, dto.newPassword);
+
+    // Also update hash in local DB for backwards compatibility
     user.password = await bcrypt.hash(dto.newPassword, 10);
     await this.userRepository.save(user);
   }

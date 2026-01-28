@@ -67,4 +67,14 @@ export class SupabaseService {
       throw error;
     }
   }
+
+  async updateUserPassword(userId: string, newPassword: string) {
+    const { error } = await this.supabase.auth.admin.updateUserById(userId, {
+      password: newPassword,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
 }
