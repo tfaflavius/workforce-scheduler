@@ -165,6 +165,7 @@ export const LoginPage = () => {
       <Box
         sx={{
           flex: 1,
+          minWidth: 0,
           display: { xs: 'none', md: 'flex' },
           flexDirection: 'column',
           justifyContent: 'center',
@@ -221,12 +222,14 @@ export const LoginPage = () => {
       {/* Right Side - Auth Forms */}
       <Box
         sx={{
-          width: { xs: '100%', md: 500 },
-          minHeight: { xs: '100vh', md: 'auto' },
+          width: { xs: '100%', md: 480 },
+          minWidth: { xs: '100%', md: 480 },
+          flexShrink: 0,
+          minHeight: { xs: '100vh', md: '100vh' },
           display: 'flex',
           flexDirection: 'column',
           bgcolor: 'white',
-          p: { xs: 2, sm: 4 },
+          p: { xs: 3, sm: 4 },
           overflowY: 'auto',
         }}
       >
