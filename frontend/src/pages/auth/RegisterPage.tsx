@@ -10,7 +10,6 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
-  Stack,
   Link,
 } from '@mui/material';
 import {
@@ -18,18 +17,24 @@ import {
   VisibilityOff,
   Email as EmailIcon,
   Lock as LockIcon,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
   CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import { useAppDispatch } from '../../store/hooks';
 import { setCredentials } from '../../store/slices/auth.slice';
 import { supabase } from '../../lib/supabase';
 
-export const LoginPage = () => {
+export const RegisterPage = () => {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -38,36 +43,58 @@ export const LoginPage = () => {
     setIsLoading(true);
     setError(null);
 
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Parolele nu coincid');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      setError('Parola trebuie să aibă cel puțin 6 caractere');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Sign in with Supabase
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Register through backend API (which handles both Supabase Auth and local DB)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          phone: phone || undefined,
+          role: 'ANGAJAT', // Default role for new signups
+        }),
       });
 
-      if (authError) {
-        throw authError;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Înregistrarea a eșuat');
       }
 
-      if (authData.session) {
-        // Get user data from backend
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${authData.session.access_token}`,
-          },
-        });
+      // Auto-login after successful registration
+      dispatch(setCredentials({ user: data.user, token: data.accessToken }));
+      setSuccess(true);
 
-        if (!response.ok) {
-          throw new Error('Failed to get user data');
-        }
-
-        const user = await response.json();
-        dispatch(setCredentials({ user, token: authData.session.access_token }));
+      // Redirect to dashboard after short delay
+      setTimeout(() => {
         navigate('/dashboard');
-      }
+      }, 1500);
+
     } catch (err: any) {
-      console.error('Login failed:', err);
-      setError(err.message || 'Login failed');
+      console.error('Registration failed:', err);
+      if (err.message.includes('already exists')) {
+        setError('Un cont cu acest email există deja');
+      } else {
+        setError(err.message || 'Înregistrarea a eșuat. Încearcă din nou.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -110,35 +137,17 @@ export const LoginPage = () => {
           </Box>
 
           <Typography variant="h5" sx={{ mb: 3, opacity: 0.9 }}>
-            Sistem de Gestiune a Programului de Lucru
+            Creează-ți contul
           </Typography>
 
           <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.8 }}>
-            Platforma completă pentru gestionarea programelor de lucru.
-            Managerii creează programe, administratorii le aprobă, iar
-            angajații își pot vizualiza programul zilnic și lunar.
+            Înregistrează-te pentru a accesa programul de lucru,
+            a vizualiza turele tale și a comunica cu echipa.
           </Typography>
-
-          <Box sx={{ mt: 6 }}>
-            <Stack direction="row" spacing={4} justifyContent="center">
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h3" fontWeight="bold">100+</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Angajați</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h3" fontWeight="bold">50+</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Programe/Lună</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h3" fontWeight="bold">99%</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Satisfacție</Typography>
-              </Box>
-            </Stack>
-          </Box>
         </Box>
       </Box>
 
-      {/* Right Side - Login Form */}
+      {/* Right Side - Register Form */}
       <Box
         sx={{
           flex: { xs: 1, md: 0 },
@@ -168,19 +177,44 @@ export const LoginPage = () => {
           </Box>
 
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Bine ai venit!
+            Înregistrare
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            Autentifică-te pentru a accesa platforma
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Completează datele pentru a crea un cont nou
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3 }}>
-              Email sau parolă incorecte. Încearcă din nou.
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              Cont creat cu succes! Vei fi redirecționat...
             </Alert>
           )}
 
           <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Nume complet"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              margin="normal"
+              required
+              autoComplete="name"
+              autoFocus
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 1 }}
+            />
+
             <TextField
               fullWidth
               label="Adresa de Email"
@@ -190,7 +224,6 @@ export const LoginPage = () => {
               margin="normal"
               required
               autoComplete="email"
-              autoFocus
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -198,7 +231,25 @@ export const LoginPage = () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{ mb: 2 }}
+              sx={{ mb: 1 }}
+            />
+
+            <TextField
+              fullWidth
+              label="Telefon (opțional)"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              margin="normal"
+              autoComplete="tel"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PhoneIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 1 }}
             />
 
             <TextField
@@ -209,7 +260,7 @@ export const LoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               margin="normal"
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -227,7 +278,27 @@ export const LoginPage = () => {
                   </InputAdornment>
                 ),
               }}
-              sx={{ mb: 3 }}
+              helperText="Minim 6 caractere"
+              sx={{ mb: 1 }}
+            />
+
+            <TextField
+              fullWidth
+              label="Confirmă parola"
+              type={showPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              margin="normal"
+              required
+              autoComplete="new-password"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
             />
 
             <Button
@@ -235,7 +306,7 @@ export const LoginPage = () => {
               type="submit"
               variant="contained"
               size="large"
-              disabled={isLoading}
+              disabled={isLoading || success}
               sx={{
                 py: 1.5,
                 fontSize: '1rem',
@@ -251,24 +322,23 @@ export const LoginPage = () => {
               {isLoading ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
-                'Autentificare'
+                'Creează cont'
               )}
             </Button>
           </form>
 
           <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              Nu ai cont?{' '}
-              <Link component={RouterLink} to="/register" underline="hover">
-                Înregistrează-te
+              Ai deja un cont?{' '}
+              <Link component={RouterLink} to="/login" underline="hover">
+                Autentifică-te
               </Link>
             </Typography>
           </Box>
-
         </Container>
       </Box>
     </Box>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
