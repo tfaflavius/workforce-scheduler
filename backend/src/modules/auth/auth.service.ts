@@ -52,11 +52,10 @@ export class AuthService {
 
       await this.userRepository.save(user);
 
-      // Don't auto-login - user needs to verify email first
+      // Don't auto-login - user needs admin approval first
       return {
-        message: 'Cont creat cu succes! Verifică emailul pentru a confirma adresa. După confirmare, un administrator va aproba contul tău.',
+        message: 'Cont creat cu succes! Un administrator va aproba contul tău în curând.',
         user: this.sanitizeUser(user),
-        requiresEmailVerification: true,
         requiresAdminApproval: true,
       };
     } catch (error) {
@@ -82,18 +81,7 @@ export class AuthService {
         throw new UnauthorizedException('User not found');
       }
 
-      // Check email verification from Supabase
-      const supabaseUser = await this.supabaseService.getUser(loginResult.session.access_token);
-      if (supabaseUser.email_confirmed_at && !user.emailVerified) {
-        // Update our DB if Supabase has confirmed email
-        user.emailVerified = true;
-        await this.userRepository.save(user);
-      }
-
-      if (!user.emailVerified) {
-        throw new UnauthorizedException('Te rugăm să confirmi adresa de email. Verifică inbox-ul pentru linkul de confirmare.');
-      }
-
+      // Check if user is approved by admin
       if (!user.isActive) {
         throw new UnauthorizedException('Contul tău așteaptă aprobarea unui administrator. Vei primi acces în curând.');
       }

@@ -381,18 +381,7 @@ const UsersPage: React.FC = () => {
                             {user.department ? user.department.name : '-'}
                           </TableCell>
                           <TableCell>
-                            <Stack direction="row" spacing={1}>
-                              <UserStatusChip isActive={user.isActive} />
-                              {!user.isActive && (
-                                <Chip
-                                  icon={user.emailVerified ? <VerifiedIcon /> : <PendingIcon />}
-                                  label={user.emailVerified ? 'Email verificat' : 'Așteaptă email'}
-                                  size="small"
-                                  color={user.emailVerified ? 'success' : 'warning'}
-                                  variant="outlined"
-                                />
-                              )}
-                            </Stack>
+                            <UserStatusChip isActive={user.isActive} />
                           </TableCell>
                           <TableCell>
                             {user.lastLogin
