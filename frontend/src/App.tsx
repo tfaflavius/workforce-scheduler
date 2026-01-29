@@ -5,7 +5,8 @@ import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress } from '
 import { store } from './store/store';
 import { AppRoutes } from './routes/AppRoutes';
 import { useAppDispatch, useAppSelector } from './store/hooks';
-import { initializeAuth } from './store/slices/auth.slice';
+import { initializeAuth, updateToken, logout } from './store/slices/auth.slice';
+import { supabase } from './lib/supabase';
 
 const theme = createTheme({
   palette: {
@@ -20,11 +21,32 @@ const theme = createTheme({
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { isLoading } = useAppSelector((state) => state.auth);
+  const { isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(initializeAuth());
-  }, [dispatch]);
+
+    // Listen for auth state changes (token refresh, sign out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.access_token ? 'has token' : 'no token');
+
+        if (event === 'SIGNED_OUT') {
+          dispatch(logout());
+        } else if (event === 'TOKEN_REFRESHED' && session) {
+          // Update the token in Redux when Supabase refreshes it
+          dispatch(updateToken(session.access_token));
+        } else if (event === 'SIGNED_IN' && session && !isAuthenticated) {
+          // Re-initialize auth if signed in but not authenticated in Redux
+          dispatch(initializeAuth());
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [dispatch, isAuthenticated]);
 
   if (isLoading) {
     return (

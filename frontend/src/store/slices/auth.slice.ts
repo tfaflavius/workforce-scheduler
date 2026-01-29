@@ -22,21 +22,41 @@ export const initializeAuth = createAsyncThunk(
   'auth/initialize',
   async (_, { rejectWithValue }) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔐 Initializing auth...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error('❌ Session error:', sessionError);
+        return null;
+      }
+
+      console.log('📦 Session:', session ? 'exists' : 'null');
+
       if (session) {
+        console.log('🎫 Token (first 20 chars):', session.access_token.substring(0, 20));
+        console.log('⏰ Token expires at:', new Date(session.expires_at! * 1000).toLocaleString());
+
         // Get user data from backend
         const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
         });
+
+        console.log('📡 Backend /auth/me response:', response.status);
+
         if (response.ok) {
           const user = await response.json();
+          console.log('✅ User loaded:', user.email);
           return { user, token: session.access_token };
+        } else {
+          const errorText = await response.text();
+          console.error('❌ Backend error:', errorText);
         }
       }
       return null;
     } catch (error) {
+      console.error('❌ Initialize auth error:', error);
       return rejectWithValue('Failed to initialize auth');
     }
   }
@@ -59,6 +79,9 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.isLoading = false;
+    },
+    updateToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload;
     },
     logout: (state) => {
       state.user = null;
@@ -94,5 +117,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, setLoading } = authSlice.actions;
+export const { setCredentials, updateToken, logout, setLoading } = authSlice.actions;
 export default authSlice.reducer;
