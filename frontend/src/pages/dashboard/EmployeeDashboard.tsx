@@ -13,6 +13,8 @@ import {
   IconButton,
   Divider,
   Button,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Today as TodayIcon,
@@ -86,6 +88,8 @@ const ShiftCard = ({ date, assignment, isToday }: ShiftCardProps) => {
 };
 
 const EmployeeDashboard = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -170,12 +174,17 @@ const EmployeeDashboard = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+      <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          gutterBottom
+          sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' } }}
+        >
           Programul Meu
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
           Bun venit, {user?.fullName}
         </Typography>
       </Box>
@@ -183,60 +192,76 @@ const EmployeeDashboard = () => {
       {/* Today's Shift */}
       <Paper
         sx={{
-          p: 3,
-          mb: 4,
+          p: { xs: 2, sm: 3 },
+          mb: { xs: 2, sm: 3, md: 4 },
           background: todayAssignment
             ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
             : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
           color: todayAssignment ? 'white' : 'text.primary',
         }}
       >
-        <Grid container spacing={3} alignItems="center">
+        <Grid container spacing={{ xs: 2, sm: 3 }} alignItems="center">
           <Grid size={{ xs: 12, md: 8 }}>
-            <Stack direction="row" alignItems="center" spacing={2}>
+            <Stack direction="row" alignItems="center" spacing={{ xs: 1.5, sm: 2 }}>
               <Avatar
                 sx={{
-                  width: 64,
-                  height: 64,
+                  width: { xs: 48, sm: 64 },
+                  height: { xs: 48, sm: 64 },
                   bgcolor: todayAssignment ? 'rgba(255,255,255,0.2)' : 'primary.main',
                 }}
               >
-                <TodayIcon sx={{ fontSize: 32 }} />
+                <TodayIcon sx={{ fontSize: { xs: 24, sm: 32 } }} />
               </Avatar>
-              <Box>
-                <Typography variant="overline" sx={{ opacity: 0.8 }}>
-                  Azi, {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="overline"
+                  sx={{ opacity: 0.8, fontSize: { xs: '0.6rem', sm: '0.75rem' }, display: 'block' }}
+                >
+                  Azi, {new Date().toLocaleDateString('ro-RO', {
+                    weekday: isMobile ? 'short' : 'long',
+                    day: 'numeric',
+                    month: isMobile ? 'short' : 'long'
+                  })}
                 </Typography>
                 {todayAssignment ? (
                   <>
-                    <Typography variant="h5" fontWeight="bold">
+                    <Typography
+                      variant="h5"
+                      fontWeight="bold"
+                      sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}
+                      noWrap
+                    >
                       {todayAssignment.shiftType?.name}
                     </Typography>
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       {todayAssignment.shiftType?.startTime} - {todayAssignment.shiftType?.endTime} ({todayAssignment.durationHours}h)
                     </Typography>
                   </>
                 ) : (
-                  <Typography variant="h5" fontWeight="bold">
-                    Zi Libera
+                  <Typography
+                    variant="h5"
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}
+                  >
+                    Zi Liberă
                   </Typography>
                 )}
               </Box>
             </Stack>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <Stack spacing={1}>
+            <Stack spacing={0.5}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Ore luna aceasta:</Typography>
-                <Typography variant="body2" fontWeight="bold">{totalHoursThisMonth}h</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Ore lună:</Typography>
+                <Typography variant="caption" fontWeight="bold" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>{totalHoursThisMonth}h</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Ture programate:</Typography>
-                <Typography variant="body2" fontWeight="bold">{totalShiftsThisMonth}</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Ture:</Typography>
+                <Typography variant="caption" fontWeight="bold" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>{totalShiftsThisMonth}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Ture de noapte:</Typography>
-                <Typography variant="body2" fontWeight="bold">{nightShifts}</Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Noapte:</Typography>
+                <Typography variant="caption" fontWeight="bold" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>{nightShifts}</Typography>
               </Box>
             </Stack>
           </Grid>
@@ -244,27 +269,44 @@ const EmployeeDashboard = () => {
       </Paper>
 
       {/* Week Calendar */}
-      <Paper sx={{ p: 3 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <IconButton onClick={() => navigateWeek('prev')}>
+      <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={2}
+          sx={{ mb: 2 }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
+            <IconButton onClick={() => navigateWeek('prev')} size={isMobile ? 'small' : 'medium'}>
               <PrevIcon />
             </IconButton>
-            <Typography variant="h6" fontWeight="600">
-              Saptamana {weekDates[0]?.getDate()} - {weekDates[6]?.getDate()} {monthNames[weekDates[0]?.getMonth()]}
+            <Typography
+              variant="subtitle1"
+              fontWeight="600"
+              sx={{ fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }, textAlign: 'center' }}
+            >
+              {weekDates[0]?.getDate()} - {weekDates[6]?.getDate()} {monthNames[weekDates[0]?.getMonth()]?.substring(0, 3)}
             </Typography>
-            <IconButton onClick={() => navigateWeek('next')}>
+            <IconButton onClick={() => navigateWeek('next')} size={isMobile ? 'small' : 'medium'}>
               <NextIcon />
             </IconButton>
           </Stack>
-          <Button variant="outlined" size="small" onClick={() => navigate('/my-schedule')}>
-            Vezi Programul Complet
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => navigate('/my-schedule')}
+            fullWidth={isMobile}
+            sx={{ minHeight: { xs: 40, sm: 36 } }}
+          >
+            Program Complet
           </Button>
         </Stack>
 
+        {/* Mobile: 2 per row, Desktop: 7 per row */}
         <Grid container spacing={1}>
           {weekDates.map((date) => (
-            <Grid size={{ xs: 12 / 7 }} key={date.toISOString()}>
+            <Grid size={{ xs: 6, sm: 12 / 7 }} key={date.toISOString()}>
               <ShiftCard
                 date={date}
                 assignment={getAssignmentForDate(date)}
@@ -275,18 +317,18 @@ const EmployeeDashboard = () => {
         </Grid>
 
         <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Stack direction="row" spacing={3} justifyContent="center">
+          <Stack direction="row" spacing={{ xs: 2, sm: 3 }} justifyContent="center" flexWrap="wrap">
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <DayIcon sx={{ color: 'warning.main', fontSize: 20 }} />
-              <Typography variant="caption">Zi</Typography>
+              <DayIcon sx={{ color: 'warning.main', fontSize: { xs: 16, sm: 20 } }} />
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Zi</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <NightIcon sx={{ color: 'info.main', fontSize: 20 }} />
-              <Typography variant="caption">Noapte</Typography>
+              <NightIcon sx={{ color: 'info.main', fontSize: { xs: 16, sm: 20 } }} />
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Noapte</Typography>
             </Stack>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <NoShiftIcon sx={{ color: 'text.disabled', fontSize: 20 }} />
-              <Typography variant="caption">Liber</Typography>
+              <NoShiftIcon sx={{ color: 'text.disabled', fontSize: { xs: 16, sm: 20 } }} />
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Liber</Typography>
             </Stack>
           </Stack>
         </Box>

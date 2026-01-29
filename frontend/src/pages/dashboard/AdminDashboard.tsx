@@ -33,6 +33,7 @@ const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick }: Sta
     sx={{
       cursor: onClick ? 'pointer' : 'default',
       transition: 'transform 0.2s, box-shadow 0.2s',
+      height: '100%',
       '&:hover': onClick ? {
         transform: 'translateY(-4px)',
         boxShadow: 4,
@@ -40,29 +41,42 @@ const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick }: Sta
     }}
     onClick={onClick}
   >
-    <CardContent>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 500 }}>
+    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ fontWeight: 500, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+          >
             {title}
           </Typography>
-          <Typography variant="h3" sx={{ color, fontWeight: 700, my: 0.5 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              color,
+              fontWeight: 700,
+              my: 0.5,
+              fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' }
+            }}
+          >
             {value}
           </Typography>
           {subtitle && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
               {subtitle}
             </Typography>
           )}
         </Box>
         <Box
           sx={{
-            p: 2,
-            borderRadius: 3,
+            p: { xs: 1.5, sm: 2 },
+            borderRadius: { xs: 2, sm: 3 },
             bgcolor: bgColor,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flexShrink: 0,
           }}
         >
           {icon}
@@ -90,17 +104,22 @@ const AdminDashboard = () => {
   const activeUsers = users?.filter(u => u.isActive)?.length || 0;
 
   return (
-    <Box>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+      <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          gutterBottom
+          sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' } }}
+        >
           Dashboard Administrator
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
           Gestioneaza programele de lucru si utilizatorii
         </Typography>
       </Box>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <StatCard
             title="Programe in Asteptare"
@@ -136,41 +155,53 @@ const AdminDashboard = () => {
         </Grid>
       </Grid>
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+      <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Button
             fullWidth
             variant="contained"
             size="large"
             startIcon={<AddIcon />}
             onClick={() => navigate('/schedules/create')}
-            sx={{ py: 2 }}
+            sx={{
+              py: 1.5,
+              minHeight: 56,
+              fontSize: '0.85rem',
+            }}
           >
-            Creaza Program Nou
+            Program Nou
           </Button>
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Button
             fullWidth
             variant="outlined"
             size="large"
             startIcon={<PendingIcon />}
             onClick={() => navigate('/schedules/pending')}
-            sx={{ py: 2 }}
+            sx={{
+              py: 1.5,
+              minHeight: 56,
+              fontSize: '0.85rem',
+            }}
           >
-            Aproba Programe
+            Aprobări
           </Button>
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Button
             fullWidth
             variant="outlined"
             size="large"
             startIcon={<PeopleIcon />}
             onClick={() => navigate('/users')}
-            sx={{ py: 2 }}
+            sx={{
+              py: 1.5,
+              minHeight: 56,
+              fontSize: '0.85rem',
+            }}
           >
-            Gestioneaza Utilizatori
+            Utilizatori
           </Button>
         </Grid>
       </Grid>

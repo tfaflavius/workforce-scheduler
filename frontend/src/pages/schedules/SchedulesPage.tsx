@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
   Box,
-  Container,
   Typography,
   Paper,
   Button,
@@ -18,14 +17,16 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  IconButton,
+  useMediaQuery,
+  useTheme,
+  Card,
+  CardContent,
 } from '@mui/material';
 import {
   Add as AddIcon,
   CalendarToday as CalendarIcon,
   Warning as WarningIcon,
   FilterList as FilterIcon,
-  Home as HomeIcon,
 } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -35,6 +36,8 @@ import { ScheduleStatus, type ScheduleCalendarEvent, type WorkSchedule } from '.
 import { useNavigate } from 'react-router-dom';
 
 const SchedulesPage: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -222,42 +225,51 @@ const SchedulesPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Stack spacing={3}>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+      <Stack spacing={{ xs: 2, sm: 3 }}>
         {/* Header */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Stack direction="row" spacing={2} alignItems="center">
-            <IconButton onClick={() => navigate('/')} color="primary">
-              <HomeIcon />
-            </IconButton>
-            <Box>
-              <Typography variant="h4" gutterBottom>
-                Work Schedules
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Manage monthly work schedules with labor law compliance
-              </Typography>
-            </Box>
-          </Stack>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 2
+        }}>
+          <Box>
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              gutterBottom
+              sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
+            >
+              Programe de Lucru
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+              Gestionează programele lunare de lucru
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleCreateSchedule}
+            fullWidth={isMobile}
+            sx={{ alignSelf: { xs: 'stretch', sm: 'auto' } }}
           >
-            Create Schedule
+            Creează Program
           </Button>
-        </Stack>
+        </Box>
 
         {/* Month Selector */}
-        <Paper sx={{ p: 2 }}>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <CalendarIcon color="action" />
-            <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel>Select Month</InputLabel>
+        <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <CalendarIcon color="action" fontSize="small" />
+              <Typography variant="subtitle2" fontWeight="medium">Selectează Luna</Typography>
+            </Stack>
+            <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }} size="small">
               <Select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                label="Select Month"
               >
                 {Array.from({ length: 12 }, (_, i) => {
                   const date = new Date();
@@ -276,165 +288,187 @@ const SchedulesPage: React.FC = () => {
         </Paper>
 
         {/* Filters and Sorting */}
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 } }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} alignItems="center">
-              <FilterIcon color="action" />
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                Filters & Sorting
+              <FilterIcon color="action" fontSize="small" />
+              <Typography variant="subtitle2" fontWeight="medium">
+                Filtre și Sortare
               </Typography>
             </Stack>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
+            <Stack spacing={2}>
               <TextField
                 fullWidth
-                label="Search"
-                placeholder="Search by name, department..."
+                placeholder="Caută după nume, departament..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 size="small"
               />
-              <FormControl fullWidth size="small">
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  label="Status"
-                >
-                  <MenuItem value="ALL">All Statuses</MenuItem>
-                  <MenuItem value="DRAFT">Draft</MenuItem>
-                  <MenuItem value="PENDING_APPROVAL">Pending Approval</MenuItem>
-                  <MenuItem value="APPROVED">Approved</MenuItem>
-                  <MenuItem value="ACTIVE">Active</MenuItem>
-                  <MenuItem value="REJECTED">Rejected</MenuItem>
-                  <MenuItem value="ARCHIVED">Archived</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth size="small">
-                <InputLabel>Sort By</InputLabel>
-                <Select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  label="Sort By"
-                >
-                  <MenuItem value="updatedAt">Last Updated</MenuItem>
-                  <MenuItem value="createdAt">Date Created</MenuItem>
-                  <MenuItem value="name">Name</MenuItem>
-                  <MenuItem value="status">Status</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth size="small">
-                <InputLabel>Order</InputLabel>
-                <Select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-                  label="Order"
-                >
-                  <MenuItem value="desc">Descending</MenuItem>
-                  <MenuItem value="asc">Ascending</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    label="Status"
+                  >
+                    <MenuItem value="ALL">Toate</MenuItem>
+                    <MenuItem value="DRAFT">Draft</MenuItem>
+                    <MenuItem value="PENDING_APPROVAL">În Așteptare</MenuItem>
+                    <MenuItem value="APPROVED">Aprobat</MenuItem>
+                    <MenuItem value="ACTIVE">Activ</MenuItem>
+                    <MenuItem value="REJECTED">Respins</MenuItem>
+                    <MenuItem value="ARCHIVED">Arhivat</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Sortează după</InputLabel>
+                  <Select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    label="Sortează după"
+                  >
+                    <MenuItem value="updatedAt">Ultima Actualizare</MenuItem>
+                    <MenuItem value="createdAt">Data Creării</MenuItem>
+                    <MenuItem value="name">Nume</MenuItem>
+                    <MenuItem value="status">Status</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Ordine</InputLabel>
+                  <Select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                    label="Ordine"
+                  >
+                    <MenuItem value="desc">Descrescător</MenuItem>
+                    <MenuItem value="asc">Crescător</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Stack>
           </Stack>
         </Paper>
 
         {/* Schedule List */}
         {schedules && schedules.length > 0 ? (
           filteredSchedules.length > 0 ? (
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                Schedules for Selected Month ({filteredSchedules.length})
+            <Box>
+              <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                Programe pentru luna selectată ({filteredSchedules.length})
               </Typography>
-              <Stack spacing={1}>
+              <Stack spacing={{ xs: 1.5, sm: 2 }}>
                 {filteredSchedules.map((schedule) => (
-                  <Paper
+                  <Card
                     key={schedule.id}
-                    variant="outlined"
                     sx={{
-                      p: 2,
                       cursor: 'pointer',
-                      '&:hover': { bgcolor: 'action.hover' },
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: 3,
+                      },
                     }}
                     onClick={() => handleScheduleClick(schedule)}
                   >
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Box>
-                        <Typography variant="body1">
-                          {schedule.name || `${schedule.department?.name || 'All Departments'} - ${schedule.year}-${String(schedule.month).padStart(2, '0')}`}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Created by: {schedule.creator?.fullName || 'Unknown'}
-                        </Typography>
-                      </Box>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        {hasViolations(schedule) && (
+                    <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                        spacing={{ xs: 1.5, sm: 0 }}
+                      >
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography variant="body1" fontWeight="medium" noWrap sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                            {schedule.name || `${schedule.department?.name || 'Toate Departamentele'} - ${schedule.year}-${String(schedule.month).padStart(2, '0')}`}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                            Creat de: {schedule.creator?.fullName || 'Necunoscut'}
+                          </Typography>
+                        </Box>
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mt: { xs: 1, sm: 0 } }}>
+                          {hasViolations(schedule) && (
+                            <Chip
+                              icon={<WarningIcon />}
+                              label="Încălcări"
+                              color="error"
+                              size="small"
+                            />
+                          )}
                           <Chip
-                            icon={<WarningIcon />}
-                            label="Violations"
-                            color="error"
+                            label={getStatusLabel(schedule.status as ScheduleStatus)}
+                            color={getStatusColor(schedule.status as ScheduleStatus)}
                             size="small"
                           />
-                        )}
-                        <Chip
-                          label={getStatusLabel(schedule.status as ScheduleStatus)}
-                          color={getStatusColor(schedule.status as ScheduleStatus)}
-                          size="small"
-                        />
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </Paper>
+                    </CardContent>
+                  </Card>
                 ))}
               </Stack>
-            </Paper>
+            </Box>
           ) : (
-            <Paper sx={{ p: 3 }}>
-              <Alert severity="info">
-                No schedules match your current filters. Try adjusting the search or status filter.
-              </Alert>
-            </Paper>
+            <Alert severity="info">
+              Nu s-au găsit programe cu filtrele selectate.
+            </Alert>
           )
         ) : null}
 
-        {/* Calendar */}
-        <Paper sx={{ p: 2 }}>
-          {isLoading && (
-            <Box display="flex" justifyContent="center" p={4}>
-              <CircularProgress />
-            </Box>
-          )}
-          {error && (
-            <Alert severity="error">
-              Failed to load schedules. Please try again.
-            </Alert>
-          )}
-          {!isLoading && !error && (
-            <FullCalendar
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              initialDate={`${selectedMonth}-01`}
-              events={calendarEvents}
-              eventClick={handleEventClick}
-              height="auto"
-              headerToolbar={{
-                left: 'title',
-                center: '',
-                right: '',
-              }}
-              validRange={{
-                start: `${selectedMonth}-01`,
-                end: (() => {
-                  const [year, month] = selectedMonth.split('-').map(Number);
-                  const nextMonth = new Date(year, month, 1);
-                  return nextMonth.toISOString().split('T')[0];
-                })(),
-              }}
-              eventTimeFormat={{
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-              }}
-            />
-          )}
-        </Paper>
+        {/* Calendar - Hidden on mobile, shown on tablet and above */}
+        {!isMobile && (
+          <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+            {isLoading && (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            )}
+            {error && (
+              <Alert severity="error">
+                Eroare la încărcarea programelor.
+              </Alert>
+            )}
+            {!isLoading && !error && (
+              <FullCalendar
+                plugins={[dayGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                initialDate={`${selectedMonth}-01`}
+                events={calendarEvents}
+                eventClick={handleEventClick}
+                height="auto"
+                headerToolbar={{
+                  left: 'title',
+                  center: '',
+                  right: '',
+                }}
+                validRange={{
+                  start: `${selectedMonth}-01`,
+                  end: (() => {
+                    const [year, month] = selectedMonth.split('-').map(Number);
+                    const nextMonth = new Date(year, month, 1);
+                    return nextMonth.toISOString().split('T')[0];
+                  })(),
+                }}
+                eventTimeFormat={{
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                }}
+              />
+            )}
+          </Paper>
+        )}
+
+        {/* Mobile loading/error states */}
+        {isMobile && isLoading && (
+          <Box display="flex" justifyContent="center" p={4}>
+            <CircularProgress />
+          </Box>
+        )}
+        {isMobile && error && (
+          <Alert severity="error">
+            Eroare la încărcarea programelor.
+          </Alert>
+        )}
       </Stack>
 
       {/* Schedule Details Dialog */}
@@ -527,7 +561,7 @@ const SchedulesPage: React.FC = () => {
           <Button onClick={handleCloseDetails}>Close</Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

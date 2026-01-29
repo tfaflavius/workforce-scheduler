@@ -19,6 +19,8 @@ import {
   ListItemText,
   Alert,
   Button,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Today as TodayIcon,
@@ -38,6 +40,9 @@ import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 
 const MySchedulePage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -150,77 +155,108 @@ const MySchedulePage = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
       {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+      <Box sx={{
+        mb: { xs: 2, sm: 3, md: 4 },
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between',
+        alignItems: { xs: 'stretch', sm: 'center' },
+        gap: 2
+      }}>
         <Box>
-          <Typography variant="h4" fontWeight="bold" gutterBottom>
+          <Typography
+            variant="h5"
+            fontWeight="bold"
+            gutterBottom
+            sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' } }}
+          >
             Programul Meu de Lucru
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
             Vizualizează programul tău zilnic și lunar
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1}>
-          <Button variant="outlined" startIcon={<PrintIcon />} disabled>
-            Printează
-          </Button>
-          <Button variant="outlined" startIcon={<DownloadIcon />} disabled>
-            Exportă
-          </Button>
-        </Stack>
-      </Stack>
+        {!isMobile && (
+          <Stack direction="row" spacing={1}>
+            <Button variant="outlined" startIcon={<PrintIcon />} disabled size="small">
+              Printează
+            </Button>
+            <Button variant="outlined" startIcon={<DownloadIcon />} disabled size="small">
+              Exportă
+            </Button>
+          </Stack>
+        )}
+      </Box>
 
       {/* Today's Shift Card */}
       <Paper
         sx={{
-          p: 3,
-          mb: 4,
+          p: { xs: 2, sm: 3 },
+          mb: { xs: 2, sm: 3, md: 4 },
           background: todayAssignment
             ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
             : 'linear-gradient(135deg, #43a047 0%, #1b5e20 100%)',
           color: 'white',
         }}
       >
-        <Grid container spacing={3} alignItems="center">
+        <Grid container spacing={{ xs: 2, sm: 3 }} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
-            <Stack direction="row" alignItems="center" spacing={3}>
+            <Stack direction="row" alignItems="center" spacing={{ xs: 2, sm: 3 }}>
               <Avatar
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: { xs: 56, sm: 80 },
+                  height: { xs: 56, sm: 80 },
                   bgcolor: 'rgba(255,255,255,0.2)',
                 }}
               >
-                <TodayIcon sx={{ fontSize: 40 }} />
+                <TodayIcon sx={{ fontSize: { xs: 28, sm: 40 } }} />
               </Avatar>
-              <Box>
-                <Typography variant="overline" sx={{ opacity: 0.8, letterSpacing: 1 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="overline"
+                  sx={{
+                    opacity: 0.8,
+                    letterSpacing: 1,
+                    fontSize: { xs: '0.6rem', sm: '0.75rem' },
+                    display: 'block'
+                  }}
+                >
                   Azi, {new Date().toLocaleDateString('ro-RO', {
-                    weekday: 'long',
+                    weekday: isMobile ? 'short' : 'long',
                     day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
+                    month: isMobile ? 'short' : 'long',
                   })}
                 </Typography>
                 {todayAssignment ? (
                   <>
-                    <Typography variant="h4" fontWeight="bold" sx={{ my: 1 }}>
+                    <Typography
+                      variant="h4"
+                      fontWeight="bold"
+                      sx={{ my: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' } }}
+                      noWrap
+                    >
                       {todayAssignment.shiftType?.name}
                     </Typography>
-                    <Stack direction="row" alignItems="center" spacing={2}>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1}>
                       <Chip
                         icon={todayAssignment.shiftType?.isNightShift ? <NightIcon /> : <DayIcon />}
-                        label={todayAssignment.shiftType?.isNightShift ? 'Tură de Noapte' : 'Tură de Zi'}
+                        label={todayAssignment.shiftType?.isNightShift ? 'Noapte' : 'Zi'}
+                        size="small"
                         sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
                       />
-                      <Typography variant="h6">
+                      <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                         {todayAssignment.shiftType?.startTime} - {todayAssignment.shiftType?.endTime}
                       </Typography>
                     </Stack>
                   </>
                 ) : (
-                  <Typography variant="h4" fontWeight="bold" sx={{ my: 1 }}>
+                  <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                    sx={{ my: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' } }}
+                  >
                     Zi Liberă
                   </Typography>
                 )}
@@ -228,26 +264,26 @@ const MySchedulePage = () => {
             </Stack>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper sx={{ p: 2, bgcolor: 'rgba(255,255,255,0.1)' }}>
-              <Typography variant="subtitle2" sx={{ mb: 2, opacity: 0.8 }}>
+            <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'rgba(255,255,255,0.1)' }}>
+              <Typography variant="subtitle2" sx={{ mb: 1.5, opacity: 0.8, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
                 Sumar Luna {monthNames[currentMonth - 1]}
               </Typography>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6 }}>
-                  <Typography variant="h4" fontWeight="bold">{totalHours}h</Typography>
-                  <Typography variant="caption">Total Ore</Typography>
+              <Grid container spacing={{ xs: 1, sm: 2 }}>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>{totalHours}h</Typography>
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>Total Ore</Typography>
                 </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <Typography variant="h4" fontWeight="bold">{totalShifts}</Typography>
-                  <Typography variant="caption">Total Ture</Typography>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>{totalShifts}</Typography>
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>Total Ture</Typography>
                 </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <Typography variant="h4" fontWeight="bold">{dayShifts}</Typography>
-                  <Typography variant="caption">Ture de Zi</Typography>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>{dayShifts}</Typography>
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>Ture Zi</Typography>
                 </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <Typography variant="h4" fontWeight="bold">{nightShifts}</Typography>
-                  <Typography variant="caption">Ture de Noapte</Typography>
+                <Grid size={{ xs: 6, sm: 3 }}>
+                  <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>{nightShifts}</Typography>
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>Ture Noapte</Typography>
                 </Grid>
               </Grid>
             </Paper>
@@ -256,22 +292,36 @@ const MySchedulePage = () => {
       </Paper>
 
       {/* Calendar View */}
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 } }}>
         {/* Calendar Controls */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <IconButton onClick={() => navigatePeriod('prev')}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={2}
+          sx={{ mb: { xs: 2, sm: 3 } }}
+        >
+          <Stack direction="row" alignItems="center" justifyContent="center" spacing={{ xs: 1, sm: 2 }}>
+            <IconButton onClick={() => navigatePeriod('prev')} size={isMobile ? 'small' : 'medium'}>
               <PrevIcon />
             </IconButton>
-            <Typography variant="h6" fontWeight="600" sx={{ minWidth: 250, textAlign: 'center' }}>
+            <Typography
+              variant="subtitle1"
+              fontWeight="600"
+              sx={{
+                minWidth: { xs: 'auto', sm: 250 },
+                textAlign: 'center',
+                fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }
+              }}
+            >
               {viewMode === 'week'
-                ? `${dates[0]?.getDate()} - ${dates[6]?.getDate()} ${monthNames[dates[0]?.getMonth()]} ${dates[0]?.getFullYear()}`
+                ? `${dates[0]?.getDate()} - ${dates[6]?.getDate()} ${monthNames[dates[0]?.getMonth()]?.substring(0, 3)}`
                 : `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
             </Typography>
-            <IconButton onClick={() => navigatePeriod('next')}>
+            <IconButton onClick={() => navigatePeriod('next')} size={isMobile ? 'small' : 'medium'}>
               <NextIcon />
             </IconButton>
-            <Button variant="text" onClick={goToToday}>
+            <Button variant="text" onClick={goToToday} size="small">
               Azi
             </Button>
           </Stack>
@@ -281,22 +331,28 @@ const MySchedulePage = () => {
             exclusive
             onChange={(_, value) => value && setViewMode(value)}
             size="small"
+            sx={{ alignSelf: { xs: 'center', sm: 'auto' } }}
           >
-            <ToggleButton value="week">Săptămânal</ToggleButton>
-            <ToggleButton value="month">Lunar</ToggleButton>
+            <ToggleButton value="week" sx={{ px: { xs: 1.5, sm: 2 }, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+              Săptămânal
+            </ToggleButton>
+            <ToggleButton value="month" sx={{ px: { xs: 1.5, sm: 2 }, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+              Lunar
+            </ToggleButton>
           </ToggleButtonGroup>
         </Stack>
 
         {/* Week Day Headers (for month view) */}
-        {viewMode === 'month' && (
+        {viewMode === 'month' && !isMobile && (
           <Grid container sx={{ mb: 1 }}>
             {dayNames.map((day, index) => (
               <Grid size={{ xs: 12 / 7 }} key={day}>
                 <Typography
-                  variant="subtitle2"
+                  variant="caption"
                   textAlign="center"
                   color={index === 0 || index === 6 ? 'error.main' : 'text.secondary'}
                   fontWeight="medium"
+                  sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
                 >
                   {day}
                 </Typography>
@@ -306,12 +362,12 @@ const MySchedulePage = () => {
         )}
 
         {/* Calendar Grid */}
-        {viewMode === 'month' ? (
-          <Grid container spacing={1}>
+        {viewMode === 'month' && !isMobile ? (
+          <Grid container spacing={0.5}>
             {/* Empty cells for first week alignment */}
             {Array.from({ length: (dates[0]?.getDay() + 6) % 7 }).map((_, i) => (
               <Grid size={{ xs: 12 / 7 }} key={`empty-${i}`}>
-                <Box sx={{ p: 1, minHeight: 100 }} />
+                <Box sx={{ p: 0.5, minHeight: { xs: 60, sm: 80, md: 100 } }} />
               </Grid>
             ))}
             {dates.map((date) => {
@@ -323,7 +379,7 @@ const MySchedulePage = () => {
                 <Grid size={{ xs: 12 / 7 }} key={date.toISOString()}>
                   <Card
                     sx={{
-                      minHeight: 100,
+                      minHeight: { xs: 60, sm: 80, md: 100 },
                       border: today ? '2px solid' : '1px solid',
                       borderColor: today ? 'primary.main' : 'divider',
                       bgcolor: today
@@ -334,40 +390,43 @@ const MySchedulePage = () => {
                         ? 'grey.100'
                         : 'grey.50',
                       transition: 'all 0.2s',
-                      '&:hover': { boxShadow: 3 },
+                      '&:hover': { boxShadow: 2 },
                     }}
                   >
-                    <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                    <CardContent sx={{ p: { xs: 0.5, sm: 1 }, '&:last-child': { pb: { xs: 0.5, sm: 1 } } }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Typography
                           variant="body2"
                           fontWeight={today ? 'bold' : 'medium'}
                           color={isWeekend && !assignment ? 'error.main' : 'text.primary'}
+                          sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}
                         >
                           {date.getDate()}
                         </Typography>
-                        {today && (
-                          <Chip label="Azi" size="small" color="primary" sx={{ height: 18, fontSize: '0.65rem' }} />
+                        {today && !isTablet && (
+                          <Chip label="Azi" size="small" color="primary" sx={{ height: 16, fontSize: '0.6rem' }} />
                         )}
                       </Stack>
 
                       {assignment ? (
-                        <Box sx={{ mt: 1 }}>
+                        <Box sx={{ mt: 0.5 }}>
                           <Chip
                             size="small"
-                            icon={assignment.shiftType?.isNightShift ? <NightIcon /> : <DayIcon />}
-                            label={assignment.shiftType?.name?.substring(0, 8) || 'Tură'}
+                            icon={isTablet ? undefined : (assignment.shiftType?.isNightShift ? <NightIcon /> : <DayIcon />)}
+                            label={assignment.shiftType?.name?.substring(0, isTablet ? 4 : 8) || 'T'}
                             color={assignment.shiftType?.isNightShift ? 'info' : 'warning'}
-                            sx={{ fontSize: '0.7rem', height: 22 }}
+                            sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, height: { xs: 18, sm: 22 } }}
                           />
-                          <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
-                            {assignment.shiftType?.startTime?.substring(0, 5)}
-                          </Typography>
+                          {!isTablet && (
+                            <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.65rem' }}>
+                              {assignment.shiftType?.startTime?.substring(0, 5)}
+                            </Typography>
+                          )}
                         </Box>
                       ) : (
-                        <Box sx={{ mt: 1, textAlign: 'center' }}>
-                          <Typography variant="caption" color="text.disabled">
-                            Liber
+                        <Box sx={{ mt: 0.5, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.disabled" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>
+                            -
                           </Typography>
                         </Box>
                       )}
@@ -377,6 +436,70 @@ const MySchedulePage = () => {
               );
             })}
           </Grid>
+        ) : viewMode === 'month' && isMobile ? (
+          // Mobile: List view for month
+          <Stack spacing={1}>
+            {dates.map((date) => {
+              const assignment = getAssignmentForDate(date);
+              const today = isToday(date);
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+
+              return (
+                <Card
+                  key={date.toISOString()}
+                  sx={{
+                    border: today ? '2px solid' : '1px solid',
+                    borderColor: today ? 'primary.main' : 'divider',
+                    bgcolor: today ? 'primary.lighter' : assignment ? 'white' : 'grey.50',
+                  }}
+                >
+                  <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem' }}>
+                            {dayNames[date.getDay()]}
+                          </Typography>
+                          <Typography
+                            variant="h6"
+                            fontWeight="bold"
+                            color={isWeekend && !assignment ? 'error.main' : 'text.primary'}
+                            sx={{ lineHeight: 1 }}
+                          >
+                            {date.getDate()}
+                          </Typography>
+                        </Box>
+                        {assignment ? (
+                          <Box>
+                            <Typography variant="body2" fontWeight="medium">
+                              {assignment.shiftType?.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {assignment.shiftType?.startTime} - {assignment.shiftType?.endTime}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.disabled">
+                            Zi liberă
+                          </Typography>
+                        )}
+                      </Stack>
+                      {assignment && (
+                        <Chip
+                          size="small"
+                          label={assignment.shiftType?.isNightShift ? 'Noapte' : 'Zi'}
+                          color={assignment.shiftType?.isNightShift ? 'info' : 'warning'}
+                        />
+                      )}
+                      {today && (
+                        <Chip label="Azi" size="small" color="primary" />
+                      )}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Stack>
         ) : (
           // Week View - More detailed
           <Stack spacing={2}>
@@ -471,109 +594,126 @@ const MySchedulePage = () => {
         )}
 
         {/* Legend */}
-        <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Stack direction="row" spacing={4} justifyContent="center" flexWrap="wrap">
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Avatar sx={{ width: 24, height: 24, bgcolor: 'warning.main' }}>
-                <DayIcon sx={{ fontSize: 14 }} />
+        <Box sx={{ mt: { xs: 2, sm: 3 }, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Stack
+            direction="row"
+            spacing={{ xs: 2, sm: 4 }}
+            justifyContent="center"
+            flexWrap="wrap"
+            sx={{ gap: { xs: 1, sm: 0 } }}
+          >
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Avatar sx={{ width: { xs: 20, sm: 24 }, height: { xs: 20, sm: 24 }, bgcolor: 'warning.main' }}>
+                <DayIcon sx={{ fontSize: { xs: 12, sm: 14 } }} />
               </Avatar>
-              <Typography variant="body2">Tură de Zi</Typography>
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Zi</Typography>
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Avatar sx={{ width: 24, height: 24, bgcolor: 'info.main' }}>
-                <NightIcon sx={{ fontSize: 14 }} />
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Avatar sx={{ width: { xs: 20, sm: 24 }, height: { xs: 20, sm: 24 }, bgcolor: 'info.main' }}>
+                <NightIcon sx={{ fontSize: { xs: 12, sm: 14 } }} />
               </Avatar>
-              <Typography variant="body2">Tură de Noapte</Typography>
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Noapte</Typography>
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Avatar sx={{ width: 24, height: 24, bgcolor: 'grey.200' }}>
-                <NoShiftIcon sx={{ fontSize: 14, color: 'grey.500' }} />
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Avatar sx={{ width: { xs: 20, sm: 24 }, height: { xs: 20, sm: 24 }, bgcolor: 'grey.200' }}>
+                <NoShiftIcon sx={{ fontSize: { xs: 12, sm: 14 }, color: 'grey.500' }} />
               </Avatar>
-              <Typography variant="body2">Zi Liberă</Typography>
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Liber</Typography>
             </Stack>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Box sx={{ width: 24, height: 24, border: '2px solid', borderColor: 'primary.main', borderRadius: 1 }} />
-              <Typography variant="body2">Ziua de Azi</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Box sx={{ width: { xs: 20, sm: 24 }, height: { xs: 20, sm: 24 }, border: '2px solid', borderColor: 'primary.main', borderRadius: 1 }} />
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Azi</Typography>
             </Stack>
           </Stack>
         </Box>
       </Paper>
 
       {/* Monthly Summary */}
-      <Paper sx={{ p: 3, mt: 3 }}>
-        <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3 } }}>
+        <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' } }}>
           Detalii Luna {monthNames[currentMonth - 1]} {currentYear}
         </Typography>
 
         {myAssignments.length > 0 ? (
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <List dense>
-                <ListItem>
-                  <ListItemIcon>
-                    <ShiftIcon color="primary" />
+          <Grid container spacing={{ xs: 1, sm: 3 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <List dense sx={{ py: 0 }}>
+                <ListItem sx={{ py: { xs: 0.5, sm: 1 } }}>
+                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 } }}>
+                    <ShiftIcon color="primary" fontSize={isMobile ? 'small' : 'medium'} />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Total Ture Programate"
+                    primary="Total Ture"
                     secondary={`${totalShifts} ture`}
+                    primaryTypographyProps={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                   />
                 </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <HoursIcon color="primary" />
+                <ListItem sx={{ py: { xs: 0.5, sm: 1 } }}>
+                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 } }}>
+                    <HoursIcon color="primary" fontSize={isMobile ? 'small' : 'medium'} />
                   </ListItemIcon>
                   <ListItemText
                     primary="Total Ore"
                     secondary={`${totalHours} ore`}
+                    primaryTypographyProps={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                   />
                 </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <DayIcon color="warning" />
+                <ListItem sx={{ py: { xs: 0.5, sm: 1 } }}>
+                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 } }}>
+                    <DayIcon color="warning" fontSize={isMobile ? 'small' : 'medium'} />
                   </ListItemIcon>
                   <ListItemText
                     primary="Ture de Zi"
                     secondary={`${dayShifts} ture`}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <NightIcon color="info" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Ture de Noapte"
-                    secondary={`${nightShifts} ture`}
+                    primaryTypographyProps={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                   />
                 </ListItem>
               </List>
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <List dense>
-                <ListItem>
-                  <ListItemIcon>
-                    <NoShiftIcon color="action" />
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <List dense sx={{ py: 0 }}>
+                <ListItem sx={{ py: { xs: 0.5, sm: 1 } }}>
+                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 } }}>
+                    <NightIcon color="info" fontSize={isMobile ? 'small' : 'medium'} />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary="Ture de Noapte"
+                    secondary={`${nightShifts} ture`}
+                    primaryTypographyProps={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                  />
+                </ListItem>
+                <ListItem sx={{ py: { xs: 0.5, sm: 1 } }}>
+                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 } }}>
+                    <NoShiftIcon color="action" fontSize={isMobile ? 'small' : 'medium'} />
                   </ListItemIcon>
                   <ListItemText
                     primary="Zile Libere"
                     secondary={`${new Date(currentYear, currentMonth, 0).getDate() - totalShifts} zile`}
+                    primaryTypographyProps={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                   />
                 </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <TimeIcon color="action" />
+                <ListItem sx={{ py: { xs: 0.5, sm: 1 } }}>
+                  <ListItemIcon sx={{ minWidth: { xs: 36, sm: 56 } }}>
+                    <TimeIcon color="action" fontSize={isMobile ? 'small' : 'medium'} />
                   </ListItemIcon>
                   <ListItemText
                     primary="Medie Ore/Tură"
                     secondary={totalShifts > 0 ? `${(totalHours / totalShifts).toFixed(1)} ore` : 'N/A'}
+                    primaryTypographyProps={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
                   />
                 </ListItem>
               </List>
             </Grid>
           </Grid>
         ) : (
-          <Alert severity="info">
+          <Alert severity="info" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
             Nu ai ture programate pentru luna {monthNames[currentMonth - 1]} {currentYear}.
-            Contactează managerul pentru detalii.
           </Alert>
         )}
       </Paper>

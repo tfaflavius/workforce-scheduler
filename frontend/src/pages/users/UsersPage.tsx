@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Box,
-  Container,
   Typography,
   Paper,
   Button,
@@ -20,8 +19,6 @@ import {
   IconButton,
   CircularProgress,
   Alert,
-  AppBar,
-  Toolbar,
   Stack,
   Avatar,
   Menu,
@@ -31,6 +28,10 @@ import {
   DialogContent,
   InputAdornment,
   Chip,
+  useMediaQuery,
+  useTheme,
+  Card,
+  CardContent,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -41,12 +42,9 @@ import {
   Lock as LockIcon,
   CheckCircle as ActiveIcon,
   Block as InactiveIcon,
-  Home as HomeIcon,
   FilterList as FilterIcon,
   HourglassEmpty as PendingIcon,
-  VerifiedUser as VerifiedIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import {
   useGetUsersQuery,
   useCreateUserMutation,
@@ -62,7 +60,8 @@ import { UserStatusChip } from '../../components/users/UserStatusChip';
 import type { User } from '../../store/api/users.api';
 
 const UsersPage: React.FC = () => {
-  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentUser = useAppSelector((state) => state.auth.user);
 
   const [page, setPage] = useState(0);
@@ -219,60 +218,59 @@ const UsersPage: React.FC = () => {
     : [];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
-          <IconButton edge="start" onClick={() => navigate('/dashboard')} sx={{ mr: 2 }}>
-            <HomeIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Gestionare Utilizatori
-          </Typography>
-          {isAdmin && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setCreateDialogOpen(true)}
-            >
-              Adaugă Utilizator
-            </Button>
-          )}
-        </Toolbar>
-      </AppBar>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+      {/* Header */}
+      <Box sx={{ mb: { xs: 2, sm: 3 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2 }}>
+        <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+          Gestionare Utilizatori
+        </Typography>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setCreateDialogOpen(true)}
+            sx={{ alignSelf: { xs: 'stretch', sm: 'auto' } }}
+          >
+            Adaugă Utilizator
+          </Button>
+        )}
+      </Box>
 
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-            <FilterIcon color="action" />
-            <Typography variant="h6">Filtre</Typography>
-          </Stack>
+      {/* Filters */}
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+          <FilterIcon color="action" fontSize="small" />
+          <Typography variant="subtitle1" fontWeight="medium">Filtre</Typography>
+        </Stack>
 
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField
-              placeholder="Caută după nume sau email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ flexGrow: 1 }}
-            />
+        <Stack direction="column" spacing={2}>
+          <TextField
+            placeholder="Caută după nume sau email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            size="small"
+            fullWidth
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
 
-            <FormControl sx={{ minWidth: 150 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
               <InputLabel>Rol</InputLabel>
               <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} label="Rol">
                 <MenuItem value="">Toate</MenuItem>
-                <MenuItem value="ADMIN">Administrator</MenuItem>
+                <MenuItem value="ADMIN">Admin</MenuItem>
                 <MenuItem value="MANAGER">Manager</MenuItem>
                 <MenuItem value="ANGAJAT">Angajat</MenuItem>
               </Select>
             </FormControl>
 
-            <FormControl sx={{ minWidth: 200 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
               <InputLabel>Departament</InputLabel>
               <Select
                 value={departmentFilter}
@@ -288,7 +286,7 @@ const UsersPage: React.FC = () => {
               </Select>
             </FormControl>
 
-            <FormControl sx={{ minWidth: 180 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
               <InputLabel>Status</InputLabel>
               <Select
                 value={statusFilter}
@@ -296,13 +294,14 @@ const UsersPage: React.FC = () => {
                 label="Status"
               >
                 <MenuItem value="">Toate</MenuItem>
-                <MenuItem value="pending">În așteptare aprobare</MenuItem>
+                <MenuItem value="pending">În așteptare</MenuItem>
                 <MenuItem value="active">Activ</MenuItem>
                 <MenuItem value="inactive">Inactiv</MenuItem>
               </Select>
             </FormControl>
           </Stack>
-        </Paper>
+        </Stack>
+      </Paper>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -329,81 +328,143 @@ const UsersPage: React.FC = () => {
           </Alert>
         )}
 
-        <Paper>
-          {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Utilizator</TableCell>
-                      <TableCell>Email</TableCell>
-                      <TableCell>Rol</TableCell>
-                      <TableCell>Departament</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Ultima Autentificare</TableCell>
-                      <TableCell align="right">Acțiuni</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {paginatedUsers.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} align="center">
-                          <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
-                            Nu s-au găsit utilizatori
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      paginatedUsers.map((user) => (
-                        <TableRow key={user.id} hover>
-                          <TableCell>
-                            <Stack direction="row" spacing={2} alignItems="center">
-                              <Avatar src={user.avatarUrl || undefined}>
-                                {user.fullName.charAt(0).toUpperCase()}
-                              </Avatar>
-                              <Typography variant="body2">{user.fullName}</Typography>
-                            </Stack>
-                          </TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>
-                            <Chip
-                              label={getRoleLabel(user.role)}
-                              color={getRoleBadgeColor(user.role) as any}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            {user.department ? user.department.name : '-'}
-                          </TableCell>
-                          <TableCell>
-                            <UserStatusChip isActive={user.isActive} />
-                          </TableCell>
-                          <TableCell>
-                            {user.lastLogin
-                              ? new Date(user.lastLogin).toLocaleDateString('ro-RO')
-                              : 'Niciodată'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {isAdmin && (
-                              <IconButton
+        {/* Mobile: Card view, Desktop: Table view */}
+        {isMobile ? (
+          // Mobile Card View
+          <Box>
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : paginatedUsers.length === 0 ? (
+              <Paper sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Nu s-au găsit utilizatori
+                </Typography>
+              </Paper>
+            ) : (
+              <Stack spacing={2}>
+                {paginatedUsers.map((user) => (
+                  <Card key={user.id}>
+                    <CardContent sx={{ p: 2 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                        <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+                          <Avatar src={user.avatarUrl || undefined} sx={{ width: 48, height: 48 }}>
+                            {user.fullName.charAt(0).toUpperCase()}
+                          </Avatar>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="subtitle2" fontWeight="medium" noWrap>
+                              {user.fullName}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                              {user.email}
+                            </Typography>
+                            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                              <Chip
+                                label={getRoleLabel(user.role)}
+                                color={getRoleBadgeColor(user.role) as any}
                                 size="small"
-                                onClick={(e) => handleMenuOpen(e, user)}
-                              >
-                                <MoreVertIcon />
-                              </IconButton>
-                            )}
+                              />
+                              <UserStatusChip isActive={user.isActive} />
+                            </Stack>
+                          </Box>
+                        </Stack>
+                        {isAdmin && (
+                          <IconButton
+                            size="small"
+                            onClick={(e) => handleMenuOpen(e, user)}
+                          >
+                            <MoreVertIcon />
+                          </IconButton>
+                        )}
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                ))}
+              </Stack>
+            )}
+          </Box>
+        ) : (
+          // Desktop Table View
+          <Paper>
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <>
+                <TableContainer sx={{ overflowX: 'auto' }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Utilizator</TableCell>
+                        <TableCell>Email</TableCell>
+                        <TableCell>Rol</TableCell>
+                        <TableCell>Departament</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Ultima Autentificare</TableCell>
+                        <TableCell align="right">Acțiuni</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {paginatedUsers.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} align="center">
+                            <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
+                              Nu s-au găsit utilizatori
+                            </Typography>
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                      ) : (
+                        paginatedUsers.map((user) => (
+                          <TableRow key={user.id} hover>
+                            <TableCell>
+                              <Stack direction="row" spacing={1.5} alignItems="center">
+                                <Avatar src={user.avatarUrl || undefined} sx={{ width: 36, height: 36 }}>
+                                  {user.fullName.charAt(0).toUpperCase()}
+                                </Avatar>
+                                <Typography variant="body2">{user.fullName}</Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" sx={{ maxWidth: 200 }} noWrap>
+                                {user.email}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={getRoleLabel(user.role)}
+                                color={getRoleBadgeColor(user.role) as any}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              {user.department ? user.department.name : '-'}
+                            </TableCell>
+                            <TableCell>
+                              <UserStatusChip isActive={user.isActive} />
+                            </TableCell>
+                            <TableCell>
+                              {user.lastLogin
+                                ? new Date(user.lastLogin).toLocaleDateString('ro-RO')
+                                : 'Niciodată'}
+                            </TableCell>
+                            <TableCell align="right">
+                              {isAdmin && (
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => handleMenuOpen(e, user)}
+                                >
+                                  <MoreVertIcon />
+                                </IconButton>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
 
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, 50]}
@@ -419,7 +480,24 @@ const UsersPage: React.FC = () => {
             </>
           )}
         </Paper>
-      </Container>
+      )}
+
+      {/* Pagination for both views */}
+      {isMobile && users && users.length > 0 && (
+        <Paper sx={{ mt: 2 }}>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={users?.length || 0}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Pe pagină:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} din ${count}`}
+          />
+        </Paper>
+      )}
 
       {/* Actions Menu */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>

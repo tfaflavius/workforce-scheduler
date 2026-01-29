@@ -26,14 +26,14 @@ import {
   Card,
   CardContent,
   Grid,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Visibility as ViewIcon,
   Check as ApproveIcon,
   Close as RejectIcon,
   CalendarMonth as CalendarIcon,
-  Person as PersonIcon,
-  AccessTime as TimeIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import {
@@ -44,6 +44,8 @@ import {
 import type { WorkSchedule } from '../../types/schedule.types';
 
 const PendingSchedulesPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
 
   const { data: pendingSchedules, isLoading, refetch } = useGetSchedulesQuery({
@@ -106,45 +108,72 @@ const PendingSchedulesPage = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
+      <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          gutterBottom
+          sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' } }}
+        >
           Aprobări Programe
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
           Revizuiește și aprobă programele trimise de manageri
         </Typography>
       </Box>
 
       {/* Alerts */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3 } }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+        <Alert severity="success" sx={{ mb: { xs: 2, sm: 3 } }} onClose={() => setSuccess(null)}>
           {success}
         </Alert>
       )}
 
       {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <Card>
-            <CardContent>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar sx={{ bgcolor: 'warning.light', width: 56, height: 56 }}>
-                  <CalendarIcon sx={{ color: 'warning.dark' }} />
-                </Avatar>
-                <Box>
-                  <Typography variant="h3" fontWeight="bold" color="warning.main">
+            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    sx={{ fontWeight: 500, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+                  >
+                    În așteptare
+                  </Typography>
+                  <Typography
+                    variant="h3"
+                    fontWeight="bold"
+                    color="warning.main"
+                    sx={{ fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' }, my: 0.5 }}
+                  >
                     {pendingSchedules?.length || 0}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Programe în așteptare
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                    Programe
                   </Typography>
+                </Box>
+                <Box
+                  sx={{
+                    p: { xs: 1.5, sm: 2 },
+                    borderRadius: { xs: 2, sm: 3 },
+                    bgcolor: 'warning.lighter',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <CalendarIcon sx={{ color: 'warning.dark', fontSize: { xs: 28, sm: 32 } }} />
                 </Box>
               </Stack>
             </CardContent>
@@ -152,140 +181,216 @@ const PendingSchedulesPage = () => {
         </Grid>
       </Grid>
 
-      {/* Pending Schedules Table */}
+      {/* Pending Schedules - Mobile Card View / Desktop Table View */}
       {pendingSchedules && pendingSchedules.length > 0 ? (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ bgcolor: 'grey.50' }}>
-                <TableCell sx={{ fontWeight: 600 }}>Program</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Lună/An</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Creat de</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Departament</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Data trimiterii</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Validare</TableCell>
-                <TableCell sx={{ fontWeight: 600 }} align="center">
-                  Acțiuni
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {pendingSchedules.map((schedule: WorkSchedule) => (
-                <TableRow
-                  key={schedule.id}
-                  hover
-                  sx={{
-                    '&:hover': { bgcolor: 'action.hover' },
-                    cursor: 'pointer',
-                  }}
-                >
-                  <TableCell onClick={() => navigate(`/schedules/${schedule.id}`)}>
+        isMobile ? (
+          // Mobile Card View
+          <Stack spacing={2}>
+            {pendingSchedules.map((schedule: WorkSchedule) => (
+              <Card key={schedule.id}>
+                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                  <Stack spacing={2}>
+                    {/* Header */}
                     <Stack direction="row" alignItems="center" spacing={2}>
-                      <Avatar sx={{ bgcolor: 'warning.light' }}>
-                        <CalendarIcon sx={{ color: 'warning.dark' }} />
+                      <Avatar sx={{ bgcolor: 'warning.light', width: 40, height: 40 }}>
+                        <CalendarIcon sx={{ color: 'warning.dark', fontSize: 20 }} />
                       </Avatar>
-                      <Box>
-                        <Typography variant="subtitle2" fontWeight="medium">
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="subtitle2" fontWeight="medium" noWrap>
                           {schedule.name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {schedule.assignments?.length || 0} alocări
+                          {schedule.month}/{schedule.year} • {schedule.assignments?.length || 0} alocări
                         </Typography>
                       </Box>
+                      {schedule.laborLawValidation?.isValid === false ? (
+                        <Chip icon={<WarningIcon />} label="!" size="small" color="error" />
+                      ) : (
+                        <Chip label="✓" size="small" color="success" />
+                      )}
                     </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={`${schedule.month}/${schedule.year}`}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <PersonIcon fontSize="small" color="action" />
-                      <Box>
-                        <Typography variant="body2">
-                          {schedule.creator?.fullName || 'N/A'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {schedule.creator?.email}
-                        </Typography>
-                      </Box>
+
+                    {/* Details */}
+                    <Box sx={{ pl: 1 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Creat de: {schedule.creator?.fullName || 'N/A'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Departament: {schedule.department?.name || 'General'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Trimis: {new Date(schedule.updatedAt).toLocaleDateString('ro-RO')}
+                      </Typography>
+                    </Box>
+
+                    {/* Actions - Full width buttons */}
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        fullWidth
+                        onClick={() => navigate(`/schedules/${schedule.id}`)}
+                        startIcon={<ViewIcon />}
+                        sx={{ flex: 1 }}
+                      >
+                        Detalii
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        fullWidth
+                        onClick={() => handleApprove(schedule)}
+                        disabled={approving}
+                        startIcon={<ApproveIcon />}
+                        sx={{ flex: 1 }}
+                      >
+                        Aprobă
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        fullWidth
+                        onClick={() => openRejectDialog(schedule)}
+                        disabled={rejecting}
+                        startIcon={<RejectIcon />}
+                        sx={{ flex: 1 }}
+                      >
+                        Respinge
+                      </Button>
                     </Stack>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        ) : (
+          // Desktop Table View
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 600 }}>Program</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Lună/An</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Creat de</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Departament</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Data trimiterii</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>Validare</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }} align="center">
+                    Acțiuni
                   </TableCell>
-                  <TableCell>
-                    {schedule.department?.name || 'General'}
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <TimeIcon fontSize="small" color="action" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pendingSchedules.map((schedule: WorkSchedule) => (
+                  <TableRow
+                    key={schedule.id}
+                    hover
+                    sx={{
+                      '&:hover': { bgcolor: 'action.hover' },
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <TableCell onClick={() => navigate(`/schedules/${schedule.id}`)}>
+                      <Stack direction="row" alignItems="center" spacing={2}>
+                        <Avatar sx={{ bgcolor: 'warning.light', width: 36, height: 36 }}>
+                          <CalendarIcon sx={{ color: 'warning.dark', fontSize: 18 }} />
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {schedule.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {schedule.assignments?.length || 0} alocări
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={`${schedule.month}/${schedule.year}`}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {schedule.creator?.fullName || 'N/A'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {schedule.department?.name || 'General'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
                       <Typography variant="body2">
                         {new Date(schedule.updatedAt).toLocaleDateString('ro-RO')}
                       </Typography>
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    {schedule.laborLawValidation?.isValid === false ? (
-                      <Tooltip title="Există încălcări ale legislației muncii">
-                        <Chip
-                          icon={<WarningIcon />}
-                          label="Probleme"
-                          size="small"
-                          color="error"
-                        />
-                      </Tooltip>
-                    ) : (
-                      <Chip label="Valid" size="small" color="success" />
-                    )}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Stack direction="row" spacing={1} justifyContent="center">
-                      <Tooltip title="Vezi detalii">
-                        <IconButton
-                          size="small"
-                          onClick={() => navigate(`/schedules/${schedule.id}`)}
-                        >
-                          <ViewIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Aprobă">
-                        <IconButton
-                          size="small"
-                          color="success"
-                          onClick={() => handleApprove(schedule)}
-                          disabled={approving}
-                        >
-                          <ApproveIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Respinge">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => openRejectDialog(schedule)}
-                          disabled={rejecting}
-                        >
-                          <RejectIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                    </TableCell>
+                    <TableCell>
+                      {schedule.laborLawValidation?.isValid === false ? (
+                        <Tooltip title="Există încălcări ale legislației muncii">
+                          <Chip
+                            icon={<WarningIcon />}
+                            label="Probleme"
+                            size="small"
+                            color="error"
+                          />
+                        </Tooltip>
+                      ) : (
+                        <Chip label="Valid" size="small" color="success" />
+                      )}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Stack direction="row" spacing={0.5} justifyContent="center">
+                        <Tooltip title="Vezi detalii">
+                          <IconButton
+                            size="small"
+                            onClick={() => navigate(`/schedules/${schedule.id}`)}
+                          >
+                            <ViewIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Aprobă">
+                          <IconButton
+                            size="small"
+                            color="success"
+                            onClick={() => handleApprove(schedule)}
+                            disabled={approving}
+                          >
+                            <ApproveIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Respinge">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => openRejectDialog(schedule)}
+                            disabled={rejecting}
+                          >
+                            <RejectIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )
       ) : (
-        <Paper sx={{ p: 6, textAlign: 'center' }}>
-          <CalendarIcon sx={{ fontSize: 64, color: 'success.main', mb: 2 }} />
-          <Typography variant="h6" gutterBottom>
+        <Paper sx={{ p: { xs: 4, sm: 6 }, textAlign: 'center' }}>
+          <CalendarIcon sx={{ fontSize: { xs: 48, sm: 64 }, color: 'success.main', mb: 2 }} />
+          <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Nu există programe în așteptare
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Toate programele au fost procesate. Revino mai târziu.
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+            Toate programele au fost procesate.
           </Typography>
-          <Button variant="outlined" onClick={() => navigate('/schedules')}>
+          <Button variant="outlined" onClick={() => navigate('/schedules')} size={isMobile ? 'small' : 'medium'}>
             Vezi Toate Programele
           </Button>
         </Paper>

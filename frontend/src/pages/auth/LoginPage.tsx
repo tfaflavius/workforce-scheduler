@@ -6,7 +6,6 @@ import {
   Button,
   Typography,
   Alert,
-  Container,
   CircularProgress,
   InputAdornment,
   IconButton,
@@ -14,6 +13,9 @@ import {
   Tabs,
   Tab,
   Collapse,
+  Paper,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Visibility,
@@ -29,7 +31,10 @@ import { setCredentials } from '../../store/slices/auth.slice';
 import { supabase } from '../../lib/supabase';
 
 export const LoginPage = () => {
-  const [activeTab, setActiveTab] = useState(0); // 0 = Login, 1 = Register
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const [activeTab, setActiveTab] = useState(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -133,10 +138,7 @@ export const LoginPage = () => {
         throw new Error(data.message || 'Înregistrarea a eșuat');
       }
 
-      // Show success message - don't auto-login (requires admin approval)
       setSuccess(data.message || 'Cont creat cu succes! Un administrator va aproba contul tău în curând.');
-
-      // Reset form
       resetForm();
 
     } catch (err: any) {
@@ -155,387 +157,436 @@ export const LoginPage = () => {
     <Box
       sx={{
         minHeight: '100vh',
+        width: '100%',
         display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        overflow: 'auto',
       }}
     >
-      {/* Left Side - Branding (hidden on mobile) */}
+      {/* Main Container - Full width on all screens */}
       <Box
         sx={{
-          flex: 1,
-          minWidth: 0,
-          display: { xs: 'none', md: 'flex' },
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          p: 6,
-          color: 'white',
-        }}
-      >
-        <Box sx={{ textAlign: 'center', maxWidth: 500 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 2,
-              mb: 4,
-            }}
-          >
-            <CalendarIcon sx={{ fontSize: 64 }} />
-            <Typography variant="h2" fontWeight="bold">
-              WorkSchedule
-            </Typography>
-          </Box>
-
-          <Typography variant="h5" sx={{ mb: 3, opacity: 0.9 }}>
-            Sistem de Gestiune a Programului de Lucru
-          </Typography>
-
-          <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.8 }}>
-            Platforma completă pentru gestionarea programelor de lucru.
-            Managerii creează programe, administratorii le aprobă, iar
-            angajații își pot vizualiza programul zilnic și lunar.
-          </Typography>
-
-          <Box sx={{ mt: 6 }}>
-            <Stack direction="row" spacing={4} justifyContent="center">
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h3" fontWeight="bold">100+</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Angajați</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h3" fontWeight="bold">50+</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Programe/Lună</Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h3" fontWeight="bold">99%</Typography>
-                <Typography variant="body2" sx={{ opacity: 0.8 }}>Satisfacție</Typography>
-              </Box>
-            </Stack>
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Right Side - Auth Forms */}
-      <Box
-        sx={{
-          width: { xs: '100%', md: 480 },
-          minWidth: { xs: '100%', md: 480 },
-          flexShrink: 0,
-          minHeight: { xs: '100vh', md: '100vh' },
+          width: '100%',
+          minHeight: '100vh',
           display: 'flex',
-          flexDirection: 'column',
-          bgcolor: 'white',
-          p: { xs: 3, sm: 4 },
-          overflowY: 'auto',
+          flexDirection: { xs: 'column', lg: 'row' },
+          alignItems: 'stretch',
         }}
       >
-        <Container maxWidth="sm" sx={{ my: 'auto', py: 2 }}>
-          {/* Mobile Logo */}
-          <Box
-            sx={{
-              display: { xs: 'flex', md: 'none' },
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1,
-              mb: 3,
-            }}
-          >
-            <CalendarIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-            <Typography variant="h5" fontWeight="bold" color="primary">
-              WorkSchedule
-            </Typography>
-          </Box>
-
-          {/* Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-            <Tabs
-              value={activeTab}
-              onChange={handleTabChange}
-              variant="fullWidth"
+        {/* Left Side - Branding */}
+        <Box
+          sx={{
+            flex: { xs: 'none', lg: 1 },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: { xs: 3, sm: 4, md: 6 },
+            color: 'white',
+            minHeight: { xs: 'auto', lg: '100vh' },
+          }}
+        >
+          <Box sx={{ textAlign: 'center', maxWidth: 600, width: '100%' }}>
+            {/* Logo */}
+            <Box
               sx={{
-                '& .MuiTab-root': {
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: { xs: 1, sm: 2 },
+                mb: { xs: 2, sm: 4 },
               }}
             >
-              <Tab label="Autentificare" />
-              <Tab label="Înregistrare" />
-            </Tabs>
+              <CalendarIcon sx={{ fontSize: { xs: 40, sm: 56, md: 64 } }} />
+              <Typography
+                variant="h2"
+                fontWeight="bold"
+                sx={{
+                  fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem', lg: '3.5rem' }
+                }}
+              >
+                WorkSchedule
+              </Typography>
+            </Box>
+
+            <Typography
+              variant="h5"
+              sx={{
+                mb: { xs: 2, sm: 3 },
+                opacity: 0.9,
+                fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+                display: { xs: 'none', sm: 'block' },
+              }}
+            >
+              Sistem de Gestiune a Programului de Lucru
+            </Typography>
+
+            <Typography
+              variant="body1"
+              sx={{
+                opacity: 0.8,
+                lineHeight: 1.8,
+                display: { xs: 'none', md: 'block' },
+                fontSize: { md: '1rem', lg: '1.1rem' },
+              }}
+            >
+              Platforma completă pentru gestionarea programelor de lucru.
+              Managerii creează programe, administratorii le aprobă, iar
+              angajații își pot vizualiza programul zilnic și lunar.
+            </Typography>
+
+            {/* Stats - Hidden on mobile */}
+            <Box sx={{ mt: { sm: 4, md: 6 }, display: { xs: 'none', sm: 'block' } }}>
+              <Stack
+                direction="row"
+                spacing={{ sm: 2, md: 4 }}
+                justifyContent="center"
+                flexWrap="wrap"
+              >
+                <Box sx={{ textAlign: 'center', p: 1 }}>
+                  <Typography variant="h3" fontWeight="bold" sx={{ fontSize: { sm: '2rem', md: '2.5rem', lg: '3rem' } }}>
+                    100+
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Angajați</Typography>
+                </Box>
+                <Box sx={{ textAlign: 'center', p: 1 }}>
+                  <Typography variant="h3" fontWeight="bold" sx={{ fontSize: { sm: '2rem', md: '2.5rem', lg: '3rem' } }}>
+                    50+
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Programe/Lună</Typography>
+                </Box>
+                <Box sx={{ textAlign: 'center', p: 1 }}>
+                  <Typography variant="h3" fontWeight="bold" sx={{ fontSize: { sm: '2rem', md: '2.5rem', lg: '3rem' } }}>
+                    99%
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Satisfacție</Typography>
+                </Box>
+              </Stack>
+            </Box>
           </Box>
+        </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
-
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </Alert>
-          )}
-
-          {/* Login Form */}
-          <Collapse in={activeTab === 0}>
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
-              Bine ai venit!
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Autentifică-te pentru a accesa platforma
-            </Typography>
-
-            <form onSubmit={handleLogin}>
-              <TextField
-                fullWidth
-                label="Adresa de Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="email"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 1 }}
-              />
-
-              <TextField
-                fullWidth
-                label="Parolă"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="current-password"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 3 }}
-              />
-
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                size="large"
-                disabled={isLoading}
+        {/* Right Side - Auth Forms */}
+        <Box
+          sx={{
+            flex: { xs: 1, lg: 'none' },
+            width: { xs: '100%', lg: '50%', xl: '40%' },
+            maxWidth: { lg: 600 },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            p: { xs: 2, sm: 3, md: 4 },
+          }}
+        >
+          <Paper
+            elevation={isMobile ? 0 : 8}
+            sx={{
+              width: '100%',
+              maxWidth: { xs: '100%', sm: 480 },
+              p: { xs: 3, sm: 4 },
+              borderRadius: { xs: 2, sm: 3 },
+              bgcolor: 'white',
+            }}
+          >
+            {/* Tabs */}
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                variant="fullWidth"
                 sx={{
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%)',
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    minHeight: 48,
                   },
                 }}
               >
-                {isLoading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  'Autentificare'
-                )}
-              </Button>
-            </form>
-
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Nu ai cont?{' '}
-                <Typography
-                  component="span"
-                  variant="body2"
-                  color="primary"
-                  sx={{ cursor: 'pointer', fontWeight: 500 }}
-                  onClick={() => setActiveTab(1)}
-                >
-                  Înregistrează-te
-                </Typography>
-              </Typography>
+                <Tab label="Autentificare" />
+                <Tab label="Înregistrare" />
+              </Tabs>
             </Box>
-          </Collapse>
 
-          {/* Register Form */}
-          <Collapse in={activeTab === 1}>
-            <Typography variant="h5" fontWeight="bold" gutterBottom>
-              Creează un cont
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Completează datele pentru a te înregistra
-            </Typography>
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
 
-            <form onSubmit={handleRegister}>
-              <TextField
-                fullWidth
-                label="Nume complet"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="name"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 1 }}
-              />
+            {success && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {success}
+              </Alert>
+            )}
 
-              <TextField
-                fullWidth
-                label="Adresa de Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="email"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 1 }}
-              />
-
-              <TextField
-                fullWidth
-                label="Telefon (opțional)"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                margin="normal"
-                autoComplete="tel"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PhoneIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 1 }}
-              />
-
-              <TextField
-                fullWidth
-                label="Parolă"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="new-password"
-                helperText="Minim 6 caractere"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 1 }}
-              />
-
-              <TextField
-                fullWidth
-                label="Confirmă parola"
-                type={showPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                margin="normal"
-                required
-                autoComplete="new-password"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 2 }}
-              />
-
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                size="large"
-                disabled={isLoading || !!success}
-                sx={{
-                  py: 1.5,
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%)',
-                  },
-                }}
-              >
-                {isLoading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  'Creează cont'
-                )}
-              </Button>
-            </form>
-
-            <Box sx={{ mt: 3, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Ai deja un cont?{' '}
-                <Typography
-                  component="span"
-                  variant="body2"
-                  color="primary"
-                  sx={{ cursor: 'pointer', fontWeight: 500 }}
-                  onClick={() => setActiveTab(0)}
-                >
-                  Autentifică-te
-                </Typography>
+            {/* Login Form */}
+            <Collapse in={activeTab === 0}>
+              <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                Bine ai venit!
               </Typography>
-            </Box>
-          </Collapse>
-        </Container>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Autentifică-te pentru a accesa platforma
+              </Typography>
+
+              <form onSubmit={handleLogin}>
+                <TextField
+                  fullWidth
+                  label="Adresa de Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  margin="normal"
+                  required
+                  autoComplete="email"
+                  size={isMobile ? 'small' : 'medium'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 1 }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Parolă"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  margin="normal"
+                  required
+                  autoComplete="current-password"
+                  size={isMobile ? 'small' : 'medium'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          size={isMobile ? 'small' : 'medium'}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 3 }}
+                />
+
+                <Button
+                  fullWidth
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isLoading}
+                  sx={{
+                    py: { xs: 1.25, sm: 1.5 },
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%)',
+                    },
+                  }}
+                >
+                  {isLoading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Autentificare'
+                  )}
+                </Button>
+              </form>
+
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Nu ai cont?{' '}
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="primary"
+                    sx={{ cursor: 'pointer', fontWeight: 500 }}
+                    onClick={() => setActiveTab(1)}
+                  >
+                    Înregistrează-te
+                  </Typography>
+                </Typography>
+              </Box>
+            </Collapse>
+
+            {/* Register Form */}
+            <Collapse in={activeTab === 1}>
+              <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+                Creează un cont
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Completează datele pentru a te înregistra
+              </Typography>
+
+              <form onSubmit={handleRegister}>
+                <TextField
+                  fullWidth
+                  label="Nume complet"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  margin="normal"
+                  required
+                  autoComplete="name"
+                  size={isMobile ? 'small' : 'medium'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 1 }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Adresa de Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  margin="normal"
+                  required
+                  autoComplete="email"
+                  size={isMobile ? 'small' : 'medium'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 1 }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Telefon (opțional)"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  margin="normal"
+                  autoComplete="tel"
+                  size={isMobile ? 'small' : 'medium'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PhoneIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 1 }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Parolă"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  margin="normal"
+                  required
+                  autoComplete="new-password"
+                  helperText="Minim 6 caractere"
+                  size={isMobile ? 'small' : 'medium'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          size={isMobile ? 'small' : 'medium'}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 1 }}
+                />
+
+                <TextField
+                  fullWidth
+                  label="Confirmă parola"
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  margin="normal"
+                  required
+                  autoComplete="new-password"
+                  size={isMobile ? 'small' : 'medium'}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 2 }}
+                />
+
+                <Button
+                  fullWidth
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isLoading || !!success}
+                  sx={{
+                    py: { xs: 1.25, sm: 1.5 },
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%)',
+                    },
+                  }}
+                >
+                  {isLoading ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    'Creează cont'
+                  )}
+                </Button>
+              </form>
+
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Ai deja un cont?{' '}
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    color="primary"
+                    sx={{ cursor: 'pointer', fontWeight: 500 }}
+                    onClick={() => setActiveTab(0)}
+                  >
+                    Autentifică-te
+                  </Typography>
+                </Typography>
+              </Box>
+            </Collapse>
+          </Paper>
+        </Box>
       </Box>
     </Box>
   );
