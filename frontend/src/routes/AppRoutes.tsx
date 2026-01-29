@@ -5,6 +5,7 @@ import SchedulesPage from '../pages/schedules/SchedulesPage';
 import CreateSchedulePage from '../pages/schedules/CreateSchedulePage';
 import EditSchedulePage from '../pages/schedules/EditSchedulePage';
 import PendingSchedulesPage from '../pages/schedules/PendingSchedulesPage';
+import RejectedSchedulesPage from '../pages/schedules/RejectedSchedulesPage';
 import MySchedulePage from '../pages/schedules/MySchedulePage';
 import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
@@ -65,6 +66,15 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
               <PendingSchedulesPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/schedules/rejected"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <RejectedSchedulesPage />
             </ProtectedRoute>
           }
         />

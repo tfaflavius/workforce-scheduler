@@ -14,6 +14,7 @@ import {
   People as PeopleIcon,
   CalendarMonth as CalendarIcon,
   Add as AddIcon,
+  Cancel as RejectedIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -91,9 +92,10 @@ const AdminDashboard = () => {
 
   const { data: pendingSchedules, isLoading: pendingLoading } = useGetSchedulesQuery({ status: 'PENDING_APPROVAL' });
   const { data: approvedSchedules, isLoading: approvedLoading } = useGetSchedulesQuery({ status: 'APPROVED' });
+  const { data: rejectedSchedules, isLoading: rejectedLoading } = useGetSchedulesQuery({ status: 'REJECTED' });
   const { data: users, isLoading: usersLoading } = useGetUsersQuery({});
 
-  if (pendingLoading || approvedLoading || usersLoading) {
+  if (pendingLoading || approvedLoading || rejectedLoading || usersLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
         <CircularProgress />
@@ -120,7 +122,7 @@ const AdminDashboard = () => {
       </Box>
 
       <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Programe in Asteptare"
             value={pendingSchedules?.length || 0}
@@ -131,7 +133,7 @@ const AdminDashboard = () => {
             onClick={() => navigate('/schedules/pending')}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Programe Aprobate"
             value={approvedSchedules?.length || 0}
@@ -142,7 +144,18 @@ const AdminDashboard = () => {
             onClick={() => navigate('/schedules')}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <StatCard
+            title="Programe Respinse"
+            value={rejectedSchedules?.length || 0}
+            subtitle="Necesita revizuire"
+            icon={<RejectedIcon sx={{ fontSize: 32, color: '#d32f2f' }} />}
+            color="#d32f2f"
+            bgColor="#ffebee"
+            onClick={() => navigate('/schedules/rejected')}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Utilizatori Activi"
             value={activeUsers}
@@ -156,7 +169,7 @@ const AdminDashboard = () => {
       </Grid>
 
       <Grid container spacing={{ xs: 1.5, sm: 2 }}>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Button
             fullWidth
             variant="contained"
@@ -172,11 +185,12 @@ const AdminDashboard = () => {
             Program Nou
           </Button>
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Button
             fullWidth
             variant="outlined"
             size="large"
+            color="warning"
             startIcon={<PendingIcon />}
             onClick={() => navigate('/schedules/pending')}
             sx={{
@@ -185,10 +199,27 @@ const AdminDashboard = () => {
               fontSize: '0.85rem',
             }}
           >
-            Aprobări
+            Aprobări ({pendingSchedules?.length || 0})
           </Button>
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Button
+            fullWidth
+            variant="outlined"
+            size="large"
+            color="error"
+            startIcon={<RejectedIcon />}
+            onClick={() => navigate('/schedules/rejected')}
+            sx={{
+              py: 1.5,
+              minHeight: 56,
+              fontSize: '0.85rem',
+            }}
+          >
+            Respinse ({rejectedSchedules?.length || 0})
+          </Button>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Button
             fullWidth
             variant="outlined"
