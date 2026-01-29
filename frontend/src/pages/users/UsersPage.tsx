@@ -32,6 +32,7 @@ import {
   useTheme,
   Card,
   CardContent,
+  Collapse,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -44,6 +45,8 @@ import {
   Block as InactiveIcon,
   FilterList as FilterIcon,
   HourglassEmpty as PendingIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import {
   useGetUsersQuery,
@@ -70,6 +73,7 @@ const UsersPage: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -96,12 +100,10 @@ const UsersPage: React.FC = () => {
 
   const { data: allUsers, isLoading, error } = useGetUsersQuery(filters);
 
-  // Filter for pending users (not active and email verified or waiting for email)
   const users = statusFilter === 'pending'
     ? allUsers?.filter(u => !u.isActive)
     : allUsers;
 
-  // Count pending users for badge
   const pendingUsersCount = allUsers?.filter(u => !u.isActive).length || 0;
   const { data: departments } = useGetDepartmentsQuery();
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
@@ -201,7 +203,7 @@ const UsersPage: React.FC = () => {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return 'Administrator';
+        return 'Admin';
       case 'MANAGER':
         return 'Manager';
       case 'ANGAJAT':
@@ -218,101 +220,217 @@ const UsersPage: React.FC = () => {
     : [];
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+    <Box sx={{
+      width: '100%',
+      maxWidth: 1400,
+      mx: 'auto',
+      px: { xs: 0, sm: 0 },
+      overflow: 'hidden'
+    }}>
       {/* Header */}
-      <Box sx={{ mb: { xs: 2, sm: 3 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2 }}>
-        <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-          Gestionare Utilizatori
+      <Box sx={{
+        mb: 3,
+        px: { xs: 2, sm: 0 }
+      }}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          sx={{
+            fontSize: { xs: '1.25rem', sm: '1.5rem' },
+            mb: 2
+          }}
+        >
+          Utilizatori
         </Typography>
         {isAdmin && (
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setCreateDialogOpen(true)}
-            sx={{ alignSelf: { xs: 'stretch', sm: 'auto' } }}
+            fullWidth={isMobile}
+            size={isMobile ? "large" : "medium"}
+            sx={{ py: isMobile ? 1.5 : 1 }}
           >
             Adaugă Utilizator
           </Button>
         )}
       </Box>
 
-      {/* Filters */}
-      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-          <FilterIcon color="action" fontSize="small" />
-          <Typography variant="subtitle1" fontWeight="medium">Filtre</Typography>
-        </Stack>
+      {/* Filters - Collapsible on mobile */}
+      <Box sx={{ px: { xs: 2, sm: 0 }, mb: 2 }}>
+        {isMobile ? (
+          <Card>
+            <CardContent sx={{ p: 0 }}>
+              {/* Search always visible */}
+              <Box sx={{ p: 2, pb: 1 }}>
+                <TextField
+                  placeholder="Caută utilizator..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  size="small"
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
 
-        <Stack direction="column" spacing={2}>
-          <TextField
-            placeholder="Caută după nume sau email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            size="small"
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
-              <InputLabel>Rol</InputLabel>
-              <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} label="Rol">
-                <MenuItem value="">Toate</MenuItem>
-                <MenuItem value="ADMIN">Admin</MenuItem>
-                <MenuItem value="MANAGER">Manager</MenuItem>
-                <MenuItem value="ANGAJAT">Angajat</MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
-              <InputLabel>Departament</InputLabel>
-              <Select
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
-                label="Departament"
+              {/* Toggle filters button */}
+              <Button
+                fullWidth
+                onClick={() => setFiltersExpanded(!filtersExpanded)}
+                endIcon={filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                sx={{
+                  justifyContent: 'space-between',
+                  px: 2,
+                  py: 1,
+                  color: 'text.secondary',
+                  borderTop: '1px solid',
+                  borderColor: 'divider'
+                }}
               >
-                <MenuItem value="">Toate</MenuItem>
-                {departments?.map((dept) => (
-                  <MenuItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <FilterIcon fontSize="small" />
+                  <span>Filtre</span>
+                </Stack>
+              </Button>
 
-            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                label="Status"
-              >
-                <MenuItem value="">Toate</MenuItem>
-                <MenuItem value="pending">În așteptare</MenuItem>
-                <MenuItem value="active">Activ</MenuItem>
-                <MenuItem value="inactive">Inactiv</MenuItem>
-              </Select>
-            </FormControl>
-          </Stack>
-        </Stack>
-      </Paper>
+              {/* Collapsible filters */}
+              <Collapse in={filtersExpanded}>
+                <Stack spacing={2} sx={{ p: 2, pt: 1 }}>
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Rol</InputLabel>
+                    <Select
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      label="Rol"
+                    >
+                      <MenuItem value="">Toate</MenuItem>
+                      <MenuItem value="ADMIN">Admin</MenuItem>
+                      <MenuItem value="MANAGER">Manager</MenuItem>
+                      <MenuItem value="ANGAJAT">Angajat</MenuItem>
+                    </Select>
+                  </FormControl>
 
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Departament</InputLabel>
+                    <Select
+                      value={departmentFilter}
+                      onChange={(e) => setDepartmentFilter(e.target.value)}
+                      label="Departament"
+                    >
+                      <MenuItem value="">Toate</MenuItem>
+                      {departments?.map((dept) => (
+                        <MenuItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      label="Status"
+                    >
+                      <MenuItem value="">Toate</MenuItem>
+                      <MenuItem value="pending">În așteptare</MenuItem>
+                      <MenuItem value="active">Activ</MenuItem>
+                      <MenuItem value="inactive">Inactiv</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Collapse>
+            </CardContent>
+          </Card>
+        ) : (
+          // Desktop filters
+          <Paper sx={{ p: 3 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              <FilterIcon color="action" fontSize="small" />
+              <Typography variant="subtitle1" fontWeight="medium">Filtre</Typography>
+            </Stack>
+
+            <Stack direction="column" spacing={2}>
+              <TextField
+                placeholder="Caută după nume sau email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                size="small"
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <Stack direction="row" spacing={2}>
+                <FormControl size="small" sx={{ minWidth: 140 }}>
+                  <InputLabel>Rol</InputLabel>
+                  <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} label="Rol">
+                    <MenuItem value="">Toate</MenuItem>
+                    <MenuItem value="ADMIN">Admin</MenuItem>
+                    <MenuItem value="MANAGER">Manager</MenuItem>
+                    <MenuItem value="ANGAJAT">Angajat</MenuItem>
+                  </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                  <InputLabel>Departament</InputLabel>
+                  <Select
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    label="Departament"
+                  >
+                    <MenuItem value="">Toate</MenuItem>
+                    {departments?.map((dept) => (
+                      <MenuItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl size="small" sx={{ minWidth: 160 }}>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    label="Status"
+                  >
+                    <MenuItem value="">Toate</MenuItem>
+                    <MenuItem value="pending">În așteptare</MenuItem>
+                    <MenuItem value="active">Activ</MenuItem>
+                    <MenuItem value="inactive">Inactiv</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
+            </Stack>
+          </Paper>
+        )}
+      </Box>
+
+      {/* Alerts */}
+      <Box sx={{ px: { xs: 2, sm: 0 } }}>
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            A apărut o eroare la încărcarea utilizatorilor
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Eroare la încărcarea utilizatorilor
           </Alert>
         )}
 
         {pendingUsersCount > 0 && statusFilter !== 'pending' && (
           <Alert
             severity="info"
-            sx={{ mb: 3 }}
+            sx={{ mb: 2 }}
             icon={<PendingIcon />}
             action={
               <Button
@@ -327,144 +445,226 @@ const UsersPage: React.FC = () => {
             <strong>{pendingUsersCount}</strong> {pendingUsersCount === 1 ? 'cont așteaptă' : 'conturi așteaptă'} aprobare
           </Alert>
         )}
+      </Box>
 
-        {/* Mobile: Card view, Desktop: Table view */}
-        {isMobile ? (
-          // Mobile Card View
-          <Box>
-            {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : paginatedUsers.length === 0 ? (
-              <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
+      {/* Users List */}
+      {isMobile ? (
+        // Mobile Card View
+        <Box sx={{ px: 2 }}>
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : paginatedUsers.length === 0 ? (
+            <Card>
+              <CardContent sx={{ py: 6, textAlign: 'center' }}>
+                <Typography variant="body1" color="text.secondary">
                   Nu s-au găsit utilizatori
                 </Typography>
-              </Paper>
-            ) : (
-              <Stack spacing={2}>
-                {paginatedUsers.map((user) => (
-                  <Card key={user.id}>
-                    <CardContent sx={{ p: 2 }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                        <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
-                          <Avatar src={user.avatarUrl || undefined} sx={{ width: 48, height: 48 }}>
-                            {user.fullName.charAt(0).toUpperCase()}
-                          </Avatar>
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography variant="subtitle2" fontWeight="medium" noWrap>
-                              {user.fullName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+              </CardContent>
+            </Card>
+          ) : (
+            <Stack spacing={2}>
+              {paginatedUsers.map((user) => (
+                <Card key={user.id}>
+                  <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                      <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+                        <Avatar
+                          src={user.avatarUrl || undefined}
+                          sx={{
+                            width: 50,
+                            height: 50,
+                            bgcolor: 'primary.main',
+                            fontSize: '1.25rem'
+                          }}
+                        >
+                          {user.fullName.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Typography
+                            variant="subtitle1"
+                            fontWeight="bold"
+                            sx={{
+                              fontSize: '1rem',
+                              lineHeight: 1.3,
+                              mb: 0.25
+                            }}
+                          >
+                            {user.fullName}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              fontSize: '0.85rem',
+                              wordBreak: 'break-all',
+                              mb: 1
+                            }}
+                          >
+                            {user.email}
+                          </Typography>
+                          <Stack direction="row" spacing={1} flexWrap="wrap" gap={0.5}>
+                            <Chip
+                              label={getRoleLabel(user.role)}
+                              color={getRoleBadgeColor(user.role) as any}
+                              size="small"
+                              sx={{ fontWeight: 500 }}
+                            />
+                            <UserStatusChip isActive={user.isActive} />
+                          </Stack>
+                        </Box>
+                      </Stack>
+                      {isAdmin && (
+                        <IconButton
+                          onClick={(e) => handleMenuOpen(e, user)}
+                          sx={{ ml: 1 }}
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                      )}
+                    </Stack>
+
+                    {/* Additional info */}
+                    {user.department && (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{
+                          display: 'block',
+                          mt: 1.5,
+                          pl: 8.5
+                        }}
+                      >
+                        Departament: {user.department.name}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          )}
+
+          {/* Mobile Pagination */}
+          {users && users.length > 0 && (
+            <Card sx={{ mt: 2 }}>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 1
+              }}>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={users?.length || 0}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  labelRowsPerPage=""
+                  labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count}`}
+                  sx={{
+                    '.MuiTablePagination-toolbar': {
+                      pl: 1,
+                      pr: 1,
+                    },
+                    '.MuiTablePagination-selectLabel': {
+                      display: 'none',
+                    },
+                    '.MuiTablePagination-select': {
+                      display: 'none',
+                    },
+                    '.MuiTablePagination-selectIcon': {
+                      display: 'none',
+                    },
+                  }}
+                />
+              </Box>
+            </Card>
+          )}
+        </Box>
+      ) : (
+        // Desktop Table View
+        <Paper>
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Utilizator</TableCell>
+                      <TableCell>Email</TableCell>
+                      <TableCell>Rol</TableCell>
+                      <TableCell>Departament</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Ultima Autentificare</TableCell>
+                      <TableCell align="right">Acțiuni</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {paginatedUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
+                            Nu s-au găsit utilizatori
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      paginatedUsers.map((user) => (
+                        <TableRow key={user.id} hover>
+                          <TableCell>
+                            <Stack direction="row" spacing={1.5} alignItems="center">
+                              <Avatar src={user.avatarUrl || undefined} sx={{ width: 36, height: 36 }}>
+                                {user.fullName.charAt(0).toUpperCase()}
+                              </Avatar>
+                              <Typography variant="body2">{user.fullName}</Typography>
+                            </Stack>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" sx={{ maxWidth: 200 }} noWrap>
                               {user.email}
                             </Typography>
-                            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                              <Chip
-                                label={getRoleLabel(user.role)}
-                                color={getRoleBadgeColor(user.role) as any}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={getRoleLabel(user.role)}
+                              color={getRoleBadgeColor(user.role) as any}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {user.department ? user.department.name : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <UserStatusChip isActive={user.isActive} />
+                          </TableCell>
+                          <TableCell>
+                            {user.lastLogin
+                              ? new Date(user.lastLogin).toLocaleDateString('ro-RO')
+                              : 'Niciodată'}
+                          </TableCell>
+                          <TableCell align="right">
+                            {isAdmin && (
+                              <IconButton
                                 size="small"
-                              />
-                              <UserStatusChip isActive={user.isActive} />
-                            </Stack>
-                          </Box>
-                        </Stack>
-                        {isAdmin && (
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleMenuOpen(e, user)}
-                          >
-                            <MoreVertIcon />
-                          </IconButton>
-                        )}
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Stack>
-            )}
-          </Box>
-        ) : (
-          // Desktop Table View
-          <Paper>
-            {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <>
-                <TableContainer sx={{ overflowX: 'auto' }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Utilizator</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Rol</TableCell>
-                        <TableCell>Departament</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell>Ultima Autentificare</TableCell>
-                        <TableCell align="right">Acțiuni</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {paginatedUsers.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7} align="center">
-                            <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
-                              Nu s-au găsit utilizatori
-                            </Typography>
+                                onClick={(e) => handleMenuOpen(e, user)}
+                              >
+                                <MoreVertIcon />
+                              </IconButton>
+                            )}
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        paginatedUsers.map((user) => (
-                          <TableRow key={user.id} hover>
-                            <TableCell>
-                              <Stack direction="row" spacing={1.5} alignItems="center">
-                                <Avatar src={user.avatarUrl || undefined} sx={{ width: 36, height: 36 }}>
-                                  {user.fullName.charAt(0).toUpperCase()}
-                                </Avatar>
-                                <Typography variant="body2">{user.fullName}</Typography>
-                              </Stack>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" sx={{ maxWidth: 200 }} noWrap>
-                                {user.email}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={getRoleLabel(user.role)}
-                                color={getRoleBadgeColor(user.role) as any}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              {user.department ? user.department.name : '-'}
-                            </TableCell>
-                            <TableCell>
-                              <UserStatusChip isActive={user.isActive} />
-                            </TableCell>
-                            <TableCell>
-                              {user.lastLogin
-                                ? new Date(user.lastLogin).toLocaleDateString('ro-RO')
-                                : 'Niciodată'}
-                            </TableCell>
-                            <TableCell align="right">
-                              {isAdmin && (
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => handleMenuOpen(e, user)}
-                                >
-                                  <MoreVertIcon />
-                                </IconButton>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, 50]}
@@ -479,23 +679,6 @@ const UsersPage: React.FC = () => {
               />
             </>
           )}
-        </Paper>
-      )}
-
-      {/* Pagination for both views */}
-      {isMobile && users && users.length > 0 && (
-        <Paper sx={{ mt: 2 }}>
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={users?.length || 0}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Pe pagină:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} din ${count}`}
-          />
         </Paper>
       )}
 
@@ -529,7 +712,13 @@ const UsersPage: React.FC = () => {
       </Menu>
 
       {/* Create User Dialog */}
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
         <DialogTitle>Adaugă Utilizator Nou</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
@@ -544,7 +733,13 @@ const UsersPage: React.FC = () => {
       </Dialog>
 
       {/* Edit User Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
         <DialogTitle>Editează Utilizator</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
