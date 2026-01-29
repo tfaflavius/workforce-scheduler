@@ -18,17 +18,23 @@ import {
   Tooltip,
   useTheme,
   useMediaQuery,
+  Divider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Avatar,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Save as SaveIcon,
-  Person as PersonIcon,
-  Schedule as ScheduleIcon,
-  CalendarMonth as CalendarIcon,
   Clear as ClearIcon,
+  Group as GroupIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useCreateScheduleMutation } from '../../store/api/schedulesApi';
+import { useCreateScheduleMutation, useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import type { ScheduleAssignmentDto } from '../../types/schedule.types';
 
@@ -38,6 +44,7 @@ type ShiftPatternType = '12H' | '8H';
 interface ShiftOption {
   id: string;
   label: string;
+  shortLabel: string;
   startTime: string;
   endTime: string;
   color: string;
@@ -47,18 +54,36 @@ interface ShiftOption {
 
 // Opțiuni pentru tura de 12 ore
 const SHIFT_OPTIONS_12H: ShiftOption[] = [
-  { id: 'day_12', label: 'Zi 07-19', startTime: '07:00', endTime: '19:00', color: '#4CAF50', isNightShift: false, isVacation: false },
-  { id: 'night_12', label: 'Noapte 19-07', startTime: '19:00', endTime: '07:00', color: '#3F51B5', isNightShift: true, isVacation: false },
-  { id: 'vacation_12', label: 'Concediu', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
+  { id: 'day_12', label: 'Zi 07-19', shortLabel: 'Z', startTime: '07:00', endTime: '19:00', color: '#4CAF50', isNightShift: false, isVacation: false },
+  { id: 'night_12', label: 'Noapte 19-07', shortLabel: 'N', startTime: '19:00', endTime: '07:00', color: '#3F51B5', isNightShift: true, isVacation: false },
+  { id: 'vacation_12', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
 
 // Opțiuni pentru tura de 8 ore
 const SHIFT_OPTIONS_8H: ShiftOption[] = [
-  { id: 'day1_8', label: 'Zi 06-14', startTime: '06:00', endTime: '14:00', color: '#4CAF50', isNightShift: false, isVacation: false },
-  { id: 'day2_8', label: 'Zi 14-22', startTime: '14:00', endTime: '22:00', color: '#8BC34A', isNightShift: false, isVacation: false },
-  { id: 'night_8', label: 'Noapte 22-06', startTime: '22:00', endTime: '06:00', color: '#3F51B5', isNightShift: true, isVacation: false },
-  { id: 'vacation_8', label: 'Concediu', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
+  { id: 'day1_8', label: 'Zi 06-14', shortLabel: 'Z1', startTime: '06:00', endTime: '14:00', color: '#4CAF50', isNightShift: false, isVacation: false },
+  { id: 'day2_8', label: 'Zi 14-22', shortLabel: 'Z2', startTime: '14:00', endTime: '22:00', color: '#8BC34A', isNightShift: false, isVacation: false },
+  { id: 'night_8', label: 'Noapte 22-06', shortLabel: 'N', startTime: '22:00', endTime: '06:00', color: '#3F51B5', isNightShift: true, isVacation: false },
+  { id: 'vacation_8', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
+
+// Generează lista de luni (luna curentă + următoarele 11 luni)
+const generateMonthOptions = () => {
+  const options = [];
+  const now = new Date();
+
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const label = date.toLocaleDateString('ro-RO', {
+      year: 'numeric',
+      month: 'long',
+    });
+    options.push({ value, label });
+  }
+
+  return options;
+};
 
 const CreateSchedulePage: React.FC = () => {
   const navigate = useNavigate();
@@ -70,12 +95,16 @@ const CreateSchedulePage: React.FC = () => {
   const [shiftPattern, setShiftPattern] = useState<ShiftPatternType>('12H');
   const [monthYear, setMonthYear] = useState(() => {
     const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [assignments, setAssignments] = useState<Record<string, string>>({});
 
+  // Lista de luni (generată o singură dată)
+  const monthOptions = useMemo(() => generateMonthOptions(), []);
+
   // API hooks
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
+  const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
 
   // Filtrăm doar angajații și managerii (nu adminii)
@@ -108,6 +137,27 @@ const CreateSchedulePage: React.FC = () => {
     return days;
   }, [monthYear, daysInMonth]);
 
+  // Creează un map cu toate asignările existente pentru toți angajații
+  const allUsersAssignments = useMemo(() => {
+    const userAssignmentsMap: Record<string, Record<string, { shiftId: string; notes: string }>> = {};
+
+    existingSchedules.forEach(schedule => {
+      if (schedule.assignments) {
+        schedule.assignments.forEach(assignment => {
+          if (!userAssignmentsMap[assignment.userId]) {
+            userAssignmentsMap[assignment.userId] = {};
+          }
+          userAssignmentsMap[assignment.userId][assignment.shiftDate] = {
+            shiftId: assignment.shiftTypeId,
+            notes: assignment.notes || '',
+          };
+        });
+      }
+    });
+
+    return userAssignmentsMap;
+  }, [existingSchedules]);
+
   // Handler pentru schimbarea turei unei zile
   const handleDayShiftChange = (date: string, shiftId: string) => {
     setAssignments(prev => {
@@ -131,15 +181,13 @@ const CreateSchedulePage: React.FC = () => {
     }
 
     try {
-      // Convertim assignments în format API
       const assignmentDtos: ScheduleAssignmentDto[] = Object.entries(assignments)
         .map(([date, shiftId]) => {
           const shiftOption = shiftOptions.find(s => s.id === shiftId);
           if (!shiftOption || shiftOption.isVacation) {
-            // Pentru concediu, folosim un shiftTypeId special sau null
             return {
               userId: selectedUserId,
-              shiftTypeId: 'vacation', // Backend-ul trebuie să gestioneze acest caz
+              shiftTypeId: 'vacation',
               shiftDate: date,
               notes: 'Concediu',
             };
@@ -172,30 +220,45 @@ const CreateSchedulePage: React.FC = () => {
     return shift?.color || 'transparent';
   };
 
-  // Obține label-ul pentru o zi
-  const getDayLabel = (date: string) => {
-    const shiftId = assignments[date];
-    if (!shiftId) return '';
-    const shift = shiftOptions.find(s => s.id === shiftId);
-    return shift?.label || '';
+  // Obține info pentru o asignare existentă
+  const getExistingShiftInfo = (notes: string) => {
+    if (notes === 'Concediu') {
+      return { label: 'CO', color: '#FF9800' };
+    }
+    if (notes.includes('07:00-19:00')) {
+      return { label: 'Z', color: '#4CAF50' };
+    }
+    if (notes.includes('19:00-07:00')) {
+      return { label: 'N', color: '#3F51B5' };
+    }
+    if (notes.includes('06:00-14:00')) {
+      return { label: 'Z1', color: '#4CAF50' };
+    }
+    if (notes.includes('14:00-22:00')) {
+      return { label: 'Z2', color: '#8BC34A' };
+    }
+    if (notes.includes('22:00-06:00')) {
+      return { label: 'N', color: '#3F51B5' };
+    }
+    return { label: '-', color: '#9E9E9E' };
   };
 
   return (
-    <Box sx={{ width: '100%', p: { xs: 2, sm: 3 } }}>
-      <Stack spacing={3}>
+    <Box sx={{ width: '100%', p: { xs: 1, sm: 2, md: 3 } }}>
+      <Stack spacing={2}>
         {/* Header */}
         <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
           <Button
             startIcon={<ArrowBackIcon />}
             onClick={() => navigate('/schedules')}
             variant="outlined"
-            size={isMobile ? 'small' : 'medium'}
+            size="small"
           >
             Înapoi
           </Button>
           <Box sx={{ flex: 1 }}>
-            <Typography variant={isMobile ? 'h5' : 'h4'}>Creare Program de Lucru</Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant={isMobile ? 'h6' : 'h5'}>Creare Program de Lucru</Typography>
+            <Typography variant="caption" color="text.secondary">
               Creează programul lunar pentru un angajat sau manager
             </Typography>
           </Box>
@@ -203,29 +266,24 @@ const CreateSchedulePage: React.FC = () => {
 
         {/* Error Alert */}
         {error && (
-          <Alert severity="error">
+          <Alert severity="error" sx={{ width: '100%' }}>
             Eroare la crearea programului. Încercați din nou.
           </Alert>
         )}
 
         {/* Selectori - Angajat, Tip Tură, Lună */}
         <Card sx={{ width: '100%' }}>
-          <CardContent>
+          <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
             <Box sx={{
               display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
+              flexDirection: { xs: 'column', md: 'row' },
               gap: 2,
-              alignItems: { xs: 'stretch', sm: 'center' },
+              alignItems: { xs: 'stretch', md: 'center' },
             }}>
               {/* Selector Angajat */}
-              <Box sx={{ flex: 1 }}>
-                <FormControl fullWidth size={isMobile ? 'small' : 'medium'}>
-                  <InputLabel>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <PersonIcon fontSize="small" />
-                      Angajat / Manager
-                    </Box>
-                  </InputLabel>
+              <Box sx={{ flex: 1, minWidth: { md: 200 } }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Angajat / Manager</InputLabel>
                   <Select
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
@@ -239,9 +297,9 @@ const CreateSchedulePage: React.FC = () => {
                             label={user.role === 'MANAGER' ? 'M' : 'A'}
                             size="small"
                             color={user.role === 'MANAGER' ? 'primary' : 'default'}
-                            sx={{ minWidth: 28 }}
+                            sx={{ minWidth: 24, height: 20, fontSize: '0.7rem' }}
                           />
-                          {user.fullName}
+                          <Typography variant="body2">{user.fullName}</Typography>
                         </Box>
                       </MenuItem>
                     ))}
@@ -250,37 +308,27 @@ const CreateSchedulePage: React.FC = () => {
               </Box>
 
               {/* Selector Tip Tură */}
-              <Box sx={{ flex: 1 }}>
-                <FormControl fullWidth size={isMobile ? 'small' : 'medium'}>
-                  <InputLabel>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <ScheduleIcon fontSize="small" />
-                      Tip Tură
-                    </Box>
-                  </InputLabel>
+              <Box sx={{ flex: 1, minWidth: { md: 150 } }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Tip Tură</InputLabel>
                   <Select
                     value={shiftPattern}
                     onChange={(e) => {
                       setShiftPattern(e.target.value as ShiftPatternType);
-                      setAssignments({}); // Reset assignments când schimbăm tipul de tură
+                      setAssignments({});
                     }}
                     label="Tip Tură"
                   >
-                    <MenuItem value="12H">Tură de 12 ore</MenuItem>
-                    <MenuItem value="8H">Tură de 8 ore</MenuItem>
+                    <MenuItem value="12H">Tură 12 ore</MenuItem>
+                    <MenuItem value="8H">Tură 8 ore</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
 
               {/* Selector Lună */}
-              <Box sx={{ flex: 1 }}>
-                <FormControl fullWidth size={isMobile ? 'small' : 'medium'}>
-                  <InputLabel>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <CalendarIcon fontSize="small" />
-                      Luna
-                    </Box>
-                  </InputLabel>
+              <Box sx={{ flex: 1, minWidth: { md: 180 } }}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Luna</InputLabel>
                   <Select
                     value={monthYear}
                     onChange={(e) => {
@@ -289,20 +337,11 @@ const CreateSchedulePage: React.FC = () => {
                     }}
                     label="Luna"
                   >
-                    {Array.from({ length: 12 }, (_, i) => {
-                      const date = new Date();
-                      date.setMonth(date.getMonth() + i);
-                      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                      const label = date.toLocaleDateString('ro-RO', {
-                        year: 'numeric',
-                        month: 'long',
-                      });
-                      return (
-                        <MenuItem key={value} value={value}>
-                          {label}
-                        </MenuItem>
-                      );
-                    })}
+                    {monthOptions.map(({ value, label }) => (
+                      <MenuItem key={value} value={value}>
+                        {label}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Box>
@@ -311,42 +350,50 @@ const CreateSchedulePage: React.FC = () => {
         </Card>
 
         {/* Legendă Ture */}
-        <Paper sx={{ p: 2, width: '100%' }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Legendă - Opțiuni {shiftPattern === '12H' ? 'Tură 12 ore' : 'Tură 8 ore'}:
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Paper sx={{ p: 1.5, width: '100%' }}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+            <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
+              Legendă ({shiftPattern}):
+            </Typography>
             {shiftOptions.map((option) => (
               <Chip
                 key={option.id}
-                label={option.label}
+                label={`${option.shortLabel} - ${option.label}`}
+                size="small"
                 sx={{
                   bgcolor: option.color,
                   color: 'white',
                   fontWeight: 'bold',
-                  mb: 1,
+                  fontSize: '0.7rem',
+                  height: 24,
                 }}
               />
             ))}
             <Chip
-              label="Liber"
+              label="L - Liber"
               variant="outlined"
-              sx={{ mb: 1 }}
+              size="small"
+              sx={{ fontSize: '0.7rem', height: 24 }}
             />
           </Stack>
+          {shiftPattern === '12H' && (
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              * După tura de zi (Z) - 24h liber | După tura de noapte (N) - 48h liber
+            </Typography>
+          )}
         </Paper>
 
         {/* Tabel Calendar */}
         {selectedUserId ? (
           <Card sx={{ width: '100%', overflow: 'auto' }}>
-            <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">
+            <CardContent sx={{ p: { xs: 1, sm: 2 }, '&:last-child': { pb: { xs: 1, sm: 2 } } }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                <Typography variant="subtitle1" fontWeight="bold">
                   Program {new Date(`${monthYear}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
                 </Typography>
                 <Tooltip title="Șterge toate selecțiile">
                   <IconButton onClick={handleClearAll} color="error" size="small">
-                    <ClearIcon />
+                    <ClearIcon fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </Stack>
@@ -355,24 +402,23 @@ const CreateSchedulePage: React.FC = () => {
               <Box sx={{
                 display: 'grid',
                 gridTemplateColumns: {
-                  xs: 'repeat(4, 1fr)',
-                  sm: 'repeat(5, 1fr)',
-                  md: 'repeat(7, 1fr)',
+                  xs: 'repeat(7, 1fr)',
+                  sm: 'repeat(7, 1fr)',
                 },
-                gap: 1,
+                gap: 0.5,
               }}>
                 {calendarDays.map(({ day, date, dayOfWeek, isWeekend }) => (
                   <Paper
                     key={date}
-                    elevation={2}
+                    elevation={1}
                     sx={{
-                      p: 1,
+                      p: 0.5,
                       textAlign: 'center',
                       bgcolor: isWeekend ? 'grey.100' : 'background.paper',
                       border: assignments[date] ? `2px solid ${getDayColor(date)}` : '1px solid',
                       borderColor: assignments[date] ? getDayColor(date) : 'divider',
                       borderRadius: 1,
-                      minHeight: { xs: 100, sm: 120 },
+                      minHeight: { xs: 70, sm: 85 },
                       display: 'flex',
                       flexDirection: 'column',
                     }}
@@ -382,33 +428,30 @@ const CreateSchedulePage: React.FC = () => {
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      mb: 1,
-                      pb: 0.5,
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
+                      mb: 0.5,
                     }}>
                       <Typography
                         variant="caption"
                         sx={{
                           fontWeight: 'bold',
+                          fontSize: '0.6rem',
                           color: isWeekend ? 'error.main' : 'text.secondary',
                         }}
                       >
                         {dayOfWeek}
                       </Typography>
                       <Typography
-                        variant="body2"
                         sx={{
                           fontWeight: 'bold',
                           bgcolor: isWeekend ? 'error.light' : 'primary.light',
                           color: 'white',
                           borderRadius: '50%',
-                          width: 24,
-                          height: 24,
+                          width: 18,
+                          height: 18,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '0.75rem',
+                          fontSize: '0.65rem',
                         }}
                       >
                         {day}
@@ -422,16 +465,21 @@ const CreateSchedulePage: React.FC = () => {
                         onChange={(e) => handleDayShiftChange(date, e.target.value)}
                         displayEmpty
                         sx={{
-                          fontSize: '0.7rem',
+                          fontSize: '0.65rem',
                           '& .MuiSelect-select': {
-                            py: 0.5,
+                            py: 0.3,
+                            px: 0.5,
                             bgcolor: getDayColor(date),
                             color: assignments[date] ? 'white' : 'inherit',
                             fontWeight: assignments[date] ? 'bold' : 'normal',
+                            minHeight: 'unset !important',
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderWidth: 1,
                           },
                         }}
                       >
-                        <MenuItem value="">
+                        <MenuItem value="" sx={{ fontSize: '0.75rem' }}>
                           <em>Liber</em>
                         </MenuItem>
                         {shiftOptions.map((option) => (
@@ -439,18 +487,11 @@ const CreateSchedulePage: React.FC = () => {
                             key={option.id}
                             value={option.id}
                             sx={{
+                              fontSize: '0.75rem',
                               bgcolor: option.color,
                               color: 'white',
-                              '&:hover': {
-                                bgcolor: option.color,
-                                opacity: 0.9,
-                              },
-                              '&.Mui-selected': {
-                                bgcolor: option.color,
-                                '&:hover': {
-                                  bgcolor: option.color,
-                                },
-                              },
+                              '&:hover': { bgcolor: option.color, opacity: 0.9 },
+                              '&.Mui-selected': { bgcolor: option.color, '&:hover': { bgcolor: option.color } },
                             }}
                           >
                             {option.label}
@@ -458,28 +499,13 @@ const CreateSchedulePage: React.FC = () => {
                         ))}
                       </Select>
                     </FormControl>
-
-                    {/* Label tura selectată */}
-                    {assignments[date] && (
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          mt: 0.5,
-                          color: getDayColor(date),
-                          fontWeight: 'bold',
-                          fontSize: '0.65rem',
-                        }}
-                      >
-                        {getDayLabel(date)}
-                      </Typography>
-                    )}
                   </Paper>
                 ))}
               </Box>
             </CardContent>
           </Card>
         ) : (
-          <Alert severity="info">
+          <Alert severity="info" sx={{ width: '100%' }}>
             Selectează un angajat sau manager pentru a crea programul de lucru.
           </Alert>
         )}
@@ -487,39 +513,179 @@ const CreateSchedulePage: React.FC = () => {
         {/* Sumar și butoane */}
         {selectedUserId && (
           <Card sx={{ width: '100%' }}>
-            <CardContent>
-              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={2}>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1}>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Sumar program:
-                  </Typography>
                   <Typography variant="body2">
-                    <strong>{Object.keys(assignments).length}</strong> zile asignate din <strong>{daysInMonth}</strong> zile
-                  </Typography>
-                  <Typography variant="body2">
+                    <strong>{Object.keys(assignments).length}</strong> zile asignate din <strong>{daysInMonth}</strong> |
                     Angajat: <strong>{eligibleUsers.find(u => u.id === selectedUserId)?.fullName}</strong>
                   </Typography>
                 </Box>
-                <Stack direction="row" spacing={2}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => navigate('/schedules')}
-                  >
+                <Stack direction="row" spacing={1}>
+                  <Button variant="outlined" size="small" onClick={() => navigate('/schedules')}>
                     Anulează
                   </Button>
                   <Button
                     variant="contained"
-                    startIcon={creating ? <CircularProgress size={20} /> : <SaveIcon />}
+                    size="small"
+                    startIcon={creating ? <CircularProgress size={16} /> : <SaveIcon />}
                     onClick={handleSave}
                     disabled={creating || Object.keys(assignments).length === 0}
                   >
-                    {creating ? 'Se salvează...' : 'Salvează Programul'}
+                    {creating ? 'Salvare...' : 'Salvează'}
                   </Button>
                 </Stack>
               </Stack>
             </CardContent>
           </Card>
         )}
+
+        {/* Secțiunea cu toți angajații și programele lor */}
+        <Divider sx={{ my: 1 }} />
+
+        <Card sx={{ width: '100%' }}>
+          <CardContent sx={{ p: { xs: 1, sm: 2 }, '&:last-child': { pb: { xs: 1, sm: 2 } } }}>
+            <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+              <GroupIcon color="primary" />
+              <Typography variant="subtitle1" fontWeight="bold">
+                Programele Tuturor Angajaților - {new Date(`${monthYear}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
+              </Typography>
+            </Stack>
+
+            <TableContainer sx={{ maxHeight: 400 }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell
+                      sx={{
+                        position: 'sticky',
+                        left: 0,
+                        bgcolor: 'background.paper',
+                        zIndex: 3,
+                        minWidth: 120,
+                        fontWeight: 'bold',
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      Angajat
+                    </TableCell>
+                    {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
+                      <TableCell
+                        key={day}
+                        align="center"
+                        sx={{
+                          p: 0.3,
+                          minWidth: 30,
+                          maxWidth: 35,
+                          bgcolor: isWeekend ? 'grey.200' : 'background.paper',
+                          fontWeight: 'bold',
+                          fontSize: '0.65rem',
+                        }}
+                      >
+                        <Box>
+                          <Typography sx={{ fontSize: '0.6rem', color: isWeekend ? 'error.main' : 'text.secondary' }}>
+                            {dayOfWeek}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
+                            {day}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {eligibleUsers.map((user) => {
+                    const userAssignments = allUsersAssignments[user.id] || {};
+                    const isCurrentUser = user.id === selectedUserId;
+
+                    return (
+                      <TableRow
+                        key={user.id}
+                        sx={{
+                          bgcolor: isCurrentUser ? 'primary.light' : 'inherit',
+                          '&:hover': { bgcolor: isCurrentUser ? 'primary.light' : 'action.hover' },
+                        }}
+                      >
+                        <TableCell
+                          sx={{
+                            position: 'sticky',
+                            left: 0,
+                            bgcolor: isCurrentUser ? 'primary.light' : 'background.paper',
+                            zIndex: 1,
+                            p: 0.5,
+                          }}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <Avatar sx={{ width: 24, height: 24, fontSize: '0.7rem' }}>
+                              {user.fullName.charAt(0)}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="caption" fontWeight={isCurrentUser ? 'bold' : 'normal'} sx={{ fontSize: '0.7rem' }}>
+                                {user.fullName}
+                              </Typography>
+                              <Chip
+                                label={user.role === 'MANAGER' ? 'M' : 'A'}
+                                size="small"
+                                color={user.role === 'MANAGER' ? 'primary' : 'default'}
+                                sx={{ ml: 0.5, height: 14, fontSize: '0.6rem', '& .MuiChip-label': { px: 0.5 } }}
+                              />
+                            </Box>
+                          </Stack>
+                        </TableCell>
+                        {calendarDays.map(({ date, isWeekend }) => {
+                          // Pentru utilizatorul curent, arată asignările din state
+                          // Pentru alți utilizatori, arată asignările din baza de date
+                          const currentUserShift = isCurrentUser ? assignments[date] : null;
+                          const existingAssignment = userAssignments[date];
+
+                          let cellContent = null;
+                          let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
+
+                          if (isCurrentUser && currentUserShift) {
+                            const shift = shiftOptions.find(s => s.id === currentUserShift);
+                            if (shift) {
+                              cellContent = shift.shortLabel;
+                              cellBgColor = shift.color;
+                            }
+                          } else if (existingAssignment) {
+                            const shiftInfo = getExistingShiftInfo(existingAssignment.notes);
+                            cellContent = shiftInfo.label;
+                            cellBgColor = shiftInfo.color;
+                          }
+
+                          return (
+                            <TableCell
+                              key={date}
+                              align="center"
+                              sx={{
+                                p: 0.2,
+                                bgcolor: cellBgColor,
+                                color: cellContent ? 'white' : 'inherit',
+                                fontWeight: 'bold',
+                                fontSize: '0.65rem',
+                                border: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              {cellContent || '-'}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            {eligibleUsers.length === 0 && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                Nu există angajați sau manageri activi.
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
       </Stack>
     </Box>
   );
