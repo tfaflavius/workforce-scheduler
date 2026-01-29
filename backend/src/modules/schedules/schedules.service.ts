@@ -1,14 +1,18 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkSchedule } from './entities/work-schedule.entity';
 import { ScheduleAssignment } from './entities/schedule-assignment.entity';
 import { ShiftType } from './entities/shift-type.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { EmailService, ScheduleEmailData } from '../../common/email/email.service';
 
 @Injectable()
 export class SchedulesService {
+  private readonly logger = new Logger(SchedulesService.name);
+
   constructor(
     @InjectRepository(WorkSchedule)
     private readonly scheduleRepository: Repository<WorkSchedule>,
@@ -16,6 +20,9 @@ export class SchedulesService {
     private readonly assignmentRepository: Repository<ScheduleAssignment>,
     @InjectRepository(ShiftType)
     private readonly shiftTypeRepository: Repository<ShiftType>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(userId: string, createScheduleDto: CreateScheduleDto): Promise<WorkSchedule> {
@@ -77,7 +84,16 @@ export class SchedulesService {
       await this.assignmentRepository.save(assignments);
     }
 
-    return this.findOne(savedSchedule.id);
+    const finalSchedule = await this.findOne(savedSchedule.id);
+
+    // Send email notifications if schedule is approved (admin created it directly)
+    if (finalSchedule.status === 'APPROVED') {
+      this.sendScheduleNotifications(finalSchedule.id, 'created').catch(err => {
+        this.logger.error('Failed to send schedule creation notifications:', err);
+      });
+    }
+
+    return finalSchedule;
   }
 
   async findAll(filters?: {
@@ -159,7 +175,16 @@ export class SchedulesService {
       }
 
       // Reload schedule to get fresh assignments without triggering cascade updates
-      return this.findOne(id);
+      const updatedSchedule = await this.findOne(id);
+
+      // Send email notifications if schedule is approved (meaning changes are effective)
+      if (updatedSchedule.status === 'APPROVED') {
+        this.sendScheduleNotifications(updatedSchedule.id, 'updated').catch(err => {
+          this.logger.error('Failed to send schedule update notifications:', err);
+        });
+      }
+
+      return updatedSchedule;
     }
 
     // Only save schedule if no assignments were updated
@@ -181,7 +206,14 @@ export class SchedulesService {
     schedule.approvedAt = new Date();
 
     await this.scheduleRepository.save(schedule);
-    return this.findOne(id);
+    const approvedSchedule = await this.findOne(id);
+
+    // Send email notifications to affected employees
+    this.sendScheduleNotifications(approvedSchedule.id, 'approved').catch(err => {
+      this.logger.error('Failed to send schedule approval notifications:', err);
+    });
+
+    return approvedSchedule;
   }
 
   async reject(id: string, userId: string, reason: string): Promise<WorkSchedule> {
@@ -195,7 +227,14 @@ export class SchedulesService {
     schedule.rejectionReason = reason;
 
     await this.scheduleRepository.save(schedule);
-    return this.findOne(id);
+    const rejectedSchedule = await this.findOne(id);
+
+    // Send email notifications to affected employees about rejection
+    this.sendScheduleNotifications(rejectedSchedule.id, 'rejected', reason).catch(err => {
+      this.logger.error('Failed to send schedule rejection notifications:', err);
+    });
+
+    return rejectedSchedule;
   }
 
   async submitForApproval(id: string): Promise<WorkSchedule> {
@@ -699,5 +738,77 @@ export class SchedulesService {
     return this.shiftTypeRepository.find({
       order: { displayOrder: 'ASC' },
     });
+  }
+
+  /**
+   * Send email notifications to all employees affected by a schedule
+   */
+  async sendScheduleNotifications(
+    scheduleId: string,
+    notificationType: 'created' | 'updated' | 'approved' | 'rejected',
+    rejectionReason?: string,
+  ): Promise<{ success: number; failed: number }> {
+    try {
+      const schedule = await this.findOne(scheduleId);
+
+      // Get unique user IDs from assignments
+      const userIds = [...new Set(schedule.assignments.map(a => a.userId))];
+
+      if (userIds.length === 0) {
+        this.logger.log('No employees to notify for schedule ' + scheduleId);
+        return { success: 0, failed: 0 };
+      }
+
+      // Get user details (email, name)
+      const users = await this.userRepository.findByIds(userIds);
+      const userMap = new Map(users.map(u => [u.id, u]));
+
+      const monthYear = `${schedule.year}-${String(schedule.month).padStart(2, '0')}`;
+
+      // Prepare email data for each user
+      const emailDataList: ScheduleEmailData[] = [];
+
+      for (const userId of userIds) {
+        const user = userMap.get(userId);
+        if (!user || !user.email) {
+          this.logger.warn(`User ${userId} not found or has no email`);
+          continue;
+        }
+
+        // Get this user's shifts
+        const userAssignments = schedule.assignments.filter(a => a.userId === userId);
+        const shifts = userAssignments.map(a => ({
+          date: new Date(a.shiftDate).toLocaleDateString('ro-RO', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+          }),
+          shiftType: a.shiftType?.name || 'Tură',
+          startTime: a.shiftType?.startTime || '',
+          endTime: a.shiftType?.endTime || '',
+        }));
+
+        emailDataList.push({
+          employeeEmail: user.email,
+          employeeName: user.fullName || user.email,
+          monthYear,
+          scheduleType: notificationType,
+          shifts,
+          rejectionReason,
+        });
+      }
+
+      // Send emails
+      const result = await this.emailService.sendBulkScheduleNotifications(emailDataList);
+
+      this.logger.log(
+        `Schedule notifications sent for ${scheduleId}: ${result.success} success, ${result.failed} failed`
+      );
+
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to send schedule notifications: ${error.message}`);
+      return { success: 0, failed: 0 };
+    }
   }
 }
