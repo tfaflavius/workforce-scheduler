@@ -124,32 +124,54 @@ const CreateSchedulePage: React.FC = () => {
 
   // Mapează shift types din DB la opțiunile locale
   const getShiftTypeId = (localId: string): string | null => {
-    // Mapare bazată pe startTime și endTime
-    const mapping: Record<string, { startTime: string; endTime: string; pattern: string }> = {
-      'day_12': { startTime: '07:00', endTime: '19:00', pattern: 'SHIFT_12H' },
-      'night_12': { startTime: '19:00', endTime: '07:00', pattern: 'SHIFT_12H' },
-      'vacation_12': { startTime: '00:00', endTime: '00:00', pattern: 'SHIFT_12H' }, // Vacation
-      'day1_8': { startTime: '06:00', endTime: '14:00', pattern: 'SHIFT_8H' },
-      'day2_8': { startTime: '14:00', endTime: '22:00', pattern: 'SHIFT_8H' },
-      'night_8': { startTime: '22:00', endTime: '06:00', pattern: 'SHIFT_8H' },
-      'vacation_8': { startTime: '00:00', endTime: '00:00', pattern: 'SHIFT_8H' }, // Vacation
+    // Log pentru debugging
+    console.log('Looking for shift type:', localId);
+    console.log('Available DB shift types:', dbShiftTypes);
+
+    // Mapare bazată pe numele din DB
+    const nameMapping: Record<string, string> = {
+      'day_12': 'Zi 07-19',
+      'night_12': 'Noapte 19-07',
+      'vacation_12': 'Concediu 12H',
+      'day1_8': 'Zi 06-14',
+      'day2_8': 'Zi 14-22',
+      'night_8': 'Noapte 22-06',
+      'vacation_8': 'Concediu 8H',
     };
 
-    const localShift = mapping[localId];
-    if (!localShift) return null;
+    const expectedName = nameMapping[localId];
+    if (!expectedName) {
+      console.warn(`No name mapping for localId: ${localId}`);
+      return null;
+    }
 
-    // Găsește shift type în DB
-    const dbShift = dbShiftTypes.find(st => {
-      // Pentru concediu, caută după nume
-      if (localId.includes('vacation')) {
-        return st.name.toLowerCase().includes('concediu') || st.name.toLowerCase().includes('vacation');
+    // Găsește shift type în DB după nume exact
+    const dbShift = dbShiftTypes.find(st => st.name === expectedName);
+
+    if (dbShift) {
+      console.log(`Found match for ${localId}:`, dbShift);
+      return dbShift.id;
+    }
+
+    // Fallback - caută după pattern în nume
+    const isVacation = localId.includes('vacation');
+    const pattern = localId.includes('_12') ? 'SHIFT_12H' : 'SHIFT_8H';
+
+    const fallbackShift = dbShiftTypes.find(st => {
+      if (isVacation) {
+        return (st.name.toLowerCase().includes('concediu') || st.name.toLowerCase().includes('vacation')) &&
+               st.shiftPattern === pattern;
       }
-      // Pentru alte ture, caută după startTime și pattern
-      return st.startTime?.substring(0, 5) === localShift.startTime &&
-             st.shiftPattern === localShift.pattern;
+      return st.shiftPattern === pattern && st.name.includes(expectedName.split(' ')[1] || '');
     });
 
-    return dbShift?.id || null;
+    if (fallbackShift) {
+      console.log(`Found fallback match for ${localId}:`, fallbackShift);
+      return fallbackShift.id;
+    }
+
+    console.warn(`No matching shift type found for ${localId}`);
+    return null;
   };
 
   // Setează utilizatorul din URL dacă există
