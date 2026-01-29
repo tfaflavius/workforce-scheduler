@@ -251,9 +251,9 @@ const UsersPage: React.FC = () => {
       </Box>
 
       {/* Filters - Collapsible on mobile */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 2, width: '100%' }}>
         {isMobile ? (
-          <Card>
+          <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: 0 }}>
               {/* Search always visible */}
               <Box sx={{ p: 2, pb: 1 }}>
@@ -345,7 +345,7 @@ const UsersPage: React.FC = () => {
           </Card>
         ) : (
           // Desktop filters
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: 3, width: '100%' }}>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
               <FilterIcon color="action" fontSize="small" />
               <Typography variant="subtitle1" fontWeight="medium">Filtre</Typography>
@@ -458,9 +458,9 @@ const UsersPage: React.FC = () => {
               </CardContent>
             </Card>
           ) : (
-            <Stack spacing={2}>
+            <Stack spacing={2} sx={{ width: '100%' }}>
               {paginatedUsers.map((user) => (
-                <Card key={user.id}>
+                <Card key={user.id} sx={{ width: '100%' }}>
                   <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
                       <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
@@ -541,7 +541,7 @@ const UsersPage: React.FC = () => {
 
           {/* Mobile Pagination */}
           {users && users.length > 0 && (
-            <Card sx={{ mt: 2 }}>
+            <Card sx={{ mt: 2, width: '100%' }}>
               <Box sx={{
                 display: 'flex',
                 justifyContent: 'center',

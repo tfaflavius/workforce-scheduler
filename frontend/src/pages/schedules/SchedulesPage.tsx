@@ -260,7 +260,7 @@ const SchedulesPage: React.FC = () => {
         </Box>
 
         {/* Month Selector */}
-        <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, width: '100%' }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
             <Stack direction="row" spacing={1} alignItems="center">
               <CalendarIcon color="action" fontSize="small" />
@@ -288,7 +288,7 @@ const SchedulesPage: React.FC = () => {
         </Paper>
 
         {/* Filters and Sorting */}
-        <Paper sx={{ p: { xs: 2, sm: 3 } }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, width: '100%' }}>
           <Stack spacing={2}>
             <Stack direction="row" spacing={1} alignItems="center">
               <FilterIcon color="action" fontSize="small" />
@@ -362,6 +362,7 @@ const SchedulesPage: React.FC = () => {
                   <Card
                     key={schedule.id}
                     sx={{
+                      width: '100%',
                       cursor: 'pointer',
                       transition: 'transform 0.2s, box-shadow 0.2s',
                       '&:hover': {

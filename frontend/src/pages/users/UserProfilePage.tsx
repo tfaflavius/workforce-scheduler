@@ -133,7 +133,7 @@ const UserProfilePage: React.FC = () => {
       )}
 
       {editMode ? (
-        <Card>
+        <Card sx={{ width: '100%' }}>
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
             <Typography variant="h6" gutterBottom>
               Editează Profil
@@ -154,9 +154,9 @@ const UserProfilePage: React.FC = () => {
           </CardContent>
         </Card>
       ) : (
-        <Stack spacing={3}>
+        <Stack spacing={3} sx={{ width: '100%' }}>
           {/* Profile Card */}
-          <Card>
+          <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
               {/* User Info Header */}
               <Stack
@@ -304,7 +304,7 @@ const UserProfilePage: React.FC = () => {
           </Card>
 
           {/* Account Info Card */}
-          <Card>
+          <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
               <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                 Informații Cont

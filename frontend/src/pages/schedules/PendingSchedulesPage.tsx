@@ -132,6 +132,7 @@ const PendingSchedulesPage = () => {
       <Card
         sx={{
           mb: 3,
+          width: '100%',
           background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
           border: '1px solid #ffb74d'
         }}
@@ -183,11 +184,12 @@ const PendingSchedulesPage = () => {
 
       {/* Lista de programe */}
       {pendingSchedules && pendingSchedules.length > 0 ? (
-        <Stack spacing={3}>
+        <Stack spacing={3} sx={{ width: '100%' }}>
           {pendingSchedules.map((schedule: WorkSchedule) => (
             <Card
               key={schedule.id}
               sx={{
+                width: '100%',
                 boxShadow: 3,
                 '&:hover': { boxShadow: 6 },
                 transition: 'box-shadow 0.3s'
