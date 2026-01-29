@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -32,10 +32,12 @@ import {
   Save as SaveIcon,
   Clear as ClearIcon,
   Group as GroupIcon,
+  Send as SendIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateScheduleMutation, useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import { useAppSelector } from '../../store/hooks';
 import type { ScheduleAssignmentDto } from '../../types/schedule.types';
 
 // Tipuri de ture
@@ -87,17 +89,29 @@ const generateMonthOptions = () => {
 
 const CreateSchedulePage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { user: currentUser } = useAppSelector((state) => state.auth);
+
+  // Verifică rolul utilizatorului
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const isManager = currentUser?.role === 'MANAGER';
+
+  // Obține parametrii din URL
+  const urlUserId = searchParams.get('userId');
+  const urlMonth = searchParams.get('month');
 
   // State
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [shiftPattern, setShiftPattern] = useState<ShiftPatternType>('12H');
   const [monthYear, setMonthYear] = useState(() => {
+    if (urlMonth) return urlMonth;
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [assignments, setAssignments] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Lista de luni (generată o singură dată)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
@@ -106,6 +120,16 @@ const CreateSchedulePage: React.FC = () => {
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
   const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
+
+  // Setează utilizatorul din URL dacă există
+  useEffect(() => {
+    if (urlUserId && users.length > 0) {
+      const userExists = users.find(u => u.id === urlUserId);
+      if (userExists) {
+        setSelectedUserId(urlUserId);
+      }
+    }
+  }, [urlUserId, users]);
 
   // Filtrăm doar angajații și managerii (nu adminii)
   const eligibleUsers = useMemo(() => {
@@ -174,41 +198,72 @@ const CreateSchedulePage: React.FC = () => {
     setAssignments({});
   };
 
-  // Salvează programul
+  // Creează lista de asignări
+  const createAssignmentDtos = (): ScheduleAssignmentDto[] => {
+    return Object.entries(assignments).map(([date, shiftId]) => {
+      const shiftOption = shiftOptions.find(s => s.id === shiftId);
+      if (!shiftOption || shiftOption.isVacation) {
+        return {
+          userId: selectedUserId,
+          shiftTypeId: 'vacation',
+          shiftDate: date,
+          notes: 'Concediu',
+        };
+      }
+      return {
+        userId: selectedUserId,
+        shiftTypeId: shiftId,
+        shiftDate: date,
+        notes: `${shiftOption.startTime}-${shiftOption.endTime}`,
+      };
+    });
+  };
+
+  // Salvează programul (pentru Admin - salvează direct)
   const handleSave = async () => {
-    if (!selectedUserId) {
-      return;
-    }
+    if (!selectedUserId) return;
 
     try {
-      const assignmentDtos: ScheduleAssignmentDto[] = Object.entries(assignments)
-        .map(([date, shiftId]) => {
-          const shiftOption = shiftOptions.find(s => s.id === shiftId);
-          if (!shiftOption || shiftOption.isVacation) {
-            return {
-              userId: selectedUserId,
-              shiftTypeId: 'vacation',
-              shiftDate: date,
-              notes: 'Concediu',
-            };
-          }
-          return {
-            userId: selectedUserId,
-            shiftTypeId: shiftId,
-            shiftDate: date,
-            notes: `${shiftOption.startTime}-${shiftOption.endTime}`,
-          };
-        });
+      const assignmentDtos = createAssignmentDtos();
+      const selectedUser = eligibleUsers.find(u => u.id === selectedUserId);
 
       await createSchedule({
         monthYear,
         assignments: assignmentDtos,
-        notes: `Program pentru ${eligibleUsers.find(u => u.id === selectedUserId)?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
+        notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
+        // Pentru Admin, programul este aprobat direct
+        status: isAdmin ? 'APPROVED' : 'DRAFT',
       }).unwrap();
 
-      navigate('/schedules');
+      setSuccessMessage(isAdmin
+        ? 'Programul a fost salvat și aprobat cu succes!'
+        : 'Programul a fost salvat ca draft.');
+
+      setTimeout(() => navigate('/schedules'), 1500);
     } catch (err) {
       console.error('Failed to create schedule:', err);
+    }
+  };
+
+  // Salvează și trimite pentru aprobare (pentru Manager)
+  const handleSaveAndSubmit = async () => {
+    if (!selectedUserId) return;
+
+    try {
+      const assignmentDtos = createAssignmentDtos();
+      const selectedUser = eligibleUsers.find(u => u.id === selectedUserId);
+
+      await createSchedule({
+        monthYear,
+        assignments: assignmentDtos,
+        notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
+        status: 'PENDING_APPROVAL',
+      }).unwrap();
+
+      setSuccessMessage('Programul a fost trimis pentru aprobare. Un administrator îl va revizui.');
+      setTimeout(() => navigate('/schedules'), 2000);
+    } catch (err) {
+      console.error('Failed to submit schedule:', err);
     }
   };
 
@@ -264,10 +319,29 @@ const CreateSchedulePage: React.FC = () => {
           </Box>
         </Stack>
 
+        {/* Success Alert */}
+        {successMessage && (
+          <Alert severity="success" sx={{ width: '100%' }}>
+            {successMessage}
+          </Alert>
+        )}
+
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ width: '100%' }}>
             Eroare la crearea programului. Încercați din nou.
+          </Alert>
+        )}
+
+        {/* Info despre permisiuni */}
+        {isManager && !isAdmin && (
+          <Alert severity="info" sx={{ width: '100%' }}>
+            Ca <strong>Manager</strong>, poți crea programe pentru angajați. Acestea vor trebui <strong>aprobate de un administrator</strong> înainte de a fi active.
+          </Alert>
+        )}
+        {isAdmin && (
+          <Alert severity="success" sx={{ width: '100%' }}>
+            Ca <strong>Administrator</strong>, programele create vor fi <strong>aprobate automat</strong>.
           </Alert>
         )}
 
@@ -521,19 +595,46 @@ const CreateSchedulePage: React.FC = () => {
                     Angajat: <strong>{eligibleUsers.find(u => u.id === selectedUserId)?.fullName}</strong>
                   </Typography>
                 </Box>
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} flexWrap="wrap">
                   <Button variant="outlined" size="small" onClick={() => navigate('/schedules')}>
                     Anulează
                   </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={creating ? <CircularProgress size={16} /> : <SaveIcon />}
-                    onClick={handleSave}
-                    disabled={creating || Object.keys(assignments).length === 0}
-                  >
-                    {creating ? 'Salvare...' : 'Salvează'}
-                  </Button>
+                  {isAdmin ? (
+                    // Admin - salvează și aprobă direct
+                    <Button
+                      variant="contained"
+                      size="small"
+                      color="success"
+                      startIcon={creating ? <CircularProgress size={16} /> : <SaveIcon />}
+                      onClick={handleSave}
+                      disabled={creating || Object.keys(assignments).length === 0}
+                    >
+                      {creating ? 'Salvare...' : 'Salvează și Aprobă'}
+                    </Button>
+                  ) : (
+                    // Manager - salvează ca draft sau trimite pentru aprobare
+                    <>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={creating ? <CircularProgress size={16} /> : <SaveIcon />}
+                        onClick={handleSave}
+                        disabled={creating || Object.keys(assignments).length === 0}
+                      >
+                        Salvează Draft
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        color="primary"
+                        startIcon={creating ? <CircularProgress size={16} /> : <SendIcon />}
+                        onClick={handleSaveAndSubmit}
+                        disabled={creating || Object.keys(assignments).length === 0}
+                      >
+                        Trimite pentru Aprobare
+                      </Button>
+                    </>
+                  )}
                 </Stack>
               </Stack>
             </CardContent>

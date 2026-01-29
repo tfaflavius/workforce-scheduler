@@ -107,6 +107,7 @@ export interface CreateScheduleRequest {
   departmentId?: string;
   assignments?: ScheduleAssignmentDto[];
   notes?: string;
+  status?: ScheduleStatus; // Optional - for admin to set status directly
 }
 
 export interface UpdateScheduleRequest {
