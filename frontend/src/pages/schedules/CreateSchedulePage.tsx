@@ -38,7 +38,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useAppSelector } from '../../store/hooks';
-import type { ScheduleAssignmentDto } from '../../types/schedule.types';
+import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
 
 // Tipuri de ture
 type ShiftPatternType = '12H' | '8H';
@@ -298,7 +298,7 @@ const CreateSchedulePage: React.FC = () => {
         assignments: assignmentDtos,
         notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
         // Pentru Admin, programul este aprobat direct
-        status: isAdmin ? 'APPROVED' : 'DRAFT',
+        status: (isAdmin ? 'APPROVED' : 'DRAFT') as ScheduleStatus,
       };
       console.log('Full request body:', JSON.stringify(requestBody, null, 2));
 
@@ -326,7 +326,7 @@ const CreateSchedulePage: React.FC = () => {
         monthYear,
         assignments: assignmentDtos,
         notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
-        status: 'PENDING_APPROVAL',
+        status: 'PENDING_APPROVAL' as ScheduleStatus,
       }).unwrap();
 
       setSuccessMessage('Programul a fost trimis pentru aprobare. Un administrator îl va revizui.');
