@@ -51,9 +51,9 @@ const MySchedulePage = () => {
   const currentYear = currentDate.getFullYear();
   const monthYear = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
+  // Afișează programele aprobate sau în așteptare pentru utilizatorul curent
   const { data: schedules, isLoading } = useGetSchedulesQuery({
     monthYear,
-    status: 'APPROVED',
   });
 
   // Get all assignments for current user

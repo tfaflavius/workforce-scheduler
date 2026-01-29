@@ -99,7 +99,7 @@ export const MainLayout = () => {
       text: 'Programul Meu',
       icon: <ScheduleIcon />,
       path: '/my-schedule',
-      roles: ['ANGAJAT'],
+      roles: ['ANGAJAT', 'MANAGER'],
     },
     {
       text: 'Programe',
