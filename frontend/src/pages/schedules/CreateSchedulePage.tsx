@@ -237,12 +237,14 @@ const CreateSchedulePage: React.FC = () => {
 
   // Handler pentru schimbarea turei unei zile
   const handleDayShiftChange = (date: string, shiftId: string) => {
+    console.log('=== SHIFT CHANGE ===', { date, shiftId });
     setAssignments(prev => {
-      if (shiftId === '') {
-        const { [date]: _, ...rest } = prev;
-        return rest;
-      }
-      return { ...prev, [date]: shiftId };
+      const newAssignments = shiftId === ''
+        ? (({ [date]: _, ...rest }) => rest)(prev)
+        : { ...prev, [date]: shiftId };
+      console.log('New assignments state:', newAssignments);
+      console.log('Total assignments:', Object.keys(newAssignments).length);
+      return newAssignments;
     });
   };
 
