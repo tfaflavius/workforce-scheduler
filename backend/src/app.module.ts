@@ -44,3 +44,4 @@ import { ShiftType } from './modules/schedules/entities/shift-type.entity';
   providers: [AppService],
 })
 export class AppModule {}
+
