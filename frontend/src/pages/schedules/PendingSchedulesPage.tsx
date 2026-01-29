@@ -97,7 +97,7 @@ const PendingSchedulesPage = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 900, mx: 'auto', px: { xs: 2, sm: 3 } }}>
+    <Box sx={{ width: '100%' }}>
       {/* Header */}
       <Box sx={{ mb: 4, textAlign: 'center' }}>
         <Typography

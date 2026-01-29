@@ -104,7 +104,7 @@ const AdminDashboard = () => {
   const activeUsers = users?.filter(u => u.isActive)?.length || 0;
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+    <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
         <Typography
           variant="h4"

@@ -155,7 +155,7 @@ const MySchedulePage = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+    <Box sx={{ width: '100%' }}>
       {/* Header */}
       <Box sx={{
         mb: { xs: 2, sm: 3, md: 4 },

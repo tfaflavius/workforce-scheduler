@@ -225,7 +225,7 @@ const SchedulesPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 1400, mx: 'auto' }}>
+    <Box sx={{ width: '100%' }}>
       <Stack spacing={{ xs: 2, sm: 3 }}>
         {/* Header */}
         <Box sx={{

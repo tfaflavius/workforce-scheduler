@@ -222,16 +222,10 @@ const UsersPage: React.FC = () => {
   return (
     <Box sx={{
       width: '100%',
-      maxWidth: 1400,
-      mx: 'auto',
-      px: { xs: 0, sm: 0 },
       overflow: 'hidden'
     }}>
       {/* Header */}
-      <Box sx={{
-        mb: 3,
-        px: { xs: 2, sm: 0 }
-      }}>
+      <Box sx={{ mb: 3 }}>
         <Typography
           variant="h5"
           fontWeight="bold"
@@ -257,7 +251,7 @@ const UsersPage: React.FC = () => {
       </Box>
 
       {/* Filters - Collapsible on mobile */}
-      <Box sx={{ px: { xs: 2, sm: 0 }, mb: 2 }}>
+      <Box sx={{ mb: 2 }}>
         {isMobile ? (
           <Card>
             <CardContent sx={{ p: 0 }}>
@@ -420,7 +414,7 @@ const UsersPage: React.FC = () => {
       </Box>
 
       {/* Alerts */}
-      <Box sx={{ px: { xs: 2, sm: 0 } }}>
+      <Box>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             Eroare la încărcarea utilizatorilor
@@ -450,7 +444,7 @@ const UsersPage: React.FC = () => {
       {/* Users List */}
       {isMobile ? (
         // Mobile Card View
-        <Box sx={{ px: 2 }}>
+        <Box>
           {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
               <CircularProgress />
