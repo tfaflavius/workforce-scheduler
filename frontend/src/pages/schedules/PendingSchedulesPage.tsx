@@ -99,19 +99,18 @@ const PendingSchedulesPage = () => {
   return (
     <Box sx={{ width: '100%' }}>
       {/* Header */}
-      <Box sx={{ mb: 4, textAlign: 'center' }}>
+      <Box sx={{ mb: 3 }}>
         <Typography
-          variant="h4"
+          variant="h5"
           fontWeight="bold"
           gutterBottom
-          sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.25rem' } }}
+          sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
         >
           Aprobări Programe
         </Typography>
         <Typography
-          variant="body1"
+          variant="body2"
           color="text.secondary"
-          sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
         >
           Revizuiește și aprobă programele trimise de manageri
         </Typography>
@@ -129,52 +128,50 @@ const PendingSchedulesPage = () => {
         </Alert>
       )}
 
-      {/* Stats Card - Mare și vizibil */}
+      {/* Stats Card */}
       <Card
         sx={{
-          mb: 4,
+          mb: 3,
           background: 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)',
-          border: '2px solid #ffb74d'
+          border: '1px solid #ffb74d'
         }}
       >
-        <CardContent sx={{ p: { xs: 3, sm: 4 } }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
           <Stack
-            direction={{ xs: 'column', sm: 'row' }}
+            direction="row"
             alignItems="center"
-            justifyContent="center"
-            spacing={3}
+            spacing={2}
           >
             <Box
               sx={{
-                width: { xs: 80, sm: 100 },
-                height: { xs: 80, sm: 100 },
-                borderRadius: '50%',
+                width: { xs: 56, sm: 64 },
+                height: { xs: 56, sm: 64 },
+                borderRadius: 2,
                 bgcolor: '#ff9800',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <CalendarIcon sx={{ color: 'white', fontSize: { xs: 40, sm: 50 } }} />
+              <CalendarIcon sx={{ color: 'white', fontSize: { xs: 28, sm: 32 } }} />
             </Box>
-            <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+            <Box>
               <Typography
-                variant="h2"
+                variant="h3"
                 fontWeight="bold"
                 sx={{
                   color: '#e65100',
-                  fontSize: { xs: '3rem', sm: '4rem' },
+                  fontSize: { xs: '2rem', sm: '2.5rem' },
                   lineHeight: 1
                 }}
               >
                 {pendingSchedules?.length || 0}
               </Typography>
               <Typography
-                variant="h6"
+                variant="body1"
                 sx={{
                   color: '#bf360c',
-                  fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                  mt: 1
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
                 }}
               >
                 Programe în așteptare
