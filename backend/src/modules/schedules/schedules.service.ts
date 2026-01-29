@@ -53,7 +53,7 @@ export class SchedulesService {
       shiftPattern,
       departmentId: createScheduleDto.departmentId,
       createdBy: userId,
-      status: 'DRAFT',
+      status: createScheduleDto.status || 'DRAFT',
     });
 
     const savedSchedule = await this.scheduleRepository.save(schedule);

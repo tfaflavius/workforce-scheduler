@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsArray, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ScheduleAssignmentDto {
@@ -14,6 +14,15 @@ export class ScheduleAssignmentDto {
   @IsOptional()
   @IsString()
   notes?: string;
+}
+
+export enum ScheduleStatus {
+  DRAFT = 'DRAFT',
+  PENDING_APPROVAL = 'PENDING_APPROVAL',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED',
 }
 
 export class CreateScheduleDto {
@@ -33,4 +42,8 @@ export class CreateScheduleDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsEnum(ScheduleStatus)
+  status?: ScheduleStatus;
 }
