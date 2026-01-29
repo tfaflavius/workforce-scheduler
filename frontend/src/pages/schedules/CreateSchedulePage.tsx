@@ -35,7 +35,7 @@ import {
   Send as SendIcon,
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useCreateScheduleMutation, useGetSchedulesQuery } from '../../store/api/schedulesApi';
+import { useCreateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useAppSelector } from '../../store/hooks';
 import type { ScheduleAssignmentDto } from '../../types/schedule.types';
@@ -119,7 +119,38 @@ const CreateSchedulePage: React.FC = () => {
   // API hooks
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
   const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
+  const { data: dbShiftTypes = [] } = useGetShiftTypesQuery();
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
+
+  // Mapează shift types din DB la opțiunile locale
+  const getShiftTypeId = (localId: string): string | null => {
+    // Mapare bazată pe startTime și endTime
+    const mapping: Record<string, { startTime: string; endTime: string; pattern: string }> = {
+      'day_12': { startTime: '07:00', endTime: '19:00', pattern: 'SHIFT_12H' },
+      'night_12': { startTime: '19:00', endTime: '07:00', pattern: 'SHIFT_12H' },
+      'vacation_12': { startTime: '00:00', endTime: '00:00', pattern: 'SHIFT_12H' }, // Vacation
+      'day1_8': { startTime: '06:00', endTime: '14:00', pattern: 'SHIFT_8H' },
+      'day2_8': { startTime: '14:00', endTime: '22:00', pattern: 'SHIFT_8H' },
+      'night_8': { startTime: '22:00', endTime: '06:00', pattern: 'SHIFT_8H' },
+      'vacation_8': { startTime: '00:00', endTime: '00:00', pattern: 'SHIFT_8H' }, // Vacation
+    };
+
+    const localShift = mapping[localId];
+    if (!localShift) return null;
+
+    // Găsește shift type în DB
+    const dbShift = dbShiftTypes.find(st => {
+      // Pentru concediu, caută după nume
+      if (localId.includes('vacation')) {
+        return st.name.toLowerCase().includes('concediu') || st.name.toLowerCase().includes('vacation');
+      }
+      // Pentru alte ture, caută după startTime și pattern
+      return st.startTime?.substring(0, 5) === localShift.startTime &&
+             st.shiftPattern === localShift.pattern;
+    });
+
+    return dbShift?.id || null;
+  };
 
   // Setează utilizatorul din URL dacă există
   useEffect(() => {
@@ -200,23 +231,26 @@ const CreateSchedulePage: React.FC = () => {
 
   // Creează lista de asignări
   const createAssignmentDtos = (): ScheduleAssignmentDto[] => {
-    return Object.entries(assignments).map(([date, shiftId]) => {
-      const shiftOption = shiftOptions.find(s => s.id === shiftId);
-      if (!shiftOption || shiftOption.isVacation) {
-        return {
-          userId: selectedUserId,
-          shiftTypeId: 'vacation',
-          shiftDate: date,
-          notes: 'Concediu',
-        };
+    const validAssignments: ScheduleAssignmentDto[] = [];
+
+    Object.entries(assignments).forEach(([date, localShiftId]) => {
+      const shiftOption = shiftOptions.find(s => s.id === localShiftId);
+      const dbShiftTypeId = getShiftTypeId(localShiftId);
+
+      if (!dbShiftTypeId) {
+        console.warn(`No matching shift type found for ${localShiftId}`);
+        return;
       }
-      return {
+
+      validAssignments.push({
         userId: selectedUserId,
-        shiftTypeId: shiftId,
+        shiftTypeId: dbShiftTypeId,
         shiftDate: date,
-        notes: `${shiftOption.startTime}-${shiftOption.endTime}`,
-      };
+        notes: shiftOption?.isVacation ? 'Concediu' : `${shiftOption?.startTime}-${shiftOption?.endTime}`,
+      });
     });
+
+    return validAssignments;
   };
 
   // Salvează programul (pentru Admin - salvează direct)
