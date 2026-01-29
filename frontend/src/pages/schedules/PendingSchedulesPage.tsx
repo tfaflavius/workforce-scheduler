@@ -25,7 +25,6 @@ import {
   Avatar,
   Card,
   CardContent,
-  Grid,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -136,50 +135,42 @@ const PendingSchedulesPage = () => {
         </Alert>
       )}
 
-      {/* Stats Cards */}
-      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <Card>
-            <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography
-                    variant="overline"
-                    color="text.secondary"
-                    sx={{ fontWeight: 500, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
-                  >
-                    În așteptare
-                  </Typography>
-                  <Typography
-                    variant="h3"
-                    fontWeight="bold"
-                    color="warning.main"
-                    sx={{ fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' }, my: 0.5 }}
-                  >
-                    {pendingSchedules?.length || 0}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                    Programe
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    p: { xs: 1.5, sm: 2 },
-                    borderRadius: { xs: 2, sm: 3 },
-                    bgcolor: 'warning.lighter',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  <CalendarIcon sx={{ color: 'warning.dark', fontSize: { xs: 28, sm: 32 } }} />
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* Stats Card */}
+      <Card sx={{ mb: { xs: 2, sm: 3, md: 4 }, maxWidth: { xs: '100%', sm: 320 } }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar
+              sx={{
+                bgcolor: '#fff3e0',
+                width: { xs: 48, sm: 56 },
+                height: { xs: 48, sm: 56 }
+              }}
+            >
+              <CalendarIcon sx={{ color: '#ed6c02', fontSize: { xs: 24, sm: 28 } }} />
+            </Avatar>
+            <Box>
+              <Typography
+                variant="h3"
+                fontWeight="bold"
+                sx={{
+                  color: '#ed6c02',
+                  fontSize: { xs: '1.75rem', sm: '2.25rem' },
+                  lineHeight: 1.2
+                }}
+              >
+                {pendingSchedules?.length || 0}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+              >
+                Programe în așteptare
+              </Typography>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {/* Pending Schedules - Mobile Card View / Desktop Table View */}
       {pendingSchedules && pendingSchedules.length > 0 ? (
