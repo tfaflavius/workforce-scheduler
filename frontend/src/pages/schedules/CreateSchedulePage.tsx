@@ -283,13 +283,24 @@ const CreateSchedulePage: React.FC = () => {
       const assignmentDtos = createAssignmentDtos();
       const selectedUser = eligibleUsers.find(u => u.id === selectedUserId);
 
-      await createSchedule({
+      // Debug logging
+      console.log('=== SAVE DEBUG ===');
+      console.log('Selected User ID:', selectedUserId);
+      console.log('Month Year:', monthYear);
+      console.log('Assignments from state:', assignments);
+      console.log('Assignment DTOs to send:', assignmentDtos);
+      console.log('Number of assignments:', assignmentDtos.length);
+
+      const requestBody = {
         monthYear,
         assignments: assignmentDtos,
         notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
         // Pentru Admin, programul este aprobat direct
         status: isAdmin ? 'APPROVED' : 'DRAFT',
-      }).unwrap();
+      };
+      console.log('Full request body:', JSON.stringify(requestBody, null, 2));
+
+      await createSchedule(requestBody).unwrap();
 
       setSuccessMessage(isAdmin
         ? 'Programul a fost salvat și aprobat cu succes!'
