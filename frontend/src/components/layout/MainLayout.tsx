@@ -20,24 +20,19 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
-  Badge,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   CalendarMonth as CalendarIcon,
-  People as PeopleIcon,
   ExitToApp as LogoutIcon,
   ChevronLeft as ChevronLeftIcon,
-  Approval as ApprovalIcon,
   Schedule as ScheduleIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
-  Cancel as RejectedIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
-import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import type { UserRole } from '../../types/user.types';
 
 const drawerWidth = 240;
@@ -47,7 +42,6 @@ interface MenuItem {
   icon: React.ReactNode;
   path: string;
   roles: UserRole[];
-  badge?: number;
 }
 
 export const MainLayout = () => {
@@ -60,14 +54,6 @@ export const MainLayout = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-
-  // Get pending schedules count for badge
-  const { data: pendingSchedules } = useGetSchedulesQuery({ status: 'PENDING_APPROVAL' });
-  const pendingCount = pendingSchedules?.length || 0;
-
-  // Get rejected schedules count for badge
-  const { data: rejectedSchedules } = useGetSchedulesQuery({ status: 'REJECTED' });
-  const rejectedCount = rejectedSchedules?.length || 0;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -111,26 +97,6 @@ export const MainLayout = () => {
       icon: <CalendarIcon />,
       path: '/schedules',
       roles: ['ADMIN', 'MANAGER'],
-    },
-    {
-      text: 'Aprobari',
-      icon: <ApprovalIcon />,
-      path: '/schedules/pending',
-      roles: ['ADMIN'],
-      badge: pendingCount > 0 ? pendingCount : undefined,
-    },
-    {
-      text: 'Respinse',
-      icon: <RejectedIcon />,
-      path: '/schedules/rejected',
-      roles: ['ADMIN'],
-      badge: rejectedCount > 0 ? rejectedCount : undefined,
-    },
-    {
-      text: 'Utilizatori',
-      icon: <PeopleIcon />,
-      path: '/users',
-      roles: ['ADMIN'],
     },
   ];
 
@@ -235,13 +201,7 @@ export const MainLayout = () => {
                     minWidth: 40,
                   }}
                 >
-                  {item.badge ? (
-                    <Badge badgeContent={item.badge} color="error">
-                      {item.icon}
-                    </Badge>
-                  ) : (
-                    item.icon
-                  )}
+                  {item.icon}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.text}
