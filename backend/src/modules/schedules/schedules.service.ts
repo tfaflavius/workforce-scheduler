@@ -106,6 +106,9 @@ export class SchedulesService {
       .leftJoinAndSelect('schedule.creator', 'creator')
       .leftJoinAndSelect('schedule.department', 'department')
       .leftJoinAndSelect('schedule.approver', 'approver')
+      .leftJoinAndSelect('schedule.assignments', 'assignments')
+      .leftJoinAndSelect('assignments.shiftType', 'shiftType')
+      .leftJoinAndSelect('assignments.user', 'assignmentUser')
       .orderBy('schedule.created_at', 'DESC');
 
     if (filters?.monthYear) {
