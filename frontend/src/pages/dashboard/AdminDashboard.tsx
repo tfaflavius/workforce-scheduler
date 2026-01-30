@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   Grid,
-  Button,
   Stack,
   CircularProgress,
 } from '@mui/material';
@@ -13,7 +12,6 @@ import {
   PendingActions as PendingIcon,
   People as PeopleIcon,
   CalendarMonth as CalendarIcon,
-  Add as AddIcon,
   Cancel as RejectedIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
@@ -121,7 +119,7 @@ const AdminDashboard = () => {
         </Typography>
       </Box>
 
-      <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Programe in Asteptare"
@@ -165,75 +163,6 @@ const AdminDashboard = () => {
             bgColor="#e3f2fd"
             onClick={() => navigate('/users')}
           />
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={{ xs: 1.5, sm: 2 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/schedules/create')}
-            sx={{
-              py: 1.5,
-              minHeight: 56,
-              fontSize: '0.85rem',
-            }}
-          >
-            Program Nou
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Button
-            fullWidth
-            variant="outlined"
-            size="large"
-            color="warning"
-            startIcon={<PendingIcon />}
-            onClick={() => navigate('/schedules/pending')}
-            sx={{
-              py: 1.5,
-              minHeight: 56,
-              fontSize: '0.85rem',
-            }}
-          >
-            Aprobări ({pendingSchedules?.length || 0})
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Button
-            fullWidth
-            variant="outlined"
-            size="large"
-            color="error"
-            startIcon={<RejectedIcon />}
-            onClick={() => navigate('/schedules/rejected')}
-            sx={{
-              py: 1.5,
-              minHeight: 56,
-              fontSize: '0.85rem',
-            }}
-          >
-            Respinse ({rejectedSchedules?.length || 0})
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Button
-            fullWidth
-            variant="outlined"
-            size="large"
-            startIcon={<PeopleIcon />}
-            onClick={() => navigate('/users')}
-            sx={{
-              py: 1.5,
-              minHeight: 56,
-              fontSize: '0.85rem',
-            }}
-          >
-            Utilizatori
-          </Button>
         </Grid>
       </Grid>
     </Box>
