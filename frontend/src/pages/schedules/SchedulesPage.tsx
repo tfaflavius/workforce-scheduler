@@ -163,19 +163,19 @@ const SchedulesPage: React.FC = () => {
       return { label: 'CO', color: '#FF9800', type: 'VACATION' as const };
     }
     if (notes.includes('07:00-19:00')) {
-      return { label: 'Z', color: '#4CAF50', type: '12H' as const };
+      return { label: 'Z', color: '#4CAF50', type: '12H' as const };  // Verde
     }
     if (notes.includes('19:00-07:00')) {
-      return { label: 'N', color: '#3F51B5', type: '12H' as const };
+      return { label: 'N', color: '#3F51B5', type: '12H' as const };  // Albastru închis
     }
     if (notes.includes('06:00-14:00')) {
-      return { label: 'Z1', color: '#4CAF50', type: '8H' as const };
+      return { label: 'Z1', color: '#00BCD4', type: '8H' as const };  // Cyan
     }
     if (notes.includes('14:00-22:00')) {
-      return { label: 'Z2', color: '#8BC34A', type: '8H' as const };
+      return { label: 'Z2', color: '#9C27B0', type: '8H' as const };  // Mov
     }
     if (notes.includes('22:00-06:00')) {
-      return { label: 'N', color: '#3F51B5', type: '8H' as const };
+      return { label: 'N8', color: '#E91E63', type: '8H' as const };  // Roz
     }
     return { label: '-', color: '#9E9E9E', type: 'FREE' as const };
   };
@@ -394,9 +394,9 @@ const SchedulesPage: React.FC = () => {
             </Typography>
             <Chip label="Z - Zi 12h (07-19)" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="N - Noapte 12h (19-07)" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z1 - Zi 8h (06-14)" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z2 - Zi 8h (14-22)" size="small" sx={{ bgcolor: '#8BC34A', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="N - Noapte 8h (22-06)" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
+            <Chip label="Z1 - Zi 8h (06-14)" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.7rem', height: 24 }} />
+            <Chip label="Z2 - Zi 8h (14-22)" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.7rem', height: 24 }} />
+            <Chip label="N8 - Noapte 8h (22-06)" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="- Liber" variant="outlined" size="small" sx={{ fontSize: '0.7rem', height: 24 }} />
           </Stack>
