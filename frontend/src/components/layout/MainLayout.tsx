@@ -95,10 +95,10 @@ export const MainLayout = () => {
       roles: ['USER', 'MANAGER'],
     },
     {
-      text: 'Utilizatori',
-      icon: <PeopleIcon />,
-      path: '/users',
-      roles: ['ADMIN'],
+      text: 'Programe',
+      icon: <CalendarIcon />,
+      path: '/schedules',
+      roles: ['ADMIN', 'MANAGER'],
     },
     {
       text: 'Rapoarte',
@@ -107,10 +107,10 @@ export const MainLayout = () => {
       roles: ['ADMIN'],
     },
     {
-      text: 'Programe',
-      icon: <CalendarIcon />,
-      path: '/schedules',
-      roles: ['ADMIN', 'MANAGER'],
+      text: 'Utilizatori',
+      icon: <PeopleIcon />,
+      path: '/users',
+      roles: ['ADMIN'],
     },
   ];
 
