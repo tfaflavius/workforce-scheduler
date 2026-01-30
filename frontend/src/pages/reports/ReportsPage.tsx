@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -17,23 +17,13 @@ import {
   useTheme,
   Card,
   CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Avatar,
-  Divider,
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
   FilterList as FilterIcon,
-  Group as GroupIcon,
   PictureAsPdf as PdfIcon,
   TableChart as ExcelIcon,
   Assessment as ReportIcon,
-  Print as PrintIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -62,7 +52,6 @@ const generateMonthOptions = () => {
 const ReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const printRef = useRef<HTMLDivElement>(null);
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -91,7 +80,6 @@ const ReportsPage: React.FC = () => {
     const deptSet = new Set<string>();
     users.forEach(u => {
       if (u.departmentId) {
-        // Folosim departmentId ca identificator
         deptSet.add(u.departmentId);
       }
     });
@@ -378,14 +366,9 @@ const ReportsPage: React.FC = () => {
     XLSX.writeFile(wb, `raport-program-${selectedMonth}.xlsx`);
   };
 
-  // Print functionality
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <Box sx={{ width: '100%' }}>
-      <Stack spacing={2}>
+      <Stack spacing={3}>
         {/* Header */}
         <Box sx={{
           display: 'flex',
@@ -405,343 +388,133 @@ const ReportsPage: React.FC = () => {
               Generează rapoarte PDF sau Excel pentru programul de lucru
             </Typography>
           </Box>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<PdfIcon />}
-              onClick={handleExportPDF}
-              fullWidth={isMobile}
-              size={isMobile ? 'small' : 'medium'}
-              disabled={filteredUsers.length === 0}
-            >
-              Export PDF
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<ExcelIcon />}
-              onClick={handleExportExcel}
-              fullWidth={isMobile}
-              size={isMobile ? 'small' : 'medium'}
-              disabled={filteredUsers.length === 0}
-            >
-              Export Excel
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<PrintIcon />}
-              onClick={handlePrint}
-              fullWidth={isMobile}
-              size={isMobile ? 'small' : 'medium'}
-              sx={{ display: { xs: 'none', md: 'flex' } }}
-            >
-              Printează
-            </Button>
-          </Stack>
         </Box>
 
-        {/* Filtre */}
-        <Paper sx={{ p: 2, width: '100%' }}>
-          <Stack spacing={2}>
-            {/* Selector Lună */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CalendarIcon color="action" fontSize="small" />
-                <Typography variant="subtitle2" fontWeight="medium">Luna:</Typography>
-              </Stack>
-              <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }} size="small">
-                <Select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                >
-                  {monthOptions.map(({ value, label }) => (
-                    <MenuItem key={value} value={value}>
-                      {label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-
-            {/* Alte Filtre */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <FilterIcon color="action" fontSize="small" />
-                <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
+        {/* Card cu filtre și export */}
+        <Card>
+          <CardContent>
+            <Stack spacing={3}>
+              {/* Selector Lună */}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <CalendarIcon color="action" fontSize="small" />
+                  <Typography variant="subtitle2" fontWeight="medium">Luna:</Typography>
+                </Stack>
+                <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }} size="small">
+                  <Select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                  >
+                    {monthOptions.map(({ value, label }) => (
+                      <MenuItem key={value} value={value}>
+                        {label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Stack>
 
-              <TextField
-                placeholder="Caută după nume..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                size="small"
-                sx={{ minWidth: { xs: '100%', sm: 200 } }}
-              />
+              {/* Alte Filtre */}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <FilterIcon color="action" fontSize="small" />
+                  <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
+                </Stack>
 
-              <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
-                <InputLabel>Departament</InputLabel>
-                <Select
-                  value={selectedDepartment}
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  label="Departament"
-                >
-                  <MenuItem value="ALL">Toate departamentele</MenuItem>
-                  {departments.map((deptId) => (
-                    <MenuItem key={deptId} value={deptId}>
-                      {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-          </Stack>
-        </Paper>
+                <TextField
+                  placeholder="Caută după nume..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  size="small"
+                  sx={{ minWidth: { xs: '100%', sm: 200 } }}
+                />
 
-        {/* Legendă */}
-        <Paper sx={{ p: 1.5, width: '100%' }}>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
-            <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
-              Legendă:
-            </Typography>
-            <Chip label="Z - Zi 12h (07-19)" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="N - Noapte 12h (19-07)" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z1 - Zi 8h (06-14)" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z2 - Zi 8h (14-22)" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z3 - Zi 8h (07:30-15:30)" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="N8 - Noapte 8h (22-06)" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="- Liber" variant="outlined" size="small" sx={{ fontSize: '0.7rem', height: 24 }} />
-          </Stack>
-        </Paper>
-
-        {/* Loading/Error states */}
-        {isLoading && (
-          <Box display="flex" justifyContent="center" p={4}>
-            <CircularProgress />
-          </Box>
-        )}
-        {error && (
-          <Alert severity="error">
-            Eroare la încărcarea programelor.
-          </Alert>
-        )}
-
-        {/* Tabel Preview */}
-        {!isLoading && !error && (
-          <Card sx={{ width: '100%' }} ref={printRef}>
-            <CardContent sx={{ p: { xs: 1, sm: 2 }, '&:last-child': { pb: { xs: 1, sm: 2 } } }}>
-              <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                <GroupIcon color="primary" />
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Preview - {new Date(`${selectedMonth}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
-                </Typography>
-                <Chip label={`${filteredUsers.length} angajați`} size="small" color="primary" />
+                <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
+                  <InputLabel>Departament</InputLabel>
+                  <Select
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    label="Departament"
+                  >
+                    <MenuItem value="ALL">Toate departamentele</MenuItem>
+                    {departments.map((deptId) => (
+                      <MenuItem key={deptId} value={deptId}>
+                        {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Stack>
 
-              {filteredUsers.length > 0 ? (
-                <TableContainer sx={{ maxHeight: 500 }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell
-                          sx={{
-                            position: 'sticky',
-                            left: 0,
-                            bgcolor: 'background.paper',
-                            zIndex: 3,
-                            minWidth: 150,
-                            fontWeight: 'bold',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          Angajat
-                        </TableCell>
-                        {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
-                          <TableCell
-                            key={day}
-                            align="center"
-                            sx={{
-                              p: 0.3,
-                              minWidth: 32,
-                              maxWidth: 38,
-                              bgcolor: isWeekend ? 'grey.200' : 'background.paper',
-                              fontWeight: 'bold',
-                              fontSize: '0.65rem',
-                            }}
-                          >
-                            <Box>
-                              <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? 'error.main' : 'text.secondary' }}>
-                                {dayOfWeek}
-                              </Typography>
-                              <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
-                                {day}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                        ))}
-                        <TableCell
-                          align="center"
-                          sx={{
-                            position: 'sticky',
-                            right: 0,
-                            bgcolor: 'primary.main',
-                            color: 'white',
-                            zIndex: 3,
-                            minWidth: 60,
-                            fontWeight: 'bold',
-                            fontSize: '0.7rem',
-                          }}
-                        >
-                          Ore
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredUsers.map((targetUser) => {
-                        const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
-                        const stats = getUserStats(targetUser.id);
+              {/* Legendă */}
+              <Paper sx={{ p: 1.5, bgcolor: 'grey.50' }}>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+                  <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
+                    Legendă:
+                  </Typography>
+                  <Chip label="Z - Zi 12h" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
+                  <Chip label="N - Noapte 12h" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
+                  <Chip label="Z1 - 06-14" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.7rem', height: 24 }} />
+                  <Chip label="Z2 - 14-22" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.7rem', height: 24 }} />
+                  <Chip label="Z3 - 07:30-15:30" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.7rem', height: 24 }} />
+                  <Chip label="N8 - 22-06" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.7rem', height: 24 }} />
+                  <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.7rem', height: 24 }} />
+                </Stack>
+              </Paper>
 
-                        return (
-                          <TableRow
-                            key={targetUser.id}
-                            sx={{
-                              '&:hover': { bgcolor: 'action.hover' },
-                            }}
-                          >
-                            <TableCell
-                              sx={{
-                                position: 'sticky',
-                                left: 0,
-                                bgcolor: 'background.paper',
-                                zIndex: 1,
-                                p: 0.5,
-                              }}
-                            >
-                              <Stack direction="row" alignItems="center" spacing={0.5}>
-                                <Avatar sx={{ width: 24, height: 24, fontSize: '0.7rem', bgcolor: targetUser.role === 'MANAGER' ? 'primary.main' : 'grey.500' }}>
-                                  {targetUser.fullName.charAt(0)}
-                                </Avatar>
-                                <Box>
-                                  <Typography variant="caption" fontWeight="medium" sx={{ fontSize: '0.7rem', display: 'block' }}>
-                                    {targetUser.fullName}
-                                  </Typography>
-                                  <Chip
-                                    label={targetUser.role === 'MANAGER' ? 'Manager' : 'User'}
-                                    size="small"
-                                    color={targetUser.role === 'MANAGER' ? 'primary' : 'default'}
-                                    sx={{ height: 14, fontSize: '0.55rem', '& .MuiChip-label': { px: 0.5 } }}
-                                  />
-                                </Box>
-                              </Stack>
-                            </TableCell>
-                            {calendarDays.map(({ date, isWeekend }) => {
-                              const existingAssignment = userAssignments[date];
+              {/* Loading state */}
+              {isLoading && (
+                <Box display="flex" justifyContent="center" p={2}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
 
-                              let cellContent = '-';
-                              let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
-
-                              if (existingAssignment) {
-                                const shiftInfo = getExistingShiftInfo(existingAssignment.notes);
-                                cellContent = shiftInfo.label;
-                                cellBgColor = shiftInfo.color;
-                              }
-
-                              return (
-                                <TableCell
-                                  key={date}
-                                  align="center"
-                                  sx={{
-                                    p: 0.2,
-                                    bgcolor: cellBgColor,
-                                    color: existingAssignment ? 'white' : 'text.secondary',
-                                    fontWeight: 'bold',
-                                    fontSize: '0.65rem',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                  }}
-                                >
-                                  {cellContent}
-                                </TableCell>
-                              );
-                            })}
-                            <TableCell
-                              align="center"
-                              sx={{
-                                position: 'sticky',
-                                right: 0,
-                                bgcolor: 'grey.100',
-                                zIndex: 1,
-                                p: 0.5,
-                                fontWeight: 'bold',
-                                fontSize: '0.75rem',
-                              }}
-                            >
-                              {stats.totalHours}h
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              ) : (
-                <Alert severity="info">
-                  Nu s-au găsit angajați cu filtrele selectate.
+              {/* Error state */}
+              {error && (
+                <Alert severity="error">
+                  Eroare la încărcarea datelor.
                 </Alert>
               )}
 
-              {/* Summary */}
-              {filteredUsers.length > 0 && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-                    <Paper variant="outlined" sx={{ p: 1.5, minWidth: 120, textAlign: 'center' }}>
-                      <Typography variant="h6" color="primary.main">
-                        {filteredUsers.length}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Total Angajați
-                      </Typography>
-                    </Paper>
-                    <Paper variant="outlined" sx={{ p: 1.5, minWidth: 120, textAlign: 'center' }}>
-                      <Typography variant="h6" color="success.main">
-                        {filteredUsers.reduce((sum, u) => sum + getUserStats(u.id).totalHours, 0)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Total Ore
-                      </Typography>
-                    </Paper>
-                    <Paper variant="outlined" sx={{ p: 1.5, minWidth: 120, textAlign: 'center' }}>
-                      <Typography variant="h6" color="info.main">
-                        {filteredUsers.reduce((sum, u) => sum + getUserStats(u.id).dayShifts, 0)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Ture de Zi
-                      </Typography>
-                    </Paper>
-                    <Paper variant="outlined" sx={{ p: 1.5, minWidth: 120, textAlign: 'center' }}>
-                      <Typography variant="h6" color="secondary.main">
-                        {filteredUsers.reduce((sum, u) => sum + getUserStats(u.id).nightShifts, 0)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Ture de Noapte
-                      </Typography>
-                    </Paper>
-                    <Paper variant="outlined" sx={{ p: 1.5, minWidth: 120, textAlign: 'center' }}>
-                      <Typography variant="h6" color="warning.main">
-                        {filteredUsers.reduce((sum, u) => sum + getUserStats(u.id).vacationDays, 0)}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Zile Concediu
-                      </Typography>
-                    </Paper>
-                  </Stack>
-                </>
+              {/* Info despre selecție */}
+              {!isLoading && !error && (
+                <Alert severity="info" icon={false}>
+                  <Typography variant="body2">
+                    <strong>{filteredUsers.length}</strong> angajați selectați pentru luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
+                  </Typography>
+                </Alert>
               )}
-            </CardContent>
-          </Card>
-        )}
+
+              {/* Butoane Export */}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+                <Button
+                  variant="contained"
+                  color="error"
+                  size="large"
+                  startIcon={<PdfIcon />}
+                  onClick={handleExportPDF}
+                  fullWidth={isMobile}
+                  disabled={filteredUsers.length === 0 || isLoading}
+                  sx={{ minWidth: 200 }}
+                >
+                  Descarcă PDF
+                </Button>
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="large"
+                  startIcon={<ExcelIcon />}
+                  onClick={handleExportExcel}
+                  fullWidth={isMobile}
+                  disabled={filteredUsers.length === 0 || isLoading}
+                  sx={{ minWidth: 200 }}
+                >
+                  Descarcă Excel
+                </Button>
+              </Stack>
+            </Stack>
+          </CardContent>
+        </Card>
       </Stack>
     </Box>
   );
