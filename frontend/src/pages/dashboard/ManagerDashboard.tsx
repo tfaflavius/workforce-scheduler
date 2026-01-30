@@ -5,16 +5,15 @@ import {
   Card,
   CardContent,
   Grid,
-  Button,
   Stack,
   CircularProgress,
   Alert,
+  Button,
 } from '@mui/material';
 import {
   PendingActions as PendingIcon,
   CheckCircle as ApprovedIcon,
   Cancel as RejectedIcon,
-  Add as AddIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
@@ -36,6 +35,7 @@ const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick }: Sta
     sx={{
       cursor: onClick ? 'pointer' : 'default',
       transition: 'transform 0.2s, box-shadow 0.2s',
+      height: '100%',
       '&:hover': onClick ? {
         transform: 'translateY(-4px)',
         boxShadow: 4,
@@ -43,29 +43,42 @@ const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick }: Sta
     }}
     onClick={onClick}
   >
-    <CardContent>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 500 }}>
+    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            variant="overline"
+            color="text.secondary"
+            sx={{ fontWeight: 500, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+          >
             {title}
           </Typography>
-          <Typography variant="h3" sx={{ color, fontWeight: 700, my: 0.5 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              color,
+              fontWeight: 700,
+              my: 0.5,
+              fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' }
+            }}
+          >
             {value}
           </Typography>
           {subtitle && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
               {subtitle}
             </Typography>
           )}
         </Box>
         <Box
           sx={{
-            p: 2,
-            borderRadius: 3,
+            p: { xs: 1.5, sm: 2 },
+            borderRadius: { xs: 2, sm: 3 },
             bgcolor: bgColor,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flexShrink: 0,
           }}
         >
           {icon}
@@ -98,26 +111,19 @@ const ManagerDashboard = () => {
   const myRejected = rejectedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
 
   return (
-    <Box>
-      <Box sx={{ mb: 4 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-              Dashboard Manager
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Gestioneaza programele de lucru ale echipei tale
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/schedules/create')}
-          >
-            Program Nou
-          </Button>
-        </Stack>
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          gutterBottom
+          sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' } }}
+        >
+          Dashboard Manager
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+          Gestioneaza programele de lucru ale echipei tale
+        </Typography>
       </Box>
 
       {myRejected.length > 0 && (
@@ -134,7 +140,7 @@ const ManagerDashboard = () => {
         </Alert>
       )}
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="Draft-uri"
@@ -178,33 +184,6 @@ const ManagerDashboard = () => {
             bgColor="#ffebee"
             onClick={() => navigate('/schedules')}
           />
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <Button
-            fullWidth
-            variant="contained"
-            size="large"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/schedules/create')}
-            sx={{ py: 2 }}
-          >
-            Creaza Program Nou
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <Button
-            fullWidth
-            variant="outlined"
-            size="large"
-            startIcon={<ScheduleIcon />}
-            onClick={() => navigate('/schedules')}
-            sx={{ py: 2 }}
-          >
-            Toate Programele
-          </Button>
         </Grid>
       </Grid>
     </Box>
