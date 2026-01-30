@@ -186,7 +186,7 @@ const CreateSchedulePage: React.FC = () => {
 
   // Filtrăm doar angajații și managerii (nu adminii)
   const eligibleUsers = useMemo(() => {
-    return users.filter(u => u.role === 'ANGAJAT' || u.role === 'MANAGER');
+    return users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
   }, [users]);
 
   // Obține opțiunile de tură în funcție de tipul selectat
@@ -383,7 +383,7 @@ const CreateSchedulePage: React.FC = () => {
           <Box sx={{ flex: 1 }}>
             <Typography variant={isMobile ? 'h6' : 'h5'}>Creare Program de Lucru</Typography>
             <Typography variant="caption" color="text.secondary">
-              Creează programul lunar pentru un angajat sau manager
+              Creează programul lunar pentru un user sau manager
             </Typography>
           </Box>
         </Stack>
@@ -414,7 +414,7 @@ const CreateSchedulePage: React.FC = () => {
           </Alert>
         )}
 
-        {/* Selectori - Angajat, Tip Tură, Lună */}
+        {/* Selectori - User, Tip Tură, Lună */}
         <Card sx={{ width: '100%' }}>
           <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
             <Box sx={{
@@ -423,14 +423,14 @@ const CreateSchedulePage: React.FC = () => {
               gap: 2,
               alignItems: { xs: 'stretch', md: 'center' },
             }}>
-              {/* Selector Angajat */}
+              {/* Selector User */}
               <Box sx={{ flex: 1, minWidth: { md: 200 } }}>
                 <FormControl fullWidth size="small">
-                  <InputLabel>Angajat / Manager</InputLabel>
+                  <InputLabel>User / Manager</InputLabel>
                   <Select
                     value={selectedUserId}
                     onChange={(e) => setSelectedUserId(e.target.value)}
-                    label="Angajat / Manager"
+                    label="User / Manager"
                     disabled={usersLoading}
                   >
                     {eligibleUsers.map((user) => (
@@ -649,7 +649,7 @@ const CreateSchedulePage: React.FC = () => {
           </Card>
         ) : (
           <Alert severity="info" sx={{ width: '100%' }}>
-            Selectează un angajat sau manager pentru a crea programul de lucru.
+            Selectează un user sau manager pentru a crea programul de lucru.
           </Alert>
         )}
 
@@ -661,7 +661,7 @@ const CreateSchedulePage: React.FC = () => {
                 <Box>
                   <Typography variant="body2">
                     <strong>{Object.keys(assignments).length}</strong> zile asignate din <strong>{daysInMonth}</strong> |
-                    Angajat: <strong>{eligibleUsers.find(u => u.id === selectedUserId)?.fullName}</strong>
+                    User: <strong>{eligibleUsers.find(u => u.id === selectedUserId)?.fullName}</strong>
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -737,7 +737,7 @@ const CreateSchedulePage: React.FC = () => {
                         fontSize: '0.75rem',
                       }}
                     >
-                      Angajat
+                      User
                     </TableCell>
                     {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
                       <TableCell

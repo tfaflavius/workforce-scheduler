@@ -193,7 +193,7 @@ const UsersPage: React.FC = () => {
         return 'error';
       case 'MANAGER':
         return 'warning';
-      case 'ANGAJAT':
+      case 'USER':
         return 'info';
       default:
         return 'default';
@@ -206,8 +206,8 @@ const UsersPage: React.FC = () => {
         return 'Admin';
       case 'MANAGER':
         return 'Manager';
-      case 'ANGAJAT':
-        return 'Angajat';
+      case 'USER':
+        return 'User';
       default:
         return role;
     }
@@ -306,7 +306,7 @@ const UsersPage: React.FC = () => {
                       <MenuItem value="">Toate</MenuItem>
                       <MenuItem value="ADMIN">Admin</MenuItem>
                       <MenuItem value="MANAGER">Manager</MenuItem>
-                      <MenuItem value="ANGAJAT">Angajat</MenuItem>
+                      <MenuItem value="USER">User</MenuItem>
                     </Select>
                   </FormControl>
 
@@ -374,7 +374,7 @@ const UsersPage: React.FC = () => {
                     <MenuItem value="">Toate</MenuItem>
                     <MenuItem value="ADMIN">Admin</MenuItem>
                     <MenuItem value="MANAGER">Manager</MenuItem>
-                    <MenuItem value="ANGAJAT">Angajat</MenuItem>
+                    <MenuItem value="USER">User</MenuItem>
                   </Select>
                 </FormControl>
 

@@ -128,7 +128,7 @@ export const LoginPage = () => {
           password,
           fullName,
           phone: phone || undefined,
-          role: 'ANGAJAT',
+          role: 'USER',
         }),
       });
 

@@ -12,7 +12,7 @@ export const DashboardPage = () => {
       return <AdminDashboard />;
     case 'MANAGER':
       return <ManagerDashboard />;
-    case 'ANGAJAT':
+    case 'USER':
       return <EmployeeDashboard />;
     default:
       return <EmployeeDashboard />;

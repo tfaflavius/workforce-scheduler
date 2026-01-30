@@ -8,7 +8,7 @@ export interface User {
   email: string;
   fullName: string;
   phone: string | null;
-  role: 'ADMIN' | 'MANAGER' | 'ANGAJAT';
+  role: 'ADMIN' | 'MANAGER' | 'USER';
   departmentId: string | null;
   avatarUrl: string | null;
   isActive: boolean;
@@ -27,7 +27,7 @@ export interface CreateUserRequest {
   password: string;
   fullName: string;
   phone?: string;
-  role: 'ADMIN' | 'MANAGER' | 'ANGAJAT';
+  role: 'ADMIN' | 'MANAGER' | 'USER';
   departmentId?: string;
 }
 
@@ -35,7 +35,7 @@ export interface UpdateUserRequest {
   email?: string;
   fullName?: string;
   phone?: string;
-  role?: 'ADMIN' | 'MANAGER' | 'ANGAJAT';
+  role?: 'ADMIN' | 'MANAGER' | 'USER';
   departmentId?: string;
   isActive?: boolean;
 }

@@ -35,7 +35,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     password: '',
     fullName: initialData?.fullName || '',
     phone: initialData?.phone || '',
-    role: initialData?.role || 'ANGAJAT',
+    role: initialData?.role || 'USER',
     departmentId: initialData?.departmentId || '',
   });
 
@@ -48,7 +48,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         password: '',
         fullName: initialData.fullName || '',
         phone: initialData.phone || '',
-        role: initialData.role || 'ANGAJAT',
+        role: initialData.role || 'USER',
         departmentId: initialData.departmentId || '',
       });
     }
@@ -177,7 +177,7 @@ export const UserForm: React.FC<UserFormProps> = ({
           >
             <MenuItem value="ADMIN">Administrator</MenuItem>
             <MenuItem value="MANAGER">Manager</MenuItem>
-            <MenuItem value="ANGAJAT">Angajat</MenuItem>
+            <MenuItem value="USER">User</MenuItem>
           </Select>
           {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
         </FormControl>

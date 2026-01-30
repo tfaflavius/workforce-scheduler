@@ -85,13 +85,13 @@ export const MainLayout = () => {
       text: 'Dashboard',
       icon: <DashboardIcon />,
       path: '/dashboard',
-      roles: ['ADMIN', 'MANAGER', 'ANGAJAT'],
+      roles: ['ADMIN', 'MANAGER', 'USER'],
     },
     {
       text: 'Programul Meu',
       icon: <ScheduleIcon />,
       path: '/my-schedule',
-      roles: ['ANGAJAT', 'MANAGER'],
+      roles: ['USER', 'MANAGER'],
     },
     {
       text: 'Programe',
@@ -117,7 +117,7 @@ export const MainLayout = () => {
         return 'error';
       case 'MANAGER':
         return 'warning';
-      case 'ANGAJAT':
+      case 'USER':
         return 'info';
       default:
         return 'default';
@@ -130,8 +130,8 @@ export const MainLayout = () => {
         return 'Administrator';
       case 'MANAGER':
         return 'Manager';
-      case 'ANGAJAT':
-        return 'Angajat';
+      case 'USER':
+        return 'User';
       default:
         return role;
     }
@@ -174,8 +174,8 @@ export const MainLayout = () => {
               {user?.fullName || 'Utilizator'}
             </Typography>
             <Chip
-              label={getRoleLabel(user?.role || 'ANGAJAT')}
-              color={getRoleColor(user?.role || 'ANGAJAT')}
+              label={getRoleLabel(user?.role || 'USER')}
+              color={getRoleColor(user?.role || 'USER')}
               size="small"
               sx={{ mt: 0.5, height: 20, fontSize: '0.7rem' }}
             />

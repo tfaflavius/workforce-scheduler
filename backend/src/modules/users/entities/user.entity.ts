@@ -13,7 +13,7 @@ import { Exclude } from 'class-transformer';
 export enum UserRole {
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',
-  ANGAJAT = 'ANGAJAT',
+  USER = 'USER',
 }
 
 @Entity('users')

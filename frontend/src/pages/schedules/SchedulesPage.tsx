@@ -100,7 +100,7 @@ const SchedulesPage: React.FC = () => {
 
   // Filtrăm doar angajații și managerii
   const eligibleUsers = useMemo(() => {
-    return users.filter(u => u.role === 'ANGAJAT' || u.role === 'MANAGER');
+    return users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
   }, [users]);
 
   // Generează zilele lunii
@@ -222,7 +222,7 @@ const SchedulesPage: React.FC = () => {
       // Admin poate edita orice program
       return true;
     }
-    if (isManager && targetUser.role === 'ANGAJAT') {
+    if (isManager && targetUser.role === 'USER') {
       // Manager poate edita programele angajaților
       return true;
     }
@@ -442,7 +442,7 @@ const SchedulesPage: React.FC = () => {
                             fontSize: '0.75rem',
                           }}
                         >
-                          Angajat
+                          User
                         </TableCell>
                         {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
                           <TableCell
@@ -515,7 +515,7 @@ const SchedulesPage: React.FC = () => {
                                   </Typography>
                                   <Stack direction="row" spacing={0.5} alignItems="center">
                                     <Chip
-                                      label={targetUser.role === 'MANAGER' ? 'Manager' : 'Angajat'}
+                                      label={targetUser.role === 'MANAGER' ? 'Manager' : 'User'}
                                       size="small"
                                       color={targetUser.role === 'MANAGER' ? 'primary' : 'default'}
                                       sx={{ height: 14, fontSize: '0.55rem', '& .MuiChip-label': { px: 0.5 } }}

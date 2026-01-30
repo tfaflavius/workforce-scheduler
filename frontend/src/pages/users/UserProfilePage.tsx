@@ -53,8 +53,8 @@ const UserProfilePage: React.FC = () => {
         return 'Administrator';
       case 'MANAGER':
         return 'Manager';
-      case 'ANGAJAT':
-        return 'Angajat';
+      case 'USER':
+        return 'User';
       default:
         return role;
     }
@@ -66,7 +66,7 @@ const UserProfilePage: React.FC = () => {
         return 'error';
       case 'MANAGER':
         return 'warning';
-      case 'ANGAJAT':
+      case 'USER':
         return 'info';
       default:
         return 'default';
