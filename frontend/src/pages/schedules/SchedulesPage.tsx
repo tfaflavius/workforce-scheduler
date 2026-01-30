@@ -46,14 +46,14 @@ import { useGetUsersQuery } from '../../store/api/users.api';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 
-// Generează lista de luni (6 luni înapoi + luna curentă + 5 luni înainte)
+// Generează lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
   const options = [];
-  const now = new Date();
+  const year = 2026;
 
-  for (let i = -6; i < 6; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  for (let month = 0; month < 12; month++) {
+    const date = new Date(year, month, 1);
+    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
     const label = date.toLocaleDateString('ro-RO', {
       year: 'numeric',
       month: 'long',

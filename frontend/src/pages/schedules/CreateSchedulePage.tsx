@@ -63,20 +63,21 @@ const SHIFT_OPTIONS_12H: ShiftOption[] = [
 
 // Opțiuni pentru tura de 8 ore
 const SHIFT_OPTIONS_8H: ShiftOption[] = [
-  { id: 'day1_8', label: 'Zi 06-14', shortLabel: 'Z1', startTime: '06:00', endTime: '14:00', color: '#4CAF50', isNightShift: false, isVacation: false },
-  { id: 'day2_8', label: 'Zi 14-22', shortLabel: 'Z2', startTime: '14:00', endTime: '22:00', color: '#8BC34A', isNightShift: false, isVacation: false },
-  { id: 'night_8', label: 'Noapte 22-06', shortLabel: 'N', startTime: '22:00', endTime: '06:00', color: '#3F51B5', isNightShift: true, isVacation: false },
+  { id: 'day1_8', label: 'Zi 06-14', shortLabel: 'Z1', startTime: '06:00', endTime: '14:00', color: '#00BCD4', isNightShift: false, isVacation: false },
+  { id: 'day2_8', label: 'Zi 14-22', shortLabel: 'Z2', startTime: '14:00', endTime: '22:00', color: '#9C27B0', isNightShift: false, isVacation: false },
+  { id: 'day3_8', label: 'Zi 07:30-15:30', shortLabel: 'Z3', startTime: '07:30', endTime: '15:30', color: '#795548', isNightShift: false, isVacation: false },
+  { id: 'night_8', label: 'Noapte 22-06', shortLabel: 'N8', startTime: '22:00', endTime: '06:00', color: '#E91E63', isNightShift: true, isVacation: false },
   { id: 'vacation_8', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
 
-// Generează lista de luni (luna curentă + următoarele 11 luni)
+// Generează lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
   const options = [];
-  const now = new Date();
+  const year = 2026;
 
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  for (let month = 0; month < 12; month++) {
+    const date = new Date(year, month, 1);
+    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
     const label = date.toLocaleDateString('ro-RO', {
       year: 'numeric',
       month: 'long',
