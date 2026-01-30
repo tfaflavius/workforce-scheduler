@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>Program de Lucru - {{schedule.monthYear}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      text-align: center;
+      background: #1976d2;
+      color: white;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      margin: 0 0 10px 0;
+      font-size: 20pt;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 9pt;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: left;
+    }
+    th {
+      background-color: #1976d2;
+      color: white;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    .night-shift {
+      background-color: #ffe082 !important;
+    }
+    .violation {
+      margin-top: 30px;
+      padding: 15px;
+      background: #ffebee;
+      border-left: 4px solid #d32f2f;
+    }
+    .violation h3 {
+      margin-top: 0;
+      color: #d32f2f;
+    }
+    .violation-item {
+      margin-bottom: 10px;
+      padding: 8px;
+      background: white;
+      border-radius: 4px;
+    }
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 8pt;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Program de Lucru</h1>
+    <div>{{schedule.name}} - {{schedule.monthYear}}</div>
+  </div>
+
+  <div class="info-grid">
+    <div><strong>Departament:</strong> {{schedule.department.name}}</div>
+    <div><strong>Status:</strong> {{schedule.status}}</div>
+    <div><strong>Creat de:</strong> {{schedule.creator.fullName}}</div>
+    <div><strong>Data creării:</strong> {{formatDate schedule.createdAt}}</div>
+    {{#if schedule.approver}}
+    <div><strong>Aprobat de:</strong> {{schedule.approver.fullName}}</div>
+    <div><strong>Data aprobării:</strong> {{formatDate schedule.approvedAt}}</div>
+    {{/if}}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Angajat</th>
+        <th>Data</th>
+        <th>Tura</th>
+        <th>Început</th>
+        <th>Sfârșit</th>
+        <th>Ore</th>
+        <th>Notițe</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each schedule.assignments}}
+      <tr class="{{#if shiftType.isNightShift}}night-shift{{/if}}">
+        <td>{{user.fullName}}</td>
+        <td>{{formatDate shiftDate}}</td>
+        <td>{{shiftType.name}}</td>
+        <td>{{shiftType.startTime}}</td>
+        <td>{{shiftType.endTime}}</td>
+        <td>{{shiftType.durationHours}}</td>
+        <td>{{notes}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  {{#if weeklySummaries}}
+  <div style="margin-top: 30px;">
+    <h3 style="color: #1976d2; margin-bottom: 10px;">Rezumat Săptămânal</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Angajat</th>
+          <th>Săptămâna</th>
+          <th>Total Ore</th>
+          <th>Zile Lucrate</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each weeklySummaries}}
+        <tr>
+          <td>{{userName}}</td>
+          <td>Săptămâna {{weekNumber}}</td>
+          <td>{{totalHours}}</td>
+          <td>{{daysWorked}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  {{#if validation.violations}}
+  <div class="violation">
+    <h3>⚠️ Încălcări Legea Muncii Detectate</h3>
+    {{#each validation.violations}}
+    <div class="violation-item">
+      <strong>[{{severity}}]</strong> {{message}}<br>
+      <em style="font-size: 7pt; color: #666;">Referință: {{legalReference}}</em>
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <div class="footer">
+    Generat la: {{generatedAt}} | {{company.name}}
+  </div>
+</body>
+</html>

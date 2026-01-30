@@ -9,6 +9,7 @@ import RejectedSchedulesPage from '../pages/schedules/RejectedSchedulesPage';
 import MySchedulePage from '../pages/schedules/MySchedulePage';
 import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
+import ReportsPage from '../pages/reports/ReportsPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { useAppSelector } from '../store/hooks';
@@ -87,6 +88,16 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
               <UsersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Reports - Admin only */}
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ReportsPage />
             </ProtectedRoute>
           }
         />

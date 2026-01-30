@@ -31,6 +31,7 @@ import {
   Person as PersonIcon,
   Settings as SettingsIcon,
   People as PeopleIcon,
+  Assessment as ReportIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -94,16 +95,22 @@ export const MainLayout = () => {
       roles: ['USER', 'MANAGER'],
     },
     {
-      text: 'Programe',
-      icon: <CalendarIcon />,
-      path: '/schedules',
-      roles: ['ADMIN', 'MANAGER'],
-    },
-    {
       text: 'Utilizatori',
       icon: <PeopleIcon />,
       path: '/users',
       roles: ['ADMIN'],
+    },
+    {
+      text: 'Rapoarte',
+      icon: <ReportIcon />,
+      path: '/reports',
+      roles: ['ADMIN'],
+    },
+    {
+      text: 'Programe',
+      icon: <CalendarIcon />,
+      path: '/schedules',
+      roles: ['ADMIN', 'MANAGER'],
     },
   ];
 

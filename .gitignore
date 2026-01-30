@@ -50,6 +50,6 @@ temp/
 *.sqlite
 *.sqlite3
 
-# Reports
-reports/
-exports/
+# Generated reports (not src/pages/reports)
+/reports/
+/exports/
