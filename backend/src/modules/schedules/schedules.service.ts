@@ -396,11 +396,28 @@ export class SchedulesService {
     });
 
     // Get recent schedules
-    const recentSchedules = await this.scheduleRepository.find({
+    const recentSchedulesRaw = await this.scheduleRepository.find({
       order: { updatedAt: 'DESC' },
       take: 5,
       relations: ['creator', 'approver'],
     });
+
+    // Remove password from creator and approver
+    const recentSchedules = recentSchedulesRaw.map(schedule => ({
+      ...schedule,
+      creator: schedule.creator ? {
+        id: schedule.creator.id,
+        email: schedule.creator.email,
+        fullName: schedule.creator.fullName,
+        role: schedule.creator.role,
+      } : null,
+      approver: schedule.approver ? {
+        id: schedule.approver.id,
+        email: schedule.approver.email,
+        fullName: schedule.approver.fullName,
+        role: schedule.approver.role,
+      } : null,
+    }));
 
     // Total employees with schedules this month
     const employeesWithSchedules = await this.assignmentRepository
