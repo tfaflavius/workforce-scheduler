@@ -237,9 +237,13 @@ const CreateSchedulePage: React.FC = () => {
     return userAssignmentsMap;
   }, [existingSchedules]);
 
+  // Flag pentru a preveni încărcarea multiplă a asignărilor
+  const [hasLoadedAssignments, setHasLoadedAssignments] = useState(false);
+
   // Încarcă asignările existente ale utilizatorului selectat când se editează
   useEffect(() => {
-    if (selectedUserId && Object.keys(allUsersAssignments).length > 0) {
+    // Doar încarcă o dată când se selectează un user și avem date
+    if (selectedUserId && Object.keys(allUsersAssignments).length > 0 && !hasLoadedAssignments) {
       const userExistingAssignments = allUsersAssignments[selectedUserId];
       if (userExistingAssignments && Object.keys(userExistingAssignments).length > 0) {
         // Convertește asignările din DB la formatul local (cu id-uri locale)
@@ -280,18 +284,25 @@ const CreateSchedulePage: React.FC = () => {
         });
 
         // Setează tipul de tură detectat
-        if (detectedPattern && detectedPattern !== shiftPattern) {
+        if (detectedPattern) {
           setShiftPattern(detectedPattern);
         }
 
         // Setează asignările încărcate
         if (Object.keys(loadedAssignments).length > 0) {
           setAssignments(loadedAssignments);
+          setHasLoadedAssignments(true);
           console.log('Loaded existing assignments for user:', selectedUserId, loadedAssignments);
         }
       }
     }
-  }, [selectedUserId, allUsersAssignments]);
+  }, [selectedUserId, allUsersAssignments, hasLoadedAssignments]);
+
+  // Resetează flag-ul când se schimbă userul
+  useEffect(() => {
+    setHasLoadedAssignments(false);
+    setAssignments({});
+  }, [selectedUserId]);
 
   // Handler pentru schimbarea turei unei zile
   const handleDayShiftChange = (date: string, shiftId: string) => {
@@ -515,8 +526,18 @@ const CreateSchedulePage: React.FC = () => {
                   <Select
                     value={shiftPattern}
                     onChange={(e) => {
-                      setShiftPattern(e.target.value as ShiftPatternType);
-                      setAssignments({});
+                      const newPattern = e.target.value as ShiftPatternType;
+                      // Doar schimbă pattern-ul, nu șterge asignările
+                      // Asignările incompatibile vor fi convertite sau ignorate la salvare
+                      if (Object.keys(assignments).length > 0) {
+                        // Avertizează utilizatorul că are asignări care vor fi șterse
+                        if (window.confirm('Schimbarea tipului de tură va șterge asignările curente. Continuați?')) {
+                          setShiftPattern(newPattern);
+                          setAssignments({});
+                        }
+                      } else {
+                        setShiftPattern(newPattern);
+                      }
                     }}
                     label="Tip Tură"
                   >
@@ -533,8 +554,18 @@ const CreateSchedulePage: React.FC = () => {
                   <Select
                     value={monthYear}
                     onChange={(e) => {
-                      setMonthYear(e.target.value);
-                      setAssignments({});
+                      const newMonth = e.target.value;
+                      // Doar schimbă luna, resetează asignările pentru noua lună
+                      if (Object.keys(assignments).length > 0) {
+                        if (window.confirm('Schimbarea lunii va șterge asignările curente. Continuați?')) {
+                          setMonthYear(newMonth);
+                          setAssignments({});
+                          setHasLoadedAssignments(false);
+                        }
+                      } else {
+                        setMonthYear(newMonth);
+                        setHasLoadedAssignments(false);
+                      }
                     }}
                     label="Luna"
                   >

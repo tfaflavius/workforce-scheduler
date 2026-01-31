@@ -75,8 +75,15 @@ export const NotificationBell: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const { data: notifications = [], isLoading } = useGetNotificationsQuery({ limit: 10 });
-  const { data: unreadCount = 0 } = useGetUnreadCountQuery();
+  // Poll pentru notificări la fiecare 30 secunde
+  const { data: notifications = [], isLoading } = useGetNotificationsQuery(
+    { limit: 10 },
+    { pollingInterval: 30000 }
+  );
+  const { data: unreadCount = 0 } = useGetUnreadCountQuery(
+    undefined,
+    { pollingInterval: 30000 }
+  );
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();
 
