@@ -1,4 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { UserRole } from '../../users/entities/user.entity';
 
 export class RegisterDto {
@@ -19,9 +20,10 @@ export class RegisterDto {
   @IsOptional()
   phone?: string;
 
-  @IsEnum(UserRole)
-  @IsNotEmpty()
-  role: UserRole;
+  @Transform(({ value }) => value?.toUpperCase?.() || value)
+  @IsEnum(UserRole, { message: 'role must be one of: ADMIN, MANAGER, USER' })
+  @IsOptional()
+  role?: UserRole = UserRole.USER;
 
   @IsString()
   @IsOptional()
