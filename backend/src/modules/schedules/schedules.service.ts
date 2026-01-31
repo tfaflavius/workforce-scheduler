@@ -100,6 +100,8 @@ export class SchedulesService {
     monthYear?: string;
     status?: string;
     departmentId?: string;
+    userId?: string;
+    userRole?: string;
   }): Promise<WorkSchedule[]> {
     const query = this.scheduleRepository
       .createQueryBuilder('schedule')
@@ -124,7 +126,29 @@ export class SchedulesService {
       query.andWhere('schedule.department_id = :departmentId', { departmentId: filters.departmentId });
     }
 
-    return query.getMany();
+    // Role-based filtering
+    // ADMIN: sees all schedules
+    // MANAGER: sees all schedules (needs to manage employees)
+    // USER: only sees schedules where they have assignments
+    if (filters?.userRole === 'USER' && filters?.userId) {
+      // For regular users, only return schedules where they have assignments
+      query.andWhere(
+        'EXISTS (SELECT 1 FROM schedule_assignments sa WHERE sa.work_schedule_id = schedule.id AND sa.user_id = :userId)',
+        { userId: filters.userId }
+      );
+    }
+
+    const schedules = await query.getMany();
+
+    // For regular users, filter assignments to only show their own
+    if (filters?.userRole === 'USER' && filters?.userId) {
+      return schedules.map(schedule => {
+        schedule.assignments = schedule.assignments.filter(a => a.userId === filters.userId);
+        return schedule;
+      });
+    }
+
+    return schedules;
   }
 
   async findOne(id: string): Promise<WorkSchedule> {

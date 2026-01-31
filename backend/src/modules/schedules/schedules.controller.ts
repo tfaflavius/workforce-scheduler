@@ -31,11 +31,19 @@ export class SchedulesController {
 
   @Get()
   findAll(
+    @Request() req,
     @Query('monthYear') monthYear?: string,
     @Query('status') status?: string,
     @Query('departmentId') departmentId?: string,
   ) {
-    return this.schedulesService.findAll({ monthYear, status, departmentId });
+    // Pass user context for role-based filtering
+    return this.schedulesService.findAll({
+      monthYear,
+      status,
+      departmentId,
+      userId: req.user.id,
+      userRole: req.user.role,
+    });
   }
 
   @Get('stats/dashboard')

@@ -39,6 +39,34 @@ import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 
+// Helper function to parse shift info from notes
+const getShiftInfoFromNotes = (notes: string | undefined | null) => {
+  if (!notes) return { name: 'Liber', isNightShift: false, startTime: '', endTime: '', hours: 0 };
+
+  if (notes === 'Concediu') {
+    return { name: 'Concediu', isNightShift: false, startTime: '', endTime: '', hours: 0 };
+  }
+  if (notes.includes('07:00-19:00')) {
+    return { name: 'Zi 12h', isNightShift: false, startTime: '07:00', endTime: '19:00', hours: 12 };
+  }
+  if (notes.includes('19:00-07:00')) {
+    return { name: 'Noapte 12h', isNightShift: true, startTime: '19:00', endTime: '07:00', hours: 12 };
+  }
+  if (notes.includes('07:30-15:30')) {
+    return { name: 'Zi 8h', isNightShift: false, startTime: '07:30', endTime: '15:30', hours: 8 };
+  }
+  if (notes.includes('06:00-14:00')) {
+    return { name: 'Zi 8h', isNightShift: false, startTime: '06:00', endTime: '14:00', hours: 8 };
+  }
+  if (notes.includes('14:00-22:00')) {
+    return { name: 'Zi 8h', isNightShift: false, startTime: '14:00', endTime: '22:00', hours: 8 };
+  }
+  if (notes.includes('22:00-06:00')) {
+    return { name: 'Noapte 8h', isNightShift: true, startTime: '22:00', endTime: '06:00', hours: 8 };
+  }
+  return { name: notes, isNightShift: false, startTime: '', endTime: '', hours: 0 };
+};
+
 const MySchedulePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -132,11 +160,14 @@ const MySchedulePage = () => {
   const dates = getDatesForView();
   const todayAssignment = getAssignmentForDate(new Date());
 
-  // Statistics
-  const totalHours = myAssignments.reduce((sum, a) => sum + (a.durationHours || 0), 0);
+  // Statistics - using notes to calculate
+  const totalHours = myAssignments.reduce((sum, a) => {
+    const info = getShiftInfoFromNotes(a.notes);
+    return sum + info.hours;
+  }, 0);
   const totalShifts = myAssignments.length;
-  const dayShifts = myAssignments.filter((a) => !a.shiftType?.isNightShift).length;
-  const nightShifts = myAssignments.filter((a) => a.shiftType?.isNightShift).length;
+  const dayShifts = myAssignments.filter((a) => !getShiftInfoFromNotes(a.notes).isNightShift).length;
+  const nightShifts = myAssignments.filter((a) => getShiftInfoFromNotes(a.notes).isNightShift).length;
 
   const monthNames = [
     'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
@@ -229,7 +260,9 @@ const MySchedulePage = () => {
                     month: isMobile ? 'short' : 'long',
                   })}
                 </Typography>
-                {todayAssignment ? (
+                {todayAssignment ? (() => {
+                  const shiftInfo = getShiftInfoFromNotes(todayAssignment.notes);
+                  return (
                   <>
                     <Typography
                       variant="h4"
@@ -237,21 +270,22 @@ const MySchedulePage = () => {
                       sx={{ my: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' } }}
                       noWrap
                     >
-                      {todayAssignment.shiftType?.name}
+                      {shiftInfo.name}
                     </Typography>
                     <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1}>
                       <Chip
-                        icon={todayAssignment.shiftType?.isNightShift ? <NightIcon /> : <DayIcon />}
-                        label={todayAssignment.shiftType?.isNightShift ? 'Noapte' : 'Zi'}
+                        icon={shiftInfo.isNightShift ? <NightIcon /> : <DayIcon />}
+                        label={shiftInfo.isNightShift ? 'Noapte' : 'Zi'}
                         size="small"
                         sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
                       />
                       <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                        {todayAssignment.shiftType?.startTime} - {todayAssignment.shiftType?.endTime}
+                        {shiftInfo.startTime} - {shiftInfo.endTime}
                       </Typography>
                     </Stack>
                   </>
-                ) : (
+                  );
+                })() : (
                   <Typography
                     variant="h4"
                     fontWeight="bold"
@@ -364,8 +398,8 @@ const MySchedulePage = () => {
         {/* Calendar Grid */}
         {viewMode === 'month' && !isMobile ? (
           <Grid container spacing={0.5}>
-            {/* Empty cells for first week alignment */}
-            {Array.from({ length: (dates[0]?.getDay() + 6) % 7 }).map((_, i) => (
+            {/* Empty cells for first week alignment - week starts on Sunday (getDay() = 0) */}
+            {Array.from({ length: dates[0]?.getDay() || 0 }).map((_, i) => (
               <Grid size={{ xs: 12 / 7 }} key={`empty-${i}`}>
                 <Box sx={{ p: 0.5, minHeight: { xs: 60, sm: 80, md: 100 } }} />
               </Grid>
@@ -408,22 +442,25 @@ const MySchedulePage = () => {
                         )}
                       </Stack>
 
-                      {assignment ? (
+                      {assignment ? (() => {
+                        const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                        return (
                         <Box sx={{ mt: 0.5 }}>
                           <Chip
                             size="small"
-                            icon={isTablet ? undefined : (assignment.shiftType?.isNightShift ? <NightIcon /> : <DayIcon />)}
-                            label={assignment.shiftType?.name?.substring(0, isTablet ? 4 : 8) || 'T'}
-                            color={assignment.shiftType?.isNightShift ? 'info' : 'warning'}
+                            icon={isTablet ? undefined : (shiftInfo.isNightShift ? <NightIcon /> : <DayIcon />)}
+                            label={shiftInfo.name?.substring(0, isTablet ? 4 : 8) || 'T'}
+                            color={shiftInfo.isNightShift ? 'info' : 'warning'}
                             sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, height: { xs: 18, sm: 22 } }}
                           />
-                          {!isTablet && (
+                          {!isTablet && shiftInfo.startTime && (
                             <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.65rem' }}>
-                              {assignment.shiftType?.startTime?.substring(0, 5)}
+                              {shiftInfo.startTime}
                             </Typography>
                           )}
                         </Box>
-                      ) : (
+                        );
+                      })() : (
                         <Box sx={{ mt: 0.5, textAlign: 'center' }}>
                           <Typography variant="caption" color="text.disabled" sx={{ fontSize: { xs: '0.6rem', sm: '0.75rem' } }}>
                             -
@@ -469,28 +506,36 @@ const MySchedulePage = () => {
                             {date.getDate()}
                           </Typography>
                         </Box>
-                        {assignment ? (
+                        {assignment ? (() => {
+                          const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                          return (
                           <Box>
                             <Typography variant="body2" fontWeight="medium">
-                              {assignment.shiftType?.name}
+                              {shiftInfo.name}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {assignment.shiftType?.startTime} - {assignment.shiftType?.endTime}
-                            </Typography>
+                            {shiftInfo.startTime && (
+                              <Typography variant="caption" color="text.secondary">
+                                {shiftInfo.startTime} - {shiftInfo.endTime}
+                              </Typography>
+                            )}
                           </Box>
-                        ) : (
+                          );
+                        })() : (
                           <Typography variant="body2" color="text.disabled">
                             Zi liberă
                           </Typography>
                         )}
                       </Stack>
-                      {assignment && (
+                      {assignment && (() => {
+                        const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                        return (
                         <Chip
                           size="small"
-                          label={assignment.shiftType?.isNightShift ? 'Noapte' : 'Zi'}
-                          color={assignment.shiftType?.isNightShift ? 'info' : 'warning'}
+                          label={shiftInfo.isNightShift ? 'Noapte' : 'Zi'}
+                          color={shiftInfo.isNightShift ? 'info' : 'warning'}
                         />
-                      )}
+                        );
+                      })()}
                       {today && (
                         <Chip label="Azi" size="small" color="primary" />
                       )}
@@ -533,18 +578,20 @@ const MySchedulePage = () => {
                       </Box>
                     </Grid>
                     <Grid size={{ xs: 9, md: 10 }}>
-                      {assignment ? (
+                      {assignment ? (() => {
+                        const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                        return (
                         <Stack direction="row" alignItems="center" spacing={3}>
                           <Avatar
                             sx={{
-                              bgcolor: assignment.shiftType?.isNightShift
+                              bgcolor: shiftInfo.isNightShift
                                 ? 'info.main'
                                 : 'warning.main',
                               width: 56,
                               height: 56,
                             }}
                           >
-                            {assignment.shiftType?.isNightShift ? (
+                            {shiftInfo.isNightShift ? (
                               <NightIcon sx={{ fontSize: 28 }} />
                             ) : (
                               <DayIcon sx={{ fontSize: 28 }} />
@@ -552,30 +599,35 @@ const MySchedulePage = () => {
                           </Avatar>
                           <Box sx={{ flex: 1 }}>
                             <Typography variant="h6" fontWeight="medium">
-                              {assignment.shiftType?.name}
+                              {shiftInfo.name}
                             </Typography>
-                            <Stack direction="row" spacing={2} alignItems="center">
+                            <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                              {shiftInfo.startTime && (
+                                <Chip
+                                  icon={<TimeIcon />}
+                                  label={`${shiftInfo.startTime} - ${shiftInfo.endTime}`}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              )}
+                              {shiftInfo.hours > 0 && (
+                                <Chip
+                                  icon={<HoursIcon />}
+                                  label={`${shiftInfo.hours}h`}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              )}
                               <Chip
-                                icon={<TimeIcon />}
-                                label={`${assignment.shiftType?.startTime} - ${assignment.shiftType?.endTime}`}
+                                label={shiftInfo.isNightShift ? 'Noapte' : 'Zi'}
                                 size="small"
-                                variant="outlined"
-                              />
-                              <Chip
-                                icon={<HoursIcon />}
-                                label={`${assignment.durationHours}h`}
-                                size="small"
-                                variant="outlined"
-                              />
-                              <Chip
-                                label={assignment.shiftType?.isNightShift ? 'Noapte' : 'Zi'}
-                                size="small"
-                                color={assignment.shiftType?.isNightShift ? 'info' : 'warning'}
+                                color={shiftInfo.isNightShift ? 'info' : 'warning'}
                               />
                             </Stack>
                           </Box>
                         </Stack>
-                      ) : (
+                        );
+                      })() : (
                         <Stack direction="row" alignItems="center" spacing={2}>
                           <Avatar sx={{ bgcolor: 'grey.200', width: 56, height: 56 }}>
                             <NoShiftIcon sx={{ color: 'grey.500', fontSize: 28 }} />

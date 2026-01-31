@@ -422,159 +422,65 @@ const SchedulesPage: React.FC = () => {
         {!isLoading && !error && (
           <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: { xs: 1, sm: 2 }, '&:last-child': { pb: { xs: 1, sm: 2 } } }}>
-              <Stack direction="row" alignItems="center" spacing={1} mb={2}>
+              <Stack direction="row" alignItems="center" spacing={1} mb={2} flexWrap="wrap">
                 <GroupIcon color="primary" />
-                <Typography variant="subtitle1" fontWeight="bold">
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Programele Angajaților - {new Date(`${selectedMonth}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
                 </Typography>
                 <Chip label={`${filteredUsers.length} angajați`} size="small" color="primary" />
               </Stack>
 
               {filteredUsers.length > 0 ? (
-                <TableContainer sx={{ maxHeight: 500 }}>
-                  <Table size="small" stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell
-                          sx={{
-                            position: 'sticky',
-                            left: 0,
-                            bgcolor: 'background.paper',
-                            zIndex: 3,
-                            minWidth: 150,
-                            fontWeight: 'bold',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          User
-                        </TableCell>
-                        {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
-                          <TableCell
-                            key={day}
-                            align="center"
-                            sx={{
-                              p: 0.3,
-                              minWidth: 32,
-                              maxWidth: 38,
-                              bgcolor: isWeekend ? 'grey.200' : 'background.paper',
-                              fontWeight: 'bold',
-                              fontSize: '0.65rem',
-                            }}
-                          >
-                            <Box>
-                              <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? 'error.main' : 'text.secondary' }}>
-                                {dayOfWeek}
-                              </Typography>
-                              <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
-                                {day}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                        ))}
-                        <TableCell
-                          align="center"
-                          sx={{
-                            position: 'sticky',
-                            right: 0,
-                            bgcolor: 'background.paper',
-                            zIndex: 3,
-                            minWidth: 60,
-                            fontWeight: 'bold',
-                            fontSize: '0.75rem',
-                          }}
-                        >
-                          Acțiuni
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
+                <>
+                  {/* Mobile View - Card-based layout */}
+                  {isMobile ? (
+                    <Stack spacing={2}>
                       {filteredUsers.map((targetUser) => {
                         const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
                         const scheduleStatus = getScheduleStatus(targetUser.id);
                         const canEdit = canEditSchedule(targetUser);
 
+                        // Calculate summary for mobile
+                        const assignmentsList = Object.entries(userAssignments);
+                        const totalShifts = assignmentsList.length;
+                        const shiftTypes: Record<string, number> = {};
+                        assignmentsList.forEach(([_, assignment]) => {
+                          const info = getExistingShiftInfo(assignment.notes);
+                          shiftTypes[info.label] = (shiftTypes[info.label] || 0) + 1;
+                        });
+
                         return (
-                          <TableRow
-                            key={targetUser.id}
-                            sx={{
-                              '&:hover': { bgcolor: 'action.hover' },
-                            }}
-                          >
-                            <TableCell
-                              sx={{
-                                position: 'sticky',
-                                left: 0,
-                                bgcolor: 'background.paper',
-                                zIndex: 1,
-                                p: 0.5,
-                              }}
-                            >
-                              <Stack direction="row" alignItems="center" spacing={0.5}>
-                                <Avatar sx={{ width: 24, height: 24, fontSize: '0.7rem', bgcolor: targetUser.role === 'MANAGER' ? 'primary.main' : 'grey.500' }}>
-                                  {targetUser.fullName.charAt(0)}
-                                </Avatar>
-                                <Box>
-                                  <Typography variant="caption" fontWeight="medium" sx={{ fontSize: '0.7rem', display: 'block' }}>
-                                    {targetUser.fullName}
-                                  </Typography>
-                                  <Stack direction="row" spacing={0.5} alignItems="center">
-                                    <Chip
-                                      label={targetUser.role === 'MANAGER' ? 'Manager' : 'User'}
-                                      size="small"
-                                      color={targetUser.role === 'MANAGER' ? 'primary' : 'default'}
-                                      sx={{ height: 14, fontSize: '0.55rem', '& .MuiChip-label': { px: 0.5 } }}
-                                    />
-                                    {renderStatusChip(scheduleStatus)}
-                                  </Stack>
-                                </Box>
-                              </Stack>
-                            </TableCell>
-                            {calendarDays.map(({ date, isWeekend }) => {
-                              const existingAssignment = userAssignments[date];
-
-                              let cellContent = '-';
-                              let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
-
-                              if (existingAssignment) {
-                                const shiftInfo = getExistingShiftInfo(existingAssignment.notes);
-                                cellContent = shiftInfo.label;
-                                cellBgColor = shiftInfo.color;
-                              }
-
-                              return (
-                                <TableCell
-                                  key={date}
-                                  align="center"
-                                  sx={{
-                                    p: 0.2,
-                                    bgcolor: cellBgColor,
-                                    color: existingAssignment ? 'white' : 'text.secondary',
-                                    fontWeight: 'bold',
-                                    fontSize: '0.65rem',
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                  }}
-                                >
-                                  {cellContent}
-                                </TableCell>
-                              );
-                            })}
-                            <TableCell
-                              align="center"
-                              sx={{
-                                position: 'sticky',
-                                right: 0,
-                                bgcolor: 'background.paper',
-                                zIndex: 1,
-                                p: 0.5,
-                              }}
-                            >
-                              {canEdit && (
-                                <Tooltip title={
-                                  isAdmin
-                                    ? 'Editează programul (Admin)'
-                                    : 'Editează programul (va necesita aprobare)'
-                                }>
+                          <Card key={targetUser.id} variant="outlined">
+                            <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                              {/* User Header */}
+                              <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                                <Stack direction="row" alignItems="center" spacing={1}>
+                                  <Avatar
+                                    sx={{
+                                      width: 32,
+                                      height: 32,
+                                      fontSize: '0.875rem',
+                                      bgcolor: targetUser.role === 'MANAGER' ? 'primary.main' : 'grey.500'
+                                    }}
+                                  >
+                                    {targetUser.fullName.charAt(0)}
+                                  </Avatar>
+                                  <Box>
+                                    <Typography variant="body2" fontWeight="bold">
+                                      {targetUser.fullName}
+                                    </Typography>
+                                    <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
+                                      <Chip
+                                        label={targetUser.role === 'MANAGER' ? 'Manager' : 'User'}
+                                        size="small"
+                                        color={targetUser.role === 'MANAGER' ? 'primary' : 'default'}
+                                        sx={{ height: 18, fontSize: '0.65rem' }}
+                                      />
+                                      {renderStatusChip(scheduleStatus)}
+                                    </Stack>
+                                  </Box>
+                                </Stack>
+                                {canEdit && (
                                   <IconButton
                                     size="small"
                                     color="primary"
@@ -582,15 +488,216 @@ const SchedulesPage: React.FC = () => {
                                   >
                                     <EditIcon fontSize="small" />
                                   </IconButton>
-                                </Tooltip>
+                                )}
+                              </Stack>
+
+                              {/* Shift Summary */}
+                              {totalShifts > 0 ? (
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                    {totalShifts} ture programate:
+                                  </Typography>
+                                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                    {Object.entries(shiftTypes).map(([label, count]) => {
+                                      const colorMap: Record<string, string> = {
+                                        'Z': '#4CAF50',
+                                        'N': '#3F51B5',
+                                        'Z1': '#00BCD4',
+                                        'Z2': '#9C27B0',
+                                        'Z3': '#795548',
+                                        'N8': '#E91E63',
+                                        'CO': '#FF9800',
+                                      };
+                                      return (
+                                        <Chip
+                                          key={label}
+                                          label={`${label}: ${count}`}
+                                          size="small"
+                                          sx={{
+                                            bgcolor: colorMap[label] || '#9E9E9E',
+                                            color: 'white',
+                                            fontSize: '0.7rem',
+                                            height: 22,
+                                          }}
+                                        />
+                                      );
+                                    })}
+                                  </Stack>
+                                </Box>
+                              ) : (
+                                <Typography variant="caption" color="text.disabled">
+                                  Niciun program setat
+                                </Typography>
                               )}
-                            </TableCell>
-                          </TableRow>
+                            </CardContent>
+                          </Card>
                         );
                       })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                    </Stack>
+                  ) : (
+                    /* Desktop View - Table layout */
+                    <TableContainer sx={{ maxHeight: 500 }}>
+                      <Table size="small" stickyHeader>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell
+                              sx={{
+                                position: 'sticky',
+                                left: 0,
+                                bgcolor: 'background.paper',
+                                zIndex: 3,
+                                minWidth: 150,
+                                fontWeight: 'bold',
+                                fontSize: '0.75rem',
+                              }}
+                            >
+                              User
+                            </TableCell>
+                            {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
+                              <TableCell
+                                key={day}
+                                align="center"
+                                sx={{
+                                  p: 0.3,
+                                  minWidth: 32,
+                                  maxWidth: 38,
+                                  bgcolor: isWeekend ? 'grey.200' : 'background.paper',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.65rem',
+                                }}
+                              >
+                                <Box>
+                                  <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? 'error.main' : 'text.secondary' }}>
+                                    {dayOfWeek}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
+                                    {day}
+                                  </Typography>
+                                </Box>
+                              </TableCell>
+                            ))}
+                            <TableCell
+                              align="center"
+                              sx={{
+                                position: 'sticky',
+                                right: 0,
+                                bgcolor: 'background.paper',
+                                zIndex: 3,
+                                minWidth: 60,
+                                fontWeight: 'bold',
+                                fontSize: '0.75rem',
+                              }}
+                            >
+                              Acțiuni
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {filteredUsers.map((targetUser) => {
+                            const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
+                            const scheduleStatus = getScheduleStatus(targetUser.id);
+                            const canEdit = canEditSchedule(targetUser);
+
+                            return (
+                              <TableRow
+                                key={targetUser.id}
+                                sx={{
+                                  '&:hover': { bgcolor: 'action.hover' },
+                                }}
+                              >
+                                <TableCell
+                                  sx={{
+                                    position: 'sticky',
+                                    left: 0,
+                                    bgcolor: 'background.paper',
+                                    zIndex: 1,
+                                    p: 0.5,
+                                  }}
+                                >
+                                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                                    <Avatar sx={{ width: 24, height: 24, fontSize: '0.7rem', bgcolor: targetUser.role === 'MANAGER' ? 'primary.main' : 'grey.500' }}>
+                                      {targetUser.fullName.charAt(0)}
+                                    </Avatar>
+                                    <Box>
+                                      <Typography variant="caption" fontWeight="medium" sx={{ fontSize: '0.7rem', display: 'block' }}>
+                                        {targetUser.fullName}
+                                      </Typography>
+                                      <Stack direction="row" spacing={0.5} alignItems="center">
+                                        <Chip
+                                          label={targetUser.role === 'MANAGER' ? 'Manager' : 'User'}
+                                          size="small"
+                                          color={targetUser.role === 'MANAGER' ? 'primary' : 'default'}
+                                          sx={{ height: 14, fontSize: '0.55rem', '& .MuiChip-label': { px: 0.5 } }}
+                                        />
+                                        {renderStatusChip(scheduleStatus)}
+                                      </Stack>
+                                    </Box>
+                                  </Stack>
+                                </TableCell>
+                                {calendarDays.map(({ date, isWeekend }) => {
+                                  const existingAssignment = userAssignments[date];
+
+                                  let cellContent = '-';
+                                  let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
+
+                                  if (existingAssignment) {
+                                    const shiftInfo = getExistingShiftInfo(existingAssignment.notes);
+                                    cellContent = shiftInfo.label;
+                                    cellBgColor = shiftInfo.color;
+                                  }
+
+                                  return (
+                                    <TableCell
+                                      key={date}
+                                      align="center"
+                                      sx={{
+                                        p: 0.2,
+                                        bgcolor: cellBgColor,
+                                        color: existingAssignment ? 'white' : 'text.secondary',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.65rem',
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                      }}
+                                    >
+                                      {cellContent}
+                                    </TableCell>
+                                  );
+                                })}
+                                <TableCell
+                                  align="center"
+                                  sx={{
+                                    position: 'sticky',
+                                    right: 0,
+                                    bgcolor: 'background.paper',
+                                    zIndex: 1,
+                                    p: 0.5,
+                                  }}
+                                >
+                                  {canEdit && (
+                                    <Tooltip title={
+                                      isAdmin
+                                        ? 'Editează programul (Admin)'
+                                        : 'Editează programul (va necesita aprobare)'
+                                    }>
+                                      <IconButton
+                                        size="small"
+                                        color="primary"
+                                        onClick={() => handleEditClick(targetUser)}
+                                      >
+                                        <EditIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </>
               ) : (
                 <Alert severity="info">
                   Nu s-au găsit angajați cu filtrele selectate.
