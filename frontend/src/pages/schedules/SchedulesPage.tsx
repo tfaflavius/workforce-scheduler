@@ -81,6 +81,7 @@ const SchedulesPage: React.FC = () => {
   // Filtering state
   const [shiftFilter, setShiftFilter] = useState<ShiftFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('ALL');
 
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -102,6 +103,19 @@ const SchedulesPage: React.FC = () => {
   const eligibleUsers = useMemo(() => {
     return users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
   }, [users]);
+
+  // Extrage lista unică de departamente
+  const departments = useMemo(() => {
+    const deptMap = new Map<string, string>();
+    eligibleUsers.forEach(u => {
+      if (u.department) {
+        deptMap.set(u.department.id, u.department.name);
+      }
+    });
+    return Array.from(deptMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [eligibleUsers]);
 
   // Generează zilele lunii
   const daysInMonth = useMemo(() => {
@@ -195,6 +209,11 @@ const SchedulesPage: React.FC = () => {
       );
     }
 
+    // Filtru după departament
+    if (departmentFilter !== 'ALL') {
+      filtered = filtered.filter(user => user.department?.id === departmentFilter);
+    }
+
     // Filtru după tipul de tură
     if (shiftFilter !== 'ALL') {
       filtered = filtered.filter(user => {
@@ -213,7 +232,7 @@ const SchedulesPage: React.FC = () => {
     }
 
     return filtered;
-  }, [eligibleUsers, searchQuery, shiftFilter, allUsersAssignments]);
+  }, [eligibleUsers, searchQuery, departmentFilter, shiftFilter, allUsersAssignments]);
 
   const handleCreateSchedule = () => {
     navigate('/schedules/create');
@@ -357,7 +376,7 @@ const SchedulesPage: React.FC = () => {
             </Stack>
 
             {/* Filtre */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap">
               <Stack direction="row" spacing={1} alignItems="center">
                 <FilterIcon color="action" fontSize="small" />
                 <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
@@ -370,6 +389,22 @@ const SchedulesPage: React.FC = () => {
                 size="small"
                 sx={{ minWidth: { xs: '100%', sm: 200 } }}
               />
+
+              <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
+                <InputLabel>Departament</InputLabel>
+                <Select
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  label="Departament"
+                >
+                  <MenuItem value="ALL">Toate departamentele</MenuItem>
+                  {departments.map((dept) => (
+                    <MenuItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               <FormControl sx={{ minWidth: { xs: '100%', sm: 150 } }} size="small">
                 <InputLabel>Tip Tură</InputLabel>
