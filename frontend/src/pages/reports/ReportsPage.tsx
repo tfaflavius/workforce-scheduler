@@ -227,6 +227,17 @@ const ReportsPage: React.FC = () => {
     return stats;
   };
 
+  // Mapare culori pentru ture (hex to RGB pentru PDF)
+  const shiftColorMap: Record<string, [number, number, number]> = {
+    'Z': [76, 175, 80],      // #4CAF50 - verde
+    'N': [63, 81, 181],      // #3F51B5 - albastru
+    'Z1': [0, 188, 212],     // #00BCD4 - cyan
+    'Z2': [156, 39, 176],    // #9C27B0 - violet
+    'Z3': [121, 85, 72],     // #795548 - maro
+    'N8': [233, 30, 99],     // #E91E63 - roz
+    'CO': [255, 152, 0],     // #FF9800 - portocaliu
+  };
+
   // Export to PDF
   const handleExportPDF = () => {
     const doc = new jsPDF({
@@ -269,7 +280,26 @@ const ReportsPage: React.FC = () => {
       return row;
     });
 
-    // Add table
+    // Pregătim datele pentru colorare
+    const cellColors: Record<string, { row: number; col: number; color: [number, number, number] }[]> = {};
+    filteredUsers.forEach((targetUser, rowIndex) => {
+      const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
+      calendarDays.forEach((d, colIndex) => {
+        const assignment = userAssignments[d.date];
+        if (assignment) {
+          const shiftInfo = getExistingShiftInfo(assignment.notes);
+          const color = shiftColorMap[shiftInfo.label];
+          if (color) {
+            if (!cellColors[rowIndex]) {
+              cellColors[rowIndex] = [];
+            }
+            cellColors[rowIndex].push({ row: rowIndex, col: colIndex + 1, color });
+          }
+        }
+      });
+    });
+
+    // Add table with colored cells
     autoTable(doc, {
       head: [headers],
       body: rows,
@@ -288,15 +318,68 @@ const ReportsPage: React.FC = () => {
       columnStyles: {
         0: { halign: 'left', cellWidth: 35 },
       },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245],
+      didParseCell: function(data) {
+        // Colorăm celulele cu ture
+        if (data.section === 'body' && data.column.index > 0 && data.column.index <= calendarDays.length) {
+          const cellValue = data.cell.text[0];
+          const color = shiftColorMap[cellValue];
+          if (color) {
+            data.cell.styles.fillColor = color;
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        // Colorăm header-urile de weekend
+        if (data.section === 'head' && data.column.index > 0 && data.column.index <= calendarDays.length) {
+          const dayIndex = data.column.index - 1;
+          if (calendarDays[dayIndex]?.isWeekend) {
+            data.cell.styles.fillColor = [244, 67, 54]; // Roșu pentru weekend
+          }
+        }
       },
     });
 
-    // Add legend
+    // Add legend with colored boxes
     const finalY = (doc as any).lastAutoTable.finalY || 200;
-    doc.setFontSize(8);
-    doc.text('Legenda: Z=Zi 12h, N=Noapte 12h, Z1=Zi 06-14, Z2=Zi 14-22, Z3=Zi 07:30-15:30, N8=Noapte 22-06, CO=Concediu', 14, finalY + 8);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Legenda:', 14, finalY + 8);
+    doc.setFont('helvetica', 'normal');
+
+    const legendItems = [
+      { label: 'Z', text: 'Zi 12h (07:00-19:00)', color: shiftColorMap['Z'] },
+      { label: 'N', text: 'Noapte 12h (19:00-07:00)', color: shiftColorMap['N'] },
+      { label: 'Z1', text: 'Zi 8h (06:00-14:00)', color: shiftColorMap['Z1'] },
+      { label: 'Z2', text: 'Zi 8h (14:00-22:00)', color: shiftColorMap['Z2'] },
+      { label: 'Z3', text: 'Zi 8h (07:30-15:30)', color: shiftColorMap['Z3'] },
+      { label: 'N8', text: 'Noapte 8h (22:00-06:00)', color: shiftColorMap['N8'] },
+      { label: 'CO', text: 'Concediu', color: shiftColorMap['CO'] },
+    ];
+
+    let xPos = 14;
+    const yPos = finalY + 14;
+    const boxWidth = 8;
+    const boxHeight = 5;
+
+    legendItems.forEach((item) => {
+      // Draw colored box
+      doc.setFillColor(item.color[0], item.color[1], item.color[2]);
+      doc.rect(xPos, yPos - 3.5, boxWidth, boxHeight, 'F');
+
+      // Draw label inside box
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'bold');
+      doc.text(item.label, xPos + boxWidth / 2, yPos, { align: 'center' });
+
+      // Draw description text
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.text(` = ${item.text}`, xPos + boxWidth + 1, yPos);
+
+      xPos += boxWidth + doc.getTextWidth(` = ${item.text}`) + 6;
+    });
 
     // Download
     doc.save(`raport-program-${selectedMonth}.pdf`);
