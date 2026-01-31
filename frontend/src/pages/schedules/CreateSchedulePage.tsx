@@ -136,6 +136,7 @@ const CreateSchedulePage: React.FC = () => {
       'vacation_12': 'Concediu 12H',
       'day1_8': 'Zi 06-14',
       'day2_8': 'Zi 14-22',
+      'day3_8': 'Zi 07:30-15:30',
       'night_8': 'Noapte 22-06',
       'vacation_8': 'Concediu 8H',
     };
