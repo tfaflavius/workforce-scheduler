@@ -88,10 +88,23 @@ export class SchedulesService {
 
     const finalSchedule = await this.findOne(savedSchedule.id);
 
+    // Get creator name
+    const creator = await this.userRepository.findOne({ where: { id: userId } });
+    const creatorName = creator?.fullName || 'Administrator';
+    const monthYear = `${year}-${String(month).padStart(2, '0')}`;
+
+    // Send in-app notifications to affected employees
+    const userIds = [...new Set(finalSchedule.assignments.map(a => a.userId))];
+    if (userIds.length > 0) {
+      this.notificationsService.notifyScheduleCreated(userIds, monthYear, creatorName).catch(err => {
+        this.logger.error('Failed to send schedule creation notifications:', err);
+      });
+    }
+
     // Send email notifications if schedule is approved (admin created it directly)
     if (finalSchedule.status === 'APPROVED') {
       this.sendScheduleNotifications(finalSchedule.id, 'created').catch(err => {
-        this.logger.error('Failed to send schedule creation notifications:', err);
+        this.logger.error('Failed to send schedule creation email notifications:', err);
       });
     }
 
@@ -206,10 +219,22 @@ export class SchedulesService {
       // Reload schedule to get fresh assignments without triggering cascade updates
       const updatedSchedule = await this.findOne(id);
 
+      const monthYear = `${updatedSchedule.year}-${String(updatedSchedule.month).padStart(2, '0')}`;
+
+      // Send in-app notifications to affected employees about the update
+      const userIds = [...new Set(updatedSchedule.assignments.map(a => a.userId))];
+      if (userIds.length > 0) {
+        // Get updater name from the creator of original schedule (or use generic)
+        const updaterName = updatedSchedule.creator?.fullName || 'Administrator';
+        this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName).catch(err => {
+          this.logger.error('Failed to send schedule update notifications:', err);
+        });
+      }
+
       // Send email notifications if schedule is approved (meaning changes are effective)
       if (updatedSchedule.status === 'APPROVED') {
         this.sendScheduleNotifications(updatedSchedule.id, 'updated').catch(err => {
-          this.logger.error('Failed to send schedule update notifications:', err);
+          this.logger.error('Failed to send schedule update email notifications:', err);
         });
       }
 
