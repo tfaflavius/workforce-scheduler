@@ -35,7 +35,7 @@ import {
   Send as SendIcon,
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useCreateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery } from '../../store/api/schedulesApi';
+import { useCreateScheduleMutation, useUpdateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useAppSelector } from '../../store/hooks';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
@@ -122,6 +122,7 @@ const CreateSchedulePage: React.FC = () => {
   const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
   const { data: dbShiftTypes = [] } = useGetShiftTypesQuery();
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
+  const [updateSchedule, { isLoading: updating }] = useUpdateScheduleMutation();
 
   // Mapează shift types din DB la opțiunile locale
   const getShiftTypeId = (localId: string): string | null => {
@@ -216,7 +217,7 @@ const CreateSchedulePage: React.FC = () => {
     return days;
   }, [monthYear, daysInMonth]);
 
-  // Creează un map cu toate asignările existente pentru toți angajații
+  // Creează un map cu toate asignările existente pentru toți angajații + scheduleId
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, Record<string, { shiftId: string; notes: string }>> = {};
 
@@ -236,6 +237,16 @@ const CreateSchedulePage: React.FC = () => {
 
     return userAssignmentsMap;
   }, [existingSchedules]);
+
+  // Găsește scheduleId-ul existent pentru un user în luna curentă
+  const getExistingScheduleId = (userId: string): string | null => {
+    for (const schedule of existingSchedules) {
+      if (schedule.assignments?.some(a => a.userId === userId)) {
+        return schedule.id;
+      }
+    }
+    return null;
+  };
 
   // Referință pentru a ține minte ce combinație user+month a fost încărcată
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
@@ -383,33 +394,52 @@ const CreateSchedulePage: React.FC = () => {
     try {
       const assignmentDtos = createAssignmentDtos();
       const selectedUser = eligibleUsers.find(u => u.id === selectedUserId);
+      const existingScheduleId = getExistingScheduleId(selectedUserId);
 
       // Debug logging
       console.log('=== SAVE DEBUG ===');
       console.log('Selected User ID:', selectedUserId);
       console.log('Month Year:', monthYear);
+      console.log('Existing Schedule ID:', existingScheduleId);
       console.log('Assignments from state:', assignments);
       console.log('Assignment DTOs to send:', assignmentDtos);
       console.log('Number of assignments:', assignmentDtos.length);
 
-      const requestBody = {
-        monthYear,
-        assignments: assignmentDtos,
-        notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
-        // Pentru Admin, programul este aprobat direct
-        status: (isAdmin ? 'APPROVED' : 'DRAFT') as ScheduleStatus,
-      };
-      console.log('Full request body:', JSON.stringify(requestBody, null, 2));
+      if (existingScheduleId) {
+        // UPDATE programul existent
+        console.log('📝 Updating existing schedule:', existingScheduleId);
+        await updateSchedule({
+          id: existingScheduleId,
+          data: {
+            assignments: assignmentDtos,
+            status: (isAdmin ? 'APPROVED' : 'DRAFT') as ScheduleStatus,
+          }
+        }).unwrap();
 
-      await createSchedule(requestBody).unwrap();
+        setSuccessMessage(isAdmin
+          ? 'Programul a fost actualizat și aprobat cu succes!'
+          : 'Programul a fost actualizat ca draft.');
+      } else {
+        // CREATE program nou
+        console.log('🆕 Creating new schedule');
+        const requestBody = {
+          monthYear,
+          assignments: assignmentDtos,
+          notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
+          status: (isAdmin ? 'APPROVED' : 'DRAFT') as ScheduleStatus,
+        };
+        console.log('Full request body:', JSON.stringify(requestBody, null, 2));
 
-      setSuccessMessage(isAdmin
-        ? 'Programul a fost salvat și aprobat cu succes!'
-        : 'Programul a fost salvat ca draft.');
+        await createSchedule(requestBody).unwrap();
+
+        setSuccessMessage(isAdmin
+          ? 'Programul a fost salvat și aprobat cu succes!'
+          : 'Programul a fost salvat ca draft.');
+      }
 
       setTimeout(() => navigate('/schedules'), 1500);
     } catch (err) {
-      console.error('Failed to create schedule:', err);
+      console.error('Failed to save schedule:', err);
     }
   };
 
@@ -420,13 +450,28 @@ const CreateSchedulePage: React.FC = () => {
     try {
       const assignmentDtos = createAssignmentDtos();
       const selectedUser = eligibleUsers.find(u => u.id === selectedUserId);
+      const existingScheduleId = getExistingScheduleId(selectedUserId);
 
-      await createSchedule({
-        monthYear,
-        assignments: assignmentDtos,
-        notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
-        status: 'PENDING_APPROVAL' as ScheduleStatus,
-      }).unwrap();
+      if (existingScheduleId) {
+        // UPDATE programul existent
+        console.log('📝 Updating existing schedule for approval:', existingScheduleId);
+        await updateSchedule({
+          id: existingScheduleId,
+          data: {
+            assignments: assignmentDtos,
+            status: 'PENDING_APPROVAL' as ScheduleStatus,
+          }
+        }).unwrap();
+      } else {
+        // CREATE program nou
+        console.log('🆕 Creating new schedule for approval');
+        await createSchedule({
+          monthYear,
+          assignments: assignmentDtos,
+          notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
+          status: 'PENDING_APPROVAL' as ScheduleStatus,
+        }).unwrap();
+      }
 
       setSuccessMessage('Programul a fost trimis pentru aprobare. Un administrator îl va revizui.');
       setTimeout(() => navigate('/schedules'), 2000);
@@ -793,11 +838,11 @@ const CreateSchedulePage: React.FC = () => {
                       variant="contained"
                       size="small"
                       color="success"
-                      startIcon={creating ? <CircularProgress size={16} /> : <SaveIcon />}
+                      startIcon={(creating || updating) ? <CircularProgress size={16} /> : <SaveIcon />}
                       onClick={handleSave}
-                      disabled={creating || Object.keys(assignments).length === 0}
+                      disabled={creating || updating || Object.keys(assignments).length === 0}
                     >
-                      {creating ? 'Salvare...' : 'Salvează și Aprobă'}
+                      {(creating || updating) ? 'Salvare...' : 'Salvează și Aprobă'}
                     </Button>
                   ) : (
                     // Manager - salvează ca draft sau trimite pentru aprobare
@@ -805,9 +850,9 @@ const CreateSchedulePage: React.FC = () => {
                       <Button
                         variant="outlined"
                         size="small"
-                        startIcon={creating ? <CircularProgress size={16} /> : <SaveIcon />}
+                        startIcon={(creating || updating) ? <CircularProgress size={16} /> : <SaveIcon />}
                         onClick={handleSave}
-                        disabled={creating || Object.keys(assignments).length === 0}
+                        disabled={creating || updating || Object.keys(assignments).length === 0}
                       >
                         Salvează Draft
                       </Button>
@@ -815,9 +860,9 @@ const CreateSchedulePage: React.FC = () => {
                         variant="contained"
                         size="small"
                         color="primary"
-                        startIcon={creating ? <CircularProgress size={16} /> : <SendIcon />}
+                        startIcon={(creating || updating) ? <CircularProgress size={16} /> : <SendIcon />}
                         onClick={handleSaveAndSubmit}
-                        disabled={creating || Object.keys(assignments).length === 0}
+                        disabled={creating || updating || Object.keys(assignments).length === 0}
                       >
                         Trimite pentru Aprobare
                       </Button>
