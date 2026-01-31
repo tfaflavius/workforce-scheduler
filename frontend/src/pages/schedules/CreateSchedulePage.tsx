@@ -237,72 +237,86 @@ const CreateSchedulePage: React.FC = () => {
     return userAssignmentsMap;
   }, [existingSchedules]);
 
-  // Flag pentru a preveni încărcarea multiplă a asignărilor
-  const [hasLoadedAssignments, setHasLoadedAssignments] = useState(false);
+  // Referință pentru a ține minte ultimul user încărcat
+  const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
 
   // Încarcă asignările existente ale utilizatorului selectat când se editează
   useEffect(() => {
-    // Doar încarcă o dată când se selectează un user și avem date
-    if (selectedUserId && Object.keys(allUsersAssignments).length > 0 && !hasLoadedAssignments) {
-      const userExistingAssignments = allUsersAssignments[selectedUserId];
-      if (userExistingAssignments && Object.keys(userExistingAssignments).length > 0) {
-        // Convertește asignările din DB la formatul local (cu id-uri locale)
-        const loadedAssignments: Record<string, string> = {};
-        let detectedPattern: ShiftPatternType | null = null;
-
-        Object.entries(userExistingAssignments).forEach(([date, assignment]) => {
-          const notes = assignment.notes;
-
-          // Mapare notes -> local shift id
-          let localShiftId = '';
-          if (notes === 'Concediu') {
-            // Determină dacă e 12H sau 8H bazat pe alte asignări sau default 12H
-            localShiftId = detectedPattern === '8H' ? 'vacation_8' : 'vacation_12';
-          } else if (notes.includes('07:00-19:00')) {
-            localShiftId = 'day_12';
-            detectedPattern = '12H';
-          } else if (notes.includes('19:00-07:00')) {
-            localShiftId = 'night_12';
-            detectedPattern = '12H';
-          } else if (notes.includes('06:00-14:00')) {
-            localShiftId = 'day1_8';
-            detectedPattern = '8H';
-          } else if (notes.includes('14:00-22:00')) {
-            localShiftId = 'day2_8';
-            detectedPattern = '8H';
-          } else if (notes.includes('07:30-15:30')) {
-            localShiftId = 'day3_8';
-            detectedPattern = '8H';
-          } else if (notes.includes('22:00-06:00')) {
-            localShiftId = 'night_8';
-            detectedPattern = '8H';
-          }
-
-          if (localShiftId) {
-            loadedAssignments[date] = localShiftId;
-          }
-        });
-
-        // Setează tipul de tură detectat
-        if (detectedPattern) {
-          setShiftPattern(detectedPattern);
-        }
-
-        // Setează asignările încărcate
-        if (Object.keys(loadedAssignments).length > 0) {
-          setAssignments(loadedAssignments);
-          setHasLoadedAssignments(true);
-          console.log('Loaded existing assignments for user:', selectedUserId, loadedAssignments);
-        }
-      }
+    // Nu face nimic dacă nu avem user selectat
+    if (!selectedUserId) {
+      setAssignments({});
+      setLastLoadedUserId(null);
+      return;
     }
-  }, [selectedUserId, allUsersAssignments, hasLoadedAssignments]);
 
-  // Resetează flag-ul când se schimbă userul
-  useEffect(() => {
-    setHasLoadedAssignments(false);
-    setAssignments({});
-  }, [selectedUserId]);
+    // Nu reîncarcă dacă e același user
+    if (selectedUserId === lastLoadedUserId) {
+      return;
+    }
+
+    // Dacă s-a schimbat userul, resetează și încearcă să încarce
+    const userExistingAssignments = allUsersAssignments[selectedUserId];
+
+    if (userExistingAssignments && Object.keys(userExistingAssignments).length > 0) {
+      // Convertește asignările din DB la formatul local (cu id-uri locale)
+      const loadedAssignments: Record<string, string> = {};
+      let detectedPattern: ShiftPatternType | null = null;
+
+      // Prima trecere - detectează pattern-ul
+      Object.entries(userExistingAssignments).forEach(([, assignment]) => {
+        const notes = assignment.notes;
+        if (notes.includes('07:00-19:00') || notes.includes('19:00-07:00')) {
+          detectedPattern = '12H';
+        } else if (notes.includes('06:00-14:00') || notes.includes('14:00-22:00') ||
+                   notes.includes('07:30-15:30') || notes.includes('22:00-06:00')) {
+          detectedPattern = '8H';
+        }
+      });
+
+      // A doua trecere - mapează asignările
+      Object.entries(userExistingAssignments).forEach(([date, assignment]) => {
+        const notes = assignment.notes;
+
+        // Mapare notes -> local shift id
+        let localShiftId = '';
+        if (notes === 'Concediu') {
+          // Determină dacă e 12H sau 8H bazat pe pattern-ul detectat sau default 12H
+          localShiftId = detectedPattern === '8H' ? 'vacation_8' : 'vacation_12';
+        } else if (notes.includes('07:00-19:00')) {
+          localShiftId = 'day_12';
+        } else if (notes.includes('19:00-07:00')) {
+          localShiftId = 'night_12';
+        } else if (notes.includes('06:00-14:00')) {
+          localShiftId = 'day1_8';
+        } else if (notes.includes('14:00-22:00')) {
+          localShiftId = 'day2_8';
+        } else if (notes.includes('07:30-15:30')) {
+          localShiftId = 'day3_8';
+        } else if (notes.includes('22:00-06:00')) {
+          localShiftId = 'night_8';
+        }
+
+        if (localShiftId) {
+          loadedAssignments[date] = localShiftId;
+        }
+      });
+
+      // Setează tipul de tură detectat
+      if (detectedPattern) {
+        setShiftPattern(detectedPattern);
+      }
+
+      // Setează asignările încărcate
+      console.log('Loading existing assignments for user:', selectedUserId, loadedAssignments);
+      setAssignments(loadedAssignments);
+      setLastLoadedUserId(selectedUserId);
+    } else {
+      // Nu are asignări existente - resetează
+      console.log('No existing assignments for user:', selectedUserId);
+      setAssignments({});
+      setLastLoadedUserId(selectedUserId);
+    }
+  }, [selectedUserId, allUsersAssignments, lastLoadedUserId]);
 
   // Handler pentru schimbarea turei unei zile
   const handleDayShiftChange = (date: string, shiftId: string) => {
@@ -560,11 +574,11 @@ const CreateSchedulePage: React.FC = () => {
                         if (window.confirm('Schimbarea lunii va șterge asignările curente. Continuați?')) {
                           setMonthYear(newMonth);
                           setAssignments({});
-                          setHasLoadedAssignments(false);
+                          setLastLoadedUserId(null); // Permite reîncărcarea pentru luna nouă
                         }
                       } else {
                         setMonthYear(newMonth);
-                        setHasLoadedAssignments(false);
+                        setLastLoadedUserId(null); // Permite reîncărcarea pentru luna nouă
                       }
                     }}
                     label="Luna"
