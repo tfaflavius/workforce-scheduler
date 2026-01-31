@@ -75,6 +75,11 @@ const SchedulesPage: React.FC = () => {
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
+    // Dacă suntem după data de 20, afișează luna următoare (pentru planificare)
+    if (now.getDate() >= 20) {
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      return `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}`;
+    }
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
 
