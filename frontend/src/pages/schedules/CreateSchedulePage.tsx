@@ -237,25 +237,41 @@ const CreateSchedulePage: React.FC = () => {
     return userAssignmentsMap;
   }, [existingSchedules]);
 
-  // Referință pentru a ține minte ultimul user încărcat
-  const [lastLoadedUserId, setLastLoadedUserId] = useState<string | null>(null);
+  // Referință pentru a ține minte ce combinație user+month a fost încărcată
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+
+  // Verifică dacă existingSchedules s-au încărcat (nu mai e loading)
+  const { isLoading: schedulesLoading } = useGetSchedulesQuery({ monthYear });
 
   // Încarcă asignările existente ale utilizatorului selectat când se editează
   useEffect(() => {
     // Nu face nimic dacă nu avem user selectat
     if (!selectedUserId) {
       setAssignments({});
-      setLastLoadedUserId(null);
+      setLoadedKey(null);
       return;
     }
 
-    // Nu reîncarcă dacă e același user
-    if (selectedUserId === lastLoadedUserId) {
+    // Așteaptă să se încarce datele
+    if (schedulesLoading) {
+      console.log('Waiting for schedules to load...');
       return;
     }
 
-    // Dacă s-a schimbat userul, resetează și încearcă să încarce
+    // Creează o cheie unică pentru combinația user + month
+    const currentKey = `${selectedUserId}-${monthYear}`;
+
+    // Nu reîncarcă dacă e aceeași combinație
+    if (currentKey === loadedKey) {
+      return;
+    }
+
+    // Dacă s-a schimbat userul sau luna, încearcă să încarce asignările
     const userExistingAssignments = allUsersAssignments[selectedUserId];
+
+    console.log('Checking assignments for user:', selectedUserId, 'month:', monthYear);
+    console.log('All users assignments:', allUsersAssignments);
+    console.log('User existing assignments:', userExistingAssignments);
 
     if (userExistingAssignments && Object.keys(userExistingAssignments).length > 0) {
       // Convertește asignările din DB la formatul local (cu id-uri locale)
@@ -307,16 +323,16 @@ const CreateSchedulePage: React.FC = () => {
       }
 
       // Setează asignările încărcate
-      console.log('Loading existing assignments for user:', selectedUserId, loadedAssignments);
+      console.log('✅ Loading existing assignments for user:', selectedUserId, loadedAssignments);
       setAssignments(loadedAssignments);
-      setLastLoadedUserId(selectedUserId);
+      setLoadedKey(currentKey);
     } else {
       // Nu are asignări existente - resetează
-      console.log('No existing assignments for user:', selectedUserId);
+      console.log('⚠️ No existing assignments for user:', selectedUserId, 'in month:', monthYear);
       setAssignments({});
-      setLastLoadedUserId(selectedUserId);
+      setLoadedKey(currentKey);
     }
-  }, [selectedUserId, allUsersAssignments, lastLoadedUserId]);
+  }, [selectedUserId, monthYear, allUsersAssignments, loadedKey, schedulesLoading]);
 
   // Handler pentru schimbarea turei unei zile
   const handleDayShiftChange = (date: string, shiftId: string) => {
@@ -574,11 +590,11 @@ const CreateSchedulePage: React.FC = () => {
                         if (window.confirm('Schimbarea lunii va șterge asignările curente. Continuați?')) {
                           setMonthYear(newMonth);
                           setAssignments({});
-                          setLastLoadedUserId(null); // Permite reîncărcarea pentru luna nouă
+                          setLoadedKey(null); // Permite reîncărcarea pentru luna nouă
                         }
                       } else {
                         setMonthYear(newMonth);
-                        setLastLoadedUserId(null); // Permite reîncărcarea pentru luna nouă
+                        setLoadedKey(null); // Permite reîncărcarea pentru luna nouă
                       }
                     }}
                     label="Luna"
