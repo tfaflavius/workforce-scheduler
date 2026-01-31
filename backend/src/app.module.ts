@@ -9,11 +9,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { User } from './modules/users/entities/user.entity';
 import { Department } from './modules/departments/entities/department.entity';
 import { WorkSchedule } from './modules/schedules/entities/work-schedule.entity';
 import { ScheduleAssignment } from './modules/schedules/entities/schedule-assignment.entity';
 import { ShiftType } from './modules/schedules/entities/shift-type.entity';
+import { Notification } from './modules/notifications/entities/notification.entity';
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { ShiftType } from './modules/schedules/entities/shift-type.entity';
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, Notification],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
@@ -39,6 +41,7 @@ import { ShiftType } from './modules/schedules/entities/shift-type.entity';
     UsersModule,
     DepartmentsModule,
     SchedulesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

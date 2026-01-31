@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { EmailService, ScheduleEmailData } from '../../common/email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class SchedulesService {
@@ -23,6 +24,7 @@ export class SchedulesService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly emailService: EmailService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(userId: string, createScheduleDto: CreateScheduleDto): Promise<WorkSchedule> {
@@ -226,6 +228,10 @@ export class SchedulesService {
       throw new BadRequestException('Schedule is not pending approval');
     }
 
+    // Get approver name
+    const approver = await this.userRepository.findOne({ where: { id: userId } });
+    const approverName = approver?.fullName || 'Admin';
+
     // Note: Admin can approve even with labor law violations
     // The frontend will show violations and ask for confirmation
     schedule.status = 'APPROVED';
@@ -234,6 +240,16 @@ export class SchedulesService {
 
     await this.scheduleRepository.save(schedule);
     const approvedSchedule = await this.findOne(id);
+
+    const monthYear = `${approvedSchedule.year}-${String(approvedSchedule.month).padStart(2, '0')}`;
+
+    // Send in-app notifications to affected employees
+    const userIds = [...new Set(approvedSchedule.assignments.map(a => a.userId))];
+    for (const affectedUserId of userIds) {
+      this.notificationsService.notifyScheduleApproved(affectedUserId, monthYear, approverName).catch(err => {
+        this.logger.error(`Failed to send approval notification to ${affectedUserId}:`, err);
+      });
+    }
 
     // Send email notifications to affected employees
     this.sendScheduleNotifications(approvedSchedule.id, 'approved').catch(err => {
@@ -250,11 +266,25 @@ export class SchedulesService {
       throw new BadRequestException('Only schedules pending approval can be rejected');
     }
 
+    // Get rejector name
+    const rejector = await this.userRepository.findOne({ where: { id: userId } });
+    const rejectorName = rejector?.fullName || 'Admin';
+
     schedule.status = 'REJECTED';
     schedule.rejectionReason = reason;
 
     await this.scheduleRepository.save(schedule);
     const rejectedSchedule = await this.findOne(id);
+
+    const monthYear = `${rejectedSchedule.year}-${String(rejectedSchedule.month).padStart(2, '0')}`;
+
+    // Send in-app notifications to affected employees
+    const userIds = [...new Set(rejectedSchedule.assignments.map(a => a.userId))];
+    for (const affectedUserId of userIds) {
+      this.notificationsService.notifyScheduleRejected(affectedUserId, monthYear, reason, rejectorName).catch(err => {
+        this.logger.error(`Failed to send rejection notification to ${affectedUserId}:`, err);
+      });
+    }
 
     // Send email notifications to affected employees about rejection
     this.sendScheduleNotifications(rejectedSchedule.id, 'rejected', reason).catch(err => {

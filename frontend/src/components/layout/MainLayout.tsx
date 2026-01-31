@@ -36,6 +36,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
 import type { UserRole } from '../../types/user.types';
+import NotificationBell from '../notifications/NotificationBell';
 
 const drawerWidth = 240;
 
@@ -297,8 +298,11 @@ export const MainLayout = () => {
             {filteredMenuItems.find((item) => item.path === location.pathname)?.text || 'WorkSchedule'}
           </Typography>
 
+          {/* Notifications Bell */}
+          <NotificationBell />
+
           <Tooltip title="Contul meu">
-            <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0 }}>
+            <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0, ml: 1 }}>
               <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main' }}>
                 {user?.fullName?.charAt(0).toUpperCase() || 'U'}
               </Avatar>
