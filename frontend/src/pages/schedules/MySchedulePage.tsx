@@ -124,7 +124,10 @@ const MySchedulePage = () => {
     if (viewMode === 'week') {
       const startOfWeek = new Date(currentDate);
       const day = startOfWeek.getDay();
-      startOfWeek.setDate(startOfWeek.getDate() - day + 1);
+      // Dacă e Duminică (day=0), săptămâna începe cu 6 zile în urmă (Luni trecut)
+      // Altfel, săptămâna începe Luni (day-1 zile în urmă)
+      const daysToSubtract = day === 0 ? 6 : day - 1;
+      startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
