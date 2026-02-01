@@ -82,7 +82,8 @@ export const EditSchedulePage: React.FC = () => {
         schedule.assignments.map((a) => ({
           userId: a.userId,
           shiftTypeId: a.shiftTypeId,
-          shiftDate: a.shiftDate,
+          // Normalizează data pentru a evita probleme cu timezone
+          shiftDate: a.shiftDate.split('T')[0],
           notes: a.notes || undefined,
         }))
       );

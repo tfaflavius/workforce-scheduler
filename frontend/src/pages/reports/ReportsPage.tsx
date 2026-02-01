@@ -126,7 +126,9 @@ const ReportsPage: React.FC = () => {
               status: schedule.status,
             };
           }
-          userAssignmentsMap[assignment.userId].assignments[assignment.shiftDate] = {
+          // Normalizează data pentru a evita probleme cu timezone
+          const normalizedDate = assignment.shiftDate.split('T')[0];
+          userAssignmentsMap[assignment.userId].assignments[normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
           };

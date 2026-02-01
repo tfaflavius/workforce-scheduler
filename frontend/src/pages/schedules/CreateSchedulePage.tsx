@@ -227,7 +227,10 @@ const CreateSchedulePage: React.FC = () => {
           if (!userAssignmentsMap[assignment.userId]) {
             userAssignmentsMap[assignment.userId] = {};
           }
-          userAssignmentsMap[assignment.userId][assignment.shiftDate] = {
+          // Normalizează data pentru a evita probleme cu timezone
+          // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
+          const normalizedDate = assignment.shiftDate.split('T')[0];
+          userAssignmentsMap[assignment.userId][normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
           };

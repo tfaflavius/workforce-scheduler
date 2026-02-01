@@ -158,7 +158,10 @@ const SchedulesPage: React.FC = () => {
               status: schedule.status,
             };
           }
-          userAssignmentsMap[assignment.userId].assignments[assignment.shiftDate] = {
+          // Normalizează data pentru a evita probleme cu timezone
+          // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
+          const normalizedDate = assignment.shiftDate.split('T')[0];
+          userAssignmentsMap[assignment.userId].assignments[normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
           };
