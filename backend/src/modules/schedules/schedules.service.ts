@@ -179,7 +179,7 @@ export class SchedulesService {
     return schedule;
   }
 
-  async update(id: string, updateScheduleDto: UpdateScheduleDto): Promise<WorkSchedule> {
+  async update(id: string, updateScheduleDto: UpdateScheduleDto, updaterUserId?: string): Promise<WorkSchedule> {
     const schedule = await this.findOne(id);
 
     if (updateScheduleDto.status) {
@@ -224,8 +224,12 @@ export class SchedulesService {
       // Send in-app notifications to affected employees about the update
       const userIds = [...new Set(updatedSchedule.assignments.map(a => a.userId))];
       if (userIds.length > 0) {
-        // Get updater name from the creator of original schedule (or use generic)
-        const updaterName = updatedSchedule.creator?.fullName || 'Administrator';
+        // Get the actual updater's name
+        let updaterName = 'Administrator';
+        if (updaterUserId) {
+          const updater = await this.userRepository.findOne({ where: { id: updaterUserId } });
+          updaterName = updater?.fullName || 'Administrator';
+        }
         this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName).catch(err => {
           this.logger.error('Failed to send schedule update notifications:', err);
         });

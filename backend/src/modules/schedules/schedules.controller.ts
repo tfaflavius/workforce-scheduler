@@ -68,8 +68,8 @@ export class SchedulesController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  update(@Param('id') id: string, @Body() updateScheduleDto: UpdateScheduleDto) {
-    return this.schedulesService.update(id, updateScheduleDto);
+  update(@Param('id') id: string, @Body() updateScheduleDto: UpdateScheduleDto, @Request() req) {
+    return this.schedulesService.update(id, updateScheduleDto, req.user.id);
   }
 
   @Post(':id/submit')
