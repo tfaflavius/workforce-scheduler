@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: workforce-scheduler-api
+    env: node
+    region: frankfurt
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_PORT
+        value: 6543
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: DATABASE_NAME
+        value: postgres
+      - key: DATABASE_SSL
+        value: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
+      - key: CORS_ORIGIN
+        sync: false
+      - key: REDIS_ENABLED
+        value: false
