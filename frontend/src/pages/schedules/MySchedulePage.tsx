@@ -32,8 +32,6 @@ import {
   EventBusy as NoShiftIcon,
   WorkHistory as HoursIcon,
   EventAvailable as ShiftIcon,
-  Print as PrintIcon,
-  Download as DownloadIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useAppSelector } from '../../store/hooks';
@@ -201,37 +199,18 @@ const MySchedulePage = () => {
   return (
     <Box sx={{ width: '100%' }}>
       {/* Header */}
-      <Box sx={{
-        mb: { xs: 2, sm: 3, md: 4 },
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        justifyContent: 'space-between',
-        alignItems: { xs: 'stretch', sm: 'center' },
-        gap: 2
-      }}>
-        <Box>
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            gutterBottom
-            sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' } }}
-          >
-            Programul Meu de Lucru
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-            Vizualizează programul tău zilnic și lunar
-          </Typography>
-        </Box>
-        {!isMobile && (
-          <Stack direction="row" spacing={1}>
-            <Button variant="outlined" startIcon={<PrintIcon />} disabled size="small">
-              Printează
-            </Button>
-            <Button variant="outlined" startIcon={<DownloadIcon />} disabled size="small">
-              Exportă
-            </Button>
-          </Stack>
-        )}
+      <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          gutterBottom
+          sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' } }}
+        >
+          Programul Meu de Lucru
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+          Vizualizează programul tău zilnic și lunar
+        </Typography>
       </Box>
 
       {/* Today's Shift Card */}
