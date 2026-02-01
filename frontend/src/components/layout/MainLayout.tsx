@@ -32,6 +32,7 @@ import {
   Settings as SettingsIcon,
   People as PeopleIcon,
   Assessment as ReportIcon,
+  SwapHoriz as SwapIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -96,10 +97,22 @@ export const MainLayout = () => {
       roles: ['USER', 'MANAGER'],
     },
     {
+      text: 'Schimburi Ture',
+      icon: <SwapIcon />,
+      path: '/shift-swaps',
+      roles: ['USER', 'MANAGER'],
+    },
+    {
       text: 'Programe',
       icon: <CalendarIcon />,
       path: '/schedules',
       roles: ['ADMIN', 'MANAGER'],
+    },
+    {
+      text: 'Gestionare Schimburi',
+      icon: <SwapIcon />,
+      path: '/admin/shift-swaps',
+      roles: ['ADMIN'],
     },
     {
       text: 'Rapoarte',

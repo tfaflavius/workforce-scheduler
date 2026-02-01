@@ -5,6 +5,7 @@ import { schedulesApi } from './api/schedulesApi';
 import { usersApi } from './api/users.api';
 import { departmentsApi } from './api/departmentsApi';
 import { notificationsApi } from './api/notifications.api';
+import { shiftSwapsApi } from './api/shiftSwaps.api';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     [usersApi.reducerPath]: usersApi.reducer,
     [departmentsApi.reducerPath]: departmentsApi.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
+    [shiftSwapsApi.reducerPath]: shiftSwapsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -21,7 +23,8 @@ export const store = configureStore({
       schedulesApi.middleware,
       usersApi.middleware,
       departmentsApi.middleware,
-      notificationsApi.middleware
+      notificationsApi.middleware,
+      shiftSwapsApi.middleware
     ),
 });
 

@@ -46,7 +46,9 @@ const getNotificationIcon = (type: Notification['type']) => {
     case 'SHIFT_REMINDER':
       return <ReminderIcon color="warning" fontSize="small" />;
     case 'SHIFT_SWAP_REQUEST':
+    case 'SHIFT_SWAP_RESPONSE':
     case 'SHIFT_SWAP_ACCEPTED':
+    case 'SHIFT_SWAP_APPROVED':
     case 'SHIFT_SWAP_REJECTED':
       return <SwapIcon color="secondary" fontSize="small" />;
     case 'EMPLOYEE_ABSENT':

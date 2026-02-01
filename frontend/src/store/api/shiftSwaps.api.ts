@@ -1,0 +1,118 @@
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import type { RootState } from '../store';
+import type {
+  ShiftSwapRequest,
+  ShiftSwapResponse,
+  CreateSwapRequestDto,
+  RespondSwapDto,
+  AdminApproveSwapDto,
+  AdminRejectSwapDto,
+  UserOnDate,
+  ShiftSwapStatus,
+} from '../../types/shift-swap.types';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+export const shiftSwapsApi = createApi({
+  reducerPath: 'shiftSwapsApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${API_URL}/shift-swaps`,
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
+  tagTypes: ['ShiftSwaps', 'MySwapRequests'],
+  endpoints: (builder) => ({
+    // Crează cerere de schimb
+    createSwapRequest: builder.mutation<ShiftSwapRequest, CreateSwapRequestDto>({
+      query: (body) => ({
+        url: '',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
+    }),
+
+    // Lista cererilor pentru user
+    getMySwapRequests: builder.query<ShiftSwapRequest[], void>({
+      query: () => '/my-requests',
+      providesTags: ['MySwapRequests'],
+    }),
+
+    // Lista tuturor cererilor (admin)
+    getAllSwapRequests: builder.query<ShiftSwapRequest[], { status?: ShiftSwapStatus }>({
+      query: (params) => ({
+        url: '',
+        params,
+      }),
+      providesTags: ['ShiftSwaps'],
+    }),
+
+    // Detalii cerere
+    getSwapRequest: builder.query<ShiftSwapRequest, string>({
+      query: (id) => `/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'ShiftSwaps', id }],
+    }),
+
+    // Useri care lucrează într-o dată
+    getUsersOnDate: builder.query<UserOnDate[], string>({
+      query: (date) => `/users-on-date/${date}`,
+    }),
+
+    // Răspunde la cerere
+    respondToSwapRequest: builder.mutation<ShiftSwapResponse, { id: string; data: RespondSwapDto }>({
+      query: ({ id, data }) => ({
+        url: `/${id}/respond`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
+    }),
+
+    // Admin aprobă
+    approveSwapRequest: builder.mutation<ShiftSwapRequest, { id: string; data: AdminApproveSwapDto }>({
+      query: ({ id, data }) => ({
+        url: `/${id}/approve`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
+    }),
+
+    // Admin respinge
+    rejectSwapRequest: builder.mutation<ShiftSwapRequest, { id: string; data: AdminRejectSwapDto }>({
+      query: ({ id, data }) => ({
+        url: `/${id}/reject`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
+    }),
+
+    // Anulează cerere
+    cancelSwapRequest: builder.mutation<ShiftSwapRequest, string>({
+      query: (id) => ({
+        url: `/${id}/cancel`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
+    }),
+  }),
+});
+
+export const {
+  useCreateSwapRequestMutation,
+  useGetMySwapRequestsQuery,
+  useGetAllSwapRequestsQuery,
+  useGetSwapRequestQuery,
+  useGetUsersOnDateQuery,
+  useLazyGetUsersOnDateQuery,
+  useRespondToSwapRequestMutation,
+  useApproveSwapRequestMutation,
+  useRejectSwapRequestMutation,
+  useCancelSwapRequestMutation,
+} = shiftSwapsApi;

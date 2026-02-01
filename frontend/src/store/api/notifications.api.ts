@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 export interface Notification {
   id: string;
   userId: string;
-  type: 'SCHEDULE_CREATED' | 'SCHEDULE_UPDATED' | 'SCHEDULE_APPROVED' | 'SCHEDULE_REJECTED' | 'SHIFT_REMINDER' | 'SHIFT_SWAP_REQUEST' | 'SHIFT_SWAP_ACCEPTED' | 'SHIFT_SWAP_REJECTED' | 'EMPLOYEE_ABSENT' | 'GENERAL';
+  type: 'SCHEDULE_CREATED' | 'SCHEDULE_UPDATED' | 'SCHEDULE_APPROVED' | 'SCHEDULE_REJECTED' | 'SHIFT_REMINDER' | 'SHIFT_SWAP_REQUEST' | 'SHIFT_SWAP_RESPONSE' | 'SHIFT_SWAP_ACCEPTED' | 'SHIFT_SWAP_APPROVED' | 'SHIFT_SWAP_REJECTED' | 'EMPLOYEE_ABSENT' | 'GENERAL';
   title: string;
   message: string;
   data?: Record<string, any>;

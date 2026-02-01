@@ -7,6 +7,8 @@ import EditSchedulePage from '../pages/schedules/EditSchedulePage';
 import PendingSchedulesPage from '../pages/schedules/PendingSchedulesPage';
 import RejectedSchedulesPage from '../pages/schedules/RejectedSchedulesPage';
 import MySchedulePage from '../pages/schedules/MySchedulePage';
+import ShiftSwapsPage from '../pages/shift-swaps/ShiftSwapsPage';
+import AdminShiftSwapsPage from '../pages/shift-swaps/AdminShiftSwapsPage';
 import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
 import ReportsPage from '../pages/reports/ReportsPage';
@@ -42,6 +44,19 @@ export const AppRoutes = () => {
 
         {/* My Schedule - for employees */}
         <Route path="/my-schedule" element={<MySchedulePage />} />
+
+        {/* Shift Swaps - for all users */}
+        <Route path="/shift-swaps" element={<ShiftSwapsPage />} />
+
+        {/* Admin Shift Swaps */}
+        <Route
+          path="/admin/shift-swaps"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminShiftSwapsPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Schedules */}
         <Route
