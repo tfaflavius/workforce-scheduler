@@ -118,8 +118,18 @@ const EmployeeDashboard = () => {
   }, [schedules, user]);
 
   const getAssignmentForDate = (date: Date): ScheduleAssignment | undefined => {
-    const dateStr = date.toISOString().split('T')[0];
-    return myAssignments.find((a) => a.shiftDate === dateStr);
+    // Use local date formatting to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    return myAssignments.find((a) => {
+      // Handle both string dates and Date objects
+      const assignmentDate = typeof a.shiftDate === 'string'
+        ? a.shiftDate.split('T')[0]
+        : new Date(a.shiftDate).toISOString().split('T')[0];
+      return assignmentDate === dateStr;
+    });
   };
 
   const getWeekDates = () => {
