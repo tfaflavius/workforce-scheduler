@@ -8,7 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png'],
+      includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png', 'sw-push.js'],
       manifest: {
         name: 'Workforce Management',
         short_name: 'Workforce',
@@ -44,6 +44,8 @@ export default defineConfig({
             },
           },
         ],
+        // Import custom push notification handlers
+        importScripts: ['sw-push.js'],
       },
     }),
   ],

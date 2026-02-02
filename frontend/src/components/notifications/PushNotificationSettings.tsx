@@ -96,11 +96,12 @@ export const PushNotificationSettings: React.FC = () => {
         return;
       }
 
-      // Register service worker if not already registered
-      let registration = await navigator.serviceWorker.getRegistration();
+      // Use the existing PWA service worker (which imports sw-push.js)
+      const registration = await navigator.serviceWorker.ready;
       if (!registration) {
-        registration = await navigator.serviceWorker.register('/sw-push.js');
-        await navigator.serviceWorker.ready;
+        setError('Service worker nu este disponibil. Reîncarcă pagina.');
+        setLoading(false);
+        return;
       }
 
       // Subscribe to push notifications
