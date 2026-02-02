@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type {
   WorkSchedule,
   ShiftType,
+  WorkPosition,
   CreateScheduleRequest,
   UpdateScheduleRequest,
   ApproveScheduleRequest,
@@ -28,12 +29,18 @@ export const schedulesApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Schedule', 'ShiftType'],
+  tagTypes: ['Schedule', 'ShiftType', 'WorkPosition'],
   endpoints: (builder) => ({
     // Get all shift types
     getShiftTypes: builder.query<ShiftType[], void>({
       query: () => '/schedules/shift-types',
       providesTags: ['ShiftType'],
+    }),
+
+    // Get all work positions
+    getWorkPositions: builder.query<WorkPosition[], void>({
+      query: () => '/work-positions',
+      providesTags: ['WorkPosition'],
     }),
 
     // Get all schedules with optional filters
@@ -182,6 +189,7 @@ export const schedulesApi = createApi({
 
 export const {
   useGetShiftTypesQuery,
+  useGetWorkPositionsQuery,
   useGetSchedulesQuery,
   useGetScheduleQuery,
   useCreateScheduleMutation,

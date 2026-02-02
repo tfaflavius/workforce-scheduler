@@ -79,6 +79,7 @@ export class SchedulesService {
             shiftDate: new Date(assignmentDto.shiftDate),
             isRestDay: false,
             notes: assignmentDto.notes,
+            workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
           });
         }),
       );
@@ -125,6 +126,7 @@ export class SchedulesService {
       .leftJoinAndSelect('schedule.approver', 'approver')
       .leftJoinAndSelect('schedule.assignments', 'assignments')
       .leftJoinAndSelect('assignments.shiftType', 'shiftType')
+      .leftJoinAndSelect('assignments.workPosition', 'workPosition')
       .leftJoinAndSelect('assignments.user', 'assignmentUser')
       .orderBy('schedule.created_at', 'DESC');
 
@@ -169,7 +171,7 @@ export class SchedulesService {
   async findOne(id: string): Promise<WorkSchedule> {
     const schedule = await this.scheduleRepository.findOne({
       where: { id },
-      relations: ['creator', 'department', 'approver', 'assignments', 'assignments.user', 'assignments.shiftType'],
+      relations: ['creator', 'department', 'approver', 'assignments', 'assignments.user', 'assignments.shiftType', 'assignments.workPosition'],
     });
 
     if (!schedule) {
@@ -212,6 +214,7 @@ export class SchedulesService {
             shiftDate: new Date(assignmentDto.shiftDate),
             isRestDay: false,
             notes: assignmentDto.notes || null,
+            workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
           })
           .execute();
       }
@@ -425,6 +428,7 @@ export class SchedulesService {
           shiftDate: targetShiftDate,
           durationHours: assignment.durationHours,
           notes: assignment.notes,
+          workPositionId: assignment.workPositionId || '00000000-0000-0000-0000-000000000001', // Preserve work position or default to Dispecerat
         });
 
         newAssignments.push(newAssignment);
@@ -889,6 +893,7 @@ export class SchedulesService {
           shiftType: a.shiftType?.name || 'Tură',
           startTime: a.shiftType?.startTime || '',
           endTime: a.shiftType?.endTime || '',
+          workPosition: a.workPosition?.name || 'Dispecerat',
         }));
 
         emailDataList.push({

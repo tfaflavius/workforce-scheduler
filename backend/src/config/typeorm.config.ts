@@ -5,6 +5,7 @@ import { Department } from '../modules/departments/entities/department.entity';
 import { WorkSchedule } from '../modules/schedules/entities/work-schedule.entity';
 import { ScheduleAssignment } from '../modules/schedules/entities/schedule-assignment.entity';
 import { ShiftType } from '../modules/schedules/entities/shift-type.entity';
+import { WorkPosition } from '../modules/schedules/entities/work-position.entity';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DATABASE_USER || 'postgres',
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'workforce_db',
-  entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType],
+  entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
   logging: true,

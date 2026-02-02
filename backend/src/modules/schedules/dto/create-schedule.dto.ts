@@ -12,6 +12,10 @@ export class ScheduleAssignmentDto {
   shiftDate: string; // Format: YYYY-MM-DD
 
   @IsOptional()
+  @IsUUID()
+  workPositionId?: string; // Position: Dispecerat, Control, etc.
+
+  @IsOptional()
   @IsString()
   notes?: string;
 }

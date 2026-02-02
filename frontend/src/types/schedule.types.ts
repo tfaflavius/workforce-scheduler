@@ -10,6 +10,19 @@ export interface ShiftType {
   createdAt: string;
 }
 
+export interface WorkPosition {
+  id: string;
+  name: string;
+  shortName: string;
+  color: string;
+  icon: string | null;
+  description: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface WorkSchedule {
   id: string;
   name: string;
@@ -48,6 +61,7 @@ export interface ScheduleAssignment {
   scheduleId: string;
   userId: string;
   shiftTypeId: string;
+  workPositionId?: string;
   shiftDate: string; // YYYY-MM-DD format
   durationHours: number;
   notes: string | null;
@@ -60,6 +74,7 @@ export interface ScheduleAssignment {
     email: string;
   };
   shiftType?: ShiftType;
+  workPosition?: WorkPosition;
   schedule?: WorkSchedule;
 }
 
@@ -99,6 +114,7 @@ export interface ScheduleAssignmentDto {
   userId: string;
   shiftTypeId: string;
   shiftDate: string; // YYYY-MM-DD format
+  workPositionId?: string; // Position: Dispecerat, Control, etc.
   notes?: string;
 }
 
@@ -173,6 +189,9 @@ export interface ScheduleCalendarEvent {
     shiftTypeName: string;
     durationHours: number;
     isNightShift: boolean;
+    workPositionId?: string;
+    workPositionName?: string;
+    workPositionColor?: string;
     notes?: string;
   };
 }

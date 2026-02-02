@@ -10,6 +10,7 @@ import {
 import { WorkSchedule } from './work-schedule.entity';
 import { User } from '../../users/entities/user.entity';
 import { ShiftType } from './shift-type.entity';
+import { WorkPosition } from './work-position.entity';
 
 @Entity('schedule_assignments')
 export class ScheduleAssignment {
@@ -48,6 +49,13 @@ export class ScheduleAssignment {
 
   @Column({ type: 'text', nullable: true })
   notes: string;
+
+  @Column({ type: 'uuid', name: 'work_position_id', nullable: true })
+  workPositionId: string;
+
+  @ManyToOne(() => WorkPosition)
+  @JoinColumn({ name: 'work_position_id' })
+  workPosition: WorkPosition;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

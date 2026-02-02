@@ -23,6 +23,7 @@ import {
   WbSunny as DayIcon,
   NightsStay as NightIcon,
   EventBusy as NoShiftIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useAppSelector } from '../../store/hooks';
@@ -83,6 +84,30 @@ const ShiftCard = ({ date, assignment, isToday, isWeekend }: ShiftCardProps) => 
               <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: { xs: '0.5rem', sm: '0.6rem' } }}>
                 {assignment.shiftType?.startTime}-{assignment.shiftType?.endTime}
               </Typography>
+              {/* Poziția de lucru */}
+              {assignment.workPosition && (
+                <Box
+                  sx={{
+                    mt: 0.25,
+                    px: 0.5,
+                    py: 0.1,
+                    bgcolor: assignment.workPosition.color || '#2196F3',
+                    borderRadius: 0.5,
+                    display: 'inline-block',
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: { xs: '0.45rem', sm: '0.55rem' },
+                      color: 'white',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {assignment.workPosition.shortName || assignment.workPosition.name}
+                  </Typography>
+                </Box>
+              )}
             </Box>
           ) : (
             <Box sx={{ py: 0.5, textAlign: 'center' }}>
@@ -264,6 +289,24 @@ const EmployeeDashboard = () => {
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       {todayAssignment.shiftType?.startTime} - {todayAssignment.shiftType?.endTime} ({todayAssignment.durationHours}h)
                     </Typography>
+                    {/* Poziția de lucru pentru azi */}
+                    {todayAssignment.workPosition && (
+                      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
+                        <LocationIcon sx={{ fontSize: 16 }} />
+                        <Box
+                          sx={{
+                            px: 1,
+                            py: 0.25,
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            borderRadius: 1,
+                          }}
+                        >
+                          <Typography variant="body2" fontWeight="bold" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                            📍 {todayAssignment.workPosition.name}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    )}
                   </>
                 ) : (
                   <Typography
@@ -429,6 +472,29 @@ const EmployeeDashboard = () => {
                               <Typography variant="body2" fontWeight="medium">
                                 {assignment.shiftType?.name || 'Tura'}
                               </Typography>
+                              {/* Poziția de lucru pe mobile */}
+                              {assignment.workPosition && (
+                                <Box
+                                  sx={{
+                                    ml: 0.5,
+                                    px: 0.75,
+                                    py: 0.1,
+                                    bgcolor: assignment.workPosition.color || '#2196F3',
+                                    borderRadius: 0.5,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontSize: '0.6rem',
+                                      color: 'white',
+                                      fontWeight: 'bold',
+                                    }}
+                                  >
+                                    {assignment.workPosition.shortName}
+                                  </Typography>
+                                </Box>
+                              )}
                             </Stack>
                             <Typography variant="caption" color="text.secondary">
                               {assignment.shiftType?.startTime} - {assignment.shiftType?.endTime}

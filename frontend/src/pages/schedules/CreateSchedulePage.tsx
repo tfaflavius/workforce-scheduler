@@ -35,7 +35,7 @@ import {
   Send as SendIcon,
 } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useCreateScheduleMutation, useUpdateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery } from '../../store/api/schedulesApi';
+import { useCreateScheduleMutation, useUpdateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery, useGetWorkPositionsQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useAppSelector } from '../../store/hooks';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
@@ -112,6 +112,8 @@ const CreateSchedulePage: React.FC = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [assignments, setAssignments] = useState<Record<string, string>>({});
+  // Poziția de lucru pentru fiecare zi: { date: workPositionId }
+  const [workPositions, setWorkPositions] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Lista de luni (generată o singură dată)
@@ -121,6 +123,7 @@ const CreateSchedulePage: React.FC = () => {
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
   const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
   const { data: dbShiftTypes = [] } = useGetShiftTypesQuery();
+  const { data: dbWorkPositions = [] } = useGetWorkPositionsQuery();
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
   const [updateSchedule, { isLoading: updating }] = useUpdateScheduleMutation();
 
@@ -359,16 +362,41 @@ const CreateSchedulePage: React.FC = () => {
       console.log('Total assignments:', Object.keys(newAssignments).length);
       return newAssignments;
     });
+    // Dacă șterge tura, șterge și poziția
+    if (shiftId === '') {
+      setWorkPositions(prev => {
+        const { [date]: _, ...rest } = prev;
+        return rest;
+      });
+    } else if (!workPositions[date] && dbWorkPositions.length > 0) {
+      // Setează poziția default (Dispecerat) când se adaugă o tură
+      setWorkPositions(prev => ({
+        ...prev,
+        [date]: dbWorkPositions[0].id,
+      }));
+    }
+  };
+
+  // Handler pentru schimbarea poziției de lucru
+  const handleWorkPositionChange = (date: string, positionId: string) => {
+    console.log('=== POSITION CHANGE ===', { date, positionId });
+    setWorkPositions(prev => ({
+      ...prev,
+      [date]: positionId,
+    }));
   };
 
   // Curăță toate asignările
   const handleClearAll = () => {
     setAssignments({});
+    setWorkPositions({});
   };
 
   // Creează lista de asignări
   const createAssignmentDtos = (): ScheduleAssignmentDto[] => {
     const validAssignments: ScheduleAssignmentDto[] = [];
+    // Default work position ID (Dispecerat)
+    const defaultPositionId = dbWorkPositions.length > 0 ? dbWorkPositions[0].id : '00000000-0000-0000-0000-000000000001';
 
     Object.entries(assignments).forEach(([date, localShiftId]) => {
       const shiftOption = shiftOptions.find(s => s.id === localShiftId);
@@ -383,6 +411,7 @@ const CreateSchedulePage: React.FC = () => {
         userId: selectedUserId,
         shiftTypeId: dbShiftTypeId,
         shiftDate: date,
+        workPositionId: workPositions[date] || defaultPositionId,
         notes: shiftOption?.isVacation ? 'Concediu' : `${shiftOption?.startTime}-${shiftOption?.endTime}`,
       });
     });
@@ -691,6 +720,30 @@ const CreateSchedulePage: React.FC = () => {
               * După tura de zi (Z) - 24h liber | După tura de noapte (N) - 48h liber
             </Typography>
           )}
+          {/* Legendă poziții de lucru */}
+          {dbWorkPositions.length > 0 && (
+            <Box sx={{ mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+                <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
+                  Poziție lucru:
+                </Typography>
+                {dbWorkPositions.map((position) => (
+                  <Chip
+                    key={position.id}
+                    label={`${position.shortName} - ${position.name}`}
+                    size="small"
+                    sx={{
+                      bgcolor: position.color,
+                      color: 'white',
+                      fontWeight: 'bold',
+                      fontSize: '0.7rem',
+                      height: 24,
+                    }}
+                  />
+                ))}
+              </Stack>
+            </Box>
+          )}
         </Paper>
 
         {/* Tabel Calendar */}
@@ -769,7 +822,7 @@ const CreateSchedulePage: React.FC = () => {
                     </Box>
 
                     {/* Selector tură */}
-                    <FormControl fullWidth size="small" sx={{ flex: 1 }}>
+                    <FormControl fullWidth size="small" sx={{ mb: 0.5 }}>
                       <Select
                         value={assignments[date] || ''}
                         onChange={(e) => handleDayShiftChange(date, e.target.value)}
@@ -809,6 +862,46 @@ const CreateSchedulePage: React.FC = () => {
                         ))}
                       </Select>
                     </FormControl>
+
+                    {/* Selector poziție de lucru - doar dacă există o tură asignată */}
+                    {assignments[date] && dbWorkPositions.length > 0 && (
+                      <FormControl fullWidth size="small">
+                        <Select
+                          value={workPositions[date] || dbWorkPositions[0]?.id || ''}
+                          onChange={(e) => handleWorkPositionChange(date, e.target.value)}
+                          sx={{
+                            fontSize: '0.6rem',
+                            '& .MuiSelect-select': {
+                              py: 0.2,
+                              px: 0.5,
+                              bgcolor: dbWorkPositions.find(p => p.id === (workPositions[date] || dbWorkPositions[0]?.id))?.color || '#2196F3',
+                              color: 'white',
+                              fontWeight: 'bold',
+                              minHeight: 'unset !important',
+                            },
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderWidth: 1,
+                            },
+                          }}
+                        >
+                          {dbWorkPositions.map((position) => (
+                            <MenuItem
+                              key={position.id}
+                              value={position.id}
+                              sx={{
+                                fontSize: '0.7rem',
+                                bgcolor: position.color,
+                                color: 'white',
+                                '&:hover': { bgcolor: position.color, opacity: 0.9 },
+                                '&.Mui-selected': { bgcolor: position.color, '&:hover': { bgcolor: position.color } },
+                              }}
+                            >
+                              {position.shortName}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   </Paper>
                 ))}
               </Box>
