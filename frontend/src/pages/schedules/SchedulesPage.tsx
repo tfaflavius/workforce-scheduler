@@ -70,6 +70,7 @@ type ShiftFilter = 'ALL' | '12H' | '8H' | 'VACATION' | 'FREE';
 const SchedulesPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
 
@@ -470,8 +471,8 @@ const SchedulesPage: React.FC = () => {
 
               {filteredUsers.length > 0 ? (
                 <>
-                  {/* Mobile View - Card-based layout */}
-                  {isMobile ? (
+                  {/* Mobile/Tablet View - Card-based layout */}
+                  {isTablet ? (
                     <Stack spacing={2}>
                       {filteredUsers.map((targetUser) => {
                         const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
@@ -535,7 +536,7 @@ const SchedulesPage: React.FC = () => {
                                   <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
                                     {totalShifts} ture programate:
                                   </Typography>
-                                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mb: !isMobile ? 1 : 0 }}>
                                     {Object.entries(shiftTypes).map(([label, count]) => {
                                       const colorMap: Record<string, string> = {
                                         'Z': '#4CAF50',
@@ -561,6 +562,42 @@ const SchedulesPage: React.FC = () => {
                                       );
                                     })}
                                   </Stack>
+
+                                  {/* Mini calendar pentru tabletă - primele 14 zile */}
+                                  {!isMobile && (
+                                    <Box sx={{ mt: 1 }}>
+                                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                        Calendar (primele 14 zile):
+                                      </Typography>
+                                      <Stack direction="row" spacing={0.25} flexWrap="wrap" useFlexGap>
+                                        {calendarDays.slice(0, 14).map(({ date, day, isWeekend }) => {
+                                          const assignment = userAssignments[date];
+                                          const shiftInfo = assignment ? getExistingShiftInfo(assignment.notes) : null;
+                                          return (
+                                            <Box
+                                              key={date}
+                                              sx={{
+                                                width: 24,
+                                                height: 24,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                borderRadius: 0.5,
+                                                bgcolor: shiftInfo ? shiftInfo.color : (isWeekend ? 'grey.200' : 'grey.100'),
+                                                color: shiftInfo ? 'white' : 'text.secondary',
+                                                fontSize: '0.55rem',
+                                                fontWeight: 'bold',
+                                              }}
+                                            >
+                                              <span style={{ fontSize: '0.5rem', opacity: 0.8 }}>{day}</span>
+                                              <span>{shiftInfo?.label || '-'}</span>
+                                            </Box>
+                                          );
+                                        })}
+                                      </Stack>
+                                    </Box>
+                                  )}
                                 </Box>
                               ) : (
                                 <Typography variant="caption" color="text.disabled">

@@ -7,15 +7,20 @@ import {
   Grid,
   Stack,
   CircularProgress,
+  Divider,
 } from '@mui/material';
 import {
   PendingActions as PendingIcon,
   People as PeopleIcon,
   CalendarMonth as CalendarIcon,
   Cancel as RejectedIcon,
+  SwapHoriz as SwapIcon,
+  BeachAccess as BeachIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import { useGetAllSwapRequestsQuery } from '../../store/api/shiftSwaps.api';
+import { useGetAllLeaveRequestsQuery } from '../../store/api/leaveRequests.api';
 
 interface StatCardProps {
   title: string;
@@ -92,8 +97,12 @@ const AdminDashboard = () => {
   const { data: approvedSchedules, isLoading: approvedLoading } = useGetSchedulesQuery({ status: 'APPROVED' });
   const { data: rejectedSchedules, isLoading: rejectedLoading } = useGetSchedulesQuery({ status: 'REJECTED' });
   const { data: users, isLoading: usersLoading } = useGetUsersQuery({});
+  const { data: swapRequests = [], isLoading: swapsLoading } = useGetAllSwapRequestsQuery({});
+  const { data: leaveRequests = [], isLoading: leavesLoading } = useGetAllLeaveRequestsQuery();
 
-  if (pendingLoading || approvedLoading || rejectedLoading || usersLoading) {
+  const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading;
+
+  if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
         <CircularProgress />
@@ -102,6 +111,8 @@ const AdminDashboard = () => {
   }
 
   const activeUsers = users?.filter(u => u.isActive)?.length || 0;
+  const pendingSwaps = swapRequests.filter(r => r.status === 'AWAITING_ADMIN').length;
+  const pendingLeaves = leaveRequests.filter(r => r.status === 'PENDING').length;
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -119,49 +130,106 @@ const AdminDashboard = () => {
         </Typography>
       </Box>
 
+      {/* Programe Section */}
+      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+        PROGRAME
+      </Typography>
       <Grid container spacing={{ xs: 2, sm: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Programe in Asteptare"
             value={pendingSchedules?.length || 0}
             subtitle="Necesita aprobare"
-            icon={<PendingIcon sx={{ fontSize: 32, color: '#ed6c02' }} />}
+            icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#ed6c02' }} />}
             color="#ed6c02"
             bgColor="#fff3e0"
             onClick={() => navigate('/schedules/pending')}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Programe Aprobate"
             value={approvedSchedules?.length || 0}
             subtitle="Active"
-            icon={<CalendarIcon sx={{ fontSize: 32, color: '#2e7d32' }} />}
+            icon={<CalendarIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#2e7d32' }} />}
             color="#2e7d32"
             bgColor="#e8f5e9"
             onClick={() => navigate('/schedules')}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Programe Respinse"
             value={rejectedSchedules?.length || 0}
             subtitle="Necesita revizuire"
-            icon={<RejectedIcon sx={{ fontSize: 32, color: '#d32f2f' }} />}
+            icon={<RejectedIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#d32f2f' }} />}
             color="#d32f2f"
             bgColor="#ffebee"
             onClick={() => navigate('/schedules/rejected')}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Utilizatori Activi"
             value={activeUsers}
             subtitle="Total"
-            icon={<PeopleIcon sx={{ fontSize: 32, color: '#1976d2' }} />}
+            icon={<PeopleIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#1976d2' }} />}
             color="#1976d2"
             bgColor="#e3f2fd"
             onClick={() => navigate('/users')}
+          />
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ my: { xs: 2, sm: 3 } }} />
+
+      {/* Schimburi și Concedii Section */}
+      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1.5, fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+        SCHIMBURI TURE & CONCEDII
+      </Typography>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+          <StatCard
+            title="Schimburi in Asteptare"
+            value={pendingSwaps}
+            subtitle="Necesita aprobare"
+            icon={<SwapIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#0288d1' }} />}
+            color="#0288d1"
+            bgColor="#e1f5fe"
+            onClick={() => navigate('/admin/shift-swaps')}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+          <StatCard
+            title="Concedii in Asteptare"
+            value={pendingLeaves}
+            subtitle="Necesita aprobare"
+            icon={<BeachIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#7b1fa2' }} />}
+            color="#7b1fa2"
+            bgColor="#f3e5f5"
+            onClick={() => navigate('/admin/leave-requests')}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+          <StatCard
+            title="Total Schimburi"
+            value={swapRequests.length}
+            subtitle="Toate cererile"
+            icon={<SwapIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#546e7a' }} />}
+            color="#546e7a"
+            bgColor="#eceff1"
+            onClick={() => navigate('/admin/shift-swaps')}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+          <StatCard
+            title="Total Concedii"
+            value={leaveRequests.length}
+            subtitle="Toate cererile"
+            icon={<BeachIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: '#546e7a' }} />}
+            color="#546e7a"
+            bgColor="#eceff1"
+            onClick={() => navigate('/admin/leave-requests')}
           />
         </Grid>
       </Grid>
