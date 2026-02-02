@@ -131,6 +131,8 @@ const AdminShiftSwapsPage = () => {
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
   const [adminNotes, setAdminNotes] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // API calls
   const { data: allRequests = [], isLoading } = useGetAllSwapRequestsQuery({});
@@ -185,8 +187,15 @@ const AdminShiftSwapsPage = () => {
       setActionDialogOpen(false);
       setSelectedRequest(null);
       setAdminNotes('');
-    } catch (error) {
+      setSuccessMessage(actionType === 'approve' ? 'Schimbul de tură a fost aprobat cu succes!' : 'Cererea a fost respinsă.');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error: unknown) {
       console.error('Error processing swap request:', error);
+      const errorMsg = error && typeof error === 'object' && 'data' in error
+        ? (error.data as { message?: string })?.message || 'A apărut o eroare la procesarea cererii.'
+        : 'A apărut o eroare la procesarea cererii.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -327,6 +336,18 @@ const AdminShiftSwapsPage = () => {
           Gestionează și aprobă cererile de schimb de ture
         </Typography>
       </Box>
+
+      {/* Error/Success Messages */}
+      {errorMessage && (
+        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
+          {successMessage}
+        </Alert>
+      )}
 
       {/* Summary Cards */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>

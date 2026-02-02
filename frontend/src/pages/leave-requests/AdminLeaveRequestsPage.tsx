@@ -107,6 +107,8 @@ export const AdminLeaveRequestsPage = () => {
   const [responseType, setResponseType] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
   const [message, setMessage] = useState('');
   const [overlaps, setOverlaps] = useState<LeaveRequest[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { data: allRequests = [], isLoading } = useGetAllLeaveRequestsQuery();
   const [respond, { isLoading: responding }] = useRespondToLeaveRequestMutation();
@@ -162,8 +164,18 @@ export const AdminLeaveRequestsPage = () => {
         },
       }).unwrap();
       handleCloseDialog();
-    } catch (err) {
-      // Error handled by RTK Query
+      setSuccessMessage(
+        responseType === 'APPROVED'
+          ? 'Cererea a fost aprobată cu succes!'
+          : 'Cererea a fost respinsă.'
+      );
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: unknown) {
+      const errorMsg = err && typeof err === 'object' && 'data' in err
+        ? (err.data as { message?: string })?.message || 'A apărut o eroare la procesarea cererii.'
+        : 'A apărut o eroare la procesarea cererii.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -201,6 +213,18 @@ export const AdminLeaveRequestsPage = () => {
           Aprobă sau respinge cererile de concediu ale angajaților
         </Typography>
       </Box>
+
+      {/* Error/Success Messages */}
+      {errorMessage && (
+        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
+          {successMessage}
+        </Alert>
+      )}
 
       {/* Summary Cards */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>

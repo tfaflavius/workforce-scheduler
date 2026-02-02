@@ -105,6 +105,8 @@ export const LeaveRequestsPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { data: requests = [], isLoading: loadingRequests } = useGetMyLeaveRequestsQuery();
   const { data: balances = [], isLoading: loadingBalance } = useGetMyLeaveBalanceQuery();
@@ -136,8 +138,14 @@ export const LeaveRequestsPage = () => {
     try {
       await createRequest(dto).unwrap();
       handleCloseDialog();
-    } catch (err) {
-      // Error is handled by RTK Query
+      setSuccessMessage('Cererea de concediu a fost trimisă cu succes!');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: unknown) {
+      const errorMsg = err && typeof err === 'object' && 'data' in err
+        ? (err.data as { message?: string })?.message || 'A apărut o eroare la crearea cererii.'
+        : 'A apărut o eroare la crearea cererii.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -145,8 +153,14 @@ export const LeaveRequestsPage = () => {
     if (window.confirm('Ești sigur că vrei să anulezi această cerere?')) {
       try {
         await cancelRequest(id).unwrap();
-      } catch (err) {
-        // Error handled by RTK Query
+        setSuccessMessage('Cererea a fost anulată cu succes.');
+        setTimeout(() => setSuccessMessage(null), 5000);
+      } catch (err: unknown) {
+        const errorMsg = err && typeof err === 'object' && 'data' in err
+          ? (err.data as { message?: string })?.message || 'A apărut o eroare la anularea cererii.'
+          : 'A apărut o eroare la anularea cererii.';
+        setErrorMessage(errorMsg);
+        setTimeout(() => setErrorMessage(null), 5000);
       }
     }
   };
@@ -205,6 +219,18 @@ export const LeaveRequestsPage = () => {
           Cerere Nouă
         </Button>
       </Stack>
+
+      {/* Error/Success Messages */}
+      {errorMessage && (
+        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
+          {successMessage}
+        </Alert>
+      )}
 
       {/* Balance Cards */}
       <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>

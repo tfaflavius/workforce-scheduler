@@ -151,6 +151,8 @@ const ShiftSwapsPage = () => {
   const [reason, setReason] = useState('');
   const [responseAccepted, setResponseAccepted] = useState<boolean | null>(null);
   const [responseMessage, setResponseMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // API calls
   const { data: myRequests = [], isLoading: loadingRequests } = useGetMySwapRequestsQuery();
@@ -222,8 +224,15 @@ const ShiftSwapsPage = () => {
       setRequesterDate('');
       setTargetDate('');
       setReason('');
-    } catch (error) {
+      setSuccessMessage('Cererea de schimb a fost trimisă cu succes!');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error: unknown) {
       console.error('Error creating swap request:', error);
+      const errorMsg = error && typeof error === 'object' && 'data' in error
+        ? (error.data as { message?: string })?.message || 'A apărut o eroare la crearea cererii.'
+        : 'A apărut o eroare la crearea cererii.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -249,8 +258,15 @@ const ShiftSwapsPage = () => {
       setSelectedRequest(null);
       setResponseAccepted(null);
       setResponseMessage('');
-    } catch (error) {
+      setSuccessMessage(responseAccepted ? 'Ai acceptat cererea de schimb!' : 'Ai refuzat cererea de schimb.');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error: unknown) {
       console.error('Error responding to swap:', error);
+      const errorMsg = error && typeof error === 'object' && 'data' in error
+        ? (error.data as { message?: string })?.message || 'A apărut o eroare la procesarea răspunsului.'
+        : 'A apărut o eroare la procesarea răspunsului.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -258,8 +274,15 @@ const ShiftSwapsPage = () => {
     if (window.confirm('Ești sigur că vrei să anulezi această cerere de schimb?')) {
       try {
         await cancelSwap(id).unwrap();
-      } catch (error) {
+        setSuccessMessage('Cererea a fost anulată.');
+        setTimeout(() => setSuccessMessage(null), 5000);
+      } catch (error: unknown) {
         console.error('Error cancelling swap:', error);
+        const errorMsg = error && typeof error === 'object' && 'data' in error
+          ? (error.data as { message?: string })?.message || 'A apărut o eroare la anularea cererii.'
+          : 'A apărut o eroare la anularea cererii.';
+        setErrorMessage(errorMsg);
+        setTimeout(() => setErrorMessage(null), 5000);
       }
     }
   };
@@ -465,6 +488,18 @@ const ShiftSwapsPage = () => {
           </Button>
         </Stack>
       </Box>
+
+      {/* Error/Success Messages */}
+      {errorMessage && (
+        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
+          {errorMessage}
+        </Alert>
+      )}
+      {successMessage && (
+        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
+          {successMessage}
+        </Alert>
+      )}
 
       {/* Tabs */}
       <Paper sx={{ width: '100%' }}>
