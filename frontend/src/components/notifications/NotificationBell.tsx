@@ -24,6 +24,7 @@ import {
   Warning as WarningIcon,
   Info as InfoIcon,
   DoneAll as DoneAllIcon,
+  BeachAccess as LeaveIcon,
 } from '@mui/icons-material';
 import {
   useGetNotificationsQuery,
@@ -53,6 +54,14 @@ const getNotificationIcon = (type: Notification['type']) => {
       return <SwapIcon color="secondary" fontSize="small" />;
     case 'EMPLOYEE_ABSENT':
       return <WarningIcon color="error" fontSize="small" />;
+    case 'LEAVE_REQUEST_CREATED':
+      return <LeaveIcon color="info" fontSize="small" />;
+    case 'LEAVE_REQUEST_APPROVED':
+      return <LeaveIcon color="success" fontSize="small" />;
+    case 'LEAVE_REQUEST_REJECTED':
+      return <LeaveIcon color="error" fontSize="small" />;
+    case 'LEAVE_OVERLAP_WARNING':
+      return <WarningIcon color="warning" fontSize="small" />;
     default:
       return <InfoIcon color="action" fontSize="small" />;
   }

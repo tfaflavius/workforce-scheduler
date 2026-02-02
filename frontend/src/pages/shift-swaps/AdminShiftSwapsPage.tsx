@@ -528,6 +528,7 @@ const AdminShiftSwapsPage = () => {
         onClose={() => setDetailsDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           Detalii Cerere de Schimb
@@ -654,6 +655,7 @@ const AdminShiftSwapsPage = () => {
         onClose={() => setActionDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           {actionType === 'approve' ? 'Aprobă Schimbul de Tură' : 'Respinge Cererea de Schimb'}
