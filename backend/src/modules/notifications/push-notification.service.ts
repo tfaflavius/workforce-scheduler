@@ -6,8 +6,8 @@ import { PushSubscription } from './entities/push-subscription.entity';
 
 // Generate VAPID keys: npx web-push generate-vapid-keys
 // Store these in environment variables in production
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'UUxI4O8-FbRouAevSmBQ6o18hgE4nSG3qwvJTfKc-ls';
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BI932e5lPMdw2qQKvElMx00XrJjI98C1rou6RC_xpNP6PUslQ07bqn31OW06I9lOB9AdATQwHRuNT2Yi7b-Nmbc';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'H8rdA6o2OeaPd0MOakP_SzEiAq-2lWXlcnxnoSG7lLI';
 
 @Injectable()
 export class PushNotificationService {
