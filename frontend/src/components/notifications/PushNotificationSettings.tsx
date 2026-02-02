@@ -46,7 +46,7 @@ export const PushNotificationSettings: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const { data: vapidData } = useGetVapidPublicKeyQuery();
+  const { data: vapidData, refetch: refetchVapid } = useGetVapidPublicKeyQuery();
   const { data: pushStatus, refetch: refetchStatus } = useGetPushStatusQuery();
   const [subscribeToPush] = useSubscribeToPushMutation();
   const [unsubscribeFromPush] = useUnsubscribeFromPushMutation();
@@ -76,16 +76,24 @@ export const PushNotificationSettings: React.FC = () => {
   }, []);
 
   const handleSubscribe = async () => {
-    if (!vapidData?.publicKey) {
-      setError('Nu s-a putut obține cheia VAPID');
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
+      // Get VAPID key - try to refetch if not available
+      let vapidKey = vapidData?.publicKey;
+      if (!vapidKey) {
+        const result = await refetchVapid();
+        vapidKey = result.data?.publicKey;
+      }
+
+      if (!vapidKey) {
+        setError('Nu s-a putut obține cheia VAPID. Reîncarcă pagina și încearcă din nou.');
+        setLoading(false);
+        return;
+      }
+
       // Request notification permission
       const permissionResult = await Notification.requestPermission();
       setPermission(permissionResult);
@@ -107,7 +115,7 @@ export const PushNotificationSettings: React.FC = () => {
       // Subscribe to push notifications
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidData.publicKey),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
       setCurrentSubscription(subscription);
