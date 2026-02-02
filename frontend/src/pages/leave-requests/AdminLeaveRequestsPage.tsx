@@ -191,50 +191,84 @@ export const AdminLeaveRequestsPage = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" fontWeight="bold">
+        <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
           Gestionare Concedii
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
           Aprobă sau respinge cererile de concediu ale angajaților
         </Typography>
       </Box>
 
       {/* Summary Cards */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
-        <Paper sx={{ p: 2, flex: 1, bgcolor: 'warning.lighter' }}>
-          <Typography variant="h4" fontWeight="bold" color="warning.dark">
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, flex: 1, bgcolor: 'warning.lighter' }}>
+          <Typography variant="h4" fontWeight="bold" color="warning.dark" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
             {pendingRequests.length}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             În Așteptare
           </Typography>
         </Paper>
-        <Paper sx={{ p: 2, flex: 1, bgcolor: 'success.lighter' }}>
-          <Typography variant="h4" fontWeight="bold" color="success.dark">
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, flex: 1, bgcolor: 'success.lighter' }}>
+          <Typography variant="h4" fontWeight="bold" color="success.dark" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
             {approvedRequests.length}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Aprobate
           </Typography>
         </Paper>
-        <Paper sx={{ p: 2, flex: 1, bgcolor: 'error.lighter' }}>
-          <Typography variant="h4" fontWeight="bold" color="error.dark">
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, flex: 1, bgcolor: 'error.lighter' }}>
+          <Typography variant="h4" fontWeight="bold" color="error.dark" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
             {rejectedRequests.length}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Respinse
           </Typography>
         </Paper>
       </Stack>
 
       {/* Tabs */}
-      <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 3 }}>
-        <Tab label={`Așteaptă Aprobare (${pendingRequests.length})`} />
-        <Tab label={`Aprobate (${approvedRequests.length})`} />
-        <Tab label={`Respinse (${rejectedRequests.length})`} />
+      <Tabs
+        value={tabValue}
+        onChange={handleTabChange}
+        sx={{ mb: 3 }}
+        variant={isMobile ? 'scrollable' : 'standard'}
+        scrollButtons="auto"
+        allowScrollButtonsMobile
+      >
+        <Tab
+          label={
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <span>{isMobile ? 'Așteaptă' : 'Așteaptă Aprobare'}</span>
+              {pendingRequests.length > 0 && (
+                <Chip label={pendingRequests.length} size="small" color="warning" sx={{ height: 20, fontSize: '0.7rem' }} />
+              )}
+            </Stack>
+          }
+        />
+        <Tab
+          label={
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <span>Aprobate</span>
+              {approvedRequests.length > 0 && (
+                <Chip label={approvedRequests.length} size="small" color="success" sx={{ height: 20, fontSize: '0.7rem' }} />
+              )}
+            </Stack>
+          }
+        />
+        <Tab
+          label={
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <span>Respinse</span>
+              {rejectedRequests.length > 0 && (
+                <Chip label={rejectedRequests.length} size="small" color="error" sx={{ height: 20, fontSize: '0.7rem' }} />
+              )}
+            </Stack>
+          }
+        />
       </Tabs>
 
       {/* Requests List */}

@@ -178,7 +178,7 @@ export const LeaveRequestsPage = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%' }}>
       {/* Header */}
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
@@ -188,10 +188,10 @@ export const LeaveRequestsPage = () => {
         sx={{ mb: 3 }}
       >
         <Box>
-          <Typography variant="h5" fontWeight="bold">
+          <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
             Concedii
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
             Solicită și gestionează cererile tale de concediu
           </Typography>
         </Box>
@@ -199,33 +199,46 @@ export const LeaveRequestsPage = () => {
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenDialog}
+          fullWidth={isMobile}
+          size={isMobile ? 'large' : 'medium'}
         >
           Cerere Nouă
         </Button>
       </Stack>
 
       {/* Balance Cards */}
-      <Typography variant="h6" sx={{ mb: 2 }}>
+      <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
         Zile Disponibile ({new Date().getFullYear()})
       </Typography>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 4 }}>
         {balances.map((balance) => (
           <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={balance.id}>
             <Paper
               sx={{
-                p: 2,
+                p: { xs: 1.5, sm: 2 },
                 textAlign: 'center',
                 bgcolor: balance.totalDays - balance.usedDays > 0 ? 'success.lighter' : 'grey.100',
+                height: '100%',
               }}
             >
-              <Box sx={{ mb: 1 }}>{getLeaveTypeIcon(balance.leaveType)}</Box>
-              <Typography variant="caption" display="block" noWrap>
+              <Box sx={{ mb: 0.5 }}>{getLeaveTypeIcon(balance.leaveType)}</Box>
+              <Typography
+                variant="caption"
+                display="block"
+                noWrap
+                sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' }, fontWeight: 500 }}
+              >
                 {LEAVE_TYPE_LABELS[balance.leaveType]}
               </Typography>
-              <Typography variant="h5" fontWeight="bold" color="primary">
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                color="primary"
+                sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
+              >
                 {balance.totalDays - balance.usedDays}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
                 din {balance.totalDays} zile
               </Typography>
             </Paper>
