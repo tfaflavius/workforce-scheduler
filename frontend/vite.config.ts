@@ -45,7 +45,7 @@ export default defineConfig({
           },
         ],
         // Import custom push notification handlers
-        importScripts: ['sw-push.js'],
+        importScripts: ['/sw-push.js'],
       },
     }),
   ],
