@@ -189,7 +189,7 @@ export const PushNotificationSettings: React.FC = () => {
     }
   };
 
-  const isSubscribed = currentSubscription !== null || pushStatus?.subscribed;
+  const isSubscribed = Boolean(currentSubscription !== null || pushStatus?.subscribed);
 
   if (!isSupported) {
     return (
@@ -238,7 +238,13 @@ export const PushNotificationSettings: React.FC = () => {
             ) : (
               <Switch
                 checked={isSubscribed}
-                onChange={isSubscribed ? handleUnsubscribe : handleSubscribe}
+                onChange={() => {
+                  if (isSubscribed) {
+                    handleUnsubscribe();
+                  } else {
+                    handleSubscribe();
+                  }
+                }}
                 color="primary"
               />
             )}

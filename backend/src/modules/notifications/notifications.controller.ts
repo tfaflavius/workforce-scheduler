@@ -13,6 +13,7 @@ import {
 import { NotificationsService } from './notifications.service';
 import { PushNotificationService } from './push-notification.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 
 interface PushSubscriptionBody {
   endpoint: string;
@@ -68,6 +69,7 @@ export class NotificationsController {
   }
 
   // Push Notification Endpoints
+  @Public()
   @Get('push/vapid-public-key')
   getVapidPublicKey() {
     return { publicKey: this.pushNotificationService.getVapidPublicKey() };
