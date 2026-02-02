@@ -17,6 +17,8 @@ import {
   useTheme,
   Card,
   CardContent,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
@@ -24,9 +26,17 @@ import {
   PictureAsPdf as PdfIcon,
   TableChart as ExcelIcon,
   Assessment as ReportIcon,
+  BeachAccess as LeaveIcon,
+  SwapHoriz as SwapIcon,
+  Summarize as TotalIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import { useGetAllLeaveRequestsQuery } from '../../store/api/leaveRequests.api';
+import { useGetAllSwapRequestsQuery } from '../../store/api/shiftSwaps.api';
+import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-request.types';
+import type { LeaveType, LeaveRequestStatus } from '../../types/leave-request.types';
+import type { ShiftSwapStatus } from '../../types/shift-swap.types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -49,10 +59,20 @@ const generateMonthOptions = () => {
   return options;
 };
 
+const SWAP_STATUS_LABELS: Record<ShiftSwapStatus, string> = {
+  PENDING: 'În Așteptare',
+  AWAITING_ADMIN: 'Așteaptă Admin',
+  APPROVED: 'Aprobat',
+  REJECTED: 'Respins',
+  CANCELLED: 'Anulat',
+  EXPIRED: 'Expirat',
+};
+
 const ReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const [tabValue, setTabValue] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -61,14 +81,20 @@ const ReportsPage: React.FC = () => {
   // Filtering state
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL');
+  const [selectedLeaveStatus, setSelectedLeaveStatus] = useState<string>('ALL');
+  const [selectedSwapStatus, setSelectedSwapStatus] = useState<string>('ALL');
 
   // Lista de luni (generată o singură dată)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
-  const { data: schedules = [], isLoading, error } = useGetSchedulesQuery({
+  const { data: schedules = [], isLoading: schedulesLoading } = useGetSchedulesQuery({
     monthYear: selectedMonth,
   });
   const { data: users = [] } = useGetUsersQuery({ isActive: true });
+  const { data: leaveRequests = [], isLoading: leavesLoading } = useGetAllLeaveRequestsQuery();
+  const { data: swapRequests = [], isLoading: swapsLoading } = useGetAllSwapRequestsQuery({});
+
+  const isLoading = schedulesLoading || leavesLoading || swapsLoading;
 
   // Filtrăm doar angajații și managerii
   const eligibleUsers = useMemo(() => {
@@ -187,6 +213,59 @@ const ReportsPage: React.FC = () => {
     return filtered;
   }, [eligibleUsers, searchQuery, selectedDepartment]);
 
+  // Filtrare concedii după luna selectată și status
+  const filteredLeaveRequests = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0);
+
+    return leaveRequests.filter(req => {
+      const startDate = new Date(req.startDate);
+      const endDate = new Date(req.endDate);
+
+      // Check if leave overlaps with selected month
+      const overlapsMonth = startDate <= endOfMonth && endDate >= startOfMonth;
+
+      // Filter by status
+      const matchesStatus = selectedLeaveStatus === 'ALL' || req.status === selectedLeaveStatus;
+
+      // Filter by search (user name)
+      const matchesSearch = !searchQuery.trim() ||
+        req.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Filter by department
+      const matchesDepartment = selectedDepartment === 'ALL' ||
+        req.user?.department?.id === selectedDepartment;
+
+      return overlapsMonth && matchesStatus && matchesSearch && matchesDepartment;
+    });
+  }, [leaveRequests, selectedMonth, selectedLeaveStatus, searchQuery, selectedDepartment]);
+
+  // Filtrare schimburi de tură după luna selectată și status
+  const filteredSwapRequests = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0);
+
+    return swapRequests.filter(req => {
+      const requesterDate = new Date(req.requesterDate);
+      const targetDate = new Date(req.targetDate);
+
+      // Check if swap is in selected month
+      const inMonth = (requesterDate >= startOfMonth && requesterDate <= endOfMonth) ||
+        (targetDate >= startOfMonth && targetDate <= endOfMonth);
+
+      // Filter by status
+      const matchesStatus = selectedSwapStatus === 'ALL' || req.status === selectedSwapStatus;
+
+      // Filter by search (user name)
+      const matchesSearch = !searchQuery.trim() ||
+        req.requester?.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return inMonth && matchesStatus && matchesSearch;
+    });
+  }, [swapRequests, selectedMonth, selectedSwapStatus, searchQuery]);
+
   // Calculează totaluri pentru fiecare angajat
   const getUserStats = (userId: string) => {
     const userAssignments = allUsersAssignments[userId]?.assignments || {};
@@ -229,6 +308,22 @@ const ReportsPage: React.FC = () => {
     return stats;
   };
 
+  // Calculate days between two dates (excluding weekends)
+  const calculateWorkingDays = (start: string, end: string): number => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    let count = 0;
+    const current = new Date(startDate);
+
+    while (current <= endDate) {
+      const day = current.getDay();
+      if (day !== 0 && day !== 6) count++;
+      current.setDate(current.getDate() + 1);
+    }
+
+    return count || 1;
+  };
+
   // Mapare culori pentru ture (hex to RGB pentru PDF)
   const shiftColorMap: Record<string, [number, number, number]> = {
     'Z': [76, 175, 80],      // #4CAF50 - verde
@@ -240,8 +335,25 @@ const ReportsPage: React.FC = () => {
     'CO': [255, 152, 0],     // #FF9800 - portocaliu
   };
 
-  // Export to PDF
-  const handleExportPDF = () => {
+  const leaveStatusColorMap: Record<LeaveRequestStatus, [number, number, number]> = {
+    'PENDING': [255, 152, 0],   // Orange
+    'APPROVED': [76, 175, 80],  // Green
+    'REJECTED': [244, 67, 54],  // Red
+  };
+
+  const swapStatusColorMap: Record<ShiftSwapStatus, [number, number, number]> = {
+    'PENDING': [255, 152, 0],
+    'AWAITING_ADMIN': [33, 150, 243],
+    'APPROVED': [76, 175, 80],
+    'REJECTED': [244, 67, 54],
+    'CANCELLED': [158, 158, 158],
+    'EXPIRED': [121, 85, 72],
+  };
+
+  // ==================== EXPORT FUNCTIONS ====================
+
+  // Export Work Schedule to PDF
+  const handleExportSchedulePDF = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -282,25 +394,6 @@ const ReportsPage: React.FC = () => {
       return row;
     });
 
-    // Pregătim datele pentru colorare
-    const cellColors: Record<string, { row: number; col: number; color: [number, number, number] }[]> = {};
-    filteredUsers.forEach((targetUser, rowIndex) => {
-      const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
-      calendarDays.forEach((d, colIndex) => {
-        const assignment = userAssignments[d.date];
-        if (assignment) {
-          const shiftInfo = getExistingShiftInfo(assignment.notes);
-          const color = shiftColorMap[shiftInfo.label];
-          if (color) {
-            if (!cellColors[rowIndex]) {
-              cellColors[rowIndex] = [];
-            }
-            cellColors[rowIndex].push({ row: rowIndex, col: colIndex + 1, color });
-          }
-        }
-      });
-    });
-
     // Add table with colored cells
     autoTable(doc, {
       head: [headers],
@@ -321,7 +414,6 @@ const ReportsPage: React.FC = () => {
         0: { halign: 'left', cellWidth: 35 },
       },
       didParseCell: function(data) {
-        // Colorăm celulele cu ture
         if (data.section === 'body' && data.column.index > 0 && data.column.index <= calendarDays.length) {
           const cellValue = data.cell.text[0];
           const color = shiftColorMap[cellValue];
@@ -331,17 +423,16 @@ const ReportsPage: React.FC = () => {
             data.cell.styles.fontStyle = 'bold';
           }
         }
-        // Colorăm header-urile de weekend
         if (data.section === 'head' && data.column.index > 0 && data.column.index <= calendarDays.length) {
           const dayIndex = data.column.index - 1;
           if (calendarDays[dayIndex]?.isWeekend) {
-            data.cell.styles.fillColor = [244, 67, 54]; // Roșu pentru weekend
+            data.cell.styles.fillColor = [244, 67, 54];
           }
         }
       },
     });
 
-    // Add legend with colored boxes
+    // Add legend
     const finalY = (doc as any).lastAutoTable.finalY || 200;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
@@ -364,34 +455,26 @@ const ReportsPage: React.FC = () => {
     const boxHeight = 5;
 
     legendItems.forEach((item) => {
-      // Draw colored box
       doc.setFillColor(item.color[0], item.color[1], item.color[2]);
       doc.rect(xPos, yPos - 3.5, boxWidth, boxHeight, 'F');
-
-      // Draw label inside box
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(6);
       doc.setFont('helvetica', 'bold');
       doc.text(item.label, xPos + boxWidth / 2, yPos, { align: 'center' });
-
-      // Draw description text
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
       doc.text(` = ${item.text}`, xPos + boxWidth + 1, yPos);
-
       xPos += boxWidth + doc.getTextWidth(` = ${item.text}`) + 6;
     });
 
-    // Download
     doc.save(`raport-program-${selectedMonth}.pdf`);
   };
 
-  // Export to Excel
-  const handleExportExcel = () => {
+  // Export Work Schedule to Excel
+  const handleExportScheduleExcel = () => {
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
 
-    // Prepare data
     const headers = ['Angajat', 'Rol', ...calendarDays.map(d => `${d.day} ${d.dayOfWeek}`), 'Total Ore', 'Ture Zi', 'Ture Noapte', 'Concediu', 'Liber'];
 
     const rows = filteredUsers.map(targetUser => {
@@ -416,18 +499,15 @@ const ReportsPage: React.FC = () => {
       ];
     });
 
-    // Create workbook
     const wb = XLSX.utils.book_new();
-
-    // Create worksheet data
     const wsData = [
       [`Raport Program de Lucru - ${monthLabel}`],
       [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
       [`Total angajati: ${filteredUsers.length}`],
-      [], // Empty row
+      [],
       headers,
       ...rows,
-      [], // Empty row
+      [],
       ['Legenda:'],
       ['Z = Zi 12 ore (07:00-19:00)'],
       ['N = Noapte 12 ore (19:00-07:00)'],
@@ -439,16 +519,826 @@ const ReportsPage: React.FC = () => {
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-    // Set column widths
     const colWidths = [{ wch: 25 }, { wch: 10 }, ...calendarDays.map(() => ({ wch: 5 })), { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 8 }];
     ws['!cols'] = colWidths;
-
-    // Add worksheet to workbook
     XLSX.utils.book_append_sheet(wb, ws, 'Program');
-
-    // Download
     XLSX.writeFile(wb, `raport-program-${selectedMonth}.xlsx`);
+  };
+
+  // Export Leave Requests to PDF
+  const handleExportLeavesPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
+    doc.setFontSize(18);
+    doc.text(`Raport Concedii - ${monthLabel}`, 14, 15);
+
+    doc.setFontSize(10);
+    doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 22);
+    doc.text(`Total cereri: ${filteredLeaveRequests.length}`, 14, 27);
+
+    // Summary stats
+    const approved = filteredLeaveRequests.filter(r => r.status === 'APPROVED').length;
+    const pending = filteredLeaveRequests.filter(r => r.status === 'PENDING').length;
+    const rejected = filteredLeaveRequests.filter(r => r.status === 'REJECTED').length;
+    const totalDays = filteredLeaveRequests
+      .filter(r => r.status === 'APPROVED')
+      .reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+
+    doc.text(`Aprobate: ${approved} | În Așteptare: ${pending} | Respinse: ${rejected} | Total Zile Aprobate: ${totalDays}`, 14, 32);
+
+    const headers = ['Angajat', 'Departament', 'Tip Concediu', 'Dată Început', 'Dată Sfârșit', 'Zile', 'Status', 'Motiv'];
+    const rows = filteredLeaveRequests.map(req => [
+      req.user?.fullName || 'N/A',
+      req.user?.department?.name || 'N/A',
+      LEAVE_TYPE_LABELS[req.leaveType],
+      new Date(req.startDate).toLocaleDateString('ro-RO'),
+      new Date(req.endDate).toLocaleDateString('ro-RO'),
+      calculateWorkingDays(req.startDate, req.endDate).toString(),
+      LEAVE_STATUS_LABELS[req.status],
+      req.reason || '-',
+    ]);
+
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: 38,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [25, 118, 210], textColor: 255, fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        7: { cellWidth: 50 },
+      },
+      didParseCell: function(data) {
+        if (data.section === 'body' && data.column.index === 6) {
+          const status = filteredLeaveRequests[data.row.index]?.status;
+          if (status) {
+            data.cell.styles.fillColor = leaveStatusColorMap[status];
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
+    });
+
+    doc.save(`raport-concedii-${selectedMonth}.pdf`);
+  };
+
+  // Export Leave Requests to Excel
+  const handleExportLeavesExcel = () => {
+    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
+    const approved = filteredLeaveRequests.filter(r => r.status === 'APPROVED').length;
+    const pending = filteredLeaveRequests.filter(r => r.status === 'PENDING').length;
+    const rejected = filteredLeaveRequests.filter(r => r.status === 'REJECTED').length;
+    const totalDays = filteredLeaveRequests
+      .filter(r => r.status === 'APPROVED')
+      .reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+
+    const headers = ['Angajat', 'Departament', 'Tip Concediu', 'Dată Început', 'Dată Sfârșit', 'Zile Lucrătoare', 'Status', 'Motiv', 'Mesaj Admin'];
+    const rows = filteredLeaveRequests.map(req => [
+      req.user?.fullName || 'N/A',
+      req.user?.department?.name || 'N/A',
+      LEAVE_TYPE_LABELS[req.leaveType],
+      new Date(req.startDate).toLocaleDateString('ro-RO'),
+      new Date(req.endDate).toLocaleDateString('ro-RO'),
+      calculateWorkingDays(req.startDate, req.endDate),
+      LEAVE_STATUS_LABELS[req.status],
+      req.reason || '-',
+      req.adminMessage || '-',
+    ]);
+
+    const wb = XLSX.utils.book_new();
+    const wsData = [
+      [`Raport Concedii - ${monthLabel}`],
+      [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
+      [],
+      ['Sumar:'],
+      [`Total cereri: ${filteredLeaveRequests.length}`],
+      [`Aprobate: ${approved}`],
+      [`În Așteptare: ${pending}`],
+      [`Respinse: ${rejected}`],
+      [`Total Zile Aprobate: ${totalDays}`],
+      [],
+      headers,
+      ...rows,
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [
+      { wch: 25 }, { wch: 20 }, { wch: 25 }, { wch: 15 },
+      { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 30 }, { wch: 30 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, 'Concedii');
+    XLSX.writeFile(wb, `raport-concedii-${selectedMonth}.xlsx`);
+  };
+
+  // Export Shift Swaps to PDF
+  const handleExportSwapsPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
+    doc.setFontSize(18);
+    doc.text(`Raport Schimburi de Tură - ${monthLabel}`, 14, 15);
+
+    doc.setFontSize(10);
+    doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 22);
+    doc.text(`Total cereri: ${filteredSwapRequests.length}`, 14, 27);
+
+    // Summary stats
+    const approved = filteredSwapRequests.filter(r => r.status === 'APPROVED').length;
+    const pending = filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length;
+    const rejected = filteredSwapRequests.filter(r => r.status === 'REJECTED').length;
+
+    doc.text(`Aprobate: ${approved} | În Așteptare: ${pending} | Respinse: ${rejected}`, 14, 32);
+
+    const headers = ['Solicitant', 'Data Solicitant', 'Tura Solicitant', 'Data Dorită', 'Tura Dorită', 'Înlocuitor', 'Status', 'Motiv'];
+    const rows = filteredSwapRequests.map(req => [
+      req.requester?.fullName || 'N/A',
+      new Date(req.requesterDate).toLocaleDateString('ro-RO'),
+      req.requesterShiftType || '-',
+      new Date(req.targetDate).toLocaleDateString('ro-RO'),
+      req.targetShiftType || '-',
+      req.approvedResponder?.fullName || '-',
+      SWAP_STATUS_LABELS[req.status],
+      req.reason || '-',
+    ]);
+
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: 38,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [25, 118, 210], textColor: 255, fontStyle: 'bold' },
+      columnStyles: {
+        7: { cellWidth: 40 },
+      },
+      didParseCell: function(data) {
+        if (data.section === 'body' && data.column.index === 6) {
+          const status = filteredSwapRequests[data.row.index]?.status;
+          if (status && swapStatusColorMap[status]) {
+            data.cell.styles.fillColor = swapStatusColorMap[status];
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      },
+    });
+
+    doc.save(`raport-schimburi-${selectedMonth}.pdf`);
+  };
+
+  // Export Shift Swaps to Excel
+  const handleExportSwapsExcel = () => {
+    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
+    const approved = filteredSwapRequests.filter(r => r.status === 'APPROVED').length;
+    const pending = filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length;
+    const rejected = filteredSwapRequests.filter(r => r.status === 'REJECTED').length;
+
+    const headers = ['Solicitant', 'Data Solicitant', 'Tura Solicitant', 'Data Dorită', 'Tura Dorită', 'Înlocuitor Aprobat', 'Status', 'Motiv', 'Notă Admin'];
+    const rows = filteredSwapRequests.map(req => [
+      req.requester?.fullName || 'N/A',
+      new Date(req.requesterDate).toLocaleDateString('ro-RO'),
+      req.requesterShiftType || '-',
+      new Date(req.targetDate).toLocaleDateString('ro-RO'),
+      req.targetShiftType || '-',
+      req.approvedResponder?.fullName || '-',
+      SWAP_STATUS_LABELS[req.status],
+      req.reason || '-',
+      req.adminNotes || '-',
+    ]);
+
+    const wb = XLSX.utils.book_new();
+    const wsData = [
+      [`Raport Schimburi de Tură - ${monthLabel}`],
+      [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
+      [],
+      ['Sumar:'],
+      [`Total cereri: ${filteredSwapRequests.length}`],
+      [`Aprobate: ${approved}`],
+      [`În Așteptare: ${pending}`],
+      [`Respinse: ${rejected}`],
+      [],
+      headers,
+      ...rows,
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = [
+      { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+      { wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 30 }, { wch: 30 },
+    ];
+    XLSX.utils.book_append_sheet(wb, ws, 'Schimburi');
+    XLSX.writeFile(wb, `raport-schimburi-${selectedMonth}.xlsx`);
+  };
+
+  // Export Total Report to PDF
+  const handleExportTotalPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
+    doc.setFontSize(20);
+    doc.text(`Raport Total - ${monthLabel}`, 14, 20);
+
+    doc.setFontSize(10);
+    doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 28);
+
+    let yPos = 40;
+
+    // Section 1: Work Statistics
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('1. Statistici Program de Lucru', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const totalHours = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
+    const totalDayShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).dayShifts, 0);
+    const totalNightShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).nightShifts, 0);
+    const totalVacationDays = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).vacationDays, 0);
+
+    doc.setFontSize(10);
+    doc.text(`Total angajați: ${filteredUsers.length}`, 20, yPos); yPos += 6;
+    doc.text(`Total ore lucrate: ${totalHours}`, 20, yPos); yPos += 6;
+    doc.text(`Total ture de zi: ${totalDayShifts}`, 20, yPos); yPos += 6;
+    doc.text(`Total ture de noapte: ${totalNightShifts}`, 20, yPos); yPos += 6;
+    doc.text(`Total zile concediu (din program): ${totalVacationDays}`, 20, yPos); yPos += 15;
+
+    // Section 2: Leave Statistics
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('2. Statistici Concedii', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const approvedLeaves = filteredLeaveRequests.filter(r => r.status === 'APPROVED');
+    const pendingLeaves = filteredLeaveRequests.filter(r => r.status === 'PENDING');
+    const rejectedLeaves = filteredLeaveRequests.filter(r => r.status === 'REJECTED');
+    const totalLeaveDays = approvedLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+
+    // Stats by leave type
+    const leavesByType = approvedLeaves.reduce((acc, req) => {
+      acc[req.leaveType] = (acc[req.leaveType] || 0) + calculateWorkingDays(req.startDate, req.endDate);
+      return acc;
+    }, {} as Record<LeaveType, number>);
+
+    doc.setFontSize(10);
+    doc.text(`Total cereri concediu: ${filteredLeaveRequests.length}`, 20, yPos); yPos += 6;
+    doc.text(`Aprobate: ${approvedLeaves.length} | În Așteptare: ${pendingLeaves.length} | Respinse: ${rejectedLeaves.length}`, 20, yPos); yPos += 6;
+    doc.text(`Total zile concediu aprobate: ${totalLeaveDays}`, 20, yPos); yPos += 8;
+
+    doc.text('Defalcare pe tipuri de concediu:', 20, yPos); yPos += 6;
+    Object.entries(leavesByType).forEach(([type, days]) => {
+      doc.text(`  • ${LEAVE_TYPE_LABELS[type as LeaveType]}: ${days} zile`, 25, yPos);
+      yPos += 5;
+    });
+    yPos += 10;
+
+    // Section 3: Shift Swap Statistics
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('3. Statistici Schimburi de Tură', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED');
+    const pendingSwaps = filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN');
+    const rejectedSwaps = filteredSwapRequests.filter(r => r.status === 'REJECTED');
+
+    doc.setFontSize(10);
+    doc.text(`Total cereri schimb: ${filteredSwapRequests.length}`, 20, yPos); yPos += 6;
+    doc.text(`Aprobate: ${approvedSwaps.length} | În Așteptare: ${pendingSwaps.length} | Respinse: ${rejectedSwaps.length}`, 20, yPos); yPos += 15;
+
+    // Section 4: Summary Table
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('4. Tabel Sumar pe Angajați', 14, yPos);
+    yPos += 8;
+
+    const summaryHeaders = ['Angajat', 'Ore Lucrate', 'Zile CO', 'Schimburi'];
+    const summaryRows = filteredUsers.slice(0, 20).map(user => {
+      const stats = getUserStats(user.id);
+      const userLeaves = approvedLeaves.filter(r => r.userId === user.id);
+      const userSwaps = approvedSwaps.filter(r => r.requesterId === user.id);
+      const userLeaveDays = userLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+
+      return [
+        user.fullName,
+        stats.totalHours.toString(),
+        userLeaveDays.toString(),
+        userSwaps.length.toString(),
+      ];
+    });
+
+    autoTable(doc, {
+      head: [summaryHeaders],
+      body: summaryRows,
+      startY: yPos,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [25, 118, 210], textColor: 255 },
+    });
+
+    doc.save(`raport-total-${selectedMonth}.pdf`);
+  };
+
+  // Export Total Report to Excel
+  const handleExportTotalExcel = () => {
+    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
+
+    const totalHours = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
+    const totalDayShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).dayShifts, 0);
+    const totalNightShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).nightShifts, 0);
+
+    const approvedLeaves = filteredLeaveRequests.filter(r => r.status === 'APPROVED');
+    const totalLeaveDays = approvedLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+
+    const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED');
+
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: Summary
+    const summaryData = [
+      [`Raport Total - ${monthLabel}`],
+      [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
+      [],
+      ['=== STATISTICI PROGRAM DE LUCRU ==='],
+      [`Total angajați: ${filteredUsers.length}`],
+      [`Total ore lucrate: ${totalHours}`],
+      [`Total ture de zi: ${totalDayShifts}`],
+      [`Total ture de noapte: ${totalNightShifts}`],
+      [],
+      ['=== STATISTICI CONCEDII ==='],
+      [`Total cereri: ${filteredLeaveRequests.length}`],
+      [`Aprobate: ${approvedLeaves.length}`],
+      [`Total zile aprobate: ${totalLeaveDays}`],
+      [],
+      ['=== STATISTICI SCHIMBURI ==='],
+      [`Total cereri: ${filteredSwapRequests.length}`],
+      [`Aprobate: ${approvedSwaps.length}`],
+    ];
+
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Sumar');
+
+    // Sheet 2: Per Employee
+    const employeeHeaders = ['Angajat', 'Departament', 'Ore Lucrate', 'Ture Zi', 'Ture Noapte', 'Zile Concediu (Program)', 'Zile Concediu (Cereri)', 'Schimburi Aprobate'];
+    const employeeRows = filteredUsers.map(user => {
+      const stats = getUserStats(user.id);
+      const userLeaves = approvedLeaves.filter(r => r.userId === user.id);
+      const userSwaps = approvedSwaps.filter(r => r.requesterId === user.id);
+      const userLeaveDays = userLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+
+      return [
+        user.fullName,
+        user.department?.name || 'N/A',
+        stats.totalHours,
+        stats.dayShifts,
+        stats.nightShifts,
+        stats.vacationDays,
+        userLeaveDays,
+        userSwaps.length,
+      ];
+    });
+
+    const wsEmployees = XLSX.utils.aoa_to_sheet([
+      [`Detalii pe Angajați - ${monthLabel}`],
+      [],
+      employeeHeaders,
+      ...employeeRows,
+    ]);
+    wsEmployees['!cols'] = [
+      { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 },
+      { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 18 },
+    ];
+    XLSX.utils.book_append_sheet(wb, wsEmployees, 'Pe Angajați');
+
+    XLSX.writeFile(wb, `raport-total-${selectedMonth}.xlsx`);
+  };
+
+  // Tab content renderers
+  const renderScheduleTab = () => (
+    <Stack spacing={3}>
+      {/* Filtre */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <FilterIcon color="action" fontSize="small" />
+          <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
+        </Stack>
+
+        <TextField
+          placeholder="Caută după nume..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          size="small"
+          sx={{ minWidth: { xs: '100%', sm: 200 } }}
+        />
+
+        <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
+          <InputLabel>Departament</InputLabel>
+          <Select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            label="Departament"
+          >
+            <MenuItem value="ALL">Toate departamentele</MenuItem>
+            {departments.map((deptId) => (
+              <MenuItem key={deptId} value={deptId}>
+                {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
+
+      {/* Legendă */}
+      <Paper sx={{ p: 1.5, bgcolor: 'grey.50' }}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+          <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
+            Legendă:
+          </Typography>
+          <Chip label="Z - Zi 12h" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
+          <Chip label="N - Noapte 12h" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
+          <Chip label="Z1 - 06-14" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.7rem', height: 24 }} />
+          <Chip label="Z2 - 14-22" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.7rem', height: 24 }} />
+          <Chip label="Z3 - 07:30-15:30" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.7rem', height: 24 }} />
+          <Chip label="N8 - 22-06" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.7rem', height: 24 }} />
+          <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.7rem', height: 24 }} />
+        </Stack>
+      </Paper>
+
+      <Alert severity="info" icon={false}>
+        <Typography variant="body2">
+          <strong>{filteredUsers.length}</strong> angajați selectați pentru luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
+        </Typography>
+      </Alert>
+
+      {/* Butoane Export */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+        <Button
+          variant="contained"
+          color="error"
+          size="large"
+          startIcon={<PdfIcon />}
+          onClick={handleExportSchedulePDF}
+          fullWidth={isMobile}
+          disabled={filteredUsers.length === 0 || isLoading}
+          sx={{ minWidth: 200 }}
+        >
+          Descarcă PDF
+        </Button>
+        <Button
+          variant="contained"
+          color="success"
+          size="large"
+          startIcon={<ExcelIcon />}
+          onClick={handleExportScheduleExcel}
+          fullWidth={isMobile}
+          disabled={filteredUsers.length === 0 || isLoading}
+          sx={{ minWidth: 200 }}
+        >
+          Descarcă Excel
+        </Button>
+      </Stack>
+    </Stack>
+  );
+
+  const renderLeavesTab = () => (
+    <Stack spacing={3}>
+      {/* Filtre */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <FilterIcon color="action" fontSize="small" />
+          <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
+        </Stack>
+
+        <TextField
+          placeholder="Caută după nume..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          size="small"
+          sx={{ minWidth: { xs: '100%', sm: 200 } }}
+        />
+
+        <FormControl sx={{ minWidth: { xs: '100%', sm: 150 } }} size="small">
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={selectedLeaveStatus}
+            onChange={(e) => setSelectedLeaveStatus(e.target.value)}
+            label="Status"
+          >
+            <MenuItem value="ALL">Toate</MenuItem>
+            <MenuItem value="PENDING">În Așteptare</MenuItem>
+            <MenuItem value="APPROVED">Aprobate</MenuItem>
+            <MenuItem value="REJECTED">Respinse</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
+          <InputLabel>Departament</InputLabel>
+          <Select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            label="Departament"
+          >
+            <MenuItem value="ALL">Toate departamentele</MenuItem>
+            {departments.map((deptId) => (
+              <MenuItem key={deptId} value={deptId}>
+                {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Stack>
+
+      {/* Sumar */}
+      <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-around">
+          <Box textAlign="center">
+            <Typography variant="h4" color="warning.main" fontWeight="bold">
+              {filteredLeaveRequests.filter(r => r.status === 'PENDING').length}
+            </Typography>
+            <Typography variant="caption">În Așteptare</Typography>
+          </Box>
+          <Box textAlign="center">
+            <Typography variant="h4" color="success.main" fontWeight="bold">
+              {filteredLeaveRequests.filter(r => r.status === 'APPROVED').length}
+            </Typography>
+            <Typography variant="caption">Aprobate</Typography>
+          </Box>
+          <Box textAlign="center">
+            <Typography variant="h4" color="error.main" fontWeight="bold">
+              {filteredLeaveRequests.filter(r => r.status === 'REJECTED').length}
+            </Typography>
+            <Typography variant="caption">Respinse</Typography>
+          </Box>
+          <Box textAlign="center">
+            <Typography variant="h4" color="primary.main" fontWeight="bold">
+              {filteredLeaveRequests
+                .filter(r => r.status === 'APPROVED')
+                .reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0)}
+            </Typography>
+            <Typography variant="caption">Total Zile Aprobate</Typography>
+          </Box>
+        </Stack>
+      </Paper>
+
+      <Alert severity="info" icon={false}>
+        <Typography variant="body2">
+          <strong>{filteredLeaveRequests.length}</strong> cereri de concediu în luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
+        </Typography>
+      </Alert>
+
+      {/* Butoane Export */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+        <Button
+          variant="contained"
+          color="error"
+          size="large"
+          startIcon={<PdfIcon />}
+          onClick={handleExportLeavesPDF}
+          fullWidth={isMobile}
+          disabled={filteredLeaveRequests.length === 0 || isLoading}
+          sx={{ minWidth: 200 }}
+        >
+          Descarcă PDF
+        </Button>
+        <Button
+          variant="contained"
+          color="success"
+          size="large"
+          startIcon={<ExcelIcon />}
+          onClick={handleExportLeavesExcel}
+          fullWidth={isMobile}
+          disabled={filteredLeaveRequests.length === 0 || isLoading}
+          sx={{ minWidth: 200 }}
+        >
+          Descarcă Excel
+        </Button>
+      </Stack>
+    </Stack>
+  );
+
+  const renderSwapsTab = () => (
+    <Stack spacing={3}>
+      {/* Filtre */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <FilterIcon color="action" fontSize="small" />
+          <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
+        </Stack>
+
+        <TextField
+          placeholder="Caută după nume..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          size="small"
+          sx={{ minWidth: { xs: '100%', sm: 200 } }}
+        />
+
+        <FormControl sx={{ minWidth: { xs: '100%', sm: 150 } }} size="small">
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={selectedSwapStatus}
+            onChange={(e) => setSelectedSwapStatus(e.target.value)}
+            label="Status"
+          >
+            <MenuItem value="ALL">Toate</MenuItem>
+            <MenuItem value="PENDING">În Așteptare</MenuItem>
+            <MenuItem value="AWAITING_ADMIN">Așteaptă Admin</MenuItem>
+            <MenuItem value="APPROVED">Aprobate</MenuItem>
+            <MenuItem value="REJECTED">Respinse</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+
+      {/* Sumar */}
+      <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-around">
+          <Box textAlign="center">
+            <Typography variant="h4" color="warning.main" fontWeight="bold">
+              {filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length}
+            </Typography>
+            <Typography variant="caption">În Așteptare</Typography>
+          </Box>
+          <Box textAlign="center">
+            <Typography variant="h4" color="success.main" fontWeight="bold">
+              {filteredSwapRequests.filter(r => r.status === 'APPROVED').length}
+            </Typography>
+            <Typography variant="caption">Aprobate</Typography>
+          </Box>
+          <Box textAlign="center">
+            <Typography variant="h4" color="error.main" fontWeight="bold">
+              {filteredSwapRequests.filter(r => r.status === 'REJECTED').length}
+            </Typography>
+            <Typography variant="caption">Respinse</Typography>
+          </Box>
+          <Box textAlign="center">
+            <Typography variant="h4" color="text.secondary" fontWeight="bold">
+              {filteredSwapRequests.length}
+            </Typography>
+            <Typography variant="caption">Total Cereri</Typography>
+          </Box>
+        </Stack>
+      </Paper>
+
+      <Alert severity="info" icon={false}>
+        <Typography variant="body2">
+          <strong>{filteredSwapRequests.length}</strong> cereri de schimb în luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
+        </Typography>
+      </Alert>
+
+      {/* Butoane Export */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+        <Button
+          variant="contained"
+          color="error"
+          size="large"
+          startIcon={<PdfIcon />}
+          onClick={handleExportSwapsPDF}
+          fullWidth={isMobile}
+          disabled={filteredSwapRequests.length === 0 || isLoading}
+          sx={{ minWidth: 200 }}
+        >
+          Descarcă PDF
+        </Button>
+        <Button
+          variant="contained"
+          color="success"
+          size="large"
+          startIcon={<ExcelIcon />}
+          onClick={handleExportSwapsExcel}
+          fullWidth={isMobile}
+          disabled={filteredSwapRequests.length === 0 || isLoading}
+          sx={{ minWidth: 200 }}
+        >
+          Descarcă Excel
+        </Button>
+      </Stack>
+    </Stack>
+  );
+
+  const renderTotalTab = () => {
+    const totalHours = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
+    const approvedLeaves = filteredLeaveRequests.filter(r => r.status === 'APPROVED');
+    const totalLeaveDays = approvedLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+    const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED').length;
+
+    return (
+      <Stack spacing={3}>
+        {/* Sumar General */}
+        <Paper sx={{ p: 2, bgcolor: 'primary.lighter' }}>
+          <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.dark">
+            Sumar General - {monthOptions.find(m => m.value === selectedMonth)?.label}
+          </Typography>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} justifyContent="space-around">
+            <Box textAlign="center">
+              <Typography variant="h3" color="primary.main" fontWeight="bold">
+                {totalHours}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Ore Lucrate Total</Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h3" color="warning.main" fontWeight="bold">
+                {totalLeaveDays}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Zile Concediu Aprobate</Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h3" color="info.main" fontWeight="bold">
+                {approvedSwaps}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Schimburi Aprobate</Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h3" color="success.main" fontWeight="bold">
+                {filteredUsers.length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Angajați Activi</Typography>
+            </Box>
+          </Stack>
+        </Paper>
+
+        {/* Detalii pe secțiuni */}
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              📊 Program de Lucru
+            </Typography>
+            <Typography variant="body2">Total ture de zi: {filteredUsers.reduce((sum, u) => sum + getUserStats(u.id).dayShifts, 0)}</Typography>
+            <Typography variant="body2">Total ture de noapte: {filteredUsers.reduce((sum, u) => sum + getUserStats(u.id).nightShifts, 0)}</Typography>
+            <Typography variant="body2">Zile libere: {filteredUsers.reduce((sum, u) => sum + getUserStats(u.id).freeDays, 0)}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              🏖️ Concedii
+            </Typography>
+            <Typography variant="body2">Total cereri: {filteredLeaveRequests.length}</Typography>
+            <Typography variant="body2">Aprobate: {approvedLeaves.length}</Typography>
+            <Typography variant="body2">În așteptare: {filteredLeaveRequests.filter(r => r.status === 'PENDING').length}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              🔄 Schimburi de Tură
+            </Typography>
+            <Typography variant="body2">Total cereri: {filteredSwapRequests.length}</Typography>
+            <Typography variant="body2">Aprobate: {approvedSwaps}</Typography>
+            <Typography variant="body2">În așteptare: {filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length}</Typography>
+          </Paper>
+        </Stack>
+
+        <Alert severity="success" icon={false}>
+          <Typography variant="body2">
+            Raportul total include date din toate cele 3 secțiuni: program de lucru, concedii și schimburi de tură.
+          </Typography>
+        </Alert>
+
+        {/* Butoane Export */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
+          <Button
+            variant="contained"
+            color="error"
+            size="large"
+            startIcon={<PdfIcon />}
+            onClick={handleExportTotalPDF}
+            fullWidth={isMobile}
+            disabled={isLoading}
+            sx={{ minWidth: 200 }}
+          >
+            Descarcă PDF
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            size="large"
+            startIcon={<ExcelIcon />}
+            onClick={handleExportTotalExcel}
+            fullWidth={isMobile}
+            disabled={isLoading}
+            sx={{ minWidth: 200 }}
+          >
+            Descarcă Excel
+          </Button>
+        </Stack>
+      </Stack>
+    );
   };
 
   return (
@@ -470,7 +1360,7 @@ const ReportsPage: React.FC = () => {
               </Typography>
             </Stack>
             <Typography variant="body2" color="text.secondary">
-              Generează rapoarte PDF sau Excel pentru programul de lucru
+              Generează rapoarte PDF sau Excel pentru program, concedii și schimburi
             </Typography>
           </Box>
         </Box>
@@ -499,53 +1389,39 @@ const ReportsPage: React.FC = () => {
                 </FormControl>
               </Stack>
 
-              {/* Alte Filtre */}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <FilterIcon color="action" fontSize="small" />
-                  <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
-                </Stack>
-
-                <TextField
-                  placeholder="Caută după nume..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  size="small"
-                  sx={{ minWidth: { xs: '100%', sm: 200 } }}
+              {/* Tabs */}
+              <Tabs
+                value={tabValue}
+                onChange={(_, newValue) => setTabValue(newValue)}
+                variant={isMobile ? 'scrollable' : 'standard'}
+                scrollButtons="auto"
+                allowScrollButtonsMobile
+              >
+                <Tab
+                  icon={<ReportIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Program' : 'Program de Lucru'}
+                  sx={{ minHeight: 48 }}
                 />
-
-                <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
-                  <InputLabel>Departament</InputLabel>
-                  <Select
-                    value={selectedDepartment}
-                    onChange={(e) => setSelectedDepartment(e.target.value)}
-                    label="Departament"
-                  >
-                    <MenuItem value="ALL">Toate departamentele</MenuItem>
-                    {departments.map((deptId) => (
-                      <MenuItem key={deptId} value={deptId}>
-                        {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Stack>
-
-              {/* Legendă */}
-              <Paper sx={{ p: 1.5, bgcolor: 'grey.50' }}>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
-                  <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
-                    Legendă:
-                  </Typography>
-                  <Chip label="Z - Zi 12h" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
-                  <Chip label="N - Noapte 12h" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
-                  <Chip label="Z1 - 06-14" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.7rem', height: 24 }} />
-                  <Chip label="Z2 - 14-22" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.7rem', height: 24 }} />
-                  <Chip label="Z3 - 07:30-15:30" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.7rem', height: 24 }} />
-                  <Chip label="N8 - 22-06" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.7rem', height: 24 }} />
-                  <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.7rem', height: 24 }} />
-                </Stack>
-              </Paper>
+                <Tab
+                  icon={<LeaveIcon />}
+                  iconPosition="start"
+                  label="Concedii"
+                  sx={{ minHeight: 48 }}
+                />
+                <Tab
+                  icon={<SwapIcon />}
+                  iconPosition="start"
+                  label="Schimburi"
+                  sx={{ minHeight: 48 }}
+                />
+                <Tab
+                  icon={<TotalIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Total' : 'Raport Total'}
+                  sx={{ minHeight: 48 }}
+                />
+              </Tabs>
 
               {/* Loading state */}
               {isLoading && (
@@ -554,49 +1430,11 @@ const ReportsPage: React.FC = () => {
                 </Box>
               )}
 
-              {/* Error state */}
-              {error && (
-                <Alert severity="error">
-                  Eroare la încărcarea datelor.
-                </Alert>
-              )}
-
-              {/* Info despre selecție */}
-              {!isLoading && !error && (
-                <Alert severity="info" icon={false}>
-                  <Typography variant="body2">
-                    <strong>{filteredUsers.length}</strong> angajați selectați pentru luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
-                  </Typography>
-                </Alert>
-              )}
-
-              {/* Butoane Export */}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-                <Button
-                  variant="contained"
-                  color="error"
-                  size="large"
-                  startIcon={<PdfIcon />}
-                  onClick={handleExportPDF}
-                  fullWidth={isMobile}
-                  disabled={filteredUsers.length === 0 || isLoading}
-                  sx={{ minWidth: 200 }}
-                >
-                  Descarcă PDF
-                </Button>
-                <Button
-                  variant="contained"
-                  color="success"
-                  size="large"
-                  startIcon={<ExcelIcon />}
-                  onClick={handleExportExcel}
-                  fullWidth={isMobile}
-                  disabled={filteredUsers.length === 0 || isLoading}
-                  sx={{ minWidth: 200 }}
-                >
-                  Descarcă Excel
-                </Button>
-              </Stack>
+              {/* Tab Content */}
+              {!isLoading && tabValue === 0 && renderScheduleTab()}
+              {!isLoading && tabValue === 1 && renderLeavesTab()}
+              {!isLoading && tabValue === 2 && renderSwapsTab()}
+              {!isLoading && tabValue === 3 && renderTotalTab()}
             </Stack>
           </CardContent>
         </Card>
