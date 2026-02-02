@@ -37,6 +37,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     phone: initialData?.phone || '',
     role: initialData?.role || 'USER',
     departmentId: initialData?.departmentId || '',
+    birthDate: initialData?.birthDate || '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,6 +51,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         phone: initialData.phone || '',
         role: initialData.role || 'USER',
         departmentId: initialData.departmentId || '',
+        birthDate: initialData.birthDate || '',
       });
     }
   }, [initialData]);
@@ -166,6 +168,19 @@ export const UserForm: React.FC<UserFormProps> = ({
           error={!!errors.phone}
           helperText={errors.phone}
           fullWidth
+        />
+
+        <TextField
+          label="Data Nașterii"
+          type="date"
+          value={formData.birthDate}
+          onChange={handleChange('birthDate')}
+          error={!!errors.birthDate}
+          helperText={errors.birthDate || 'Necesară pentru concediul de zi de naștere'}
+          fullWidth
+          InputLabelProps={{
+            shrink: true,
+          }}
         />
 
         <FormControl fullWidth error={!!errors.role} required={isCreate}>

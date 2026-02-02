@@ -9,6 +9,7 @@ export interface User {
   departmentId: string | null;
   avatarUrl: string | null;
   isActive: boolean;
+  birthDate: string | null;
   createdAt: string;
   updatedAt: string;
   lastLogin: string | null;

@@ -43,6 +43,9 @@ export class ScheduleAssignment {
   @Column({ type: 'boolean', name: 'is_rest_day', default: false })
   isRestDay: boolean;
 
+  @Column({ name: 'leave_type', nullable: true })
+  leaveType: string;
+
   @Column({ type: 'text', nullable: true })
   notes: string;
 

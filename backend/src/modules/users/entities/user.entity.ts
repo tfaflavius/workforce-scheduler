@@ -64,4 +64,7 @@ export class User {
 
   @Column({ name: 'last_login', nullable: true })
   lastLogin: Date;
+
+  @Column({ name: 'birth_date', type: 'date', nullable: true })
+  birthDate: Date;
 }

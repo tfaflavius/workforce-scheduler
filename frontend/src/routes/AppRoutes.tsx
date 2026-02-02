@@ -9,6 +9,8 @@ import RejectedSchedulesPage from '../pages/schedules/RejectedSchedulesPage';
 import MySchedulePage from '../pages/schedules/MySchedulePage';
 import ShiftSwapsPage from '../pages/shift-swaps/ShiftSwapsPage';
 import AdminShiftSwapsPage from '../pages/shift-swaps/AdminShiftSwapsPage';
+import LeaveRequestsPage from '../pages/leave-requests/LeaveRequestsPage';
+import AdminLeaveRequestsPage from '../pages/leave-requests/AdminLeaveRequestsPage';
 import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
 import ReportsPage from '../pages/reports/ReportsPage';
@@ -54,6 +56,19 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
               <AdminShiftSwapsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Leave Requests - for all users */}
+        <Route path="/leave-requests" element={<LeaveRequestsPage />} />
+
+        {/* Admin Leave Requests */}
+        <Route
+          path="/admin/leave-requests"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminLeaveRequestsPage />
             </ProtectedRoute>
           }
         />

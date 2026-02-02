@@ -33,6 +33,7 @@ import {
   People as PeopleIcon,
   Assessment as ReportIcon,
   SwapHoriz as SwapIcon,
+  BeachAccess as BeachIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -103,6 +104,12 @@ export const MainLayout = () => {
       roles: ['USER', 'MANAGER'],
     },
     {
+      text: 'Concedii',
+      icon: <BeachIcon />,
+      path: '/leave-requests',
+      roles: ['USER', 'MANAGER'],
+    },
+    {
       text: 'Programe',
       icon: <CalendarIcon />,
       path: '/schedules',
@@ -112,6 +119,12 @@ export const MainLayout = () => {
       text: 'Gestionare Schimburi',
       icon: <SwapIcon />,
       path: '/admin/shift-swaps',
+      roles: ['ADMIN'],
+    },
+    {
+      text: 'Gestionare Concedii',
+      icon: <BeachIcon />,
+      path: '/admin/leave-requests',
       roles: ['ADMIN'],
     },
     {

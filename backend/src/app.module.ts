@@ -11,6 +11,7 @@ import { DepartmentsModule } from './modules/departments/departments.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ShiftSwapsModule } from './modules/shift-swaps/shift-swaps.module';
+import { LeaveRequestsModule } from './modules/leave-requests/leave-requests.module';
 import { User } from './modules/users/entities/user.entity';
 import { Department } from './modules/departments/entities/department.entity';
 import { WorkSchedule } from './modules/schedules/entities/work-schedule.entity';
@@ -19,6 +20,8 @@ import { ShiftType } from './modules/schedules/entities/shift-type.entity';
 import { Notification } from './modules/notifications/entities/notification.entity';
 import { ShiftSwapRequest } from './modules/shift-swaps/entities/shift-swap-request.entity';
 import { ShiftSwapResponse } from './modules/shift-swaps/entities/shift-swap-response.entity';
+import { LeaveRequest } from './modules/leave-requests/entities/leave-request.entity';
+import { LeaveBalance } from './modules/leave-requests/entities/leave-balance.entity';
 
 @Module({
   imports: [
@@ -35,7 +38,7 @@ import { ShiftSwapResponse } from './modules/shift-swaps/entities/shift-swap-res
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, Notification, ShiftSwapRequest, ShiftSwapResponse],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, Notification, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
@@ -46,6 +49,7 @@ import { ShiftSwapResponse } from './modules/shift-swaps/entities/shift-swap-res
     SchedulesModule,
     NotificationsModule,
     ShiftSwapsModule,
+    LeaveRequestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

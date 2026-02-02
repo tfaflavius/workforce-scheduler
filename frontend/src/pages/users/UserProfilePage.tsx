@@ -21,6 +21,7 @@ import {
   Phone as PhoneIcon,
   Business as BusinessIcon,
   CalendarToday as CalendarIcon,
+  Cake as CakeIcon,
 } from '@mui/icons-material';
 import { useGetCurrentUserQuery, useUpdateUserMutation } from '../../store/api/users.api';
 import { ChangePasswordDialog } from '../../components/users/ChangePasswordDialog';
@@ -146,6 +147,7 @@ const UserProfilePage: React.FC = () => {
                 phone: user.phone || '',
                 role: user.role,
                 departmentId: user.departmentId || '',
+                birthDate: user.birthDate || '',
               }}
               onSubmit={handleEditSubmit}
               onCancel={() => setEditMode(false)}
@@ -273,6 +275,33 @@ const UserProfilePage: React.FC = () => {
                     </Typography>
                     <Typography variant="body1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                       {user.department?.name || 'Fără departament'}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <Stack direction="row" spacing={2} alignItems="flex-start">
+                  <Box
+                    sx={{
+                      p: 1,
+                      borderRadius: 2,
+                      bgcolor: '#fce4ec',
+                      display: 'flex'
+                    }}
+                  >
+                    <CakeIcon sx={{ color: '#c2185b' }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Data Nașterii
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                      {user.birthDate
+                        ? new Date(user.birthDate).toLocaleDateString('ro-RO', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })
+                        : 'Nu este setată'}
                     </Typography>
                   </Box>
                 </Stack>

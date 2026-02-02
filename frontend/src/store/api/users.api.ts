@@ -13,6 +13,7 @@ export interface User {
   avatarUrl: string | null;
   isActive: boolean;
   emailVerified: boolean;
+  birthDate: string | null;
   createdAt: string;
   updatedAt: string;
   lastLogin: string | null;
@@ -38,6 +39,7 @@ export interface UpdateUserRequest {
   role?: 'ADMIN' | 'MANAGER' | 'USER';
   departmentId?: string;
   isActive?: boolean;
+  birthDate?: string;
 }
 
 export interface ChangePasswordRequest {
