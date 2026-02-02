@@ -99,4 +99,10 @@ export class NotificationsController {
     );
     return { success: true, message: 'Test notification sent' };
   }
+
+  @Delete('push/clear-all')
+  async clearAllPushSubscriptions(@Request() req) {
+    await this.pushNotificationService.clearAllSubscriptions(req.user.id);
+    return { success: true, message: 'All push subscriptions cleared' };
+  }
 }

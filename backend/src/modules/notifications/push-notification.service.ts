@@ -120,4 +120,15 @@ export class PushNotificationService {
     const count = await this.pushSubscriptionRepository.count({ where: { userId } });
     return count > 0;
   }
+
+  async clearAllSubscriptions(userId: string): Promise<void> {
+    const result = await this.pushSubscriptionRepository.delete({ userId });
+    this.logger.log(`Cleared ${result.affected || 0} push subscriptions for user ${userId}`);
+  }
+
+  async clearAllExpiredSubscriptions(): Promise<void> {
+    // This can be called periodically to clean up old subscriptions
+    const result = await this.pushSubscriptionRepository.delete({});
+    this.logger.log(`Cleared all push subscriptions: ${result.affected || 0}`);
+  }
 }

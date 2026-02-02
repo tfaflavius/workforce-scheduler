@@ -24,6 +24,7 @@ import {
   useSubscribeToPushMutation,
   useUnsubscribeFromPushMutation,
   useTestPushNotificationMutation,
+  useClearAllPushSubscriptionsMutation,
 } from '../../store/api/notifications.api';
 
 // Helper to convert base64 to Uint8Array for VAPID key
@@ -51,6 +52,7 @@ export const PushNotificationSettings: React.FC = () => {
   const [subscribeToPush] = useSubscribeToPushMutation();
   const [unsubscribeFromPush] = useUnsubscribeFromPushMutation();
   const [testPush, { isLoading: testLoading }] = useTestPushNotificationMutation();
+  const [clearAllSubscriptions] = useClearAllPushSubscriptionsMutation();
 
   // Check if push notifications are supported
   useEffect(() => {
@@ -112,12 +114,28 @@ export const PushNotificationSettings: React.FC = () => {
         return;
       }
 
-      // Subscribe to push notifications
+      // First, unsubscribe from any existing subscription to avoid conflicts
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        await existingSubscription.unsubscribe();
+        console.log('[Push] Unsubscribed from existing subscription');
+      }
+
+      // Clear all subscriptions on server for this user (to remove old/invalid ones)
+      try {
+        await clearAllSubscriptions();
+        console.log('[Push] Cleared all server subscriptions');
+      } catch (e) {
+        console.warn('[Push] Failed to clear server subscriptions:', e);
+      }
+
+      // Subscribe to push notifications with fresh subscription
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
+      console.log('[Push] New subscription created:', subscription.endpoint.substring(0, 50));
       setCurrentSubscription(subscription);
 
       // Send subscription to server
@@ -280,15 +298,29 @@ export const PushNotificationSettings: React.FC = () => {
 
           {/* Test Button */}
           {isSubscribed && (
-            <Button
-              variant="outlined"
-              startIcon={testLoading ? <CircularProgress size={16} /> : <TestIcon />}
-              onClick={handleTestNotification}
-              disabled={testLoading}
-              fullWidth
-            >
-              Trimite Notificare de Test
-            </Button>
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="outlined"
+                startIcon={testLoading ? <CircularProgress size={16} /> : <TestIcon />}
+                onClick={handleTestNotification}
+                disabled={testLoading}
+                fullWidth
+              >
+                Trimite Notificare de Test
+              </Button>
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={async () => {
+                  setLoading(true);
+                  await handleUnsubscribe();
+                  setTimeout(() => handleSubscribe(), 500);
+                }}
+                disabled={loading}
+              >
+                Resetează
+              </Button>
+            </Stack>
           )}
         </Stack>
       </CardContent>

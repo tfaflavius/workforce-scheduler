@@ -131,6 +131,14 @@ export const notificationsApi = createApi({
         method: 'POST',
       }),
     }),
+
+    clearAllPushSubscriptions: builder.mutation<{ success: boolean; message: string }, void>({
+      query: () => ({
+        url: '/notifications/push/clear-all',
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['PushStatus'],
+    }),
   }),
 });
 
@@ -147,4 +155,5 @@ export const {
   useSubscribeToPushMutation,
   useUnsubscribeFromPushMutation,
   useTestPushNotificationMutation,
+  useClearAllPushSubscriptionsMutation,
 } = notificationsApi;
