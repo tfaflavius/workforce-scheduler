@@ -27,6 +27,7 @@ import { useGetCurrentUserQuery, useUpdateUserMutation } from '../../store/api/u
 import { ChangePasswordDialog } from '../../components/users/ChangePasswordDialog';
 import { UserForm } from '../../components/users/UserForm';
 import { UserStatusChip } from '../../components/users/UserStatusChip';
+import { PushNotificationSettings } from '../../components/notifications/PushNotificationSettings';
 
 const UserProfilePage: React.FC = () => {
   const theme = useTheme();
@@ -331,6 +332,9 @@ const UserProfilePage: React.FC = () => {
               </Box>
             </CardContent>
           </Card>
+
+          {/* Push Notification Settings */}
+          <PushNotificationSettings />
 
           {/* Account Info Card */}
           <Card sx={{ width: '100%' }}>

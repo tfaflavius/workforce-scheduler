@@ -6,16 +6,29 @@ import {
   Delete,
   Param,
   Query,
+  Body,
   UseGuards,
   Request,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
+import { PushNotificationService } from './push-notification.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+interface PushSubscriptionBody {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+}
 
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly pushNotificationService: PushNotificationService,
+  ) {}
 
   @Get()
   findAll(
@@ -52,5 +65,38 @@ export class NotificationsController {
   @Delete('read/all')
   deleteAllRead(@Request() req) {
     return this.notificationsService.deleteAllRead(req.user.id);
+  }
+
+  // Push Notification Endpoints
+  @Get('push/vapid-public-key')
+  getVapidPublicKey() {
+    return { publicKey: this.pushNotificationService.getVapidPublicKey() };
+  }
+
+  @Post('push/subscribe')
+  subscribeToPush(@Request() req, @Body() subscription: PushSubscriptionBody) {
+    return this.pushNotificationService.subscribe(req.user.id, subscription);
+  }
+
+  @Post('push/unsubscribe')
+  unsubscribeFromPush(@Body('endpoint') endpoint: string) {
+    return this.pushNotificationService.unsubscribe(endpoint);
+  }
+
+  @Get('push/status')
+  async getPushStatus(@Request() req) {
+    const hasSubscription = await this.pushNotificationService.hasSubscription(req.user.id);
+    return { subscribed: hasSubscription };
+  }
+
+  @Post('push/test')
+  async testPush(@Request() req) {
+    await this.pushNotificationService.sendToUser(
+      req.user.id,
+      '🔔 Test Notificare',
+      'Notificările push funcționează corect!',
+      { url: '/dashboard' },
+    );
+    return { success: true, message: 'Test notification sent' };
   }
 }

@@ -15,6 +15,14 @@ export interface Notification {
   createdAt: string;
 }
 
+export interface PushSubscriptionStatus {
+  subscribed: boolean;
+}
+
+export interface VapidKeyResponse {
+  publicKey: string;
+}
+
 export const notificationsApi = createApi({
   reducerPath: 'notificationsApi',
   baseQuery: fetchBaseQuery({
@@ -27,7 +35,7 @@ export const notificationsApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Notification', 'UnreadCount'],
+  tagTypes: ['Notification', 'UnreadCount', 'PushStatus'],
   endpoints: (builder) => ({
     // Queries
     getNotifications: builder.query<Notification[], { unreadOnly?: boolean; limit?: number } | void>({
@@ -88,6 +96,41 @@ export const notificationsApi = createApi({
       }),
       invalidatesTags: [{ type: 'Notification', id: 'LIST' }],
     }),
+
+    // Push Notification Endpoints
+    getVapidPublicKey: builder.query<VapidKeyResponse, void>({
+      query: () => '/notifications/push/vapid-public-key',
+    }),
+
+    getPushStatus: builder.query<PushSubscriptionStatus, void>({
+      query: () => '/notifications/push/status',
+      providesTags: ['PushStatus'],
+    }),
+
+    subscribeToPush: builder.mutation<void, PushSubscriptionJSON>({
+      query: (subscription) => ({
+        url: '/notifications/push/subscribe',
+        method: 'POST',
+        body: subscription,
+      }),
+      invalidatesTags: ['PushStatus'],
+    }),
+
+    unsubscribeFromPush: builder.mutation<void, string>({
+      query: (endpoint) => ({
+        url: '/notifications/push/unsubscribe',
+        method: 'POST',
+        body: { endpoint },
+      }),
+      invalidatesTags: ['PushStatus'],
+    }),
+
+    testPushNotification: builder.mutation<{ success: boolean; message: string }, void>({
+      query: () => ({
+        url: '/notifications/push/test',
+        method: 'POST',
+      }),
+    }),
   }),
 });
 
@@ -98,4 +141,10 @@ export const {
   useMarkAllAsReadMutation,
   useDeleteNotificationMutation,
   useDeleteAllReadMutation,
+  // Push hooks
+  useGetVapidPublicKeyQuery,
+  useGetPushStatusQuery,
+  useSubscribeToPushMutation,
+  useUnsubscribeFromPushMutation,
+  useTestPushNotificationMutation,
 } = notificationsApi;
