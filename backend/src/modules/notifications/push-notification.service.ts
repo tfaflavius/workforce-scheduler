@@ -72,8 +72,6 @@ export class PushNotificationService {
     const payload = JSON.stringify({
       title,
       body,
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-72x72.png',
       data: {
         ...data,
         url: data?.url || '/',

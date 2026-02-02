@@ -7,8 +7,6 @@ self.addEventListener('push', (event) => {
   let data = {
     title: 'WorkSchedule',
     body: 'Ai o notificare nouă',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
     data: { url: '/dashboard' },
   };
 
@@ -22,17 +20,11 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/icons/icon-192x192.png',
-    badge: data.badge || '/icons/icon-72x72.png',
     vibrate: [200, 100, 200],
     tag: data.tag || 'notification-' + Date.now(),
     renotify: true,
     requireInteraction: false,
     data: data.data || { url: '/dashboard' },
-    actions: [
-      { action: 'open', title: 'Deschide' },
-      { action: 'close', title: 'Închide' },
-    ],
   };
 
   event.waitUntil(
