@@ -433,7 +433,10 @@ const CreateSchedulePage: React.FC = () => {
       };
 
       // Adaugă workPositionId doar dacă este un UUID valid
-      if (positionId && positionId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      const isValidUUID = positionId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(positionId);
+      console.log(`Assignment ${date}: positionId=${positionId}, isValidUUID=${isValidUUID}`);
+
+      if (isValidUUID) {
         assignment.workPositionId = positionId;
       }
 
@@ -465,8 +468,19 @@ const CreateSchedulePage: React.FC = () => {
       console.log('Month Year:', monthYear);
       console.log('Existing Schedule ID:', existingScheduleId);
       console.log('Assignments from state:', assignments);
-      console.log('Assignment DTOs to send:', assignmentDtos);
+      console.log('Assignment DTOs to send:', JSON.stringify(assignmentDtos, null, 2));
       console.log('Number of assignments:', assignmentDtos.length);
+
+      // Verificare finală: niciun assignment nu ar trebui să aibă workPositionId invalid
+      const invalidAssignments = assignmentDtos.filter(a =>
+        a.workPositionId !== undefined &&
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(a.workPositionId)
+      );
+      if (invalidAssignments.length > 0) {
+        console.error('❌ Found invalid workPositionIds:', invalidAssignments);
+        setErrorMessage('Eroare internă: poziții de lucru invalide detectate. Reîncărcați pagina.');
+        return;
+      }
 
       if (existingScheduleId) {
         // UPDATE programul existent
