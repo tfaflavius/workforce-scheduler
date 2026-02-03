@@ -30,6 +30,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Collapse,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -40,6 +41,8 @@ import {
   Check as CheckIcon,
   Close as CloseIcon,
   HourglassEmpty as PendingIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -90,6 +93,9 @@ const SchedulesPage: React.FC = () => {
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  // Legend collapse state (collapsed by default on mobile)
+  const [legendExpanded, setLegendExpanded] = useState(!isMobile);
 
   // Lista de luni (generată o singură dată)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
@@ -347,33 +353,33 @@ const SchedulesPage: React.FC = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Stack spacing={2}>
+      <Stack spacing={{ xs: 1.5, sm: 2 }}>
         {/* Header */}
         <Box sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
           alignItems: { xs: 'stretch', sm: 'center' },
-          gap: 2
+          gap: { xs: 1, sm: 2 }
         }}>
           <Box>
-            <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+            <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
               Programe de Lucru
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, display: { xs: 'none', sm: 'block' } }}>
               Gestionează programele lunare de lucru
-              {isAdmin && ' (Admin - poți edita orice program)'}
-              {isManager && ' (Manager - poți edita programele angajaților)'}
+              {isAdmin && ' (Admin)'}
+              {isManager && ' (Manager)'}
             </Typography>
           </Box>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
+            startIcon={!isMobile && <AddIcon />}
             onClick={handleCreateSchedule}
             fullWidth={isMobile}
-            size={isMobile ? 'small' : 'medium'}
+            size="small"
           >
-            Creează Program
+            {isMobile ? '+ Program' : 'Creează Program'}
           </Button>
         </Box>
 
@@ -404,77 +410,83 @@ const SchedulesPage: React.FC = () => {
             </Stack>
 
             {/* Filtre */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap">
-              <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'none', sm: 'flex' } }}>
                 <FilterIcon color="action" fontSize="small" />
                 <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
               </Stack>
 
               <TextField
-                placeholder="Caută după nume..."
+                placeholder="Caută..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 size="small"
-                sx={{ minWidth: { xs: '100%', sm: 200 } }}
+                sx={{ minWidth: { xs: '100%', sm: 180 }, flex: { xs: 1, sm: 'none' } }}
               />
 
-              <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
-                <InputLabel>Departament</InputLabel>
-                <Select
-                  value={departmentFilter}
-                  onChange={(e) => setDepartmentFilter(e.target.value)}
-                  label="Departament"
-                >
-                  <MenuItem value="ALL">Toate departamentele</MenuItem>
-                  {departments.map((dept) => (
-                    <MenuItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              {/* Row cu 2 filtre pe mobile */}
+              <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                <FormControl sx={{ minWidth: { xs: '50%', sm: 150 }, flex: { xs: 1, sm: 'none' } }} size="small">
+                  <InputLabel>Departament</InputLabel>
+                  <Select
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    label="Departament"
+                  >
+                    <MenuItem value="ALL">Toate</MenuItem>
+                    {departments.map((dept) => (
+                      <MenuItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-              <FormControl sx={{ minWidth: { xs: '100%', sm: 150 } }} size="small">
-                <InputLabel>Tip Tură</InputLabel>
-                <Select
-                  value={shiftFilter}
-                  onChange={(e) => setShiftFilter(e.target.value as ShiftFilter)}
-                  label="Tip Tură"
-                >
-                  <MenuItem value="ALL">Toate</MenuItem>
-                  <MenuItem value="12H">Ture 12 ore</MenuItem>
-                  <MenuItem value="8H">Ture 8 ore</MenuItem>
-                  <MenuItem value="VACATION">Concedii</MenuItem>
-                  <MenuItem value="FREE">Liber</MenuItem>
-                </Select>
-              </FormControl>
+                <FormControl sx={{ minWidth: { xs: '50%', sm: 120 }, flex: { xs: 1, sm: 'none' } }} size="small">
+                  <InputLabel>Tip Tură</InputLabel>
+                  <Select
+                    value={shiftFilter}
+                    onChange={(e) => setShiftFilter(e.target.value as ShiftFilter)}
+                    label="Tip Tură"
+                  >
+                    <MenuItem value="ALL">Toate</MenuItem>
+                    <MenuItem value="12H">12 ore</MenuItem>
+                    <MenuItem value="8H">8 ore</MenuItem>
+                    <MenuItem value="VACATION">Concedii</MenuItem>
+                    <MenuItem value="FREE">Liber</MenuItem>
+                  </Select>
+                </FormControl>
+              </Stack>
 
-              <FormControl sx={{ minWidth: { xs: '100%', sm: 120 } }} size="small">
+              <FormControl sx={{ minWidth: { xs: '100%', sm: 100 } }} size="small">
                 <InputLabel>Zi</InputLabel>
                 <Select
                   value={dayFilter}
                   onChange={(e) => setDayFilter(e.target.value)}
                   label="Zi"
                 >
-                  <MenuItem value="ALL">Toate zilele</MenuItem>
+                  <MenuItem value="ALL">Toate</MenuItem>
                   {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
                     <MenuItem key={day} value={String(day)}>
-                      <Stack direction="row" spacing={1} alignItems="center">
+                      <Stack direction="row" spacing={0.5} alignItems="center">
                         <Typography
                           component="span"
                           sx={{
                             fontWeight: 'bold',
-                            color: isWeekend ? 'error.main' : 'text.primary'
+                            color: isWeekend ? 'error.main' : 'text.primary',
+                            fontSize: '0.875rem'
                           }}
                         >
                           {day}
                         </Typography>
                         <Typography
                           component="span"
-                          variant="caption"
-                          sx={{ color: isWeekend ? 'error.main' : 'text.secondary' }}
+                          sx={{
+                            color: isWeekend ? 'error.main' : 'text.secondary',
+                            fontSize: '0.75rem'
+                          }}
                         >
-                          ({dayOfWeek})
+                          {dayOfWeek}
                         </Typography>
                       </Stack>
                     </MenuItem>
@@ -485,23 +497,57 @@ const SchedulesPage: React.FC = () => {
           </Stack>
         </Paper>
 
-        {/* Legendă */}
-        <Paper sx={{ p: 1.5, width: '100%' }}>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
-            <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
-              Legendă:
-            </Typography>
-            <Chip label="Z - Zi 12h (07-19)" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="N - Noapte 12h (19-07)" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z1 - Zi 8h (06-14)" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z2 - Zi 8h (14-22)" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z3 - Zi 8h (07:30-15:30)" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z4 - Zi 8h (09-17)" size="small" sx={{ bgcolor: '#009688', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="Z5 - Zi 8h (08-16)" size="small" sx={{ bgcolor: '#FF5722', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="N8 - Noapte 8h (22-06)" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.7rem', height: 24 }} />
-            <Chip label="- Liber" variant="outlined" size="small" sx={{ fontSize: '0.7rem', height: 24 }} />
+        {/* Legendă - colapsabilă pe mobile */}
+        <Paper sx={{ p: { xs: 1, sm: 1.5 }, width: '100%' }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            onClick={() => isMobile && setLegendExpanded(!legendExpanded)}
+            sx={{ cursor: isMobile ? 'pointer' : 'default' }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography variant="caption" fontWeight="bold">
+                Legendă:
+              </Typography>
+              {isMobile && !legendExpanded && (
+                <Typography variant="caption" color="text.secondary">
+                  (apasă pentru a vedea)
+                </Typography>
+              )}
+            </Stack>
+            {isMobile && (
+              <IconButton size="small">
+                {legendExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+              </IconButton>
+            )}
           </Stack>
+          <Collapse in={legendExpanded || !isMobile}>
+            <Stack
+              direction="row"
+              spacing={0.5}
+              flexWrap="wrap"
+              useFlexGap
+              alignItems="center"
+              sx={{ mt: { xs: 1, sm: 0.5 } }}
+            >
+              <Chip label="Z" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 12h (07-19)" />
+              <Chip label="N" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.65rem', height: 20 }} title="Noapte 12h (19-07)" />
+              <Chip label="Z1" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (06-14)" />
+              <Chip label="Z2" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (14-22)" />
+              <Chip label="Z3" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (07:30-15:30)" />
+              <Chip label="Z4" size="small" sx={{ bgcolor: '#009688', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (09-17)" />
+              <Chip label="Z5" size="small" sx={{ bgcolor: '#FF5722', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (08-16)" />
+              <Chip label="N8" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.65rem', height: 20 }} title="Noapte 8h (22-06)" />
+              <Chip label="CO" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.65rem', height: 20 }} title="Concediu" />
+              <Chip label="-" variant="outlined" size="small" sx={{ fontSize: '0.65rem', height: 20 }} title="Liber" />
+              {!isMobile && (
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                  (hover pentru detalii)
+                </Typography>
+              )}
+            </Stack>
+          </Collapse>
         </Paper>
 
         {/* Loading/Error states */}
