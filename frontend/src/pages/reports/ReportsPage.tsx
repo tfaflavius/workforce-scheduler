@@ -137,7 +137,7 @@ const ReportsPage: React.FC = () => {
   // Creează un map cu toate asignările existente pentru toți angajații
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, {
-      assignments: Record<string, { shiftId: string; notes: string }>;
+      assignments: Record<string, { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string } }>;
       scheduleId?: string;
       status?: string;
     }> = {};
@@ -157,6 +157,11 @@ const ReportsPage: React.FC = () => {
           userAssignmentsMap[assignment.userId].assignments[normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
+            workPosition: assignment.workPosition ? {
+              shortName: assignment.workPosition.shortName,
+              name: assignment.workPosition.name,
+              color: assignment.workPosition.color,
+            } : undefined,
           };
           userAssignmentsMap[assignment.userId].scheduleId = schedule.id;
           userAssignmentsMap[assignment.userId].status = schedule.status;
@@ -370,7 +375,7 @@ const ReportsPage: React.FC = () => {
     doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 22);
     doc.text(`Total angajati: ${filteredUsers.length}`, 14, 27);
 
-    // Prepare table data
+    // Prepare table data - fiecare tură pe 2 linii (shift + workPosition)
     const headers = ['Angajat', ...calendarDays.map(d => `${d.day}`), 'Total Ore', 'Ture Zi', 'Ture Noapte', 'CO'];
     const rows = filteredUsers.map(targetUser => {
       const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
@@ -381,7 +386,10 @@ const ReportsPage: React.FC = () => {
         ...calendarDays.map(d => {
           const assignment = userAssignments[d.date];
           if (assignment) {
-            return getExistingShiftInfo(assignment.notes).label;
+            const shiftLabel = getExistingShiftInfo(assignment.notes).label;
+            const workPosLabel = assignment.workPosition?.shortName || '';
+            // Afișează tură + poziție pe linii separate
+            return workPosLabel ? `${shiftLabel}\n${workPosLabel}` : shiftLabel;
           }
           return '-';
         }),
@@ -400,23 +408,27 @@ const ReportsPage: React.FC = () => {
       body: rows,
       startY: 32,
       styles: {
-        fontSize: 6,
-        cellPadding: 1,
+        fontSize: 5,
+        cellPadding: 0.5,
         halign: 'center',
+        valign: 'middle',
+        minCellHeight: 8,
       },
       headStyles: {
         fillColor: [25, 118, 210],
         textColor: 255,
         fontStyle: 'bold',
-        fontSize: 6,
+        fontSize: 5,
       },
       columnStyles: {
         0: { halign: 'left', cellWidth: 35 },
       },
       didParseCell: function(data) {
         if (data.section === 'body' && data.column.index > 0 && data.column.index <= calendarDays.length) {
-          const cellValue = data.cell.text[0];
-          const color = shiftColorMap[cellValue];
+          // Extrage doar eticheta turei (prima linie din celulă)
+          const cellText = data.cell.text[0] || '';
+          const shiftLabel = cellText.split('\n')[0];
+          const color = shiftColorMap[shiftLabel];
           if (color) {
             data.cell.styles.fillColor = color;
             data.cell.styles.textColor = [255, 255, 255];
@@ -468,6 +480,15 @@ const ReportsPage: React.FC = () => {
       xPos += boxWidth + doc.getTextWidth(` = ${item.text}`) + 6;
     });
 
+    // Adaugă legenda pentru poziții de lucru
+    const yPosWorkPosition = yPos + 10;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Poziții de lucru:', 14, yPosWorkPosition);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text('DISP = Dispecerat | CTRL = Control (afișat sub tură)', 14, yPosWorkPosition + 5);
+
     doc.save(`raport-program-${selectedMonth}.pdf`);
   };
 
@@ -487,7 +508,10 @@ const ReportsPage: React.FC = () => {
         ...calendarDays.map(d => {
           const assignment = userAssignments[d.date];
           if (assignment) {
-            return getExistingShiftInfo(assignment.notes).label;
+            const shiftLabel = getExistingShiftInfo(assignment.notes).label;
+            const workPosLabel = assignment.workPosition?.shortName || '';
+            // Afișează tură + poziție (ex: "Z/DISP" sau doar "Z")
+            return workPosLabel ? `${shiftLabel}/${workPosLabel}` : shiftLabel;
           }
           return '-';
         }),
@@ -508,7 +532,7 @@ const ReportsPage: React.FC = () => {
       headers,
       ...rows,
       [],
-      ['Legenda:'],
+      ['Legenda Ture:'],
       ['Z = Zi 12 ore (07:00-19:00)'],
       ['N = Noapte 12 ore (19:00-07:00)'],
       ['Z1 = Zi 8 ore (06:00-14:00)'],
@@ -516,10 +540,15 @@ const ReportsPage: React.FC = () => {
       ['Z3 = Zi 8 ore (07:30-15:30)'],
       ['N8 = Noapte 8 ore (22:00-06:00)'],
       ['CO = Concediu'],
+      [],
+      ['Legenda Poziții de Lucru:'],
+      ['DISP = Dispecerat'],
+      ['CTRL = Control'],
+      ['Format: TURĂ/POZIȚIE (ex: Z/DISP = Zi 12h la Dispecerat)'],
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    const colWidths = [{ wch: 25 }, { wch: 10 }, ...calendarDays.map(() => ({ wch: 5 })), { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 8 }];
+    const colWidths = [{ wch: 25 }, { wch: 10 }, ...calendarDays.map(() => ({ wch: 8 })), { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 8 }];
     ws['!cols'] = colWidths;
     XLSX.utils.book_append_sheet(wb, ws, 'Program');
     XLSX.writeFile(wb, `raport-program-${selectedMonth}.xlsx`);
