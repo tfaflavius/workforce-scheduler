@@ -66,6 +66,7 @@ const generateMonthOptions = () => {
 
 // Tipuri de filtre
 type ShiftFilter = 'ALL' | '12H' | '8H' | 'VACATION' | 'FREE';
+type DayFilter = 'ALL' | string; // 'ALL' sau numărul zilei (1-31)
 
 const SchedulesPage: React.FC = () => {
   const theme = useTheme();
@@ -84,6 +85,7 @@ const SchedulesPage: React.FC = () => {
   const [shiftFilter, setShiftFilter] = useState<ShiftFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('ALL');
+  const [dayFilter, setDayFilter] = useState<DayFilter>('ALL');
 
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -242,8 +244,20 @@ const SchedulesPage: React.FC = () => {
       });
     }
 
+    // Filtru după zi specifică
+    if (dayFilter !== 'ALL') {
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const targetDate = `${year}-${String(month).padStart(2, '0')}-${String(dayFilter).padStart(2, '0')}`;
+
+      filtered = filtered.filter(user => {
+        const userAssignments = allUsersAssignments[user.id]?.assignments || {};
+        // Arată doar userii care au tură în ziua selectată
+        return userAssignments[targetDate] !== undefined;
+      });
+    }
+
     return filtered;
-  }, [eligibleUsers, searchQuery, departmentFilter, shiftFilter, allUsersAssignments]);
+  }, [eligibleUsers, searchQuery, departmentFilter, shiftFilter, dayFilter, selectedMonth, allUsersAssignments]);
 
   const handleCreateSchedule = () => {
     navigate('/schedules/create');
@@ -375,7 +389,10 @@ const SchedulesPage: React.FC = () => {
               <FormControl sx={{ minWidth: { xs: '100%', sm: 200 } }} size="small">
                 <Select
                   value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedMonth(e.target.value);
+                    setDayFilter('ALL'); // Reset day filter when month changes
+                  }}
                 >
                   {monthOptions.map(({ value, label }) => (
                     <MenuItem key={value} value={value}>
@@ -429,6 +446,39 @@ const SchedulesPage: React.FC = () => {
                   <MenuItem value="8H">Ture 8 ore</MenuItem>
                   <MenuItem value="VACATION">Concedii</MenuItem>
                   <MenuItem value="FREE">Liber</MenuItem>
+                </Select>
+              </FormControl>
+
+              <FormControl sx={{ minWidth: { xs: '100%', sm: 120 } }} size="small">
+                <InputLabel>Zi</InputLabel>
+                <Select
+                  value={dayFilter}
+                  onChange={(e) => setDayFilter(e.target.value)}
+                  label="Zi"
+                >
+                  <MenuItem value="ALL">Toate zilele</MenuItem>
+                  {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
+                    <MenuItem key={day} value={String(day)}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography
+                          component="span"
+                          sx={{
+                            fontWeight: 'bold',
+                            color: isWeekend ? 'error.main' : 'text.primary'
+                          }}
+                        >
+                          {day}
+                        </Typography>
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          sx={{ color: isWeekend ? 'error.main' : 'text.secondary' }}
+                        >
+                          ({dayOfWeek})
+                        </Typography>
+                      </Stack>
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Stack>
