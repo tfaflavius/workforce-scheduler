@@ -274,21 +274,20 @@ const CreateSchedulePage: React.FC = () => {
           // Normalizează data pentru a evita probleme cu timezone
           // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
           const normalizedDate = assignment.shiftDate.split('T')[0];
-          // Validează workPositionId - doar UUID valid (exclude placeholder-uri)
+          // Validează workPositionId - acceptă dacă există în dbWorkPositions
           const wpId = assignment.workPositionId;
-          const isPlaceholderUUID = wpId && wpId.startsWith('00000000-0000-0000-0000-');
-          const isValidUUID = wpId && !isPlaceholderUUID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
+          const existsInDb = wpId && dbWorkPositions.some(p => p.id === wpId);
           userAssignmentsMap[assignment.userId][normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
-            workPositionId: isValidUUID ? wpId : undefined,
+            workPositionId: existsInDb ? wpId : undefined,
           };
         });
       }
     });
 
     return userAssignmentsMap;
-  }, [existingSchedules]);
+  }, [existingSchedules, dbWorkPositions]);
 
   // Găsește scheduleId-ul existent pentru un user în luna curentă
   const getExistingScheduleId = (userId: string): string | null => {
@@ -383,15 +382,13 @@ const CreateSchedulePage: React.FC = () => {
 
         if (localShiftId) {
           loadedAssignments[date] = localShiftId;
-          // Încarcă poziția de lucru DOAR dacă este UUID valid (exclude placeholder-uri)
+          // Încarcă poziția de lucru dacă există în dbWorkPositions
           const wpId = assignment.workPositionId;
-          const isPlaceholderUUID = wpId && wpId.startsWith('00000000-0000-0000-0000-');
-          const isValidUUID = wpId && !isPlaceholderUUID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
-          if (isValidUUID) {
+          const existsInDb = wpId && dbWorkPositions.some(p => p.id === wpId);
+          if (existsInDb) {
             loadedWorkPositions[date] = wpId;
           } else if (dbWorkPositions.length > 0) {
             // Dacă nu există poziție validă în DB, setează default-ul bazat pe departament
-            // Aceasta asigură că poziția din UI e sincronizată cu state-ul
             const defaultPos = getDefaultPositionForUser || dbWorkPositions[0].id;
             loadedWorkPositions[date] = defaultPos;
           }
@@ -494,24 +491,23 @@ const CreateSchedulePage: React.FC = () => {
       // IMPORTANT: Adaugă workPositionId DOAR dacă:
       // 1. Avem poziții încărcate din DB (dbWorkPositions.length > 0)
       // 2. Avem o poziție validă (fie salvată, fie default)
-      // 3. Poziția este un UUID valid și NU este placeholder
+      // 3. Poziția există în dbWorkPositions (validare prin existență, nu prin format UUID)
       if (dbWorkPositions.length > 0) {
         const savedPositionId = workPositions[date];
-        const isUUIDRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        const isPlaceholder = (id: string) => id && id.startsWith('00000000-0000-0000-0000-');
+        const existsInDb = (id: string) => id && dbWorkPositions.some(p => p.id === id);
 
         console.log(`Position for ${date}: saved=${savedPositionId}, default=${defaultPositionId}`);
 
-        // Verifică dacă poziția salvată este UUID valid (nu placeholder)
-        if (savedPositionId && isUUIDRegex.test(savedPositionId) && !isPlaceholder(savedPositionId)) {
+        // Verifică dacă poziția salvată există în DB
+        if (savedPositionId && existsInDb(savedPositionId)) {
           assignment.workPositionId = savedPositionId;
           console.log(`  -> Using SAVED position: ${savedPositionId}`);
-        } else if (defaultPositionId && isUUIDRegex.test(defaultPositionId) && !isPlaceholder(defaultPositionId)) {
-          // Folosește default doar dacă este și el UUID valid (nu placeholder)
+        } else if (defaultPositionId && existsInDb(defaultPositionId)) {
+          // Folosește default doar dacă există în DB
           assignment.workPositionId = defaultPositionId;
           console.log(`  -> Using DEFAULT position: ${defaultPositionId}`);
         }
-        // Dacă nici una nu e validă sau sunt placeholder-uri, NU adăugăm workPositionId deloc
+        // Dacă nici una nu există în DB, NU adăugăm workPositionId deloc
       }
       // Dacă dbWorkPositions e gol, NU adăugăm workPositionId
 
@@ -546,10 +542,10 @@ const CreateSchedulePage: React.FC = () => {
       console.log('Assignment DTOs to send:', JSON.stringify(assignmentDtos, null, 2));
       console.log('Number of assignments:', assignmentDtos.length);
 
-      // Verificare finală: niciun assignment nu ar trebui să aibă workPositionId invalid
+      // Verificare finală: toate workPositionId trebuie să existe în dbWorkPositions
       const invalidAssignments = assignmentDtos.filter(a =>
         a.workPositionId !== undefined &&
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(a.workPositionId)
+        !dbWorkPositions.some(p => p.id === a.workPositionId)
       );
       if (invalidAssignments.length > 0) {
         console.error('❌ Found invalid workPositionIds:', invalidAssignments);
