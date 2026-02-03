@@ -430,10 +430,12 @@ const CreateSchedulePage: React.FC = () => {
         return;
       }
 
-      // Folosește poziția salvată, sau default, sau undefined
-      const positionId = workPositions[date] || defaultPositionId || undefined;
+      // Folosește poziția salvată DOAR dacă e UUID valid, altfel default sau nimic
+      const savedPositionId = workPositions[date];
+      const isSavedPositionValid = savedPositionId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(savedPositionId);
+      const positionId = isSavedPositionValid ? savedPositionId : (defaultPositionId || undefined);
 
-      console.log(`Assignment ${date}: workPositionId=${positionId}`);
+      console.log(`Assignment ${date}: savedPositionId=${savedPositionId}, isSavedPositionValid=${isSavedPositionValid}, finalPositionId=${positionId}`);
 
       const assignment: ScheduleAssignmentDto = {
         userId: selectedUserId,
