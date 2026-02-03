@@ -192,6 +192,9 @@ const SchedulesPage: React.FC = () => {
     if (notes.includes('09:00-17:00')) {
       return { label: 'Z4', color: '#009688', type: '8H' as const };  // Teal
     }
+    if (notes.includes('08:00-16:00')) {
+      return { label: 'Z5', color: '#FF5722', type: '8H' as const };  // Deep Orange
+    }
     if (notes.includes('06:00-14:00')) {
       return { label: 'Z1', color: '#00BCD4', type: '8H' as const };  // Cyan
     }
@@ -443,6 +446,7 @@ const SchedulesPage: React.FC = () => {
             <Chip label="Z2 - Zi 8h (14-22)" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="Z3 - Zi 8h (07:30-15:30)" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="Z4 - Zi 8h (09-17)" size="small" sx={{ bgcolor: '#009688', color: 'white', fontSize: '0.7rem', height: 24 }} />
+            <Chip label="Z5 - Zi 8h (08-16)" size="small" sx={{ bgcolor: '#FF5722', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="N8 - Noapte 8h (22-06)" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.7rem', height: 24 }} />
             <Chip label="- Liber" variant="outlined" size="small" sx={{ fontSize: '0.7rem', height: 24 }} />
