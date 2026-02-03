@@ -405,14 +405,11 @@ const CreateSchedulePage: React.FC = () => {
   const createAssignmentDtos = (): ScheduleAssignmentDto[] => {
     const validAssignments: ScheduleAssignmentDto[] = [];
 
-    // Verifică că avem work positions încărcate
-    if (dbWorkPositions.length === 0) {
-      console.error('Work positions not loaded yet!');
-      return [];
-    }
+    // Default work position ID (prima poziție - Dispecerat) - doar dacă există
+    const defaultPositionId = dbWorkPositions.length > 0 ? dbWorkPositions[0].id : null;
 
-    // Default work position ID (prima poziție - Dispecerat)
-    const defaultPositionId = dbWorkPositions[0].id;
+    console.log('Creating assignments with dbWorkPositions:', dbWorkPositions);
+    console.log('Default position ID:', defaultPositionId);
 
     Object.entries(assignments).forEach(([date, localShiftId]) => {
       const shiftOption = shiftOptions.find(s => s.id === localShiftId);
@@ -423,18 +420,24 @@ const CreateSchedulePage: React.FC = () => {
         return;
       }
 
-      // Folosește poziția salvată sau default
-      const positionId = workPositions[date] || defaultPositionId;
+      // Folosește poziția salvată, sau default, sau undefined
+      const positionId = workPositions[date] || defaultPositionId || undefined;
 
       console.log(`Assignment ${date}: workPositionId=${positionId}`);
 
-      validAssignments.push({
+      const assignment: ScheduleAssignmentDto = {
         userId: selectedUserId,
         shiftTypeId: dbShiftTypeId,
         shiftDate: date,
-        workPositionId: positionId,
         notes: shiftOption?.isVacation ? 'Concediu' : `${shiftOption?.startTime}-${shiftOption?.endTime}`,
-      });
+      };
+
+      // Adaugă workPositionId doar dacă este un UUID valid
+      if (positionId && positionId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        assignment.workPositionId = positionId;
+      }
+
+      validAssignments.push(assignment);
     });
 
     return validAssignments;
@@ -443,12 +446,6 @@ const CreateSchedulePage: React.FC = () => {
   // Salvează programul (pentru Admin - salvează direct)
   const handleSave = async () => {
     if (!selectedUserId) return;
-
-    // Verifică că avem work positions încărcate
-    if (dbWorkPositions.length === 0) {
-      setErrorMessage('Pozițiile de lucru nu s-au încărcat. Reîncarcă pagina și încearcă din nou.');
-      return;
-    }
 
     try {
       const assignmentDtos = createAssignmentDtos();
@@ -517,12 +514,6 @@ const CreateSchedulePage: React.FC = () => {
   // Salvează și trimite pentru aprobare (pentru Manager)
   const handleSaveAndSubmit = async () => {
     if (!selectedUserId) return;
-
-    // Verifică că avem work positions încărcate
-    if (dbWorkPositions.length === 0) {
-      setErrorMessage('Pozițiile de lucru nu s-au încărcat. Reîncarcă pagina și încearcă din nou.');
-      return;
-    }
 
     try {
       const assignmentDtos = createAssignmentDtos();
