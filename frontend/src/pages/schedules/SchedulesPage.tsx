@@ -71,6 +71,7 @@ const SchedulesPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isLandscape = useMediaQuery('(orientation: landscape)');
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
 
@@ -571,22 +572,28 @@ const SchedulesPage: React.FC = () => {
                                     })}
                                   </Stack>
 
-                                  {/* Mini calendar pentru tabletă - primele 14 zile */}
-                                  {!isMobile && (
-                                    <Box sx={{ mt: 1 }}>
-                                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                                        Calendar (primele 14 zile):
-                                      </Typography>
-                                      <Stack direction="row" spacing={0.25} flexWrap="wrap" useFlexGap>
-                                        {calendarDays.slice(0, 14).map(({ date, day, isWeekend }) => {
+                                  {/* Mini calendar pentru tabletă/mobil - toate zilele pe landscape, primele 14 pe portrait */}
+                                  <Box sx={{ mt: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                                      Calendar {!isLandscape && !isMobile ? '(primele 14 zile)' : '(luna completă)'}:
+                                    </Typography>
+                                    <Box sx={{
+                                      overflowX: 'auto',
+                                      pb: 1,
+                                      '&::-webkit-scrollbar': { height: 6 },
+                                      '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 3 },
+                                    }}>
+                                      <Stack direction="row" spacing={0.25} sx={{ minWidth: isLandscape || isMobile ? 'max-content' : 'auto' }}>
+                                        {(isLandscape || isMobile ? calendarDays : calendarDays.slice(0, 14)).map(({ date, day, isWeekend }) => {
                                           const assignment = userAssignments[date];
                                           const shiftInfo = assignment ? getExistingShiftInfo(assignment.notes) : null;
                                           return (
                                             <Box
                                               key={date}
                                               sx={{
-                                                width: 24,
-                                                height: 24,
+                                                minWidth: isLandscape ? 28 : 24,
+                                                width: isLandscape ? 28 : 24,
+                                                height: isLandscape ? 28 : 24,
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
@@ -594,18 +601,19 @@ const SchedulesPage: React.FC = () => {
                                                 borderRadius: 0.5,
                                                 bgcolor: shiftInfo ? shiftInfo.color : (isWeekend ? 'grey.200' : 'grey.100'),
                                                 color: shiftInfo ? 'white' : 'text.secondary',
-                                                fontSize: '0.55rem',
+                                                fontSize: isLandscape ? '0.6rem' : '0.55rem',
                                                 fontWeight: 'bold',
+                                                flexShrink: 0,
                                               }}
                                             >
-                                              <span style={{ fontSize: '0.5rem', opacity: 0.8 }}>{day}</span>
+                                              <span style={{ fontSize: isLandscape ? '0.55rem' : '0.5rem', opacity: 0.8 }}>{day}</span>
                                               <span>{shiftInfo?.label || '-'}</span>
                                             </Box>
                                           );
                                         })}
                                       </Stack>
                                     </Box>
-                                  )}
+                                  </Box>
                                 </Box>
                               ) : (
                                 <Typography variant="caption" color="text.disabled">
