@@ -32,6 +32,7 @@ import {
   EventBusy as NoShiftIcon,
   WorkHistory as HoursIcon,
   EventAvailable as ShiftIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useAppSelector } from '../../store/hooks';
@@ -254,6 +255,7 @@ const MySchedulePage = () => {
                 </Typography>
                 {todayAssignment ? (() => {
                   const shiftInfo = getShiftInfoFromNotes(todayAssignment.notes);
+                  const workPosition = todayAssignment.workPosition;
                   return (
                   <>
                     <Typography
@@ -274,6 +276,18 @@ const MySchedulePage = () => {
                       <Typography variant="body2" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                         {shiftInfo.startTime} - {shiftInfo.endTime}
                       </Typography>
+                      {workPosition && (
+                        <Chip
+                          icon={<LocationIcon />}
+                          label={workPosition.name}
+                          size="small"
+                          sx={{
+                            bgcolor: workPosition.color || 'rgba(255,255,255,0.2)',
+                            color: 'white',
+                            fontWeight: 'bold'
+                          }}
+                        />
+                      )}
                     </Stack>
                   </>
                   );
@@ -436,6 +450,7 @@ const MySchedulePage = () => {
 
                       {assignment ? (() => {
                         const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                        const workPosition = assignment.workPosition;
                         return (
                         <Box sx={{ mt: 0.5 }}>
                           <Chip
@@ -449,6 +464,20 @@ const MySchedulePage = () => {
                             <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.65rem' }}>
                               {shiftInfo.startTime}
                             </Typography>
+                          )}
+                          {workPosition && (
+                            <Chip
+                              size="small"
+                              label={workPosition.shortName || workPosition.name?.substring(0, 4)}
+                              sx={{
+                                mt: 0.5,
+                                bgcolor: workPosition.color || '#1976d2',
+                                color: 'white',
+                                fontSize: { xs: '0.55rem', sm: '0.6rem' },
+                                height: { xs: 16, sm: 18 },
+                                fontWeight: 'bold'
+                              }}
+                            />
                           )}
                         </Box>
                         );
@@ -500,16 +529,32 @@ const MySchedulePage = () => {
                         </Box>
                         {assignment ? (() => {
                           const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                          const workPosition = assignment.workPosition;
                           return (
                           <Box>
                             <Typography variant="body2" fontWeight="medium">
                               {shiftInfo.name}
                             </Typography>
-                            {shiftInfo.startTime && (
-                              <Typography variant="caption" color="text.secondary">
-                                {shiftInfo.startTime} - {shiftInfo.endTime}
-                              </Typography>
-                            )}
+                            <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
+                              {shiftInfo.startTime && (
+                                <Typography variant="caption" color="text.secondary">
+                                  {shiftInfo.startTime} - {shiftInfo.endTime}
+                                </Typography>
+                              )}
+                              {workPosition && (
+                                <Chip
+                                  size="small"
+                                  label={workPosition.shortName || workPosition.name}
+                                  sx={{
+                                    bgcolor: workPosition.color || '#1976d2',
+                                    color: 'white',
+                                    fontSize: '0.6rem',
+                                    height: 18,
+                                    fontWeight: 'bold'
+                                  }}
+                                />
+                              )}
+                            </Stack>
                           </Box>
                           );
                         })() : (
@@ -572,6 +617,7 @@ const MySchedulePage = () => {
                     <Grid size={{ xs: 9, md: 10 }}>
                       {assignment ? (() => {
                         const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                        const workPosition = assignment.workPosition;
                         return (
                         <Stack direction="row" alignItems="center" spacing={3}>
                           <Avatar
@@ -593,7 +639,7 @@ const MySchedulePage = () => {
                             <Typography variant="h6" fontWeight="medium">
                               {shiftInfo.name}
                             </Typography>
-                            <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                            <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" sx={{ gap: 1 }}>
                               {shiftInfo.startTime && (
                                 <Chip
                                   icon={<TimeIcon />}
@@ -615,6 +661,19 @@ const MySchedulePage = () => {
                                 size="small"
                                 color={shiftInfo.isNightShift ? 'info' : 'warning'}
                               />
+                              {workPosition && (
+                                <Chip
+                                  icon={<LocationIcon />}
+                                  label={workPosition.name}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: workPosition.color || '#1976d2',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    '& .MuiChip-icon': { color: 'white' }
+                                  }}
+                                />
+                              )}
                             </Stack>
                           </Box>
                         </Stack>
