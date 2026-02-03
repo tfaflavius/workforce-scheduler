@@ -244,9 +244,10 @@ const CreateSchedulePage: React.FC = () => {
           // Normalizează data pentru a evita probleme cu timezone
           // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
           const normalizedDate = assignment.shiftDate.split('T')[0];
-          // Validează workPositionId - doar UUID valid
+          // Validează workPositionId - doar UUID valid (exclude placeholder-uri)
           const wpId = assignment.workPositionId;
-          const isValidUUID = wpId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
+          const isPlaceholderUUID = wpId && wpId.startsWith('00000000-0000-0000-0000-');
+          const isValidUUID = wpId && !isPlaceholderUUID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
           userAssignmentsMap[assignment.userId][normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
@@ -347,9 +348,10 @@ const CreateSchedulePage: React.FC = () => {
 
         if (localShiftId) {
           loadedAssignments[date] = localShiftId;
-          // Încarcă poziția de lucru DOAR dacă este UUID valid
+          // Încarcă poziția de lucru DOAR dacă este UUID valid (exclude placeholder-uri)
           const wpId = assignment.workPositionId;
-          const isValidUUID = wpId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
+          const isPlaceholderUUID = wpId && wpId.startsWith('00000000-0000-0000-0000-');
+          const isValidUUID = wpId && !isPlaceholderUUID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
           if (isValidUUID) {
             loadedWorkPositions[date] = wpId;
           }
@@ -447,19 +449,20 @@ const CreateSchedulePage: React.FC = () => {
       // IMPORTANT: Adaugă workPositionId DOAR dacă:
       // 1. Avem poziții încărcate din DB (dbWorkPositions.length > 0)
       // 2. Avem o poziție validă (fie salvată, fie default)
-      // 3. Poziția este un UUID valid
+      // 3. Poziția este un UUID valid și NU este placeholder
       if (dbWorkPositions.length > 0) {
         const savedPositionId = workPositions[date];
         const isUUIDRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const isPlaceholder = (id: string) => id && id.startsWith('00000000-0000-0000-0000-');
 
-        // Verifică dacă poziția salvată este UUID valid
-        if (savedPositionId && isUUIDRegex.test(savedPositionId)) {
+        // Verifică dacă poziția salvată este UUID valid (nu placeholder)
+        if (savedPositionId && isUUIDRegex.test(savedPositionId) && !isPlaceholder(savedPositionId)) {
           assignment.workPositionId = savedPositionId;
-        } else if (defaultPositionId && isUUIDRegex.test(defaultPositionId)) {
-          // Folosește default doar dacă este și el UUID valid
+        } else if (defaultPositionId && isUUIDRegex.test(defaultPositionId) && !isPlaceholder(defaultPositionId)) {
+          // Folosește default doar dacă este și el UUID valid (nu placeholder)
           assignment.workPositionId = defaultPositionId;
         }
-        // Dacă nici una nu e validă, NU adăugăm workPositionId deloc
+        // Dacă nici una nu e validă sau sunt placeholder-uri, NU adăugăm workPositionId deloc
       }
       // Dacă dbWorkPositions e gol, NU adăugăm workPositionId
 
