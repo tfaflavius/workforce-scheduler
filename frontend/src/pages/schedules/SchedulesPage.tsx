@@ -150,10 +150,10 @@ const SchedulesPage: React.FC = () => {
   }, [selectedMonth, daysInMonth]);
 
   // Creează un map cu toate asignările existente pentru toți angajații
-  // Include și statusul programului
+  // Include și statusul programului și poziția de lucru
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, {
-      assignments: Record<string, { shiftId: string; notes: string }>;
+      assignments: Record<string, { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string } }>;
       scheduleId?: string;
       status?: string;
     }> = {};
@@ -174,6 +174,11 @@ const SchedulesPage: React.FC = () => {
           userAssignmentsMap[assignment.userId].assignments[normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
+            workPosition: assignment.workPosition ? {
+              shortName: assignment.workPosition.shortName,
+              name: assignment.workPosition.name,
+              color: assignment.workPosition.color,
+            } : undefined,
           };
           userAssignmentsMap[assignment.userId].scheduleId = schedule.id;
           userAssignmentsMap[assignment.userId].status = schedule.status;
@@ -678,13 +683,14 @@ const SchedulesPage: React.FC = () => {
                                         {(isLandscape || isMobile ? calendarDays : calendarDays.slice(0, 14)).map(({ date, day, isWeekend }) => {
                                           const assignment = userAssignments[date];
                                           const shiftInfo = assignment ? getExistingShiftInfo(assignment.notes) : null;
+                                          const workPos = assignment?.workPosition;
                                           return (
                                             <Box
                                               key={date}
                                               sx={{
-                                                minWidth: isLandscape ? 28 : 24,
-                                                width: isLandscape ? 28 : 24,
-                                                height: isLandscape ? 28 : 24,
+                                                minWidth: isLandscape ? 32 : 28,
+                                                width: isLandscape ? 32 : 28,
+                                                height: isLandscape ? 36 : 32,
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
@@ -697,8 +703,13 @@ const SchedulesPage: React.FC = () => {
                                                 flexShrink: 0,
                                               }}
                                             >
-                                              <span style={{ fontSize: isLandscape ? '0.55rem' : '0.5rem', opacity: 0.8 }}>{day}</span>
-                                              <span>{shiftInfo?.label || '-'}</span>
+                                              <span style={{ fontSize: isLandscape ? '0.5rem' : '0.45rem', opacity: 0.8 }}>{day}</span>
+                                              <span style={{ fontSize: isLandscape ? '0.6rem' : '0.55rem' }}>{shiftInfo?.label || '-'}</span>
+                                              {workPos && (
+                                                <span style={{ fontSize: isLandscape ? '0.4rem' : '0.35rem', opacity: 0.9 }}>
+                                                  {workPos.shortName || workPos.name?.substring(0, 3)}
+                                                </span>
+                                              )}
                                             </Box>
                                           );
                                         })}
@@ -819,13 +830,33 @@ const SchedulesPage: React.FC = () => {
                                 {calendarDays.map(({ date, isWeekend }) => {
                                   const existingAssignment = userAssignments[date];
 
-                                  let cellContent = '-';
+                                  let cellContent: React.ReactNode = '-';
                                   let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
 
                                   if (existingAssignment) {
                                     const shiftInfo = getExistingShiftInfo(existingAssignment.notes);
-                                    cellContent = shiftInfo.label;
+                                    const workPos = existingAssignment.workPosition;
                                     cellBgColor = shiftInfo.color;
+                                    cellContent = (
+                                      <Box>
+                                        <Typography sx={{ fontSize: '0.6rem', fontWeight: 'bold', lineHeight: 1.2 }}>
+                                          {shiftInfo.label}
+                                        </Typography>
+                                        {workPos && (
+                                          <Typography
+                                            sx={{
+                                              fontSize: '0.45rem',
+                                              fontWeight: 'bold',
+                                              lineHeight: 1,
+                                              opacity: 0.9,
+                                              mt: 0.1,
+                                            }}
+                                          >
+                                            {workPos.shortName || workPos.name?.substring(0, 4)}
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                    );
                                   }
 
                                   return (
