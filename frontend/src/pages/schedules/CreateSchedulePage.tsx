@@ -389,6 +389,11 @@ const CreateSchedulePage: React.FC = () => {
           const isValidUUID = wpId && !isPlaceholderUUID && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
           if (isValidUUID) {
             loadedWorkPositions[date] = wpId;
+          } else if (dbWorkPositions.length > 0) {
+            // Dacă nu există poziție validă în DB, setează default-ul bazat pe departament
+            // Aceasta asigură că poziția din UI e sincronizată cu state-ul
+            const defaultPos = getDefaultPositionForUser || dbWorkPositions[0].id;
+            loadedWorkPositions[date] = defaultPos;
           }
         }
       });
@@ -495,12 +500,16 @@ const CreateSchedulePage: React.FC = () => {
         const isUUIDRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         const isPlaceholder = (id: string) => id && id.startsWith('00000000-0000-0000-0000-');
 
+        console.log(`Position for ${date}: saved=${savedPositionId}, default=${defaultPositionId}`);
+
         // Verifică dacă poziția salvată este UUID valid (nu placeholder)
         if (savedPositionId && isUUIDRegex.test(savedPositionId) && !isPlaceholder(savedPositionId)) {
           assignment.workPositionId = savedPositionId;
+          console.log(`  -> Using SAVED position: ${savedPositionId}`);
         } else if (defaultPositionId && isUUIDRegex.test(defaultPositionId) && !isPlaceholder(defaultPositionId)) {
           // Folosește default doar dacă este și el UUID valid (nu placeholder)
           assignment.workPositionId = defaultPositionId;
+          console.log(`  -> Using DEFAULT position: ${defaultPositionId}`);
         }
         // Dacă nici una nu e validă sau sunt placeholder-uri, NU adăugăm workPositionId deloc
       }
