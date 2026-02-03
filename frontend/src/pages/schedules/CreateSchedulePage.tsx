@@ -435,13 +435,8 @@ const CreateSchedulePage: React.FC = () => {
         return;
       }
 
-      // Folosește poziția salvată DOAR dacă e UUID valid, altfel default sau nimic
-      const savedPositionId = workPositions[date];
-      const isSavedPositionValid = savedPositionId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(savedPositionId);
-      const positionId = isSavedPositionValid ? savedPositionId : (defaultPositionId || undefined);
-
-      console.log(`Assignment ${date}: savedPositionId=${savedPositionId}, isSavedPositionValid=${isSavedPositionValid}, finalPositionId=${positionId}`);
-
+      // Creează assignment-ul de bază FĂRĂ workPositionId
+      // workPositionId va fi adăugat doar dacă avem poziții valide din DB
       const assignment: ScheduleAssignmentDto = {
         userId: selectedUserId,
         shiftTypeId: dbShiftTypeId,
@@ -449,17 +444,24 @@ const CreateSchedulePage: React.FC = () => {
         notes: shiftOption?.isVacation ? 'Concediu' : `${shiftOption?.startTime}-${shiftOption?.endTime}`,
       };
 
-      // TEMPORAR DEZACTIVAT - Nu trimite workPositionId până nu e rezolvată problema
-      // Adaugă workPositionId doar dacă avem poziții încărcate din DB și este un UUID valid
-      const hasWorkPositionsFromDB = dbWorkPositions.length > 0;
-      const isValidUUID = positionId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(positionId);
-      console.log(`Assignment ${date}: positionId=${positionId}, isValidUUID=${isValidUUID}, hasWorkPositionsFromDB=${hasWorkPositionsFromDB}`);
+      // IMPORTANT: Adaugă workPositionId DOAR dacă:
+      // 1. Avem poziții încărcate din DB (dbWorkPositions.length > 0)
+      // 2. Avem o poziție validă (fie salvată, fie default)
+      // 3. Poziția este un UUID valid
+      if (dbWorkPositions.length > 0) {
+        const savedPositionId = workPositions[date];
+        const isUUIDRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-      // Doar adaugă workPositionId dacă avem poziții valide din DB
-      if (hasWorkPositionsFromDB && isValidUUID) {
-        assignment.workPositionId = positionId;
+        // Verifică dacă poziția salvată este UUID valid
+        if (savedPositionId && isUUIDRegex.test(savedPositionId)) {
+          assignment.workPositionId = savedPositionId;
+        } else if (defaultPositionId && isUUIDRegex.test(defaultPositionId)) {
+          // Folosește default doar dacă este și el UUID valid
+          assignment.workPositionId = defaultPositionId;
+        }
+        // Dacă nici una nu e validă, NU adăugăm workPositionId deloc
       }
-      // NU adăuga workPositionId dacă nu avem poziții din DB - evită eroarea de validare
+      // Dacă dbWorkPositions e gol, NU adăugăm workPositionId
 
       validAssignments.push(assignment);
     });
