@@ -531,21 +531,16 @@ const SchedulesPage: React.FC = () => {
               alignItems="center"
               sx={{ mt: { xs: 1, sm: 0.5 } }}
             >
-              <Chip label="Z" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 12h (07-19)" />
-              <Chip label="N" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.65rem', height: 20 }} title="Noapte 12h (19-07)" />
-              <Chip label="Z1" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (06-14)" />
-              <Chip label="Z2" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (14-22)" />
-              <Chip label="Z3" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (07:30-15:30)" />
-              <Chip label="Z4" size="small" sx={{ bgcolor: '#009688', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (09-17)" />
-              <Chip label="Z5" size="small" sx={{ bgcolor: '#FF5722', color: 'white', fontSize: '0.65rem', height: 20 }} title="Zi 8h (08-16)" />
-              <Chip label="N8" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.65rem', height: 20 }} title="Noapte 8h (22-06)" />
-              <Chip label="CO" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.65rem', height: 20 }} title="Concediu" />
-              <Chip label="-" variant="outlined" size="small" sx={{ fontSize: '0.65rem', height: 20 }} title="Liber" />
-              {!isMobile && (
-                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                  (hover pentru detalii)
-                </Typography>
-              )}
+              <Chip label="Z - Zi 12h (07-19)" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="N - Noapte 12h (19-07)" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="Z1 - Zi 8h (06-14)" size="small" sx={{ bgcolor: '#00BCD4', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="Z2 - Zi 8h (14-22)" size="small" sx={{ bgcolor: '#9C27B0', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="Z3 - Zi 8h (07:30-15:30)" size="small" sx={{ bgcolor: '#795548', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="Z4 - Zi 8h (09-17)" size="small" sx={{ bgcolor: '#009688', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="Z5 - Zi 8h (08-16)" size="small" sx={{ bgcolor: '#FF5722', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="N8 - Noapte 8h (22-06)" size="small" sx={{ bgcolor: '#E91E63', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="CO - Concediu" size="small" sx={{ bgcolor: '#FF9800', color: 'white', fontSize: '0.65rem', height: 22 }} />
+              <Chip label="- Liber" variant="outlined" size="small" sx={{ fontSize: '0.65rem', height: 22 }} />
             </Stack>
           </Collapse>
         </Paper>
