@@ -244,10 +244,13 @@ const CreateSchedulePage: React.FC = () => {
           // Normalizează data pentru a evita probleme cu timezone
           // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
           const normalizedDate = assignment.shiftDate.split('T')[0];
+          // Validează workPositionId - doar UUID valid
+          const wpId = assignment.workPositionId;
+          const isValidUUID = wpId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
           userAssignmentsMap[assignment.userId][normalizedDate] = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
-            workPositionId: assignment.workPositionId,
+            workPositionId: isValidUUID ? wpId : undefined,
           };
         });
       }
@@ -344,9 +347,11 @@ const CreateSchedulePage: React.FC = () => {
 
         if (localShiftId) {
           loadedAssignments[date] = localShiftId;
-          // Încarcă și poziția de lucru dacă există
-          if (assignment.workPositionId) {
-            loadedWorkPositions[date] = assignment.workPositionId;
+          // Încarcă poziția de lucru DOAR dacă este UUID valid
+          const wpId = assignment.workPositionId;
+          const isValidUUID = wpId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wpId);
+          if (isValidUUID) {
+            loadedWorkPositions[date] = wpId;
           }
         }
       });
