@@ -206,6 +206,32 @@ const CreateSchedulePage: React.FC = () => {
     return users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
   }, [users]);
 
+  // Obține utilizatorul selectat
+  const selectedUser = useMemo(() => {
+    return eligibleUsers.find(u => u.id === selectedUserId);
+  }, [eligibleUsers, selectedUserId]);
+
+  // Determină poziția de lucru implicită în funcție de departamentul utilizatorului
+  const getDefaultPositionForUser = useMemo(() => {
+    if (!selectedUser || dbWorkPositions.length === 0) return null;
+
+    const userDepartment = selectedUser.department?.name?.toLowerCase() || '';
+
+    // Dacă userul este de la Control, poziția implicită este Control
+    if (userDepartment.includes('control')) {
+      const controlPosition = dbWorkPositions.find(
+        p => p.name.toLowerCase().includes('control') || p.shortName.toLowerCase() === 'c'
+      );
+      return controlPosition?.id || dbWorkPositions[0].id;
+    }
+
+    // Pentru Dispecerat sau orice alt departament, poziția implicită este Dispecerat
+    const dispeceratPosition = dbWorkPositions.find(
+      p => p.name.toLowerCase().includes('dispecerat') || p.shortName.toLowerCase() === 'd'
+    );
+    return dispeceratPosition?.id || dbWorkPositions[0].id;
+  }, [selectedUser, dbWorkPositions]);
+
   // Obține opțiunile de tură în funcție de tipul selectat
   const shiftOptions = shiftPattern === '12H' ? SHIFT_OPTIONS_12H : SHIFT_OPTIONS_8H;
 
@@ -395,10 +421,13 @@ const CreateSchedulePage: React.FC = () => {
         return rest;
       });
     } else if (!workPositions[date] && dbWorkPositions.length > 0) {
-      // Setează poziția default (Dispecerat) când se adaugă o tură
+      // Setează poziția default în funcție de departamentul utilizatorului
+      // Control -> Control, Dispecerat/altele -> Dispecerat
+      const defaultPositionId = getDefaultPositionForUser || dbWorkPositions[0].id;
+      console.log('Setting default position for user department:', selectedUser?.department?.name, '->', defaultPositionId);
       setWorkPositions(prev => ({
         ...prev,
-        [date]: dbWorkPositions[0].id,
+        [date]: defaultPositionId,
       }));
     }
   };
@@ -422,11 +451,13 @@ const CreateSchedulePage: React.FC = () => {
   const createAssignmentDtos = (): ScheduleAssignmentDto[] => {
     const validAssignments: ScheduleAssignmentDto[] = [];
 
-    // Default work position ID (prima poziție - Dispecerat) - doar dacă există
-    const defaultPositionId = dbWorkPositions.length > 0 ? dbWorkPositions[0].id : null;
+    // Default work position ID - în funcție de departamentul utilizatorului
+    // Control -> Control, Dispecerat/altele -> Dispecerat
+    const defaultPositionId = getDefaultPositionForUser || (dbWorkPositions.length > 0 ? dbWorkPositions[0].id : null);
 
     console.log('Creating assignments with dbWorkPositions:', dbWorkPositions);
-    console.log('Default position ID:', defaultPositionId);
+    console.log('Default position ID (based on user department):', defaultPositionId);
+    console.log('User department:', selectedUser?.department?.name);
 
     Object.entries(assignments).forEach(([date, localShiftId]) => {
       const shiftOption = shiftOptions.find(s => s.id === localShiftId);
