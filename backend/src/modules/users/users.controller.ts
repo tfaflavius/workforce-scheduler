@@ -62,8 +62,35 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req,
+  ) {
+    const isAdmin = req.user.role === UserRole.ADMIN;
+    const isOwnProfile = req.user.id === id;
+
+    // Utilizatorii pot actualiza doar propriul profil
+    // Adminii pot actualiza orice profil
+    if (!isAdmin && !isOwnProfile) {
+      throw new ForbiddenException('You can only update your own profile');
+    }
+
+    // Dacă nu e admin, restricționează câmpurile ce pot fi modificate
+    if (!isAdmin) {
+      // Utilizatorii normali pot modifica doar: fullName, phone, birthDate
+      const allowedFields = ['fullName', 'phone', 'birthDate'];
+      const restrictedUpdate: UpdateUserDto = {};
+
+      for (const field of allowedFields) {
+        if (updateUserDto[field] !== undefined) {
+          restrictedUpdate[field] = updateUserDto[field];
+        }
+      }
+
+      return this.usersService.update(id, restrictedUpdate);
+    }
+
     return this.usersService.update(id, updateUserDto);
   }
 
