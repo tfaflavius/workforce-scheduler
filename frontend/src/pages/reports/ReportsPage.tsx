@@ -134,6 +134,15 @@ const ReportsPage: React.FC = () => {
     return days;
   }, [selectedMonth, daysInMonth]);
 
+  // Calculează numărul de zile lucrătoare din lună și norma de ore
+  const workingDaysInMonth = useMemo(() => {
+    return calendarDays.filter(d => !d.isWeekend).length;
+  }, [calendarDays]);
+
+  const monthlyHoursNorm = useMemo(() => {
+    return workingDaysInMonth * 8; // 8 ore pe zi lucrătoare
+  }, [workingDaysInMonth]);
+
   // Creează un map cu toate asignările existente pentru toți angajații
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, {
@@ -373,13 +382,15 @@ const ReportsPage: React.FC = () => {
 
     doc.setFontSize(10);
     doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 22);
-    doc.text(`Total angajati: ${filteredUsers.length}`, 14, 27);
+    doc.text(`Total angajati: ${filteredUsers.length} | Zile lucratoare: ${workingDaysInMonth} | Norma lunara: ${monthlyHoursNorm} ore`, 14, 27);
 
     // Prepare table data - fiecare tură pe 2 linii (shift + workPosition)
-    const headers = ['Angajat', ...calendarDays.map(d => `${d.day}`), 'Total Ore', 'Ture Zi', 'Ture Noapte', 'CO'];
+    const headers = ['Angajat', ...calendarDays.map(d => `${d.day}`), 'Total Ore', 'Norma', 'Diferența', 'Ture Zi', 'Ture Noapte', 'CO'];
     const rows = filteredUsers.map(targetUser => {
       const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
       const stats = getUserStats(targetUser.id);
+      const difference = stats.totalHours - monthlyHoursNorm;
+      const diffText = difference > 0 ? `+${difference}` : difference.toString();
 
       const row = [
         targetUser.fullName,
@@ -394,6 +405,8 @@ const ReportsPage: React.FC = () => {
           return '-';
         }),
         stats.totalHours.toString(),
+        monthlyHoursNorm.toString(),
+        diffText,
         stats.dayShifts.toString(),
         stats.nightShifts.toString(),
         stats.vacationDays.toString(),
@@ -431,6 +444,28 @@ const ReportsPage: React.FC = () => {
           const color = shiftColorMap[shiftLabel];
           if (color) {
             data.cell.styles.fillColor = color;
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        // Coloana "Diferența" - colorată în funcție de valoare
+        const diffColumnIndex = calendarDays.length + 3; // După zilele + Total Ore + Norma
+        if (data.section === 'body' && data.column.index === diffColumnIndex) {
+          const cellText = data.cell.text[0] || '0';
+          const diffValue = parseInt(cellText.replace('+', ''), 10);
+          if (diffValue > 0) {
+            // Ore suplimentare - roșu
+            data.cell.styles.fillColor = [244, 67, 54];
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+          } else if (diffValue < 0) {
+            // Sub normă - portocaliu/galben
+            data.cell.styles.fillColor = [255, 152, 0];
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+          } else {
+            // Exact norma - verde
+            data.cell.styles.fillColor = [76, 175, 80];
             data.cell.styles.textColor = [255, 255, 255];
             data.cell.styles.fontStyle = 'bold';
           }
@@ -489,6 +524,28 @@ const ReportsPage: React.FC = () => {
     doc.setFontSize(8);
     doc.text('DISP = Dispecerat | CTRL = Control (afișat sub tură)', 14, yPosWorkPosition + 5);
 
+    // Adaugă legenda pentru diferența de ore
+    const yPosDiff = yPosWorkPosition + 12;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Diferența ore:', 14, yPosDiff);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+
+    // Căsuțe colorate pentru legendă diferență
+    doc.setFillColor(244, 67, 54); // Roșu
+    doc.rect(14, yPosDiff + 2, 10, 4, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.text(' = Ore suplimentare (+)', 25, yPosDiff + 5);
+
+    doc.setFillColor(255, 152, 0); // Portocaliu
+    doc.rect(80, yPosDiff + 2, 10, 4, 'F');
+    doc.text(' = Sub normă (-)', 91, yPosDiff + 5);
+
+    doc.setFillColor(76, 175, 80); // Verde
+    doc.rect(140, yPosDiff + 2, 10, 4, 'F');
+    doc.text(' = Conform normei (0)', 151, yPosDiff + 5);
+
     doc.save(`raport-program-${selectedMonth}.pdf`);
   };
 
@@ -496,11 +553,13 @@ const ReportsPage: React.FC = () => {
   const handleExportScheduleExcel = () => {
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
 
-    const headers = ['Angajat', 'Rol', ...calendarDays.map(d => `${d.day} ${d.dayOfWeek}`), 'Total Ore', 'Ture Zi', 'Ture Noapte', 'Concediu', 'Liber'];
+    const headers = ['Angajat', 'Rol', ...calendarDays.map(d => `${d.day} ${d.dayOfWeek}`), 'Total Ore', 'Norma', 'Diferența', 'Ture Zi', 'Ture Noapte', 'Concediu', 'Liber'];
 
     const rows = filteredUsers.map(targetUser => {
       const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
       const stats = getUserStats(targetUser.id);
+      const difference = stats.totalHours - monthlyHoursNorm;
+      const diffText = difference > 0 ? `+${difference}` : difference.toString();
 
       return [
         targetUser.fullName,
@@ -516,6 +575,8 @@ const ReportsPage: React.FC = () => {
           return '-';
         }),
         stats.totalHours,
+        monthlyHoursNorm,
+        diffText,
         stats.dayShifts,
         stats.nightShifts,
         stats.vacationDays,
@@ -527,7 +588,7 @@ const ReportsPage: React.FC = () => {
     const wsData = [
       [`Raport Program de Lucru - ${monthLabel}`],
       [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
-      [`Total angajati: ${filteredUsers.length}`],
+      [`Total angajati: ${filteredUsers.length} | Zile lucratoare: ${workingDaysInMonth} | Norma lunara: ${monthlyHoursNorm} ore (8 ore/zi)`],
       [],
       headers,
       ...rows,
@@ -545,10 +606,15 @@ const ReportsPage: React.FC = () => {
       ['DISP = Dispecerat'],
       ['CTRL = Control'],
       ['Format: TURĂ/POZIȚIE (ex: Z/DISP = Zi 12h la Dispecerat)'],
+      [],
+      ['Legenda Diferență Ore:'],
+      ['Valoare pozitivă (+) = Ore suplimentare peste normă'],
+      ['Valoare negativă (-) = Sub norma lunară'],
+      ['Valoare zero (0) = Conform normei lunare'],
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(wsData);
-    const colWidths = [{ wch: 25 }, { wch: 10 }, ...calendarDays.map(() => ({ wch: 8 })), { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 8 }];
+    const colWidths = [{ wch: 25 }, { wch: 10 }, ...calendarDays.map(() => ({ wch: 8 })), { wch: 10 }, { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 8 }];
     ws['!cols'] = colWidths;
     XLSX.utils.book_append_sheet(wb, ws, 'Program');
     XLSX.writeFile(wb, `raport-program-${selectedMonth}.xlsx`);
