@@ -115,6 +115,7 @@ const CreateSchedulePage: React.FC = () => {
   // Poziția de lucru pentru fiecare zi: { date: workPositionId }
   const [workPositions, setWorkPositions] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Lista de luni (generată o singură dată)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
@@ -470,8 +471,13 @@ const CreateSchedulePage: React.FC = () => {
       }
 
       setTimeout(() => navigate('/schedules'), 1500);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to save schedule:', err);
+      const errorMsg = err && typeof err === 'object' && 'data' in err
+        ? (err.data as { message?: string })?.message || 'A apărut o eroare la salvarea programului.'
+        : 'A apărut o eroare la salvarea programului.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -507,8 +513,13 @@ const CreateSchedulePage: React.FC = () => {
 
       setSuccessMessage('Programul a fost trimis pentru aprobare. Un administrator îl va revizui.');
       setTimeout(() => navigate('/schedules'), 2000);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to submit schedule:', err);
+      const errorMsg = err && typeof err === 'object' && 'data' in err
+        ? (err.data as { message?: string })?.message || 'A apărut o eroare la trimiterea programului.'
+        : 'A apărut o eroare la trimiterea programului.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -564,10 +575,15 @@ const CreateSchedulePage: React.FC = () => {
           </Box>
         </Stack>
 
-        {/* Success Alert */}
+        {/* Success/Error Alerts */}
         {successMessage && (
-          <Alert severity="success" sx={{ width: '100%' }}>
+          <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ width: '100%' }}>
             {successMessage}
+          </Alert>
+        )}
+        {errorMessage && (
+          <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ width: '100%' }}>
+            {errorMessage}
           </Alert>
         )}
 
