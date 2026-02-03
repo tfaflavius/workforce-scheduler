@@ -124,7 +124,17 @@ const CreateSchedulePage: React.FC = () => {
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
   const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
   const { data: dbShiftTypes = [] } = useGetShiftTypesQuery();
-  const { data: dbWorkPositions = [] } = useGetWorkPositionsQuery();
+  const { data: dbWorkPositions = [], error: workPositionsError, isLoading: workPositionsLoading } = useGetWorkPositionsQuery();
+
+  // Log work positions status
+  useEffect(() => {
+    console.log('Work Positions Status:', {
+      loading: workPositionsLoading,
+      error: workPositionsError,
+      count: dbWorkPositions.length,
+      data: dbWorkPositions,
+    });
+  }, [dbWorkPositions, workPositionsError, workPositionsLoading]);
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
   const [updateSchedule, { isLoading: updating }] = useUpdateScheduleMutation();
 
