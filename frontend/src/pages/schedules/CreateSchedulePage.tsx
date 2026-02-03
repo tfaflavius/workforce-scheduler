@@ -449,13 +449,17 @@ const CreateSchedulePage: React.FC = () => {
         notes: shiftOption?.isVacation ? 'Concediu' : `${shiftOption?.startTime}-${shiftOption?.endTime}`,
       };
 
-      // Adaugă workPositionId doar dacă este un UUID valid
+      // TEMPORAR DEZACTIVAT - Nu trimite workPositionId până nu e rezolvată problema
+      // Adaugă workPositionId doar dacă avem poziții încărcate din DB și este un UUID valid
+      const hasWorkPositionsFromDB = dbWorkPositions.length > 0;
       const isValidUUID = positionId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(positionId);
-      console.log(`Assignment ${date}: positionId=${positionId}, isValidUUID=${isValidUUID}`);
+      console.log(`Assignment ${date}: positionId=${positionId}, isValidUUID=${isValidUUID}, hasWorkPositionsFromDB=${hasWorkPositionsFromDB}`);
 
-      if (isValidUUID) {
+      // Doar adaugă workPositionId dacă avem poziții valide din DB
+      if (hasWorkPositionsFromDB && isValidUUID) {
         assignment.workPositionId = positionId;
       }
+      // NU adăuga workPositionId dacă nu avem poziții din DB - evită eroarea de validare
 
       validAssignments.push(assignment);
     });
