@@ -195,6 +195,12 @@ const ReportsPage: React.FC = () => {
     if (notes.includes('07:30-15:30')) {
       return { label: 'Z3', color: '#795548', type: '8H' as const };
     }
+    if (notes.includes('09:00-17:00')) {
+      return { label: 'Z4', color: '#009688', type: '8H' as const };  // Teal
+    }
+    if (notes.includes('08:00-16:00')) {
+      return { label: 'Z5', color: '#FF5722', type: '8H' as const };  // Deep Orange
+    }
     if (notes.includes('06:00-14:00')) {
       return { label: 'Z1', color: '#00BCD4', type: '8H' as const };
     }
@@ -345,6 +351,8 @@ const ReportsPage: React.FC = () => {
     'Z1': [0, 188, 212],     // #00BCD4 - cyan
     'Z2': [156, 39, 176],    // #9C27B0 - violet
     'Z3': [121, 85, 72],     // #795548 - maro
+    'Z4': [0, 150, 136],     // #009688 - teal
+    'Z5': [255, 87, 34],     // #FF5722 - deep orange
     'N8': [233, 30, 99],     // #E91E63 - roz
     'CO': [255, 152, 0],     // #FF9800 - portocaliu
   };
@@ -487,12 +495,14 @@ const ReportsPage: React.FC = () => {
     doc.setFont('helvetica', 'normal');
 
     const legendItems = [
-      { label: 'Z', text: 'Zi 12h (07:00-19:00)', color: shiftColorMap['Z'] },
-      { label: 'N', text: 'Noapte 12h (19:00-07:00)', color: shiftColorMap['N'] },
-      { label: 'Z1', text: 'Zi 8h (06:00-14:00)', color: shiftColorMap['Z1'] },
-      { label: 'Z2', text: 'Zi 8h (14:00-22:00)', color: shiftColorMap['Z2'] },
-      { label: 'Z3', text: 'Zi 8h (07:30-15:30)', color: shiftColorMap['Z3'] },
-      { label: 'N8', text: 'Noapte 8h (22:00-06:00)', color: shiftColorMap['N8'] },
+      { label: 'Z', text: 'Zi 12h (07-19)', color: shiftColorMap['Z'] },
+      { label: 'N', text: 'Noapte 12h (19-07)', color: shiftColorMap['N'] },
+      { label: 'Z1', text: '8h (06-14)', color: shiftColorMap['Z1'] },
+      { label: 'Z2', text: '8h (14-22)', color: shiftColorMap['Z2'] },
+      { label: 'Z3', text: '8h (07:30-15:30)', color: shiftColorMap['Z3'] },
+      { label: 'Z4', text: '8h (09-17)', color: shiftColorMap['Z4'] },
+      { label: 'Z5', text: '8h (08-16)', color: shiftColorMap['Z5'] },
+      { label: 'N8', text: 'Noapte 8h (22-06)', color: shiftColorMap['N8'] },
       { label: 'CO', text: 'Concediu', color: shiftColorMap['CO'] },
     ];
 
@@ -599,6 +609,8 @@ const ReportsPage: React.FC = () => {
       ['Z1 = Zi 8 ore (06:00-14:00)'],
       ['Z2 = Zi 8 ore (14:00-22:00)'],
       ['Z3 = Zi 8 ore (07:30-15:30)'],
+      ['Z4 = Zi 8 ore (09:00-17:00)'],
+      ['Z5 = Zi 8 ore (08:00-16:00)'],
       ['N8 = Noapte 8 ore (22:00-06:00)'],
       ['CO = Concediu'],
       [],
