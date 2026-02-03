@@ -17,8 +17,10 @@ INSERT INTO shift_types (id, name, shift_pattern, start_time, end_time, duration
 VALUES
   (gen_random_uuid(), 'Zi 06-14', 'SHIFT_8H', '06:00:00', '14:00:00', 8.00, false, 4, NOW()),
   (gen_random_uuid(), 'Zi 14-22', 'SHIFT_8H', '14:00:00', '22:00:00', 8.00, false, 5, NOW()),
-  (gen_random_uuid(), 'Noapte 22-06', 'SHIFT_8H', '22:00:00', '06:00:00', 8.00, true, 6, NOW()),
-  (gen_random_uuid(), 'Concediu 8H', 'SHIFT_8H', '00:00:00', '00:00:00', 0.00, false, 7, NOW())
+  (gen_random_uuid(), 'Zi 07:30-15:30', 'SHIFT_8H', '07:30:00', '15:30:00', 8.00, false, 6, NOW()),
+  (gen_random_uuid(), 'Zi 09-17', 'SHIFT_8H', '09:00:00', '17:00:00', 8.00, false, 7, NOW()),
+  (gen_random_uuid(), 'Noapte 22-06', 'SHIFT_8H', '22:00:00', '06:00:00', 8.00, true, 8, NOW()),
+  (gen_random_uuid(), 'Concediu 8H', 'SHIFT_8H', '00:00:00', '00:00:00', 0.00, false, 9, NOW())
 ON CONFLICT DO NOTHING;
 
 -- Verify the data
