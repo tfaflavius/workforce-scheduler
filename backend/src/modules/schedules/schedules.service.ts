@@ -58,7 +58,9 @@ export class SchedulesService {
       status: createScheduleDto.status || 'DRAFT',
     });
 
+    this.logger.log(`Creating schedule with status: ${schedule.status} for month: ${month}/${year}`);
     const savedSchedule = await this.scheduleRepository.save(schedule);
+    this.logger.log(`Schedule created with ID: ${savedSchedule.id}, status: ${savedSchedule.status}`);
 
     // Create assignments
     if (createScheduleDto.assignments && createScheduleDto.assignments.length > 0) {
@@ -186,6 +188,9 @@ export class SchedulesService {
 
     if (updateScheduleDto.status) {
       schedule.status = updateScheduleDto.status;
+      // IMPORTANT: Save the status change immediately
+      await this.scheduleRepository.save(schedule);
+      this.logger.log(`Schedule ${id} status updated to: ${updateScheduleDto.status}`);
     }
 
     // If assignments are updated, recreate them
