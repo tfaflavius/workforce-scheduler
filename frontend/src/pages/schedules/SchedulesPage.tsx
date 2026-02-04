@@ -46,6 +46,7 @@ import {
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 
@@ -106,6 +107,7 @@ const SchedulesPage: React.FC = () => {
     monthYear: selectedMonth,
   });
   const { data: users = [] } = useGetUsersQuery({ isActive: true });
+  const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(selectedMonth);
 
   // Verifică dacă utilizatorul curent este admin
   const isAdmin = user?.role === 'ADMIN';
@@ -173,13 +175,31 @@ const SchedulesPage: React.FC = () => {
 
   // Creează un map cu toate asignările existente pentru toți angajații
   // Include și statusul programului și poziția de lucru
+  // Include și concediile aprobate care nu au încă asignări
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, {
-      assignments: Record<string, { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string } }>;
+      assignments: Record<string, { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string }; isApprovedLeave?: boolean }>;
       scheduleId?: string;
       status?: string;
     }> = {};
 
+    // Mai întâi, adaugă concediile aprobate pentru această lună
+    approvedLeaves.forEach(leave => {
+      if (!userAssignmentsMap[leave.userId]) {
+        userAssignmentsMap[leave.userId] = {
+          assignments: {},
+        };
+      }
+      leave.dates.forEach(date => {
+        userAssignmentsMap[leave.userId].assignments[date] = {
+          shiftId: 'vacation',
+          notes: 'Concediu',
+          isApprovedLeave: true,
+        };
+      });
+    });
+
+    // Apoi, adaugă asignările din programe (acestea suprascriu concediile dacă există)
     schedules.forEach(schedule => {
       if (schedule.assignments) {
         schedule.assignments.forEach(assignment => {
@@ -209,7 +229,7 @@ const SchedulesPage: React.FC = () => {
     });
 
     return userAssignmentsMap;
-  }, [schedules]);
+  }, [schedules, approvedLeaves]);
 
   // Obține info pentru o asignare existentă
   const getExistingShiftInfo = (notes: string) => {
