@@ -80,7 +80,7 @@ export class LeaveRequestsController {
 
   @Get('approved-by-month')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
   getApprovedByMonth(@Query('monthYear') monthYear: string) {
     return this.leaveRequestsService.getApprovedByMonth(monthYear);
   }
