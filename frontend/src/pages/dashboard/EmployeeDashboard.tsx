@@ -211,6 +211,25 @@ const EmployeeDashboard = () => {
   const nightShifts = myAssignments.filter((a) => a.shiftType?.isNightShift).length;
   const dayShifts = totalShiftsThisMonth - nightShifts;
 
+  // Calculează zilele lucrătoare și norma de ore pentru luna curentă
+  const workingDaysInMonth = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    let workingDays = 0;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dayOfWeek = date.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        workingDays++;
+      }
+    }
+    return workingDays;
+  }, [currentDate]);
+
+  const monthlyHoursNorm = workingDaysInMonth * 8;
+  const hoursDifference = totalHoursThisMonth - monthlyHoursNorm;
+
   const monthNames = [
     'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
@@ -326,19 +345,32 @@ const EmployeeDashboard = () => {
                 Sumar {monthNames[currentMonth - 1]} {currentYear}
               </Typography>
               <Grid container spacing={1}>
-                <Grid size={{ xs: 6, sm: 3 }}>
+                <Grid size={{ xs: 6, sm: 2.4 }}>
                   <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>{totalHoursThisMonth}h</Typography>
                   <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Total Ore</Typography>
                 </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
-                  <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>{totalShiftsThisMonth}</Typography>
-                  <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Total Ture</Typography>
+                <Grid size={{ xs: 6, sm: 2.4 }}>
+                  <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>{monthlyHoursNorm}h</Typography>
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Norma</Typography>
                 </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
+                <Grid size={{ xs: 6, sm: 2.4 }}>
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    sx={{
+                      fontSize: { xs: '1rem', sm: '1.25rem' },
+                      color: hoursDifference > 0 ? '#ff6b6b' : hoursDifference < 0 ? '#ffd93d' : '#69db7c',
+                    }}
+                  >
+                    {hoursDifference > 0 ? `+${hoursDifference}` : hoursDifference}h
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Diferența</Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 2.4 }}>
                   <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>{dayShifts}</Typography>
                   <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Ture Zi</Typography>
                 </Grid>
-                <Grid size={{ xs: 6, sm: 3 }}>
+                <Grid size={{ xs: 6, sm: 2.4 }}>
                   <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>{nightShifts}</Typography>
                   <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>Ture Noapte</Typography>
                 </Grid>
