@@ -35,6 +35,7 @@ import {
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
+import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 
@@ -83,6 +84,21 @@ const MySchedulePage = () => {
     monthYear,
   });
 
+  // Obține concediile aprobate pentru luna curentă
+  const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
+
+  // Concediile aprobate ale utilizatorului curent
+  const myApprovedLeaveDates = useMemo(() => {
+    if (!user) return new Set<string>();
+    const dates = new Set<string>();
+    approvedLeaves
+      .filter(leave => leave.userId === user.id)
+      .forEach(leave => {
+        leave.dates.forEach(date => dates.add(date));
+      });
+    return dates;
+  }, [approvedLeaves, user]);
+
   // Get all assignments for current user
   const myAssignments = useMemo(() => {
     if (!schedules || !user) return [];
@@ -108,13 +124,36 @@ const MySchedulePage = () => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
-    return myAssignments.find((a) => {
+
+    // Mai întâi caută în asignările din program
+    const existingAssignment = myAssignments.find((a) => {
       // Handle both string dates and Date objects
       const assignmentDate = typeof a.shiftDate === 'string'
         ? a.shiftDate.split('T')[0]
         : new Date(a.shiftDate).toISOString().split('T')[0];
       return assignmentDate === dateStr;
     });
+
+    if (existingAssignment) return existingAssignment;
+
+    // Dacă nu există asignare dar e zi de concediu aprobat, returnează o asignare virtuală
+    if (myApprovedLeaveDates.has(dateStr)) {
+      return {
+        id: `leave-${dateStr}`,
+        workScheduleId: '',
+        scheduleId: '',
+        userId: user?.id || '',
+        shiftTypeId: '',
+        shiftDate: dateStr,
+        isRestDay: true,
+        notes: 'Concediu',
+        durationHours: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as ScheduleAssignment;
+    }
+
+    return undefined;
   };
 
   const getDatesForView = () => {
