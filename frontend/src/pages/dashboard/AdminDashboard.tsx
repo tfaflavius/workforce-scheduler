@@ -118,21 +118,7 @@ const AdminDashboard = () => {
     status: 'APPROVED',
   });
 
-  const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading;
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  const activeUsers = users?.filter(u => u.isActive)?.length || 0;
-  const pendingSwaps = swapRequests.filter(r => r.status === 'AWAITING_ADMIN').length;
-  const pendingLeaves = leaveRequests.filter(r => r.status === 'PENDING').length;
-
-  // Calculează orele proprii ale adminului
+  // Calculează orele proprii ale adminului - MUST be before any conditional returns
   const myAssignments = useMemo(() => {
     if (!mySchedules || !user) return [];
     const allAssignments: ScheduleAssignment[] = [];
@@ -147,15 +133,7 @@ const AdminDashboard = () => {
     return allAssignments;
   }, [mySchedules, user]);
 
-  const totalHoursThisMonth = myAssignments.reduce(
-    (sum, a) => sum + (a.durationHours || 0),
-    0
-  );
-  const totalShiftsThisMonth = myAssignments.length;
-  const nightShifts = myAssignments.filter((a) => a.shiftType?.isNightShift).length;
-  const dayShifts = totalShiftsThisMonth - nightShifts;
-
-  // Calculează zilele lucrătoare și norma de ore pentru luna curentă
+  // Calculează zilele lucrătoare și norma de ore pentru luna curentă - MUST be before any conditional returns
   const workingDaysInMonth = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -171,13 +149,36 @@ const AdminDashboard = () => {
     return workingDays;
   }, [currentDate]);
 
-  const monthlyHoursNorm = workingDaysInMonth * 8;
-  const hoursDifference = totalHoursThisMonth - monthlyHoursNorm;
-
   const monthNames = [
     'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
   ];
+
+  const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading;
+
+  // Loading state - after all hooks
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const activeUsers = users?.filter(u => u.isActive)?.length || 0;
+  const pendingSwaps = swapRequests.filter(r => r.status === 'AWAITING_ADMIN').length;
+  const pendingLeaves = leaveRequests.filter(r => r.status === 'PENDING').length;
+
+  const totalHoursThisMonth = myAssignments.reduce(
+    (sum, a) => sum + (a.durationHours || 0),
+    0
+  );
+  const totalShiftsThisMonth = myAssignments.length;
+  const nightShifts = myAssignments.filter((a) => a.shiftType?.isNightShift).length;
+  const dayShifts = totalShiftsThisMonth - nightShifts;
+
+  const monthlyHoursNorm = workingDaysInMonth * 8;
+  const hoursDifference = totalHoursThisMonth - monthlyHoursNorm;
 
   return (
     <Box sx={{ width: '100%' }}>

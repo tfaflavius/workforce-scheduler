@@ -112,20 +112,7 @@ const ManagerDashboard = () => {
     status: 'APPROVED',
   });
 
-  if (draftLoading || pendingLoading || approvedLoading || rejectedLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  const myDrafts = draftSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
-  const myPending = pendingSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
-  const myApproved = approvedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
-  const myRejected = rejectedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
-
-  // Calculează orele proprii ale managerului
+  // Calculează orele proprii ale managerului - MUST be before any conditional returns
   const myAssignments = useMemo(() => {
     if (!mySchedules || !user) return [];
     const allAssignments: ScheduleAssignment[] = [];
@@ -140,15 +127,7 @@ const ManagerDashboard = () => {
     return allAssignments;
   }, [mySchedules, user]);
 
-  const totalHoursThisMonth = myAssignments.reduce(
-    (sum, a) => sum + (a.durationHours || 0),
-    0
-  );
-  const totalShiftsThisMonth = myAssignments.length;
-  const nightShifts = myAssignments.filter((a) => a.shiftType?.isNightShift).length;
-  const dayShifts = totalShiftsThisMonth - nightShifts;
-
-  // Calculează zilele lucrătoare și norma de ore pentru luna curentă
+  // Calculează zilele lucrătoare și norma de ore pentru luna curentă - MUST be before any conditional returns
   const workingDaysInMonth = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -164,13 +143,35 @@ const ManagerDashboard = () => {
     return workingDays;
   }, [currentDate]);
 
-  const monthlyHoursNorm = workingDaysInMonth * 8;
-  const hoursDifference = totalHoursThisMonth - monthlyHoursNorm;
-
   const monthNames = [
     'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
   ];
+
+  // Loading state - after all hooks
+  if (draftLoading || pendingLoading || approvedLoading || rejectedLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const myDrafts = draftSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
+  const myPending = pendingSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
+  const myApproved = approvedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
+  const myRejected = rejectedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
+
+  const totalHoursThisMonth = myAssignments.reduce(
+    (sum, a) => sum + (a.durationHours || 0),
+    0
+  );
+  const totalShiftsThisMonth = myAssignments.length;
+  const nightShifts = myAssignments.filter((a) => a.shiftType?.isNightShift).length;
+  const dayShifts = totalShiftsThisMonth - nightShifts;
+
+  const monthlyHoursNorm = workingDaysInMonth * 8;
+  const hoursDifference = totalHoursThisMonth - monthlyHoursNorm;
 
   return (
     <Box sx={{ width: '100%' }}>
