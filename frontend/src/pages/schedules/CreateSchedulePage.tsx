@@ -37,6 +37,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateScheduleMutation, useUpdateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery, useGetWorkPositionsQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { useAppSelector } from '../../store/hooks';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
 
@@ -128,6 +129,7 @@ const CreateSchedulePage: React.FC = () => {
   const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
   const { data: dbShiftTypes = [] } = useGetShiftTypesQuery();
   const { data: dbWorkPositions = [], error: workPositionsError, isLoading: workPositionsLoading } = useGetWorkPositionsQuery();
+  const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
 
   // Log work positions status
   useEffect(() => {
@@ -405,6 +407,21 @@ const CreateSchedulePage: React.FC = () => {
         setShiftPattern(detectedPattern);
       }
 
+      // Pre-populează și cu concedii aprobate care nu sunt încă în program
+      const userLeaves = approvedLeaves.filter(leave => leave.userId === selectedUserId);
+      if (userLeaves.length > 0) {
+        userLeaves.forEach(leave => {
+          leave.dates.forEach(date => {
+            // Adaugă doar dacă nu există deja o asignare pentru acea zi
+            if (!loadedAssignments[date]) {
+              const vacationId = detectedPattern === '8H' ? 'vacation_8' : 'vacation_12';
+              loadedAssignments[date] = vacationId;
+              console.log('✅ Pre-populating leave day:', date, 'with', vacationId);
+            }
+          });
+        });
+      }
+
       // Setează asignările și pozițiile încărcate
       console.log('✅ Loading existing assignments for user:', selectedUserId, loadedAssignments);
       console.log('✅ Loading existing work positions:', loadedWorkPositions);
@@ -412,12 +429,27 @@ const CreateSchedulePage: React.FC = () => {
       setWorkPositions(loadedWorkPositions);
       setLoadedKey(currentKey);
     } else {
-      // Nu are asignări existente - resetează
+      // Nu are asignări existente - verifică dacă are concedii aprobate
       console.log('⚠️ No existing assignments for user:', selectedUserId, 'in month:', monthYear);
-      setAssignments({});
+
+      // Pre-populează cu concedii aprobate dacă există
+      const userLeaves = approvedLeaves.filter(leave => leave.userId === selectedUserId);
+      if (userLeaves.length > 0) {
+        const leaveAssignments: Record<string, string> = {};
+        userLeaves.forEach(leave => {
+          leave.dates.forEach(date => {
+            // Folosește vacation_12 sau vacation_8 în funcție de pattern
+            leaveAssignments[date] = shiftPattern === '8H' ? 'vacation_8' : 'vacation_12';
+          });
+        });
+        console.log('✅ Pre-populating with approved leaves:', leaveAssignments);
+        setAssignments(leaveAssignments);
+      } else {
+        setAssignments({});
+      }
       setLoadedKey(currentKey);
     }
-  }, [selectedUserId, monthYear, allUsersAssignments, loadedKey, schedulesLoading]);
+  }, [selectedUserId, monthYear, allUsersAssignments, loadedKey, schedulesLoading, approvedLeaves, shiftPattern]);
 
   // Handler pentru schimbarea turei unei zile
   const handleDayShiftChange = (date: string, shiftId: string) => {

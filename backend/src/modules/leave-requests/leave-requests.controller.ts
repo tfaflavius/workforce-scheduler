@@ -78,6 +78,13 @@ export class LeaveRequestsController {
     );
   }
 
+  @Get('approved-by-month')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  getApprovedByMonth(@Query('monthYear') monthYear: string) {
+    return this.leaveRequestsService.getApprovedByMonth(monthYear);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.leaveRequestsService.findOne(id);

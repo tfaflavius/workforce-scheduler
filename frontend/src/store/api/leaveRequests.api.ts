@@ -107,6 +107,15 @@ export const leaveRequestsApi = createApi({
       }),
       invalidatesTags: ['LeaveRequests', 'MyLeaveRequests'],
     }),
+
+    // Concedii aprobate pe lună (pentru pre-populare în programare)
+    getApprovedLeavesByMonth: builder.query<{ userId: string; dates: string[]; leaveType: string }[], string>({
+      query: (monthYear) => ({
+        url: '/approved-by-month',
+        params: { monthYear },
+      }),
+      providesTags: ['LeaveRequests'],
+    }),
   }),
 });
 
@@ -121,4 +130,5 @@ export const {
   useUpdateUserBalanceMutation,
   useRespondToLeaveRequestMutation,
   useCancelLeaveRequestMutation,
+  useGetApprovedLeavesByMonthQuery,
 } = leaveRequestsApi;

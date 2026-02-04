@@ -200,6 +200,59 @@ export class LeaveRequestsService {
     });
   }
 
+  async getApprovedByMonth(monthYear: string): Promise<{ userId: string; dates: string[]; leaveType: string }[]> {
+    // Parse monthYear (format: YYYY-MM)
+    const [year, month] = monthYear.split('-').map(Number);
+
+    // Get first and last day of the month
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0); // Last day of month
+
+    // Find all approved leave requests that overlap with this month
+    const approvedRequests = await this.leaveRequestRepository.find({
+      where: {
+        status: 'APPROVED',
+        startDate: LessThanOrEqual(monthEnd),
+        endDate: MoreThanOrEqual(monthStart),
+      },
+      relations: ['user'],
+    });
+
+    // Build result with specific dates for each user
+    const result: { userId: string; dates: string[]; leaveType: string }[] = [];
+
+    for (const request of approvedRequests) {
+      const dates: string[] = [];
+      const startDate = new Date(request.startDate);
+      const endDate = new Date(request.endDate);
+
+      // Iterate through each day in the leave period
+      const current = new Date(Math.max(startDate.getTime(), monthStart.getTime()));
+      const end = new Date(Math.min(endDate.getTime(), monthEnd.getTime()));
+
+      while (current <= end) {
+        const dayOfWeek = current.getDay();
+        // Skip weekends
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          // Format as YYYY-MM-DD
+          const dateStr = current.toISOString().split('T')[0];
+          dates.push(dateStr);
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      if (dates.length > 0) {
+        result.push({
+          userId: request.userId,
+          dates,
+          leaveType: request.leaveType,
+        });
+      }
+    }
+
+    return result;
+  }
+
   async findOne(id: string): Promise<LeaveRequest> {
     const request = await this.leaveRequestRepository.findOne({
       where: { id },
