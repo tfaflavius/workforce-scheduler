@@ -68,6 +68,7 @@ const SHIFT_OPTIONS_8H: ShiftOption[] = [
   { id: 'day3_8', label: 'Zi 07:30-15:30', shortLabel: 'Z3', startTime: '07:30', endTime: '15:30', color: '#795548', isNightShift: false, isVacation: false },
   { id: 'day4_8', label: 'Zi 09-17', shortLabel: 'Z4', startTime: '09:00', endTime: '17:00', color: '#009688', isNightShift: false, isVacation: false },
   { id: 'day5_8', label: 'Zi 08-16', shortLabel: 'Z5', startTime: '08:00', endTime: '16:00', color: '#FF5722', isNightShift: false, isVacation: false },
+  { id: 'day6_8', label: 'Zi 13-21', shortLabel: 'Z6', startTime: '13:00', endTime: '21:00', color: '#673AB7', isNightShift: false, isVacation: false },
   { id: 'night_8', label: 'Noapte 22-06', shortLabel: 'N8', startTime: '22:00', endTime: '06:00', color: '#E91E63', isNightShift: true, isVacation: false },
   { id: 'vacation_8', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
@@ -156,6 +157,7 @@ const CreateSchedulePage: React.FC = () => {
       'day3_8': 'Zi 07:30-15:30',
       'day4_8': 'Zi 09-17',
       'day5_8': 'Zi 08-16',
+      'day6_8': 'Zi 13-21',
       'night_8': 'Noapte 22-06',
       'vacation_8': 'Concediu 8H',
     };
@@ -348,7 +350,8 @@ const CreateSchedulePage: React.FC = () => {
           detectedPattern = '12H';
         } else if (notes.includes('06:00-14:00') || notes.includes('14:00-22:00') ||
                    notes.includes('07:30-15:30') || notes.includes('09:00-17:00') ||
-                   notes.includes('08:00-16:00') || notes.includes('22:00-06:00')) {
+                   notes.includes('08:00-16:00') || notes.includes('13:00-21:00') ||
+                   notes.includes('22:00-06:00')) {
           detectedPattern = '8H';
         }
       });
@@ -376,6 +379,8 @@ const CreateSchedulePage: React.FC = () => {
           localShiftId = 'day4_8';
         } else if (notes.includes('08:00-16:00')) {
           localShiftId = 'day5_8';
+        } else if (notes.includes('13:00-21:00')) {
+          localShiftId = 'day6_8';
         } else if (notes.includes('22:00-06:00')) {
           localShiftId = 'night_8';
         }
@@ -678,6 +683,9 @@ const CreateSchedulePage: React.FC = () => {
     }
     if (notes.includes('08:00-16:00')) {
       return { label: 'Z5', color: '#FF5722' };
+    }
+    if (notes.includes('13:00-21:00')) {
+      return { label: 'Z6', color: '#673AB7' };
     }
     if (notes.includes('22:00-06:00')) {
       return { label: 'N8', color: '#E91E63' };

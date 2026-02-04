@@ -201,6 +201,9 @@ const ReportsPage: React.FC = () => {
     if (notes.includes('08:00-16:00')) {
       return { label: 'Z5', color: '#FF5722', type: '8H' as const };  // Deep Orange
     }
+    if (notes.includes('13:00-21:00')) {
+      return { label: 'Z6', color: '#673AB7', type: '8H' as const };  // Deep Purple
+    }
     if (notes.includes('06:00-14:00')) {
       return { label: 'Z1', color: '#00BCD4', type: '8H' as const };
     }
@@ -353,6 +356,7 @@ const ReportsPage: React.FC = () => {
     'Z3': [121, 85, 72],     // #795548 - maro
     'Z4': [0, 150, 136],     // #009688 - teal
     'Z5': [255, 87, 34],     // #FF5722 - deep orange
+    'Z6': [103, 58, 183],    // #673AB7 - deep purple
     'N8': [233, 30, 99],     // #E91E63 - roz
     'CO': [255, 152, 0],     // #FF9800 - portocaliu
   };
@@ -502,6 +506,7 @@ const ReportsPage: React.FC = () => {
       { label: 'Z3', text: '8h (07:30-15:30)', color: shiftColorMap['Z3'] },
       { label: 'Z4', text: '8h (09-17)', color: shiftColorMap['Z4'] },
       { label: 'Z5', text: '8h (08-16)', color: shiftColorMap['Z5'] },
+      { label: 'Z6', text: '8h (13-21)', color: shiftColorMap['Z6'] },
       { label: 'N8', text: 'Noapte 8h (22-06)', color: shiftColorMap['N8'] },
       { label: 'CO', text: 'Concediu', color: shiftColorMap['CO'] },
     ];
