@@ -70,6 +70,7 @@ const generateMonthOptions = () => {
 // Tipuri de filtre
 type ShiftFilter = 'ALL' | '12H' | '8H' | 'VACATION' | 'FREE';
 type DayFilter = 'ALL' | string; // 'ALL' sau numărul zilei (1-31)
+type WorkPositionFilter = 'ALL' | string; // 'ALL' sau ID-ul poziției de lucru
 
 const SchedulesPage: React.FC = () => {
   const theme = useTheme();
@@ -89,6 +90,7 @@ const SchedulesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [departmentFilter, setDepartmentFilter] = useState<string>('ALL');
   const [dayFilter, setDayFilter] = useState<DayFilter>('ALL');
+  const [workPositionFilter, setWorkPositionFilter] = useState<WorkPositionFilter>('ALL');
 
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -126,6 +128,26 @@ const SchedulesPage: React.FC = () => {
       .map(([id, name]) => ({ id, name }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [eligibleUsers]);
+
+  // Extrage lista unică de poziții de lucru (Dispecerat, Control, etc.)
+  const workPositions = useMemo(() => {
+    const posMap = new Map<string, { id: string; name: string; shortName?: string; color?: string }>();
+    schedules.forEach(schedule => {
+      if (schedule.assignments) {
+        schedule.assignments.forEach(assignment => {
+          if (assignment.workPosition) {
+            posMap.set(assignment.workPosition.id, {
+              id: assignment.workPosition.id,
+              name: assignment.workPosition.name,
+              shortName: assignment.workPosition.shortName,
+              color: assignment.workPosition.color,
+            });
+          }
+        });
+      }
+    });
+    return Array.from(posMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [schedules]);
 
   // Generează zilele lunii
   const daysInMonth = useMemo(() => {
@@ -267,8 +289,22 @@ const SchedulesPage: React.FC = () => {
       });
     }
 
+    // Filtru după poziția de lucru (Dispecerat/Control)
+    if (workPositionFilter !== 'ALL') {
+      filtered = filtered.filter(user => {
+        const userAssignments = allUsersAssignments[user.id]?.assignments || {};
+        const assignmentValues = Object.values(userAssignments);
+
+        // Arată userii care au cel puțin o tură la poziția selectată
+        return assignmentValues.some(assignment =>
+          assignment.workPosition?.shortName === workPositionFilter ||
+          assignment.workPosition?.name === workPositionFilter
+        );
+      });
+    }
+
     return filtered;
-  }, [eligibleUsers, searchQuery, departmentFilter, shiftFilter, dayFilter, selectedMonth, allUsersAssignments]);
+  }, [eligibleUsers, searchQuery, departmentFilter, shiftFilter, dayFilter, workPositionFilter, selectedMonth, allUsersAssignments]);
 
   const handleCreateSchedule = () => {
     navigate('/schedules/create');
@@ -463,41 +499,75 @@ const SchedulesPage: React.FC = () => {
                 </FormControl>
               </Stack>
 
-              <FormControl sx={{ minWidth: { xs: '100%', sm: 100 } }} size="small">
-                <InputLabel>Zi</InputLabel>
-                <Select
-                  value={dayFilter}
-                  onChange={(e) => setDayFilter(e.target.value)}
-                  label="Zi"
-                >
-                  <MenuItem value="ALL">Toate</MenuItem>
-                  {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
-                    <MenuItem key={day} value={String(day)}>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography
-                          component="span"
-                          sx={{
-                            fontWeight: 'bold',
-                            color: isWeekend ? 'error.main' : 'text.primary',
-                            fontSize: '0.875rem'
-                          }}
-                        >
-                          {day}
-                        </Typography>
-                        <Typography
-                          component="span"
-                          sx={{
-                            color: isWeekend ? 'error.main' : 'text.secondary',
-                            fontSize: '0.75rem'
-                          }}
-                        >
-                          {dayOfWeek}
-                        </Typography>
-                      </Stack>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              {/* Row cu 2 filtre pe mobile pentru Zi și Loc de muncă */}
+              <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                <FormControl sx={{ minWidth: { xs: '50%', sm: 100 }, flex: { xs: 1, sm: 'none' } }} size="small">
+                  <InputLabel>Zi</InputLabel>
+                  <Select
+                    value={dayFilter}
+                    onChange={(e) => setDayFilter(e.target.value)}
+                    label="Zi"
+                  >
+                    <MenuItem value="ALL">Toate</MenuItem>
+                    {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
+                      <MenuItem key={day} value={String(day)}>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Typography
+                            component="span"
+                            sx={{
+                              fontWeight: 'bold',
+                              color: isWeekend ? 'error.main' : 'text.primary',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            {day}
+                          </Typography>
+                          <Typography
+                            component="span"
+                            sx={{
+                              color: isWeekend ? 'error.main' : 'text.secondary',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {dayOfWeek}
+                          </Typography>
+                        </Stack>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <FormControl sx={{ minWidth: { xs: '50%', sm: 130 }, flex: { xs: 1, sm: 'none' } }} size="small">
+                  <InputLabel>Loc Muncă</InputLabel>
+                  <Select
+                    value={workPositionFilter}
+                    onChange={(e) => setWorkPositionFilter(e.target.value)}
+                    label="Loc Muncă"
+                  >
+                    <MenuItem value="ALL">Toate</MenuItem>
+                    {workPositions.map((pos) => (
+                      <MenuItem key={pos.id} value={pos.shortName || pos.name}>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          {pos.color && (
+                            <Box
+                              sx={{
+                                width: 12,
+                                height: 12,
+                                borderRadius: '50%',
+                                bgcolor: pos.color,
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
+                          <Typography component="span" sx={{ fontSize: '0.875rem' }}>
+                            {pos.name}
+                          </Typography>
+                        </Stack>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Stack>
             </Stack>
           </Stack>
         </Paper>
