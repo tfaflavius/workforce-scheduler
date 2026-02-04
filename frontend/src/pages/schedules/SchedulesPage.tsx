@@ -451,23 +451,35 @@ const SchedulesPage: React.FC = () => {
             </Stack>
 
             {/* Filtre */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }} flexWrap="wrap" useFlexGap>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'none', sm: 'flex' } }}>
+            <Box>
+              {/* Header filtre - doar pe desktop/tablet */}
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ display: { xs: 'none', sm: 'flex' }, mb: 1.5 }}>
                 <FilterIcon color="action" fontSize="small" />
                 <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
               </Stack>
 
-              <TextField
-                placeholder="Caută..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                size="small"
-                sx={{ minWidth: { xs: '100%', sm: 180 }, flex: { xs: 1, sm: 'none' } }}
-              />
+              {/* Grid responsive pentru filtre */}
+              <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',           // Mobile: 1 coloană
+                  sm: 'repeat(2, 1fr)', // Tablet: 2 coloane
+                  md: 'repeat(3, 1fr)', // Desktop mic: 3 coloane
+                  lg: 'repeat(6, 1fr)', // Desktop mare: 6 coloane (toate pe un rând)
+                },
+                gap: { xs: 1, sm: 1.5, md: 2 },
+              }}>
+                {/* Căutare */}
+                <TextField
+                  placeholder="Caută angajat..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  size="small"
+                  fullWidth
+                />
 
-              {/* Row cu 2 filtre pe mobile */}
-              <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-                <FormControl sx={{ minWidth: { xs: '50%', sm: 150 }, flex: { xs: 1, sm: 'none' } }} size="small">
+                {/* Departament */}
+                <FormControl size="small" fullWidth>
                   <InputLabel>Departament</InputLabel>
                   <Select
                     value={departmentFilter}
@@ -483,7 +495,8 @@ const SchedulesPage: React.FC = () => {
                   </Select>
                 </FormControl>
 
-                <FormControl sx={{ minWidth: { xs: '50%', sm: 120 }, flex: { xs: 1, sm: 'none' } }} size="small">
+                {/* Tip Tură */}
+                <FormControl size="small" fullWidth>
                   <InputLabel>Tip Tură</InputLabel>
                   <Select
                     value={shiftFilter}
@@ -497,47 +510,9 @@ const SchedulesPage: React.FC = () => {
                     <MenuItem value="FREE">Liber</MenuItem>
                   </Select>
                 </FormControl>
-              </Stack>
 
-              {/* Row cu 2 filtre pe mobile pentru Zi și Loc de muncă */}
-              <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-                <FormControl sx={{ minWidth: { xs: '50%', sm: 100 }, flex: { xs: 1, sm: 'none' } }} size="small">
-                  <InputLabel>Zi</InputLabel>
-                  <Select
-                    value={dayFilter}
-                    onChange={(e) => setDayFilter(e.target.value)}
-                    label="Zi"
-                  >
-                    <MenuItem value="ALL">Toate</MenuItem>
-                    {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
-                      <MenuItem key={day} value={String(day)}>
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          <Typography
-                            component="span"
-                            sx={{
-                              fontWeight: 'bold',
-                              color: isWeekend ? 'error.main' : 'text.primary',
-                              fontSize: '0.875rem'
-                            }}
-                          >
-                            {day}
-                          </Typography>
-                          <Typography
-                            component="span"
-                            sx={{
-                              color: isWeekend ? 'error.main' : 'text.secondary',
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {dayOfWeek}
-                          </Typography>
-                        </Stack>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl sx={{ minWidth: { xs: '50%', sm: 130 }, flex: { xs: 1, sm: 'none' } }} size="small">
+                {/* Loc Muncă */}
+                <FormControl size="small" fullWidth>
                   <InputLabel>Loc Muncă</InputLabel>
                   <Select
                     value={workPositionFilter}
@@ -567,8 +542,66 @@ const SchedulesPage: React.FC = () => {
                     ))}
                   </Select>
                 </FormControl>
-              </Stack>
-            </Stack>
+
+                {/* Zi */}
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Zi</InputLabel>
+                  <Select
+                    value={dayFilter}
+                    onChange={(e) => setDayFilter(e.target.value)}
+                    label="Zi"
+                  >
+                    <MenuItem value="ALL">Toate zilele</MenuItem>
+                    {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
+                      <MenuItem key={day} value={String(day)}>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Typography
+                            component="span"
+                            sx={{
+                              fontWeight: 'bold',
+                              color: isWeekend ? 'error.main' : 'text.primary',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            {day}
+                          </Typography>
+                          <Typography
+                            component="span"
+                            sx={{
+                              color: isWeekend ? 'error.main' : 'text.secondary',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {dayOfWeek}
+                          </Typography>
+                        </Stack>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                {/* Buton Reset Filtre - vizibil când există filtre active */}
+                {(searchQuery || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL') && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setDepartmentFilter('ALL');
+                      setShiftFilter('ALL');
+                      setWorkPositionFilter('ALL');
+                      setDayFilter('ALL');
+                    }}
+                    sx={{
+                      height: 40,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Resetează
+                  </Button>
+                )}
+              </Box>
+            </Box>
           </Stack>
         </Paper>
 
