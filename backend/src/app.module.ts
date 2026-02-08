@@ -24,6 +24,15 @@ import { ShiftSwapRequest } from './modules/shift-swaps/entities/shift-swap-requ
 import { ShiftSwapResponse } from './modules/shift-swaps/entities/shift-swap-response.entity';
 import { LeaveRequest } from './modules/leave-requests/entities/leave-request.entity';
 import { LeaveBalance } from './modules/leave-requests/entities/leave-balance.entity';
+import { ParkingModule } from './modules/parking/parking.module';
+import { ParkingLot } from './modules/parking/entities/parking-lot.entity';
+import { PaymentMachine } from './modules/parking/entities/payment-machine.entity';
+import { ParkingIssue } from './modules/parking/entities/parking-issue.entity';
+import { ParkingDamage } from './modules/parking/entities/parking-damage.entity';
+import { CashCollection } from './modules/parking/entities/cash-collection.entity';
+import { ParkingIssueComment } from './modules/parking/entities/parking-issue-comment.entity';
+import { ParkingDamageComment } from './modules/parking/entities/parking-damage-comment.entity';
+import { ParkingHistory } from './modules/parking/entities/parking-history.entity';
 
 @Module({
   imports: [
@@ -40,7 +49,7 @@ import { LeaveBalance } from './modules/leave-requests/entities/leave-balance.en
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
@@ -52,6 +61,7 @@ import { LeaveBalance } from './modules/leave-requests/entities/leave-balance.en
     NotificationsModule,
     ShiftSwapsModule,
     LeaveRequestsModule,
+    ParkingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

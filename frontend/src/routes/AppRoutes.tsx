@@ -14,6 +14,7 @@ import AdminLeaveRequestsPage from '../pages/leave-requests/AdminLeaveRequestsPa
 import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
 import ReportsPage from '../pages/reports/ReportsPage';
+import ParkingPage from '../pages/parking/ParkingPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { useAppSelector } from '../store/hooks';
@@ -134,6 +135,9 @@ export const AppRoutes = () => {
 
         {/* Profile */}
         <Route path="/profile" element={<UserProfilePage />} />
+
+        {/* Parking - Dispecerat, Manager, Admin */}
+        <Route path="/parking" element={<ParkingPage />} />
       </Route>
 
       {/* Default redirect */}

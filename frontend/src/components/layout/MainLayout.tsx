@@ -34,6 +34,7 @@ import {
   Assessment as ReportIcon,
   SwapHoriz as SwapIcon,
   BeachAccess as BeachIcon,
+  LocalParking as ParkingIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -47,6 +48,7 @@ interface MenuItem {
   icon: React.ReactNode;
   path: string;
   roles: UserRole[];
+  requiresDepartment?: string; // Departament necesar pentru USER
 }
 
 export const MainLayout = () => {
@@ -139,11 +141,31 @@ export const MainLayout = () => {
       path: '/users',
       roles: ['ADMIN'],
     },
+    {
+      text: 'Parcări Etajate',
+      icon: <ParkingIcon />,
+      path: '/parking',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartment: 'Dispecerat', // USER-ii trebuie să fie din Dispecerat
+    },
   ];
 
-  const filteredMenuItems = menuItems.filter(
-    (item) => user && item.roles.includes(user.role)
-  );
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (!user) return false;
+
+    // Verifică dacă userul are rolul necesar
+    if (!item.roles.includes(user.role)) return false;
+
+    // Pentru ADMIN și MANAGER, nu verificăm departamentul
+    if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
+
+    // Pentru USER cu requiresDepartment, verificăm departamentul
+    if (item.requiresDepartment && user.role === 'USER') {
+      return user.department?.name === item.requiresDepartment;
+    }
+
+    return true;
+  });
 
   const getRoleColor = (role: UserRole) => {
     switch (role) {

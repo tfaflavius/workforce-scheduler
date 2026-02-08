@@ -1179,35 +1179,39 @@ const ReportsPage: React.FC = () => {
       </Stack>
 
       {/* Sumar */}
-      <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-around">
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'grey.50' }}>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+          gap: { xs: 1.5, sm: 2 },
+        }}>
           <Box textAlign="center">
-            <Typography variant="h4" color="warning.main" fontWeight="bold">
+            <Typography variant="h4" color="warning.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredLeaveRequests.filter(r => r.status === 'PENDING').length}
             </Typography>
-            <Typography variant="caption">În Așteptare</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>În Așteptare</Typography>
           </Box>
           <Box textAlign="center">
-            <Typography variant="h4" color="success.main" fontWeight="bold">
+            <Typography variant="h4" color="success.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredLeaveRequests.filter(r => r.status === 'APPROVED').length}
             </Typography>
-            <Typography variant="caption">Aprobate</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Aprobate</Typography>
           </Box>
           <Box textAlign="center">
-            <Typography variant="h4" color="error.main" fontWeight="bold">
+            <Typography variant="h4" color="error.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredLeaveRequests.filter(r => r.status === 'REJECTED').length}
             </Typography>
-            <Typography variant="caption">Respinse</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Respinse</Typography>
           </Box>
           <Box textAlign="center">
-            <Typography variant="h4" color="primary.main" fontWeight="bold">
+            <Typography variant="h4" color="primary.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredLeaveRequests
                 .filter(r => r.status === 'APPROVED')
                 .reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0)}
             </Typography>
-            <Typography variant="caption">Total Zile Aprobate</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Total Zile</Typography>
           </Box>
-        </Stack>
+        </Box>
       </Paper>
 
       <Alert severity="info" icon={false}>
@@ -1280,33 +1284,37 @@ const ReportsPage: React.FC = () => {
       </Stack>
 
       {/* Sumar */}
-      <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="space-around">
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'grey.50' }}>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+          gap: { xs: 1.5, sm: 2 },
+        }}>
           <Box textAlign="center">
-            <Typography variant="h4" color="warning.main" fontWeight="bold">
+            <Typography variant="h4" color="warning.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length}
             </Typography>
-            <Typography variant="caption">În Așteptare</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>În Așteptare</Typography>
           </Box>
           <Box textAlign="center">
-            <Typography variant="h4" color="success.main" fontWeight="bold">
+            <Typography variant="h4" color="success.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredSwapRequests.filter(r => r.status === 'APPROVED').length}
             </Typography>
-            <Typography variant="caption">Aprobate</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Aprobate</Typography>
           </Box>
           <Box textAlign="center">
-            <Typography variant="h4" color="error.main" fontWeight="bold">
+            <Typography variant="h4" color="error.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredSwapRequests.filter(r => r.status === 'REJECTED').length}
             </Typography>
-            <Typography variant="caption">Respinse</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Respinse</Typography>
           </Box>
           <Box textAlign="center">
-            <Typography variant="h4" color="text.secondary" fontWeight="bold">
+            <Typography variant="h4" color="text.secondary" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredSwapRequests.length}
             </Typography>
-            <Typography variant="caption">Total Cereri</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>Total</Typography>
           </Box>
-        </Stack>
+        </Box>
       </Paper>
 
       <Alert severity="info" icon={false}>
@@ -1354,36 +1362,40 @@ const ReportsPage: React.FC = () => {
     return (
       <Stack spacing={3}>
         {/* Sumar General */}
-        <Paper sx={{ p: 2, bgcolor: 'primary.lighter' }}>
-          <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.dark">
+        <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'primary.lighter' }}>
+          <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.dark" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             Sumar General - {monthOptions.find(m => m.value === selectedMonth)?.label}
           </Typography>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} justifyContent="space-around">
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+            gap: { xs: 2, sm: 3 },
+          }}>
             <Box textAlign="center">
-              <Typography variant="h3" color="primary.main" fontWeight="bold">
+              <Typography variant="h3" color="primary.main" fontWeight="bold" sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
                 {totalHours}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Ore Lucrate Total</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Ore Lucrate</Typography>
             </Box>
             <Box textAlign="center">
-              <Typography variant="h3" color="warning.main" fontWeight="bold">
+              <Typography variant="h3" color="warning.main" fontWeight="bold" sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
                 {totalLeaveDays}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Zile Concediu Aprobate</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Zile Concediu</Typography>
             </Box>
             <Box textAlign="center">
-              <Typography variant="h3" color="info.main" fontWeight="bold">
+              <Typography variant="h3" color="info.main" fontWeight="bold" sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
                 {approvedSwaps}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Schimburi Aprobate</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Schimburi</Typography>
             </Box>
             <Box textAlign="center">
-              <Typography variant="h3" color="success.main" fontWeight="bold">
+              <Typography variant="h3" color="success.main" fontWeight="bold" sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
                 {filteredUsers.length}
               </Typography>
-              <Typography variant="body2" color="text.secondary">Angajați Activi</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Angajați</Typography>
             </Box>
-          </Stack>
+          </Box>
         </Paper>
 
         {/* Detalii pe secțiuni */}

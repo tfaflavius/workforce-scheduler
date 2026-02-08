@@ -948,43 +948,50 @@ const CreateSchedulePage: React.FC = () => {
                 </Tooltip>
               </Stack>
 
-              {/* Calendar Grid */}
+              {/* Calendar Grid - scrollable on mobile */}
               <Box sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: 'repeat(7, 1fr)',
-                  sm: 'repeat(7, 1fr)',
-                },
-                gap: 0.5,
+                overflowX: { xs: 'auto', md: 'visible' },
+                pb: { xs: 1, md: 0 },
+                '&::-webkit-scrollbar': { height: 6 },
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 3 },
               }}>
-                {calendarDays.map(({ day, date, dayOfWeek, isWeekend }) => (
-                  <Paper
-                    key={date}
-                    elevation={1}
-                    sx={{
-                      p: 0.5,
-                      textAlign: 'center',
-                      bgcolor: isWeekend ? 'grey.100' : 'background.paper',
-                      border: assignments[date] ? `2px solid ${getDayColor(date)}` : '1px solid',
-                      borderColor: assignments[date] ? getDayColor(date) : 'divider',
-                      borderRadius: 1,
-                      minHeight: { xs: 70, sm: 85 },
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
-                  >
+                <Box sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: 'repeat(7, minmax(48px, 1fr))',
+                    sm: 'repeat(7, 1fr)',
+                  },
+                  gap: { xs: 0.25, sm: 0.5 },
+                  minWidth: { xs: 340, sm: 'auto' },
+                }}>
+                  {calendarDays.map(({ day, date, dayOfWeek, isWeekend }) => (
+                    <Paper
+                      key={date}
+                      elevation={1}
+                      sx={{
+                        p: { xs: 0.25, sm: 0.5 },
+                        textAlign: 'center',
+                        bgcolor: isWeekend ? 'grey.100' : 'background.paper',
+                        border: assignments[date] ? `2px solid ${getDayColor(date)}` : '1px solid',
+                        borderColor: assignments[date] ? getDayColor(date) : 'divider',
+                        borderRadius: 1,
+                        minHeight: { xs: 60, sm: 85 },
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
                     {/* Header zi */}
                     <Box sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      mb: 0.5,
+                      mb: { xs: 0.25, sm: 0.5 },
                     }}>
                       <Typography
                         variant="caption"
                         sx={{
                           fontWeight: 'bold',
-                          fontSize: '0.6rem',
+                          fontSize: { xs: '0.5rem', sm: '0.6rem' },
                           color: isWeekend ? 'error.main' : 'text.secondary',
                         }}
                       >
@@ -996,12 +1003,12 @@ const CreateSchedulePage: React.FC = () => {
                           bgcolor: isWeekend ? 'error.light' : 'primary.light',
                           color: 'white',
                           borderRadius: '50%',
-                          width: 18,
-                          height: 18,
+                          width: { xs: 16, sm: 18 },
+                          height: { xs: 16, sm: 18 },
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '0.65rem',
+                          fontSize: { xs: '0.55rem', sm: '0.65rem' },
                         }}
                       >
                         {day}
@@ -1009,16 +1016,16 @@ const CreateSchedulePage: React.FC = () => {
                     </Box>
 
                     {/* Selector tură */}
-                    <FormControl fullWidth size="small" sx={{ mb: 0.5 }}>
+                    <FormControl fullWidth size="small" sx={{ mb: { xs: 0.25, sm: 0.5 } }}>
                       <Select
                         value={assignments[date] || ''}
                         onChange={(e) => handleDayShiftChange(date, e.target.value)}
                         displayEmpty
                         sx={{
-                          fontSize: '0.65rem',
+                          fontSize: { xs: '0.55rem', sm: '0.65rem' },
                           '& .MuiSelect-select': {
-                            py: 0.3,
-                            px: 0.5,
+                            py: { xs: 0.2, sm: 0.3 },
+                            px: { xs: 0.25, sm: 0.5 },
                             bgcolor: getDayColor(date),
                             color: assignments[date] ? 'white' : 'inherit',
                             fontWeight: assignments[date] ? 'bold' : 'normal',
@@ -1057,10 +1064,10 @@ const CreateSchedulePage: React.FC = () => {
                           value={workPositions[date] || dbWorkPositions[0]?.id || ''}
                           onChange={(e) => handleWorkPositionChange(date, e.target.value)}
                           sx={{
-                            fontSize: '0.6rem',
+                            fontSize: { xs: '0.5rem', sm: '0.6rem' },
                             '& .MuiSelect-select': {
-                              py: 0.2,
-                              px: 0.5,
+                              py: { xs: 0.15, sm: 0.2 },
+                              px: { xs: 0.25, sm: 0.5 },
                               bgcolor: dbWorkPositions.find(p => p.id === (workPositions[date] || dbWorkPositions[0]?.id))?.color || '#2196F3',
                               color: 'white',
                               fontWeight: 'bold',
@@ -1090,7 +1097,8 @@ const CreateSchedulePage: React.FC = () => {
                       </FormControl>
                     )}
                   </Paper>
-                ))}
+                  ))}
+                </Box>
               </Box>
             </CardContent>
           </Card>

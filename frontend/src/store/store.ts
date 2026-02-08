@@ -7,6 +7,7 @@ import { departmentsApi } from './api/departmentsApi';
 import { notificationsApi } from './api/notifications.api';
 import { shiftSwapsApi } from './api/shiftSwaps.api';
 import { leaveRequestsApi } from './api/leaveRequests.api';
+import { parkingApi } from './api/parking.api';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     [notificationsApi.reducerPath]: notificationsApi.reducer,
     [shiftSwapsApi.reducerPath]: shiftSwapsApi.reducer,
     [leaveRequestsApi.reducerPath]: leaveRequestsApi.reducer,
+    [parkingApi.reducerPath]: parkingApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -27,7 +29,8 @@ export const store = configureStore({
       departmentsApi.middleware,
       notificationsApi.middleware,
       shiftSwapsApi.middleware,
-      leaveRequestsApi.middleware
+      leaveRequestsApi.middleware,
+      parkingApi.middleware
     ),
 });
 

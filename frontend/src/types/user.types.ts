@@ -1,5 +1,10 @@
 export type UserRole = 'ADMIN' | 'MANAGER' | 'USER';
 
+export interface Department {
+  id: string;
+  name: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -7,6 +12,7 @@ export interface User {
   phone: string | null;
   role: UserRole;
   departmentId: string | null;
+  department?: Department | null;
   avatarUrl: string | null;
   isActive: boolean;
   birthDate: string | null;
