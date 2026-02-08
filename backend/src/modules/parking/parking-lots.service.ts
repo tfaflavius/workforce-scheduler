@@ -60,4 +60,53 @@ export class ParkingLotsService {
 
     return machine;
   }
+
+  async seedData(): Promise<{ message: string; parkingLots: number; paymentMachines: number }> {
+    // Check if data already exists
+    const existingLots = await this.parkingLotRepository.count();
+    if (existingLots > 0) {
+      return { message: 'Data already exists', parkingLots: existingLots, paymentMachines: await this.paymentMachineRepository.count() };
+    }
+
+    // Seed parking lots and payment machines
+    const parkingLotsData = [
+      { name: 'Parcare Baritiu', code: 'BARITIU', machines: ['631', '632'] },
+      { name: 'Parcarea Doja', code: 'DOJA', machines: ['681', '682', '683'] },
+      { name: 'Parcarea Brașovului', code: 'BRASOVULUI', machines: ['611', '612'] },
+      { name: 'Parcarea Independenței', code: 'INDEPENDENTEI', machines: ['601', '602'] },
+      { name: 'Parcarea Iosif Vulcan', code: 'IOSIF_VULCAN', machines: ['661'] },
+      { name: 'Parcarea Tribunalului', code: 'TRIBUNALULUI', machines: ['651', '652'] },
+      { name: 'Parcarea Spital Municipal', code: 'SPITAL_MUNICIPAL', machines: ['641'] },
+      { name: 'Parcarea Cetate', code: 'CETATE', machines: ['671', '672', '673'] },
+      { name: 'Parcarea Primărie', code: 'PRIMARIE', machines: ['621'] },
+    ];
+
+    let totalMachines = 0;
+
+    for (const lotData of parkingLotsData) {
+      const parkingLot = this.parkingLotRepository.create({
+        name: lotData.name,
+        code: lotData.code,
+        isActive: true,
+      });
+
+      const savedLot = await this.parkingLotRepository.save(parkingLot);
+
+      for (const machineNumber of lotData.machines) {
+        const machine = this.paymentMachineRepository.create({
+          parkingLotId: savedLot.id,
+          machineNumber,
+          isActive: true,
+        });
+        await this.paymentMachineRepository.save(machine);
+        totalMachines++;
+      }
+    }
+
+    return {
+      message: 'Data seeded successfully',
+      parkingLots: parkingLotsData.length,
+      paymentMachines: totalMachines
+    };
+  }
 }

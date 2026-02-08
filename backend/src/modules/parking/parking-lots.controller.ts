@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ParkingAccessGuard } from './guards/parking-access.guard';
 import { ParkingLotsService } from './parking-lots.service';
@@ -10,6 +10,11 @@ import { EQUIPMENT_LIST, DAMAGE_EQUIPMENT_LIST, COMPANY_LIST } from './constants
 @UseGuards(JwtAuthGuard, ParkingAccessGuard)
 export class ParkingLotsController {
   constructor(private readonly parkingLotsService: ParkingLotsService) {}
+
+  @Post('seed')
+  async seedData(): Promise<{ message: string; parkingLots: number; paymentMachines: number }> {
+    return this.parkingLotsService.seedData();
+  }
 
   @Get()
   async findAll(): Promise<ParkingLot[]> {
