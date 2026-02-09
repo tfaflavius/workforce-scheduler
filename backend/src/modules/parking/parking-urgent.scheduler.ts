@@ -25,8 +25,8 @@ export class ParkingUrgentScheduler {
     private readonly departmentRepository: Repository<Department>,
   ) {}
 
-  // Rulează la fiecare oră pentru a marca problemele urgente
-  @Cron(CronExpression.EVERY_HOUR)
+  // Rulează zilnic la 08:00 și 13:00 pentru a marca problemele urgente (după 48h nerezolvate)
+  @Cron('0 8,13 * * *')
   async handleMarkUrgent() {
     this.logger.log('Verificare probleme și prejudicii nerezolvate de 48h+...');
 
@@ -42,8 +42,8 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Rulează de 2 ori pe zi (la 8:00 și 16:00) pentru notificări urgente in-app și email
-  @Cron('0 8,16 * * *')
+  // Rulează de 2 ori pe zi (la 08:00 și 13:00) pentru notificări urgente in-app și email
+  @Cron('0 8,13 * * *')
   async handleNotifyUrgent() {
     this.logger.log('Trimitere notificări și emailuri pentru probleme urgente...');
 
