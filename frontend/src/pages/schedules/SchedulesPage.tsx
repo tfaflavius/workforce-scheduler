@@ -332,6 +332,30 @@ const SchedulesPage: React.FC = () => {
       });
     }
 
+    // Sortare după departament: Dispecerat → Control → Întreținere
+    const departmentOrder: Record<string, number> = {
+      'Dispecerat': 1,
+      'Control': 2,
+      'Întreținere': 3,
+      'Intretinere': 3, // fallback pentru varianta fără diacritice
+    };
+
+    filtered.sort((a, b) => {
+      const deptA = a.department?.name || '';
+      const deptB = b.department?.name || '';
+
+      const orderA = departmentOrder[deptA] || 99;
+      const orderB = departmentOrder[deptB] || 99;
+
+      // Prima sortare: după departament
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      // A doua sortare: alfabetic după nume în cadrul aceluiași departament
+      return a.fullName.localeCompare(b.fullName);
+    });
+
     return filtered;
   }, [eligibleUsers, searchQuery, departmentFilter, shiftFilter, dayFilter, workPositionFilter, selectedMonth, allUsersAssignments]);
 
