@@ -98,6 +98,12 @@ export class UsersService {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
+    // Dacă se actualizează departmentId, trebuie să ștergem relația department
+    // pentru ca TypeORM să folosească noul departmentId
+    if (updateUserDto.departmentId !== undefined) {
+      delete (user as any).department;
+    }
+
     Object.assign(user, updateUserDto);
     return this.userRepository.save(user);
   }
