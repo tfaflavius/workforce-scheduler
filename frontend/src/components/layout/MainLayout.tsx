@@ -20,6 +20,9 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
+  alpha,
+  Fade,
+  Slide,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -41,19 +44,25 @@ import { logoutAsync } from '../../store/slices/auth.slice';
 import type { UserRole } from '../../types/user.types';
 import NotificationBell from '../notifications/NotificationBell';
 
-const drawerWidth = 240;
+// Responsive drawer width based on screen size
+const getDrawerWidth = (isTablet: boolean) => isTablet ? 220 : 260;
 
 interface MenuItem {
   text: string;
   icon: React.ReactNode;
   path: string;
   roles: UserRole[];
-  requiresDepartment?: string; // Departament necesar pentru USER
+  requiresDepartment?: string;
 }
 
 export const MainLayout = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // Updated breakpoints for modern devices
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg')); // 430px - 1024px
+  const showPermanentDrawer = useMediaQuery(theme.breakpoints.up('lg'));
+
+  const drawerWidth = getDrawerWidth(isTablet);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -81,7 +90,7 @@ export const MainLayout = () => {
 
   const handleNavigate = (path: string) => {
     navigate(path);
-    if (isMobile) {
+    if (!showPermanentDrawer) {
       setMobileOpen(false);
     }
   };
@@ -146,24 +155,17 @@ export const MainLayout = () => {
       icon: <ParkingIcon />,
       path: '/parking',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartment: 'Dispecerat', // USER-ii trebuie să fie din Dispecerat
+      requiresDepartment: 'Dispecerat',
     },
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
     if (!user) return false;
-
-    // Verifică dacă userul are rolul necesar
     if (!item.roles.includes(user.role)) return false;
-
-    // Pentru ADMIN și MANAGER, nu verificăm departamentul
     if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
-
-    // Pentru USER cu requiresDepartment, verificăm departamentul
     if (item.requiresDepartment && user.role === 'USER') {
       return user.department?.name === item.requiresDepartment;
     }
-
     return true;
   });
 
@@ -194,124 +196,262 @@ export const MainLayout = () => {
   };
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: theme.palette.mode === 'light'
+          ? 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)'
+          : 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+      }}
+    >
       {/* Logo */}
       <Box
         sx={{
-          p: 2,
+          p: { xs: 1.5, sm: 2 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          minHeight: { xs: 56, sm: 64 },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <CalendarIcon sx={{ fontSize: 28, color: 'primary.main' }} />
-          <Typography variant="h6" fontWeight="bold">
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease',
+            '&:hover': {
+              transform: 'scale(1.02)',
+            },
+          }}
+          onClick={() => handleNavigate('/dashboard')}
+        >
+          <Box
+            sx={{
+              width: { xs: 36, sm: 40 },
+              height: { xs: 36, sm: 40 },
+              borderRadius: 2,
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+            }}
+          >
+            <CalendarIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: 'white' }} />
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '1rem', sm: '1.1rem' },
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
             WorkSchedule
           </Typography>
         </Box>
-        {isMobile && (
-          <IconButton onClick={handleDrawerToggle}>
+        {!showPermanentDrawer && (
+          <IconButton
+            onClick={handleDrawerToggle}
+            sx={{
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              '&:hover': {
+                bgcolor: alpha(theme.palette.primary.main, 0.2),
+              },
+            }}
+          >
             <ChevronLeftIcon />
           </IconButton>
         )}
       </Box>
 
-      <Divider />
+      <Divider sx={{ opacity: 0.6 }} />
 
       {/* User Info */}
-      <Box sx={{ p: 2, bgcolor: 'grey.50' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar sx={{ width: 44, height: 44, bgcolor: 'primary.main' }}>
+      <Box
+        sx={{
+          p: { xs: 1.5, sm: 2 },
+          background: alpha(theme.palette.primary.main, 0.04),
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar
+            sx={{
+              width: { xs: 40, sm: 48 },
+              height: { xs: 40, sm: 48 },
+              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              fontSize: { xs: '1rem', sm: '1.2rem' },
+              fontWeight: 600,
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+            }}
+          >
             {user?.fullName?.charAt(0).toUpperCase() || 'U'}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="subtitle2" fontWeight="medium" noWrap>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 600,
+                fontSize: { xs: '0.85rem', sm: '0.95rem' },
+                lineHeight: 1.3,
+              }}
+              noWrap
+            >
               {user?.fullName || 'Utilizator'}
             </Typography>
             <Chip
               label={getRoleLabel(user?.role || 'USER')}
               color={getRoleColor(user?.role || 'USER')}
               size="small"
-              sx={{ mt: 0.5, height: 20, fontSize: '0.7rem' }}
+              sx={{
+                mt: 0.5,
+                height: { xs: 20, sm: 22 },
+                fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                fontWeight: 600,
+                '& .MuiChip-label': {
+                  px: 1,
+                },
+              }}
             />
           </Box>
         </Box>
       </Box>
 
-      <Divider />
+      <Divider sx={{ opacity: 0.6 }} />
 
       {/* Navigation */}
-      <List sx={{ flex: 1, py: 1 }}>
-        {filteredMenuItems.map((item) => {
+      <List
+        sx={{
+          flex: 1,
+          py: 1,
+          px: { xs: 0.5, sm: 1 },
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          '&::-webkit-scrollbar': {
+            width: 4,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            borderRadius: 2,
+            bgcolor: alpha(theme.palette.primary.main, 0.2),
+          },
+        }}
+      >
+        {filteredMenuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (
-            <ListItem key={item.path} disablePadding sx={{ px: 1, py: 0.25 }}>
-              <ListItemButton
-                onClick={() => handleNavigate(item.path)}
-                sx={{
-                  borderRadius: 2,
-                  bgcolor: isActive ? 'primary.main' : 'transparent',
-                  color: isActive ? 'white' : 'text.primary',
-                  '&:hover': {
-                    bgcolor: isActive ? 'primary.dark' : 'action.hover',
-                  },
-                }}
-              >
-                <ListItemIcon
+            <Fade in={true} key={item.path} style={{ transitionDelay: `${index * 30}ms` }}>
+              <ListItem disablePadding sx={{ py: 0.25 }}>
+                <ListItemButton
+                  onClick={() => handleNavigate(item.path)}
                   sx={{
-                    color: isActive ? 'white' : 'text.secondary',
-                    minWidth: 40,
+                    borderRadius: 2,
+                    mx: 0.5,
+                    py: { xs: 1, sm: 1.25 },
+                    px: { xs: 1.5, sm: 2 },
+                    bgcolor: isActive
+                      ? 'primary.main'
+                      : 'transparent',
+                    color: isActive ? 'white' : 'text.primary',
+                    boxShadow: isActive ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      bgcolor: isActive
+                        ? 'primary.dark'
+                        : alpha(theme.palette.primary.main, 0.08),
+                      transform: 'translateX(4px)',
+                    },
+                    '&:active': {
+                      transform: 'translateX(2px)',
+                    },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: '0.9rem',
-                    fontWeight: isActive ? 600 : 400,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
+                  <ListItemIcon
+                    sx={{
+                      color: isActive ? 'white' : 'text.secondary',
+                      minWidth: { xs: 36, sm: 40 },
+                      '& .MuiSvgIcon-root': {
+                        fontSize: { xs: '1.25rem', sm: '1.4rem' },
+                      },
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                      fontWeight: isActive ? 600 : 500,
+                      noWrap: true,
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            </Fade>
           );
         })}
       </List>
 
-      <Divider />
+      <Divider sx={{ opacity: 0.6 }} />
 
       {/* Bottom Actions */}
-      <List sx={{ py: 1 }}>
-        <ListItem disablePadding sx={{ px: 1 }}>
+      <List sx={{ py: 1, px: { xs: 0.5, sm: 1 } }}>
+        <ListItem disablePadding>
           <ListItemButton
             onClick={() => handleNavigate('/profile')}
-            sx={{ borderRadius: 2 }}
+            sx={{
+              borderRadius: 2,
+              mx: 0.5,
+              py: { xs: 1, sm: 1.25 },
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                transform: 'translateX(4px)',
+              },
+            }}
           >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <SettingsIcon />
+            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 } }}>
+              <SettingsIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem' } }} />
             </ListItemIcon>
             <ListItemText
               primary="Profil"
-              primaryTypographyProps={{ fontSize: '0.9rem' }}
+              primaryTypographyProps={{
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                fontWeight: 500,
+              }}
             />
           </ListItemButton>
         </ListItem>
-        <ListItem disablePadding sx={{ px: 1 }}>
+        <ListItem disablePadding>
           <ListItemButton
             onClick={handleLogout}
             sx={{
               borderRadius: 2,
+              mx: 0.5,
+              py: { xs: 1, sm: 1.25 },
               color: 'error.main',
-              '&:hover': { bgcolor: 'error.lighter' },
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: alpha(theme.palette.error.main, 0.08),
+                transform: 'translateX(4px)',
+              },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
-              <LogoutIcon />
+            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 }, color: 'error.main' }}>
+              <LogoutIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem' } }} />
             </ListItemIcon>
             <ListItemText
               primary="Deconectare"
-              primaryTypographyProps={{ fontSize: '0.9rem' }}
+              primaryTypographyProps={{
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                fontWeight: 500,
+              }}
             />
           </ListItemButton>
         </ListItem>
@@ -320,29 +460,52 @@ export const MainLayout = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* App Bar */}
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-          bgcolor: 'white',
+          width: { lg: `calc(100% - ${drawerWidth}px)` },
+          ml: { lg: `${drawerWidth}px` },
+          bgcolor: alpha(theme.palette.background.paper, 0.8),
+          backdropFilter: 'blur(8px)',
           color: 'text.primary',
-          boxShadow: 1,
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         }}
       >
-        <Toolbar>
+        <Toolbar
+          sx={{
+            minHeight: { xs: 56, sm: 64 },
+            px: { xs: 1.5, sm: 2, md: 3 },
+          }}
+        >
           <IconButton
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{
+              mr: { xs: 1, sm: 2 },
+              display: { lg: 'none' },
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              '&:hover': {
+                bgcolor: alpha(theme.palette.primary.main, 0.15),
+              },
+            }}
           >
             <MenuIcon />
           </IconButton>
 
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{
+              flexGrow: 1,
+              fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
+              fontWeight: 600,
+            }}
+          >
             {filteredMenuItems.find((item) => item.path === location.pathname)?.text || 'WorkSchedule'}
           </Typography>
 
@@ -350,8 +513,22 @@ export const MainLayout = () => {
           <NotificationBell />
 
           <Tooltip title="Contul meu">
-            <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0, ml: 1 }}>
-              <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main' }}>
+            <IconButton
+              onClick={handleProfileMenuOpen}
+              sx={{
+                p: 0.5,
+                ml: { xs: 0.5, sm: 1 },
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: { xs: 32, sm: 36 },
+                  height: { xs: 32, sm: 36 },
+                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
+                  fontWeight: 600,
+                }}
+              >
                 {user?.fullName?.charAt(0).toUpperCase() || 'U'}
               </Avatar>
             </IconButton>
@@ -363,15 +540,29 @@ export const MainLayout = () => {
             onClose={handleProfileMenuClose}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            PaperProps={{
+              sx: {
+                mt: 1,
+                minWidth: 180,
+                borderRadius: 2,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+              },
+            }}
           >
-            <MenuItem onClick={() => { handleNavigate('/profile'); handleProfileMenuClose(); }}>
+            <MenuItem
+              onClick={() => { handleNavigate('/profile'); handleProfileMenuClose(); }}
+              sx={{ py: 1.5 }}
+            >
               <ListItemIcon>
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
               Profilul Meu
             </MenuItem>
             <Divider />
-            <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+            <MenuItem
+              onClick={handleLogout}
+              sx={{ color: 'error.main', py: 1.5 }}
+            >
               <ListItemIcon>
                 <LogoutIcon fontSize="small" color="error" />
               </ListItemIcon>
@@ -384,33 +575,36 @@ export const MainLayout = () => {
       {/* Sidebar */}
       <Box
         component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+        sx={{ width: { lg: drawerWidth }, flexShrink: { lg: 0 } }}
       >
+        {/* Mobile/Tablet Drawer */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{ keepMounted: true }}
           sx={{
-            display: { xs: 'block', md: 'none' },
+            display: { xs: 'block', lg: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
-              width: drawerWidth,
+              width: { xs: '85vw', sm: drawerWidth },
+              maxWidth: 300,
+              borderRight: 'none',
             },
           }}
         >
           {drawer}
         </Drawer>
 
+        {/* Desktop Drawer */}
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', md: 'block' },
+            display: { xs: 'none', lg: 'block' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
               width: drawerWidth,
-              borderRight: '1px solid',
-              borderColor: 'divider',
+              borderRight: 'none',
             },
           }}
           open
@@ -424,16 +618,28 @@ export const MainLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, sm: 2.5, md: 3 },
-          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          p: { xs: 1.5, sm: 2, md: 3 },
+          width: { xs: '100%', lg: `calc(100% - ${drawerWidth}px)` },
           mt: { xs: '56px', sm: '64px' },
-          bgcolor: 'grey.50',
           minHeight: { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 64px)' },
           overflow: 'auto',
           maxWidth: '100%',
+          // Smooth scrolling
+          scrollBehavior: 'smooth',
+          '&::-webkit-scrollbar': {
+            width: 8,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            borderRadius: 4,
+            bgcolor: alpha(theme.palette.primary.main, 0.2),
+          },
         }}
       >
-        <Outlet />
+        <Slide direction="up" in={true} mountOnEnter unmountOnExit>
+          <Box>
+            <Outlet />
+          </Box>
+        </Slide>
       </Box>
     </Box>
   );
