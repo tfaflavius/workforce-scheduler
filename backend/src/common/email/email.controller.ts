@@ -1,4 +1,5 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { IsEmail, IsString, IsNotEmpty } from 'class-validator';
 import { EmailService } from './email.service';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -6,7 +7,12 @@ import { Roles } from '../decorators/roles.decorator';
 import { UserRole } from '../../modules/users/entities/user.entity';
 
 class SendTestEmailDto {
+  @IsEmail()
+  @IsNotEmpty()
   email: string;
+
+  @IsString()
+  @IsNotEmpty()
   name: string;
 }
 
