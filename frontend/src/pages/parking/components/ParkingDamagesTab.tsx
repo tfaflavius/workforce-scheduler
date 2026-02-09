@@ -111,11 +111,17 @@ const ParkingDamagesTab: React.FC = () => {
           borderColor: 'error.main',
           borderRadius: 2,
           transition: 'all 0.2s ease',
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          cursor: 'pointer',
           '&:hover': {
-            transform: 'translateY(-2px)',
+            transform: 'translateY(-4px)',
             boxShadow: theme.palette.mode === 'light'
               ? '0 6px 20px rgba(0,0,0,0.1)'
               : '0 6px 20px rgba(0,0,0,0.3)',
+          },
+          '&:active': {
+            transform: 'scale(0.98)',
           },
         }}
       >

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
   Paper,
   Tabs,
   Tab,
+  Badge,
   useTheme,
   useMediaQuery,
   alpha,
@@ -19,6 +20,11 @@ import {
 import ParkingIssuesTab from './components/ParkingIssuesTab';
 import ParkingDamagesTab from './components/ParkingDamagesTab';
 import CashCollectionsTab from './components/CashCollectionsTab';
+import {
+  useGetParkingIssuesQuery,
+  useGetParkingDamagesQuery,
+  useGetCashCollectionsQuery,
+} from '../../store/api/parking.api';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -51,9 +57,21 @@ const ParkingPage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 430px
   const [tabValue, setTabValue] = useState(0);
 
+  // Fetch data for badge counts
+  const { data: activeIssues = [] } = useGetParkingIssuesQuery('ACTIVE');
+  const { data: activeDamages = [] } = useGetParkingDamagesQuery('ACTIVE');
+  const { data: cashCollections = [] } = useGetCashCollectionsQuery({});
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
+
+  // Calculate badge counts
+  const tabCounts = useMemo(() => [
+    activeIssues.length,
+    activeDamages.length,
+    cashCollections.length,
+  ], [activeIssues.length, activeDamages.length, cashCollections.length]);
 
   const tabConfig = [
     {
@@ -197,24 +215,39 @@ const ParkingPage: React.FC = () => {
             <Tab
               key={index}
               icon={
-                <Box
+                <Badge
+                  badgeContent={tabCounts[index]}
+                  color={index === 0 ? 'error' : index === 1 ? 'warning' : 'success'}
+                  max={99}
                   sx={{
-                    p: { xs: 0.75, sm: 1 },
-                    borderRadius: '50%',
-                    bgcolor: tabValue === index ? tab.bgColor : 'transparent',
-                    transition: 'all 0.3s ease',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    '& .MuiSvgIcon-root': {
-                      fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                      color: tabValue === index ? tab.color : 'text.secondary',
-                      transition: 'all 0.3s ease',
+                    '& .MuiBadge-badge': {
+                      fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                      minWidth: { xs: 16, sm: 18 },
+                      height: { xs: 16, sm: 18 },
+                      right: { xs: -2, sm: -4 },
+                      top: { xs: 2, sm: 0 },
                     },
                   }}
                 >
-                  {tab.icon}
-                </Box>
+                  <Box
+                    sx={{
+                      p: { xs: 0.75, sm: 1 },
+                      borderRadius: '50%',
+                      bgcolor: tabValue === index ? tab.bgColor : 'transparent',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      '& .MuiSvgIcon-root': {
+                        fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                        color: tabValue === index ? tab.color : 'text.secondary',
+                        transition: 'all 0.3s ease',
+                      },
+                    }}
+                  >
+                    {tab.icon}
+                  </Box>
+                </Badge>
               }
               label={isMobile ? tab.shortLabel : tab.label}
               iconPosition="top"

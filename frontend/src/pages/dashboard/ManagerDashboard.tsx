@@ -11,6 +11,7 @@ import {
   Button,
   Grow,
   Fade,
+  Divider,
   alpha,
   useTheme,
 } from '@mui/material';
@@ -20,10 +21,20 @@ import {
   Cancel as RejectedIcon,
   Schedule as ScheduleIcon,
   Groups as GroupsIcon,
+  ReportProblem as IssuesIcon,
+  Warning as DamagesIcon,
+  LocalAtm as CashIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule } from '../../types/schedule.types';
+import {
+  useGetParkingIssuesQuery,
+  useGetUrgentIssuesQuery,
+  useGetParkingDamagesQuery,
+  useGetUrgentDamagesQuery,
+  useGetCashCollectionTotalsQuery,
+} from '../../store/api/parking.api';
 
 interface StatCardProps {
   title: string;
@@ -149,6 +160,13 @@ const ManagerDashboard = () => {
   const { data: pendingSchedules, isLoading: pendingLoading } = useGetSchedulesQuery({ status: 'PENDING_APPROVAL' });
   const { data: approvedSchedules, isLoading: approvedLoading } = useGetSchedulesQuery({ status: 'APPROVED' });
   const { data: rejectedSchedules, isLoading: rejectedLoading } = useGetSchedulesQuery({ status: 'REJECTED' });
+
+  // Parking queries
+  const { data: activeIssues = [] } = useGetParkingIssuesQuery('ACTIVE');
+  const { data: urgentIssues = [] } = useGetUrgentIssuesQuery();
+  const { data: activeDamages = [] } = useGetParkingDamagesQuery('ACTIVE');
+  const { data: urgentDamages = [] } = useGetUrgentDamagesQuery();
+  const { data: cashTotals } = useGetCashCollectionTotalsQuery({});
 
   // Loading state
   if (draftLoading || pendingLoading || approvedLoading || rejectedLoading) {
@@ -337,6 +355,149 @@ const ManagerDashboard = () => {
                 delay={300}
                 urgent={myRejected.length > 0}
               />
+            </Grid>
+          </Grid>
+        </Box>
+      </Fade>
+
+      <Divider sx={{ my: { xs: 2, sm: 3 } }} />
+
+      {/* Parcări Etajate Section */}
+      <Fade in={true} timeout={1000}>
+        <Box>
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{
+              mb: { xs: 1.5, sm: 2 },
+              fontWeight: 700,
+              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+            }}
+          >
+            🅿️ Parcări Etajate
+          </Typography>
+          <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+              <StatCard
+                title="Probleme Active"
+                value={activeIssues.length}
+                subtitle={urgentIssues.length > 0 ? `${urgentIssues.length} urgente` : 'Niciuna urgentă'}
+                icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
+                color="#ef4444"
+                bgColor={alpha('#ef4444', 0.12)}
+                onClick={() => navigate('/parking')}
+                delay={400}
+                urgent={urgentIssues.length > 0}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+              <StatCard
+                title="Prejudicii Active"
+                value={activeDamages.length}
+                subtitle={urgentDamages.length > 0 ? `${urgentDamages.length} urgente` : 'Niciuna urgentă'}
+                icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
+                color="#f59e0b"
+                bgColor={alpha('#f59e0b', 0.12)}
+                onClick={() => navigate('/parking')}
+                delay={500}
+                urgent={urgentDamages.length > 0}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 12, md: 4 }}>
+              {/* Cash Summary Card - Special Design */}
+              <Grow in={true} timeout={1100}>
+                <Card
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    height: '100%',
+                    background: theme.palette.mode === 'light'
+                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                      : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                    color: 'white',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&:hover': {
+                      transform: 'translateY(-6px)',
+                      boxShadow: '0 12px 28px rgba(16, 185, 129, 0.35)',
+                    },
+                  }}
+                  onClick={() => navigate('/parking')}
+                >
+                  {/* Decorative circle */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -30,
+                      right: -30,
+                      width: 100,
+                      height: 100,
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                    }}
+                  />
+                  <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, position: 'relative' }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography
+                          variant="overline"
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.75rem' },
+                            letterSpacing: '0.5px',
+                            opacity: 0.9,
+                          }}
+                        >
+                          Total Încasări Automate
+                        </Typography>
+                        <Typography
+                          variant="h4"
+                          sx={{
+                            fontWeight: 800,
+                            my: 0.5,
+                            fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+                            lineHeight: 1,
+                          }}
+                        >
+                          {cashTotals
+                            ? new Intl.NumberFormat('ro-RO', {
+                                style: 'currency',
+                                currency: 'RON',
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              }).format(cashTotals.totalAmount || 0)
+                            : '0 RON'}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                            mt: 0.5,
+                            opacity: 0.85,
+                          }}
+                        >
+                          {cashTotals ? `${cashTotals.count || 0} ridicări înregistrate` : 'Nicio ridicare'}
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          p: { xs: 1.25, sm: 1.5, md: 2 },
+                          borderRadius: { xs: 2, sm: 2.5, md: 3 },
+                          bgcolor: 'rgba(255, 255, 255, 0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <CashIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 } }} />
+                      </Box>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grow>
             </Grid>
           </Grid>
         </Box>

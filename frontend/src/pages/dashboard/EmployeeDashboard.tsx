@@ -58,13 +58,18 @@ const ShiftCard = ({ date, assignment, isToday, isWeekend }: ShiftCardProps) => 
             : isWeekend
               ? alpha(theme.palette.grey[500], 0.08)
               : alpha(theme.palette.grey[500], 0.04),
-        minHeight: { xs: 75, sm: 85 },
+        minHeight: { xs: 70, sm: 80, md: 90 },
         transition: 'all 0.2s ease',
+        touchAction: 'manipulation',
+        WebkitTapHighlightColor: 'transparent',
         '&:hover': {
           transform: 'scale(1.02)',
           boxShadow: theme.palette.mode === 'light'
             ? '0 4px 12px rgba(0,0,0,0.1)'
             : '0 4px 12px rgba(0,0,0,0.3)',
+        },
+        '&:active': {
+          transform: 'scale(0.98)',
         },
       }}
     >
@@ -605,10 +610,10 @@ const EmployeeDashboard = () => {
 
           {/* Calendar Grid */}
           {!isMobile ? (
-            <Grid container spacing={0.75}>
+            <Grid container spacing={{ xs: 0.5, sm: 0.75, md: 1 }}>
               {Array.from({ length: monthDates[0]?.getDay() || 0 }).map((_, i) => (
                 <Grid size={{ xs: 12 / 7 }} key={`empty-${i}`}>
-                  <Box sx={{ minHeight: { xs: 75, sm: 85 } }} />
+                  <Box sx={{ minHeight: { xs: 70, sm: 80, md: 90 } }} />
                 </Grid>
               ))}
               {monthDates.map((date) => {
@@ -645,6 +650,11 @@ const EmployeeDashboard = () => {
                           ? theme.palette.background.paper
                           : alpha(theme.palette.grey[500], 0.04),
                       transition: 'all 0.2s ease',
+                      touchAction: 'manipulation',
+                      WebkitTapHighlightColor: 'transparent',
+                      '&:active': {
+                        transform: 'scale(0.98)',
+                      },
                     }}
                   >
                     <CardContent sx={{ p: 1.75, '&:last-child': { pb: 1.75 } }}>
