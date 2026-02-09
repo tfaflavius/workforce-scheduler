@@ -19,6 +19,8 @@ import {
   CardContent,
   Tabs,
   Tab,
+  alpha,
+  Grid,
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
@@ -29,7 +31,10 @@ import {
   BeachAccess as LeaveIcon,
   SwapHoriz as SwapIcon,
   Summarize as TotalIcon,
+  AccessTime as TimeIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
+import { GradientHeader, StatCard } from '../../components/common';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetAllLeaveRequestsQuery } from '../../store/api/leaveRequests.api';
@@ -1465,29 +1470,89 @@ const ReportsPage: React.FC = () => {
     );
   };
 
+  // Calculate summary statistics
+  const totalHoursAll = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
+  const totalLeaveDaysAll = filteredLeaveRequests
+    .filter(r => r.status === 'APPROVED')
+    .reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
+  const totalSwapsApproved = filteredSwapRequests.filter(r => r.status === 'APPROVED').length;
+
   return (
     <Box sx={{ width: '100%' }}>
       <Stack spacing={3}>
-        {/* Header */}
-        <Box sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          gap: 2
-        }}>
-          <Box>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <ReportIcon color="primary" />
-              <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                Rapoarte
-              </Typography>
-            </Stack>
-            <Typography variant="body2" color="text.secondary">
-              Generează rapoarte PDF sau Excel pentru program, concedii și schimburi
-            </Typography>
-          </Box>
-        </Box>
+        {/* Header with Gradient */}
+        <GradientHeader
+          title="Rapoarte"
+          subtitle={`Generează rapoarte pentru ${monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth}`}
+          icon={<ReportIcon />}
+          gradient="#6366f1 0%, #8b5cf6 100%"
+        >
+          <Chip
+            icon={<TimeIcon sx={{ fontSize: 16 }} />}
+            label={`${totalHoursAll} ore`}
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            size="small"
+          />
+          <Chip
+            icon={<PeopleIcon sx={{ fontSize: 16 }} />}
+            label={`${filteredUsers.length} angajați`}
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            size="small"
+          />
+          <Chip
+            icon={<LeaveIcon sx={{ fontSize: 16 }} />}
+            label={`${totalLeaveDaysAll} zile CO`}
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            size="small"
+          />
+        </GradientHeader>
+
+        {/* Summary KPI Cards */}
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard
+              title="Ore Lucrate"
+              value={totalHoursAll}
+              subtitle={`Normă: ${monthlyHoursNorm * filteredUsers.length}`}
+              icon={<TimeIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#6366f1' }} />}
+              color="#6366f1"
+              bgColor={alpha('#6366f1', 0.12)}
+              delay={0}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard
+              title="Angajați"
+              value={filteredUsers.length}
+              icon={<PeopleIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#10b981' }} />}
+              color="#10b981"
+              bgColor={alpha('#10b981', 0.12)}
+              delay={100}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard
+              title="Zile Concediu"
+              value={totalLeaveDaysAll}
+              subtitle={`${filteredLeaveRequests.filter(r => r.status === 'APPROVED').length} cereri`}
+              icon={<LeaveIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f59e0b' }} />}
+              color="#f59e0b"
+              bgColor={alpha('#f59e0b', 0.12)}
+              delay={200}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard
+              title="Schimburi"
+              value={totalSwapsApproved}
+              subtitle={`din ${filteredSwapRequests.length} cereri`}
+              icon={<SwapIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#2563eb' }} />}
+              color="#2563eb"
+              bgColor={alpha('#2563eb', 0.12)}
+              delay={300}
+            />
+          </Grid>
+        </Grid>
 
         {/* Card cu filtre și export */}
         <Card>

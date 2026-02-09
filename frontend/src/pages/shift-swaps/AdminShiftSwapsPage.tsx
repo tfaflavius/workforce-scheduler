@@ -28,6 +28,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  alpha,
+  Grid,
 } from '@mui/material';
 import {
   SwapHoriz as SwapIcon,
@@ -42,7 +44,9 @@ import {
   CheckCircle as ApprovedIcon,
   Error as RejectedIcon,
   Visibility as ViewIcon,
+  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
+import { GradientHeader, StatCard } from '../../components/common';
 import {
   useGetAllSwapRequestsQuery,
   useApproveSwapRequestMutation,
@@ -325,17 +329,34 @@ const AdminShiftSwapsPage = () => {
     );
   }
 
+  // Statistics
+  const approvedCount = allRequests.filter((r) => r.status === 'APPROVED').length;
+  const rejectedCount = allRequests.filter((r) => r.status === 'REJECTED').length;
+
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-          Administrare Schimburi de Ture
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Gestionează și aprobă cererile de schimb de ture
-        </Typography>
-      </Box>
+      {/* Header with Gradient */}
+      <GradientHeader
+        title="Administrare Schimburi"
+        subtitle="Gestionează și aprobă cererile de schimb de ture"
+        icon={<AdminIcon />}
+        gradient="#6366f1 0%, #8b5cf6 100%"
+      >
+        <Chip
+          icon={<SwapIcon sx={{ fontSize: 16 }} />}
+          label={`${allRequests.length} total`}
+          sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+          size="small"
+        />
+        {awaitingAdminRequests.length > 0 && (
+          <Chip
+            icon={<TimeIcon sx={{ fontSize: 16 }} />}
+            label={`${awaitingAdminRequests.length} de aprobat`}
+            sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 600 }}
+            size="small"
+          />
+        )}
+      </GradientHeader>
 
       {/* Error/Success Messages */}
       {errorMessage && (
@@ -349,42 +370,52 @@ const AdminShiftSwapsPage = () => {
         </Alert>
       )}
 
-      {/* Summary Cards */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
-        <Paper sx={{ p: 2, flex: 1, bgcolor: 'info.lighter' }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar sx={{ bgcolor: 'info.main' }}>
-              <TimeIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="h4" fontWeight="bold">{awaitingAdminRequests.length}</Typography>
-              <Typography variant="body2">Așteaptă aprobare</Typography>
-            </Box>
-          </Stack>
-        </Paper>
-        <Paper sx={{ p: 2, flex: 1, bgcolor: 'warning.lighter' }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar sx={{ bgcolor: 'warning.main' }}>
-              <PendingIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="h4" fontWeight="bold">{pendingRequests.length}</Typography>
-              <Typography variant="body2">În curs</Typography>
-            </Box>
-          </Stack>
-        </Paper>
-        <Paper sx={{ p: 2, flex: 1, bgcolor: 'success.lighter' }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Avatar sx={{ bgcolor: 'success.main' }}>
-              <ApprovedIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="h4" fontWeight="bold">{allRequests.filter((r) => r.status === 'APPROVED').length}</Typography>
-              <Typography variant="body2">Aprobate</Typography>
-            </Box>
-          </Stack>
-        </Paper>
-      </Stack>
+      {/* Summary Cards with StatCard */}
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <StatCard
+            title="Așteaptă Aprobare"
+            value={awaitingAdminRequests.length}
+            subtitle={awaitingAdminRequests.length > 0 ? 'Acțiune necesară' : undefined}
+            icon={<TimeIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f59e0b' }} />}
+            color="#f59e0b"
+            bgColor={alpha('#f59e0b', 0.12)}
+            delay={0}
+            urgent={awaitingAdminRequests.length > 0}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <StatCard
+            title="În Curs"
+            value={pendingRequests.length}
+            subtitle="Așteaptă răspuns"
+            icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#2563eb' }} />}
+            color="#2563eb"
+            bgColor={alpha('#2563eb', 0.12)}
+            delay={100}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <StatCard
+            title="Aprobate"
+            value={approvedCount}
+            icon={<ApprovedIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#10b981' }} />}
+            color="#10b981"
+            bgColor={alpha('#10b981', 0.12)}
+            delay={200}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <StatCard
+            title="Respinse"
+            value={rejectedCount}
+            icon={<RejectedIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ef4444' }} />}
+            color="#ef4444"
+            bgColor={alpha('#ef4444', 0.12)}
+            delay={300}
+          />
+        </Grid>
+      </Grid>
 
       {/* Tabs */}
       <Paper sx={{ width: '100%' }}>

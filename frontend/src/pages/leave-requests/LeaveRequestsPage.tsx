@@ -21,6 +21,9 @@ import {
   useMediaQuery,
   Paper,
   Grid,
+  alpha,
+  LinearProgress,
+  Grow,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -32,7 +35,9 @@ import {
   Cake as BirthdayIcon,
   Star as SpecialIcon,
   EventAvailable as ExtraDaysIcon,
+  EventBusy as EventBusyIcon,
 } from '@mui/icons-material';
+import { GradientHeader, EmptyState } from '../../components/common';
 import {
   useGetMyLeaveRequestsQuery,
   useGetMyLeaveBalanceQuery,
@@ -191,34 +196,51 @@ export const LeaveRequestsPage = () => {
     );
   }
 
+  // Statistics
+  const pendingCount = requests.filter(r => r.status === 'PENDING').length;
+  const totalDaysAvailable = balances.reduce((sum, b) => sum + (b.totalDays - b.usedDays), 0);
+
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Header */}
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'flex-start', sm: 'center' }}
-        spacing={2}
-        sx={{ mb: 3 }}
+      {/* Header with Gradient */}
+      <GradientHeader
+        title="Concediile Mele"
+        subtitle="Solicită și gestionează cererile tale de concediu"
+        icon={<BeachIcon />}
+        gradient="#10b981 0%, #059669 100%"
       >
-        <Box>
-          <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-            Concedii
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-            Solicită și gestionează cererile tale de concediu
-          </Typography>
-        </Box>
+        <Chip
+          icon={<BeachIcon sx={{ fontSize: 16 }} />}
+          label={`${totalDaysAvailable} zile disponibile`}
+          sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+          size="small"
+        />
+        {pendingCount > 0 && (
+          <Chip
+            icon={<PendingIcon sx={{ fontSize: 16 }} />}
+            label={`${pendingCount} în așteptare`}
+            sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white' }}
+            size="small"
+          />
+        )}
+      </GradientHeader>
+
+      {/* Action Button */}
+      <Box sx={{ mb: 3 }}>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenDialog}
           fullWidth={isMobile}
           size={isMobile ? 'large' : 'medium'}
+          sx={{
+            bgcolor: '#10b981',
+            '&:hover': { bgcolor: '#059669' },
+          }}
         >
-          Cerere Nouă
+          Cerere Nouă de Concediu
         </Button>
-      </Stack>
+      </Box>
 
       {/* Error/Success Messages */}
       {errorMessage && (
@@ -232,44 +254,135 @@ export const LeaveRequestsPage = () => {
         </Alert>
       )}
 
-      {/* Balance Cards */}
-      <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+      {/* Balance Cards with Progress Bars */}
+      <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' }, fontWeight: 600 }}>
         Zile Disponibile ({new Date().getFullYear()})
       </Typography>
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 4 }}>
-        {balances.map((balance) => (
-          <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={balance.id}>
-            <Paper
-              sx={{
-                p: { xs: 1.5, sm: 2 },
-                textAlign: 'center',
-                bgcolor: balance.totalDays - balance.usedDays > 0 ? 'success.lighter' : 'grey.100',
-                height: '100%',
-              }}
-            >
-              <Box sx={{ mb: 0.5 }}>{getLeaveTypeIcon(balance.leaveType)}</Box>
-              <Typography
-                variant="caption"
-                display="block"
-                noWrap
-                sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' }, fontWeight: 500 }}
-              >
-                {LEAVE_TYPE_LABELS[balance.leaveType]}
-              </Typography>
-              <Typography
-                variant="h5"
-                fontWeight="bold"
-                color="primary"
-                sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
-              >
-                {balance.totalDays - balance.usedDays}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
-                din {balance.totalDays} zile
-              </Typography>
-            </Paper>
-          </Grid>
-        ))}
+        {balances.map((balance, index) => {
+          const remaining = balance.totalDays - balance.usedDays;
+          const usedPercentage = (balance.usedDays / balance.totalDays) * 100;
+          const isLow = remaining <= balance.totalDays * 0.2 && remaining > 0;
+          const isEmpty = remaining === 0;
+
+          return (
+            <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={balance.id}>
+              <Grow in={true} timeout={500 + index * 100}>
+                <Paper
+                  sx={{
+                    p: { xs: 1.5, sm: 2 },
+                    textAlign: 'center',
+                    height: '100%',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: theme.shadows[4],
+                    },
+                  }}
+                >
+                  {/* Background decoration */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -20,
+                      right: -20,
+                      width: 60,
+                      height: 60,
+                      borderRadius: '50%',
+                      bgcolor: isEmpty
+                        ? alpha(theme.palette.grey[500], 0.1)
+                        : isLow
+                          ? alpha('#f59e0b', 0.1)
+                          : alpha('#10b981', 0.1),
+                    }}
+                  />
+
+                  <Box
+                    sx={{
+                      mb: 1,
+                      color: isEmpty
+                        ? 'grey.500'
+                        : isLow
+                          ? '#f59e0b'
+                          : '#10b981',
+                    }}
+                  >
+                    {getLeaveTypeIcon(balance.leaveType)}
+                  </Box>
+
+                  <Typography
+                    variant="caption"
+                    display="block"
+                    noWrap
+                    sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' }, fontWeight: 600, mb: 0.5 }}
+                  >
+                    {LEAVE_TYPE_LABELS[balance.leaveType]}
+                  </Typography>
+
+                  <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                    sx={{
+                      fontSize: { xs: '1.5rem', sm: '2rem' },
+                      color: isEmpty
+                        ? 'grey.500'
+                        : isLow
+                          ? '#f59e0b'
+                          : '#10b981',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {remaining}
+                  </Typography>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, display: 'block', mb: 1 }}
+                  >
+                    din {balance.totalDays} zile
+                  </Typography>
+
+                  {/* Progress Bar */}
+                  <LinearProgress
+                    variant="determinate"
+                    value={usedPercentage}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      bgcolor: alpha(
+                        isEmpty ? theme.palette.grey[500] : isLow ? '#f59e0b' : '#10b981',
+                        0.15
+                      ),
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: 3,
+                        bgcolor: isEmpty
+                          ? 'grey.500'
+                          : isLow
+                            ? '#f59e0b'
+                            : '#10b981',
+                      },
+                    }}
+                  />
+
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontSize: { xs: '0.55rem', sm: '0.65rem' },
+                      color: 'text.secondary',
+                      mt: 0.5,
+                      display: 'block',
+                    }}
+                  >
+                    {balance.usedDays} folosite
+                  </Typography>
+                </Paper>
+              </Grow>
+            </Grid>
+          );
+        })}
       </Grid>
 
       {/* Requests List */}
@@ -278,9 +391,13 @@ export const LeaveRequestsPage = () => {
       </Typography>
 
       {requests.length === 0 ? (
-        <Alert severity="info" icon={<BeachIcon />}>
-          Nu ai trimis nicio cerere de concediu. Apasă "Cerere Nouă" pentru a solicita concediu.
-        </Alert>
+        <EmptyState
+          icon={<EventBusyIcon sx={{ fontSize: 64, color: '#10b981' }} />}
+          title="Nicio cerere de concediu"
+          description="Bucură-te de zilele tale libere! Apasă butonul de mai sus pentru a solicita concediu."
+          actionLabel="Solicită Concediu"
+          onAction={handleOpenDialog}
+        />
       ) : (
         <Stack spacing={2}>
           {requests.map((request) => (

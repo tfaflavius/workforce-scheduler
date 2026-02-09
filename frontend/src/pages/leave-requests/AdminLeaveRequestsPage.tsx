@@ -21,6 +21,8 @@ import {
   useMediaQuery,
   Tooltip,
   IconButton,
+  alpha,
+  Grid,
 } from '@mui/material';
 import {
   BeachAccess as BeachIcon,
@@ -33,7 +35,11 @@ import {
   EventAvailable as ExtraDaysIcon,
   Person as PersonIcon,
   Business as DepartmentIcon,
+  HourglassEmpty as PendingIcon,
+  AdminPanelSettings as AdminIcon,
+  EventBusy as EventBusyIcon,
 } from '@mui/icons-material';
+import { GradientHeader, StatCard, EmptyState } from '../../components/common';
 import {
   useGetAllLeaveRequestsQuery,
   useRespondToLeaveRequestMutation,
@@ -204,15 +210,28 @@ export const AdminLeaveRequestsPage = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-          Gestionare Concedii
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-          Aprobă sau respinge cererile de concediu ale angajaților
-        </Typography>
-      </Box>
+      {/* Header with Gradient */}
+      <GradientHeader
+        title="Gestionare Concedii"
+        subtitle="Aprobă sau respinge cererile de concediu ale angajaților"
+        icon={<AdminIcon />}
+        gradient="#10b981 0%, #059669 100%"
+      >
+        <Chip
+          icon={<BeachIcon sx={{ fontSize: 16 }} />}
+          label={`${allRequests.length} total`}
+          sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+          size="small"
+        />
+        {pendingRequests.length > 0 && (
+          <Chip
+            icon={<PendingIcon sx={{ fontSize: 16 }} />}
+            label={`${pendingRequests.length} de procesat`}
+            sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white', fontWeight: 600 }}
+            size="small"
+          />
+        )}
+      </GradientHeader>
 
       {/* Error/Success Messages */}
       {errorMessage && (
@@ -226,33 +245,41 @@ export const AdminLeaveRequestsPage = () => {
         </Alert>
       )}
 
-      {/* Summary Cards */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
-        <Paper sx={{ p: { xs: 1.5, sm: 2 }, flex: 1, bgcolor: 'warning.lighter' }}>
-          <Typography variant="h4" fontWeight="bold" color="warning.dark" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-            {pendingRequests.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-            În Așteptare
-          </Typography>
-        </Paper>
-        <Paper sx={{ p: { xs: 1.5, sm: 2 }, flex: 1, bgcolor: 'success.lighter' }}>
-          <Typography variant="h4" fontWeight="bold" color="success.dark" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-            {approvedRequests.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-            Aprobate
-          </Typography>
-        </Paper>
-        <Paper sx={{ p: { xs: 1.5, sm: 2 }, flex: 1, bgcolor: 'error.lighter' }}>
-          <Typography variant="h4" fontWeight="bold" color="error.dark" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
-            {rejectedRequests.length}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-            Respinse
-          </Typography>
-        </Paper>
-      </Stack>
+      {/* Summary Cards with StatCard */}
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, sm: 4 }}>
+          <StatCard
+            title="În Așteptare"
+            value={pendingRequests.length}
+            subtitle={pendingRequests.length > 0 ? 'Necesită acțiune' : undefined}
+            icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f59e0b' }} />}
+            color="#f59e0b"
+            bgColor={alpha('#f59e0b', 0.12)}
+            delay={0}
+            urgent={pendingRequests.length > 0}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4 }}>
+          <StatCard
+            title="Aprobate"
+            value={approvedRequests.length}
+            icon={<ApproveIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#10b981' }} />}
+            color="#10b981"
+            bgColor={alpha('#10b981', 0.12)}
+            delay={100}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4 }}>
+          <StatCard
+            title="Respinse"
+            value={rejectedRequests.length}
+            icon={<RejectIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ef4444' }} />}
+            color="#ef4444"
+            bgColor={alpha('#ef4444', 0.12)}
+            delay={200}
+          />
+        </Grid>
+      </Grid>
 
       {/* Tabs */}
       <Tabs
@@ -297,9 +324,11 @@ export const AdminLeaveRequestsPage = () => {
 
       {/* Requests List */}
       {displayedRequests.length === 0 ? (
-        <Alert severity="info">
-          Nu există cereri în această categorie.
-        </Alert>
+        <EmptyState
+          icon={<EventBusyIcon sx={{ fontSize: 64, color: tabValue === 0 ? '#f59e0b' : tabValue === 1 ? '#10b981' : '#ef4444' }} />}
+          title={tabValue === 0 ? 'Nicio cerere în așteptare' : tabValue === 1 ? 'Nicio cerere aprobată' : 'Nicio cerere respinsă'}
+          description={tabValue === 0 ? 'Nu ai cereri de concediu de procesat momentan.' : 'Nu există cereri în această categorie.'}
+        />
       ) : (
         <Stack spacing={2}>
           {displayedRequests.map((request) => (

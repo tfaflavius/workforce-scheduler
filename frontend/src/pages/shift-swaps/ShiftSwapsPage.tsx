@@ -26,6 +26,8 @@ import {
   Tooltip,
   useTheme,
   useMediaQuery,
+  alpha,
+  Grid,
 } from '@mui/material';
 import {
   SwapHoriz as SwapIcon,
@@ -40,7 +42,9 @@ import {
   HourglassEmpty as PendingIcon,
   CheckCircle as ApprovedIcon,
   Error as RejectedIcon,
+  Inbox as InboxIcon,
 } from '@mui/icons-material';
+import { GradientHeader, StatCard } from '../../components/common';
 import { useAppSelector } from '../../store/hooks';
 import {
   useGetMySwapRequestsQuery,
@@ -465,29 +469,71 @@ const ShiftSwapsPage = () => {
     );
   }
 
+  // Calculate stats
+  const pendingRequestsCount = sentRequests.filter(r => r.status === 'PENDING').length;
+  const unrespondedCount = receivedRequests.filter(r => r.status === 'PENDING' && !r.responses?.find(res => res.responderId === user?.id)).length;
+
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
-          <Box>
-            <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-              Schimburi de Ture
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Solicită sau gestionează schimburile de ture cu colegii
-            </Typography>
+      {/* Header with Gradient */}
+      <GradientHeader
+        title="Schimburi de Ture"
+        subtitle="Solicită sau gestionează schimburile de ture cu colegii"
+        icon={<SwapIcon />}
+        gradient="#6366f1 0%, #8b5cf6 100%"
+      />
+
+      {/* Summary Cards */}
+      <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, sm: 4 }}>
+          <StatCard
+            title="Cererile Mele"
+            value={sentRequests.length}
+            subtitle={pendingRequestsCount > 0 ? `${pendingRequestsCount} în așteptare` : 'Nicio cerere activă'}
+            icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#6366f1' }} />}
+            color="#6366f1"
+            bgColor={alpha('#6366f1', 0.12)}
+            delay={0}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4 }}>
+          <StatCard
+            title="Cereri Primite"
+            value={receivedRequests.length}
+            subtitle={unrespondedCount > 0 ? `${unrespondedCount} necesită răspuns` : 'Toate rezolvate'}
+            icon={<InboxIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#10b981' }} />}
+            color="#10b981"
+            bgColor={alpha('#10b981', 0.12)}
+            delay={100}
+            urgent={unrespondedCount > 0}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-end' }, height: '100%' }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleOpenCreateDialog}
+              fullWidth={isMobile}
+              size="large"
+              sx={{
+                px: 3,
+                py: { xs: 1.5, sm: 2 },
+                fontWeight: 600,
+                borderRadius: 2,
+                bgcolor: '#6366f1',
+                boxShadow: `0 4px 14px ${alpha('#6366f1', 0.3)}`,
+                '&:hover': {
+                  bgcolor: '#4f46e5',
+                  boxShadow: `0 6px 20px ${alpha('#6366f1', 0.4)}`,
+                },
+              }}
+            >
+              Cerere Nouă
+            </Button>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleOpenCreateDialog}
-            sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
-          >
-            Cerere Nouă
-          </Button>
-        </Stack>
-      </Box>
+        </Grid>
+      </Grid>
 
       {/* Error/Success Messages */}
       {errorMessage && (

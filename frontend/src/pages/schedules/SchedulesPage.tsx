@@ -31,10 +31,13 @@ import {
   DialogContent,
   DialogActions,
   Collapse,
+  alpha,
+  Grow,
 } from '@mui/material';
 import {
   Add as AddIcon,
   CalendarToday as CalendarIcon,
+  CalendarMonth as CalendarMonthIcon,
   FilterList as FilterIcon,
   Group as GroupIcon,
   Edit as EditIcon,
@@ -43,7 +46,10 @@ import {
   HourglassEmpty as PendingIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  EventBusy as EventBusyIcon,
+  CheckCircle as ApprovedIcon,
 } from '@mui/icons-material';
+import { GradientHeader, EmptyState } from '../../components/common';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
@@ -415,35 +421,77 @@ const SchedulesPage: React.FC = () => {
     }
   };
 
+  // Calculate stats for header
+  const pendingCount = schedules.filter(s => s.status === 'PENDING_APPROVAL').length;
+  const approvedCount = schedules.filter(s => s.status === 'APPROVED').length;
+  const totalCount = schedules.length;
+
+  // Check if any filters are active
+  const hasActiveFilters = searchQuery !== '' || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL';
+
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setDepartmentFilter('ALL');
+    setShiftFilter('ALL');
+    setWorkPositionFilter('ALL');
+    setDayFilter('ALL');
+  };
+
+  // Get selected month label
+  const selectedMonthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || '';
+
   return (
     <Box sx={{ width: '100%' }}>
       <Stack spacing={{ xs: 1.5, sm: 2 }}>
-        {/* Header */}
-        <Box sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          gap: { xs: 1, sm: 2 }
-        }}>
-          <Box>
-            <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
-              Programe de Lucru
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, display: { xs: 'none', sm: 'block' } }}>
-              Gestionează programele lunare de lucru
-              {isAdmin && ' (Admin)'}
-              {isManager && ' (Manager)'}
-            </Typography>
-          </Box>
+        {/* Header with Gradient */}
+        <GradientHeader
+          title="Programe de Lucru"
+          subtitle={`${selectedMonthLabel}${isAdmin ? ' • Admin' : isManager ? ' • Manager' : ''}`}
+          icon={<CalendarMonthIcon />}
+          gradient="#2563eb 0%, #7c3aed 100%"
+        >
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Chip
+              icon={<GroupIcon />}
+              label={`${totalCount} programe`}
+              size="small"
+            />
+            {pendingCount > 0 && (
+              <Chip
+                icon={<PendingIcon />}
+                label={`${pendingCount} în așteptare`}
+                size="small"
+              />
+            )}
+            <Chip
+              icon={<ApprovedIcon />}
+              label={`${approvedCount} aprobate`}
+              size="small"
+            />
+          </Stack>
+        </GradientHeader>
+
+        {/* Create Button */}
+        <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-end' } }}>
           <Button
             variant="contained"
-            startIcon={!isMobile && <AddIcon />}
+            startIcon={<AddIcon />}
             onClick={handleCreateSchedule}
             fullWidth={isMobile}
-            size="small"
+            size={isMobile ? 'medium' : 'large'}
+            sx={{
+              px: { xs: 2, sm: 3 },
+              py: { xs: 1, sm: 1.25 },
+              fontWeight: 600,
+              borderRadius: 2,
+              boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.3)}`,
+              '&:hover': {
+                boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
+              },
+            }}
           >
-            {isMobile ? '+ Program' : 'Creează Program'}
+            {isMobile ? 'Creează Program' : 'Creează Program Nou'}
           </Button>
         </Box>
 
@@ -706,7 +754,7 @@ const SchedulesPage: React.FC = () => {
                   {/* Mobile/Tablet View - Card-based layout */}
                   {isTablet ? (
                     <Stack spacing={2}>
-                      {filteredUsers.map((targetUser) => {
+                      {filteredUsers.map((targetUser, index) => {
                         const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
                         const scheduleStatus = getScheduleStatus(targetUser.id);
                         const canEdit = canEditSchedule(targetUser);
@@ -721,7 +769,22 @@ const SchedulesPage: React.FC = () => {
                         });
 
                         return (
-                          <Card key={targetUser.id} variant="outlined">
+                          <Grow in={true} timeout={400} style={{ transitionDelay: `${index * 50}ms` }} key={targetUser.id}>
+                          <Card
+                            variant="outlined"
+                            sx={{
+                              touchAction: 'manipulation',
+                              WebkitTapHighlightColor: 'transparent',
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                boxShadow: theme.shadows[4],
+                                transform: 'translateY(-2px)',
+                              },
+                              '&:active': {
+                                transform: 'scale(0.99)',
+                              },
+                            }}
+                          >
                             <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                               {/* User Header */}
                               <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
@@ -851,6 +914,7 @@ const SchedulesPage: React.FC = () => {
                               )}
                             </CardContent>
                           </Card>
+                          </Grow>
                         );
                       })}
                     </Stack>
@@ -1039,9 +1103,13 @@ const SchedulesPage: React.FC = () => {
                   )}
                 </>
               ) : (
-                <Alert severity="info">
-                  Nu s-au găsit angajați cu filtrele selectate.
-                </Alert>
+                <EmptyState
+                  icon={<EventBusyIcon />}
+                  title="Nu s-au găsit angajați"
+                  description="Încearcă să schimbi filtrele sau să resetezi căutarea"
+                  actionLabel={hasActiveFilters ? 'Resetează Filtrele' : undefined}
+                  onAction={hasActiveFilters ? handleResetFilters : undefined}
+                />
               )}
             </CardContent>
           </Card>
