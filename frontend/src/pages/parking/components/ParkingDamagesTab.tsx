@@ -22,6 +22,9 @@ import {
   useTheme,
   useMediaQuery,
   Tooltip,
+  Fade,
+  Grow,
+  alpha,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -45,6 +48,7 @@ import DamageDetailsDialog from './DamageDetailsDialog';
 const ParkingDamagesTab: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
   const { user } = useAppSelector((state) => state.auth);
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | ParkingDamageStatus>('ACTIVE');
@@ -98,105 +102,132 @@ const ParkingDamagesTab: React.FC = () => {
 
   const urgentCount = damages.filter(d => d.isUrgent && d.status === 'ACTIVE').length;
 
-  const renderDamageCard = (damage: ParkingDamage) => (
-    <Card
-      key={damage.id}
-      sx={{
-        mb: 2,
-        borderLeft: damage.isUrgent ? '4px solid' : 'none',
-        borderColor: 'error.main',
-      }}
-    >
-      <CardContent>
-        <Stack spacing={1}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {damage.isUrgent && (
-                <Tooltip title="Urgent - nerezolvat de peste 48h">
-                  <UrgentIcon color="error" />
-                </Tooltip>
-              )}
-              <Typography variant="subtitle1" fontWeight="bold">
-                {damage.parkingLot?.name}
+  const renderDamageCard = (damage: ParkingDamage, index: number) => (
+    <Grow in={true} timeout={300 + index * 50} key={damage.id}>
+      <Card
+        sx={{
+          mb: 2,
+          borderLeft: damage.isUrgent ? '4px solid' : 'none',
+          borderColor: 'error.main',
+          borderRadius: 2,
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: theme.palette.mode === 'light'
+              ? '0 6px 20px rgba(0,0,0,0.1)'
+              : '0 6px 20px rgba(0,0,0,0.3)',
+          },
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+          <Stack spacing={1.5}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {damage.isUrgent && (
+                  <Tooltip title="Urgent - nerezolvat de peste 48h">
+                    <UrgentIcon color="error" sx={{ animation: 'pulse 2s infinite' }} />
+                  </Tooltip>
+                )}
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                  {damage.parkingLot?.name}
+                </Typography>
+              </Box>
+              <Chip
+                label={DAMAGE_STATUS_LABELS[damage.status]}
+                color={getStatusColor(damage.status)}
+                size="small"
+                sx={{ fontWeight: 600 }}
+              />
+            </Box>
+
+            <Box sx={{ bgcolor: alpha(theme.palette.primary.main, 0.04), p: 1.5, borderRadius: 1.5 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                <strong>Echipament avariat:</strong> {damage.damagedEquipment}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                <strong>Persoană:</strong> {damage.personName}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                <strong>Telefon:</strong> {damage.phone}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Nr. Mașină:</strong> {damage.carPlate}
               </Typography>
             </Box>
-            <Chip
-              label={DAMAGE_STATUS_LABELS[damage.status]}
-              color={getStatusColor(damage.status)}
-              size="small"
-            />
-          </Box>
 
-          <Typography variant="body2" color="text.secondary">
-            <strong>Echipament avariat:</strong> {damage.damagedEquipment}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Persoană:</strong> {damage.personName}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Telefon:</strong> {damage.phone}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            <strong>Nr. Mașină:</strong> {damage.carPlate}
-          </Typography>
-          <Typography variant="body2">
-            {damage.description}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Creat: {formatDate(damage.createdAt)} de <strong>{damage.creator?.fullName}</strong>
-          </Typography>
-          {damage.lastModifier && damage.lastModifiedBy !== damage.createdBy && (
-            <Typography variant="caption" color="text.secondary">
-              Ultima modificare: de <strong>{damage.lastModifier?.fullName}</strong>
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.85rem', sm: '0.875rem' } }}>
+              {damage.description}
             </Typography>
-          )}
 
-          {damage.status === 'FINALIZAT' && damage.resolutionType && (
-            <Alert severity="success" sx={{ mt: 1 }}>
-              <Typography variant="caption">
-                <strong>Finalizat de {damage.resolver?.fullName}</strong><br />
-                <strong>{RESOLUTION_TYPE_LABELS[damage.resolutionType]}:</strong> {damage.resolutionDescription}
+            <Typography variant="caption" color="text.secondary">
+              Creat: {formatDate(damage.createdAt)} de <strong>{damage.creator?.fullName}</strong>
+            </Typography>
+            {damage.lastModifier && damage.lastModifiedBy !== damage.createdBy && (
+              <Typography variant="caption" color="text.secondary">
+                Ultima modificare: de <strong>{damage.lastModifier?.fullName}</strong>
               </Typography>
-            </Alert>
-          )}
+            )}
 
-          <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<InfoIcon />}
-              onClick={() => handleShowDetails(damage)}
-            >
-              Detalii
-            </Button>
-            {damage.status === 'ACTIVE' && (
+            {damage.status === 'FINALIZAT' && damage.resolutionType && (
+              <Alert severity="success" sx={{ mt: 1, borderRadius: 1.5 }}>
+                <Typography variant="caption">
+                  <strong>Finalizat de {damage.resolver?.fullName}</strong><br />
+                  <strong>{RESOLUTION_TYPE_LABELS[damage.resolutionType]}:</strong> {damage.resolutionDescription}
+                </Typography>
+              </Alert>
+            )}
+
+            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
               <Button
                 size="small"
-                variant="contained"
-                color="success"
-                startIcon={<ResolveIcon />}
-                onClick={() => handleResolve(damage)}
+                variant="outlined"
+                startIcon={<InfoIcon />}
+                onClick={() => handleShowDetails(damage)}
+                sx={{ borderRadius: 2 }}
               >
-                Finalizează
+                Detalii
               </Button>
-            )}
-            {isAdmin && (
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => handleDelete(damage.id)}
-              >
-                <DeleteIcon />
-              </IconButton>
-            )}
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
+              {damage.status === 'ACTIVE' && (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  startIcon={<ResolveIcon />}
+                  onClick={() => handleResolve(damage)}
+                  sx={{ borderRadius: 2 }}
+                >
+                  Finalizează
+                </Button>
+              )}
+              {isAdmin && (
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => handleDelete(damage.id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              )}
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Grow>
   );
 
   const renderDamageTable = () => (
-    <TableContainer component={Paper}>
+    <TableContainer
+      component={Paper}
+      sx={{
+        borderRadius: 2,
+        '& .MuiTableHead-root': {
+          '& .MuiTableCell-root': {
+            fontWeight: 700,
+            bgcolor: alpha(theme.palette.primary.main, 0.05),
+          },
+        },
+      }}
+    >
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -217,17 +248,21 @@ const ParkingDamagesTab: React.FC = () => {
             <TableRow
               key={damage.id}
               sx={{
-                bgcolor: damage.isUrgent ? 'error.50' : 'inherit',
+                bgcolor: damage.isUrgent ? alpha(theme.palette.error.main, 0.05) : 'inherit',
+                transition: 'background-color 0.2s ease',
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.04),
+                },
               }}
             >
               <TableCell>
                 {damage.isUrgent && (
                   <Tooltip title="Urgent - nerezolvat de peste 48h">
-                    <UrgentIcon color="error" fontSize="small" />
+                    <UrgentIcon color="error" fontSize="small" sx={{ animation: 'pulse 2s infinite' }} />
                   </Tooltip>
                 )}
               </TableCell>
-              <TableCell>{damage.parkingLot?.name}</TableCell>
+              <TableCell sx={{ fontWeight: 500 }}>{damage.parkingLot?.name}</TableCell>
               <TableCell>{damage.damagedEquipment}</TableCell>
               <TableCell>{damage.personName}</TableCell>
               <TableCell>{damage.phone}</TableCell>
@@ -237,6 +272,7 @@ const ParkingDamagesTab: React.FC = () => {
                   label={DAMAGE_STATUS_LABELS[damage.status]}
                   color={getStatusColor(damage.status)}
                   size="small"
+                  sx={{ fontWeight: 600 }}
                 />
               </TableCell>
               <TableCell>{formatDate(damage.createdAt)}</TableCell>
@@ -291,50 +327,97 @@ const ParkingDamagesTab: React.FC = () => {
     <Box>
       {/* Urgent Alert */}
       {urgentCount > 0 && (
-        <Alert severity="error" sx={{ mb: 2 }} icon={<UrgentIcon />}>
-          <strong>{urgentCount}</strong> prejudicii urgente nerezolvate de peste 48 de ore!
-        </Alert>
+        <Fade in={true} timeout={500}>
+          <Alert
+            severity="error"
+            sx={{
+              mb: 2,
+              borderRadius: 2,
+              '& .MuiAlert-message': { fontWeight: 500 },
+            }}
+            icon={<UrgentIcon sx={{ animation: 'pulse 2s infinite' }} />}
+          >
+            <strong>{urgentCount}</strong> prejudicii urgente nerezolvate de peste 48 de ore!
+          </Alert>
+        </Fade>
       )}
 
       {/* Actions */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Tabs
-          value={statusFilter}
-          onChange={(_, v) => setStatusFilter(v)}
-          variant={isMobile ? 'fullWidth' : 'standard'}
-          sx={{ minWidth: isMobile ? '100%' : 'auto' }}
+      <Grow in={true} timeout={600}>
+        <Paper
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            mb: 2,
+            borderRadius: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1.5,
+          }}
         >
-          <Tab label="Active" value="ACTIVE" />
-          <Tab label="Finalizate" value="FINALIZAT" />
-          <Tab label="Toate" value="ALL" />
-        </Tabs>
-
-        <Stack direction="row" spacing={1}>
-          <IconButton onClick={() => refetch()}>
-            <RefreshIcon />
-          </IconButton>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateDialogOpen(true)}
-            size={isMobile ? 'small' : 'medium'}
+          <Tabs
+            value={statusFilter}
+            onChange={(_, v) => setStatusFilter(v)}
+            variant={isMobile ? 'fullWidth' : 'standard'}
+            sx={{
+              minWidth: isMobile ? '100%' : 'auto',
+              '& .MuiTab-root': {
+                fontWeight: 600,
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                minHeight: { xs: 40, sm: 48 },
+              },
+            }}
           >
-            {isMobile ? 'Adaugă' : 'Adaugă Prejudiciu'}
-          </Button>
-        </Stack>
-      </Box>
+            <Tab label="Active" value="ACTIVE" />
+            <Tab label="Finalizate" value="FINALIZAT" />
+            <Tab label="Toate" value="ALL" />
+          </Tabs>
+
+          <Stack direction="row" spacing={1}>
+            <IconButton
+              onClick={() => refetch()}
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
+              }}
+            >
+              <RefreshIcon />
+            </IconButton>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setCreateDialogOpen(true)}
+              size={isMobile ? 'small' : 'medium'}
+              sx={{
+                borderRadius: 2,
+                fontWeight: 600,
+                px: { xs: 2, sm: 3 },
+              }}
+            >
+              {isMobile ? 'Adaugă' : 'Adaugă Prejudiciu'}
+            </Button>
+          </Stack>
+        </Paper>
+      </Grow>
 
       {/* Content */}
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress size={48} />
         </Box>
       ) : damages.length === 0 ? (
-        <Alert severity="info">Nu există prejudicii în această categorie.</Alert>
-      ) : isMobile ? (
-        damages.map(renderDamageCard)
+        <Fade in={true} timeout={600}>
+          <Alert severity="info" sx={{ borderRadius: 2 }}>
+            Nu există prejudicii în această categorie.
+          </Alert>
+        </Fade>
+      ) : isMobile || isTablet ? (
+        damages.map((damage, index) => renderDamageCard(damage, index))
       ) : (
-        renderDamageTable()
+        <Grow in={true} timeout={700}>
+          {renderDamageTable()}
+        </Grow>
       )}
 
       {/* Dialogs */}
@@ -364,6 +447,14 @@ const ParkingDamagesTab: React.FC = () => {
           />
         </>
       )}
+
+      {/* Pulse animation keyframes */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
     </Box>
   );
 };
