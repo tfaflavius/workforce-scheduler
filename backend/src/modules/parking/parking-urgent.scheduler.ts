@@ -42,21 +42,39 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Rulează de 2 ori pe zi (la 08:00 și 13:00) pentru notificări urgente in-app și email
-  @Cron('0 8,13 * * *')
-  async handleNotifyUrgent() {
-    this.logger.log('Trimitere notificări și emailuri pentru probleme urgente...');
+  // Rulează la 08:00 - notificări către Admini, Manageri, Dispecerat + Întreținere (doar asignat)
+  @Cron('0 8 * * *')
+  async handleNotifyUrgentMorning() {
+    this.logger.log('Trimitere notificări 08:00 (inclusiv Admini)...');
 
     try {
       // Notificări in-app
       await this.parkingIssuesService.notifyUrgentIssues();
 
-      // Trimite emailuri cu reminder-uri pentru probleme și prejudicii nerezolvate
-      await this.sendUnresolvedItemsReminderEmails();
+      // Trimite emailuri cu reminder-uri - include Admini
+      await this.sendUnresolvedItemsReminderEmails(true);
 
-      this.logger.log('Notificări și emailuri urgente trimise cu succes');
+      this.logger.log('Notificări 08:00 trimise cu succes');
     } catch (error) {
-      this.logger.error('Eroare la trimiterea notificărilor urgente:', error);
+      this.logger.error('Eroare la trimiterea notificărilor 08:00:', error);
+    }
+  }
+
+  // Rulează la 13:00 - notificări către Manageri, Dispecerat + Întreținere (doar asignat) - FĂRĂ Admini
+  @Cron('0 13 * * *')
+  async handleNotifyUrgentAfternoon() {
+    this.logger.log('Trimitere notificări 13:00 (fără Admini)...');
+
+    try {
+      // Notificări in-app
+      await this.parkingIssuesService.notifyUrgentIssues();
+
+      // Trimite emailuri cu reminder-uri - FĂRĂ Admini
+      await this.sendUnresolvedItemsReminderEmails(false);
+
+      this.logger.log('Notificări 13:00 trimise cu succes');
+    } catch (error) {
+      this.logger.error('Eroare la trimiterea notificărilor 13:00:', error);
     }
   }
 
@@ -75,9 +93,13 @@ export class ParkingUrgentScheduler {
 
   /**
    * Trimite emailuri cu reminder-uri pentru probleme și prejudicii nerezolvate
-   * către userii din Dispecerat și Întreținere Parcări
+   * - Dispecerat: primește TOATE problemele și prejudiciile
+   * - Întreținere Parcări: primește DOAR problemele asignate lor
+   * - Manageri: primesc TOATE
+   * - Admini: primesc TOATE (doar la 08:00)
+   * @param includeAdmins - dacă să includă adminii (true la 08:00, false la 13:00)
    */
-  private async sendUnresolvedItemsReminderEmails(): Promise<void> {
+  private async sendUnresolvedItemsReminderEmails(includeAdmins: boolean): Promise<void> {
     // Obține toate problemele și prejudiciile active
     const activeIssues = await this.parkingIssuesService.findAll('ACTIVE');
     const activeDamages = await this.parkingDamagesService.findAllActive();
@@ -87,31 +109,25 @@ export class ParkingUrgentScheduler {
       return;
     }
 
-    // Obține userii care trebuie notificați
-    const usersToNotify = await this.getUsersForReminders();
-
-    if (usersToNotify.length === 0) {
-      this.logger.warn('Nu există utilizatori pentru trimiterea reminder-urilor');
-      return;
-    }
-
     const now = new Date();
 
-    // Formatează problemele pentru email
-    const unresolvedIssues = activeIssues.map(issue => {
+    // Formatează problemele pentru email (cu assignedTo pentru filtrare)
+    const allUnresolvedIssues = activeIssues.map(issue => {
       const createdAt = new Date(issue.createdAt);
       const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
       return {
+        id: issue.id,
         parkingLotName: issue.parkingLot?.name || 'N/A',
         equipment: issue.equipment,
         createdAt: createdAt.toLocaleDateString('ro-RO'),
         daysOpen,
         isUrgent: issue.isUrgent,
+        assignedTo: issue.assignedTo, // pentru filtrare
       };
     });
 
     // Formatează prejudiciile pentru email
-    const unresolvedDamages = activeDamages.map(damage => {
+    const allUnresolvedDamages = activeDamages.map(damage => {
       const createdAt = new Date(damage.createdAt);
       const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
       return {
@@ -125,19 +141,96 @@ export class ParkingUrgentScheduler {
       };
     });
 
-    // Trimite emailuri
+    // Obține departamentele
+    const dispeceratDept = await this.departmentRepository.findOne({
+      where: { name: 'Dispecerat' },
+    });
+
+    const maintenanceDept = await this.departmentRepository.findOne({
+      where: { name: MAINTENANCE_DEPARTMENT_NAME },
+    });
+
+    // Obține userii pe categorii
+    const managers = await this.userRepository.find({
+      where: { role: UserRole.MANAGER, isActive: true },
+    });
+
+    const admins = includeAdmins
+      ? await this.userRepository.find({
+          where: { role: UserRole.ADMIN, isActive: true },
+        })
+      : [];
+
+    const dispeceratUsers = dispeceratDept
+      ? await this.userRepository.find({
+          where: { departmentId: dispeceratDept.id, isActive: true },
+        })
+      : [];
+
+    const maintenanceUsers = maintenanceDept
+      ? await this.userRepository.find({
+          where: { departmentId: maintenanceDept.id, isActive: true },
+        })
+      : [];
+
     let sentCount = 0;
-    for (const user of usersToNotify) {
+    const processedUserIds = new Set<string>();
+
+    // Helper pentru a trimite email și a evita duplicate
+    const sendEmailToUser = async (
+      user: User,
+      issues: typeof allUnresolvedIssues,
+      damages: typeof allUnresolvedDamages,
+    ) => {
+      if (processedUserIds.has(user.id)) return;
+      if (issues.length === 0 && damages.length === 0) return;
+
+      processedUserIds.add(user.id);
+
+      // Exclude assignedTo din obiectele trimise
+      const cleanIssues = issues.map(({ assignedTo, ...rest }) => rest);
+
       const success = await this.emailService.sendUnresolvedItemsReminder({
         recipientEmail: user.email,
         recipientName: user.fullName,
-        unresolvedIssues,
-        unresolvedDamages,
+        unresolvedIssues: cleanIssues,
+        unresolvedDamages: damages,
       });
       if (success) sentCount++;
+    };
+
+    // 1. Admini - primesc TOATE (doar dacă includeAdmins=true)
+    for (const admin of admins) {
+      await sendEmailToUser(admin, allUnresolvedIssues, allUnresolvedDamages);
     }
 
-    this.logger.log(`Reminder-uri trimise către ${sentCount}/${usersToNotify.length} utilizatori`);
+    // 2. Manageri - primesc TOATE
+    for (const manager of managers) {
+      await sendEmailToUser(manager, allUnresolvedIssues, allUnresolvedDamages);
+    }
+
+    // 3. Dispecerat - primesc TOATE
+    for (const user of dispeceratUsers) {
+      await sendEmailToUser(user, allUnresolvedIssues, allUnresolvedDamages);
+    }
+
+    // 4. Întreținere Parcări - primesc DOAR problemele asignate lor (prejudiciile nu au assignedTo)
+    for (const user of maintenanceUsers) {
+      // Filtrează doar problemele asignate acestui user
+      const userAssignedIssues = allUnresolvedIssues.filter(
+        issue => issue.assignedTo === user.id,
+      );
+
+      // Întreținere nu primește prejudicii (nu au assignedTo)
+      await sendEmailToUser(user, userAssignedIssues, []);
+    }
+
+    const totalRecipients = processedUserIds.size;
+    this.logger.log(
+      `Reminder-uri trimise către ${sentCount}/${totalRecipients} utilizatori ` +
+        `(Admini: ${admins.length}, Manageri: ${managers.length}, ` +
+        `Dispecerat: ${dispeceratUsers.length}, Întreținere: ${maintenanceUsers.length})`,
+    );
   }
 
   /**
@@ -209,33 +302,4 @@ export class ParkingUrgentScheduler {
     this.logger.log(`Raport zilnic trimis către ${sentCount}/${recipients.length} destinatari. Total încasări: ${totals.totalAmount.toFixed(2)} RON`);
   }
 
-  /**
-   * Obține utilizatorii care trebuie să primească reminder-uri
-   * (Dispecerat, Întreținere Parcări, Manageri, Admini)
-   */
-  private async getUsersForReminders(): Promise<User[]> {
-    const dispeceratDept = await this.departmentRepository.findOne({
-      where: { name: 'Dispecerat' },
-    });
-
-    const maintenanceDept = await this.departmentRepository.findOne({
-      where: { name: MAINTENANCE_DEPARTMENT_NAME },
-    });
-
-    const users = await this.userRepository.find({
-      where: [
-        { role: UserRole.ADMIN, isActive: true },
-        { role: UserRole.MANAGER, isActive: true },
-        ...(dispeceratDept ? [{ departmentId: dispeceratDept.id, isActive: true }] : []),
-        ...(maintenanceDept ? [{ departmentId: maintenanceDept.id, isActive: true }] : []),
-      ],
-    });
-
-    // Elimină duplicatele
-    const uniqueUsers = users.filter(
-      (user, index, self) => index === self.findIndex(u => u.id === user.id)
-    );
-
-    return uniqueUsers;
-  }
 }
