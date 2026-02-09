@@ -6,6 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
@@ -14,6 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserFiltersDto } from './dto/user-filters.dto';
 import { SupabaseService } from '../../common/supabase/supabase.service';
+import { EmailService } from '../../common/email/email.service';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +23,8 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly supabaseService: SupabaseService,
+    private readonly emailService: EmailService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -41,7 +45,18 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    // Send welcome email
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
+    await this.emailService.sendWelcomeEmail({
+      employeeEmail: savedUser.email,
+      employeeName: savedUser.fullName,
+      temporaryPassword: createUserDto.password, // Parola originală (înainte de hash)
+      loginUrl: `${frontendUrl}/login`,
+    });
+
+    return savedUser;
   }
 
   async findAll(): Promise<User[]> {

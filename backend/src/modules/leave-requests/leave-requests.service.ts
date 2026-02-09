@@ -16,6 +16,7 @@ import { NotificationType } from '../notifications/entities/notification.entity'
 import { User } from '../users/entities/user.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { Department } from '../departments/entities/department.entity';
+import { EmailService } from '../../common/email/email.service';
 
 // Default days per leave type
 const DEFAULT_LEAVE_DAYS: Record<LeaveType, number> = {
@@ -48,6 +49,7 @@ export class LeaveRequestsService {
     @InjectRepository(Department)
     private departmentRepository: Repository<Department>,
     private notificationsService: NotificationsService,
+    private emailService: EmailService,
   ) {}
 
   async create(userId: string, dto: CreateLeaveRequestDto): Promise<LeaveRequest> {
@@ -468,8 +470,10 @@ export class LeaveRequestsService {
 
     const startDate = new Date(request.startDate).toLocaleDateString('ro-RO');
     const endDate = new Date(request.endDate).toLocaleDateString('ro-RO');
+    const days = this.calculateBusinessDays(new Date(request.startDate), new Date(request.endDate));
 
     for (const admin of admins) {
+      // Notificare in-app
       await this.notificationsService.create({
         userId: admin.id,
         type: NotificationType.LEAVE_REQUEST_CREATED,
@@ -484,7 +488,37 @@ export class LeaveRequestsService {
           endDate: request.endDate,
         },
       });
+
+      // Email către admin
+      await this.emailService.sendLeaveRequestNotificationToApprover(
+        admin.email,
+        admin.fullName,
+        user.fullName,
+        request.leaveType,
+        request.startDate.toISOString(),
+        request.endDate.toISOString(),
+        days,
+      );
     }
+
+    // Email confirmare către angajat
+    const leaveTypeMap: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER'> = {
+      'VACATION': 'ANNUAL',
+      'MEDICAL': 'SICK',
+      'BIRTHDAY': 'OTHER',
+      'SPECIAL': 'OTHER',
+      'EXTRA_DAYS': 'OTHER',
+    };
+
+    await this.emailService.sendLeaveRequestNotification({
+      employeeEmail: user.email,
+      employeeName: user.fullName,
+      leaveType: leaveTypeMap[request.leaveType] || 'OTHER',
+      startDate: request.startDate.toISOString(),
+      endDate: request.endDate.toISOString(),
+      totalDays: days,
+      status: 'submitted',
+    });
   }
 
   private async notifyUserAboutResponse(
@@ -493,7 +527,9 @@ export class LeaveRequestsService {
   ): Promise<void> {
     const startDate = new Date(request.startDate).toLocaleDateString('ro-RO');
     const endDate = new Date(request.endDate).toLocaleDateString('ro-RO');
+    const days = this.calculateBusinessDays(new Date(request.startDate), new Date(request.endDate));
 
+    // Notificare in-app
     await this.notificationsService.create({
       userId: request.userId,
       type: approved
@@ -512,6 +548,34 @@ export class LeaveRequestsService {
         adminMessage: request.adminMessage,
       },
     });
+
+    // Email către angajat
+    const user = await this.userRepository.findOne({ where: { id: request.userId } });
+    if (user) {
+      const admin = request.adminId
+        ? await this.userRepository.findOne({ where: { id: request.adminId } })
+        : null;
+
+      const leaveTypeMap: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER'> = {
+        'VACATION': 'ANNUAL',
+        'MEDICAL': 'SICK',
+        'BIRTHDAY': 'OTHER',
+        'SPECIAL': 'OTHER',
+        'EXTRA_DAYS': 'OTHER',
+      };
+
+      await this.emailService.sendLeaveRequestNotification({
+        employeeEmail: user.email,
+        employeeName: user.fullName,
+        leaveType: leaveTypeMap[request.leaveType] || 'OTHER',
+        startDate: request.startDate.toISOString(),
+        endDate: request.endDate.toISOString(),
+        totalDays: days,
+        status: approved ? 'approved' : 'rejected',
+        rejectionReason: !approved ? request.adminMessage : undefined,
+        approverName: admin?.fullName,
+      });
+    }
   }
 
   private async notifyManagerAboutApproval(request: LeaveRequest): Promise<void> {

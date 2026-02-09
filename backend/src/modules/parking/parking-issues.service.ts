@@ -13,6 +13,7 @@ import { NotificationType } from '../notifications/entities/notification.entity'
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { INTERNAL_MAINTENANCE_COMPANIES, MAINTENANCE_DEPARTMENT_NAME } from './constants/parking.constants';
+import { EmailService } from '../../common/email/email.service';
 
 @Injectable()
 export class ParkingIssuesService {
@@ -28,6 +29,7 @@ export class ParkingIssuesService {
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
     private readonly notificationsService: NotificationsService,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(userId: string, dto: CreateParkingIssueDto): Promise<ParkingIssue> {
@@ -213,6 +215,22 @@ export class ParkingIssuesService {
     }));
 
     await this.notificationsService.createMany(notifications);
+
+    // Trimite emailuri către manageri și admini pentru probleme noi
+    if (action === 'CREATED') {
+      for (const user of toNotify) {
+        await this.emailService.sendParkingIssueNotification({
+          recipientEmail: user.email,
+          recipientName: user.fullName,
+          parkingLotName: parkingName,
+          equipment: issue.equipment,
+          description: issue.description,
+          isUrgent: issue.isUrgent || false,
+          creatorName: actorName,
+          issueType: 'new_issue',
+        });
+      }
+    }
   }
 
   async findAll(status?: ParkingIssueStatus): Promise<ParkingIssue[]> {
@@ -308,8 +326,13 @@ export class ParkingIssuesService {
       resolutionDescription: dto.resolutionDescription,
     });
 
+    // Obține rezolvatorul
+    const resolver = await this.userRepository.findOne({ where: { id: userId } });
+    const resolverName = resolver?.fullName || 'Un utilizator';
+
     // Notifică creatorul problemei că a fost rezolvată
     if (issue.createdBy !== userId) {
+      // Notificare in-app
       await this.notificationsService.create({
         userId: issue.createdBy,
         type: NotificationType.PARKING_ISSUE_RESOLVED,
@@ -322,6 +345,22 @@ export class ParkingIssuesService {
           resolutionDescription: dto.resolutionDescription,
         },
       });
+
+      // Email către creator
+      const creator = await this.userRepository.findOne({ where: { id: issue.createdBy } });
+      if (creator) {
+        await this.emailService.sendParkingIssueNotification({
+          recipientEmail: creator.email,
+          recipientName: creator.fullName,
+          parkingLotName: issue.parkingLot?.name || 'parcare',
+          equipment: issue.equipment,
+          description: issue.description,
+          isUrgent: false,
+          creatorName: resolverName,
+          issueType: 'issue_resolved',
+          resolutionDescription: dto.resolutionDescription,
+        });
+      }
     }
 
     // Notifică managerii și adminii

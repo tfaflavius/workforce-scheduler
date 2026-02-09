@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { Department } from '../departments/entities/department.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { EmailModule } from '../../common/email/email.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       Department,
     ]),
     NotificationsModule,
+    EmailModule,
   ],
   controllers: [LeaveRequestsController],
   providers: [LeaveRequestsService],

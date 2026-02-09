@@ -31,6 +31,7 @@ import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
 
 // Other modules
 import { NotificationsModule } from '../notifications/notifications.module';
+import { EmailModule } from '../../common/email/email.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       Department,
     ]),
     NotificationsModule,
+    EmailModule,
     ScheduleModule.forRoot(),
   ],
   controllers: [
