@@ -167,7 +167,6 @@ export class ParkingIssuesService {
         isUrgent: issue.isUrgent || false,
         creatorName: creatorName,
         issueType: 'new_issue',
-        contactedCompany: issue.contactedCompany,
       });
     }
   }
