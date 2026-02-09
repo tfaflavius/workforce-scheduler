@@ -620,4 +620,37 @@ export class EmailService {
       this.generateBaseTemplate('WorkSchedule', 'Resetare Parolă', content, '#ff9800 0%, #f57c00 100%')
     );
   }
+
+  // ============== TEST EMAIL ==============
+
+  async sendTestEmail(toEmail: string, toName: string): Promise<boolean> {
+    const content = `
+      <p style="font-size: 16px;">Bună ziua, <strong>${toName}</strong>!</p>
+
+      <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+        <h2 style="margin: 0 0 10px 0; color: #4CAF50;">✅ Emailurile funcționează!</h2>
+        <p style="margin: 0;">Acesta este un email de test pentru a confirma că sistemul de notificări funcționează corect.</p>
+      </div>
+
+      <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">Tipuri de notificări active:</h3>
+        <ul style="margin: 0; padding-left: 20px;">
+          <li style="padding: 5px 0;">📅 Programe de lucru (creat, modificat, aprobat, respins)</li>
+          <li style="padding: 5px 0;">🏖️ Cereri de concediu (depus, aprobat, respins)</li>
+          <li style="padding: 5px 0;">🚗 Probleme parcări (nouă, rezolvată, reminder urgent)</li>
+          <li style="padding: 5px 0;">👋 Welcome email la creare cont nou</li>
+        </ul>
+      </div>
+
+      <p style="color: #666; font-size: 14px;">
+        Trimis la: <strong>${new Date().toLocaleString('ro-RO')}</strong>
+      </p>
+    `;
+
+    return this.sendEmail(
+      toEmail,
+      '🧪 Test WorkSchedule - Emailurile funcționează!',
+      this.generateBaseTemplate('WorkSchedule', 'Email de Test', content, '#4CAF50 0%, #45a049 100%')
+    );
+  }
 }
