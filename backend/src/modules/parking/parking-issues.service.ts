@@ -131,18 +131,21 @@ export class ParkingIssuesService {
       return;
     }
 
-    // Obține numele parcării
+    // Obține numele parcării și creatorul
     const issueWithParkingLot = await this.parkingIssueRepository.findOne({
       where: { id: issue.id },
-      relations: ['parkingLot'],
+      relations: ['parkingLot', 'creator'],
     });
 
-    // Trimite notificări către toți userii din echipa de întreținere
+    const parkingName = issueWithParkingLot?.parkingLot?.name || 'parcare';
+    const creatorName = issueWithParkingLot?.creator?.fullName || 'Un utilizator';
+
+    // Trimite notificări in-app către toți userii din echipa de întreținere
     const notifications = maintenanceUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_ASSIGNED,
       title: 'Problemă nouă de rezolvat',
-      message: `O nouă problemă la ${issueWithParkingLot?.parkingLot?.name || 'parcare'} (${issue.equipment}) necesită atenția ta.`,
+      message: `O nouă problemă la ${parkingName} (${issue.equipment}) necesită atenția ta.`,
       data: {
         issueId: issue.id,
         parkingLotId: issue.parkingLotId,
@@ -152,6 +155,21 @@ export class ParkingIssuesService {
     }));
 
     await this.notificationsService.createMany(notifications);
+
+    // Trimite email-uri către toți userii din echipa de întreținere
+    for (const user of maintenanceUsers) {
+      await this.emailService.sendParkingIssueNotification({
+        recipientEmail: user.email,
+        recipientName: user.fullName,
+        parkingLotName: parkingName,
+        equipment: issue.equipment,
+        description: issue.description,
+        isUrgent: issue.isUrgent || false,
+        creatorName: creatorName,
+        issueType: 'new_issue',
+        contactedCompany: issue.contactedCompany,
+      });
+    }
   }
 
   private async notifyManagersAndAdmins(
