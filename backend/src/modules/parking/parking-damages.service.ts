@@ -133,9 +133,10 @@ export class ParkingDamagesService {
 
     await this.notificationsService.createMany(notifications);
 
-    // Trimite emailuri către manageri și admini
+    // Trimite emailuri către TOȚI managerii și adminii (inclusiv actorul)
+    // Emailurile sunt importante pentru audit și confirmare, spre deosebire de notificările in-app
     if (action === 'CREATED' || action === 'RESOLVED') {
-      for (const user of toNotify) {
+      for (const user of managersAndAdmins) {
         await this.emailService.sendParkingDamageNotification({
           recipientEmail: user.email,
           recipientName: user.fullName,
