@@ -56,6 +56,73 @@ export interface PasswordResetEmailData {
   resetUrl: string;
 }
 
+export interface ParkingDamageEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  parkingLotName: string;
+  damagedEquipment: string;
+  personName: string;
+  carPlate: string;
+  description: string;
+  isUrgent: boolean;
+  creatorName: string;
+  damageType: 'new_damage' | 'damage_resolved' | 'urgent_reminder';
+  resolutionType?: string;
+  resolutionDescription?: string;
+}
+
+export interface ShiftSwapEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  requesterName: string;
+  requesterDate: string;
+  targetDate: string;
+  reason?: string;
+  swapType: 'new_request' | 'response_accepted' | 'response_declined' | 'approved' | 'rejected';
+  responderName?: string;
+  adminNotes?: string;
+}
+
+export interface DailyReportEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  reportDate: string;
+  totalAmount: number;
+  collectionCount: number;
+  byParkingLot: Array<{
+    parkingLotName: string;
+    totalAmount: number;
+    count: number;
+  }>;
+  byMachine: Array<{
+    machineNumber: string;
+    parkingLotName: string;
+    totalAmount: number;
+    count: number;
+  }>;
+}
+
+export interface UnresolvedItemsReminderData {
+  recipientEmail: string;
+  recipientName: string;
+  unresolvedIssues: Array<{
+    parkingLotName: string;
+    equipment: string;
+    createdAt: string;
+    daysOpen: number;
+    isUrgent: boolean;
+  }>;
+  unresolvedDamages: Array<{
+    parkingLotName: string;
+    damagedEquipment: string;
+    personName: string;
+    carPlate: string;
+    createdAt: string;
+    daysOpen: number;
+    isUrgent: boolean;
+  }>;
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -618,6 +685,415 @@ export class EmailService {
       data.employeeEmail,
       '🔐 Resetare parolă WorkSchedule',
       this.generateBaseTemplate('WorkSchedule', 'Resetare Parolă', content, '#ff9800 0%, #f57c00 100%')
+    );
+  }
+
+  // ============== PARKING DAMAGE EMAILS ==============
+
+  private generateParkingDamageHtml(data: ParkingDamageEmailData): string {
+    let statusText = '';
+    let statusColor = '#f44336';
+    let gradientColors = '#f44336 0%, #d32f2f 100%';
+    let subtitle = 'Prejudiciu Parcare';
+
+    switch (data.damageType) {
+      case 'new_damage':
+        statusText = data.isUrgent ? 'Un prejudiciu URGENT a fost raportat' : 'Un prejudiciu nou a fost raportat';
+        statusColor = data.isUrgent ? '#f44336' : '#ff9800';
+        gradientColors = data.isUrgent ? '#f44336 0%, #d32f2f 100%' : '#ff9800 0%, #f57c00 100%';
+        subtitle = data.isUrgent ? '🚨 Prejudiciu Urgent' : 'Prejudiciu Nou';
+        break;
+      case 'damage_resolved':
+        statusText = 'Prejudiciul a fost finalizat';
+        statusColor = '#4CAF50';
+        gradientColors = '#4CAF50 0%, #45a049 100%';
+        subtitle = '✅ Prejudiciu Finalizat';
+        break;
+      case 'urgent_reminder':
+        statusText = 'Acest prejudiciu este nerezolvat de peste 48 de ore!';
+        statusColor = '#f44336';
+        gradientColors = '#f44336 0%, #d32f2f 100%';
+        subtitle = '🚨 Reminder Prejudiciu Urgent';
+        break;
+    }
+
+    let resolutionSection = '';
+    if (data.damageType === 'damage_resolved' && data.resolutionDescription) {
+      const resolutionTypeLabel = data.resolutionType === 'RECUPERAT' ? 'Recuperat' : 'Trimis la Juridic';
+      resolutionSection = `
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4CAF50;">
+          <strong>Tip finalizare:</strong> ${resolutionTypeLabel}
+          <p style="margin: 10px 0 0 0;"><strong>Descriere:</strong> ${data.resolutionDescription}</p>
+        </div>
+      `;
+    }
+
+    const urgentBadge = data.isUrgent && data.damageType !== 'damage_resolved'
+      ? '<span style="background-color: #f44336; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px;">URGENT</span>'
+      : '';
+
+    const content = `
+      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
+        <p style="margin: 0; font-size: 16px;">${statusText}</p>
+      </div>
+
+      <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">Detalii prejudiciu: ${urgentBadge}</h3>
+        <table style="width: 100%;">
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Parcare:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.parkingLotName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Echipament avariat:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.damagedEquipment}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Persoană responsabilă:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.personName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Număr mașină:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.carPlate}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Descriere:</td>
+            <td style="padding: 5px 0;">${data.description}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Raportat de:</td>
+            <td style="padding: 5px 0;">${data.creatorName}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${resolutionSection}
+
+      <p style="margin-top: 30px;">
+        <a href="${this.appUrl}/parking?tab=damages" style="display: inline-block; background: linear-gradient(135deg, ${gradientColors}); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Vezi detalii
+        </a>
+      </p>
+    `;
+
+    return this.generateBaseTemplate('WorkSchedule', subtitle, content, gradientColors);
+  }
+
+  async sendParkingDamageNotification(data: ParkingDamageEmailData): Promise<boolean> {
+    const subjects: Record<string, string> = {
+      'new_damage': data.isUrgent
+        ? `🚨 URGENT: Prejudiciu la ${data.parkingLotName}`
+        : `Prejudiciu nou la ${data.parkingLotName}`,
+      'damage_resolved': `✅ Prejudiciu finalizat la ${data.parkingLotName}`,
+      'urgent_reminder': `🚨 REMINDER: Prejudiciu nerezolvat la ${data.parkingLotName}`,
+    };
+
+    return this.sendEmail(
+      data.recipientEmail,
+      subjects[data.damageType],
+      this.generateParkingDamageHtml(data)
+    );
+  }
+
+  // ============== SHIFT SWAP EMAILS ==============
+
+  private generateShiftSwapHtml(data: ShiftSwapEmailData): string {
+    let statusText = '';
+    let statusColor = '#2196F3';
+    let gradientColors = '#2196F3 0%, #1976D2 100%';
+    let subtitle = 'Schimb de Tură';
+
+    switch (data.swapType) {
+      case 'new_request':
+        statusText = `${data.requesterName} dorește să facă schimb de tură cu tine`;
+        statusColor = '#ff9800';
+        gradientColors = '#ff9800 0%, #f57c00 100%';
+        subtitle = '🔄 Cerere Schimb de Tură';
+        break;
+      case 'response_accepted':
+        statusText = `${data.responderName} a acceptat cererea ta de schimb`;
+        statusColor = '#4CAF50';
+        gradientColors = '#4CAF50 0%, #45a049 100%';
+        subtitle = '✅ Cerere Acceptată';
+        break;
+      case 'response_declined':
+        statusText = `${data.responderName} a refuzat cererea ta de schimb`;
+        statusColor = '#f44336';
+        gradientColors = '#f44336 0%, #d32f2f 100%';
+        subtitle = '❌ Cerere Refuzată';
+        break;
+      case 'approved':
+        statusText = 'Schimbul de tură a fost aprobat de administrator!';
+        statusColor = '#4CAF50';
+        gradientColors = '#4CAF50 0%, #45a049 100%';
+        subtitle = '✅ Schimb Aprobat';
+        break;
+      case 'rejected':
+        statusText = 'Schimbul de tură a fost respins de administrator';
+        statusColor = '#f44336';
+        gradientColors = '#f44336 0%, #d32f2f 100%';
+        subtitle = '❌ Schimb Respins';
+        break;
+    }
+
+    let adminNotesSection = '';
+    if (data.adminNotes) {
+      adminNotesSection = `
+        <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #ff9800;">
+          <strong>Notă administrator:</strong>
+          <p style="margin: 10px 0 0 0;">${data.adminNotes}</p>
+        </div>
+      `;
+    }
+
+    let reasonSection = '';
+    if (data.reason && data.swapType === 'new_request') {
+      reasonSection = `
+        <tr>
+          <td style="padding: 5px 0; color: #666;">Motiv:</td>
+          <td style="padding: 5px 0;">${data.reason}</td>
+        </tr>
+      `;
+    }
+
+    const content = `
+      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
+        <p style="margin: 0; font-size: 16px;">${statusText}</p>
+      </div>
+
+      <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">Detalii schimb:</h3>
+        <table style="width: 100%;">
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Solicitant:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.requesterName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Data solicitant:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.requesterDate}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Data dorită:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.targetDate}</td>
+          </tr>
+          ${reasonSection}
+        </table>
+      </div>
+
+      ${adminNotesSection}
+
+      <p style="margin-top: 30px;">
+        <a href="${this.appUrl}/shift-swaps" style="display: inline-block; background: linear-gradient(135deg, ${gradientColors}); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Vezi detalii
+        </a>
+      </p>
+    `;
+
+    return this.generateBaseTemplate('WorkSchedule', subtitle, content, gradientColors);
+  }
+
+  async sendShiftSwapNotification(data: ShiftSwapEmailData): Promise<boolean> {
+    const subjects: Record<string, string> = {
+      'new_request': `🔄 Cerere de schimb de tură de la ${data.requesterName}`,
+      'response_accepted': `✅ ${data.responderName} a acceptat schimbul de tură`,
+      'response_declined': `❌ ${data.responderName} a refuzat schimbul de tură`,
+      'approved': `✅ Schimbul de tură a fost aprobat!`,
+      'rejected': `❌ Schimbul de tură a fost respins`,
+    };
+
+    return this.sendEmail(
+      data.recipientEmail,
+      subjects[data.swapType],
+      this.generateShiftSwapHtml(data)
+    );
+  }
+
+  // ============== DAILY CASH REPORT EMAIL ==============
+
+  async sendDailyCashReport(data: DailyReportEmailData): Promise<boolean> {
+    const parkingLotRows = data.byParkingLot.map(lot => `
+      <tr>
+        <td style="padding: 10px; border: 1px solid #ddd;">${lot.parkingLotName}</td>
+        <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${lot.count}</td>
+        <td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold;">${lot.totalAmount.toFixed(2)} RON</td>
+      </tr>
+    `).join('');
+
+    const machineRows = data.byMachine.map(machine => `
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;">${machine.machineNumber}</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">${machine.parkingLotName}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${machine.count}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${machine.totalAmount.toFixed(2)} RON</td>
+      </tr>
+    `).join('');
+
+    const content = `
+      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+
+      <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196F3;">
+        <h2 style="margin: 0 0 10px 0; color: #1976D2;">📊 Raport Încasări - ${data.reportDate}</h2>
+        <p style="margin: 0; font-size: 24px; font-weight: bold; color: #333;">
+          Total: ${data.totalAmount.toFixed(2)} RON
+        </p>
+        <p style="margin: 5px 0 0 0; color: #666;">
+          ${data.collectionCount} ridicări înregistrate
+        </p>
+      </div>
+
+      <h3 style="color: #333; margin-top: 30px;">Totaluri per Parcare:</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+          <tr style="background-color: #f5f5f5;">
+            <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Parcare</th>
+            <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Ridicări</th>
+            <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${parkingLotRows}
+        </tbody>
+      </table>
+
+      <h3 style="color: #333; margin-top: 30px;">Detalii per Automat:</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+        <thead>
+          <tr style="background-color: #f5f5f5;">
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Automat</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Parcare</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Ridicări</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${machineRows}
+        </tbody>
+      </table>
+
+      <p style="margin-top: 30px;">
+        <a href="${this.appUrl}/parking?tab=cash" style="display: inline-block; background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Vezi raport complet
+        </a>
+      </p>
+    `;
+
+    return this.sendEmail(
+      data.recipientEmail,
+      `📊 Raport Încasări Parcări - ${data.reportDate}`,
+      this.generateBaseTemplate('WorkSchedule', 'Raport Zilnic Încasări', content, '#2196F3 0%, #1976D2 100%')
+    );
+  }
+
+  // ============== UNRESOLVED ITEMS REMINDER EMAIL ==============
+
+  async sendUnresolvedItemsReminder(data: UnresolvedItemsReminderData): Promise<boolean> {
+    const totalItems = data.unresolvedIssues.length + data.unresolvedDamages.length;
+    const urgentIssues = data.unresolvedIssues.filter(i => i.isUrgent).length;
+    const urgentDamages = data.unresolvedDamages.filter(d => d.isUrgent).length;
+    const totalUrgent = urgentIssues + urgentDamages;
+
+    let issuesTable = '';
+    if (data.unresolvedIssues.length > 0) {
+      const issueRows = data.unresolvedIssues.map(issue => `
+        <tr style="${issue.isUrgent ? 'background-color: #ffebee;' : ''}">
+          <td style="padding: 8px; border: 1px solid #ddd;">${issue.parkingLotName}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${issue.equipment}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${issue.createdAt}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+            ${issue.daysOpen} zile
+            ${issue.isUrgent ? '<span style="color: #f44336; font-weight: bold;">⚠️</span>' : ''}
+          </td>
+        </tr>
+      `).join('');
+
+      issuesTable = `
+        <h3 style="color: #333; margin-top: 20px;">🔧 Probleme Nerezolvate (${data.unresolvedIssues.length}):</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+          <thead>
+            <tr style="background-color: #f5f5f5;">
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Parcare</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Echipament</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Data</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Vechime</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${issueRows}
+          </tbody>
+        </table>
+      `;
+    }
+
+    let damagesTable = '';
+    if (data.unresolvedDamages.length > 0) {
+      const damageRows = data.unresolvedDamages.map(damage => `
+        <tr style="${damage.isUrgent ? 'background-color: #ffebee;' : ''}">
+          <td style="padding: 8px; border: 1px solid #ddd;">${damage.parkingLotName}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${damage.damagedEquipment}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${damage.personName}</td>
+          <td style="padding: 8px; border: 1px solid #ddd;">${damage.carPlate}</td>
+          <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+            ${damage.daysOpen} zile
+            ${damage.isUrgent ? '<span style="color: #f44336; font-weight: bold;">⚠️</span>' : ''}
+          </td>
+        </tr>
+      `).join('');
+
+      damagesTable = `
+        <h3 style="color: #333; margin-top: 20px;">💥 Prejudicii Nerezolvate (${data.unresolvedDamages.length}):</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+          <thead>
+            <tr style="background-color: #f5f5f5;">
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Parcare</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Echipament</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Persoană</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Nr. Mașină</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Vechime</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${damageRows}
+          </tbody>
+        </table>
+      `;
+    }
+
+    const urgentWarning = totalUrgent > 0 ? `
+      <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f44336;">
+        <p style="margin: 0; font-weight: bold; color: #f44336;">
+          ⚠️ ${totalUrgent} ${totalUrgent === 1 ? 'element urgent' : 'elemente urgente'} (mai vechi de 48h)!
+        </p>
+      </div>
+    ` : '';
+
+    const content = `
+      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+
+      <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
+        <p style="margin: 0; font-size: 16px;">
+          Ai <strong>${totalItems}</strong> ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} care necesită atenție.
+        </p>
+      </div>
+
+      ${urgentWarning}
+      ${issuesTable}
+      ${damagesTable}
+
+      <p style="margin-top: 30px;">
+        <a href="${this.appUrl}/parking" style="display: inline-block; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Rezolvă acum
+        </a>
+      </p>
+    `;
+
+    return this.sendEmail(
+      data.recipientEmail,
+      `⏰ Reminder: ${totalItems} ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} - Parcări`,
+      this.generateBaseTemplate('WorkSchedule', 'Reminder Elemente Nerezolvate', content, '#ff9800 0%, #f57c00 100%')
     );
   }
 

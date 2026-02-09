@@ -10,6 +10,9 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { Department } from '../departments/entities/department.entity';
+import { EmailService } from '../../common/email/email.service';
+import { MAINTENANCE_DEPARTMENT_NAME } from './constants/parking.constants';
 
 @Injectable()
 export class ParkingDamagesService {
@@ -22,7 +25,10 @@ export class ParkingDamagesService {
     private readonly historyRepository: Repository<ParkingHistory>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Department)
+    private readonly departmentRepository: Repository<Department>,
     private readonly notificationsService: NotificationsService,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(userId: string, dto: CreateParkingDamageDto): Promise<ParkingDamage> {
@@ -126,6 +132,26 @@ export class ParkingDamagesService {
     }));
 
     await this.notificationsService.createMany(notifications);
+
+    // Trimite emailuri către manageri și admini
+    if (action === 'CREATED' || action === 'RESOLVED') {
+      for (const user of toNotify) {
+        await this.emailService.sendParkingDamageNotification({
+          recipientEmail: user.email,
+          recipientName: user.fullName,
+          parkingLotName: parkingName,
+          damagedEquipment: damage.damagedEquipment,
+          personName: damage.personName,
+          carPlate: damage.carPlate,
+          description: damage.description,
+          isUrgent: damage.isUrgent || false,
+          creatorName: actorName,
+          damageType: action === 'CREATED' ? 'new_damage' : 'damage_resolved',
+          resolutionType: damage.resolutionType,
+          resolutionDescription: damage.resolutionDescription,
+        });
+      }
+    }
   }
 
   async findAll(status?: ParkingDamageStatus): Promise<ParkingDamage[]> {
@@ -197,6 +223,47 @@ export class ParkingDamagesService {
       resolutionType: dto.resolutionType,
       resolutionDescription: dto.resolutionDescription,
     });
+
+    // Obține rezolvatorul
+    const resolver = await this.userRepository.findOne({ where: { id: userId } });
+    const resolverName = resolver?.fullName || 'Un utilizator';
+
+    // Notifică creatorul prejudiciului că a fost rezolvat (dacă nu e același user)
+    if (damage.createdBy !== userId) {
+      const creator = await this.userRepository.findOne({ where: { id: damage.createdBy } });
+      if (creator) {
+        // Notificare in-app
+        await this.notificationsService.create({
+          userId: damage.createdBy,
+          type: NotificationType.PARKING_ISSUE_RESOLVED,
+          title: 'Prejudiciu finalizat',
+          message: `Prejudiciul la ${damage.parkingLot?.name || 'parcare'} (${damage.damagedEquipment}) a fost finalizat.`,
+          data: {
+            damageId: damage.id,
+            parkingLotId: damage.parkingLotId,
+            damagedEquipment: damage.damagedEquipment,
+            resolutionType: dto.resolutionType,
+            resolutionDescription: dto.resolutionDescription,
+          },
+        });
+
+        // Email către creator
+        await this.emailService.sendParkingDamageNotification({
+          recipientEmail: creator.email,
+          recipientName: creator.fullName,
+          parkingLotName: damage.parkingLot?.name || 'parcare',
+          damagedEquipment: damage.damagedEquipment,
+          personName: damage.personName,
+          carPlate: damage.carPlate,
+          description: damage.description,
+          isUrgent: false,
+          creatorName: resolverName,
+          damageType: 'damage_resolved',
+          resolutionType: dto.resolutionType,
+          resolutionDescription: dto.resolutionDescription,
+        });
+      }
+    }
 
     // Notifică managerii și adminii
     await this.notifyManagersAndAdmins(damage, 'RESOLVED', userId);
@@ -286,5 +353,39 @@ export class ParkingDamagesService {
       .execute();
 
     return result.affected || 0;
+  }
+
+  // Metodă pentru obținerea tuturor prejudiciilor active (pentru rapoarte/reminder-uri)
+  async findAllActive(): Promise<ParkingDamage[]> {
+    return this.parkingDamageRepository.createQueryBuilder('damage')
+      .leftJoinAndSelect('damage.parkingLot', 'parkingLot')
+      .leftJoinAndSelect('damage.creator', 'creator')
+      .where('damage.status = :status', { status: 'ACTIVE' })
+      .orderBy('damage.isUrgent', 'DESC')
+      .addOrderBy('damage.createdAt', 'ASC')
+      .getMany();
+  }
+
+  // Metodă pentru obținerea userilor din Dispecerat și Întreținere Parcări
+  async getUsersForReminders(): Promise<User[]> {
+    // Găsește departamentele Dispecerat și Întreținere Parcări
+    const dispeceratDept = await this.departmentRepository.findOne({
+      where: { name: 'Dispecerat' },
+    });
+
+    const maintenanceDept = await this.departmentRepository.findOne({
+      where: { name: MAINTENANCE_DEPARTMENT_NAME },
+    });
+
+    const users = await this.userRepository.find({
+      where: [
+        { role: UserRole.ADMIN, isActive: true },
+        { role: UserRole.MANAGER, isActive: true },
+        ...(dispeceratDept ? [{ departmentId: dispeceratDept.id, isActive: true }] : []),
+        ...(maintenanceDept ? [{ departmentId: maintenanceDept.id, isActive: true }] : []),
+      ],
+    });
+
+    return users;
   }
 }

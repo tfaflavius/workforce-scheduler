@@ -13,6 +13,7 @@ import { User, UserRole } from '../users/entities/user.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { EmailService } from '../../common/email/email.service';
 import { CreateSwapRequestDto } from './dto/create-swap-request.dto';
 import { RespondSwapDto } from './dto/respond-swap.dto';
 import { AdminApproveSwapDto, AdminRejectSwapDto } from './dto/admin-approve-swap.dto';
@@ -33,6 +34,7 @@ export class ShiftSwapsService {
     @InjectRepository(WorkSchedule)
     private readonly scheduleRepository: Repository<WorkSchedule>,
     private readonly notificationsService: NotificationsService,
+    private readonly emailService: EmailService,
   ) {}
 
   /**
@@ -218,14 +220,31 @@ export class ShiftSwapsService {
       adminNotes: dto.adminNotes,
     });
 
+    const requesterDateFormatted = this.formatDate(swapRequest.requesterDate);
+    const targetDateFormatted = this.formatDate(swapRequest.targetDate);
+    const requester = await this.userRepository.findOne({ where: { id: swapRequest.requesterId } });
+
     // Notifică solicitantul
     await this.notificationsService.create({
       userId: swapRequest.requesterId,
       type: 'SHIFT_SWAP_REJECTED' as any,
       title: 'Cerere de schimb respinsă',
-      message: `Cererea ta de schimb pentru ${this.formatDate(swapRequest.requesterDate)} a fost respinsă de administrator.${dto.adminNotes ? ` Motiv: ${dto.adminNotes}` : ''}`,
+      message: `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsă de administrator.${dto.adminNotes ? ` Motiv: ${dto.adminNotes}` : ''}`,
       data: { swapRequestId },
     });
+
+    // Email către solicitant
+    if (requester) {
+      await this.emailService.sendShiftSwapNotification({
+        recipientEmail: requester.email,
+        recipientName: requester.fullName,
+        requesterName: requester.fullName,
+        requesterDate: requesterDateFormatted,
+        targetDate: targetDateFormatted,
+        swapType: 'rejected',
+        adminNotes: dto.adminNotes,
+      });
+    }
 
     this.logger.log(`Swap rejected: ${swapRequestId} by admin ${adminId}`);
 
@@ -424,6 +443,7 @@ export class ShiftSwapsService {
     });
 
     for (const admin of admins) {
+      // Notificare in-app
       await this.notificationsService.create({
         userId: admin.id,
         type: 'SHIFT_SWAP_REQUEST' as any,
@@ -431,16 +451,39 @@ export class ShiftSwapsService {
         message: `${requester.fullName} a solicitat schimb de tură: ${requesterDateFormatted} ↔ ${targetDateFormatted}. Motiv: ${request.reason}`,
         data: { swapRequestId: request.id },
       });
+
+      // Email către admin
+      await this.emailService.sendShiftSwapNotification({
+        recipientEmail: admin.email,
+        recipientName: admin.fullName,
+        requesterName: requester.fullName,
+        requesterDate: requesterDateFormatted,
+        targetDate: targetDateFormatted,
+        reason: request.reason,
+        swapType: 'new_request',
+      });
     }
 
     // Notifică userii care lucrează în data țintă
     for (const user of targetUsers) {
+      // Notificare in-app
       await this.notificationsService.create({
         userId: user.id,
         type: 'SHIFT_SWAP_REQUEST' as any,
         title: 'Cerere de schimb de tură',
         message: `${requester.fullName} dorește să schimbe tura din ${requesterDateFormatted} cu tura ta din ${targetDateFormatted}. Motiv: ${request.reason}`,
         data: { swapRequestId: request.id },
+      });
+
+      // Email către user
+      await this.emailService.sendShiftSwapNotification({
+        recipientEmail: user.email,
+        recipientName: user.fullName,
+        requesterName: requester.fullName,
+        requesterDate: requesterDateFormatted,
+        targetDate: targetDateFormatted,
+        reason: request.reason,
+        swapType: 'new_request',
       });
     }
   }
@@ -454,15 +497,33 @@ export class ShiftSwapsService {
     responseType: SwapResponseType,
   ): Promise<void> {
     const responseText = responseType === SwapResponseType.ACCEPTED ? 'a acceptat' : 'a refuzat';
+    const requesterDateFormatted = this.formatDate(request.requesterDate);
+    const targetDateFormatted = this.formatDate(request.targetDate);
+
+    // Obține solicitantul pentru email
+    const requester = await this.userRepository.findOne({ where: { id: request.requesterId } });
 
     // Notifică solicitantul
     await this.notificationsService.create({
       userId: request.requesterId,
       type: 'SHIFT_SWAP_RESPONSE' as any,
       title: `Răspuns la cererea de schimb`,
-      message: `${responder.fullName} ${responseText} cererea ta de schimb pentru ${this.formatDate(request.requesterDate)}.`,
+      message: `${responder.fullName} ${responseText} cererea ta de schimb pentru ${requesterDateFormatted}.`,
       data: { swapRequestId: request.id },
     });
+
+    // Email către solicitant
+    if (requester) {
+      await this.emailService.sendShiftSwapNotification({
+        recipientEmail: requester.email,
+        recipientName: requester.fullName,
+        requesterName: requester.fullName,
+        requesterDate: requesterDateFormatted,
+        targetDate: targetDateFormatted,
+        swapType: responseType === SwapResponseType.ACCEPTED ? 'response_accepted' : 'response_declined',
+        responderName: responder.fullName,
+      });
+    }
 
     // Notifică admin-ii dacă cineva a acceptat
     if (responseType === SwapResponseType.ACCEPTED) {
@@ -471,12 +532,24 @@ export class ShiftSwapsService {
       });
 
       for (const admin of admins) {
+        // Notificare in-app
         await this.notificationsService.create({
           userId: admin.id,
           type: 'SHIFT_SWAP_RESPONSE' as any,
           title: 'Schimb de tură - acceptare',
           message: `${responder.fullName} a acceptat să facă schimb cu ${request.requester?.fullName || 'solicitant'}. Așteaptă aprobarea ta.`,
           data: { swapRequestId: request.id },
+        });
+
+        // Email către admin
+        await this.emailService.sendShiftSwapNotification({
+          recipientEmail: admin.email,
+          recipientName: admin.fullName,
+          requesterName: requester?.fullName || 'Solicitant',
+          requesterDate: requesterDateFormatted,
+          targetDate: targetDateFormatted,
+          swapType: 'response_accepted',
+          responderName: responder.fullName,
         });
       }
     }
@@ -508,6 +581,19 @@ export class ShiftSwapsService {
       data: { swapRequestId: request.id },
     });
 
+    // Email către solicitant
+    if (requester) {
+      await this.emailService.sendShiftSwapNotification({
+        recipientEmail: requester.email,
+        recipientName: requester.fullName,
+        requesterName: requester.fullName,
+        requesterDate: requesterDateFormatted,
+        targetDate: targetDateFormatted,
+        swapType: 'approved',
+        responderName: approvedResponder?.fullName,
+      });
+    }
+
     // Notifică userul aprobat
     await this.notificationsService.create({
       userId: approvedResponderId,
@@ -516,6 +602,18 @@ export class ShiftSwapsService {
       message: `Schimbul a fost aprobat! Acum lucrezi în ${requesterDateFormatted} în loc de ${targetDateFormatted}.`,
       data: { swapRequestId: request.id },
     });
+
+    // Email către userul aprobat
+    if (approvedResponder) {
+      await this.emailService.sendShiftSwapNotification({
+        recipientEmail: approvedResponder.email,
+        recipientName: approvedResponder.fullName,
+        requesterName: requester?.fullName || 'Solicitant',
+        requesterDate: requesterDateFormatted,
+        targetDate: targetDateFormatted,
+        swapType: 'approved',
+      });
+    }
 
     // Notifică toți managerii
     const managers = await this.userRepository.find({
