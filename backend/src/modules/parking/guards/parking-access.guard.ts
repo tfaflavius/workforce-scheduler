@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
-import { DISPECERAT_DEPARTMENT_NAME } from '../constants/parking.constants';
+import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../constants/parking.constants';
 
 @Injectable()
 export class ParkingAccessGuard implements CanActivate {
@@ -27,14 +27,18 @@ export class ParkingAccessGuard implements CanActivate {
       return true;
     }
 
-    // Pentru USER, verificăm dacă e din departamentul Dispecerat
+    // Pentru USER, verificăm dacă e din departamentele cu acces la parcări
     if (user.departmentId) {
       const department = await this.departmentRepository.findOne({
         where: { id: user.departmentId },
       });
 
-      if (department && department.name === DISPECERAT_DEPARTMENT_NAME) {
-        return true;
+      if (department) {
+        // Permite acces pentru Dispecerat și Întreținere Parcări
+        const allowedDepartments = [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME];
+        if (allowedDepartments.includes(department.name)) {
+          return true;
+        }
       }
     }
 

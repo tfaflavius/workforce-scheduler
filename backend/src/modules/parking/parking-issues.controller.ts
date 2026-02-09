@@ -88,13 +88,13 @@ export class ParkingIssuesController {
   }
 
   @Post(':id/comments')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   async addComment(
     @Param('id') id: string,
     @Request() req,
     @Body() dto: CreateCommentDto,
   ): Promise<ParkingIssueComment> {
+    // Accesul este verificat de ParkingAccessGuard la nivel de controller
+    // Permite comentarii pentru: ADMIN, MANAGER, Dispecerat, Întreținere Parcări
     return this.parkingIssuesService.addComment(id, req.user.id, dto);
   }
 
