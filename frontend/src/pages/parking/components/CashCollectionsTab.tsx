@@ -23,12 +23,12 @@ import {
   Select,
   MenuItem,
   Chip,
-  TextField,
   Collapse,
   Fade,
   Grow,
   alpha,
 } from '@mui/material';
+import DatePickerField from '../../../components/common/DatePickerField';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -407,23 +407,20 @@ const CashCollectionsTab: React.FC = () => {
                     </Select>
                   </FormControl>
 
-                  <TextField
-                    type="date"
+                  <DatePickerField
                     label="De la"
+                    value={startDate || null}
+                    onChange={(value) => setStartDate(value || '')}
                     size="small"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
 
-                  <TextField
-                    type="date"
+                  <DatePickerField
                     label="Până la"
+                    value={endDate || null}
+                    onChange={(value) => setEndDate(value || '')}
                     size="small"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
+                    minDate={startDate || undefined}
                     fullWidth
                   />
 
@@ -477,25 +474,24 @@ const CashCollectionsTab: React.FC = () => {
                 </Select>
               </FormControl>
 
-              <TextField
-                type="date"
-                label="De la"
-                size="small"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 140 }}
-              />
+              <Box sx={{ minWidth: 160 }}>
+                <DatePickerField
+                  label="De la"
+                  value={startDate || null}
+                  onChange={(value) => setStartDate(value || '')}
+                  size="small"
+                />
+              </Box>
 
-              <TextField
-                type="date"
-                label="Până la"
-                size="small"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 140 }}
-              />
+              <Box sx={{ minWidth: 160 }}>
+                <DatePickerField
+                  label="Până la"
+                  value={endDate || null}
+                  onChange={(value) => setEndDate(value || '')}
+                  size="small"
+                  minDate={startDate || undefined}
+                />
+              </Box>
 
               <Button size="small" onClick={clearFilters} sx={{ borderRadius: 2 }}>
                 Resetează

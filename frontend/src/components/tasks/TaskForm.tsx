@@ -10,6 +10,7 @@ import {
   Stack,
   Alert,
 } from '@mui/material';
+import DatePickerField from '../common/DatePickerField';
 import type { Task, CreateTaskRequest, UpdateTaskRequest, TaskPriority, TaskUrgency } from '../../types/task.types';
 
 interface TaskFormProps {
@@ -146,12 +147,11 @@ export const TaskForm = ({ task, onSubmit, onCancel, isLoading, error }: TaskFor
           fullWidth
         />
 
-        <TextField
+        <DatePickerField
           label="Data Limită"
-          type="date"
-          value={formData.dueDate}
-          onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-          InputLabelProps={{ shrink: true }}
+          value={formData.dueDate || null}
+          onChange={(value) => setFormData({ ...formData, dueDate: value || '' })}
+          minDate={new Date().toISOString().split('T')[0]}
           fullWidth
         />
 

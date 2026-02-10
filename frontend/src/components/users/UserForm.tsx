@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import type { CreateUserRequest, UpdateUserRequest } from '../../store/api/users.api';
+import DatePickerField from '../common/DatePickerField';
 
 interface UserFormProps {
   initialData?: Partial<CreateUserRequest & UpdateUserRequest & { id: string }>;
@@ -170,17 +171,19 @@ export const UserForm: React.FC<UserFormProps> = ({
           fullWidth
         />
 
-        <TextField
+        <DatePickerField
           label="Data Nașterii"
-          type="date"
-          value={formData.birthDate}
-          onChange={handleChange('birthDate')}
+          value={formData.birthDate || null}
+          onChange={(value) => {
+            setFormData({ ...formData, birthDate: value || '' });
+            if (errors.birthDate) {
+              setErrors({ ...errors, birthDate: '' });
+            }
+          }}
           error={!!errors.birthDate}
           helperText={errors.birthDate || 'Necesară pentru concediul de zi de naștere'}
           fullWidth
-          InputLabelProps={{
-            shrink: true,
-          }}
+          isBirthDate
         />
 
         <FormControl fullWidth error={!!errors.role} required={isCreate}>

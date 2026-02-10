@@ -25,6 +25,7 @@ import {
   LinearProgress,
   Grow,
 } from '@mui/material';
+import DatePickerField from '../../components/common/DatePickerField';
 import {
   Add as AddIcon,
   BeachAccess as BeachIcon,
@@ -519,22 +520,20 @@ export const LeaveRequestsPage = () => {
               ))}
             </TextField>
 
-            <TextField
-              type="date"
+            <DatePickerField
               label="Data Început"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
+              value={startDate || null}
+              onChange={(value) => setStartDate(value || '')}
               fullWidth
+              minDate={new Date().toISOString().split('T')[0]}
             />
 
-            <TextField
-              type="date"
+            <DatePickerField
               label="Data Sfârșit"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
+              value={endDate || null}
+              onChange={(value) => setEndDate(value || '')}
               fullWidth
+              minDate={startDate || new Date().toISOString().split('T')[0]}
             />
 
             <TextField
