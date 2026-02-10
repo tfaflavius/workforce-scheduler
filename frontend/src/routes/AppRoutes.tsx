@@ -15,7 +15,6 @@ import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
 import ReportsPage from '../pages/reports/ReportsPage';
 import ParkingPage from '../pages/parking/ParkingPage';
-import ParkingReportsPage from '../pages/parking/ParkingReportsPage';
 import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
@@ -140,16 +139,6 @@ export const AppRoutes = () => {
 
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<ParkingPage />} />
-
-        {/* Parking Reports - Admin only */}
-        <Route
-          path="/parking/reports"
-          element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
-              <ParkingReportsPage />
-            </ProtectedRoute>
-          }
-        />
 
         {/* Admin Edit Requests */}
         <Route

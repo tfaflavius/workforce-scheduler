@@ -33,7 +33,9 @@ import {
   Summarize as TotalIcon,
   AccessTime as TimeIcon,
   People as PeopleIcon,
+  LocalParking as ParkingIcon,
 } from '@mui/icons-material';
+import ParkingReportsTab from './ParkingReportsTab';
 import { GradientHeader, StatCard } from '../../components/common';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -88,6 +90,16 @@ const ReportsPage: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL');
   const [selectedLeaveStatus, setSelectedLeaveStatus] = useState<string>('ALL');
   const [selectedSwapStatus, setSelectedSwapStatus] = useState<string>('ALL');
+
+  // Parking reports date filters
+  const [parkingStartDate, setParkingStartDate] = useState<string>(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date.toISOString().split('T')[0];
+  });
+  const [parkingEndDate, setParkingEndDate] = useState<string>(() => {
+    return new Date().toISOString().split('T')[0];
+  });
 
   // Lista de luni (generată o singură dată)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
@@ -1610,6 +1622,12 @@ const ReportsPage: React.FC = () => {
                   label={isMobile ? 'Total' : 'Raport Total'}
                   sx={{ minHeight: 48 }}
                 />
+                <Tab
+                  icon={<ParkingIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Parcări' : 'Parcări Etajate'}
+                  sx={{ minHeight: 48 }}
+                />
               </Tabs>
 
               {/* Loading state */}
@@ -1624,6 +1642,14 @@ const ReportsPage: React.FC = () => {
               {!isLoading && tabValue === 1 && renderLeavesTab()}
               {!isLoading && tabValue === 2 && renderSwapsTab()}
               {!isLoading && tabValue === 3 && renderTotalTab()}
+              {tabValue === 4 && (
+                <ParkingReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={setParkingStartDate}
+                  onEndDateChange={setParkingEndDate}
+                />
+              )}
             </Stack>
           </CardContent>
         </Card>
