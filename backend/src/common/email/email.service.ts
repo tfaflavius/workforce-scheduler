@@ -147,10 +147,11 @@ export class EmailService {
 
   // Lista de email-uri/domenii de test - nu se trimit email-uri automate la acestea
   private readonly testEmailPatterns: string[] = [
-    '@workforce.com',      // Toate conturile interne de test
-    '@test.com',           // Conturi de test generice
-    '@example.com',        // Conturi de exemplu
-    'test@',               // Orice email care începe cu test@
+    '@workforce.com',           // Toate conturile interne de test
+    '@test.com',                // Conturi de test generice
+    '@example.com',             // Conturi de exemplu
+    'test@',                    // Orice email care începe cu test@
+    'tartaflavius22@gmail.com', // Cont personal de test
   ];
 
   constructor(private configService: ConfigService) {
