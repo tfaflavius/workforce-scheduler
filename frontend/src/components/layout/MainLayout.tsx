@@ -39,6 +39,7 @@ import {
   BeachAccess as BeachIcon,
   LocalParking as ParkingIcon,
   Accessible as HandicapIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -55,6 +56,7 @@ interface MenuItem {
   roles: UserRole[];
   requiresDepartment?: string;
   requiresDepartments?: string[];
+  excludeDepartments?: string[];  // Departamente care NU văd acest meniu
 }
 
 export const MainLayout = () => {
@@ -97,6 +99,9 @@ export const MainLayout = () => {
     }
   };
 
+  // Departamente care nu au acces la Schimburi Ture și Programul Meu
+  const PARKING_ONLY_DEPARTMENTS = ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'];
+
   const menuItems: MenuItem[] = [
     {
       text: 'Dashboard',
@@ -109,12 +114,14 @@ export const MainLayout = () => {
       icon: <ScheduleIcon />,
       path: '/my-schedule',
       roles: ['USER', 'MANAGER'],
+      excludeDepartments: PARKING_ONLY_DEPARTMENTS,
     },
     {
       text: 'Schimburi Ture',
       icon: <SwapIcon />,
       path: '/shift-swaps',
       roles: ['USER', 'MANAGER'],
+      excludeDepartments: PARKING_ONLY_DEPARTMENTS,
     },
     {
       text: 'Concedii',
@@ -158,6 +165,7 @@ export const MainLayout = () => {
       path: '/parking',
       roles: ['ADMIN', 'MANAGER', 'USER'],
       requiresDepartments: ['Dispecerat', 'Întreținere Parcări'],
+      excludeDepartments: ['Parcări Handicap', 'Parcări Domiciliu'],
     },
     {
       text: 'Parcări Handicap',
@@ -166,20 +174,48 @@ export const MainLayout = () => {
       roles: ['ADMIN', 'MANAGER', 'USER'],
       requiresDepartments: ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'],
     },
+    {
+      text: 'Parcări Domiciliu',
+      icon: <HomeIcon />,
+      path: '/parking/domiciliu',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'],
+    },
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
     if (!user) return false;
     if (!item.roles.includes(user.role)) return false;
-    if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
-    // Check for multiple allowed departments
-    if (item.requiresDepartments && user.role === 'USER') {
-      return item.requiresDepartments.includes(user.department?.name || '');
+
+    const userDepartment = user.department?.name || '';
+
+    // Admin vede tot
+    if (user.role === 'ADMIN') return true;
+
+    // Manager vede tot EXCEPTÂND dacă există excludeDepartments
+    if (user.role === 'MANAGER') {
+      if (item.excludeDepartments && item.excludeDepartments.includes(userDepartment)) {
+        return false;
+      }
+      return true;
     }
-    // Legacy single department check
-    if (item.requiresDepartment && user.role === 'USER') {
-      return user.department?.name === item.requiresDepartment;
+
+    // USER - verificări multiple
+    // 1. Verifică excludeDepartments - dacă departamentul user-ului e exclus, nu vede
+    if (item.excludeDepartments && item.excludeDepartments.includes(userDepartment)) {
+      return false;
     }
+
+    // 2. Check for multiple allowed departments
+    if (item.requiresDepartments) {
+      return item.requiresDepartments.includes(userDepartment);
+    }
+
+    // 3. Legacy single department check
+    if (item.requiresDepartment) {
+      return userDepartment === item.requiresDepartment;
+    }
+
     return true;
   });
 

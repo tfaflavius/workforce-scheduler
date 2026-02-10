@@ -10,3 +10,6 @@ export * from './review-edit-request.dto';
 export * from './create-handicap-request.dto';
 export * from './update-handicap-request.dto';
 export * from './resolve-handicap-request.dto';
+export * from './create-domiciliu-request.dto';
+export * from './update-domiciliu-request.dto';
+export * from './resolve-domiciliu-request.dto';

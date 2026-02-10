@@ -16,6 +16,7 @@ import UserProfilePage from '../pages/users/UserProfilePage';
 import ReportsPage from '../pages/reports/ReportsPage';
 import ParkingPage from '../pages/parking/ParkingPage';
 import HandicapParkingPage from '../pages/parking/HandicapParkingPage';
+import DomiciliuParkingPage from '../pages/parking/DomiciliuParkingPage';
 import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
@@ -143,6 +144,9 @@ export const AppRoutes = () => {
 
         {/* Handicap Parking - Întreținere Parcări, Parcări Handicap, Parcări Domiciliu, Admin */}
         <Route path="/parking/handicap" element={<HandicapParkingPage />} />
+
+        {/* Domiciliu Parking - Întreținere Parcări, Parcări Handicap, Parcări Domiciliu, Admin */}
+        <Route path="/parking/domiciliu" element={<DomiciliuParkingPage />} />
 
         {/* Admin Edit Requests */}
         <Route

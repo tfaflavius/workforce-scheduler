@@ -8,3 +8,5 @@ export * from './parking-damage-comment.entity';
 export * from './parking-history.entity';
 export * from './handicap-request.entity';
 export * from './handicap-request-comment.entity';
+export * from './domiciliu-request.entity';
+export * from './domiciliu-request-comment.entity';

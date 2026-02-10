@@ -172,9 +172,35 @@ export const HANDICAP_REQUEST_STATUS = {
 
 export type HandicapRequestStatus = typeof HANDICAP_REQUEST_STATUS[keyof typeof HANDICAP_REQUEST_STATUS];
 
-// Labels în limba română pentru tipurile de solicitări
+// Labels în limba română pentru tipurile de solicitări handicap
 export const HANDICAP_REQUEST_TYPE_LABELS: Record<HandicapRequestType, string> = {
   AMPLASARE_PANOU: 'Amplasare panou',
   REVOCARE_PANOU: 'Revocare panou',
   CREARE_MARCAJ: 'Creare marcaj',
+};
+
+// ============== PARCĂRI DOMICILIU ==============
+
+// Tipuri de solicitări parcări domiciliu
+export const DOMICILIU_REQUEST_TYPES = {
+  APROBARE_LOC: 'APROBARE_LOC',           // Aprobare loc de parcare la domiciliu
+  REVOCARE_LOC: 'REVOCARE_LOC',           // Revocare loc de parcare la domiciliu
+  MODIFICARE_DATE: 'MODIFICARE_DATE',     // Modificare date (mașină, adresă, etc.)
+} as const;
+
+export type DomiciliuRequestType = typeof DOMICILIU_REQUEST_TYPES[keyof typeof DOMICILIU_REQUEST_TYPES];
+
+// Status pentru solicitări domiciliu
+export const DOMICILIU_REQUEST_STATUS = {
+  ACTIVE: 'ACTIVE',
+  FINALIZAT: 'FINALIZAT',
+} as const;
+
+export type DomiciliuRequestStatus = typeof DOMICILIU_REQUEST_STATUS[keyof typeof DOMICILIU_REQUEST_STATUS];
+
+// Labels în limba română pentru tipurile de solicitări domiciliu
+export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
+  APROBARE_LOC: 'Aprobare loc',
+  REVOCARE_LOC: 'Revocare loc',
+  MODIFICARE_DATE: 'Modificare date',
 };

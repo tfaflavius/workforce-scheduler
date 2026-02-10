@@ -14,6 +14,8 @@ import { ParkingHistory } from './entities/parking-history.entity';
 import { EditRequest } from './entities/edit-request.entity';
 import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapRequestComment } from './entities/handicap-request-comment.entity';
+import { DomiciliuRequest } from './entities/domiciliu-request.entity';
+import { DomiciliuRequestComment } from './entities/domiciliu-request-comment.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 
@@ -24,6 +26,7 @@ import { ParkingDamagesService } from './parking-damages.service';
 import { CashCollectionsService } from './cash-collections.service';
 import { EditRequestService } from './edit-request.service';
 import { HandicapRequestsService } from './handicap-requests.service';
+import { DomiciliuRequestsService } from './domiciliu-requests.service';
 
 // Controllers
 import { ParkingLotsController } from './parking-lots.controller';
@@ -32,6 +35,7 @@ import { ParkingDamagesController } from './parking-damages.controller';
 import { CashCollectionsController } from './cash-collections.controller';
 import { EditRequestController } from './edit-request.controller';
 import { HandicapRequestsController } from './handicap-requests.controller';
+import { DomiciliuRequestsController } from './domiciliu-requests.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
@@ -54,6 +58,8 @@ import { EmailModule } from '../../common/email/email.module';
       EditRequest,
       HandicapRequest,
       HandicapRequestComment,
+      DomiciliuRequest,
+      DomiciliuRequestComment,
       User,
       Department,
     ]),
@@ -68,6 +74,7 @@ import { EmailModule } from '../../common/email/email.module';
     CashCollectionsController,
     EditRequestController,
     HandicapRequestsController,
+    DomiciliuRequestsController,
   ],
   providers: [
     ParkingLotsService,
@@ -76,6 +83,7 @@ import { EmailModule } from '../../common/email/email.module';
     CashCollectionsService,
     EditRequestService,
     HandicapRequestsService,
+    DomiciliuRequestsService,
     ParkingUrgentScheduler,
   ],
   exports: [
@@ -85,6 +93,7 @@ import { EmailModule } from '../../common/email/email.module';
     CashCollectionsService,
     EditRequestService,
     HandicapRequestsService,
+    DomiciliuRequestsService,
   ],
 })
 export class ParkingModule {}

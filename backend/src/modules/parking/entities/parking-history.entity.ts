@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-export type ParkingHistoryEntityType = 'ISSUE' | 'DAMAGE' | 'COLLECTION' | 'HANDICAP_REQUEST';
+export type ParkingHistoryEntityType = 'ISSUE' | 'DAMAGE' | 'COLLECTION' | 'HANDICAP_REQUEST' | 'DOMICILIU_REQUEST';
 export type ParkingHistoryAction = 'CREATED' | 'UPDATED' | 'RESOLVED' | 'DELETED';
 
 @Entity('parking_history')

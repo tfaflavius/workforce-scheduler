@@ -9,6 +9,7 @@ import { shiftSwapsApi } from './api/shiftSwaps.api';
 import { leaveRequestsApi } from './api/leaveRequests.api';
 import { parkingApi } from './api/parking.api';
 import { handicapApi } from './api/handicap.api';
+import { domiciliuApi } from './api/domiciliu.api';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     [leaveRequestsApi.reducerPath]: leaveRequestsApi.reducer,
     [parkingApi.reducerPath]: parkingApi.reducer,
     [handicapApi.reducerPath]: handicapApi.reducer,
+    [domiciliuApi.reducerPath]: domiciliuApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -33,7 +35,8 @@ export const store = configureStore({
       shiftSwapsApi.middleware,
       leaveRequestsApi.middleware,
       parkingApi.middleware,
-      handicapApi.middleware
+      handicapApi.middleware,
+      domiciliuApi.middleware
     ),
 });
 

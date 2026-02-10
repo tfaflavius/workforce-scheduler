@@ -147,6 +147,20 @@ export interface HandicapRequestEmailData {
   resolutionDescription?: string;
 }
 
+export interface DomiciliuRequestEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  requestType: 'APROBARE_LOC' | 'REVOCARE_LOC' | 'MODIFICARE_DATE';
+  location: string;
+  personName: string;
+  address: string;
+  carPlate: string;
+  description: string;
+  creatorName: string;
+  emailType: 'new_request' | 'request_resolved';
+  resolutionDescription?: string;
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -1491,6 +1505,122 @@ export class EmailService {
       data.recipientEmail,
       subjects[data.emailType],
       this.generateHandicapRequestHtml(data)
+    );
+  }
+
+  // ============== DOMICILIU REQUEST EMAILS ==============
+
+  private getDomiciliuRequestTypeLabel(requestType: string): string {
+    const labels: Record<string, string> = {
+      'APROBARE_LOC': 'Aprobare loc parcare domiciliu',
+      'REVOCARE_LOC': 'Revocare loc parcare domiciliu',
+      'MODIFICARE_DATE': 'Modificare date parcare domiciliu',
+    };
+    return labels[requestType] || requestType;
+  }
+
+  private generateDomiciliuRequestHtml(data: DomiciliuRequestEmailData): string {
+    const requestTypeLabel = this.getDomiciliuRequestTypeLabel(data.requestType);
+
+    let statusText = '';
+    let statusColor = '#2196F3';
+    let gradientColors = '#059669 0%, #10b981 100%';
+    let subtitle = 'Parcări Domiciliu';
+
+    switch (data.emailType) {
+      case 'new_request':
+        statusText = `O nouă solicitare de tip "${requestTypeLabel}" a fost creată`;
+        statusColor = '#059669';
+        gradientColors = '#059669 0%, #10b981 100%';
+        subtitle = '🏠 Solicitare Nouă';
+        break;
+      case 'request_resolved':
+        statusText = `Solicitarea de tip "${requestTypeLabel}" a fost finalizată`;
+        statusColor = '#10b981';
+        gradientColors = '#10b981 0%, #059669 100%';
+        subtitle = '✅ Solicitare Finalizată';
+        break;
+    }
+
+    let content = `
+      <div style="background-color: ${statusColor}15; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid ${statusColor};">
+        <p style="margin: 0; font-size: 16px; color: #333;">
+          ${statusText}
+        </p>
+      </div>
+
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">🏠 Detalii Solicitare</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #666; width: 40%;">Tip solicitare:</td>
+            <td style="padding: 8px 0; color: #333; font-weight: bold;">${requestTypeLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #666;">Persoană:</td>
+            <td style="padding: 8px 0; color: #333; font-weight: bold;">${data.personName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #666;">Adresa:</td>
+            <td style="padding: 8px 0; color: #333;">${data.address}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #666;">Nr. mașină:</td>
+            <td style="padding: 8px 0; color: #333;">${data.carPlate}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #666;">Locație:</td>
+            <td style="padding: 8px 0; color: #333;">${data.location}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #666;">${data.emailType === 'new_request' ? 'Creat de:' : 'Finalizat de:'}</td>
+            <td style="padding: 8px 0; color: #333;">${data.creatorName}</td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    if (data.description) {
+      content += `
+        <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere:</p>
+          <p style="margin: 0; color: #333;">${data.description}</p>
+        </div>
+      `;
+    }
+
+    if (data.emailType === 'request_resolved' && data.resolutionDescription) {
+      content += `
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere rezoluție:</p>
+          <p style="margin: 0; color: #333;">${data.resolutionDescription}</p>
+        </div>
+      `;
+    }
+
+    content += `
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${this.appUrl}/parking/domiciliu" style="display: inline-block; background: linear-gradient(135deg, ${gradientColors}); color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold;">
+          Vezi Solicitarea
+        </a>
+      </div>
+    `;
+
+    return this.generateBaseTemplate('Parcări Domiciliu', subtitle, content, gradientColors);
+  }
+
+  async sendDomiciliuRequestNotification(data: DomiciliuRequestEmailData): Promise<boolean> {
+    const requestTypeLabel = this.getDomiciliuRequestTypeLabel(data.requestType);
+
+    const subjects: Record<string, string> = {
+      'new_request': `🏠 Solicitare nouă: ${requestTypeLabel}`,
+      'request_resolved': `✅ Solicitare finalizată: ${requestTypeLabel}`,
+    };
+
+    return this.sendEmail(
+      data.recipientEmail,
+      subjects[data.emailType],
+      this.generateDomiciliuRequestHtml(data)
     );
   }
 }
