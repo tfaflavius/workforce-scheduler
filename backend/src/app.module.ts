@@ -33,6 +33,7 @@ import { CashCollection } from './modules/parking/entities/cash-collection.entit
 import { ParkingIssueComment } from './modules/parking/entities/parking-issue-comment.entity';
 import { ParkingDamageComment } from './modules/parking/entities/parking-damage-comment.entity';
 import { ParkingHistory } from './modules/parking/entities/parking-history.entity';
+import { EditRequest } from './modules/parking/entities/edit-request.entity';
 
 @Module({
   imports: [
@@ -49,7 +50,7 @@ import { ParkingHistory } from './modules/parking/entities/parking-history.entit
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
