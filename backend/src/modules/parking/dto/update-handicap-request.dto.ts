@@ -43,4 +43,9 @@ export class UpdateHandicapRequestDto {
   @IsOptional()
   @MaxLength(20)
   phone?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(20)
+  cnp?: string;
 }

@@ -23,12 +23,45 @@ import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapRequestComment } from './entities/handicap-request-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
 import { UserRole } from '../users/entities/user.entity';
-import { HandicapRequestType, HandicapRequestStatus } from './constants/parking.constants';
+import {
+  HandicapRequestType,
+  HandicapRequestStatus,
+  HANDICAP_PARKING_DEPARTMENT_NAME,
+  DOMICILIU_PARKING_DEPARTMENT_NAME,
+} from './constants/parking.constants';
 
 @Controller('handicap-requests')
 @UseGuards(JwtAuthGuard, HandicapAccessGuard)
 export class HandicapRequestsController {
   constructor(private readonly handicapRequestsService: HandicapRequestsService) {}
+
+  // Verifică dacă utilizatorul poate vedea CNP-ul
+  // CNP vizibil doar pentru Admin și departamentele Parcări Handicap/Domiciliu
+  private canSeeCnp(user: any): boolean {
+    if (user.role === UserRole.ADMIN) {
+      return true;
+    }
+    const departmentName = user.department?.name;
+    return (
+      departmentName === HANDICAP_PARKING_DEPARTMENT_NAME ||
+      departmentName === DOMICILIU_PARKING_DEPARTMENT_NAME
+    );
+  }
+
+  // Filtrează CNP din rezultate pentru utilizatorii neautorizați
+  private filterCnp(request: HandicapRequest, canSeeCnp: boolean): HandicapRequest {
+    if (!canSeeCnp && request.cnp) {
+      return { ...request, cnp: undefined };
+    }
+    return request;
+  }
+
+  private filterCnpFromList(requests: HandicapRequest[], canSeeCnp: boolean): HandicapRequest[] {
+    if (canSeeCnp) {
+      return requests;
+    }
+    return requests.map(request => this.filterCnp(request, canSeeCnp));
+  }
 
   @Post()
   async create(
@@ -40,15 +73,18 @@ export class HandicapRequestsController {
 
   @Get()
   async findAll(
+    @Request() req,
     @Query('status') status?: HandicapRequestStatus,
     @Query('type') requestType?: HandicapRequestType,
   ): Promise<HandicapRequest[]> {
-    return this.handicapRequestsService.findAll(status, requestType);
+    const requests = await this.handicapRequestsService.findAll(status, requestType);
+    return this.filterCnpFromList(requests, this.canSeeCnp(req.user));
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<HandicapRequest> {
-    return this.handicapRequestsService.findOne(id);
+  async findOne(@Request() req, @Param('id') id: string): Promise<HandicapRequest> {
+    const request = await this.handicapRequestsService.findOne(id);
+    return this.filterCnp(request, this.canSeeCnp(req.user));
   }
 
   @Get(':id/history')
@@ -100,16 +136,18 @@ export class HandicapRequestsController {
   // Endpoint pentru rapoarte
   @Get('reports/export')
   async findForReports(
+    @Request() req,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('status') status?: HandicapRequestStatus,
     @Query('type') requestType?: HandicapRequestType,
   ): Promise<HandicapRequest[]> {
-    return this.handicapRequestsService.findForReports({
+    const requests = await this.handicapRequestsService.findForReports({
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       status,
       requestType,
     });
+    return this.filterCnpFromList(requests, this.canSeeCnp(req.user));
   }
 }

@@ -161,6 +161,18 @@ export interface DomiciliuRequestEmailData {
   resolutionDescription?: string;
 }
 
+export interface HandicapLegitimationEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  personName: string;
+  carPlate: string;
+  handicapCertificateNumber: string;
+  description: string;
+  creatorName: string;
+  emailType: 'new_request' | 'request_resolved';
+  resolutionDescription?: string;
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -1621,6 +1633,111 @@ export class EmailService {
       data.recipientEmail,
       subjects[data.emailType],
       this.generateDomiciliuRequestHtml(data)
+    );
+  }
+
+  // ============== LEGITIMAȚII HANDICAP ==============
+
+  private generateHandicapLegitimationHtml(data: HandicapLegitimationEmailData): string {
+    const isNewRequest = data.emailType === 'new_request';
+
+    const headerColor = isNewRequest ? '#6366f1' : '#10b981';
+    const headerText = isNewRequest ? 'Solicitare legitimație nouă' : 'Legitimație finalizată';
+    const icon = isNewRequest ? '🎫' : '✅';
+
+    let contentHtml = `
+      <div style="background-color: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+        <h3 style="margin: 0 0 12px 0; color: #1e293b;">Date legitimație</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #64748b; width: 40%;">Persoană:</td>
+            <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.personName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #64748b;">Nr. certificat handicap:</td>
+            <td style="padding: 8px 0; color: #1e293b;">${data.handicapCertificateNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #64748b;">Nr. înmatriculare:</td>
+            <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.carPlate}</td>
+          </tr>
+          ${data.description ? `
+          <tr>
+            <td style="padding: 8px 0; color: #64748b;">Descriere:</td>
+            <td style="padding: 8px 0; color: #1e293b;">${data.description}</td>
+          </tr>
+          ` : ''}
+        </table>
+      </div>
+    `;
+
+    if (!isNewRequest && data.resolutionDescription) {
+      contentHtml += `
+        <div style="background-color: #ecfdf5; padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #10b981;">
+          <h4 style="margin: 0 0 8px 0; color: #065f46;">Rezoluție</h4>
+          <p style="margin: 0; color: #047857;">${data.resolutionDescription}</p>
+        </div>
+      `;
+    }
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f1f5f9;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <tr>
+            <td style="background: linear-gradient(135deg, ${headerColor} 0%, ${headerColor}dd 100%); padding: 32px; text-align: center;">
+              <span style="font-size: 48px;">${icon}</span>
+              <h1 style="color: #ffffff; margin: 16px 0 0 0; font-size: 24px; font-weight: 600;">${headerText}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 32px;">
+              <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+                Bună ziua, ${data.recipientName}!
+              </p>
+              <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+                ${isNewRequest
+                  ? `<strong>${data.creatorName}</strong> a creat o nouă solicitare de legitimație handicap.`
+                  : `Solicitarea de legitimație pentru <strong>${data.personName}</strong> a fost finalizată de <strong>${data.creatorName}</strong>.`
+                }
+              </p>
+              ${contentHtml}
+              <div style="text-align: center; margin-top: 32px;">
+                <a href="${this.appUrl}/parking/handicap"
+                   style="display: inline-block; background: linear-gradient(135deg, ${headerColor} 0%, ${headerColor}dd 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                  Vezi detalii
+                </a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+              <p style="color: #94a3b8; font-size: 14px; margin: 0;">
+                Acest email a fost trimis automat de sistemul de management parcări.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
+
+  async sendHandicapLegitimationNotification(data: HandicapLegitimationEmailData): Promise<boolean> {
+    const subjects: Record<string, string> = {
+      'new_request': `🎫 Solicitare legitimație handicap nouă`,
+      'request_resolved': `✅ Legitimație handicap finalizată`,
+    };
+
+    return this.sendEmail(
+      data.recipientEmail,
+      subjects[data.emailType],
+      this.generateHandicapLegitimationHtml(data)
     );
   }
 }

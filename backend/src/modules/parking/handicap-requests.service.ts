@@ -41,10 +41,19 @@ export class HandicapRequestsService {
 
   async create(userId: string, dto: CreateHandicapRequestDto): Promise<HandicapRequest> {
     const request = this.handicapRequestRepository.create({
-      ...dto,
+      requestType: dto.requestType as HandicapRequestType,
+      location: dto.location,
+      googleMapsLink: dto.googleMapsLink,
+      description: dto.description,
+      personName: dto.personName,
+      handicapCertificateNumber: dto.handicapCertificateNumber,
+      carPlate: dto.carPlate,
+      autoNumber: dto.autoNumber,
+      phone: dto.phone,
+      cnp: dto.cnp,
       createdBy: userId,
       lastModifiedBy: userId,
-      status: 'ACTIVE',
+      status: 'ACTIVE' as HandicapRequestStatus,
     });
 
     const savedRequest = await this.handicapRequestRepository.save(request);
@@ -102,6 +111,10 @@ export class HandicapRequestsService {
     if (dto.phone !== undefined && dto.phone !== request.phone) {
       changes.phone = { from: request.phone, to: dto.phone };
       request.phone = dto.phone;
+    }
+    if (dto.cnp !== undefined && dto.cnp !== request.cnp) {
+      changes.cnp = { from: request.cnp, to: dto.cnp };
+      request.cnp = dto.cnp;
     }
 
     request.lastModifiedBy = userId;

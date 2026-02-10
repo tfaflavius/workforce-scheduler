@@ -74,13 +74,23 @@ import type {
   HandicapRequestType,
   HandicapRequestStatus,
   CreateHandicapRequestDto,
+  HandicapLegitimationStatus,
 } from '../../types/handicap.types';
-import { HANDICAP_REQUEST_TYPE_LABELS, HANDICAP_REQUEST_STATUS_LABELS } from '../../types/handicap.types';
+import {
+  HANDICAP_REQUEST_TYPE_LABELS,
+  HANDICAP_REQUEST_STATUS_LABELS,
+} from '../../types/handicap.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
+import { CardMembership as LegitimationIcon } from '@mui/icons-material';
+import HandicapLegitimatiiTab from './HandicapLegitimatiiTab';
 
 // Departamente cu acces
 const ALLOWED_DEPARTMENTS = ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'];
 const MAINTENANCE_DEPARTMENT_NAME = 'Întreținere Parcări';
+const HANDICAP_PARKING_DEPARTMENT_NAME = 'Parcări Handicap';
+
+// Culori pentru legitimații
+const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
 
 // Culori pentru tipuri de solicitări
 const REQUEST_TYPE_COLORS: Record<HandicapRequestType, { main: string; bg: string }> = {
@@ -824,6 +834,13 @@ const HandicapParkingPage: React.FC = () => {
     user?.role === 'MANAGER' ||
     (user?.department?.name && ALLOWED_DEPARTMENTS.includes(user.department.name));
 
+  // Poate vedea tab-ul Legitimații: doar Admin și departamentul Parcări Handicap
+  const canSeeLegitimations =
+    user?.role === 'ADMIN' ||
+    user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
+
+  const isAdmin = user?.role === 'ADMIN';
+
   if (!hasAccess) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -832,7 +849,8 @@ const HandicapParkingPage: React.FC = () => {
     statusFilter ? { status: statusFilter } : undefined
   );
 
-  const tabConfig: { type: HandicapRequestType; label: string; shortLabel: string; icon: React.ReactNode; color: string }[] = [
+  // Tab config pentru solicitări (panouri și marcaje)
+  const requestTabConfig: { type: HandicapRequestType; label: string; shortLabel: string; icon: React.ReactNode; color: string }[] = [
     {
       type: 'AMPLASARE_PANOU',
       label: 'Amplasare Panouri',
@@ -856,8 +874,17 @@ const HandicapParkingPage: React.FC = () => {
     },
   ];
 
-  // Filter requests by tab type and search
+  // Numărul de tab-uri pentru solicitări (0, 1, 2) și tab-ul Legitimații (3) - dacă e vizibil
+  const legitimationsTabIndex = requestTabConfig.length;
+  const isLegitimationsTab = canSeeLegitimations && tabValue === legitimationsTabIndex;
+
+  // tabConfig pentru render - folosit doar pentru primele 3 tab-uri
+  const tabConfig = requestTabConfig;
+
+  // Filter requests by tab type and search (doar pentru tab-urile de solicitări, nu legitimații)
   const filteredRequests = useMemo(() => {
+    if (isLegitimationsTab) return [];
+    if (tabValue >= tabConfig.length) return [];
     const currentType = tabConfig[tabValue].type;
     return requests.filter((r) => {
       const matchesType = r.requestType === currentType;
@@ -868,7 +895,7 @@ const HandicapParkingPage: React.FC = () => {
         : true;
       return matchesType && matchesSearch;
     });
-  }, [requests, tabValue, searchQuery, tabConfig]);
+  }, [requests, tabValue, searchQuery, tabConfig, isLegitimationsTab]);
 
   // Count per type for badges
   const countPerType = useMemo(() => {
@@ -985,18 +1012,21 @@ const HandicapParkingPage: React.FC = () => {
             </Select>
           </FormControl>
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
-            sx={{
-              bgcolor: tabConfig[tabValue].color,
-              '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Adaugă
-          </Button>
+          {/* Butonul Adaugă - ascuns pe tab-ul Legitimații (are propriul buton) */}
+          {!isLegitimationsTab && tabValue < tabConfig.length && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
+              sx={{
+                bgcolor: tabConfig[tabValue].color,
+                '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Adaugă
+            </Button>
+          )}
         </Stack>
       </Paper>
 
@@ -1011,19 +1041,17 @@ const HandicapParkingPage: React.FC = () => {
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
-              background: tabConfig[tabValue].color,
+              background: isLegitimationsTab ? LEGITIMATION_COLOR.main : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
             },
             '& .MuiTab-root': {
               minHeight: { xs: 56, sm: 64, md: 72 },
-              fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
+              fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.8rem' },
               fontWeight: 500,
               textTransform: 'none',
               transition: 'all 0.3s ease',
-              px: { xs: 1, sm: 2 },
+              px: { xs: 0.5, sm: 1.5 },
               '&.Mui-selected': {
                 fontWeight: 600,
-                color: tabConfig[tabValue].color,
-                bgcolor: alpha(tabConfig[tabValue].color, 0.1),
               },
             },
           }}
@@ -1038,20 +1066,20 @@ const HandicapParkingPage: React.FC = () => {
                   max={99}
                   sx={{
                     '& .MuiBadge-badge': {
-                      fontSize: { xs: '0.65rem', sm: '0.7rem' },
-                      minWidth: { xs: 16, sm: 18 },
-                      height: { xs: 16, sm: 18 },
+                      fontSize: { xs: '0.6rem', sm: '0.65rem' },
+                      minWidth: { xs: 14, sm: 16 },
+                      height: { xs: 14, sm: 16 },
                     },
                   }}
                 >
                   <Box
                     sx={{
-                      p: { xs: 0.75, sm: 1 },
+                      p: { xs: 0.5, sm: 0.75 },
                       borderRadius: '50%',
                       bgcolor: tabValue === index ? alpha(tab.color, 0.15) : 'transparent',
                       display: 'flex',
                       '& .MuiSvgIcon-root': {
-                        fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                        fontSize: { xs: '1.1rem', sm: '1.25rem' },
                         color: tabValue === index ? tab.color : 'text.secondary',
                       },
                     }}
@@ -1062,12 +1090,47 @@ const HandicapParkingPage: React.FC = () => {
               }
               label={isMobile ? tab.shortLabel : tab.label}
               iconPosition="top"
+              sx={{
+                '&.Mui-selected': {
+                  color: tab.color,
+                  bgcolor: alpha(tab.color, 0.1),
+                },
+              }}
             />
           ))}
+          {/* Tab Legitimații - vizibil doar pentru Admin și Parcări Handicap */}
+          {canSeeLegitimations && (
+            <Tab
+              icon={
+                <Box
+                  sx={{
+                    p: { xs: 0.5, sm: 0.75 },
+                    borderRadius: '50%',
+                    bgcolor: isLegitimationsTab ? alpha(LEGITIMATION_COLOR.main, 0.15) : 'transparent',
+                    display: 'flex',
+                    '& .MuiSvgIcon-root': {
+                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                      color: isLegitimationsTab ? LEGITIMATION_COLOR.main : 'text.secondary',
+                    },
+                  }}
+                >
+                  <LegitimationIcon />
+                </Box>
+              }
+              label={isMobile ? 'Legitimații' : 'Legitimații'}
+              iconPosition="top"
+              sx={{
+                '&.Mui-selected': {
+                  color: LEGITIMATION_COLOR.main,
+                  bgcolor: alpha(LEGITIMATION_COLOR.main, 0.1),
+                },
+              }}
+            />
+          )}
         </Tabs>
       </Paper>
 
-      {/* Content */}
+      {/* Content - Tab-uri solicitări */}
       {tabConfig.map((tab, index) => (
         <TabPanel key={tab.type} value={tabValue} index={index}>
           {isLoading ? (
@@ -1119,6 +1182,17 @@ const HandicapParkingPage: React.FC = () => {
           )}
         </TabPanel>
       ))}
+
+      {/* Content - Tab Legitimații */}
+      {canSeeLegitimations && (
+        <TabPanel value={tabValue} index={legitimationsTabIndex}>
+          <HandicapLegitimatiiTab
+            isAdmin={isAdmin}
+            searchQuery={searchQuery}
+            statusFilter={statusFilter as HandicapLegitimationStatus | ''}
+          />
+        </TabPanel>
+      )}
 
       {/* Dialogs */}
       {createDialogType && (

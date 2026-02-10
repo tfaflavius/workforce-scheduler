@@ -204,3 +204,13 @@ export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string>
   REVOCARE_LOC: 'Revocare loc',
   MODIFICARE_DATE: 'Modificare date',
 };
+
+// ============== LEGITIMAȚII HANDICAP ==============
+
+// Status pentru legitimații handicap
+export const HANDICAP_LEGITIMATION_STATUS = {
+  ACTIVE: 'ACTIVE',
+  FINALIZAT: 'FINALIZAT',
+} as const;
+
+export type HandicapLegitimationStatus = typeof HANDICAP_LEGITIMATION_STATUS[keyof typeof HANDICAP_LEGITIMATION_STATUS];

@@ -49,4 +49,10 @@ export class CreateHandicapRequestDto {
   @IsNotEmpty()
   @MaxLength(20)
   phone?: string;
+
+  // CNP - vizibil doar pentru Admin și departamentele Parcări Handicap/Domiciliu
+  @IsString()
+  @IsOptional()
+  @MaxLength(20)
+  cnp?: string;
 }

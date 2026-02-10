@@ -27,6 +27,7 @@ export interface HandicapRequest {
   carPlate?: string;
   autoNumber?: string;
   phone?: string;
+  cnp?: string; // Vizibil doar pentru Admin și departamentele Parcări Handicap/Domiciliu
   createdBy: string;
   resolvedBy?: string;
   lastModifiedBy?: string;
@@ -54,6 +55,7 @@ export interface CreateHandicapRequestDto {
   carPlate?: string;
   autoNumber?: string;
   phone?: string;
+  cnp?: string;
 }
 
 export interface UpdateHandicapRequestDto {
@@ -66,6 +68,7 @@ export interface UpdateHandicapRequestDto {
   carPlate?: string;
   autoNumber?: string;
   phone?: string;
+  cnp?: string;
 }
 
 export interface ResolveHandicapRequestDto {
@@ -77,4 +80,70 @@ export interface HandicapReportFilters {
   endDate?: string;
   status?: HandicapRequestStatus;
   type?: HandicapRequestType;
+}
+
+// ============== LEGITIMAȚII HANDICAP ==============
+
+export type HandicapLegitimationStatus = 'ACTIVE' | 'FINALIZAT';
+
+export const HANDICAP_LEGITIMATION_STATUS_LABELS: Record<HandicapLegitimationStatus, string> = {
+  ACTIVE: 'Activ',
+  FINALIZAT: 'Finalizat',
+};
+
+export interface HandicapLegitimation {
+  id: string;
+  status: HandicapLegitimationStatus;
+  personName: string;
+  cnp?: string;
+  handicapCertificateNumber: string;
+  carPlate: string;
+  autoNumber?: string;
+  phone?: string;
+  description?: string;
+  createdBy: string;
+  resolvedBy?: string;
+  lastModifiedBy?: string;
+  resolutionDescription?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: UserReference;
+  resolver?: UserReference;
+  lastModifier?: UserReference;
+  comments?: HandicapLegitimationComment[];
+}
+
+export interface HandicapLegitimationComment extends ParkingComment {
+  legitimationId: string;
+}
+
+export interface CreateHandicapLegitimationDto {
+  personName: string;
+  cnp?: string;
+  handicapCertificateNumber: string;
+  carPlate: string;
+  autoNumber?: string;
+  phone?: string;
+  description?: string;
+}
+
+export interface UpdateHandicapLegitimationDto {
+  personName?: string;
+  cnp?: string;
+  handicapCertificateNumber?: string;
+  carPlate?: string;
+  autoNumber?: string;
+  phone?: string;
+  description?: string;
+}
+
+export interface ResolveHandicapLegitimationDto {
+  resolutionDescription: string;
+}
+
+export interface HandicapLegitimationReportFilters {
+  startDate?: string;
+  endDate?: string;
+  status?: HandicapLegitimationStatus;
 }
