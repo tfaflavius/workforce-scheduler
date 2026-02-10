@@ -158,6 +158,12 @@ export const MainLayout = () => {
       roles: ['ADMIN', 'MANAGER', 'USER'],
       requiresDepartments: ['Dispecerat', 'Întreținere Parcări'],
     },
+    {
+      text: 'Rapoarte Parcări',
+      icon: <ParkingIcon />,
+      path: '/parking/reports',
+      roles: ['ADMIN'],
+    },
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
