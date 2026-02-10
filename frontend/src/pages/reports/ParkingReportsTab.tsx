@@ -16,17 +16,18 @@ import {
   useTheme,
   Card,
   CardContent,
-  Tabs,
-  Tab,
   alpha,
   Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Collapse,
+  IconButton,
+  Divider,
+  Fade,
+  Grow,
+  SwipeableDrawer,
+  Fab,
+  Zoom,
+  Badge,
+  Tooltip,
 } from '@mui/material';
 import {
   PictureAsPdf as PdfIcon,
@@ -34,14 +35,15 @@ import {
   Warning as IssueIcon,
   ReportProblem as DamageIcon,
   Payments as PaymentIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   FilterList as FilterIcon,
   CheckCircle as ResolvedIcon,
   Error as ActiveIcon,
   TrendingUp as TrendingIcon,
+  Download as DownloadIcon,
+  Close as CloseIcon,
+  Refresh as RefreshIcon,
+  CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
-import { StatCard } from '../../components/common';
 import DatePickerField from '../../components/common/DatePickerField';
 import {
   useGetParkingIssuesQuery,
@@ -61,6 +63,8 @@ interface ParkingReportsTabProps {
   onEndDateChange: (date: string) => void;
 }
 
+type ReportType = 'issues' | 'damages' | 'collections';
+
 const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   startDate,
   endDate,
@@ -70,8 +74,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [subTabValue, setSubTabValue] = useState(0);
-  const [filtersExpanded, setFiltersExpanded] = useState(!isMobile);
+  const [selectedReport, setSelectedReport] = useState<ReportType>('issues');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [exportDrawerOpen, setExportDrawerOpen] = useState(false);
 
   // Status filters
   const [issueStatus, setIssueStatus] = useState<string>('ALL');
@@ -80,13 +85,13 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
   // Fetch data
   const { data: parkingLots = [] } = useGetParkingLotsQuery();
-  const { data: allIssues = [], isLoading: issuesLoading } = useGetParkingIssuesQuery(
+  const { data: allIssues = [], isLoading: issuesLoading, refetch: refetchIssues } = useGetParkingIssuesQuery(
     issueStatus !== 'ALL' ? (issueStatus as 'ACTIVE' | 'FINALIZAT') : undefined
   );
-  const { data: allDamages = [], isLoading: damagesLoading } = useGetParkingDamagesQuery(
+  const { data: allDamages = [], isLoading: damagesLoading, refetch: refetchDamages } = useGetParkingDamagesQuery(
     damageStatus !== 'ALL' ? (damageStatus as 'ACTIVE' | 'FINALIZAT') : undefined
   );
-  const { data: allCollections = [], isLoading: collectionsLoading } = useGetCashCollectionsQuery({
+  const { data: allCollections = [], isLoading: collectionsLoading, refetch: refetchCollections } = useGetCashCollectionsQuery({
     startDate: startDate || undefined,
     endDate: endDate || undefined,
     parkingLotIds: selectedParkingLot !== 'ALL' ? [selectedParkingLot] : undefined,
@@ -152,6 +157,17 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     return { total: filteredDamages.length, active, resolved, recuperat, juridic };
   }, [filteredDamages]);
 
+  // Count active filters
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedParkingLot !== 'ALL') count++;
+    if (startDate) count++;
+    if (endDate) count++;
+    if (selectedReport === 'issues' && issueStatus !== 'ALL') count++;
+    if (selectedReport === 'damages' && damageStatus !== 'ALL') count++;
+    return count;
+  }, [selectedParkingLot, startDate, endDate, selectedReport, issueStatus, damageStatus]);
+
   // Format helpers
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ro-RO', {
@@ -178,7 +194,32 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     }).format(amount);
   };
 
-  // Export Issues PDF
+  const formatShortDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ro-RO', {
+      day: '2-digit',
+      month: 'short',
+    });
+  };
+
+  // Refresh data
+  const handleRefresh = () => {
+    refetchIssues();
+    refetchDamages();
+    refetchCollections();
+  };
+
+  // Clear filters
+  const clearFilters = () => {
+    setSelectedParkingLot('ALL');
+    setIssueStatus('ALL');
+    setDamageStatus('ALL');
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    onStartDateChange(date.toISOString().split('T')[0]);
+    onEndDateChange(new Date().toISOString().split('T')[0]);
+  };
+
+  // Export functions
   const handleExportIssuesPDF = () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -225,9 +266,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     }
 
     doc.save(`raport-probleme-parcari_${startDate}_${endDate}.pdf`);
+    setExportDrawerOpen(false);
   };
 
-  // Export Issues Excel
   const handleExportIssuesExcel = () => {
     const data = filteredIssues.map(issue => ({
       'Parcare': issue.parkingLot?.name || '-',
@@ -253,9 +294,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Probleme Parcări');
     XLSX.writeFile(wb, `raport-probleme-parcari_${startDate}_${endDate}.xlsx`);
+    setExportDrawerOpen(false);
   };
 
-  // Export Damages PDF
   const handleExportDamagesPDF = () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -301,9 +342,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     }
 
     doc.save(`raport-prejudicii-parcari_${startDate}_${endDate}.pdf`);
+    setExportDrawerOpen(false);
   };
 
-  // Export Damages Excel
   const handleExportDamagesExcel = () => {
     const data = filteredDamages.map(damage => ({
       'Parcare': damage.parkingLot?.name || '-',
@@ -332,9 +373,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     ];
     XLSX.utils.book_append_sheet(wb, ws, 'Prejudicii Parcări');
     XLSX.writeFile(wb, `raport-prejudicii-parcari_${startDate}_${endDate}.xlsx`);
+    setExportDrawerOpen(false);
   };
 
-  // Export Collections PDF
   const handleExportCollectionsPDF = () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -390,9 +431,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     }
 
     doc.save(`raport-ridicari-numerar_${startDate}_${endDate}.pdf`);
+    setExportDrawerOpen(false);
   };
 
-  // Export Collections Excel
   const handleExportCollectionsExcel = () => {
     const data = allCollections.map(collection => ({
       'Parcare': collection.parkingLot?.name || '-',
@@ -420,261 +461,604 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
     XLSX.utils.book_append_sheet(wb, ws, 'Ridicări Numerar');
     XLSX.writeFile(wb, `raport-ridicari-numerar_${startDate}_${endDate}.xlsx`);
+    setExportDrawerOpen(false);
   };
 
-  // Render Issues Content
-  const renderIssuesContent = () => (
-    <Stack spacing={3}>
-      <FormControl size="small" sx={{ maxWidth: 200 }}>
-        <InputLabel>Status</InputLabel>
-        <Select value={issueStatus} label="Status" onChange={(e) => setIssueStatus(e.target.value)}>
-          <MenuItem value="ALL">Toate</MenuItem>
-          <MenuItem value="ACTIVE">Active</MenuItem>
-          <MenuItem value="FINALIZAT">Finalizate</MenuItem>
-        </Select>
-      </FormControl>
+  // Report type cards
+  const reportTypes = [
+    {
+      id: 'issues' as ReportType,
+      title: 'Probleme',
+      subtitle: `${issueStats.total} înregistrări`,
+      icon: <IssueIcon />,
+      color: '#ef4444',
+      bgColor: alpha('#ef4444', 0.1),
+      stats: [
+        { label: 'Active', value: issueStats.active, color: '#f59e0b' },
+        { label: 'Finalizate', value: issueStats.resolved, color: '#10b981' },
+      ],
+    },
+    {
+      id: 'damages' as ReportType,
+      title: 'Prejudicii',
+      subtitle: `${damageStats.total} înregistrări`,
+      icon: <DamageIcon />,
+      color: '#f97316',
+      bgColor: alpha('#f97316', 0.1),
+      stats: [
+        { label: 'Active', value: damageStats.active, color: '#ef4444' },
+        { label: 'Recuperate', value: damageStats.recuperat, color: '#22c55e' },
+      ],
+    },
+    {
+      id: 'collections' as ReportType,
+      title: 'Numerar',
+      subtitle: formatCurrency(collectionTotals?.totalAmount || 0),
+      icon: <PaymentIcon />,
+      color: '#10b981',
+      bgColor: alpha('#10b981', 0.1),
+      stats: [
+        { label: 'Ridicări', value: collectionTotals?.count || 0, color: '#10b981' },
+      ],
+    },
+  ];
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard title="Total Probleme" value={issueStats.total} icon={<IssueIcon sx={{ fontSize: 24, color: '#ef4444' }} />} color="#ef4444" bgColor={alpha('#ef4444', 0.12)} delay={0} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard title="Active" value={issueStats.active} icon={<ActiveIcon sx={{ fontSize: 24, color: '#f59e0b' }} />} color="#f59e0b" bgColor={alpha('#f59e0b', 0.12)} delay={100} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard title="Finalizate" value={issueStats.resolved} icon={<ResolvedIcon sx={{ fontSize: 24, color: '#10b981' }} />} color="#10b981" bgColor={alpha('#10b981', 0.12)} delay={200} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard title="Urgente" value={issueStats.urgent} icon={<IssueIcon sx={{ fontSize: 24, color: '#dc2626' }} />} color="#dc2626" bgColor={alpha('#dc2626', 0.12)} delay={300} />
-        </Grid>
-      </Grid>
-
-      <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-        <Table stickyHeader size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#ef4444', 0.1) }}>Parcare</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#ef4444', 0.1) }}>Echipament</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#ef4444', 0.1) }}>Descriere</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#ef4444', 0.1) }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#ef4444', 0.1) }}>Data</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredIssues.slice(0, 15).map((issue) => (
-              <TableRow key={issue.id} hover>
-                <TableCell>{issue.parkingLot?.name}</TableCell>
-                <TableCell>{issue.equipment}</TableCell>
-                <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{issue.description}</TableCell>
-                <TableCell><Chip size="small" label={issue.status === 'ACTIVE' ? 'Activ' : 'Finalizat'} color={issue.status === 'ACTIVE' ? 'error' : 'success'} /></TableCell>
-                <TableCell>{formatDate(issue.createdAt)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {filteredIssues.length > 15 && (
-        <Alert severity="info">Se afișează primele 15 înregistrări. Exportați raportul pentru toate cele {filteredIssues.length}.</Alert>
-      )}
-
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-        <Button variant="contained" color="error" startIcon={<PdfIcon />} onClick={handleExportIssuesPDF} disabled={isLoading || filteredIssues.length === 0}>Descarcă PDF</Button>
-        <Button variant="contained" color="success" startIcon={<ExcelIcon />} onClick={handleExportIssuesExcel} disabled={isLoading || filteredIssues.length === 0}>Descarcă Excel</Button>
-      </Stack>
-    </Stack>
+  // Render mobile card for each item
+  const renderIssueCard = (issue: typeof filteredIssues[0], index: number) => (
+    <Grow in timeout={200 + index * 50} key={issue.id}>
+      <Card
+        sx={{
+          mb: 1.5,
+          borderRadius: 2,
+          borderLeft: 4,
+          borderLeftColor: issue.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+          '&:active': { transform: 'scale(0.98)' },
+        }}
+      >
+        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <Stack spacing={1}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ flex: 1 }}>
+                {issue.parkingLot?.name}
+              </Typography>
+              <Chip
+                size="small"
+                label={issue.status === 'ACTIVE' ? 'Activ' : 'Finalizat'}
+                sx={{
+                  bgcolor: issue.status === 'ACTIVE' ? alpha('#ef4444', 0.1) : alpha('#10b981', 0.1),
+                  color: issue.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                }}
+              />
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+              {issue.equipment}
+            </Typography>
+            <Typography variant="body2" sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              fontSize: '0.8rem',
+            }}>
+              {issue.description}
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5 }}>
+              <Typography variant="caption" color="text.secondary">
+                {formatShortDate(issue.createdAt)}
+              </Typography>
+              {issue.isUrgent && (
+                <Chip size="small" label="URGENT" color="error" sx={{ height: 20, fontSize: '0.65rem' }} />
+              )}
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Grow>
   );
 
-  // Render Damages Content
-  const renderDamagesContent = () => (
-    <Stack spacing={3}>
-      <FormControl size="small" sx={{ maxWidth: 200 }}>
-        <InputLabel>Status</InputLabel>
-        <Select value={damageStatus} label="Status" onChange={(e) => setDamageStatus(e.target.value)}>
-          <MenuItem value="ALL">Toate</MenuItem>
-          <MenuItem value="ACTIVE">Active</MenuItem>
-          <MenuItem value="FINALIZAT">Finalizate</MenuItem>
-        </Select>
-      </FormControl>
-
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 6, sm: 2.4 }}>
-          <StatCard title="Total" value={damageStats.total} icon={<DamageIcon sx={{ fontSize: 24, color: '#f97316' }} />} color="#f97316" bgColor={alpha('#f97316', 0.12)} delay={0} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 2.4 }}>
-          <StatCard title="Active" value={damageStats.active} icon={<ActiveIcon sx={{ fontSize: 24, color: '#ef4444' }} />} color="#ef4444" bgColor={alpha('#ef4444', 0.12)} delay={100} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 2.4 }}>
-          <StatCard title="Finalizate" value={damageStats.resolved} icon={<ResolvedIcon sx={{ fontSize: 24, color: '#10b981' }} />} color="#10b981" bgColor={alpha('#10b981', 0.12)} delay={200} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 2.4 }}>
-          <StatCard title="Recuperate" value={damageStats.recuperat} icon={<TrendingIcon sx={{ fontSize: 24, color: '#22c55e' }} />} color="#22c55e" bgColor={alpha('#22c55e', 0.12)} delay={300} />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 2.4 }}>
-          <StatCard title="Juridic" value={damageStats.juridic} icon={<DamageIcon sx={{ fontSize: 24, color: '#8b5cf6' }} />} color="#8b5cf6" bgColor={alpha('#8b5cf6', 0.12)} delay={400} />
-        </Grid>
-      </Grid>
-
-      <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-        <Table stickyHeader size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#f97316', 0.1) }}>Parcare</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#f97316', 0.1) }}>Echipament</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#f97316', 0.1) }}>Persoană</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#f97316', 0.1) }}>Nr. Auto</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#f97316', 0.1) }}>Status</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#f97316', 0.1) }}>Data</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredDamages.slice(0, 15).map((damage) => (
-              <TableRow key={damage.id} hover>
-                <TableCell>{damage.parkingLot?.name}</TableCell>
-                <TableCell>{damage.damagedEquipment}</TableCell>
-                <TableCell>{damage.personName}</TableCell>
-                <TableCell>{damage.carPlate}</TableCell>
-                <TableCell><Chip size="small" label={damage.status === 'ACTIVE' ? 'Activ' : 'Finalizat'} color={damage.status === 'ACTIVE' ? 'warning' : 'success'} /></TableCell>
-                <TableCell>{formatDate(damage.createdAt)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {filteredDamages.length > 15 && (
-        <Alert severity="info">Se afișează primele 15 înregistrări. Exportați raportul pentru toate cele {filteredDamages.length}.</Alert>
-      )}
-
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-        <Button variant="contained" sx={{ bgcolor: '#f97316', '&:hover': { bgcolor: '#ea580c' } }} startIcon={<PdfIcon />} onClick={handleExportDamagesPDF} disabled={isLoading || filteredDamages.length === 0}>Descarcă PDF</Button>
-        <Button variant="contained" color="success" startIcon={<ExcelIcon />} onClick={handleExportDamagesExcel} disabled={isLoading || filteredDamages.length === 0}>Descarcă Excel</Button>
-      </Stack>
-    </Stack>
+  const renderDamageCard = (damage: typeof filteredDamages[0], index: number) => (
+    <Grow in timeout={200 + index * 50} key={damage.id}>
+      <Card
+        sx={{
+          mb: 1.5,
+          borderRadius: 2,
+          borderLeft: 4,
+          borderLeftColor: damage.status === 'ACTIVE' ? '#f97316' : '#10b981',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+          '&:active': { transform: 'scale(0.98)' },
+        }}
+      >
+        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <Stack spacing={1}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ flex: 1 }}>
+                {damage.parkingLot?.name}
+              </Typography>
+              <Chip
+                size="small"
+                label={damage.resolutionType === 'RECUPERAT' ? 'Recuperat' : damage.resolutionType === 'TRIMIS_JURIDIC' ? 'Juridic' : damage.status === 'ACTIVE' ? 'Activ' : 'Finalizat'}
+                sx={{
+                  bgcolor: damage.status === 'ACTIVE' ? alpha('#f97316', 0.1) : alpha('#10b981', 0.1),
+                  color: damage.status === 'ACTIVE' ? '#f97316' : '#10b981',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                }}
+              />
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+              {damage.damagedEquipment}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                <strong>Persoană:</strong> {damage.personName}
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                <strong>Auto:</strong> {damage.carPlate}
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+              {formatShortDate(damage.createdAt)}
+            </Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Grow>
   );
 
-  // Render Collections Content
-  const renderCollectionsContent = () => (
-    <Stack spacing={3}>
-      <Paper sx={{ p: 3, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', borderRadius: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" justifyContent="center" spacing={2}>
-          <PaymentIcon sx={{ fontSize: 40 }} />
-          <Box textAlign="center">
-            <Typography variant="h4" fontWeight="bold">{formatCurrency(collectionTotals?.totalAmount || 0)}</Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>Total din {collectionTotals?.count || 0} ridicări</Typography>
-          </Box>
-        </Stack>
-      </Paper>
+  const renderCollectionCard = (collection: typeof allCollections[0], index: number) => (
+    <Grow in timeout={200 + index * 50} key={collection.id}>
+      <Card
+        sx={{
+          mb: 1.5,
+          borderRadius: 2,
+          borderLeft: 4,
+          borderLeftColor: '#10b981',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+          '&:active': { transform: 'scale(0.98)' },
+        }}
+      >
+        <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+          <Stack spacing={1}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="subtitle2" fontWeight="bold">
+                {collection.parkingLot?.name}
+              </Typography>
+              <Typography variant="h6" fontWeight="bold" color="success.main">
+                {formatCurrency(collection.amount)}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                Automat: {collection.paymentMachine?.machineNumber}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                {collection.collector?.fullName}
+              </Typography>
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+              {formatDateTime(collection.collectedAt)}
+            </Typography>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Grow>
+  );
 
-      {collectionTotals?.byParkingLot && collectionTotals.byParkingLot.length > 0 && (
-        <Grid container spacing={2}>
-          {collectionTotals.byParkingLot.map((item) => (
-            <Grid key={item.parkingLotId} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card sx={{ bgcolor: alpha('#10b981', 0.05) }}>
-                <CardContent>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>{item.parkingLotName}</Typography>
-                  <Typography variant="h6" fontWeight="bold" color="success.main">{formatCurrency(item.totalAmount)}</Typography>
-                  <Typography variant="caption" color="text.secondary">{item.count} ridicări</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+  // Filter drawer content
+  const renderFilters = () => (
+    <Stack spacing={2.5} sx={{ p: isMobile ? 0 : 2 }}>
+      <FormControl size="small" fullWidth>
+        <InputLabel>Parcare</InputLabel>
+        <Select
+          value={selectedParkingLot}
+          label="Parcare"
+          onChange={(e) => setSelectedParkingLot(e.target.value)}
+        >
+          <MenuItem value="ALL">Toate Parcările</MenuItem>
+          {parkingLots.map((lot) => (
+            <MenuItem key={lot.id} value={lot.id}>{lot.name}</MenuItem>
           ))}
-        </Grid>
+        </Select>
+      </FormControl>
+
+      <DatePickerField
+        label="De la"
+        value={startDate || null}
+        onChange={(value) => onStartDateChange(value || '')}
+        size="small"
+        fullWidth
+      />
+
+      <DatePickerField
+        label="Până la"
+        value={endDate || null}
+        onChange={(value) => onEndDateChange(value || '')}
+        size="small"
+        minDate={startDate || undefined}
+        fullWidth
+      />
+
+      {selectedReport === 'issues' && (
+        <FormControl size="small" fullWidth>
+          <InputLabel>Status Probleme</InputLabel>
+          <Select
+            value={issueStatus}
+            label="Status Probleme"
+            onChange={(e) => setIssueStatus(e.target.value)}
+          >
+            <MenuItem value="ALL">Toate</MenuItem>
+            <MenuItem value="ACTIVE">Active</MenuItem>
+            <MenuItem value="FINALIZAT">Finalizate</MenuItem>
+          </Select>
+        </FormControl>
       )}
 
-      <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-        <Table stickyHeader size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#10b981', 0.1) }}>Parcare</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#10b981', 0.1) }}>Automat</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#10b981', 0.1) }} align="right">Sumă</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#10b981', 0.1) }}>Ridicat de</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', bgcolor: alpha('#10b981', 0.1) }}>Data</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {allCollections.slice(0, 15).map((collection) => (
-              <TableRow key={collection.id} hover>
-                <TableCell>{collection.parkingLot?.name}</TableCell>
-                <TableCell>{collection.paymentMachine?.machineNumber}</TableCell>
-                <TableCell align="right"><Typography fontWeight="bold" color="success.main">{formatCurrency(collection.amount)}</Typography></TableCell>
-                <TableCell>{collection.collector?.fullName}</TableCell>
-                <TableCell>{formatDateTime(collection.collectedAt)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {allCollections.length > 15 && (
-        <Alert severity="info">Se afișează primele 15 înregistrări. Exportați raportul pentru toate cele {allCollections.length}.</Alert>
+      {selectedReport === 'damages' && (
+        <FormControl size="small" fullWidth>
+          <InputLabel>Status Prejudicii</InputLabel>
+          <Select
+            value={damageStatus}
+            label="Status Prejudicii"
+            onChange={(e) => setDamageStatus(e.target.value)}
+          >
+            <MenuItem value="ALL">Toate</MenuItem>
+            <MenuItem value="ACTIVE">Active</MenuItem>
+            <MenuItem value="FINALIZAT">Finalizate</MenuItem>
+          </Select>
+        </FormControl>
       )}
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-        <Button variant="contained" color="error" startIcon={<PdfIcon />} onClick={handleExportCollectionsPDF} disabled={isLoading || allCollections.length === 0}>Descarcă PDF</Button>
-        <Button variant="contained" color="success" startIcon={<ExcelIcon />} onClick={handleExportCollectionsExcel} disabled={isLoading || allCollections.length === 0}>Descarcă Excel</Button>
-      </Stack>
+      <Button
+        variant="outlined"
+        size="small"
+        onClick={clearFilters}
+        startIcon={<CloseIcon />}
+      >
+        Resetează Filtre
+      </Button>
     </Stack>
   );
+
+  // Export drawer content
+  const renderExportOptions = () => {
+    const exportOptions = selectedReport === 'issues'
+      ? [
+          { label: 'Descarcă PDF', icon: <PdfIcon />, onClick: handleExportIssuesPDF, color: '#ef4444' },
+          { label: 'Descarcă Excel', icon: <ExcelIcon />, onClick: handleExportIssuesExcel, color: '#10b981' },
+        ]
+      : selectedReport === 'damages'
+      ? [
+          { label: 'Descarcă PDF', icon: <PdfIcon />, onClick: handleExportDamagesPDF, color: '#f97316' },
+          { label: 'Descarcă Excel', icon: <ExcelIcon />, onClick: handleExportDamagesExcel, color: '#10b981' },
+        ]
+      : [
+          { label: 'Descarcă PDF', icon: <PdfIcon />, onClick: handleExportCollectionsPDF, color: '#ef4444' },
+          { label: 'Descarcă Excel', icon: <ExcelIcon />, onClick: handleExportCollectionsExcel, color: '#10b981' },
+        ];
+
+    const count = selectedReport === 'issues'
+      ? filteredIssues.length
+      : selectedReport === 'damages'
+      ? filteredDamages.length
+      : allCollections.length;
+
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          Exportă Raport
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          {count} înregistrări vor fi exportate
+        </Typography>
+        <Stack spacing={2}>
+          {exportOptions.map((option, index) => (
+            <Button
+              key={index}
+              variant="contained"
+              size="large"
+              fullWidth
+              startIcon={option.icon}
+              onClick={option.onClick}
+              disabled={count === 0}
+              sx={{
+                py: 1.5,
+                bgcolor: option.color,
+                '&:hover': { bgcolor: alpha(option.color, 0.85) },
+              }}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </Stack>
+      </Box>
+    );
+  };
 
   return (
-    <Stack spacing={3}>
-      {/* Parking Lot Filter */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-        <Button
-          onClick={() => setFiltersExpanded(!filtersExpanded)}
-          startIcon={<FilterIcon />}
-          endIcon={filtersExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          sx={{ color: 'text.secondary' }}
+    <Box sx={{ pb: isMobile ? 10 : 0 }}>
+      {/* Header with period info */}
+      <Fade in timeout={300}>
+        <Paper
+          sx={{
+            p: 2,
+            mb: 2,
+            borderRadius: 2,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.primary.main, 0.05)} 100%)`,
+          }}
         >
-          Filtre Parcări
-        </Button>
-      </Stack>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CalendarIcon color="primary" fontSize="small" />
+              <Typography variant="body2" fontWeight="medium">
+                {formatDate(startDate)} - {formatDate(endDate)}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1}>
+              <Tooltip title="Filtre">
+                <IconButton
+                  size="small"
+                  onClick={() => setFiltersOpen(!filtersOpen)}
+                  sx={{
+                    bgcolor: filtersOpen ? alpha(theme.palette.primary.main, 0.15) : 'transparent',
+                  }}
+                >
+                  <Badge badgeContent={activeFiltersCount} color="primary" max={9}>
+                    <FilterIcon fontSize="small" />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Reîmprospătează">
+                <IconButton size="small" onClick={handleRefresh} disabled={isLoading}>
+                  <RefreshIcon fontSize="small" sx={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Stack>
 
-      <Collapse in={filtersExpanded}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Parcare</InputLabel>
-            <Select value={selectedParkingLot} label="Parcare" onChange={(e) => setSelectedParkingLot(e.target.value)}>
-              <MenuItem value="ALL">Toate Parcările</MenuItem>
-              {parkingLots.map((lot) => (
-                <MenuItem key={lot.id} value={lot.id}>{lot.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Box sx={{ minWidth: 160 }}>
-            <DatePickerField label="De la" value={startDate || null} onChange={(value) => onStartDateChange(value || '')} size="small" />
-          </Box>
-          <Box sx={{ minWidth: 160 }}>
-            <DatePickerField label="Până la" value={endDate || null} onChange={(value) => onEndDateChange(value || '')} size="small" minDate={startDate || undefined} />
-          </Box>
-        </Stack>
-      </Collapse>
+          {/* Collapsible filters for desktop */}
+          {!isMobile && (
+            <Collapse in={filtersOpen}>
+              <Divider sx={{ my: 2 }} />
+              {renderFilters()}
+            </Collapse>
+          )}
+        </Paper>
+      </Fade>
 
-      {/* Sub-tabs for parking reports */}
-      <Tabs
-        value={subTabValue}
-        onChange={(_, newValue) => setSubTabValue(newValue)}
-        variant={isMobile ? 'scrollable' : 'standard'}
-        scrollButtons="auto"
-        allowScrollButtonsMobile
-        sx={{ borderBottom: 1, borderColor: 'divider' }}
-      >
-        <Tab icon={<IssueIcon />} iconPosition="start" label="Probleme" sx={{ minHeight: 48, color: subTabValue === 0 ? '#ef4444' : 'inherit' }} />
-        <Tab icon={<DamageIcon />} iconPosition="start" label="Prejudicii" sx={{ minHeight: 48, color: subTabValue === 1 ? '#f97316' : 'inherit' }} />
-        <Tab icon={<PaymentIcon />} iconPosition="start" label="Numerar" sx={{ minHeight: 48, color: subTabValue === 2 ? '#10b981' : 'inherit' }} />
-      </Tabs>
+      {/* Report Type Selection Cards */}
+      <Grid container spacing={1.5} sx={{ mb: 2 }}>
+        {reportTypes.map((report, index) => (
+          <Grid key={report.id} size={{ xs: 4 }}>
+            <Grow in timeout={300 + index * 100}>
+              <Card
+                onClick={() => setSelectedReport(report.id)}
+                sx={{
+                  cursor: 'pointer',
+                  borderRadius: 2,
+                  border: 2,
+                  borderColor: selectedReport === report.id ? report.color : 'transparent',
+                  bgcolor: selectedReport === report.id ? report.bgColor : 'background.paper',
+                  transition: 'all 0.2s ease',
+                  '&:active': { transform: 'scale(0.95)' },
+                }}
+              >
+                <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+                  <Stack spacing={0.5} alignItems="center" textAlign="center">
+                    <Box sx={{
+                      color: report.color,
+                      display: 'flex',
+                      p: 0.5,
+                      borderRadius: 1,
+                      bgcolor: alpha(report.color, 0.1),
+                    }}>
+                      {React.cloneElement(report.icon, { sx: { fontSize: { xs: 20, sm: 24 } } })}
+                    </Box>
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="bold"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
+                      {report.title}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+                    >
+                      {report.subtitle}
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grow>
+          </Grid>
+        ))}
+      </Grid>
 
-      {/* Loading state */}
+      {/* Stats Row */}
+      <Fade in timeout={500}>
+        <Paper sx={{ p: 1.5, mb: 2, borderRadius: 2 }}>
+          <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
+            {selectedReport === 'issues' && (
+              <>
+                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${issueStats.active} active`} size="small" sx={{ bgcolor: alpha('#f59e0b', 0.1), color: '#f59e0b' }} />
+                <Chip icon={<ResolvedIcon sx={{ fontSize: 16 }} />} label={`${issueStats.resolved} finalizate`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
+                <Chip icon={<IssueIcon sx={{ fontSize: 16 }} />} label={`${issueStats.urgent} urgente`} size="small" sx={{ bgcolor: alpha('#ef4444', 0.1), color: '#ef4444' }} />
+              </>
+            )}
+            {selectedReport === 'damages' && (
+              <>
+                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${damageStats.active} active`} size="small" sx={{ bgcolor: alpha('#ef4444', 0.1), color: '#ef4444' }} />
+                <Chip icon={<TrendingIcon sx={{ fontSize: 16 }} />} label={`${damageStats.recuperat} recuperate`} size="small" sx={{ bgcolor: alpha('#22c55e', 0.1), color: '#22c55e' }} />
+                <Chip icon={<DamageIcon sx={{ fontSize: 16 }} />} label={`${damageStats.juridic} juridic`} size="small" sx={{ bgcolor: alpha('#8b5cf6', 0.1), color: '#8b5cf6' }} />
+              </>
+            )}
+            {selectedReport === 'collections' && (
+              <>
+                <Chip icon={<PaymentIcon sx={{ fontSize: 16 }} />} label={`${collectionTotals?.count || 0} ridicări`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
+                <Chip label={formatCurrency(collectionTotals?.totalAmount || 0)} size="small" sx={{ bgcolor: alpha('#10b981', 0.15), color: '#059669', fontWeight: 'bold' }} />
+              </>
+            )}
+          </Stack>
+        </Paper>
+      </Fade>
+
+      {/* Loading */}
       {isLoading && (
-        <Box display="flex" justifyContent="center" p={2}>
-          <CircularProgress size={24} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
         </Box>
       )}
 
-      {/* Content */}
-      {!isLoading && subTabValue === 0 && renderIssuesContent()}
-      {!isLoading && subTabValue === 1 && renderDamagesContent()}
-      {!isLoading && subTabValue === 2 && renderCollectionsContent()}
-    </Stack>
+      {/* Content Cards */}
+      {!isLoading && (
+        <Box sx={{ maxHeight: isMobile ? 'calc(100vh - 420px)' : 400, overflowY: 'auto', pr: 0.5 }}>
+          {selectedReport === 'issues' && (
+            filteredIssues.length === 0 ? (
+              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu există probleme în perioada selectată.</Alert>
+            ) : (
+              filteredIssues.slice(0, 20).map((issue, index) => renderIssueCard(issue, index))
+            )
+          )}
+          {selectedReport === 'damages' && (
+            filteredDamages.length === 0 ? (
+              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu există prejudicii în perioada selectată.</Alert>
+            ) : (
+              filteredDamages.slice(0, 20).map((damage, index) => renderDamageCard(damage, index))
+            )
+          )}
+          {selectedReport === 'collections' && (
+            allCollections.length === 0 ? (
+              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu există ridicări în perioada selectată.</Alert>
+            ) : (
+              allCollections.slice(0, 20).map((collection, index) => renderCollectionCard(collection, index))
+            )
+          )}
+        </Box>
+      )}
+
+      {/* Show more info */}
+      {!isLoading && (
+        (selectedReport === 'issues' && filteredIssues.length > 20) ||
+        (selectedReport === 'damages' && filteredDamages.length > 20) ||
+        (selectedReport === 'collections' && allCollections.length > 20)
+      ) && (
+        <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
+          Se afișează primele 20 de înregistrări. Exportați raportul pentru lista completă.
+        </Alert>
+      )}
+
+      {/* Desktop Export Buttons */}
+      {!isMobile && !isLoading && (
+        <Fade in timeout={600}>
+          <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
+            <Button
+              variant="contained"
+              startIcon={<PdfIcon />}
+              onClick={selectedReport === 'issues' ? handleExportIssuesPDF : selectedReport === 'damages' ? handleExportDamagesPDF : handleExportCollectionsPDF}
+              disabled={(selectedReport === 'issues' && filteredIssues.length === 0) || (selectedReport === 'damages' && filteredDamages.length === 0) || (selectedReport === 'collections' && allCollections.length === 0)}
+              sx={{
+                bgcolor: selectedReport === 'issues' ? '#ef4444' : selectedReport === 'damages' ? '#f97316' : '#ef4444',
+                '&:hover': { bgcolor: selectedReport === 'issues' ? '#dc2626' : selectedReport === 'damages' ? '#ea580c' : '#dc2626' },
+              }}
+            >
+              Descarcă PDF
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<ExcelIcon />}
+              onClick={selectedReport === 'issues' ? handleExportIssuesExcel : selectedReport === 'damages' ? handleExportDamagesExcel : handleExportCollectionsExcel}
+              disabled={(selectedReport === 'issues' && filteredIssues.length === 0) || (selectedReport === 'damages' && filteredDamages.length === 0) || (selectedReport === 'collections' && allCollections.length === 0)}
+            >
+              Descarcă Excel
+            </Button>
+          </Stack>
+        </Fade>
+      )}
+
+      {/* Mobile Filter Drawer */}
+      <SwipeableDrawer
+        anchor="bottom"
+        open={filtersOpen && isMobile}
+        onClose={() => setFiltersOpen(false)}
+        onOpen={() => setFiltersOpen(true)}
+        sx={{
+          '& .MuiDrawer-paper': {
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            maxHeight: '80vh',
+          },
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+            <Typography variant="h6" fontWeight="bold">Filtre</Typography>
+            <IconButton onClick={() => setFiltersOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Stack>
+          {renderFilters()}
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ mt: 2 }}
+            onClick={() => setFiltersOpen(false)}
+          >
+            Aplică Filtre
+          </Button>
+        </Box>
+      </SwipeableDrawer>
+
+      {/* Mobile Export Drawer */}
+      <SwipeableDrawer
+        anchor="bottom"
+        open={exportDrawerOpen}
+        onClose={() => setExportDrawerOpen(false)}
+        onOpen={() => setExportDrawerOpen(true)}
+        sx={{
+          '& .MuiDrawer-paper': {
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+          },
+        }}
+      >
+        {renderExportOptions()}
+      </SwipeableDrawer>
+
+      {/* Mobile FAB for Export */}
+      {isMobile && !isLoading && (
+        <Zoom in>
+          <Fab
+            color="primary"
+            onClick={() => setExportDrawerOpen(true)}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              bgcolor: selectedReport === 'issues' ? '#ef4444' : selectedReport === 'damages' ? '#f97316' : '#10b981',
+              '&:hover': {
+                bgcolor: selectedReport === 'issues' ? '#dc2626' : selectedReport === 'damages' ? '#ea580c' : '#059669',
+              },
+            }}
+          >
+            <DownloadIcon />
+          </Fab>
+        </Zoom>
+      )}
+
+      {/* CSS for spinning animation */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </Box>
   );
 };
 
