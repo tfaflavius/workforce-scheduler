@@ -33,6 +33,7 @@ import {
   Refresh as RefreshIcon,
   Warning as UrgentIcon,
   Info as InfoIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
 import {
@@ -44,6 +45,7 @@ import { DAMAGE_STATUS_LABELS, RESOLUTION_TYPE_LABELS } from '../../../types/par
 import CreateDamageDialog from './CreateDamageDialog';
 import ResolveDamageDialog from './ResolveDamageDialog';
 import DamageDetailsDialog from './DamageDetailsDialog';
+import EditDamageDialog from './EditDamageDialog';
 
 const ParkingDamagesTab: React.FC = () => {
   const theme = useTheme();
@@ -55,6 +57,7 @@ const ParkingDamagesTab: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedDamage, setSelectedDamage] = useState<ParkingDamage | null>(null);
 
   const { data: damages = [], isLoading, refetch } = useGetParkingDamagesQuery(
@@ -73,6 +76,11 @@ const ParkingDamagesTab: React.FC = () => {
   const handleShowDetails = (damage: ParkingDamage) => {
     setSelectedDamage(damage);
     setDetailsDialogOpen(true);
+  };
+
+  const handleEdit = (damage: ParkingDamage) => {
+    setSelectedDamage(damage);
+    setEditDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -205,6 +213,21 @@ const ParkingDamagesTab: React.FC = () => {
                   Finalizează
                 </Button>
               )}
+              {isAdminOrManager && damage.status === 'ACTIVE' && (
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={() => handleEdit(damage)}
+                  sx={{
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    '&:hover': {
+                      bgcolor: alpha(theme.palette.primary.main, 0.2),
+                    },
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              )}
               {isAdmin && (
                 <IconButton
                   size="small"
@@ -310,6 +333,17 @@ const ParkingDamagesTab: React.FC = () => {
                     >
                       <ResolveIcon />
                     </IconButton>
+                  )}
+                  {isAdminOrManager && damage.status === 'ACTIVE' && (
+                    <Tooltip title="Editează">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => handleEdit(damage)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
                   )}
                   {isAdmin && (
                     <IconButton
@@ -450,6 +484,14 @@ const ParkingDamagesTab: React.FC = () => {
             }}
             damage={selectedDamage}
             canComment={isAdminOrManager}
+          />
+          <EditDamageDialog
+            open={editDialogOpen}
+            onClose={() => {
+              setEditDialogOpen(false);
+              setSelectedDamage(null);
+            }}
+            damage={selectedDamage}
           />
         </>
       )}

@@ -5,3 +5,5 @@ export * from './create-parking-damage.dto';
 export * from './resolve-damage.dto';
 export * from './create-cash-collection.dto';
 export * from './create-comment.dto';
+export * from './create-edit-request.dto';
+export * from './review-edit-request.dto';

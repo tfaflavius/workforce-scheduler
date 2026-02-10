@@ -15,6 +15,7 @@ import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
 import ReportsPage from '../pages/reports/ReportsPage';
 import ParkingPage from '../pages/parking/ParkingPage';
+import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { useAppSelector } from '../store/hooks';
@@ -138,6 +139,16 @@ export const AppRoutes = () => {
 
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<ParkingPage />} />
+
+        {/* Admin Edit Requests */}
+        <Route
+          path="/admin/edit-requests"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminEditRequestsPage />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       {/* Default redirect */}

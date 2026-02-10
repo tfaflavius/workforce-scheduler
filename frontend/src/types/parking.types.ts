@@ -214,3 +214,49 @@ export const DAMAGE_STATUS_LABELS: Record<ParkingDamageStatus, string> = {
   ACTIVE: 'Activ',
   FINALIZAT: 'Finalizat',
 };
+
+// Edit Request Types
+export type EditRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type EditRequestType = 'PARKING_ISSUE' | 'PARKING_DAMAGE' | 'CASH_COLLECTION';
+
+export interface EditRequest {
+  id: string;
+  requestType: EditRequestType;
+  entityId: string;
+  proposedChanges: Record<string, { from: any; to: any }>;
+  originalData: Record<string, any>;
+  status: EditRequestStatus;
+  reason?: string;
+  rejectionReason?: string;
+  requestedBy: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  requester?: UserReference;
+  reviewer?: UserReference;
+}
+
+export interface CreateEditRequestDto {
+  requestType: EditRequestType;
+  entityId: string;
+  proposedChanges: Record<string, any>;
+  reason?: string;
+}
+
+export interface ReviewEditRequestDto {
+  approved: boolean;
+  rejectionReason?: string;
+}
+
+export const EDIT_REQUEST_STATUS_LABELS: Record<EditRequestStatus, string> = {
+  PENDING: 'În așteptare',
+  APPROVED: 'Aprobat',
+  REJECTED: 'Respins',
+};
+
+export const EDIT_REQUEST_TYPE_LABELS: Record<EditRequestType, string> = {
+  PARKING_ISSUE: 'Problemă Parcare',
+  PARKING_DAMAGE: 'Prejudiciu Parcare',
+  CASH_COLLECTION: 'Ridicare Încasări',
+};

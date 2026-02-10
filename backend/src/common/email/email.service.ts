@@ -102,6 +102,18 @@ export interface DailyReportEmailData {
   }>;
 }
 
+export interface EditRequestEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  requesterName: string;
+  requestType: 'PARKING_ISSUE' | 'PARKING_DAMAGE' | 'CASH_COLLECTION';
+  entityDescription: string;
+  proposedChanges: Record<string, { from: any; to: any }>;
+  reason?: string;
+  status: 'new_request' | 'approved' | 'rejected';
+  rejectionReason?: string;
+}
+
 export interface UnresolvedItemsReminderData {
   recipientEmail: string;
   recipientName: string;
@@ -1094,6 +1106,129 @@ export class EmailService {
       data.recipientEmail,
       `⏰ Reminder: ${totalItems} ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} - Parcări`,
       this.generateBaseTemplate('WorkSchedule', 'Reminder Elemente Nerezolvate', content, '#ff9800 0%, #f57c00 100%')
+    );
+  }
+
+  // ============== EDIT REQUEST EMAILS ==============
+
+  private getRequestTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      'PARKING_ISSUE': 'Problemă Parcare',
+      'PARKING_DAMAGE': 'Prejudiciu Parcare',
+      'CASH_COLLECTION': 'Ridicare Încasări',
+    };
+    return labels[type] || type;
+  }
+
+  async sendEditRequestNotification(data: EditRequestEmailData): Promise<boolean> {
+    let statusText = '';
+    let statusColor = '#ff9800';
+    let gradientColors = '#ff9800 0%, #f57c00 100%';
+    let subtitle = 'Cerere de Editare';
+
+    switch (data.status) {
+      case 'new_request':
+        statusText = `${data.requesterName} solicită aprobare pentru editarea unui element`;
+        subtitle = '📝 Cerere de Editare Nouă';
+        break;
+      case 'approved':
+        statusText = 'Cererea ta de editare a fost aprobată!';
+        statusColor = '#4CAF50';
+        gradientColors = '#4CAF50 0%, #45a049 100%';
+        subtitle = '✅ Cerere Aprobată';
+        break;
+      case 'rejected':
+        statusText = 'Cererea ta de editare a fost respinsă.';
+        statusColor = '#f44336';
+        gradientColors = '#f44336 0%, #d32f2f 100%';
+        subtitle = '❌ Cerere Respinsă';
+        break;
+    }
+
+    const changesRows = Object.entries(data.proposedChanges).map(([key, value]) => `
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${key}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; color: #f44336;">${value.from || '-'}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; color: #4CAF50;">${value.to || '-'}</td>
+      </tr>
+    `).join('');
+
+    let reasonSection = '';
+    if (data.reason) {
+      reasonSection = `
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px; margin-top: 15px;">
+          <strong>Motivul cererii:</strong>
+          <p style="margin: 10px 0 0 0;">${data.reason}</p>
+        </div>
+      `;
+    }
+
+    let rejectionSection = '';
+    if (data.status === 'rejected' && data.rejectionReason) {
+      rejectionSection = `
+        <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #f44336;">
+          <strong>Motivul respingerii:</strong>
+          <p style="margin: 10px 0 0 0;">${data.rejectionReason}</p>
+        </div>
+      `;
+    }
+
+    const content = `
+      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
+        <p style="margin: 0; font-size: 16px;">${statusText}</p>
+      </div>
+
+      <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">Detalii cerere:</h3>
+        <table style="width: 100%;">
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Tip:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${this.getRequestTypeLabel(data.requestType)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 5px 0; color: #666;">Element:</td>
+            <td style="padding: 5px 0; font-weight: bold;">${data.entityDescription}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${reasonSection}
+
+      <h4 style="color: #333; margin-top: 20px;">Modificări propuse:</h4>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+          <tr style="background-color: #f5f5f5;">
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Câmp</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Valoare veche</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Valoare nouă</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${changesRows}
+        </tbody>
+      </table>
+
+      ${rejectionSection}
+
+      <p style="margin-top: 30px;">
+        <a href="${this.appUrl}/admin/edit-requests" style="display: inline-block; background: linear-gradient(135deg, ${gradientColors}); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          ${data.status === 'new_request' ? 'Aprobă sau Respinge' : 'Vezi detalii'}
+        </a>
+      </p>
+    `;
+
+    const subjects: Record<string, string> = {
+      'new_request': `📝 Cerere de editare de la ${data.requesterName}`,
+      'approved': `✅ Cerere de editare aprobată - ${this.getRequestTypeLabel(data.requestType)}`,
+      'rejected': `❌ Cerere de editare respinsă - ${this.getRequestTypeLabel(data.requestType)}`,
+    };
+
+    return this.sendEmail(
+      data.recipientEmail,
+      subjects[data.status],
+      this.generateBaseTemplate('WorkSchedule', subtitle, content, gradientColors)
     );
   }
 

@@ -11,6 +11,7 @@ import { CashCollection } from './entities/cash-collection.entity';
 import { ParkingIssueComment } from './entities/parking-issue-comment.entity';
 import { ParkingDamageComment } from './entities/parking-damage-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
+import { EditRequest } from './entities/edit-request.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 
@@ -19,12 +20,14 @@ import { ParkingLotsService } from './parking-lots.service';
 import { ParkingIssuesService } from './parking-issues.service';
 import { ParkingDamagesService } from './parking-damages.service';
 import { CashCollectionsService } from './cash-collections.service';
+import { EditRequestService } from './edit-request.service';
 
 // Controllers
 import { ParkingLotsController } from './parking-lots.controller';
 import { ParkingIssuesController } from './parking-issues.controller';
 import { ParkingDamagesController } from './parking-damages.controller';
 import { CashCollectionsController } from './cash-collections.controller';
+import { EditRequestController } from './edit-request.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
@@ -44,6 +47,7 @@ import { EmailModule } from '../../common/email/email.module';
       ParkingIssueComment,
       ParkingDamageComment,
       ParkingHistory,
+      EditRequest,
       User,
       Department,
     ]),
@@ -56,12 +60,14 @@ import { EmailModule } from '../../common/email/email.module';
     ParkingIssuesController,
     ParkingDamagesController,
     CashCollectionsController,
+    EditRequestController,
   ],
   providers: [
     ParkingLotsService,
     ParkingIssuesService,
     ParkingDamagesService,
     CashCollectionsService,
+    EditRequestService,
     ParkingUrgentScheduler,
   ],
   exports: [
@@ -69,6 +75,7 @@ import { EmailModule } from '../../common/email/email.module';
     ParkingIssuesService,
     ParkingDamagesService,
     CashCollectionsService,
+    EditRequestService,
   ],
 })
 export class ParkingModule {}

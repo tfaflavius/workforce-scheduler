@@ -24,6 +24,7 @@ import {
   ReportProblem as IssuesIcon,
   Warning as DamagesIcon,
   LocalAtm as CashIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -35,6 +36,7 @@ import {
   useGetParkingDamagesQuery,
   useGetUrgentDamagesQuery,
   useGetCashCollectionTotalsQuery,
+  useGetPendingEditRequestsCountQuery,
 } from '../../store/api/parking.api';
 
 interface StatCardProps {
@@ -169,6 +171,7 @@ const AdminDashboard = () => {
   const { data: activeDamages = [] } = useGetParkingDamagesQuery('ACTIVE');
   const { data: urgentDamages = [] } = useGetUrgentDamagesQuery();
   const { data: cashTotals } = useGetCashCollectionTotalsQuery({});
+  const { data: pendingEditRequests } = useGetPendingEditRequestsCountQuery();
 
   const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading;
 
@@ -452,7 +455,20 @@ const AdminDashboard = () => {
                 urgent={urgentDamages.length > 0}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 12, md: 4 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+              <StatCard
+                title="Cereri Editare"
+                value={pendingEditRequests?.count || 0}
+                subtitle="În așteptare aprobare"
+                icon={<EditIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
+                color="#8b5cf6"
+                bgColor={alpha('#8b5cf6', 0.12)}
+                onClick={() => navigate('/admin/edit-requests')}
+                delay={950}
+                urgent={(pendingEditRequests?.count || 0) > 0}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               {/* Cash Summary Card - Special Design */}
               <Grow in={true} timeout={1400}>
                 <Card

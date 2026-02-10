@@ -18,6 +18,10 @@ import type {
   ParkingComment,
   ParkingHistory,
   CreateCommentDto,
+  EditRequest,
+  EditRequestStatus,
+  CreateEditRequestDto,
+  ReviewEditRequestDto,
 } from '../../types/parking.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -34,7 +38,7 @@ export const parkingApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['ParkingLots', 'PaymentMachines', 'ParkingIssues', 'ParkingDamages', 'CashCollections', 'IssueComments', 'DamageComments', 'IssueHistory', 'DamageHistory'],
+  tagTypes: ['ParkingLots', 'PaymentMachines', 'ParkingIssues', 'ParkingDamages', 'CashCollections', 'IssueComments', 'DamageComments', 'IssueHistory', 'DamageHistory', 'EditRequests'],
   endpoints: (builder) => ({
     // Parking Lots
     getParkingLots: builder.query<ParkingLot[], void>({
@@ -264,6 +268,53 @@ export const parkingApi = createApi({
       }),
       invalidatesTags: ['CashCollections'],
     }),
+
+    // Edit Requests
+    getEditRequests: builder.query<EditRequest[], EditRequestStatus | void>({
+      query: (status) => ({
+        url: '/edit-requests',
+        params: status ? { status } : undefined,
+      }),
+      providesTags: ['EditRequests'],
+    }),
+
+    getPendingEditRequests: builder.query<EditRequest[], void>({
+      query: () => '/edit-requests/pending',
+      providesTags: ['EditRequests'],
+    }),
+
+    getPendingEditRequestsCount: builder.query<{ count: number }, void>({
+      query: () => '/edit-requests/pending/count',
+      providesTags: ['EditRequests'],
+    }),
+
+    getMyEditRequests: builder.query<EditRequest[], void>({
+      query: () => '/edit-requests/my-requests',
+      providesTags: ['EditRequests'],
+    }),
+
+    getEditRequest: builder.query<EditRequest, string>({
+      query: (id) => `/edit-requests/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'EditRequests', id }],
+    }),
+
+    createEditRequest: builder.mutation<EditRequest, CreateEditRequestDto>({
+      query: (body) => ({
+        url: '/edit-requests',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['EditRequests', 'ParkingIssues', 'ParkingDamages', 'CashCollections'],
+    }),
+
+    reviewEditRequest: builder.mutation<EditRequest, { id: string; data: ReviewEditRequestDto }>({
+      query: ({ id, data }) => ({
+        url: `/edit-requests/${id}/review`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['EditRequests', 'ParkingIssues', 'ParkingDamages', 'CashCollections'],
+    }),
   }),
 });
 
@@ -303,4 +354,12 @@ export const {
   useGetCashCollectionTotalsQuery,
   useCreateCashCollectionMutation,
   useDeleteCashCollectionMutation,
+  // Edit Requests
+  useGetEditRequestsQuery,
+  useGetPendingEditRequestsQuery,
+  useGetPendingEditRequestsCountQuery,
+  useGetMyEditRequestsQuery,
+  useGetEditRequestQuery,
+  useCreateEditRequestMutation,
+  useReviewEditRequestMutation,
 } = parkingApi;

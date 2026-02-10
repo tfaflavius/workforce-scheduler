@@ -37,6 +37,7 @@ import {
   Person as PersonIcon,
   Build as EquipmentIcon,
   Business as CompanyIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
 import {
@@ -49,6 +50,7 @@ import { ISSUE_STATUS_LABELS } from '../../../types/parking.types';
 import CreateIssueDialog from './CreateIssueDialog';
 import ResolveIssueDialog from './ResolveIssueDialog';
 import IssueDetailsDialog from './IssueDetailsDialog';
+import EditIssueDialog from './EditIssueDialog';
 
 const ParkingIssuesTab: React.FC = () => {
   const theme = useTheme();
@@ -60,6 +62,7 @@ const ParkingIssuesTab: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<ParkingIssue | null>(null);
 
   const { data: issues = [], isLoading, refetch } = useGetParkingIssuesQuery(
@@ -79,6 +82,11 @@ const ParkingIssuesTab: React.FC = () => {
   const handleShowDetails = (issue: ParkingIssue) => {
     setSelectedIssue(issue);
     setDetailsDialogOpen(true);
+  };
+
+  const handleEdit = (issue: ParkingIssue) => {
+    setSelectedIssue(issue);
+    setEditDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -300,6 +308,21 @@ const ParkingIssuesTab: React.FC = () => {
                   Finalizează
                 </Button>
               )}
+              {isAdminOrManager && issue.status === 'ACTIVE' && (
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={() => handleEdit(issue)}
+                  sx={{
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    '&:hover': {
+                      bgcolor: alpha(theme.palette.primary.main, 0.2),
+                    },
+                  }}
+                >
+                  <EditIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                </IconButton>
+              )}
               {isAdmin && (
                 <IconButton
                   size="small"
@@ -444,6 +467,18 @@ const ParkingIssuesTab: React.FC = () => {
                         >
                           <ResolveIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
                         </IconButton>
+                      )}
+                      {isAdminOrManager && issue.status === 'ACTIVE' && (
+                        <Tooltip title="Editează">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleEdit(issue)}
+                            sx={{ p: { xs: 0.5, sm: 0.75 } }}
+                          >
+                            <EditIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                          </IconButton>
+                        </Tooltip>
                       )}
                       {isAdmin && (
                         <IconButton
@@ -623,6 +658,14 @@ const ParkingIssuesTab: React.FC = () => {
             }}
             issue={selectedIssue}
             canComment={isAdminOrManager}
+          />
+          <EditIssueDialog
+            open={editDialogOpen}
+            onClose={() => {
+              setEditDialogOpen(false);
+              setSelectedIssue(null);
+            }}
+            issue={selectedIssue}
           />
         </>
       )}
