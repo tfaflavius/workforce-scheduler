@@ -145,6 +145,14 @@ export class EmailService {
   private isEnabled: boolean;
   private appUrl: string;
 
+  // Lista de email-uri/domenii de test - nu se trimit email-uri automate la acestea
+  private readonly testEmailPatterns: string[] = [
+    '@workforce.com',      // Toate conturile interne de test
+    '@test.com',           // Conturi de test generice
+    '@example.com',        // Conturi de exemplu
+    'test@',               // Orice email care începe cu test@
+  ];
+
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
     this.fromEmail = this.configService.get<string>('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
@@ -157,6 +165,25 @@ export class EmailService {
     } else {
       this.logger.warn('RESEND_API_KEY not configured - email notifications disabled');
     }
+  }
+
+  /**
+   * Verifică dacă un email este un cont de test
+   * Conturile de test nu primesc email-uri automate
+   */
+  private isTestEmail(email: string): boolean {
+    const emailLower = email.toLowerCase();
+    return this.testEmailPatterns.some(pattern => {
+      if (pattern.startsWith('@')) {
+        // Verifică domeniul (ex: @workforce.com)
+        return emailLower.endsWith(pattern);
+      } else if (pattern.endsWith('@')) {
+        // Verifică prefixul (ex: test@)
+        return emailLower.startsWith(pattern);
+      }
+      // Verifică potrivire exactă sau parțială
+      return emailLower.includes(pattern);
+    });
   }
 
   // ============== HELPER METHODS ==============
@@ -217,9 +244,15 @@ export class EmailService {
     `;
   }
 
-  private async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+  private async sendEmail(to: string, subject: string, html: string, forceTestEmail: boolean = false): Promise<boolean> {
     if (!this.isEnabled || !this.resend) {
       this.logger.warn(`Email not sent (service disabled): ${subject} to ${to}`);
+      return false;
+    }
+
+    // Blochează email-urile către conturile de test (dacă nu este forțat)
+    if (!forceTestEmail && this.isTestEmail(to)) {
+      this.logger.log(`Email skipped (test account): ${subject} to ${to}`);
       return false;
     }
 
@@ -236,6 +269,14 @@ export class EmailService {
       this.logger.error(`Failed to send email to ${to}:`, error);
       return false;
     }
+  }
+
+  /**
+   * Trimite email forțat - inclusiv la conturile de test
+   * Folosit doar când se solicită explicit trimiterea de email-uri de test
+   */
+  async sendForcedEmail(to: string, subject: string, html: string): Promise<boolean> {
+    return this.sendEmail(to, subject, html, true);
   }
 
   // ============== SCHEDULE EMAILS ==============
@@ -1258,10 +1299,12 @@ export class EmailService {
       </p>
     `;
 
+    // Folosim forceTestEmail=true pentru că este un test manual solicitat
     return this.sendEmail(
       toEmail,
       '🧪 Test WorkSchedule - Emailurile funcționează!',
-      this.generateBaseTemplate('WorkSchedule', 'Email de Test', content, '#4CAF50 0%, #45a049 100%')
+      this.generateBaseTemplate('WorkSchedule', 'Email de Test', content, '#4CAF50 0%, #45a049 100%'),
+      true // Force send to test accounts when explicitly requested
     );
   }
 
