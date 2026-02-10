@@ -53,6 +53,7 @@ interface MenuItem {
   path: string;
   roles: UserRole[];
   requiresDepartment?: string;
+  requiresDepartments?: string[];
 }
 
 export const MainLayout = () => {
@@ -155,7 +156,7 @@ export const MainLayout = () => {
       icon: <ParkingIcon />,
       path: '/parking',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartment: 'Dispecerat',
+      requiresDepartments: ['Dispecerat', 'Întreținere Parcări'],
     },
   ];
 
@@ -163,6 +164,11 @@ export const MainLayout = () => {
     if (!user) return false;
     if (!item.roles.includes(user.role)) return false;
     if (user.role === 'ADMIN' || user.role === 'MANAGER') return true;
+    // Check for multiple allowed departments
+    if (item.requiresDepartments && user.role === 'USER') {
+      return item.requiresDepartments.includes(user.department?.name || '');
+    }
+    // Legacy single department check
     if (item.requiresDepartment && user.role === 'USER') {
       return user.department?.name === item.requiresDepartment;
     }
