@@ -79,6 +79,118 @@ export class EmailController {
     };
   }
 
+  @Post('test-shift-swap')
+  @Roles(UserRole.ADMIN)
+  async sendTestShiftSwapEmail(@Body() dto: SendTestEmailDto) {
+    const success = await this.emailService.sendShiftSwapNotification({
+      recipientEmail: dto.email,
+      recipientName: dto.name,
+      requesterName: 'Ion Popescu',
+      requesterDate: '15 Februarie 2026',
+      targetDate: '18 Februarie 2026',
+      reason: 'Am o urgență personală și am nevoie să schimb tura.',
+      swapType: 'new_request',
+    });
+    return {
+      success,
+      message: success
+        ? `Email schimb tură trimis cu succes către ${dto.email}`
+        : 'Eroare la trimiterea emailului.',
+    };
+  }
+
+  @Post('test-leave-request')
+  @Roles(UserRole.ADMIN)
+  async sendTestLeaveRequestEmail(@Body() dto: SendTestEmailDto) {
+    const success = await this.emailService.sendLeaveRequestNotification({
+      employeeEmail: dto.email,
+      employeeName: dto.name,
+      leaveType: 'ANNUAL',
+      startDate: '2026-03-01',
+      endDate: '2026-03-05',
+      totalDays: 5,
+      status: 'submitted',
+    });
+    return {
+      success,
+      message: success
+        ? `Email cerere concediu trimis cu succes către ${dto.email}`
+        : 'Eroare la trimiterea emailului.',
+    };
+  }
+
+  @Post('test-all')
+  @Roles(UserRole.ADMIN)
+  async sendAllTestEmails(@Body() dto: SendTestEmailDto) {
+    const results = {
+      test: false,
+      shiftSwap: false,
+      leaveRequest: false,
+      parkingIssue: false,
+      parkingDamage: false,
+    };
+
+    // Test general
+    results.test = await this.emailService.sendTestEmail(dto.email, dto.name);
+
+    // Shift swap
+    results.shiftSwap = await this.emailService.sendShiftSwapNotification({
+      recipientEmail: dto.email,
+      recipientName: dto.name,
+      requesterName: 'Ion Popescu',
+      requesterDate: '15 Februarie 2026',
+      targetDate: '18 Februarie 2026',
+      reason: 'Test schimb tură',
+      swapType: 'new_request',
+    });
+
+    // Leave request
+    results.leaveRequest = await this.emailService.sendLeaveRequestNotification({
+      employeeEmail: dto.email,
+      employeeName: dto.name,
+      leaveType: 'ANNUAL',
+      startDate: '2026-03-01',
+      endDate: '2026-03-05',
+      totalDays: 5,
+      status: 'submitted',
+    });
+
+    // Parking issue
+    results.parkingIssue = await this.emailService.sendParkingIssueNotification({
+      recipientEmail: dto.email,
+      recipientName: dto.name,
+      parkingLotName: 'Parcare Test',
+      equipment: 'Barieră intrare',
+      description: 'Test problemă parcare',
+      isUrgent: false,
+      creatorName: 'Admin Test',
+      issueType: 'new_issue',
+    });
+
+    // Parking damage
+    results.parkingDamage = await this.emailService.sendParkingDamageNotification({
+      recipientEmail: dto.email,
+      recipientName: dto.name,
+      parkingLotName: 'Parcare Test',
+      damagedEquipment: 'Barieră Test',
+      personName: 'Ion Popescu',
+      carPlate: 'B-123-TST',
+      description: 'Test prejudiciu',
+      isUrgent: false,
+      creatorName: 'Admin Test',
+      damageType: 'new_damage',
+    });
+
+    const successCount = Object.values(results).filter(Boolean).length;
+    const totalCount = Object.keys(results).length;
+
+    return {
+      success: successCount === totalCount,
+      message: `Emailuri trimise cu succes: ${successCount}/${totalCount}`,
+      results,
+    };
+  }
+
   @Post('welcome-broadcast')
   @Roles(UserRole.ADMIN)
   async sendWelcomeBroadcast() {
