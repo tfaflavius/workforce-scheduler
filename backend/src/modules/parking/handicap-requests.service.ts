@@ -1,0 +1,464 @@
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { HandicapRequest } from './entities/handicap-request.entity';
+import { HandicapRequestComment } from './entities/handicap-request-comment.entity';
+import { ParkingHistory } from './entities/parking-history.entity';
+import { CreateHandicapRequestDto } from './dto/create-handicap-request.dto';
+import { UpdateHandicapRequestDto } from './dto/update-handicap-request.dto';
+import { ResolveHandicapRequestDto } from './dto/resolve-handicap-request.dto';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+import { User, UserRole } from '../users/entities/user.entity';
+import { Department } from '../departments/entities/department.entity';
+import {
+  MAINTENANCE_DEPARTMENT_NAME,
+  HANDICAP_PARKING_DEPARTMENT_NAME,
+  DOMICILIU_PARKING_DEPARTMENT_NAME,
+  HANDICAP_REQUEST_TYPE_LABELS,
+  HandicapRequestType,
+  HandicapRequestStatus,
+} from './constants/parking.constants';
+import { EmailService } from '../../common/email/email.service';
+
+@Injectable()
+export class HandicapRequestsService {
+  constructor(
+    @InjectRepository(HandicapRequest)
+    private readonly handicapRequestRepository: Repository<HandicapRequest>,
+    @InjectRepository(HandicapRequestComment)
+    private readonly commentRepository: Repository<HandicapRequestComment>,
+    @InjectRepository(ParkingHistory)
+    private readonly historyRepository: Repository<ParkingHistory>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Department)
+    private readonly departmentRepository: Repository<Department>,
+    private readonly notificationsService: NotificationsService,
+    private readonly emailService: EmailService,
+  ) {}
+
+  async create(userId: string, dto: CreateHandicapRequestDto): Promise<HandicapRequest> {
+    const request = this.handicapRequestRepository.create({
+      ...dto,
+      createdBy: userId,
+      lastModifiedBy: userId,
+      status: 'ACTIVE',
+    });
+
+    const savedRequest = await this.handicapRequestRepository.save(request);
+
+    // Înregistrează în history
+    await this.recordHistory(savedRequest.id, 'CREATED', userId, {
+      requestType: dto.requestType,
+      location: dto.location,
+    });
+
+    // Notifică echipa de Întreținere Parcări
+    await this.notifyMaintenanceTeam(savedRequest, userId);
+
+    return this.findOne(savedRequest.id);
+  }
+
+  async update(id: string, userId: string, dto: UpdateHandicapRequestDto, userRole: UserRole): Promise<HandicapRequest> {
+    // Doar Admin poate modifica
+    if (userRole !== UserRole.ADMIN) {
+      throw new ForbiddenException('Doar administratorii pot modifica solicitările');
+    }
+
+    const request = await this.findOne(id);
+
+    const changes: Record<string, any> = {};
+
+    if (dto.location && dto.location !== request.location) {
+      changes.location = { from: request.location, to: dto.location };
+      request.location = dto.location;
+    }
+    if (dto.description && dto.description !== request.description) {
+      changes.description = { from: request.description, to: dto.description };
+      request.description = dto.description;
+    }
+    if (dto.googleMapsLink !== undefined && dto.googleMapsLink !== request.googleMapsLink) {
+      changes.googleMapsLink = { from: request.googleMapsLink, to: dto.googleMapsLink };
+      request.googleMapsLink = dto.googleMapsLink;
+    }
+    if (dto.personName !== undefined && dto.personName !== request.personName) {
+      changes.personName = { from: request.personName, to: dto.personName };
+      request.personName = dto.personName;
+    }
+    if (dto.handicapCertificateNumber !== undefined && dto.handicapCertificateNumber !== request.handicapCertificateNumber) {
+      changes.handicapCertificateNumber = { from: request.handicapCertificateNumber, to: dto.handicapCertificateNumber };
+      request.handicapCertificateNumber = dto.handicapCertificateNumber;
+    }
+    if (dto.carPlate !== undefined && dto.carPlate !== request.carPlate) {
+      changes.carPlate = { from: request.carPlate, to: dto.carPlate };
+      request.carPlate = dto.carPlate;
+    }
+    if (dto.autoNumber !== undefined && dto.autoNumber !== request.autoNumber) {
+      changes.autoNumber = { from: request.autoNumber, to: dto.autoNumber };
+      request.autoNumber = dto.autoNumber;
+    }
+    if (dto.phone !== undefined && dto.phone !== request.phone) {
+      changes.phone = { from: request.phone, to: dto.phone };
+      request.phone = dto.phone;
+    }
+
+    request.lastModifiedBy = userId;
+
+    await this.handicapRequestRepository.save(request);
+
+    // Înregistrează în history
+    if (Object.keys(changes).length > 0) {
+      await this.recordHistory(id, 'UPDATED', userId, changes);
+    }
+
+    return this.findOne(id);
+  }
+
+  private async recordHistory(
+    entityId: string,
+    action: 'CREATED' | 'UPDATED' | 'RESOLVED' | 'DELETED',
+    userId: string,
+    changes?: Record<string, any>,
+  ): Promise<void> {
+    const history = this.historyRepository.create({
+      entityType: 'HANDICAP_REQUEST',
+      entityId,
+      action,
+      userId,
+      changes,
+    });
+    await this.historyRepository.save(history);
+  }
+
+  private async notifyMaintenanceTeam(request: HandicapRequest, creatorUserId: string): Promise<void> {
+    // Găsește departamentul Întreținere Parcări
+    const maintenanceDept = await this.departmentRepository.findOne({
+      where: { name: MAINTENANCE_DEPARTMENT_NAME },
+    });
+
+    if (!maintenanceDept) {
+      return;
+    }
+
+    // Găsește toți userii din departamentul Întreținere Parcări
+    const maintenanceUsers = await this.userRepository.find({
+      where: {
+        departmentId: maintenanceDept.id,
+        isActive: true,
+      },
+    });
+
+    if (maintenanceUsers.length === 0) {
+      return;
+    }
+
+    // Obține creatorul
+    const creator = await this.userRepository.findOne({ where: { id: creatorUserId } });
+    const creatorName = creator?.fullName || 'Un utilizator';
+
+    const requestTypeLabel = HANDICAP_REQUEST_TYPE_LABELS[request.requestType];
+
+    // Trimite notificări in-app către toți userii din echipa de întreținere
+    const notifications = maintenanceUsers.map(user => ({
+      userId: user.id,
+      type: NotificationType.PARKING_ISSUE_ASSIGNED,
+      title: `Solicitare nouă: ${requestTypeLabel}`,
+      message: `O nouă solicitare de tip "${requestTypeLabel}" la locația ${request.location} necesită atenția ta.`,
+      data: {
+        handicapRequestId: request.id,
+        requestType: request.requestType,
+        location: request.location,
+      },
+    }));
+
+    await this.notificationsService.createMany(notifications);
+
+    // Trimite email-uri către toți userii din echipa de întreținere
+    for (const user of maintenanceUsers) {
+      await this.emailService.sendHandicapRequestNotification({
+        recipientEmail: user.email,
+        recipientName: user.fullName,
+        requestType: request.requestType,
+        location: request.location,
+        personName: request.personName,
+        description: request.description,
+        creatorName: creatorName,
+        emailType: 'new_request',
+      });
+    }
+  }
+
+  private async notifyOnResolution(request: HandicapRequest, resolverUserId: string): Promise<void> {
+    const resolver = await this.userRepository.findOne({ where: { id: resolverUserId } });
+    const resolverName = resolver?.fullName || 'Un utilizator';
+
+    const requestTypeLabel = HANDICAP_REQUEST_TYPE_LABELS[request.requestType];
+
+    // Lista utilizatorilor care trebuie notificați
+    const usersToNotify: User[] = [];
+
+    // 1. Creatorul solicitării
+    if (request.createdBy !== resolverUserId) {
+      const creator = await this.userRepository.findOne({ where: { id: request.createdBy } });
+      if (creator) {
+        usersToNotify.push(creator);
+      }
+    }
+
+    // 2. Toți userii din Parcări Handicap
+    const handicapDept = await this.departmentRepository.findOne({
+      where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
+    });
+    if (handicapDept) {
+      const handicapUsers = await this.userRepository.find({
+        where: { departmentId: handicapDept.id, isActive: true },
+      });
+      usersToNotify.push(...handicapUsers.filter(u => u.id !== resolverUserId));
+    }
+
+    // 3. Toți userii din Parcări Domiciliu
+    const domiciliuDept = await this.departmentRepository.findOne({
+      where: { name: DOMICILIU_PARKING_DEPARTMENT_NAME },
+    });
+    if (domiciliuDept) {
+      const domiciliuUsers = await this.userRepository.find({
+        where: { departmentId: domiciliuDept.id, isActive: true },
+      });
+      usersToNotify.push(...domiciliuUsers.filter(u => u.id !== resolverUserId));
+    }
+
+    // 4. Toți adminii
+    const admins = await this.userRepository.find({
+      where: { role: UserRole.ADMIN, isActive: true },
+    });
+    usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
+
+    // Elimină duplicatele
+    const uniqueUsers = usersToNotify.filter((user, index, self) =>
+      index === self.findIndex(u => u.id === user.id)
+    );
+
+    if (uniqueUsers.length === 0) {
+      return;
+    }
+
+    // Trimite notificări in-app
+    const notifications = uniqueUsers.map(user => ({
+      userId: user.id,
+      type: NotificationType.PARKING_ISSUE_RESOLVED,
+      title: `Solicitare finalizată: ${requestTypeLabel}`,
+      message: `Solicitarea de tip "${requestTypeLabel}" la locația ${request.location} a fost finalizată de ${resolverName}.`,
+      data: {
+        handicapRequestId: request.id,
+        requestType: request.requestType,
+        location: request.location,
+        resolutionDescription: request.resolutionDescription,
+      },
+    }));
+
+    await this.notificationsService.createMany(notifications);
+
+    // Trimite email-uri
+    for (const user of uniqueUsers) {
+      await this.emailService.sendHandicapRequestNotification({
+        recipientEmail: user.email,
+        recipientName: user.fullName,
+        requestType: request.requestType,
+        location: request.location,
+        personName: request.personName,
+        description: request.description,
+        creatorName: resolverName,
+        emailType: 'request_resolved',
+        resolutionDescription: request.resolutionDescription,
+      });
+    }
+  }
+
+  async findAll(status?: HandicapRequestStatus, requestType?: HandicapRequestType): Promise<HandicapRequest[]> {
+    const query = this.handicapRequestRepository.createQueryBuilder('request')
+      .leftJoinAndSelect('request.creator', 'creator')
+      .leftJoinAndSelect('request.resolver', 'resolver')
+      .leftJoinAndSelect('request.lastModifier', 'lastModifier');
+
+    if (status) {
+      query.andWhere('request.status = :status', { status });
+    }
+
+    if (requestType) {
+      query.andWhere('request.requestType = :requestType', { requestType });
+    }
+
+    return query.orderBy('request.createdAt', 'DESC').getMany();
+  }
+
+  async findOne(id: string): Promise<HandicapRequest> {
+    const request = await this.handicapRequestRepository.findOne({
+      where: { id },
+      relations: ['creator', 'resolver', 'lastModifier', 'comments', 'comments.user'],
+    });
+
+    if (!request) {
+      throw new NotFoundException(`Solicitarea cu ID ${id} nu a fost găsită`);
+    }
+
+    return request;
+  }
+
+  async getHistory(id: string): Promise<ParkingHistory[]> {
+    return this.historyRepository.find({
+      where: { entityType: 'HANDICAP_REQUEST', entityId: id },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async resolve(id: string, userId: string, dto: ResolveHandicapRequestDto): Promise<HandicapRequest> {
+    const request = await this.findOne(id);
+
+    if (request.status === 'FINALIZAT') {
+      throw new ForbiddenException('Această solicitare este deja finalizată');
+    }
+
+    request.status = 'FINALIZAT';
+    request.resolutionDescription = dto.resolutionDescription;
+    request.resolvedBy = userId;
+    request.lastModifiedBy = userId;
+    request.resolvedAt = new Date();
+
+    await this.handicapRequestRepository.save(request);
+
+    // Înregistrează în history
+    await this.recordHistory(id, 'RESOLVED', userId, {
+      resolutionDescription: dto.resolutionDescription,
+    });
+
+    // Notifică toate părțile implicate
+    await this.notifyOnResolution(request, userId);
+
+    return this.findOne(id);
+  }
+
+  async addComment(requestId: string, userId: string, dto: CreateCommentDto): Promise<HandicapRequestComment> {
+    const request = await this.findOne(requestId);
+
+    const comment = this.commentRepository.create({
+      requestId,
+      userId,
+      content: dto.content,
+    });
+
+    await this.commentRepository.save(comment);
+
+    // Notifică despre comentariu
+    await this.notifyAboutComment(request, userId, dto.content);
+
+    return this.commentRepository.findOne({
+      where: { id: comment.id },
+      relations: ['user'],
+    });
+  }
+
+  private async notifyAboutComment(request: HandicapRequest, commenterUserId: string, commentContent: string): Promise<void> {
+    const commenter = await this.userRepository.findOne({ where: { id: commenterUserId } });
+    const commenterName = commenter?.fullName || 'Un utilizator';
+
+    const requestTypeLabel = HANDICAP_REQUEST_TYPE_LABELS[request.requestType];
+
+    // Notifică creatorul solicitării (dacă nu e el cel care comentează)
+    if (request.createdBy !== commenterUserId) {
+      await this.notificationsService.create({
+        userId: request.createdBy,
+        type: NotificationType.PARKING_ISSUE_RESOLVED,
+        title: 'Comentariu nou la solicitare',
+        message: `${commenterName} a adăugat un comentariu la solicitarea ta de tip "${requestTypeLabel}".`,
+        data: {
+          handicapRequestId: request.id,
+          requestType: request.requestType,
+        },
+      });
+    }
+
+    // Notifică echipa de întreținere
+    const maintenanceDept = await this.departmentRepository.findOne({
+      where: { name: MAINTENANCE_DEPARTMENT_NAME },
+    });
+    if (maintenanceDept) {
+      const maintenanceUsers = await this.userRepository.find({
+        where: { departmentId: maintenanceDept.id, isActive: true },
+      });
+
+      const toNotify = maintenanceUsers.filter(u => u.id !== commenterUserId);
+
+      if (toNotify.length > 0) {
+        const notifications = toNotify.map(user => ({
+          userId: user.id,
+          type: NotificationType.PARKING_ISSUE_RESOLVED,
+          title: 'Comentariu nou la solicitare handicap',
+          message: `${commenterName} a adăugat un comentariu la solicitarea "${requestTypeLabel}" de la ${request.location}.`,
+          data: {
+            handicapRequestId: request.id,
+            requestType: request.requestType,
+          },
+        }));
+
+        await this.notificationsService.createMany(notifications);
+      }
+    }
+  }
+
+  async getComments(requestId: string): Promise<HandicapRequestComment[]> {
+    return this.commentRepository.find({
+      where: { requestId },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async delete(id: string, user: User): Promise<void> {
+    if (user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Doar administratorii pot șterge solicitările');
+    }
+
+    const request = await this.findOne(id);
+
+    // Înregistrează în history înainte de ștergere
+    await this.recordHistory(id, 'DELETED', user.id, {
+      requestType: request.requestType,
+      location: request.location,
+    });
+
+    await this.handicapRequestRepository.remove(request);
+  }
+
+  // Pentru rapoarte
+  async findForReports(filters: {
+    startDate?: Date;
+    endDate?: Date;
+    status?: HandicapRequestStatus;
+    requestType?: HandicapRequestType;
+  }): Promise<HandicapRequest[]> {
+    const query = this.handicapRequestRepository.createQueryBuilder('request')
+      .leftJoinAndSelect('request.creator', 'creator')
+      .leftJoinAndSelect('request.resolver', 'resolver');
+
+    if (filters.startDate) {
+      query.andWhere('request.createdAt >= :startDate', { startDate: filters.startDate });
+    }
+
+    if (filters.endDate) {
+      query.andWhere('request.createdAt <= :endDate', { endDate: filters.endDate });
+    }
+
+    if (filters.status) {
+      query.andWhere('request.status = :status', { status: filters.status });
+    }
+
+    if (filters.requestType) {
+      query.andWhere('request.requestType = :requestType', { requestType: filters.requestType });
+    }
+
+    return query.orderBy('request.createdAt', 'DESC').getMany();
+  }
+}

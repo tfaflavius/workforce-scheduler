@@ -7,3 +7,6 @@ export * from './create-cash-collection.dto';
 export * from './create-comment.dto';
 export * from './create-edit-request.dto';
 export * from './review-edit-request.dto';
+export * from './create-handicap-request.dto';
+export * from './update-handicap-request.dto';
+export * from './resolve-handicap-request.dto';

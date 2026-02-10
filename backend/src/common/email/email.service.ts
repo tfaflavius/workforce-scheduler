@@ -135,6 +135,18 @@ export interface UnresolvedItemsReminderData {
   }>;
 }
 
+export interface HandicapRequestEmailData {
+  recipientEmail: string;
+  recipientName: string;
+  requestType: 'AMPLASARE_PANOU' | 'REVOCARE_PANOU' | 'CREARE_MARCAJ';
+  location: string;
+  personName?: string;
+  description: string;
+  creatorName: string;
+  emailType: 'new_request' | 'request_resolved';
+  resolutionDescription?: string;
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -1363,6 +1375,122 @@ export class EmailService {
       toEmail,
       '🎉 Bine ai venit pe Workforce App!',
       this.generateBaseTemplate('Workforce App', 'Bine ai venit în echipă!', content, '#667eea 0%, #764ba2 100%')
+    );
+  }
+
+  // ============== HANDICAP REQUEST EMAILS ==============
+
+  private getHandicapRequestTypeLabel(requestType: string): string {
+    const labels: Record<string, string> = {
+      'AMPLASARE_PANOU': 'Amplasare panou handicap',
+      'REVOCARE_PANOU': 'Revocare panou handicap',
+      'CREARE_MARCAJ': 'Creare marcaj handicap',
+    };
+    return labels[requestType] || requestType;
+  }
+
+  private generateHandicapRequestHtml(data: HandicapRequestEmailData): string {
+    const requestTypeLabel = this.getHandicapRequestTypeLabel(data.requestType);
+
+    let statusText = '';
+    let statusColor = '#2196F3';
+    let gradientColors = '#6366f1 0%, #8b5cf6 100%';
+    let subtitle = 'Parcări Handicap';
+
+    switch (data.emailType) {
+      case 'new_request':
+        statusText = `O nouă solicitare de tip "${requestTypeLabel}" a fost creată`;
+        statusColor = '#2563eb';
+        gradientColors = '#2563eb 0%, #6366f1 100%';
+        subtitle = '🆕 Solicitare Nouă';
+        break;
+      case 'request_resolved':
+        statusText = `Solicitarea de tip "${requestTypeLabel}" a fost finalizată`;
+        statusColor = '#10b981';
+        gradientColors = '#10b981 0%, #059669 100%';
+        subtitle = '✅ Solicitare Finalizată';
+        break;
+    }
+
+    let content = `
+      <div style="background-color: ${statusColor}15; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid ${statusColor};">
+        <p style="margin: 0; font-size: 16px; color: #333;">
+          ${statusText}
+        </p>
+      </div>
+
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">📋 Detalii Solicitare</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="padding: 8px 0; color: #666; width: 40%;">Tip solicitare:</td>
+            <td style="padding: 8px 0; color: #333; font-weight: bold;">${requestTypeLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: #666;">Locație:</td>
+            <td style="padding: 8px 0; color: #333;">${data.location}</td>
+          </tr>
+    `;
+
+    if (data.personName) {
+      content += `
+          <tr>
+            <td style="padding: 8px 0; color: #666;">Persoană:</td>
+            <td style="padding: 8px 0; color: #333;">${data.personName}</td>
+          </tr>
+      `;
+    }
+
+    content += `
+          <tr>
+            <td style="padding: 8px 0; color: #666;">${data.emailType === 'new_request' ? 'Creat de:' : 'Finalizat de:'}</td>
+            <td style="padding: 8px 0; color: #333;">${data.creatorName}</td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    if (data.description) {
+      content += `
+        <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere:</p>
+          <p style="margin: 0; color: #333;">${data.description}</p>
+        </div>
+      `;
+    }
+
+    if (data.emailType === 'request_resolved' && data.resolutionDescription) {
+      content += `
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50;">
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere rezoluție:</p>
+          <p style="margin: 0; color: #333;">${data.resolutionDescription}</p>
+        </div>
+      `;
+    }
+
+    content += `
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${this.appUrl}/parking/handicap" style="display: inline-block; background: linear-gradient(135deg, ${gradientColors}); color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold;">
+          Vezi Solicitarea
+        </a>
+      </div>
+    `;
+
+    return this.generateBaseTemplate('Parcări Handicap', subtitle, content, gradientColors);
+  }
+
+  async sendHandicapRequestNotification(data: HandicapRequestEmailData): Promise<boolean> {
+    const requestTypeLabel = this.getHandicapRequestTypeLabel(data.requestType);
+
+    const subjects: Record<string, string> = {
+      'new_request': `🆕 Solicitare nouă: ${requestTypeLabel}`,
+      'request_resolved': `✅ Solicitare finalizată: ${requestTypeLabel}`,
+    };
+
+    return this.sendEmail(
+      data.recipientEmail,
+      subjects[data.emailType],
+      this.generateHandicapRequestHtml(data)
     );
   }
 }

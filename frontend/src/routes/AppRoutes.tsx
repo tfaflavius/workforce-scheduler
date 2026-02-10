@@ -15,6 +15,7 @@ import UsersPage from '../pages/users/UsersPage';
 import UserProfilePage from '../pages/users/UserProfilePage';
 import ReportsPage from '../pages/reports/ReportsPage';
 import ParkingPage from '../pages/parking/ParkingPage';
+import HandicapParkingPage from '../pages/parking/HandicapParkingPage';
 import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
@@ -139,6 +140,9 @@ export const AppRoutes = () => {
 
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<ParkingPage />} />
+
+        {/* Handicap Parking - Întreținere Parcări, Parcări Handicap, Parcări Domiciliu, Admin */}
+        <Route path="/parking/handicap" element={<HandicapParkingPage />} />
 
         {/* Admin Edit Requests */}
         <Route

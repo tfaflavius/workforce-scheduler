@@ -34,8 +34,10 @@ import {
   AccessTime as TimeIcon,
   People as PeopleIcon,
   LocalParking as ParkingIcon,
+  Accessible as HandicapIcon,
 } from '@mui/icons-material';
 import ParkingReportsTab from './ParkingReportsTab';
+import HandicapReportsTab from './HandicapReportsTab';
 import { GradientHeader, StatCard } from '../../components/common';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -1628,6 +1630,12 @@ const ReportsPage: React.FC = () => {
                   label={isMobile ? 'Parcări' : 'Parcări Etajate'}
                   sx={{ minHeight: 48 }}
                 />
+                <Tab
+                  icon={<HandicapIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Handicap' : 'Parcări Handicap'}
+                  sx={{ minHeight: 48 }}
+                />
               </Tabs>
 
               {/* Loading state */}
@@ -1646,8 +1654,16 @@ const ReportsPage: React.FC = () => {
                 <ParkingReportsTab
                   startDate={parkingStartDate}
                   endDate={parkingEndDate}
-                  onStartDateChange={setParkingStartDate}
-                  onEndDateChange={setParkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
+                />
+              )}
+              {tabValue === 5 && (
+                <HandicapReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
                 />
               )}
             </Stack>

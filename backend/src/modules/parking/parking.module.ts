@@ -12,6 +12,8 @@ import { ParkingIssueComment } from './entities/parking-issue-comment.entity';
 import { ParkingDamageComment } from './entities/parking-damage-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
 import { EditRequest } from './entities/edit-request.entity';
+import { HandicapRequest } from './entities/handicap-request.entity';
+import { HandicapRequestComment } from './entities/handicap-request-comment.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 
@@ -21,6 +23,7 @@ import { ParkingIssuesService } from './parking-issues.service';
 import { ParkingDamagesService } from './parking-damages.service';
 import { CashCollectionsService } from './cash-collections.service';
 import { EditRequestService } from './edit-request.service';
+import { HandicapRequestsService } from './handicap-requests.service';
 
 // Controllers
 import { ParkingLotsController } from './parking-lots.controller';
@@ -28,6 +31,7 @@ import { ParkingIssuesController } from './parking-issues.controller';
 import { ParkingDamagesController } from './parking-damages.controller';
 import { CashCollectionsController } from './cash-collections.controller';
 import { EditRequestController } from './edit-request.controller';
+import { HandicapRequestsController } from './handicap-requests.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
@@ -48,6 +52,8 @@ import { EmailModule } from '../../common/email/email.module';
       ParkingDamageComment,
       ParkingHistory,
       EditRequest,
+      HandicapRequest,
+      HandicapRequestComment,
       User,
       Department,
     ]),
@@ -61,6 +67,7 @@ import { EmailModule } from '../../common/email/email.module';
     ParkingDamagesController,
     CashCollectionsController,
     EditRequestController,
+    HandicapRequestsController,
   ],
   providers: [
     ParkingLotsService,
@@ -68,6 +75,7 @@ import { EmailModule } from '../../common/email/email.module';
     ParkingDamagesService,
     CashCollectionsService,
     EditRequestService,
+    HandicapRequestsService,
     ParkingUrgentScheduler,
   ],
   exports: [
@@ -76,6 +84,7 @@ import { EmailModule } from '../../common/email/email.module';
     ParkingDamagesService,
     CashCollectionsService,
     EditRequestService,
+    HandicapRequestsService,
   ],
 })
 export class ParkingModule {}

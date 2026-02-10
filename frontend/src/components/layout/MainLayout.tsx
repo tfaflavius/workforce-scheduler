@@ -38,6 +38,7 @@ import {
   SwapHoriz as SwapIcon,
   BeachAccess as BeachIcon,
   LocalParking as ParkingIcon,
+  Accessible as HandicapIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -157,6 +158,13 @@ export const MainLayout = () => {
       path: '/parking',
       roles: ['ADMIN', 'MANAGER', 'USER'],
       requiresDepartments: ['Dispecerat', 'Întreținere Parcări'],
+    },
+    {
+      text: 'Parcări Handicap',
+      icon: <HandicapIcon />,
+      path: '/parking/handicap',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'],
     },
   ];
 

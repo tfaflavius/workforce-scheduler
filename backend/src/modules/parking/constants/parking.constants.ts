@@ -152,3 +152,29 @@ export const DAMAGE_RESOLUTION_TYPES = {
 // Nume departament pentru verificare acces
 export const DISPECERAT_DEPARTMENT_NAME = 'Dispecerat';
 export const MAINTENANCE_DEPARTMENT_NAME = 'Întreținere Parcări';
+export const HANDICAP_PARKING_DEPARTMENT_NAME = 'Parcări Handicap';
+export const DOMICILIU_PARKING_DEPARTMENT_NAME = 'Parcări Domiciliu';
+
+// Tipuri de solicitări handicap
+export const HANDICAP_REQUEST_TYPES = {
+  AMPLASARE_PANOU: 'AMPLASARE_PANOU',
+  REVOCARE_PANOU: 'REVOCARE_PANOU',
+  CREARE_MARCAJ: 'CREARE_MARCAJ',
+} as const;
+
+export type HandicapRequestType = typeof HANDICAP_REQUEST_TYPES[keyof typeof HANDICAP_REQUEST_TYPES];
+
+// Status pentru solicitări handicap
+export const HANDICAP_REQUEST_STATUS = {
+  ACTIVE: 'ACTIVE',
+  FINALIZAT: 'FINALIZAT',
+} as const;
+
+export type HandicapRequestStatus = typeof HANDICAP_REQUEST_STATUS[keyof typeof HANDICAP_REQUEST_STATUS];
+
+// Labels în limba română pentru tipurile de solicitări
+export const HANDICAP_REQUEST_TYPE_LABELS: Record<HandicapRequestType, string> = {
+  AMPLASARE_PANOU: 'Amplasare panou',
+  REVOCARE_PANOU: 'Revocare panou',
+  CREARE_MARCAJ: 'Creare marcaj',
+};
