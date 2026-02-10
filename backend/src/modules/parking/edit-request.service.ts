@@ -207,8 +207,14 @@ export class EditRequestService {
 
   private async applyChanges(editRequest: EditRequest): Promise<void> {
     const changes: Record<string, any> = {};
+
+    // Exclude câmpurile virtuale care nu sunt coloane în baza de date
+    const excludedFields = ['parkingLotName', 'paymentMachineName'];
+
     for (const [key, value] of Object.entries(editRequest.proposedChanges)) {
-      changes[key] = value.to;
+      if (!excludedFields.includes(key)) {
+        changes[key] = value.to;
+      }
     }
 
     switch (editRequest.requestType) {
@@ -252,9 +258,14 @@ export class EditRequestService {
     });
 
     // Aplicăm modificările
+    // Exclude câmpurile virtuale care nu sunt coloane în baza de date
+    const excludedFields = ['parkingLotName', 'paymentMachineName'];
+
     const changes: Record<string, any> = {};
     for (const [key, value] of Object.entries(proposedChanges)) {
-      changes[key] = value.to;
+      if (!excludedFields.includes(key)) {
+        changes[key] = value.to;
+      }
     }
 
     switch (dto.requestType) {
