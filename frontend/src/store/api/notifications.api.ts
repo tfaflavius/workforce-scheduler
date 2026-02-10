@@ -3,13 +3,48 @@ import type { RootState } from '../store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+export type NotificationType =
+  | 'SCHEDULE_CREATED'
+  | 'SCHEDULE_UPDATED'
+  | 'SCHEDULE_APPROVED'
+  | 'SCHEDULE_REJECTED'
+  | 'SHIFT_REMINDER'
+  | 'SHIFT_SWAP_REQUEST'
+  | 'SHIFT_SWAP_RESPONSE'
+  | 'SHIFT_SWAP_ACCEPTED'
+  | 'SHIFT_SWAP_APPROVED'
+  | 'SHIFT_SWAP_REJECTED'
+  | 'EMPLOYEE_ABSENT'
+  | 'GENERAL'
+  | 'LEAVE_REQUEST_CREATED'
+  | 'LEAVE_REQUEST_APPROVED'
+  | 'LEAVE_REQUEST_REJECTED'
+  | 'LEAVE_OVERLAP_WARNING'
+  | 'PARKING_ISSUE_ASSIGNED'
+  | 'PARKING_ISSUE_RESOLVED'
+  | 'EDIT_REQUEST_CREATED'
+  | 'EDIT_REQUEST_APPROVED'
+  | 'EDIT_REQUEST_REJECTED';
+
+export interface NotificationData {
+  scheduleId?: string;
+  shiftSwapId?: string;
+  leaveRequestId?: string;
+  parkingIssueId?: string;
+  parkingDamageId?: string;
+  cashCollectionId?: string;
+  editRequestId?: string;
+  entityType?: 'PARKING_ISSUE' | 'PARKING_DAMAGE' | 'CASH_COLLECTION';
+  [key: string]: any;
+}
+
 export interface Notification {
   id: string;
   userId: string;
-  type: 'SCHEDULE_CREATED' | 'SCHEDULE_UPDATED' | 'SCHEDULE_APPROVED' | 'SCHEDULE_REJECTED' | 'SHIFT_REMINDER' | 'SHIFT_SWAP_REQUEST' | 'SHIFT_SWAP_RESPONSE' | 'SHIFT_SWAP_ACCEPTED' | 'SHIFT_SWAP_APPROVED' | 'SHIFT_SWAP_REJECTED' | 'EMPLOYEE_ABSENT' | 'GENERAL' | 'LEAVE_REQUEST_CREATED' | 'LEAVE_REQUEST_APPROVED' | 'LEAVE_REQUEST_REJECTED' | 'LEAVE_OVERLAP_WARNING';
+  type: NotificationType;
   title: string;
   message: string;
-  data?: Record<string, any>;
+  data?: NotificationData;
   isRead: boolean;
   readAt: string | null;
   createdAt: string;

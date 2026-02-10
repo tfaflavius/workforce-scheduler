@@ -11,6 +11,9 @@ import {
   CircularProgress,
   ListItemIcon,
   ListItemText,
+  Tooltip,
+  alpha,
+  useTheme,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -25,16 +28,21 @@ import {
   Info as InfoIcon,
   DoneAll as DoneAllIcon,
   BeachAccess as LeaveIcon,
+  LocalParking as ParkingIcon,
+  Edit as EditIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import {
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
   type Notification,
+  type NotificationType,
 } from '../../store/api/notifications.api';
 
-const getNotificationIcon = (type: Notification['type']) => {
+const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
     case 'SCHEDULE_APPROVED':
       return <ApprovedIcon color="success" fontSize="small" />;
@@ -62,9 +70,78 @@ const getNotificationIcon = (type: Notification['type']) => {
       return <LeaveIcon color="error" fontSize="small" />;
     case 'LEAVE_OVERLAP_WARNING':
       return <WarningIcon color="warning" fontSize="small" />;
+    case 'PARKING_ISSUE_ASSIGNED':
+    case 'PARKING_ISSUE_RESOLVED':
+      return <ParkingIcon color="primary" fontSize="small" />;
+    case 'EDIT_REQUEST_CREATED':
+      return <EditIcon color="warning" fontSize="small" />;
+    case 'EDIT_REQUEST_APPROVED':
+      return <EditIcon color="success" fontSize="small" />;
+    case 'EDIT_REQUEST_REJECTED':
+      return <EditIcon color="error" fontSize="small" />;
     default:
       return <InfoIcon color="action" fontSize="small" />;
   }
+};
+
+// Get navigation path based on notification type and data
+const getNotificationPath = (notification: Notification): string | null => {
+  const { type, data } = notification;
+
+  switch (type) {
+    // Schedule notifications
+    case 'SCHEDULE_CREATED':
+    case 'SCHEDULE_UPDATED':
+    case 'SCHEDULE_APPROVED':
+    case 'SCHEDULE_REJECTED':
+      if (data?.scheduleId) {
+        return `/schedules/${data.scheduleId}`;
+      }
+      return '/schedules';
+
+    // Shift swap notifications
+    case 'SHIFT_SWAP_REQUEST':
+    case 'SHIFT_SWAP_RESPONSE':
+    case 'SHIFT_SWAP_ACCEPTED':
+    case 'SHIFT_SWAP_APPROVED':
+    case 'SHIFT_SWAP_REJECTED':
+      return '/shift-swaps';
+
+    // Leave request notifications
+    case 'LEAVE_REQUEST_CREATED':
+    case 'LEAVE_REQUEST_APPROVED':
+    case 'LEAVE_REQUEST_REJECTED':
+    case 'LEAVE_OVERLAP_WARNING':
+      return '/leave-requests';
+
+    // Parking notifications
+    case 'PARKING_ISSUE_ASSIGNED':
+    case 'PARKING_ISSUE_RESOLVED':
+      return '/parking';
+
+    // Edit request notifications
+    case 'EDIT_REQUEST_CREATED':
+      return '/admin/edit-requests';
+    case 'EDIT_REQUEST_APPROVED':
+    case 'EDIT_REQUEST_REJECTED':
+      return '/parking';
+
+    // Shift reminder
+    case 'SHIFT_REMINDER':
+      return '/my-schedule';
+
+    // Employee absent
+    case 'EMPLOYEE_ABSENT':
+      return '/schedules';
+
+    default:
+      return null;
+  }
+};
+
+// Check if notification is navigable
+const isNotificationNavigable = (notification: Notification): boolean => {
+  return getNotificationPath(notification) !== null;
 };
 
 const getTimeAgo = (dateString: string): string => {
@@ -83,6 +160,8 @@ const getTimeAgo = (dateString: string): string => {
 };
 
 export const NotificationBell: React.FC = () => {
+  const theme = useTheme();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -110,7 +189,13 @@ export const NotificationBell: React.FC = () => {
     if (!notification.isRead) {
       await markAsRead(notification.id);
     }
-    // Could navigate to relevant page based on notification type
+
+    // Navigate to relevant page based on notification type
+    const path = getNotificationPath(notification);
+    if (path) {
+      navigate(path);
+    }
+
     handleClose();
   };
 
@@ -136,8 +221,12 @@ export const NotificationBell: React.FC = () => {
         onClose={handleClose}
         PaperProps={{
           sx: {
-            width: 360,
-            maxHeight: 480,
+            width: { xs: '100vw', sm: 380 },
+            maxWidth: { xs: '100vw', sm: 380 },
+            maxHeight: { xs: '70vh', sm: 520 },
+            borderRadius: { xs: 0, sm: 2 },
+            mt: { xs: 0, sm: 1 },
+            boxShadow: theme.shadows[8],
           },
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -175,71 +264,107 @@ export const NotificationBell: React.FC = () => {
             </Typography>
           </Box>
         ) : (
-          notifications.map((notification) => (
-            <MenuItem
-              key={notification.id}
-              onClick={() => handleNotificationClick(notification)}
-              sx={{
-                py: 1.5,
-                px: 2,
-                borderBottom: '1px solid',
-                borderColor: 'divider',
-                bgcolor: notification.isRead ? 'transparent' : 'action.hover',
-                '&:hover': {
-                  bgcolor: notification.isRead ? 'action.hover' : 'action.selected',
-                },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                {getNotificationIcon(notification.type)}
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography
-                    variant="body2"
-                    fontWeight={notification.isRead ? 'normal' : 'bold'}
-                    sx={{
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {notification.title}
-                  </Typography>
-                }
-                secondary={
-                  <Stack spacing={0.5}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      {notification.message}
-                    </Typography>
-                    <Typography variant="caption" color="text.disabled">
-                      {getTimeAgo(notification.createdAt)}
-                    </Typography>
-                  </Stack>
-                }
-              />
-              {!notification.isRead && (
-                <Box
+          notifications.map((notification) => {
+            const isNavigable = isNotificationNavigable(notification);
+            return (
+              <Tooltip
+                key={notification.id}
+                title={isNavigable ? 'Click pentru a vizualiza' : ''}
+                placement="left"
+                arrow
+              >
+                <MenuItem
+                  onClick={() => handleNotificationClick(notification)}
                   sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    bgcolor: 'primary.main',
-                    ml: 1,
+                    py: 1.5,
+                    px: 2,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: notification.isRead
+                      ? 'transparent'
+                      : alpha(theme.palette.primary.main, 0.08),
+                    transition: 'all 0.2s ease',
+                    cursor: isNavigable ? 'pointer' : 'default',
+                    '&:hover': {
+                      bgcolor: notification.isRead
+                        ? alpha(theme.palette.action.hover, 0.8)
+                        : alpha(theme.palette.primary.main, 0.15),
+                      transform: isNavigable ? 'translateX(4px)' : 'none',
+                    },
+                    '&:active': {
+                      transform: isNavigable ? 'scale(0.99)' : 'none',
+                    },
                   }}
-                />
-              )}
-            </MenuItem>
-          ))
+                >
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    {getNotificationIcon(notification.type)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Stack direction="row" alignItems="center" spacing={0.5}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={notification.isRead ? 'normal' : 'bold'}
+                          sx={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            flex: 1,
+                          }}
+                        >
+                          {notification.title}
+                        </Typography>
+                        {isNavigable && (
+                          <OpenInNewIcon
+                            sx={{
+                              fontSize: 14,
+                              color: 'text.disabled',
+                              opacity: 0.7,
+                            }}
+                          />
+                        )}
+                      </Stack>
+                    }
+                    secondary={
+                      <Stack spacing={0.5}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {notification.message}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          {getTimeAgo(notification.createdAt)}
+                        </Typography>
+                      </Stack>
+                    }
+                  />
+                  {!notification.isRead && (
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        bgcolor: 'primary.main',
+                        ml: 1,
+                        animation: 'pulse 2s infinite',
+                        '@keyframes pulse': {
+                          '0%, 100%': { opacity: 1 },
+                          '50%': { opacity: 0.5 },
+                        },
+                      }}
+                    />
+                  )}
+                </MenuItem>
+              </Tooltip>
+            );
+          })
         )}
 
         {/* Footer - show if there are notifications */}
