@@ -268,16 +268,25 @@ export class EditRequestService {
       }
     }
 
-    switch (dto.requestType) {
-      case 'PARKING_ISSUE':
-        await this.parkingIssueRepository.update(dto.entityId, changes);
-        break;
-      case 'PARKING_DAMAGE':
-        await this.parkingDamageRepository.update(dto.entityId, changes);
-        break;
-      case 'CASH_COLLECTION':
-        await this.cashCollectionRepository.update(dto.entityId, changes);
-        break;
+    try {
+      this.logger.log(`Applying changes for ${dto.requestType} ${dto.entityId}: ${JSON.stringify(changes)}`);
+
+      switch (dto.requestType) {
+        case 'PARKING_ISSUE':
+          await this.parkingIssueRepository.update(dto.entityId, changes);
+          break;
+        case 'PARKING_DAMAGE':
+          await this.parkingDamageRepository.update(dto.entityId, changes);
+          break;
+        case 'CASH_COLLECTION':
+          await this.cashCollectionRepository.update(dto.entityId, changes);
+          break;
+      }
+
+      this.logger.log(`Changes applied successfully for ${dto.requestType} ${dto.entityId}`);
+    } catch (error) {
+      this.logger.error(`Failed to apply changes: ${error.message}`, error.stack);
+      throw error;
     }
 
     const saved = await this.editRequestRepository.save(editRequest);
