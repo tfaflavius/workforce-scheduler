@@ -16,15 +16,22 @@ import {
   ReportProblem as IssuesIcon,
   Warning as DamagesIcon,
   LocalAtm as CashIcon,
+  Build as MaintenanceIcon,
 } from '@mui/icons-material';
+import { useAppSelector } from '../../store/hooks';
 import ParkingIssuesTab from './components/ParkingIssuesTab';
 import ParkingDamagesTab from './components/ParkingDamagesTab';
 import CashCollectionsTab from './components/CashCollectionsTab';
+import MaintenanceIssuesTab from './components/MaintenanceIssuesTab';
 import {
   useGetParkingIssuesQuery,
   useGetParkingDamagesQuery,
   useGetCashCollectionsQuery,
+  useGetMyAssignedIssuesQuery,
 } from '../../store/api/parking.api';
+
+// Nume departament pentru verificare
+const MAINTENANCE_DEPARTMENT_NAME = 'Întreținere Parcări';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -57,16 +64,25 @@ const ParkingPage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 430px
   const [tabValue, setTabValue] = useState(0);
 
-  // Fetch data for badge counts
-  const { data: activeIssues = [] } = useGetParkingIssuesQuery('ACTIVE');
-  const { data: activeDamages = [] } = useGetParkingDamagesQuery('ACTIVE');
-  const { data: cashCollections = [] } = useGetCashCollectionsQuery({});
+  const { user } = useAppSelector((state) => state.auth);
+
+  // Check if user is from Întreținere Parcări department
+  const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
+
+  // Fetch data for badge counts - skip for maintenance users
+  const { data: activeIssues = [] } = useGetParkingIssuesQuery('ACTIVE', { skip: isMaintenanceUser });
+  const { data: activeDamages = [] } = useGetParkingDamagesQuery('ACTIVE', { skip: isMaintenanceUser });
+  const { data: cashCollections = [] } = useGetCashCollectionsQuery({}, { skip: isMaintenanceUser });
+  const { data: myAssignedIssues = [] } = useGetMyAssignedIssuesQuery(undefined, { skip: !isMaintenanceUser });
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  // Calculate badge counts
+  // For maintenance users, show only assigned issues count
+  const maintenanceActiveCount = myAssignedIssues.filter(i => i.status === 'ACTIVE').length;
+
+  // Calculate badge counts for regular view
   const tabCounts = useMemo(() => [
     activeIssues.length,
     activeDamages.length,
@@ -97,6 +113,90 @@ const ParkingPage: React.FC = () => {
     },
   ];
 
+  // If user is from Întreținere Parcări, show only their assigned issues
+  if (isMaintenanceUser) {
+    return (
+      <Box
+        sx={{
+          p: { xs: 0, sm: 1 },
+          maxWidth: '100%',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Header */}
+        <Grow in={true} timeout={500}>
+          <Box
+            sx={{
+              mb: { xs: 2, sm: 3 },
+              p: { xs: 2, sm: 2.5, md: 3 },
+              background: theme.palette.mode === 'light'
+                ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                : 'linear-gradient(135deg, #b45309 0%, #92400e 100%)',
+              borderRadius: { xs: 2, sm: 3 },
+              color: 'white',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(245, 158, 11, 0.3)',
+            }}
+          >
+            {/* Background decoration */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -50,
+                right: -50,
+                width: 150,
+                height: 150,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.1)',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: -30,
+                left: -30,
+                width: 100,
+                height: 100,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.05)',
+              }}
+            />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, position: 'relative' }}>
+              <MaintenanceIcon sx={{ fontSize: { xs: 28, sm: 32 } }} />
+              <Box>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' },
+                    mb: 0.5,
+                  }}
+                >
+                  Problemele Mele
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    opacity: 0.9,
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  }}
+                >
+                  Problemele din parcări alocate pentru rezolvare • {maintenanceActiveCount} active
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Grow>
+
+        {/* Main content - only assigned issues */}
+        <MaintenanceIssuesTab />
+      </Box>
+    );
+  }
+
+  // Regular view for Dispecerat, Managers, and Admins
   return (
     <Box
       sx={{
