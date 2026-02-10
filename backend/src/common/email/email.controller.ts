@@ -1,10 +1,12 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { IsEmail, IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { EmailService } from './email.service';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { UserRole } from '../../modules/users/entities/user.entity';
+import { UserRole, User } from '../../modules/users/entities/user.entity';
 
 class SendTestEmailDto {
   @IsEmail()
@@ -33,7 +35,11 @@ class TestDamageEmailDto {
 @Controller('email')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EmailController {
-  constructor(private readonly emailService: EmailService) {}
+  constructor(
+    private readonly emailService: EmailService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
   @Post('test')
   @Roles(UserRole.ADMIN)
@@ -70,6 +76,51 @@ export class EmailController {
       message: success
         ? `Email prejudiciu (${damageType}) trimis cu succes către ${dto.email}`
         : 'Eroare la trimiterea emailului.',
+    };
+  }
+
+  @Post('welcome-broadcast')
+  @Roles(UserRole.ADMIN)
+  async sendWelcomeBroadcast() {
+    // Get all active users
+    const users = await this.userRepository.find({
+      where: { isActive: true },
+    });
+
+    const results = {
+      total: users.length,
+      sent: 0,
+      failed: 0,
+      details: [] as { email: string; name: string; success: boolean }[],
+    };
+
+    for (const user of users) {
+      const success = await this.emailService.sendWelcomeBroadcast(
+        user.email,
+        user.fullName,
+        user.role,
+      );
+
+      if (success) {
+        results.sent++;
+      } else {
+        results.failed++;
+      }
+
+      results.details.push({
+        email: user.email,
+        name: user.fullName,
+        success,
+      });
+
+      // Small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    return {
+      success: results.failed === 0,
+      message: `Emailuri trimise: ${results.sent}/${results.total}. Eșuate: ${results.failed}`,
+      results,
     };
   }
 }

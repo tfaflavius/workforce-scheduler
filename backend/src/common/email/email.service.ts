@@ -1264,4 +1264,61 @@ export class EmailService {
       this.generateBaseTemplate('WorkSchedule', 'Email de Test', content, '#4CAF50 0%, #45a049 100%')
     );
   }
+
+  // ============== WELCOME BROADCAST EMAIL ==============
+
+  async sendWelcomeBroadcast(toEmail: string, toName: string, role: string): Promise<boolean> {
+    const roleLabel = role === 'ADMIN' ? 'Administrator' : role === 'MANAGER' ? 'Manager' : 'Utilizator';
+
+    const content = `
+      <p style="font-size: 18px;">Bună ziua, <strong>${toName}</strong>! 👋</p>
+
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; margin: 25px 0; color: white;">
+        <h2 style="margin: 0 0 15px 0; color: white;">🎉 Bine ai venit pe Workforce App!</h2>
+        <p style="margin: 0; font-size: 16px; opacity: 0.95;">
+          Suntem încântați să te avem alături de echipa noastră. Aplicația Workforce este aici pentru a-ți face munca mai ușoară și mai organizată.
+        </p>
+      </div>
+
+      <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin: 0 0 15px 0; color: #333;">📱 Ce poți face în aplicație:</h3>
+        <ul style="margin: 0; padding-left: 20px; line-height: 2;">
+          <li style="padding: 5px 0;">📅 <strong>Vizualizează programul de lucru</strong> - Turele tale sunt mereu la îndemână</li>
+          <li style="padding: 5px 0;">🔄 <strong>Solicită schimburi de ture</strong> - Schimbă tura cu un coleg în câteva click-uri</li>
+          <li style="padding: 5px 0;">🏖️ <strong>Cere concediu</strong> - Depune cereri direct din aplicație</li>
+          <li style="padding: 5px 0;">🔔 <strong>Primește notificări</strong> - Fii la curent cu toate schimbările</li>
+          <li style="padding: 5px 0;">🚗 <strong>Gestionează parcările</strong> - Raportează probleme și prejudicii</li>
+        </ul>
+      </div>
+
+      <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196F3;">
+        <p style="margin: 0; font-size: 14px;">
+          <strong>Rolul tău:</strong> ${roleLabel}<br>
+          <strong>Email:</strong> ${toEmail}
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="https://workforce-scheduler.vercel.app" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; font-size: 16px;">
+          🚀 Accesează Aplicația
+        </a>
+      </div>
+
+      <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
+        <p style="margin: 0; font-size: 14px;">
+          💡 <strong>Sfat:</strong> Instalează aplicația pe telefon pentru acces rapid! Deschide site-ul în browser și apasă "Adaugă pe ecranul principal".
+        </p>
+      </div>
+
+      <p style="color: #666; font-size: 14px; margin-top: 30px; text-align: center;">
+        Dacă ai întrebări sau ai nevoie de ajutor, nu ezita să contactezi administratorul.
+      </p>
+    `;
+
+    return this.sendEmail(
+      toEmail,
+      '🎉 Bine ai venit pe Workforce App!',
+      this.generateBaseTemplate('Workforce App', 'Bine ai venit în echipă!', content, '#667eea 0%, #764ba2 100%')
+    );
+  }
 }
