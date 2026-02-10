@@ -71,8 +71,10 @@ export class EditRequestService {
 
     const saved = await this.editRequestRepository.save(editRequest);
 
-    // Notifică adminii
-    await this.notifyAdmins(saved, user);
+    // Notifică adminii - în background
+    this.notifyAdmins(saved, user).catch(err => {
+      this.logger.error(`Failed to notify admins: ${err.message}`);
+    });
 
     this.logger.log(`Edit request created by ${user.fullName} for ${dto.requestType} ${dto.entityId}`);
 
@@ -134,8 +136,10 @@ export class EditRequestService {
 
     const saved = await this.editRequestRepository.save(editRequest);
 
-    // Notifică solicitantul
-    await this.notifyRequester(saved, reviewer);
+    // Notifică solicitantul - în background
+    this.notifyRequester(saved, reviewer).catch(err => {
+      this.logger.error(`Failed to notify requester: ${err.message}`);
+    });
 
     this.logger.log(`Edit request ${id} ${dto.approved ? 'approved' : 'rejected'} by ${reviewer.fullName}`);
 
@@ -290,9 +294,12 @@ export class EditRequestService {
     }
 
     const saved = await this.editRequestRepository.save(editRequest);
+    this.logger.log(`Edit request saved with id: ${saved.id}`);
 
-    // Notifică managerii și adminii
-    await this.notifyManagersAndAdmins(saved, userId);
+    // Notifică managerii și adminii - în background pentru a nu bloca răspunsul
+    this.notifyManagersAndAdmins(saved, userId).catch(err => {
+      this.logger.error(`Failed to notify managers and admins: ${err.message}`);
+    });
 
     return this.findOne(saved.id);
   }
