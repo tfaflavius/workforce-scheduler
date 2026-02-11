@@ -35,6 +35,7 @@ import {
   ListItemAvatar,
   Avatar,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
   Home as HomeIcon,
@@ -134,6 +135,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [createRequest, { isLoading }] = useCreateDomiciliuRequestMutation();
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CreateDomiciliuRequestDto>({
     requestType,
@@ -157,6 +159,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         ...prev,
         requestType,
       }));
+      setError(null);
     }
   }, [open, requestType]);
 
@@ -177,10 +180,12 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         email: '',
         contractNumber: '',
       });
+      setError(null);
     }
   }, [open, requestType]);
 
   const handleSubmit = async () => {
+    setError(null);
     try {
       await createRequest(formData).unwrap();
       onClose();
@@ -198,8 +203,17 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         email: '',
         contractNumber: '',
       });
-    } catch (error) {
-      console.error('Error creating request:', error);
+    } catch (err: any) {
+      console.error('Error creating request:', err);
+      // Extract error message from various possible formats
+      const errorMessage =
+        err?.data?.message ||
+        err?.error?.data?.message ||
+        (Array.isArray(err?.data?.message) ? err.data.message.join(', ') : null) ||
+        err?.message ||
+        'A apărut o eroare la crearea solicitării';
+      console.log('Setting error:', errorMessage);
+      setError(errorMessage);
     }
   };
 
@@ -245,6 +259,12 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
 
       <DialogContent sx={{ pt: 3 }}>
         <Stack spacing={2.5}>
+          {error && (
+            <Alert severity="error" onClose={() => setError(null)} sx={{ borderRadius: 2 }}>
+              {error}
+            </Alert>
+          )}
+
           {/* Locație */}
           <TextField
             label="Locație parcare (Stradă, Număr)"

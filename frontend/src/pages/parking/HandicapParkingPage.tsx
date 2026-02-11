@@ -35,6 +35,7 @@ import {
   ListItemAvatar,
   Avatar,
   CircularProgress,
+  Alert,
 } from '@mui/material';
 import {
   Accessible as HandicapIcon,
@@ -142,6 +143,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [createRequest, { isLoading }] = useCreateHandicapRequestMutation();
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CreateHandicapRequestDto>({
     requestType,
@@ -162,6 +164,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         ...prev,
         requestType,
       }));
+      setError(null);
     }
   }, [open, requestType]);
 
@@ -179,12 +182,16 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         autoNumber: '',
         phone: '',
       });
+      setError(null);
     }
   }, [open, requestType]);
 
   const isPersonFieldsRequired = requestType !== 'CREARE_MARCAJ';
 
   const handleSubmit = async () => {
+    console.log('handleSubmit called, formData:', formData);
+    console.log('isFormValid:', isFormValid());
+    setError(null);
     try {
       await createRequest(formData).unwrap();
       onClose();
@@ -199,15 +206,24 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         autoNumber: '',
         phone: '',
       });
-    } catch (error) {
-      console.error('Error creating request:', error);
+    } catch (err: any) {
+      console.error('Error creating request:', err);
+      // Extract error message from various possible formats
+      const errorMessage =
+        err?.data?.message ||
+        err?.error?.data?.message ||
+        (Array.isArray(err?.data?.message) ? err.data.message.join(', ') : null) ||
+        err?.message ||
+        'A apărut o eroare la crearea solicitării';
+      console.log('Setting error:', errorMessage);
+      setError(errorMessage);
     }
   };
 
   const isFormValid = () => {
     if (!formData.location || !formData.description) return false;
     if (isPersonFieldsRequired) {
-      return !!(formData.personName && formData.handicapCertificateNumber && formData.carPlate && formData.phone);
+      return !!(formData.personName && formData.handicapCertificateNumber && formData.carPlate && formData.autoNumber && formData.phone);
     }
     return true;
   };
@@ -251,6 +267,12 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
 
       <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
         <Stack spacing={2}>
+          {error && (
+            <Alert severity="error" onClose={() => setError(null)} sx={{ borderRadius: 2 }}>
+              {error}
+            </Alert>
+          )}
+
           {/* Locație */}
           <TextField
             label="Locație (Stradă, Număr) *"
@@ -329,6 +351,22 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                 fullWidth
                 size="medium"
                 placeholder="Ex: BH-01-ABC"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CarIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
+              <TextField
+                label="Număr auto (serie șasiu/CIV) *"
+                value={formData.autoNumber}
+                onChange={(e) => setFormData({ ...formData, autoNumber: e.target.value.toUpperCase() })}
+                fullWidth
+                size="medium"
+                placeholder="Ex: WVWZZZ3CZWE123456"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
