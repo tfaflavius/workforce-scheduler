@@ -330,8 +330,16 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
           {/* Câmpuri specifice pentru AMPLASARE și REVOCARE */}
           {isPersonFieldsRequired && (
             <>
-              <Divider sx={{ my: 1 }}>
-                <Chip label="Date persoană" size="small" />
+              <Divider sx={{ my: 1.5 }}>
+                <Chip
+                  label="Date persoană"
+                  size="small"
+                  sx={{
+                    bgcolor: alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1),
+                    color: REQUEST_TYPE_COLORS[requestType].main,
+                    fontWeight: 600,
+                  }}
+                />
               </Divider>
 
               <TextField
@@ -340,10 +348,22 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                 onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
                 required
                 fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
+                    },
+                  },
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <PersonIcon color="action" />
+                      <PersonIcon sx={{ color: formData.personName ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
                     </InputAdornment>
                   ),
                 }}
@@ -355,10 +375,22 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                 onChange={(e) => setFormData({ ...formData, handicapCertificateNumber: e.target.value })}
                 required
                 fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
+                    },
+                  },
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <CertificateIcon color="action" />
+                      <CertificateIcon sx={{ color: formData.handicapCertificateNumber ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
                     </InputAdornment>
                   ),
                 }}
@@ -371,10 +403,22 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                 required
                 fullWidth
                 placeholder="Ex: BH-01-ABC"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
+                    },
+                  },
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <CarIcon color="action" />
+                      <CarIcon sx={{ color: formData.carPlate ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
                     </InputAdornment>
                   ),
                 }}
@@ -387,10 +431,22 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                 required
                 fullWidth
                 type="tel"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
+                    },
+                    '&.Mui-focused': {
+                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
+                    },
+                  },
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <PhoneIcon color="action" />
+                      <PhoneIcon sx={{ color: formData.phone ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
                     </InputAdornment>
                   ),
                 }}
@@ -411,6 +467,18 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
               ? 'Descrieți detaliile pentru crearea marcajului...'
               : 'Descrieți motivul solicitării...'
             }
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
+                },
+                '&.Mui-focused': {
+                  boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
+                },
+              },
+            }}
           />
         </Stack>
       </DialogContent>
