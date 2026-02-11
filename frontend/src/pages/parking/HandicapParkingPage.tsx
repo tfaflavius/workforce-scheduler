@@ -206,22 +206,26 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
       maxWidth="sm"
       fullWidth
       fullScreen={isMobile}
+      scroll="paper"
       TransitionProps={{
         timeout: 300,
       }}
       PaperProps={{
         sx: {
           borderRadius: isMobile ? 0 : 3,
-          overflow: 'hidden',
+          maxHeight: isMobile ? '100%' : '90vh',
+          display: 'flex',
+          flexDirection: 'column',
         },
       }}
     >
       {/* Progress indicator */}
       <Box
         sx={{
-          height: 4,
-          bgcolor: alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1),
+          height: 6,
+          bgcolor: alpha(REQUEST_TYPE_COLORS[requestType].main, 0.15),
           position: 'relative',
+          flexShrink: 0,
         }}
       >
         <Box
@@ -230,6 +234,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
             width: `${progress}%`,
             bgcolor: REQUEST_TYPE_COLORS[requestType].main,
             transition: 'width 0.3s ease',
+            borderRadius: '0 3px 3px 0',
           }}
         />
       </Box>
@@ -241,6 +246,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         background: `linear-gradient(135deg, ${REQUEST_TYPE_COLORS[requestType].main}, ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.7)})`,
         color: 'white',
         py: { xs: 1.5, sm: 2 },
+        flexShrink: 0,
       }}>
         <Box
           sx={{
@@ -275,7 +281,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3, pb: 2 }}>
+      <DialogContent sx={{ pt: 3, pb: 2, flex: 1, overflowY: 'auto' }}>
         <Stack spacing={2.5}>
           {/* Locație */}
           <TextField
@@ -489,6 +495,8 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         gap: 1,
         borderTop: '1px solid',
         borderColor: 'divider',
+        flexShrink: 0,
+        bgcolor: 'background.paper',
       }}>
         <Button
           onClick={onClose}
