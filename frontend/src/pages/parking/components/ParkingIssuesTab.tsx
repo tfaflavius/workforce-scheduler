@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -52,7 +52,12 @@ import ResolveIssueDialog from './ResolveIssueDialog';
 import IssueDetailsDialog from './IssueDetailsDialog';
 import EditIssueDialog from './EditIssueDialog';
 
-const ParkingIssuesTab: React.FC = () => {
+interface ParkingIssuesTabProps {
+  initialOpenId?: string | null;
+  onOpenIdHandled?: () => void;
+}
+
+const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOpenIdHandled }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 430px
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg')); // 430px - 1024px
@@ -70,6 +75,18 @@ const ParkingIssuesTab: React.FC = () => {
   );
   const { data: myAssignedIssues = [] } = useGetMyAssignedIssuesQuery();
   const [deleteIssue] = useDeleteParkingIssueMutation();
+
+  // Handle opening specific issue from notification
+  useEffect(() => {
+    if (initialOpenId && issues.length > 0) {
+      const issue = issues.find(i => i.id === initialOpenId);
+      if (issue) {
+        setSelectedIssue(issue);
+        setDetailsDialogOpen(true);
+        onOpenIdHandled?.();
+      }
+    }
+  }, [initialOpenId, issues, onOpenIdHandled]);
 
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';

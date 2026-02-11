@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -18,6 +18,7 @@ import {
   LocalAtm as CashIcon,
   Build as MaintenanceIcon,
 } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import ParkingIssuesTab from './components/ParkingIssuesTab';
 import ParkingDamagesTab from './components/ParkingDamagesTab';
@@ -62,9 +63,34 @@ function TabPanel(props: TabPanelProps) {
 const ParkingPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 430px
+  const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
 
+  // State for opening specific items from notifications
+  const [openIssueId, setOpenIssueId] = useState<string | null>(null);
+  const [openDamageId, setOpenDamageId] = useState<string | null>(null);
+
   const { user } = useAppSelector((state) => state.auth);
+
+  // Handle navigation state from notifications
+  useEffect(() => {
+    const state = location.state as { openIssueId?: string; openDamageId?: string; tab?: number } | null;
+    if (state) {
+      if (state.openIssueId) {
+        setOpenIssueId(state.openIssueId);
+        setTabValue(0);
+      }
+      if (state.openDamageId) {
+        setOpenDamageId(state.openDamageId);
+        setTabValue(1);
+      }
+      if (state.tab !== undefined) {
+        setTabValue(state.tab);
+      }
+      // Clear the state after handling
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Check if user is from Întreținere Parcări department
   const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
@@ -361,10 +387,16 @@ const ParkingPage: React.FC = () => {
 
       {/* Tab Panels */}
       <TabPanel value={tabValue} index={0}>
-        <ParkingIssuesTab />
+        <ParkingIssuesTab
+          initialOpenId={openIssueId}
+          onOpenIdHandled={() => setOpenIssueId(null)}
+        />
       </TabPanel>
       <TabPanel value={tabValue} index={1}>
-        <ParkingDamagesTab />
+        <ParkingDamagesTab
+          initialOpenId={openDamageId}
+          onOpenIdHandled={() => setOpenDamageId(null)}
+        />
       </TabPanel>
       <TabPanel value={tabValue} index={2}>
         <CashCollectionsTab />

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -57,7 +57,7 @@ import {
   AddBox as PlacementIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
@@ -142,6 +142,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [createRequest, { isLoading }] = useCreateHandicapRequestMutation();
+  const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState<CreateHandicapRequestDto>({
     requestType,
@@ -160,18 +161,22 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   const handleSubmit = async () => {
     try {
       await createRequest(formData).unwrap();
-      onClose();
-      setFormData({
-        requestType,
-        location: '',
-        googleMapsLink: '',
-        description: '',
-        personName: '',
-        handicapCertificateNumber: '',
-        carPlate: '',
-        autoNumber: '',
-        phone: '',
-      });
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+        setFormData({
+          requestType,
+          location: '',
+          googleMapsLink: '',
+          description: '',
+          personName: '',
+          handicapCertificateNumber: '',
+          carPlate: '',
+          autoNumber: '',
+          phone: '',
+        });
+      }, 800);
     } catch (error) {
       console.error('Error creating request:', error);
     }
@@ -180,10 +185,19 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   const isFormValid = () => {
     if (!formData.location || !formData.description) return false;
     if (isPersonFieldsRequired) {
-      return !!(formData.personName && formData.handicapCertificateNumber && formData.carPlate && formData.autoNumber && formData.phone);
+      return !!(formData.personName && formData.handicapCertificateNumber && formData.carPlate && formData.phone);
     }
     return true;
   };
+
+  // Calculate form progress
+  const totalFields = isPersonFieldsRequired ? 6 : 2;
+  const filledFields = [
+    formData.location,
+    formData.description,
+    ...(isPersonFieldsRequired ? [formData.personName, formData.handicapCertificateNumber, formData.carPlate, formData.phone] : []),
+  ].filter(Boolean).length;
+  const progress = (filledFields / totalFields) * 100;
 
   return (
     <Dialog
@@ -192,30 +206,76 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
       maxWidth="sm"
       fullWidth
       fullScreen={isMobile}
+      TransitionProps={{
+        timeout: 300,
+      }}
       PaperProps={{
-        sx: { borderRadius: isMobile ? 0 : 3 },
+        sx: {
+          borderRadius: isMobile ? 0 : 3,
+          overflow: 'hidden',
+        },
       }}
     >
+      {/* Progress indicator */}
+      <Box
+        sx={{
+          height: 4,
+          bgcolor: alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1),
+          position: 'relative',
+        }}
+      >
+        <Box
+          sx={{
+            height: '100%',
+            width: `${progress}%`,
+            bgcolor: REQUEST_TYPE_COLORS[requestType].main,
+            transition: 'width 0.3s ease',
+          }}
+        />
+      </Box>
+
       <DialogTitle sx={{
         display: 'flex',
         alignItems: 'center',
         gap: 1,
         background: `linear-gradient(135deg, ${REQUEST_TYPE_COLORS[requestType].main}, ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.7)})`,
         color: 'white',
+        py: { xs: 1.5, sm: 2 },
       }}>
-        {REQUEST_TYPE_ICONS[requestType]}
-        <Typography variant="h6" component="span">
-          {HANDICAP_REQUEST_TYPE_LABELS[requestType]}
-        </Typography>
+        <Box
+          sx={{
+            p: 1,
+            borderRadius: '50%',
+            bgcolor: 'rgba(255, 255, 255, 0.2)',
+            display: 'flex',
+            '& .MuiSvgIcon-root': {
+              fontSize: { xs: '1.25rem', sm: '1.5rem' },
+            },
+          }}
+        >
+          {REQUEST_TYPE_ICONS[requestType]}
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h6" component="span" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+            {HANDICAP_REQUEST_TYPE_LABELS[requestType]}
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }}>
+            Completează formularul de mai jos
+          </Typography>
+        </Box>
         <IconButton
           onClick={onClose}
-          sx={{ ml: 'auto', color: 'white' }}
+          sx={{
+            color: 'white',
+            bgcolor: 'rgba(255, 255, 255, 0.1)',
+            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.2)' },
+          }}
         >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
+      <DialogContent sx={{ pt: 3, pb: 2 }}>
         <Stack spacing={2.5}>
           {/* Locație */}
           <TextField
@@ -225,10 +285,22 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
             required
             fullWidth
             placeholder="Ex: Str. Republicii nr. 10"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
+                },
+                '&.Mui-focused': {
+                  boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
+                },
+              },
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <PlaceIcon color="action" />
+                  <PlaceIcon sx={{ color: formData.location ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
                 </InputAdornment>
               ),
             }}
@@ -241,10 +313,15 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
             onChange={(e) => setFormData({ ...formData, googleMapsLink: e.target.value })}
             fullWidth
             placeholder="https://maps.google.com/..."
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+              },
+            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <MapIcon color="action" />
+                  <MapIcon sx={{ color: formData.googleMapsLink ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
                 </InputAdornment>
               ),
             }}
@@ -287,31 +364,21 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                 }}
               />
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  label="Număr auto"
-                  value={formData.carPlate}
-                  onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
-                  required
-                  fullWidth
-                  placeholder="Ex: BH-01-ABC"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <CarIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <TextField
-                  label="Număr legitimație auto"
-                  value={formData.autoNumber}
-                  onChange={(e) => setFormData({ ...formData, autoNumber: e.target.value })}
-                  required
-                  fullWidth
-                />
-              </Stack>
+              <TextField
+                label="Număr înmatriculare"
+                value={formData.carPlate}
+                onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
+                required
+                fullWidth
+                placeholder="Ex: BH-01-ABC"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <CarIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
 
               <TextField
                 label="Telefon"
@@ -348,21 +415,46 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, pt: 1 }}>
-        <Button onClick={onClose} disabled={isLoading}>
+      <DialogActions sx={{
+        p: 2,
+        pt: 1,
+        gap: 1,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+      }}>
+        <Button
+          onClick={onClose}
+          disabled={isLoading}
+          sx={{
+            borderRadius: 2,
+            px: 3,
+          }}
+        >
           Anulează
         </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!isFormValid() || isLoading}
-          startIcon={isLoading ? <CircularProgress size={20} /> : <AddIcon />}
+          disabled={!isFormValid() || isLoading || success}
+          startIcon={
+            success ? <CheckIcon /> :
+            isLoading ? <CircularProgress size={20} color="inherit" /> :
+            <AddIcon />
+          }
           sx={{
-            bgcolor: REQUEST_TYPE_COLORS[requestType].main,
-            '&:hover': { bgcolor: alpha(REQUEST_TYPE_COLORS[requestType].main, 0.9) },
+            bgcolor: success ? 'success.main' : REQUEST_TYPE_COLORS[requestType].main,
+            '&:hover': { bgcolor: success ? 'success.dark' : alpha(REQUEST_TYPE_COLORS[requestType].main, 0.9) },
+            borderRadius: 2,
+            px: 3,
+            fontWeight: 600,
+            boxShadow: `0 2px 8px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.3)}`,
+            transition: 'all 0.3s ease',
+            '&:active': {
+              transform: 'scale(0.98)',
+            },
           }}
         >
-          Creează
+          {success ? 'Creat!' : 'Creează'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -520,10 +612,6 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                             <Box sx={{ flex: 1 }}>
                               <Typography variant="body2" color="text.secondary">Număr Auto</Typography>
                               <Typography variant="body1" fontWeight={600}>{request.carPlate}</Typography>
-                            </Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" color="text.secondary">Legitimație Auto</Typography>
-                              <Typography variant="body1">{request.autoNumber}</Typography>
                             </Box>
                             <Box sx={{ flex: 1 }}>
                               <Typography variant="body2" color="text.secondary">Telefon</Typography>
@@ -735,6 +823,7 @@ interface RequestCardProps {
 
 const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const colors = REQUEST_TYPE_COLORS[request.requestType];
 
   return (
@@ -742,13 +831,13 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
       onClick={onClick}
       sx={{
         cursor: 'pointer',
-        borderRadius: 2,
+        borderRadius: { xs: 2, sm: 2.5 },
         borderLeft: `4px solid ${colors.main}`,
         transition: 'all 0.2s ease',
         touchAction: 'manipulation',
         WebkitTapHighlightColor: 'transparent',
         '&:hover': {
-          transform: 'translateY(-2px)',
+          transform: { xs: 'none', sm: 'translateY(-2px)' },
           boxShadow: theme.shadows[4],
         },
         '&:active': {
@@ -756,19 +845,33 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
         },
       }}
     >
-      <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <CardContent sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
             <Box sx={{
-              p: 0.75,
+              p: { xs: 0.5, sm: 0.75 },
               borderRadius: 1.5,
               bgcolor: colors.bg,
               color: colors.main,
               display: 'flex',
+              flexShrink: 0,
+              '& .MuiSvgIcon-root': {
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              },
             }}>
               {REQUEST_TYPE_ICONS[request.requestType]}
             </Box>
-            <Typography variant="body2" fontWeight={600} color={colors.main}>
+            <Typography
+              variant="body2"
+              fontWeight={600}
+              color={colors.main}
+              sx={{
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {HANDICAP_REQUEST_TYPE_LABELS[request.requestType]}
             </Typography>
           </Box>
@@ -779,35 +882,79 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
               bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
               color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
               fontWeight: 600,
-              fontSize: '0.7rem',
+              fontSize: { xs: '0.65rem', sm: '0.7rem' },
+              height: { xs: 22, sm: 24 },
+              flexShrink: 0,
             }}
           />
         </Box>
 
-        <Typography variant="body2" sx={{ mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <PlaceIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-          {request.location}
+        <Typography
+          variant="body2"
+          sx={{
+            mb: 0.5,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 0.5,
+            fontSize: { xs: '0.8rem', sm: '0.875rem' },
+            lineHeight: 1.4,
+            wordBreak: 'break-word',
+          }}
+        >
+          <PlaceIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary', flexShrink: 0, mt: 0.2 }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{request.location}</span>
         </Typography>
 
         {request.personName && (
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <PersonIcon sx={{ fontSize: 16 }} />
-            {request.personName}
-            {request.carPlate && ` • ${request.carPlate}`}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              fontSize: { xs: '0.75rem', sm: '0.8rem' },
+              flexWrap: 'wrap',
+            }}
+          >
+            <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, flexShrink: 0 }} />
+            <span>{request.personName}</span>
+            {request.carPlate && (
+              <Chip
+                label={request.carPlate}
+                size="small"
+                variant="outlined"
+                sx={{
+                  height: { xs: 18, sm: 20 },
+                  fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                  '& .MuiChip-label': { px: 0.75 },
+                }}
+              />
+            )}
           </Typography>
         )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="caption" color="text.secondary">
-            {request.creator?.fullName} • {format(new Date(request.createdAt), 'dd MMM yyyy', { locale: ro })}
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mt: { xs: 1, sm: 1.5 },
+          pt: { xs: 0.75, sm: 1 },
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          flexWrap: 'wrap',
+          gap: 0.5,
+        }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+            {request.creator?.fullName} • {format(new Date(request.createdAt), isMobile ? 'dd/MM/yy' : 'dd MMM yyyy', { locale: ro })}
           </Typography>
           {request.comments && request.comments.length > 0 && (
             <Chip
-              icon={<CommentIcon sx={{ fontSize: 14 }} />}
+              icon={<CommentIcon sx={{ fontSize: { xs: 12, sm: 14 } }} />}
               label={request.comments.length}
               size="small"
               variant="outlined"
-              sx={{ height: 22, '& .MuiChip-label': { px: 0.75 } }}
+              sx={{ height: { xs: 20, sm: 22 }, fontSize: { xs: '0.65rem', sm: '0.7rem' }, '& .MuiChip-label': { px: 0.5 } }}
             />
           )}
         </Box>
@@ -820,13 +967,35 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
 const HandicapParkingPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<HandicapRequestStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<HandicapRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [openLegitimationId, setOpenLegitimationId] = useState<string | null>(null);
 
   const { user } = useAppSelector((state) => state.auth);
+
+  // Handle navigation state from notifications
+  useEffect(() => {
+    const state = location.state as { openRequestId?: string; openLegitimationId?: string; tab?: number } | null;
+    if (state) {
+      if (state.openRequestId) {
+        setSelectedRequestId(state.openRequestId);
+      }
+      if (state.openLegitimationId) {
+        setOpenLegitimationId(state.openLegitimationId);
+        // Switch to legitimations tab if user can see it
+        // Tab 3 is legitimations
+      }
+      if (state.tab !== undefined) {
+        setTabValue(state.tab);
+      }
+      // Clear the state after handling
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Access control
   const hasAccess =
@@ -982,9 +1151,9 @@ const HandicapParkingPage: React.FC = () => {
 
       {/* Filters */}
       <Paper sx={{ mb: 2, p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
           <TextField
-            placeholder="Caută după locație, persoană sau număr auto..."
+            placeholder={isMobile ? "Caută..." : "Caută după locație, persoană sau număr auto..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
@@ -993,40 +1162,52 @@ const HandicapParkingPage: React.FC = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon color="action" />
+                  <SearchIcon color="action" sx={{ fontSize: { xs: 18, sm: 20 } }} />
                 </InputAdornment>
               ),
             }}
           />
 
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={statusFilter}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value as HandicapRequestStatus | '')}
-            >
-              <MenuItem value="">Toate</MenuItem>
-              <MenuItem value="ACTIVE">Active</MenuItem>
-              <MenuItem value="FINALIZAT">Finalizate</MenuItem>
-            </Select>
-          </FormControl>
+          <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+            <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 130 }, flex: { xs: 1, sm: 'none' } }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={statusFilter}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value as HandicapRequestStatus | '')}
+              >
+                <MenuItem value="">Toate</MenuItem>
+                <MenuItem value="ACTIVE">Active</MenuItem>
+                <MenuItem value="FINALIZAT">Finalizate</MenuItem>
+              </Select>
+            </FormControl>
 
-          {/* Butonul Adaugă - ascuns pe tab-ul Legitimații (are propriul buton) */}
-          {!isLegitimationsTab && tabValue < tabConfig.length && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
-              sx={{
-                bgcolor: tabConfig[tabValue].color,
-                '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Adaugă
-            </Button>
-          )}
+            {/* Butonul Adaugă - ascuns pe tab-ul Legitimații (are propriul buton) */}
+            {!isLegitimationsTab && tabValue < tabConfig.length && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
+                size={isMobile ? 'medium' : 'medium'}
+                sx={{
+                  bgcolor: tabConfig[tabValue].color,
+                  '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
+                  whiteSpace: 'nowrap',
+                  minWidth: { xs: 'auto', sm: 100 },
+                  px: { xs: 2, sm: 3 },
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  boxShadow: `0 2px 8px ${alpha(tabConfig[tabValue].color, 0.3)}`,
+                  transition: 'all 0.2s ease',
+                  '&:active': {
+                    transform: 'scale(0.98)',
+                  },
+                }}
+              >
+                {isMobile ? 'Adaugă' : 'Adaugă'}
+              </Button>
+            )}
+          </Stack>
         </Stack>
       </Paper>
 
@@ -1190,6 +1371,8 @@ const HandicapParkingPage: React.FC = () => {
             isAdmin={isAdmin}
             searchQuery={searchQuery}
             statusFilter={statusFilter as HandicapLegitimationStatus | ''}
+            initialOpenId={openLegitimationId}
+            onOpenIdHandled={() => setOpenLegitimationId(null)}
           />
         </TabPanel>
       )}

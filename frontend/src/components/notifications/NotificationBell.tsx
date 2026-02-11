@@ -85,7 +85,7 @@ const getNotificationIcon = (type: NotificationType) => {
 };
 
 // Get navigation path based on notification type and data
-const getNotificationPath = (notification: Notification): string | null => {
+const getNotificationPath = (notification: Notification): { path: string; state?: any } | null => {
   const { type, data } = notification;
 
   switch (type) {
@@ -95,9 +95,9 @@ const getNotificationPath = (notification: Notification): string | null => {
     case 'SCHEDULE_APPROVED':
     case 'SCHEDULE_REJECTED':
       if (data?.scheduleId) {
-        return `/schedules/${data.scheduleId}`;
+        return { path: `/schedules/${data.scheduleId}` };
       }
-      return '/schedules';
+      return { path: '/schedules' };
 
     // Shift swap notifications
     case 'SHIFT_SWAP_REQUEST':
@@ -105,34 +105,50 @@ const getNotificationPath = (notification: Notification): string | null => {
     case 'SHIFT_SWAP_ACCEPTED':
     case 'SHIFT_SWAP_APPROVED':
     case 'SHIFT_SWAP_REJECTED':
-      return '/shift-swaps';
+      return { path: '/shift-swaps' };
 
     // Leave request notifications
     case 'LEAVE_REQUEST_CREATED':
     case 'LEAVE_REQUEST_APPROVED':
     case 'LEAVE_REQUEST_REJECTED':
     case 'LEAVE_OVERLAP_WARNING':
-      return '/leave-requests';
+      return { path: '/leave-requests' };
 
-    // Parking notifications
+    // Parking notifications - navigate to specific item
     case 'PARKING_ISSUE_ASSIGNED':
     case 'PARKING_ISSUE_RESOLVED':
-      return '/parking';
+      // Check which type of parking notification it is
+      if (data?.issueId) {
+        return { path: '/parking', state: { openIssueId: data.issueId } };
+      }
+      if (data?.damageId) {
+        return { path: '/parking', state: { openDamageId: data.damageId, tab: 1 } };
+      }
+      if (data?.handicapRequestId) {
+        return { path: '/parking/handicap', state: { openRequestId: data.handicapRequestId } };
+      }
+      if (data?.domiciliuRequestId) {
+        return { path: '/parking/domiciliu', state: { openRequestId: data.domiciliuRequestId } };
+      }
+      if (data?.handicapLegitimationId) {
+        return { path: '/parking/handicap', state: { openLegitimationId: data.handicapLegitimationId, tab: 3 } };
+      }
+      return { path: '/parking' };
 
     // Edit request notifications
     case 'EDIT_REQUEST_CREATED':
-      return '/admin/edit-requests';
+      return { path: '/admin/edit-requests' };
     case 'EDIT_REQUEST_APPROVED':
     case 'EDIT_REQUEST_REJECTED':
-      return '/parking';
+      return { path: '/parking' };
 
     // Shift reminder
     case 'SHIFT_REMINDER':
-      return '/my-schedule';
+      return { path: '/my-schedule' };
 
     // Employee absent
     case 'EMPLOYEE_ABSENT':
-      return '/schedules';
+      return { path: '/schedules' };
 
     default:
       return null;
@@ -191,9 +207,9 @@ export const NotificationBell: React.FC = () => {
     }
 
     // Navigate to relevant page based on notification type
-    const path = getNotificationPath(notification);
-    if (path) {
-      navigate(path);
+    const navInfo = getNotificationPath(notification);
+    if (navInfo) {
+      navigate(navInfo.path, { state: navInfo.state });
     }
 
     handleClose();

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -68,6 +68,8 @@ interface HandicapLegitimatiiTabProps {
   isAdmin: boolean;
   searchQuery: string;
   statusFilter: HandicapLegitimationStatus | '';
+  initialOpenId?: string | null;
+  onOpenIdHandled?: () => void;
 }
 
 // ============== LEGITIMATION CARD ==============
@@ -310,7 +312,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
               }}
             />
             <TextField
-              label="Număr auto"
+              label="Număr legitimație"
               value={formData.autoNumber}
               onChange={(e) => setFormData({ ...formData, autoNumber: e.target.value })}
               fullWidth
@@ -553,7 +555,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                           <CarIcon sx={{ color: 'text.secondary' }} />
                           <Typography variant="body2">
                             Înmatriculare: {legitimation.carPlate}
-                            {legitimation.autoNumber && ` • Auto: ${legitimation.autoNumber}`}
+                            {legitimation.autoNumber && ` • Legitimație: ${legitimation.autoNumber}`}
                           </Typography>
                         </Box>
                         {legitimation.phone && (
@@ -786,6 +788,8 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   isAdmin,
   searchQuery,
   statusFilter,
+  initialOpenId,
+  onOpenIdHandled,
 }) => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedLegitimationId, setSelectedLegitimationId] = useState<string | null>(null);
@@ -793,6 +797,17 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   const { data: legitimations = [], isLoading } = useGetHandicapLegitimationsQuery(
     statusFilter ? { status: statusFilter as HandicapLegitimationStatus } : undefined
   );
+
+  // Handle initial open from notification
+  useEffect(() => {
+    if (initialOpenId && legitimations.length > 0) {
+      const legitimation = legitimations.find(l => l.id === initialOpenId);
+      if (legitimation) {
+        setSelectedLegitimationId(legitimation.id);
+        onOpenIdHandled?.();
+      }
+    }
+  }, [initialOpenId, legitimations, onOpenIdHandled]);
 
   // Filter by search
   const filteredLegitimations = useMemo(() => {

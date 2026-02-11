@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -47,7 +47,12 @@ import ResolveDamageDialog from './ResolveDamageDialog';
 import DamageDetailsDialog from './DamageDetailsDialog';
 import EditDamageDialog from './EditDamageDialog';
 
-const ParkingDamagesTab: React.FC = () => {
+interface ParkingDamagesTabProps {
+  initialOpenId?: string | null;
+  onOpenIdHandled?: () => void;
+}
+
+const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, onOpenIdHandled }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
@@ -67,6 +72,18 @@ const ParkingDamagesTab: React.FC = () => {
 
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+
+  // Handle initial open from notification
+  useEffect(() => {
+    if (initialOpenId && damages.length > 0) {
+      const damage = damages.find(d => d.id === initialOpenId);
+      if (damage) {
+        setSelectedDamage(damage);
+        setDetailsDialogOpen(true);
+        onOpenIdHandled?.();
+      }
+    }
+  }, [initialOpenId, damages, onOpenIdHandled]);
 
   const handleResolve = (damage: ParkingDamage) => {
     setSelectedDamage(damage);

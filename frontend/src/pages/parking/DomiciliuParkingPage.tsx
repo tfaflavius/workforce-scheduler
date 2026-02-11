@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -59,7 +59,7 @@ import {
   LocationCity as AddressIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
@@ -872,6 +872,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
 const DomiciliuParkingPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<DomiciliuRequestStatus | ''>('');
@@ -879,6 +880,16 @@ const DomiciliuParkingPage: React.FC = () => {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
   const { user } = useAppSelector((state) => state.auth);
+
+  // Handle navigation state from notifications
+  useEffect(() => {
+    const state = location.state as { openRequestId?: string } | null;
+    if (state?.openRequestId) {
+      setSelectedRequestId(state.openRequestId);
+      // Clear the state after handling
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Access control
   const hasAccess =
