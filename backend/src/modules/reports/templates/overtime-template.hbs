@@ -2,237 +2,392 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Raport Ore Suplimentare - {{monthYear}}</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      font-size: 10pt;
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
+    body {
+      font-family: 'Roboto', 'Segoe UI', Tahoma, Arial, sans-serif;
+      font-size: 10pt;
+      line-height: 1.4;
+      color: #333;
+      background: #fff;
+    }
+
     .header {
       text-align: center;
-      background: #388e3c;
+      background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
       color: white;
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 25px 20px;
+      margin-bottom: 25px;
     }
+
     .header h1 {
-      margin: 0 0 10px 0;
-      font-size: 20pt;
+      margin: 0 0 8px 0;
+      font-size: 22pt;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
+
+    .header .subtitle {
+      font-size: 12pt;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 0 20px;
+    }
+
     .summary-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 15px;
+      display: table;
+      width: 100%;
       margin-bottom: 30px;
-      padding: 15px;
+      padding: 20px;
       background: #e8f5e9;
       border-radius: 8px;
+      border: 1px solid #c8e6c9;
     }
+
+    .summary-row {
+      display: table-row;
+    }
+
     .summary-item {
+      display: table-cell;
+      width: 33.33%;
       text-align: center;
+      padding: 10px;
     }
+
     .summary-item .label {
       font-size: 9pt;
       color: #666;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
+
     .summary-item .value {
-      font-size: 16pt;
-      font-weight: bold;
+      font-size: 20pt;
+      font-weight: 700;
       color: #388e3c;
     }
+
     .employee-section {
-      margin-bottom: 40px;
+      margin-bottom: 35px;
       page-break-inside: avoid;
     }
+
     .employee-header {
-      background: #388e3c;
+      display: table;
+      width: 100%;
+      background: linear-gradient(135deg, #388e3c 0%, #43a047 100%);
       color: white;
-      padding: 12px 15px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      border-radius: 6px;
     }
+
+    .employee-header-left {
+      display: table-cell;
+      width: 70%;
+      vertical-align: middle;
+    }
+
+    .employee-header-right {
+      display: table-cell;
+      width: 30%;
+      text-align: right;
+      vertical-align: middle;
+    }
+
     .employee-name {
-      font-size: 12pt;
-      font-weight: bold;
+      font-size: 13pt;
+      font-weight: 700;
     }
+
+    .employee-department {
+      font-size: 9pt;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
     .employee-overtime {
-      font-size: 14pt;
-      font-weight: bold;
+      font-size: 16pt;
+      font-weight: 700;
     }
+
     .positive-overtime {
-      color: #fff9c4;
+      color: #fff59d;
     }
+
     .negative-overtime {
       color: #ffcdd2;
     }
+
+    .zero-overtime {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 8pt;
-      margin-bottom: 20px;
+      font-size: 9pt;
+      margin-bottom: 15px;
     }
+
     th, td {
-      border: 1px solid #ddd;
-      padding: 6px;
+      border: 1px solid #dee2e6;
+      padding: 8px 10px;
       text-align: left;
+      vertical-align: middle;
     }
+
     th {
-      background-color: #66bb6a;
+      background: #66bb6a;
       color: white;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+
+    tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
     }
+
     .overtime-positive {
       background-color: #fff9c4 !important;
-      font-weight: bold;
+      font-weight: 600;
+      color: #f57c00;
     }
+
     .overtime-negative {
       background-color: #ffcdd2 !important;
-      font-weight: bold;
+      font-weight: 600;
+      color: #d32f2f;
     }
+
     .overtime-zero {
       color: #999;
     }
-    .approved {
-      color: #4caf50;
-      font-weight: bold;
+
+    .status-approved {
+      color: #388e3c;
+      font-weight: 600;
     }
-    .not-approved {
+
+    .status-pending {
       color: #ff9800;
-      font-weight: bold;
+      font-weight: 600;
     }
+
     .monthly-summary {
+      display: table;
+      width: 100%;
       margin-top: 15px;
-      padding: 12px;
+      padding: 15px;
       background: #f5f5f5;
-      border-radius: 4px;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 15px;
-      font-size: 9pt;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
     }
+
+    .monthly-summary-row {
+      display: table-row;
+    }
+
     .monthly-summary-item {
+      display: table-cell;
+      width: 33.33%;
       text-align: center;
+      padding: 8px;
     }
+
     .monthly-summary-item .label {
+      font-size: 8pt;
       color: #666;
-      margin-bottom: 3px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
     }
+
     .monthly-summary-item .value {
-      font-size: 11pt;
-      font-weight: bold;
+      font-size: 12pt;
+      font-weight: 700;
+      color: #333;
     }
+
+    .value-positive {
+      color: #ff9800 !important;
+    }
+
+    .value-negative {
+      color: #d32f2f !important;
+    }
+
     .footer {
-      margin-top: 30px;
+      margin-top: 40px;
+      padding: 20px;
       text-align: center;
       font-size: 8pt;
       color: #666;
-      border-top: 1px solid #ddd;
-      padding-top: 15px;
+      border-top: 1px solid #dee2e6;
     }
-    .page-break {
-      page-break-after: always;
+
+    .legend {
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      background: #fafafa;
+      border-radius: 4px;
+      font-size: 8pt;
+    }
+
+    .legend-item {
+      display: inline-block;
+      margin-right: 20px;
+    }
+
+    .legend-color {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-right: 5px;
+      vertical-align: middle;
+      border-radius: 3px;
+    }
+
+    .legend-yellow {
+      background: #fff9c4;
+      border: 1px solid #fdd835;
+    }
+
+    .legend-red {
+      background: #ffcdd2;
+      border: 1px solid #ef9a9a;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>📊 Raport Ore Suplimentare</h1>
-    <div>{{monthYear}}</div>
+    <h1>Raport Ore Suplimentare</h1>
+    <div class="subtitle">{{monthYear}}</div>
   </div>
 
-  <div class="summary-box">
-    <div class="summary-item">
-      <div class="label">Total Angajați</div>
-      <div class="value">{{summary.totalEmployees}}</div>
-    </div>
-    <div class="summary-item">
-      <div class="label">Total Ore Suplimentare</div>
-      <div class="value">{{summary.totalOvertimeHours}}</div>
-    </div>
-    <div class="summary-item">
-      <div class="label">Medie / Angajat</div>
-      <div class="value">{{summary.averageOvertimePerEmployee}}</div>
-    </div>
-  </div>
-
-  {{#each overtimeData}}
-  <div class="employee-section">
-    <div class="employee-header">
-      <div>
-        <span class="employee-name">{{userName}}</span>
-        <span style="font-size: 9pt; opacity: 0.9;"> - {{departmentName}}</span>
-      </div>
-      <div class="employee-overtime {{#if (gt totalOvertimeHours 0)}}positive-overtime{{else}}{{#if (lt totalOvertimeHours 0)}}negative-overtime{{/if}}{{/if}}">
-        {{#if (gt totalOvertimeHours 0)}}+{{/if}}{{totalOvertimeHours}} ore
-      </div>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Ore Planificate</th>
-          <th>Ore Lucrate</th>
-          <th>Ore Suplimentare</th>
-          <th>Status Aprobare</th>
-          <th>Notițe</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each dailyEntries}}
-        <tr>
-          <td>{{date}}</td>
-          <td>{{plannedHours}}</td>
-          <td>{{actualHours}}</td>
-          <td class="{{#if (gt overtimeHours 0)}}overtime-positive{{else}}{{#if (lt overtimeHours 0)}}overtime-negative{{else}}overtime-zero{{/if}}{{/if}}">
-            {{#if (gt overtimeHours 0)}}+{{/if}}{{overtimeHours}}
-          </td>
-          <td class="{{#if isApproved}}approved{{else}}not-approved{{/if}}">
-            {{#if isApproved}}✓ Aprobat{{else}}⏳ Neaprobat{{/if}}
-          </td>
-          <td>{{notes}}</td>
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
-
-    <div class="monthly-summary">
-      <div class="monthly-summary-item">
-        <div class="label">Total Planificat</div>
-        <div class="value">{{totalPlannedHours}} ore</div>
-      </div>
-      <div class="monthly-summary-item">
-        <div class="label">Total Lucrat</div>
-        <div class="value">{{totalActualHours}} ore</div>
-      </div>
-      <div class="monthly-summary-item">
-        <div class="label">Total Overtime</div>
-        <div class="value" style="color: {{#if (gt totalOvertimeHours 0)}}#ff9800{{else}}{{#if (lt totalOvertimeHours 0)}}#f44336{{else}}#999{{/if}}{{/if}}">
-          {{#if (gt totalOvertimeHours 0)}}+{{/if}}{{totalOvertimeHours}} ore
+  <div class="content">
+    <div class="summary-box">
+      <div class="summary-row">
+        <div class="summary-item">
+          <div class="label">Total Angajati</div>
+          <div class="value">{{summary.totalEmployees}}</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Total Ore Suplimentare</div>
+          <div class="value">{{summary.totalOvertimeHours}}</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">Medie / Angajat</div>
+          <div class="value">{{summary.averageOvertimePerEmployee}}</div>
         </div>
       </div>
     </div>
+
+    <div class="legend">
+      <strong>Legenda:</strong>
+      <span class="legend-item">
+        <span class="legend-color legend-yellow"></span>
+        Overtime pozitiv (peste program)
+      </span>
+      <span class="legend-item">
+        <span class="legend-color legend-red"></span>
+        Undertime (sub program)
+      </span>
+    </div>
+
+    {{#each overtimeData}}
+    <div class="employee-section">
+      <div class="employee-header">
+        <div class="employee-header-left">
+          <div class="employee-name">{{userName}}</div>
+          <div class="employee-department">{{departmentName}}</div>
+        </div>
+        <div class="employee-header-right">
+          <div class="employee-overtime {{#if (gt totalOvertimeHours 0)}}positive-overtime{{else}}{{#if (lt totalOvertimeHours 0)}}negative-overtime{{else}}zero-overtime{{/if}}{{/if}}">
+            {{#if (gt totalOvertimeHours 0)}}+{{/if}}{{totalOvertimeHours}} ore
+          </div>
+        </div>
+      </div>
+
+      {{#if dailyEntries.length}}
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 12%;">Data</th>
+            <th style="width: 15%;">Ore Planificate</th>
+            <th style="width: 15%;">Ore Lucrate</th>
+            <th style="width: 18%;">Ore Suplimentare</th>
+            <th style="width: 15%;">Status</th>
+            <th style="width: 25%;">Notite</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each dailyEntries}}
+          <tr>
+            <td>{{date}}</td>
+            <td style="text-align: center;">{{plannedHours}}</td>
+            <td style="text-align: center;">{{actualHours}}</td>
+            <td style="text-align: center;" class="{{#if (gt overtimeHours 0)}}overtime-positive{{else}}{{#if (lt overtimeHours 0)}}overtime-negative{{else}}overtime-zero{{/if}}{{/if}}">
+              {{#if (gt overtimeHours 0)}}+{{/if}}{{overtimeHours}}
+            </td>
+            <td class="{{#if isApproved}}status-approved{{else}}status-pending{{/if}}">
+              {{#if isApproved}}Aprobat{{else}}In asteptare{{/if}}
+            </td>
+            <td>{{notes}}</td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      <div class="no-data">Nu exista inregistrari pentru aceasta perioada.</div>
+      {{/if}}
+
+      <div class="monthly-summary">
+        <div class="monthly-summary-row">
+          <div class="monthly-summary-item">
+            <div class="label">Total Planificat</div>
+            <div class="value">{{totalPlannedHours}} ore</div>
+          </div>
+          <div class="monthly-summary-item">
+            <div class="label">Total Lucrat</div>
+            <div class="value">{{totalActualHours}} ore</div>
+          </div>
+          <div class="monthly-summary-item">
+            <div class="label">Total Overtime</div>
+            <div class="value {{#if (gt totalOvertimeHours 0)}}value-positive{{else}}{{#if (lt totalOvertimeHours 0)}}value-negative{{/if}}{{/if}}">
+              {{#if (gt totalOvertimeHours 0)}}+{{/if}}{{totalOvertimeHours}} ore
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{/each}}
   </div>
-  {{/each}}
 
   <div class="footer">
-    <div style="margin-bottom: 10px;">
-      <strong>📋 Legendă:</strong><br>
-      <span style="background: #fff9c4; padding: 2px 8px; margin: 0 5px;">Galben</span> = Overtime pozitiv (peste program) &nbsp;|&nbsp;
-      <span style="background: #ffcdd2; padding: 2px 8px; margin: 0 5px;">Roșu</span> = Undertime (sub program)
-    </div>
-    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
-      Generat la: {{generatedAt}} | {{company.name}}
-    </div>
+    <div>Generat la: {{generatedAt}}</div>
+    <div style="margin-top: 5px;">{{company.name}}</div>
   </div>
 </body>
 </html>

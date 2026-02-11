@@ -2,161 +2,297 @@
 <html lang="ro">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Program de Lucru - {{schedule.monthYear}}</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      font-size: 10pt;
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
+    body {
+      font-family: 'Roboto', 'Segoe UI', Tahoma, Arial, sans-serif;
+      font-size: 10pt;
+      line-height: 1.4;
+      color: #333;
+      background: #fff;
+    }
+
     .header {
       text-align: center;
-      background: #1976d2;
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
       color: white;
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 25px 20px;
+      margin-bottom: 25px;
     }
+
     .header h1 {
-      margin: 0 0 10px 0;
-      font-size: 20pt;
+      margin: 0 0 8px 0;
+      font-size: 22pt;
+      font-weight: 700;
+      letter-spacing: 0.5px;
     }
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 20px;
+
+    .header .subtitle {
+      font-size: 12pt;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 0 20px;
+    }
+
+    .info-section {
+      margin-bottom: 25px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+
+    .info-row {
+      display: table;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-item {
+      display: table-cell;
+      width: 50%;
+      padding: 4px 0;
       font-size: 9pt;
     }
+
+    .info-item strong {
+      color: #1976d2;
+    }
+
+    .section-title {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #1976d2;
+      margin: 30px 0 15px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #1976d2;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 8pt;
+      font-size: 9pt;
+      margin-bottom: 20px;
     }
+
     th, td {
-      border: 1px solid #ddd;
-      padding: 6px;
+      border: 1px solid #dee2e6;
+      padding: 8px 10px;
       text-align: left;
+      vertical-align: middle;
     }
+
     th {
-      background-color: #1976d2;
+      background: #1976d2;
       color: white;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+
+    tbody tr:nth-child(even) {
+      background-color: #f8f9fa;
     }
+
+    tbody tr:hover {
+      background-color: #e3f2fd;
+    }
+
     .night-shift {
-      background-color: #ffe082 !important;
+      background-color: #fff3e0 !important;
     }
-    .violation {
+
+    .night-shift td:first-child::before {
+      content: "🌙 ";
+    }
+
+    .violation-section {
       margin-top: 30px;
-      padding: 15px;
+      padding: 20px;
       background: #ffebee;
       border-left: 4px solid #d32f2f;
+      border-radius: 0 8px 8px 0;
     }
-    .violation h3 {
-      margin-top: 0;
+
+    .violation-section h3 {
+      margin: 0 0 15px 0;
       color: #d32f2f;
+      font-size: 12pt;
     }
+
     .violation-item {
-      margin-bottom: 10px;
-      padding: 8px;
+      margin-bottom: 12px;
+      padding: 12px;
       background: white;
-      border-radius: 4px;
+      border-radius: 6px;
+      border: 1px solid #ffcdd2;
     }
+
+    .violation-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .violation-severity {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 8pt;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .severity-error {
+      background: #d32f2f;
+      color: white;
+    }
+
+    .severity-warning {
+      background: #ff9800;
+      color: white;
+    }
+
+    .violation-reference {
+      margin-top: 6px;
+      font-size: 8pt;
+      color: #666;
+      font-style: italic;
+    }
+
     .footer {
-      margin-top: 30px;
+      margin-top: 40px;
+      padding: 20px;
       text-align: center;
       font-size: 8pt;
       color: #666;
+      border-top: 1px solid #dee2e6;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>Program de Lucru</h1>
-    <div>{{schedule.name}} - {{schedule.monthYear}}</div>
+    <div class="subtitle">{{schedule.name}} - {{schedule.monthYear}}</div>
   </div>
 
-  <div class="info-grid">
-    <div><strong>Departament:</strong> {{schedule.department.name}}</div>
-    <div><strong>Status:</strong> {{schedule.status}}</div>
-    <div><strong>Creat de:</strong> {{schedule.creator.fullName}}</div>
-    <div><strong>Data creării:</strong> {{formatDate schedule.createdAt}}</div>
-    {{#if schedule.approver}}
-    <div><strong>Aprobat de:</strong> {{schedule.approver.fullName}}</div>
-    <div><strong>Data aprobării:</strong> {{formatDate schedule.approvedAt}}</div>
-    {{/if}}
-  </div>
+  <div class="content">
+    <div class="info-section">
+      <div class="info-row">
+        <div class="info-item"><strong>Departament:</strong> {{schedule.department.name}}</div>
+        <div class="info-item"><strong>Status:</strong> {{schedule.status}}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-item"><strong>Creat de:</strong> {{schedule.creator.fullName}}</div>
+        <div class="info-item"><strong>Data crearii:</strong> {{formatDate schedule.createdAt}}</div>
+      </div>
+      {{#if schedule.approver}}
+      <div class="info-row">
+        <div class="info-item"><strong>Aprobat de:</strong> {{schedule.approver.fullName}}</div>
+        <div class="info-item"><strong>Data aprobarii:</strong> {{formatDate schedule.approvedAt}}</div>
+      </div>
+      {{/if}}
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Angajat</th>
-        <th>Data</th>
-        <th>Tura</th>
-        <th>Început</th>
-        <th>Sfârșit</th>
-        <th>Ore</th>
-        <th>Notițe</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each schedule.assignments}}
-      <tr class="{{#if shiftType.isNightShift}}night-shift{{/if}}">
-        <td>{{user.fullName}}</td>
-        <td>{{formatDate shiftDate}}</td>
-        <td>{{shiftType.name}}</td>
-        <td>{{shiftType.startTime}}</td>
-        <td>{{shiftType.endTime}}</td>
-        <td>{{shiftType.durationHours}}</td>
-        <td>{{notes}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
+    <h2 class="section-title">Programul Detaliat</h2>
 
-  {{#if weeklySummaries}}
-  <div style="margin-top: 30px;">
-    <h3 style="color: #1976d2; margin-bottom: 10px;">Rezumat Săptămânal</h3>
+    {{#if schedule.assignments.length}}
     <table>
       <thead>
         <tr>
-          <th>Angajat</th>
-          <th>Săptămâna</th>
-          <th>Total Ore</th>
-          <th>Zile Lucrate</th>
+          <th style="width: 20%;">Angajat</th>
+          <th style="width: 12%;">Data</th>
+          <th style="width: 18%;">Tura</th>
+          <th style="width: 10%;">Inceput</th>
+          <th style="width: 10%;">Sfarsit</th>
+          <th style="width: 8%;">Ore</th>
+          <th style="width: 22%;">Notite</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each schedule.assignments}}
+        <tr class="{{#if shiftType.isNightShift}}night-shift{{/if}}">
+          <td>{{user.fullName}}</td>
+          <td>{{formatDate shiftDate}}</td>
+          <td>{{shiftType.name}}</td>
+          <td>{{shiftType.startTime}}</td>
+          <td>{{shiftType.endTime}}</td>
+          <td style="text-align: center;">{{shiftType.durationHours}}</td>
+          <td>{{notes}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{else}}
+    <div class="no-data">Nu exista asignari pentru aceasta perioada.</div>
+    {{/if}}
+
+    {{#if weeklySummaries}}
+    <h2 class="section-title">Rezumat Saptamanal</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 35%;">Angajat</th>
+          <th style="width: 25%;">Saptamana</th>
+          <th style="width: 20%;">Total Ore</th>
+          <th style="width: 20%;">Zile Lucrate</th>
         </tr>
       </thead>
       <tbody>
         {{#each weeklySummaries}}
         <tr>
           <td>{{userName}}</td>
-          <td>Săptămâna {{weekNumber}}</td>
-          <td>{{totalHours}}</td>
-          <td>{{daysWorked}}</td>
+          <td>Saptamana {{weekNumber}}</td>
+          <td style="text-align: center; font-weight: 600;">{{totalHours}}</td>
+          <td style="text-align: center;">{{daysWorked}}</td>
         </tr>
         {{/each}}
       </tbody>
     </table>
-  </div>
-  {{/if}}
+    {{/if}}
 
-  {{#if validation.violations}}
-  <div class="violation">
-    <h3>⚠️ Încălcări Legea Muncii Detectate</h3>
-    {{#each validation.violations}}
-    <div class="violation-item">
-      <strong>[{{severity}}]</strong> {{message}}<br>
-      <em style="font-size: 7pt; color: #666;">Referință: {{legalReference}}</em>
+    {{#if validation.violations}}
+    <div class="violation-section">
+      <h3>⚠️ Incalcari Legea Muncii Detectate</h3>
+      {{#each validation.violations}}
+      <div class="violation-item">
+        <span class="violation-severity {{#if (eq severity 'ERROR')}}severity-error{{else}}severity-warning{{/if}}">
+          {{severity}}
+        </span>
+        {{message}}
+        {{#if legalReference}}
+        <div class="violation-reference">Referinta: {{legalReference}}</div>
+        {{/if}}
+      </div>
+      {{/each}}
     </div>
-    {{/each}}
+    {{/if}}
   </div>
-  {{/if}}
 
   <div class="footer">
-    Generat la: {{generatedAt}} | {{company.name}}
+    <div>Generat la: {{generatedAt}}</div>
+    <div style="margin-top: 5px;">{{company.name}}</div>
   </div>
 </body>
 </html>
