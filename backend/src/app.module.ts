@@ -34,6 +34,12 @@ import { ParkingIssueComment } from './modules/parking/entities/parking-issue-co
 import { ParkingDamageComment } from './modules/parking/entities/parking-damage-comment.entity';
 import { ParkingHistory } from './modules/parking/entities/parking-history.entity';
 import { EditRequest } from './modules/parking/entities/edit-request.entity';
+import { HandicapRequest } from './modules/parking/entities/handicap-request.entity';
+import { HandicapRequestComment } from './modules/parking/entities/handicap-request-comment.entity';
+import { DomiciliuRequest } from './modules/parking/entities/domiciliu-request.entity';
+import { DomiciliuRequestComment } from './modules/parking/entities/domiciliu-request-comment.entity';
+import { HandicapLegitimation } from './modules/parking/entities/handicap-legitimation.entity';
+import { HandicapLegitimationComment } from './modules/parking/entities/handicap-legitimation-comment.entity';
 
 @Module({
   imports: [
@@ -50,7 +56,7 @@ import { EditRequest } from './modules/parking/entities/edit-request.entity';
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
