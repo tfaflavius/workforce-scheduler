@@ -1,15 +1,16 @@
 import React from 'react';
+import { Stack } from '@mui/material';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Stack,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
+  Lock as LockIcon,
+  VpnKey as KeyIcon,
+  LockReset as ResetIcon,
+} from '@mui/icons-material';
+import {
+  FriendlyDialog,
+  FriendlyTextField,
+  FriendlyAlert,
+  FriendlyButton,
+} from '../common';
 import { useChangePasswordMutation } from '../../store/api/users.api';
 
 interface ChangePasswordDialogProps {
@@ -58,8 +59,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!validateForm()) return;
 
     try {
@@ -88,68 +88,95 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <form onSubmit={handleSubmit}>
-        <DialogTitle>Schimbă Parola</DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            {isSuccess && (
-              <Alert severity="success">Parola a fost schimbată cu succes!</Alert>
-            )}
-
-            {error && (
-              <Alert severity="error">
-                {(error as any)?.data?.message || 'A apărut o eroare la schimbarea parolei'}
-              </Alert>
-            )}
-
-            {!isAdmin && (
-              <TextField
-                label="Parola Veche"
-                type="password"
-                value={formData.oldPassword}
-                onChange={handleChange('oldPassword')}
-                error={!!formErrors.oldPassword}
-                helperText={formErrors.oldPassword}
-                fullWidth
-                required
-                autoFocus
-              />
-            )}
-
-            <TextField
-              label="Parola Nouă"
-              type="password"
-              value={formData.newPassword}
-              onChange={handleChange('newPassword')}
-              error={!!formErrors.newPassword}
-              helperText={formErrors.newPassword}
-              fullWidth
-              required
-              autoFocus={isAdmin}
-            />
-
-            <TextField
-              label="Confirmă Parola Nouă"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleChange('confirmPassword')}
-              error={!!formErrors.confirmPassword}
-              helperText={formErrors.confirmPassword}
-              fullWidth
-              required
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} disabled={isLoading}>
+    <FriendlyDialog
+      open={open}
+      onClose={handleClose}
+      title="Schimbă Parola"
+      subtitle={isAdmin ? 'Resetează parola utilizatorului' : 'Actualizează-ți parola de acces'}
+      icon={<LockIcon />}
+      variant="primary"
+      maxWidth="sm"
+      actions={
+        <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'flex-end' }}>
+          <FriendlyButton
+            colorVariant="ghost"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
             Anulează
-          </Button>
-          <Button type="submit" variant="contained" disabled={isLoading || isSuccess}>
-            {isLoading ? <CircularProgress size={24} /> : 'Schimbă Parola'}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+          </FriendlyButton>
+          <FriendlyButton
+            colorVariant="primary"
+            onClick={handleSubmit}
+            loading={isLoading}
+            loadingText="Se salvează..."
+            icon={<ResetIcon />}
+            disabled={isSuccess}
+          >
+            Schimbă Parola
+          </FriendlyButton>
+        </Stack>
+      }
+    >
+      <Stack spacing={2.5}>
+        {isSuccess && (
+          <FriendlyAlert
+            severity="success"
+            title="Succes!"
+            message="Parola a fost schimbată cu succes!"
+          />
+        )}
+
+        {error && (
+          <FriendlyAlert
+            severity="error"
+            message={(error as any)?.data?.message || 'A apărut o eroare la schimbarea parolei'}
+          />
+        )}
+
+        {!isAdmin && (
+          <FriendlyTextField
+            label="Parola Veche"
+            type="password"
+            value={formData.oldPassword}
+            onChange={handleChange('oldPassword')}
+            error={!!formErrors.oldPassword}
+            helperText={formErrors.oldPassword}
+            fullWidth
+            required
+            autoFocus
+            startIcon={<KeyIcon />}
+          />
+        )}
+
+        <FriendlyTextField
+          label="Parola Nouă"
+          type="password"
+          value={formData.newPassword}
+          onChange={handleChange('newPassword')}
+          error={!!formErrors.newPassword}
+          helperText={formErrors.newPassword}
+          fullWidth
+          required
+          autoFocus={isAdmin}
+          startIcon={<LockIcon />}
+          hint="Minim 6 caractere, o majusculă și o cifră"
+        />
+
+        <FriendlyTextField
+          label="Confirmă Parola Nouă"
+          type="password"
+          value={formData.confirmPassword}
+          onChange={handleChange('confirmPassword')}
+          error={!!formErrors.confirmPassword}
+          helperText={formErrors.confirmPassword}
+          fullWidth
+          required
+          startIcon={<LockIcon />}
+          showSuccessState={!!(formData.confirmPassword && formData.newPassword === formData.confirmPassword)}
+          successMessage="Parolele se potrivesc"
+        />
+      </Stack>
+    </FriendlyDialog>
   );
 };
