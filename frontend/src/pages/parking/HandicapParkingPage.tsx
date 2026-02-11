@@ -155,6 +155,33 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
     phone: '',
   });
 
+  // Sync requestType when dialog opens or type changes
+  useEffect(() => {
+    if (open) {
+      setFormData(prev => ({
+        ...prev,
+        requestType,
+      }));
+    }
+  }, [open, requestType]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        requestType,
+        location: '',
+        googleMapsLink: '',
+        description: '',
+        personName: '',
+        handicapCertificateNumber: '',
+        carPlate: '',
+        autoNumber: '',
+        phone: '',
+      });
+    }
+  }, [open, requestType]);
+
   const isPersonFieldsRequired = requestType !== 'CREARE_MARCAJ';
 
   const handleSubmit = async () => {

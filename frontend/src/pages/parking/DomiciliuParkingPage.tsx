@@ -150,6 +150,36 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
     contractNumber: '',
   });
 
+  // Sync requestType when dialog opens or type changes
+  useEffect(() => {
+    if (open) {
+      setFormData(prev => ({
+        ...prev,
+        requestType,
+      }));
+    }
+  }, [open, requestType]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        requestType,
+        location: '',
+        googleMapsLink: '',
+        description: '',
+        personName: '',
+        cnp: '',
+        address: '',
+        carPlate: '',
+        carBrand: '',
+        phone: '',
+        email: '',
+        contractNumber: '',
+      });
+    }
+  }, [open, requestType]);
+
   const handleSubmit = async () => {
     try {
       await createRequest(formData).unwrap();
