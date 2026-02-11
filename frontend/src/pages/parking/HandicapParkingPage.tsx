@@ -142,7 +142,6 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [createRequest, { isLoading }] = useCreateHandicapRequestMutation();
-  const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState<CreateHandicapRequestDto>({
     requestType,
@@ -161,22 +160,18 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   const handleSubmit = async () => {
     try {
       await createRequest(formData).unwrap();
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-        setFormData({
-          requestType,
-          location: '',
-          googleMapsLink: '',
-          description: '',
-          personName: '',
-          handicapCertificateNumber: '',
-          carPlate: '',
-          autoNumber: '',
-          phone: '',
-        });
-      }, 800);
+      onClose();
+      setFormData({
+        requestType,
+        location: '',
+        googleMapsLink: '',
+        description: '',
+        personName: '',
+        handicapCertificateNumber: '',
+        carPlate: '',
+        autoNumber: '',
+        phone: '',
+      });
     } catch (error) {
       console.error('Error creating request:', error);
     }
@@ -190,14 +185,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
     return true;
   };
 
-  // Calculate form progress
-  const totalFields = isPersonFieldsRequired ? 6 : 2;
-  const filledFields = [
-    formData.location,
-    formData.description,
-    ...(isPersonFieldsRequired ? [formData.personName, formData.handicapCertificateNumber, formData.carPlate, formData.phone] : []),
-  ].filter(Boolean).length;
-  const progress = (filledFields / totalFields) * 100;
+  const typeColor = REQUEST_TYPE_COLORS[requestType].main;
 
   return (
     <Dialog
@@ -206,107 +194,48 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
       maxWidth="sm"
       fullWidth
       fullScreen={isMobile}
-      scroll="paper"
-      TransitionProps={{
-        timeout: 300,
-      }}
       PaperProps={{
         sx: {
-          borderRadius: isMobile ? 0 : 3,
-          maxHeight: isMobile ? '100%' : '90vh',
-          display: 'flex',
-          flexDirection: 'column',
+          borderRadius: isMobile ? 0 : 2,
+          m: isMobile ? 0 : 2,
         },
       }}
     >
-      {/* Progress indicator */}
-      <Box
+      <DialogTitle
         sx={{
-          height: 6,
-          bgcolor: alpha(REQUEST_TYPE_COLORS[requestType].main, 0.15),
-          position: 'relative',
-          flexShrink: 0,
+          bgcolor: typeColor,
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          py: 2,
         }}
       >
-        <Box
-          sx={{
-            height: '100%',
-            width: `${progress}%`,
-            bgcolor: REQUEST_TYPE_COLORS[requestType].main,
-            transition: 'width 0.3s ease',
-            borderRadius: '0 3px 3px 0',
-          }}
-        />
-      </Box>
-
-      <DialogTitle sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        background: `linear-gradient(135deg, ${REQUEST_TYPE_COLORS[requestType].main}, ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.7)})`,
-        color: 'white',
-        py: { xs: 1.5, sm: 2 },
-        flexShrink: 0,
-      }}>
-        <Box
-          sx={{
-            p: 1,
-            borderRadius: '50%',
-            bgcolor: 'rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            '& .MuiSvgIcon-root': {
-              fontSize: { xs: '1.25rem', sm: '1.5rem' },
-            },
-          }}
-        >
-          {REQUEST_TYPE_ICONS[requestType]}
-        </Box>
+        {REQUEST_TYPE_ICONS[requestType]}
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" component="span" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
             {HANDICAP_REQUEST_TYPE_LABELS[requestType]}
           </Typography>
-          <Typography variant="caption" sx={{ display: 'block', opacity: 0.85 }}>
-            Completează formularul de mai jos
-          </Typography>
         </Box>
-        <IconButton
-          onClick={onClose}
-          sx={{
-            color: 'white',
-            bgcolor: 'rgba(255, 255, 255, 0.1)',
-            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.2)' },
-          }}
-        >
+        <IconButton onClick={onClose} sx={{ color: 'white' }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3, pb: 2, flex: 1, overflowY: 'auto' }}>
-        <Stack spacing={2.5}>
+      <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+        <Stack spacing={2}>
           {/* Locație */}
           <TextField
-            label="Locație (Stradă, Număr)"
+            label="Locație (Stradă, Număr) *"
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            required
             fullWidth
+            size="medium"
             placeholder="Ex: Str. Republicii nr. 10"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
-                },
-                '&.Mui-focused': {
-                  boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
-                },
-              },
-            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <PlaceIcon sx={{ color: formData.location ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
+                  <PlaceIcon color="action" />
                 </InputAdornment>
               ),
             }}
@@ -318,16 +247,12 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
             value={formData.googleMapsLink}
             onChange={(e) => setFormData({ ...formData, googleMapsLink: e.target.value })}
             fullWidth
+            size="medium"
             placeholder="https://maps.google.com/..."
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-              },
-            }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <MapIcon sx={{ color: formData.googleMapsLink ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
+                  <MapIcon color="action" />
                 </InputAdornment>
               ),
             }}
@@ -336,123 +261,67 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
           {/* Câmpuri specifice pentru AMPLASARE și REVOCARE */}
           {isPersonFieldsRequired && (
             <>
-              <Divider sx={{ my: 1.5 }}>
-                <Chip
-                  label="Date persoană"
-                  size="small"
-                  sx={{
-                    bgcolor: alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1),
-                    color: REQUEST_TYPE_COLORS[requestType].main,
-                    fontWeight: 600,
-                  }}
-                />
+              <Divider>
+                <Chip label="Date persoană" size="small" variant="outlined" />
               </Divider>
 
               <TextField
-                label="Nume persoană"
+                label="Nume persoană *"
                 value={formData.personName}
                 onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
-                required
                 fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
-                    },
-                    '&.Mui-focused': {
-                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
-                    },
-                  },
-                }}
+                size="medium"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <PersonIcon sx={{ color: formData.personName ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
+                      <PersonIcon color="action" />
                     </InputAdornment>
                   ),
                 }}
               />
 
               <TextField
-                label="Număr certificat handicap"
+                label="Număr certificat handicap *"
                 value={formData.handicapCertificateNumber}
                 onChange={(e) => setFormData({ ...formData, handicapCertificateNumber: e.target.value })}
-                required
                 fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
-                    },
-                    '&.Mui-focused': {
-                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
-                    },
-                  },
-                }}
+                size="medium"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <CertificateIcon sx={{ color: formData.handicapCertificateNumber ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
+                      <CertificateIcon color="action" />
                     </InputAdornment>
                   ),
                 }}
               />
 
               <TextField
-                label="Număr înmatriculare"
+                label="Număr înmatriculare *"
                 value={formData.carPlate}
                 onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
-                required
                 fullWidth
+                size="medium"
                 placeholder="Ex: BH-01-ABC"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
-                    },
-                    '&.Mui-focused': {
-                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
-                    },
-                  },
-                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <CarIcon sx={{ color: formData.carPlate ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
+                      <CarIcon color="action" />
                     </InputAdornment>
                   ),
                 }}
               />
 
               <TextField
-                label="Telefon"
+                label="Telefon *"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                required
                 fullWidth
+                size="medium"
                 type="tel"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
-                    },
-                    '&.Mui-focused': {
-                      boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
-                    },
-                  },
-                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <PhoneIcon sx={{ color: formData.phone ? REQUEST_TYPE_COLORS[requestType].main : 'action.disabled' }} />
+                      <PhoneIcon color="action" />
                     </InputAdornment>
                   ),
                 }}
@@ -462,75 +331,33 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
 
           {/* Descriere */}
           <TextField
-            label="Descriere"
+            label="Descriere *"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            required
             fullWidth
             multiline
             rows={3}
+            size="medium"
             placeholder={requestType === 'CREARE_MARCAJ'
               ? 'Descrieți detaliile pentru crearea marcajului...'
               : 'Descrieți motivul solicitării...'
             }
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  boxShadow: `0 0 0 2px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.1)}`,
-                },
-                '&.Mui-focused': {
-                  boxShadow: `0 0 0 3px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.2)}`,
-                },
-              },
-            }}
           />
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{
-        p: 2,
-        pt: 1,
-        gap: 1,
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        flexShrink: 0,
-        bgcolor: 'background.paper',
-      }}>
-        <Button
-          onClick={onClose}
-          disabled={isLoading}
-          sx={{
-            borderRadius: 2,
-            px: 3,
-          }}
-        >
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button onClick={onClose} disabled={isLoading}>
           Anulează
         </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!isFormValid() || isLoading || success}
-          startIcon={
-            success ? <CheckIcon /> :
-            isLoading ? <CircularProgress size={20} color="inherit" /> :
-            <AddIcon />
-          }
-          sx={{
-            bgcolor: success ? 'success.main' : REQUEST_TYPE_COLORS[requestType].main,
-            '&:hover': { bgcolor: success ? 'success.dark' : alpha(REQUEST_TYPE_COLORS[requestType].main, 0.9) },
-            borderRadius: 2,
-            px: 3,
-            fontWeight: 600,
-            boxShadow: `0 2px 8px ${alpha(REQUEST_TYPE_COLORS[requestType].main, 0.3)}`,
-            transition: 'all 0.3s ease',
-            '&:active': {
-              transform: 'scale(0.98)',
-            },
-          }}
+          disabled={!isFormValid() || isLoading}
+          startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
+          sx={{ bgcolor: typeColor, '&:hover': { bgcolor: alpha(typeColor, 0.85) } }}
         >
-          {success ? 'Creat!' : 'Creează'}
+          Creează
         </Button>
       </DialogActions>
     </Dialog>
