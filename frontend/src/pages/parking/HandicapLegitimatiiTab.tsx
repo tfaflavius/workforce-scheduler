@@ -40,12 +40,16 @@ import {
   History as HistoryIcon,
   Send as SendIcon,
   CreditCard as CnpIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
   useGetHandicapLegitimationsQuery,
   useCreateHandicapLegitimationMutation,
+  useUpdateHandicapLegitimationMutation,
   useDeleteHandicapLegitimationMutation,
   useAddHandicapLegitimationCommentMutation,
   useGetHandicapLegitimationHistoryQuery,
@@ -64,6 +68,7 @@ const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
 
 interface HandicapLegitimatiiTabProps {
   isAdmin: boolean;
+  canEdit: boolean;
   searchQuery: string;
   statusFilter: HandicapLegitimationStatus | '';
   initialOpenId?: string | null;
@@ -371,6 +376,7 @@ interface LegitimationDetailsDialogProps {
   onClose: () => void;
   legitimationId: string | null;
   isAdmin: boolean;
+  canEdit: boolean;
 }
 
 const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
@@ -378,13 +384,24 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
   onClose,
   legitimationId,
   isAdmin,
+  canEdit,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [activeSection, setActiveSection] = useState<'details' | 'comments' | 'history'>('details');
   const [newComment, setNewComment] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    personName: '',
+    cnp: '',
+    handicapCertificateNumber: '',
+    carPlate: '',
+    autoNumber: '',
+    phone: '',
+    description: '',
+  });
 
-  const { data: legitimation, isLoading } = useGetHandicapLegitimationQuery(legitimationId || '', {
+  const { data: legitimation, isLoading, refetch } = useGetHandicapLegitimationQuery(legitimationId || '', {
     skip: !legitimationId,
   });
   const { data: history = [] } = useGetHandicapLegitimationHistoryQuery(legitimationId || '', {
@@ -392,7 +409,53 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
   });
 
   const [addComment, { isLoading: isAddingComment }] = useAddHandicapLegitimationCommentMutation();
+  const [updateLegitimation, { isLoading: isUpdating }] = useUpdateHandicapLegitimationMutation();
   const [deleteLegitimation, { isLoading: isDeleting }] = useDeleteHandicapLegitimationMutation();
+
+  // Populate edit data when legitimation loads
+  useEffect(() => {
+    if (legitimation && !isEditing) {
+      setEditData({
+        personName: legitimation.personName || '',
+        cnp: legitimation.cnp || '',
+        handicapCertificateNumber: legitimation.handicapCertificateNumber || '',
+        carPlate: legitimation.carPlate || '',
+        autoNumber: legitimation.autoNumber || '',
+        phone: legitimation.phone || '',
+        description: legitimation.description || '',
+      });
+    }
+  }, [legitimation, isEditing]);
+
+  const handleStartEdit = () => {
+    if (legitimation) {
+      setEditData({
+        personName: legitimation.personName || '',
+        cnp: legitimation.cnp || '',
+        handicapCertificateNumber: legitimation.handicapCertificateNumber || '',
+        carPlate: legitimation.carPlate || '',
+        autoNumber: legitimation.autoNumber || '',
+        phone: legitimation.phone || '',
+        description: legitimation.description || '',
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!legitimationId) return;
+    try {
+      await updateLegitimation({ id: legitimationId, data: editData }).unwrap();
+      setIsEditing(false);
+      refetch();
+    } catch (error) {
+      console.error('Error updating legitimation:', error);
+    }
+  };
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !legitimationId) return;
@@ -510,70 +573,203 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
               {activeSection === 'details' && (
                 <Box sx={{ p: 3 }}>
                   <Stack spacing={2}>
-                    <Paper sx={{ p: 2, bgcolor: LEGITIMATION_COLOR.bg }}>
-                      <Stack spacing={1.5}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <PersonIcon sx={{ color: LEGITIMATION_COLOR.main }} />
-                          <Typography variant="body1" fontWeight={600}>
-                            {legitimation.personName}
-                          </Typography>
-                        </Box>
-                        {legitimation.cnp && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <CnpIcon sx={{ color: 'text.secondary' }} />
-                            <Typography variant="body2">CNP: {legitimation.cnp}</Typography>
-                          </Box>
+                    {/* Edit/View toggle button */}
+                    {canEdit && legitimation.status === 'ACTIVE' && (
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        {!isEditing ? (
+                          <Button
+                            variant="outlined"
+                            startIcon={<EditIcon />}
+                            onClick={handleStartEdit}
+                            size="small"
+                          >
+                            Editează
+                          </Button>
+                        ) : (
+                          <Stack direction="row" spacing={1}>
+                            <Button
+                              variant="outlined"
+                              startIcon={<CancelIcon />}
+                              onClick={handleCancelEdit}
+                              size="small"
+                              color="inherit"
+                            >
+                              Anulează
+                            </Button>
+                            <Button
+                              variant="contained"
+                              startIcon={isUpdating ? <CircularProgress size={16} /> : <SaveIcon />}
+                              onClick={handleSaveEdit}
+                              size="small"
+                              disabled={isUpdating}
+                              sx={{ bgcolor: LEGITIMATION_COLOR.main }}
+                            >
+                              Salvează
+                            </Button>
+                          </Stack>
                         )}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CertificateIcon sx={{ color: 'text.secondary' }} />
-                          <Typography variant="body2">
-                            Certificat: {legitimation.handicapCertificateNumber}
-                          </Typography>
-                        </Box>
-                        <Divider />
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CarIcon sx={{ color: 'text.secondary' }} />
-                          <Typography variant="body2">
-                            Înmatriculare: {legitimation.carPlate}
-                            {legitimation.autoNumber && ` • Legitimație: ${legitimation.autoNumber}`}
-                          </Typography>
-                        </Box>
-                        {legitimation.phone && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <PhoneIcon sx={{ color: 'text.secondary' }} />
-                            <Typography variant="body2">{legitimation.phone}</Typography>
-                          </Box>
-                        )}
-                      </Stack>
-                    </Paper>
-
-                    {legitimation.description && (
-                      <Paper sx={{ p: 2 }}>
-                        <Typography variant="subtitle2" gutterBottom>
-                          Descriere
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {legitimation.description}
-                        </Typography>
-                      </Paper>
+                      </Box>
                     )}
 
-                    {legitimation.resolutionDescription && (
-                      <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.1) }}>
-                        <Typography variant="subtitle2" gutterBottom color="success.dark">
-                          Rezoluție
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {legitimation.resolutionDescription}
-                        </Typography>
-                        {legitimation.resolvedAt && (
-                          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                            Finalizat la:{' '}
-                            {format(new Date(legitimation.resolvedAt), 'd MMMM yyyy, HH:mm', { locale: ro })}
-                            {legitimation.resolver && ` de ${legitimation.resolver.fullName}`}
-                          </Typography>
-                        )}
+                    {isEditing ? (
+                      // Edit mode
+                      <Paper sx={{ p: 2 }}>
+                        <Stack spacing={2}>
+                          <TextField
+                            label="Nume persoană"
+                            value={editData.personName}
+                            onChange={(e) => setEditData({ ...editData, personName: e.target.value })}
+                            fullWidth
+                            required
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <PersonIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          <TextField
+                            label="CNP"
+                            value={editData.cnp}
+                            onChange={(e) => setEditData({ ...editData, cnp: e.target.value })}
+                            fullWidth
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <CnpIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          <TextField
+                            label="Nr. certificat handicap"
+                            value={editData.handicapCertificateNumber}
+                            onChange={(e) => setEditData({ ...editData, handicapCertificateNumber: e.target.value })}
+                            fullWidth
+                            required
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <CertificateIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              label="Număr înmatriculare"
+                              value={editData.carPlate}
+                              onChange={(e) => setEditData({ ...editData, carPlate: e.target.value.toUpperCase() })}
+                              fullWidth
+                              required
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <CarIcon color="action" />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            />
+                            <TextField
+                              label="Nr. legitimație"
+                              value={editData.autoNumber}
+                              onChange={(e) => setEditData({ ...editData, autoNumber: e.target.value.toUpperCase() })}
+                              fullWidth
+                            />
+                          </Stack>
+                          <TextField
+                            label="Telefon"
+                            value={editData.phone}
+                            onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                            fullWidth
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <PhoneIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          <TextField
+                            label="Descriere"
+                            value={editData.description}
+                            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                            fullWidth
+                            multiline
+                            rows={3}
+                          />
+                        </Stack>
                       </Paper>
+                    ) : (
+                      // View mode
+                      <>
+                        <Paper sx={{ p: 2, bgcolor: LEGITIMATION_COLOR.bg }}>
+                          <Stack spacing={1.5}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <PersonIcon sx={{ color: LEGITIMATION_COLOR.main }} />
+                              <Typography variant="body1" fontWeight={600}>
+                                {legitimation.personName}
+                              </Typography>
+                            </Box>
+                            {legitimation.cnp && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <CnpIcon sx={{ color: 'text.secondary' }} />
+                                <Typography variant="body2">CNP: {legitimation.cnp}</Typography>
+                              </Box>
+                            )}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CertificateIcon sx={{ color: 'text.secondary' }} />
+                              <Typography variant="body2">
+                                Certificat: {legitimation.handicapCertificateNumber}
+                              </Typography>
+                            </Box>
+                            <Divider />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <CarIcon sx={{ color: 'text.secondary' }} />
+                              <Typography variant="body2">
+                                Înmatriculare: {legitimation.carPlate}
+                                {legitimation.autoNumber && ` • Legitimație: ${legitimation.autoNumber}`}
+                              </Typography>
+                            </Box>
+                            {legitimation.phone && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <PhoneIcon sx={{ color: 'text.secondary' }} />
+                                <Typography variant="body2">{legitimation.phone}</Typography>
+                              </Box>
+                            )}
+                          </Stack>
+                        </Paper>
+
+                        {legitimation.description && (
+                          <Paper sx={{ p: 2 }}>
+                            <Typography variant="subtitle2" gutterBottom>
+                              Descriere
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {legitimation.description}
+                            </Typography>
+                          </Paper>
+                        )}
+
+                        {legitimation.resolutionDescription && (
+                          <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.1) }}>
+                            <Typography variant="subtitle2" gutterBottom color="success.dark">
+                              Rezoluție
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {legitimation.resolutionDescription}
+                            </Typography>
+                            {legitimation.resolvedAt && (
+                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                Finalizat la:{' '}
+                                {format(new Date(legitimation.resolvedAt), 'd MMMM yyyy, HH:mm', { locale: ro })}
+                                {legitimation.resolver && ` de ${legitimation.resolver.fullName}`}
+                              </Typography>
+                            )}
+                          </Paper>
+                        )}
+                      </>
                     )}
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
@@ -732,6 +928,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
 // ============== MAIN TAB COMPONENT ==============
 const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   isAdmin,
+  canEdit,
   searchQuery,
   statusFilter,
   initialOpenId,
@@ -844,6 +1041,7 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
         onClose={() => setSelectedLegitimationId(null)}
         legitimationId={selectedLegitimationId}
         isAdmin={isAdmin}
+        canEdit={canEdit}
       />
     </Box>
   );

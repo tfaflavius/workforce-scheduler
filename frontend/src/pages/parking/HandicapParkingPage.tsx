@@ -1195,6 +1195,8 @@ const HandicapParkingPage: React.FC = () => {
     user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
 
   const isAdmin = user?.role === 'ADMIN';
+  const isHandicapDepartmentUser = user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
+  const canEditHandicap = isAdmin || isHandicapDepartmentUser;
 
   if (!hasAccess) {
     return <Navigate to="/dashboard" replace />;
@@ -1555,6 +1557,7 @@ const HandicapParkingPage: React.FC = () => {
         <TabPanel value={tabValue} index={legitimationsTabIndex}>
           <HandicapLegitimatiiTab
             isAdmin={isAdmin}
+            canEdit={canEditHandicap}
             searchQuery={searchQuery}
             statusFilter={statusFilter as HandicapLegitimationStatus | ''}
             initialOpenId={openLegitimationId}
