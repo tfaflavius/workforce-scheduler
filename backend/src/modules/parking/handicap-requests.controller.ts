@@ -97,15 +97,14 @@ export class HandicapRequestsController {
     return this.handicapRequestsService.getComments(id);
   }
 
+  // Admin și userii de la departamentul Parcări Handicap pot edita
   @Patch(':id')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
   async update(
     @Param('id') id: string,
     @Request() req,
     @Body() dto: UpdateHandicapRequestDto,
   ): Promise<HandicapRequest> {
-    return this.handicapRequestsService.update(id, req.user.id, dto, req.user.role);
+    return this.handicapRequestsService.update(id, req.user.id, dto, req.user);
   }
 
   @Patch(':id/resolve')

@@ -63,10 +63,13 @@ export class HandicapLegitimationsService {
     return this.findOne(savedLegitimation.id);
   }
 
-  async update(id: string, userId: string, dto: UpdateHandicapLegitimationDto, userRole: UserRole): Promise<HandicapLegitimation> {
-    // Doar Admin poate modifica
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Doar administratorii pot modifica legitimațiile');
+  async update(id: string, userId: string, dto: UpdateHandicapLegitimationDto, user: any): Promise<HandicapLegitimation> {
+    // Admin și userii de la departamentul Parcări Handicap pot edita
+    const canEdit = user.role === UserRole.ADMIN ||
+      user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
+
+    if (!canEdit) {
+      throw new ForbiddenException('Doar administratorii și departamentul Parcări Handicap pot modifica legitimațiile');
     }
 
     const legitimation = await this.findOne(id);

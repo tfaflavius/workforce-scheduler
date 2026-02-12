@@ -88,7 +88,7 @@ export class HandicapLegitimationsController {
     @Body() dto: UpdateHandicapLegitimationDto,
   ) {
     this.checkAccess(req.user);
-    return this.legitimationsService.update(id, req.user.id, dto, req.user.role);
+    return this.legitimationsService.update(id, req.user.id, dto, req.user);
   }
 
   @Post(':id/resolve')

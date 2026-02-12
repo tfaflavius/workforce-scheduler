@@ -70,10 +70,13 @@ export class HandicapRequestsService {
     return this.findOne(savedRequest.id);
   }
 
-  async update(id: string, userId: string, dto: UpdateHandicapRequestDto, userRole: UserRole): Promise<HandicapRequest> {
-    // Doar Admin poate modifica
-    if (userRole !== UserRole.ADMIN) {
-      throw new ForbiddenException('Doar administratorii pot modifica solicitările');
+  async update(id: string, userId: string, dto: UpdateHandicapRequestDto, user: any): Promise<HandicapRequest> {
+    // Admin și userii de la departamentul Parcări Handicap pot edita
+    const canEdit = user.role === UserRole.ADMIN ||
+      user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
+
+    if (!canEdit) {
+      throw new ForbiddenException('Doar administratorii și departamentul Parcări Handicap pot modifica solicitările');
     }
 
     const request = await this.findOne(id);

@@ -35,7 +35,6 @@ import {
   DirectionsCar as CarIcon,
   Badge as CertificateIcon,
   Close as CloseIcon,
-  Check as CheckIcon,
   Delete as DeleteIcon,
   Comment as CommentIcon,
   History as HistoryIcon,
@@ -47,7 +46,6 @@ import { ro } from 'date-fns/locale';
 import {
   useGetHandicapLegitimationsQuery,
   useCreateHandicapLegitimationMutation,
-  useResolveHandicapLegitimationMutation,
   useDeleteHandicapLegitimationMutation,
   useAddHandicapLegitimationCommentMutation,
   useGetHandicapLegitimationHistoryQuery,
@@ -385,8 +383,6 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [activeSection, setActiveSection] = useState<'details' | 'comments' | 'history'>('details');
   const [newComment, setNewComment] = useState('');
-  const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
-  const [resolutionDescription, setResolutionDescription] = useState('');
 
   const { data: legitimation, isLoading } = useGetHandicapLegitimationQuery(legitimationId || '', {
     skip: !legitimationId,
@@ -396,7 +392,6 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
   });
 
   const [addComment, { isLoading: isAddingComment }] = useAddHandicapLegitimationCommentMutation();
-  const [resolveLegitimation, { isLoading: isResolving }] = useResolveHandicapLegitimationMutation();
   const [deleteLegitimation, { isLoading: isDeleting }] = useDeleteHandicapLegitimationMutation();
 
   const handleAddComment = async () => {
@@ -406,21 +401,6 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
-    }
-  };
-
-  const handleResolve = async () => {
-    if (!legitimationId) return;
-    try {
-      await resolveLegitimation({
-        id: legitimationId,
-        data: { resolutionDescription },
-      }).unwrap();
-      setResolveDialogOpen(false);
-      setResolutionDescription('');
-      onClose();
-    } catch (error) {
-      console.error('Error resolving legitimation:', error);
     }
   };
 
@@ -739,45 +719,11 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
               </Button>
             )}
             <Box sx={{ flex: 1 }} />
-            <Button
-              variant="contained"
-              onClick={() => setResolveDialogOpen(true)}
-              startIcon={<CheckIcon />}
-              sx={{ bgcolor: LEGITIMATION_COLOR.main }}
-            >
-              Finalizează
+            <Button onClick={onClose} variant="outlined">
+              Închide
             </Button>
           </DialogActions>
         )}
-      </Dialog>
-
-      {/* Resolve Dialog */}
-      <Dialog open={resolveDialogOpen} onClose={() => setResolveDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Finalizează legitimația</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            label="Descriere rezoluție"
-            value={resolutionDescription}
-            onChange={(e) => setResolutionDescription(e.target.value)}
-            sx={{ mt: 2 }}
-            required
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setResolveDialogOpen(false)}>Anulează</Button>
-          <Button
-            variant="contained"
-            onClick={handleResolve}
-            disabled={!resolutionDescription.trim() || isResolving}
-            startIcon={isResolving ? <CircularProgress size={16} /> : <CheckIcon />}
-            sx={{ bgcolor: LEGITIMATION_COLOR.main }}
-          >
-            Finalizează
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );

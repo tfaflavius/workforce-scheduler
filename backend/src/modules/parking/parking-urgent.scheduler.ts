@@ -3,12 +3,16 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { ParkingIssuesService } from './parking-issues.service';
 import { ParkingDamagesService } from './parking-damages.service';
 import { CashCollectionsService } from './cash-collections.service';
+import { HandicapRequestsService } from './handicap-requests.service';
+import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { EmailService } from '../../common/email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThan, LessThan } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
-import { MAINTENANCE_DEPARTMENT_NAME } from './constants/parking.constants';
+import { HandicapRequest } from './entities/handicap-request.entity';
+import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
+import { MAINTENANCE_DEPARTMENT_NAME, HANDICAP_REQUEST_TYPE_LABELS } from './constants/parking.constants';
 
 @Injectable()
 export class ParkingUrgentScheduler {
@@ -18,11 +22,17 @@ export class ParkingUrgentScheduler {
     private readonly parkingIssuesService: ParkingIssuesService,
     private readonly parkingDamagesService: ParkingDamagesService,
     private readonly cashCollectionsService: CashCollectionsService,
+    private readonly handicapRequestsService: HandicapRequestsService,
+    private readonly handicapLegitimationsService: HandicapLegitimationsService,
     private readonly emailService: EmailService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
+    @InjectRepository(HandicapRequest)
+    private readonly handicapRequestRepository: Repository<HandicapRequest>,
+    @InjectRepository(HandicapLegitimation)
+    private readonly handicapLegitimationRepository: Repository<HandicapLegitimation>,
   ) {}
 
   // Rulează zilnic la 08:00 și 13:00 pentru a marca problemele urgente (după 48h nerezolvate)
@@ -88,6 +98,19 @@ export class ParkingUrgentScheduler {
       this.logger.log('Raport zilnic încasări trimis cu succes');
     } catch (error) {
       this.logger.error('Eroare la trimiterea raportului zilnic:', error);
+    }
+  }
+
+  // Rulează zilnic la 09:00 pentru raportul Handicap către Admin
+  @Cron('0 9 * * *')
+  async handleDailyHandicapReport() {
+    this.logger.log('Generare raport zilnic Handicap pentru Admin...');
+
+    try {
+      await this.sendDailyHandicapReportToAdmin();
+      this.logger.log('Raport zilnic Handicap trimis cu succes');
+    } catch (error) {
+      this.logger.error('Eroare la trimiterea raportului Handicap:', error);
     }
   }
 
@@ -300,6 +323,153 @@ export class ParkingUrgentScheduler {
     }
 
     this.logger.log(`Raport zilnic trimis către ${sentCount}/${recipients.length} destinatari. Total încasări: ${totals.totalAmount.toFixed(2)} RON`);
+  }
+
+  /**
+   * Trimite raportul zilnic Handicap către Admin
+   * Include: create azi, finalizate azi, active, expirate (>5 zile), legitimații
+   */
+  private async sendDailyHandicapReportToAdmin(): Promise<void> {
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const fiveDaysAgo = new Date();
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+    // Obține solicitările Handicap
+    const [
+      createdToday,
+      resolvedToday,
+      allActive,
+      allLegitimations,
+    ] = await Promise.all([
+      // Create azi
+      this.handicapRequestRepository.find({
+        where: {
+          createdAt: MoreThan(today),
+        },
+        relations: ['creator'],
+        order: { createdAt: 'DESC' },
+      }),
+      // Finalizate azi
+      this.handicapRequestRepository.find({
+        where: {
+          status: 'FINALIZAT',
+          resolvedAt: MoreThan(today),
+        },
+        relations: ['creator', 'resolver'],
+        order: { resolvedAt: 'DESC' },
+      }),
+      // Toate active
+      this.handicapRequestRepository.find({
+        where: {
+          status: 'ACTIVE',
+        },
+        relations: ['creator'],
+        order: { createdAt: 'ASC' },
+      }),
+      // Legitimații (toate)
+      this.handicapLegitimationRepository.find({
+        where: {
+          status: 'ACTIVE',
+        },
+        relations: ['creator'],
+        order: { createdAt: 'DESC' },
+      }),
+    ]);
+
+    // Separă active în normale și expirate
+    const activeNormal: typeof allActive = [];
+    const expired: typeof allActive = [];
+
+    for (const req of allActive) {
+      const createdAt = new Date(req.createdAt);
+      if (createdAt < fiveDaysAgo) {
+        expired.push(req);
+      } else {
+        activeNormal.push(req);
+      }
+    }
+
+    // Obține adminii
+    const admins = await this.userRepository.find({
+      where: { role: UserRole.ADMIN, isActive: true },
+    });
+
+    if (admins.length === 0) {
+      this.logger.warn('Nu există admini pentru raportul Handicap');
+      return;
+    }
+
+    const reportDate = today.toLocaleDateString('ro-RO', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    // Formatează datele pentru email
+    const formatRequest = (req: HandicapRequest) => {
+      const createdAt = new Date(req.createdAt);
+      const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        type: HANDICAP_REQUEST_TYPE_LABELS[req.requestType] || req.requestType,
+        location: req.location,
+        personName: req.personName || '-',
+        carPlate: req.carPlate || '-',
+        createdAt: createdAt.toLocaleDateString('ro-RO'),
+        createdBy: req.creator?.fullName || 'N/A',
+        daysOpen,
+      };
+    };
+
+    const formatLegitimation = (leg: HandicapLegitimation) => {
+      const createdAt = new Date(leg.createdAt);
+      return {
+        personName: leg.personName,
+        carPlate: leg.carPlate,
+        handicapCertificateNumber: leg.handicapCertificateNumber,
+        createdAt: createdAt.toLocaleDateString('ro-RO'),
+        createdBy: leg.creator?.fullName || 'N/A',
+      };
+    };
+
+    // Trimite emailuri către admini
+    let sentCount = 0;
+    for (const admin of admins) {
+      const success = await this.emailService.sendHandicapDailyReport({
+        recipientEmail: admin.email,
+        recipientName: admin.fullName,
+        reportDate,
+        createdToday: createdToday.map(formatRequest),
+        resolvedToday: resolvedToday.map(r => ({
+          ...formatRequest(r),
+          resolvedBy: r.resolver?.fullName || 'N/A',
+          resolutionDescription: r.resolutionDescription || '-',
+        })),
+        activeRequests: activeNormal.map(formatRequest),
+        expiredRequests: expired.map(formatRequest),
+        legitimations: allLegitimations.map(formatLegitimation),
+        summary: {
+          createdTodayCount: createdToday.length,
+          resolvedTodayCount: resolvedToday.length,
+          activeCount: activeNormal.length,
+          expiredCount: expired.length,
+          legitimationsCount: allLegitimations.length,
+        },
+      });
+      if (success) sentCount++;
+    }
+
+    this.logger.log(
+      `Raport Handicap trimis către ${sentCount}/${admins.length} admini. ` +
+      `Create azi: ${createdToday.length}, Finalizate azi: ${resolvedToday.length}, ` +
+      `Active: ${activeNormal.length}, Expirate: ${expired.length}, Legitimații: ${allLegitimations.length}`
+    );
   }
 
 }

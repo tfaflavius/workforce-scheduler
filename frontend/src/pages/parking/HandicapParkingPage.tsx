@@ -56,6 +56,9 @@ import {
   FormatPaint as MarkingIcon,
   RemoveCircle as RevokeIcon,
   AddBox as PlacementIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -65,6 +68,7 @@ import {
   useGetHandicapRequestsQuery,
   useGetHandicapRequestQuery,
   useCreateHandicapRequestMutation,
+  useUpdateHandicapRequestMutation,
   useResolveHandicapRequestMutation,
   useDeleteHandicapRequestMutation,
   useAddHandicapCommentMutation,
@@ -441,9 +445,10 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
 
-  const { data: request, isLoading } = useGetHandicapRequestQuery(requestId!, { skip: !requestId });
+  const { data: request, isLoading, refetch } = useGetHandicapRequestQuery(requestId!, { skip: !requestId });
   const { data: history = [] } = useGetHandicapHistoryQuery(requestId!, { skip: !requestId });
   const [addComment] = useAddHandicapCommentMutation();
+  const [updateRequest, { isLoading: isUpdating }] = useUpdateHandicapRequestMutation();
   const [resolveRequest] = useResolveHandicapRequestMutation();
   const [deleteRequest] = useDeleteHandicapRequestMutation();
 
@@ -451,10 +456,79 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
   const [newComment, setNewComment] = useState('');
   const [showResolveDialog, setShowResolveDialog] = useState(false);
   const [resolutionDescription, setResolutionDescription] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<{
+    location: string;
+    googleMapsLink: string;
+    description: string;
+    personName: string;
+    handicapCertificateNumber: string;
+    carPlate: string;
+    autoNumber: string;
+    phone: string;
+  }>({
+    location: '',
+    googleMapsLink: '',
+    description: '',
+    personName: '',
+    handicapCertificateNumber: '',
+    carPlate: '',
+    autoNumber: '',
+    phone: '',
+  });
 
   const isAdmin = user?.role === 'ADMIN';
   const isMaintenanceUser = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
+  const isHandicapDepartment = user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
   const canResolve = isAdmin || isMaintenanceUser;
+  const canEdit = isAdmin || isHandicapDepartment;
+
+  // Populate edit data when request loads
+  useEffect(() => {
+    if (request && !isEditing) {
+      setEditData({
+        location: request.location || '',
+        googleMapsLink: request.googleMapsLink || '',
+        description: request.description || '',
+        personName: request.personName || '',
+        handicapCertificateNumber: request.handicapCertificateNumber || '',
+        carPlate: request.carPlate || '',
+        autoNumber: request.autoNumber || '',
+        phone: request.phone || '',
+      });
+    }
+  }, [request, isEditing]);
+
+  const handleStartEdit = () => {
+    if (request) {
+      setEditData({
+        location: request.location || '',
+        googleMapsLink: request.googleMapsLink || '',
+        description: request.description || '',
+        personName: request.personName || '',
+        handicapCertificateNumber: request.handicapCertificateNumber || '',
+        carPlate: request.carPlate || '',
+        autoNumber: request.autoNumber || '',
+        phone: request.phone || '',
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!requestId) return;
+    try {
+      await updateRequest({ id: requestId, data: editData }).unwrap();
+      setIsEditing(false);
+      refetch();
+    } catch (error) {
+      console.error('Error updating request:', error);
+    }
+  };
 
   const handleAddComment = async () => {
     if (!requestId || !newComment.trim()) return;
@@ -540,60 +614,204 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
 
             <DialogContent sx={{ pt: 3 }}>
               <Stack spacing={3}>
+                {/* Edit/View toggle button */}
+                {canEdit && request.status === 'ACTIVE' && (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {!isEditing ? (
+                      <Button
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        onClick={handleStartEdit}
+                        size="small"
+                      >
+                        Editează
+                      </Button>
+                    ) : (
+                      <Stack direction="row" spacing={1}>
+                        <Button
+                          variant="outlined"
+                          startIcon={<CancelIcon />}
+                          onClick={handleCancelEdit}
+                          size="small"
+                          color="inherit"
+                        >
+                          Anulează
+                        </Button>
+                        <Button
+                          variant="contained"
+                          startIcon={isUpdating ? <CircularProgress size={16} /> : <SaveIcon />}
+                          onClick={handleSaveEdit}
+                          size="small"
+                          disabled={isUpdating}
+                        >
+                          Salvează
+                        </Button>
+                      </Stack>
+                    )}
+                  </Box>
+                )}
+
                 {/* Info Card */}
                 <Card variant="outlined" sx={{ borderRadius: 2 }}>
                   <CardContent>
                     <Stack spacing={2}>
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                        <PlaceIcon color="primary" sx={{ mt: 0.3 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">Locație</Typography>
-                          <Typography variant="body1" fontWeight={500}>{request.location}</Typography>
-                          {request.googleMapsLink && (
-                            <Button
-                              size="small"
-                              startIcon={<MapIcon />}
-                              href={request.googleMapsLink}
-                              target="_blank"
-                              sx={{ mt: 0.5, textTransform: 'none' }}
-                            >
-                              Deschide în Maps
-                            </Button>
-                          )}
-                        </Box>
-                      </Box>
-
-                      {request.personName && (
+                      {isEditing ? (
+                        // Edit mode
                         <>
+                          <TextField
+                            label="Locație"
+                            value={editData.location}
+                            onChange={(e) => setEditData({ ...editData, location: e.target.value })}
+                            fullWidth
+                            required
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <PlaceIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          <TextField
+                            label="Link Google Maps"
+                            value={editData.googleMapsLink}
+                            onChange={(e) => setEditData({ ...editData, googleMapsLink: e.target.value })}
+                            fullWidth
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <MapIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
                           <Divider />
+                          <TextField
+                            label="Nume persoană"
+                            value={editData.personName}
+                            onChange={(e) => setEditData({ ...editData, personName: e.target.value })}
+                            fullWidth
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <PersonIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          <TextField
+                            label="Nr. certificat handicap"
+                            value={editData.handicapCertificateNumber}
+                            onChange={(e) => setEditData({ ...editData, handicapCertificateNumber: e.target.value })}
+                            fullWidth
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <CertificateIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" color="text.secondary">Persoană</Typography>
-                              <Typography variant="body1" fontWeight={500}>{request.personName}</Typography>
-                            </Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" color="text.secondary">Nr. Certificat</Typography>
-                              <Typography variant="body1">{request.handicapCertificateNumber}</Typography>
-                            </Box>
+                            <TextField
+                              label="Număr înmatriculare"
+                              value={editData.carPlate}
+                              onChange={(e) => setEditData({ ...editData, carPlate: e.target.value.toUpperCase() })}
+                              fullWidth
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <CarIcon color="action" />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            />
+                            <TextField
+                              label="Nr. auto (serie șasiu)"
+                              value={editData.autoNumber}
+                              onChange={(e) => setEditData({ ...editData, autoNumber: e.target.value.toUpperCase() })}
+                              fullWidth
+                            />
                           </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" color="text.secondary">Număr Auto</Typography>
-                              <Typography variant="body1" fontWeight={600}>{request.carPlate}</Typography>
+                          <TextField
+                            label="Telefon"
+                            value={editData.phone}
+                            onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                            fullWidth
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <PhoneIcon color="action" />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                          <Divider />
+                          <TextField
+                            label="Descriere"
+                            value={editData.description}
+                            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                            fullWidth
+                            multiline
+                            rows={3}
+                            required
+                          />
+                        </>
+                      ) : (
+                        // View mode
+                        <>
+                          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                            <PlaceIcon color="primary" sx={{ mt: 0.3 }} />
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Locație</Typography>
+                              <Typography variant="body1" fontWeight={500}>{request.location}</Typography>
+                              {request.googleMapsLink && (
+                                <Button
+                                  size="small"
+                                  startIcon={<MapIcon />}
+                                  href={request.googleMapsLink}
+                                  target="_blank"
+                                  sx={{ mt: 0.5, textTransform: 'none' }}
+                                >
+                                  Deschide în Maps
+                                </Button>
+                              )}
                             </Box>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography variant="body2" color="text.secondary">Telefon</Typography>
-                              <Typography variant="body1">{request.phone}</Typography>
-                            </Box>
-                          </Stack>
+                          </Box>
+
+                          {request.personName && (
+                            <>
+                              <Divider />
+                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Persoană</Typography>
+                                  <Typography variant="body1" fontWeight={500}>{request.personName}</Typography>
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Nr. Certificat</Typography>
+                                  <Typography variant="body1">{request.handicapCertificateNumber}</Typography>
+                                </Box>
+                              </Stack>
+                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Număr Auto</Typography>
+                                  <Typography variant="body1" fontWeight={600}>{request.carPlate}</Typography>
+                                </Box>
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Telefon</Typography>
+                                  <Typography variant="body1">{request.phone}</Typography>
+                                </Box>
+                              </Stack>
+                            </>
+                          )}
+
+                          <Divider />
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Descriere</Typography>
+                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{request.description}</Typography>
+                          </Box>
                         </>
                       )}
-
-                      <Divider />
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">Descriere</Typography>
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{request.description}</Typography>
-                      </Box>
 
                       {request.status === 'FINALIZAT' && request.resolutionDescription && (
                         <>

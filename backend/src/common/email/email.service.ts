@@ -173,6 +173,64 @@ export interface HandicapLegitimationEmailData {
   resolutionDescription?: string;
 }
 
+export interface HandicapDailyReportData {
+  recipientEmail: string;
+  recipientName: string;
+  reportDate: string;
+  createdToday: Array<{
+    type: string;
+    location: string;
+    personName: string;
+    carPlate: string;
+    createdAt: string;
+    createdBy: string;
+    daysOpen: number;
+  }>;
+  resolvedToday: Array<{
+    type: string;
+    location: string;
+    personName: string;
+    carPlate: string;
+    createdAt: string;
+    createdBy: string;
+    daysOpen: number;
+    resolvedBy: string;
+    resolutionDescription: string;
+  }>;
+  activeRequests: Array<{
+    type: string;
+    location: string;
+    personName: string;
+    carPlate: string;
+    createdAt: string;
+    createdBy: string;
+    daysOpen: number;
+  }>;
+  expiredRequests: Array<{
+    type: string;
+    location: string;
+    personName: string;
+    carPlate: string;
+    createdAt: string;
+    createdBy: string;
+    daysOpen: number;
+  }>;
+  legitimations: Array<{
+    personName: string;
+    carPlate: string;
+    handicapCertificateNumber: string;
+    createdAt: string;
+    createdBy: string;
+  }>;
+  summary: {
+    createdTodayCount: number;
+    resolvedTodayCount: number;
+    activeCount: number;
+    expiredCount: number;
+    legitimationsCount: number;
+  };
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -1739,5 +1797,166 @@ export class EmailService {
       subjects[data.emailType],
       this.generateHandicapLegitimationHtml(data)
     );
+  }
+
+  async sendHandicapDailyReport(data: HandicapDailyReportData): Promise<boolean> {
+    return this.sendEmail(
+      data.recipientEmail,
+      `📊 Raport zilnic Handicap - ${data.reportDate}`,
+      this.generateHandicapDailyReportHtml(data)
+    );
+  }
+
+  private generateHandicapDailyReportHtml(data: HandicapDailyReportData): string {
+    const { summary } = data;
+
+    const generateRequestTable = (requests: typeof data.activeRequests, title: string, showResolution = false) => {
+      if (requests.length === 0) {
+        return `
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #374151; margin-bottom: 10px;">${title}</h3>
+            <p style="color: #6b7280; font-style: italic;">Nu există solicitări</p>
+          </div>
+        `;
+      }
+
+      const rows = requests.map((req: any) => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.type}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.location}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.personName}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.carPlate}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.createdAt}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.daysOpen} zile</td>
+          ${showResolution ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.resolvedBy || '-'}</td>` : ''}
+        </tr>
+      `).join('');
+
+      return `
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #374151; margin-bottom: 10px;">${title} (${requests.length})</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Tip</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Locație</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoană</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Auto</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Vechime</th>
+                ${showResolution ? '<th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Rezolvat de</th>' : ''}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    const generateLegitimationsTable = () => {
+      if (data.legitimations.length === 0) {
+        return `
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #374151; margin-bottom: 10px;">🎫 Legitimații Active</h3>
+            <p style="color: #6b7280; font-style: italic;">Nu există legitimații active</p>
+          </div>
+        `;
+      }
+
+      const rows = data.legitimations.map(leg => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.personName}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.carPlate}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.handicapCertificateNumber}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdAt}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdBy}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #374151; margin-bottom: 10px;">🎫 Legitimații Active (${data.legitimations.length})</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoană</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Auto</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Certificat</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat de</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #374151; max-width: 900px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 24px;">📊 Raport Zilnic Handicap</h1>
+          <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">${data.reportDate}</p>
+        </div>
+
+        <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+          <p style="margin-bottom: 20px;">Bună ziua, ${data.recipientName}!</p>
+
+          <!-- Sumar -->
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+            <h3 style="color: #374151; margin: 0 0 15px 0;">📈 Sumar</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+              <div style="background: #10b981; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold;">${summary.createdTodayCount}</div>
+                <div style="font-size: 12px;">Create azi</div>
+              </div>
+              <div style="background: #3b82f6; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold;">${summary.resolvedTodayCount}</div>
+                <div style="font-size: 12px;">Finalizate azi</div>
+              </div>
+              <div style="background: #f59e0b; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold;">${summary.activeCount}</div>
+                <div style="font-size: 12px;">Active</div>
+              </div>
+              <div style="background: #ef4444; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold;">${summary.expiredCount}</div>
+                <div style="font-size: 12px;">Expirate (>5 zile)</div>
+              </div>
+              <div style="background: #8b5cf6; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold;">${summary.legitimationsCount}</div>
+                <div style="font-size: 12px;">Legitimații</div>
+              </div>
+            </div>
+          </div>
+
+          ${generateRequestTable(data.createdToday, '🆕 Create Astăzi')}
+          ${generateRequestTable(data.resolvedToday, '✅ Finalizate Astăzi', true)}
+          ${summary.expiredCount > 0 ? generateRequestTable(data.expiredRequests, '🚨 Expirate (mai vechi de 5 zile)') : ''}
+          ${generateRequestTable(data.activeRequests, '📋 Active')}
+          ${generateLegitimationsTable()}
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+            <a href="${this.appUrl}/handicap" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 500;">
+              Deschide Aplicația
+            </a>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;">
+          <p>Acest email a fost generat automat de Workforce Scheduler.</p>
+        </div>
+      </body>
+      </html>
+    `;
   }
 }
