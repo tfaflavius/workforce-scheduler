@@ -230,7 +230,14 @@ export interface HandicapDailyReportData {
   legitimations: Array<{
     personName: string;
     carPlate: string;
-    handicapCertificateNumber: string;
+    certificateNumber: string;
+    createdAt: string;
+    createdBy: string;
+  }>;
+  revolutionarLegitimations?: Array<{
+    personName: string;
+    carPlate: string;
+    lawNumber: string;
     createdAt: string;
     createdBy: string;
   }>;
@@ -240,6 +247,7 @@ export interface HandicapDailyReportData {
     activeCount: number;
     expiredCount: number;
     legitimationsCount: number;
+    revolutionarLegitimationsCount?: number;
   };
 }
 
@@ -1970,12 +1978,12 @@ export class EmailService {
       `;
     };
 
-    const generateLegitimationsTable = () => {
+    const generateHandicapLegitimationsTable = () => {
       if (data.legitimations.length === 0) {
         return `
           <div style="margin-bottom: 20px;">
-            <h3 style="color: #374151; margin-bottom: 10px;">🎫 Legitimații Active</h3>
-            <p style="color: #6b7280; font-style: italic;">Nu există legitimații active</p>
+            <h3 style="color: #059669; margin-bottom: 10px;">♿ Legitimații Handicap Active</h3>
+            <p style="color: #6b7280; font-style: italic;">Nu există legitimații handicap active</p>
           </div>
         `;
       }
@@ -1984,7 +1992,7 @@ export class EmailService {
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.personName}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.carPlate}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.handicapCertificateNumber}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.certificateNumber}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdAt}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdBy}</td>
         </tr>
@@ -1992,13 +2000,55 @@ export class EmailService {
 
       return `
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #374151; margin-bottom: 10px;">🎫 Legitimații Active (${data.legitimations.length})</h3>
+          <h3 style="color: #059669; margin-bottom: 10px;">♿ Legitimații Handicap Active (${data.legitimations.length})</h3>
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <thead>
               <tr style="background-color: #f3f4f6;">
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoană</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Auto</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Certificat</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat de</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    const generateRevolutionarLegitimationsTable = () => {
+      const revLegitimations = data.revolutionarLegitimations || [];
+      if (revLegitimations.length === 0) {
+        return `
+          <div style="margin-bottom: 20px;">
+            <h3 style="color: #7c3aed; margin-bottom: 10px;">🏅 Legitimații Revoluționar/Deportat Active</h3>
+            <p style="color: #6b7280; font-style: italic;">Nu există legitimații revoluționar/deportat active</p>
+          </div>
+        `;
+      }
+
+      const rows = revLegitimations.map(leg => `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.personName}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.carPlate}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.lawNumber}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdAt}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdBy}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div style="margin-bottom: 25px;">
+          <h3 style="color: #7c3aed; margin-bottom: 10px;">🏅 Legitimații Revoluționar/Deportat Active (${revLegitimations.length})</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoană</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Auto</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Lege / Hotărâre</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat de</th>
               </tr>
@@ -2047,9 +2097,13 @@ export class EmailService {
                 <div style="font-size: 24px; font-weight: bold;">${summary.expiredCount}</div>
                 <div style="font-size: 12px;">Expirate (>5 zile)</div>
               </div>
-              <div style="background: #8b5cf6; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
+              <div style="background: #059669; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
                 <div style="font-size: 24px; font-weight: bold;">${summary.legitimationsCount}</div>
-                <div style="font-size: 12px;">Legitimații</div>
+                <div style="font-size: 12px;">Leg. Handicap</div>
+              </div>
+              <div style="background: #7c3aed; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
+                <div style="font-size: 24px; font-weight: bold;">${summary.revolutionarLegitimationsCount || 0}</div>
+                <div style="font-size: 12px;">Leg. Revoluționar</div>
               </div>
             </div>
           </div>
@@ -2058,7 +2112,8 @@ export class EmailService {
           ${generateRequestTable(data.resolvedToday, '✅ Finalizate Astăzi', true)}
           ${summary.expiredCount > 0 ? generateRequestTable(data.expiredRequests, '🚨 Expirate (mai vechi de 5 zile)') : ''}
           ${generateRequestTable(data.activeRequests, '📋 Active')}
-          ${generateLegitimationsTable()}
+          ${generateHandicapLegitimationsTable()}
+          ${generateRevolutionarLegitimationsTable()}
 
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
             <a href="${this.appUrl}/handicap" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 500;">

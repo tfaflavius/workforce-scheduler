@@ -29,6 +29,7 @@ import {
   RemoveCircle as RevocareIcon,
   Brush as MarcajeIcon,
   Badge as LegitimatiiIcon,
+  MilitaryTech as RevolutionarIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -45,6 +46,7 @@ import {
 import {
   useGetHandicapRequestsQuery,
   useGetHandicapLegitimationsQuery,
+  useGetRevolutionarLegitimationsQuery,
 } from '../../store/api/handicap.api';
 
 interface StatCardProps {
@@ -184,6 +186,7 @@ const AdminDashboard = () => {
   // Handicap queries
   const { data: handicapRequests = [] } = useGetHandicapRequestsQuery();
   const { data: handicapLegitimations = [] } = useGetHandicapLegitimationsQuery();
+  const { data: revolutionarLegitimations = [] } = useGetRevolutionarLegitimationsQuery();
 
   const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading;
 
@@ -594,10 +597,10 @@ const AdminDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            ♿ Parcări Handicap
+            ♿ Parcări Handicap - Solicitări
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               <StatCard
                 title="Amplasare Panouri"
                 value={handicapRequests.filter(r => r.requestType === 'AMPLASARE_PANOU').length}
@@ -609,7 +612,7 @@ const AdminDashboard = () => {
                 delay={1000}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               <StatCard
                 title="Revocare Panouri"
                 value={handicapRequests.filter(r => r.requestType === 'REVOCARE_PANOU').length}
@@ -621,7 +624,7 @@ const AdminDashboard = () => {
                 delay={1100}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               <StatCard
                 title="Creare Marcaje"
                 value={handicapRequests.filter(r => r.requestType === 'CREARE_MARCAJ').length}
@@ -633,16 +636,53 @@ const AdminDashboard = () => {
                 delay={1200}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+          </Grid>
+        </Box>
+      </Fade>
+
+      <Divider sx={{ my: { xs: 2, sm: 3 } }} />
+
+      {/* Legitimații Section */}
+      <Fade in={true} timeout={1500}>
+        <Box>
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{
+              mb: { xs: 1.5, sm: 2 },
+              fontWeight: 700,
+              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+            }}
+          >
+            🪪 Legitimații
+          </Typography>
+          <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6 }}>
               <StatCard
-                title="Legitimații"
+                title="Legitimații Handicap"
                 value={handicapLegitimations.length}
                 subtitle={`${handicapLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
-                icon={<LegitimatiiIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#7c3aed' }} />}
+                icon={<LegitimatiiIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
+                color="#059669"
+                bgColor={alpha('#059669', 0.12)}
+                onClick={() => navigate('/parking/handicap')}
+                delay={1300}
+                urgent={handicapLegitimations.filter(l => l.status === 'ACTIVE').length > 0}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 6, md: 6 }}>
+              <StatCard
+                title="Legitimații Revoluționar"
+                value={revolutionarLegitimations.length}
+                subtitle={`${revolutionarLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
+                icon={<RevolutionarIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#7c3aed' }} />}
                 color="#7c3aed"
                 bgColor={alpha('#7c3aed', 0.12)}
                 onClick={() => navigate('/parking/handicap')}
-                delay={1300}
+                delay={1400}
+                urgent={revolutionarLegitimations.filter(l => l.status === 'ACTIVE').length > 0}
               />
             </Grid>
           </Grid>
