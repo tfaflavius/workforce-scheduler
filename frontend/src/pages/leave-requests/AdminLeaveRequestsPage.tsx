@@ -394,13 +394,14 @@ export const AdminLeaveRequestsPage = () => {
                     </Box>
                   </Box>
 
-                  <Stack direction="row" spacing={1} alignItems="center" flexShrink={0}>
+                  <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} alignItems="center" flexShrink={0}>
                     {request.status === 'PENDING' ? (
                       <>
                         <Tooltip title="Aprobă">
                           <IconButton
                             color="success"
                             onClick={() => handleOpenDialog(request, 'APPROVED')}
+                            sx={{ minWidth: 44, minHeight: 44 }}
                           >
                             <ApproveIcon />
                           </IconButton>
@@ -409,6 +410,7 @@ export const AdminLeaveRequestsPage = () => {
                           <IconButton
                             color="error"
                             onClick={() => handleOpenDialog(request, 'REJECTED')}
+                            sx={{ minWidth: 44, minHeight: 44 }}
                           >
                             <RejectIcon />
                           </IconButton>

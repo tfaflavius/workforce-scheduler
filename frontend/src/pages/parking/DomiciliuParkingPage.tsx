@@ -839,6 +839,7 @@ interface RequestCardProps {
 
 const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const colors = REQUEST_TYPE_COLORS[request.requestType];
 
   return (
@@ -851,6 +852,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
         transition: 'all 0.2s ease',
         touchAction: 'manipulation',
         WebkitTapHighlightColor: 'transparent',
+        minHeight: { xs: 44, sm: 'auto' }, // Touch-friendly minimum height
         '&:hover': {
           transform: 'translateY(-2px)',
           boxShadow: theme.shadows[4],
@@ -860,41 +862,45 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
         },
       }}
     >
-      <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+      <CardContent sx={{ py: { xs: 1.25, sm: 1.5 }, px: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.25, sm: 1.5 } } }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
             <Box sx={{
-              p: 0.75,
+              p: { xs: 0.5, sm: 0.75 },
               borderRadius: 1.5,
               bgcolor: colors.bg,
               color: colors.main,
               display: 'flex',
+              '& .MuiSvgIcon-root': {
+                fontSize: { xs: 18, sm: 24 },
+              },
             }}>
               {REQUEST_TYPE_ICONS[request.requestType]}
             </Box>
-            <Typography variant="body2" fontWeight={600} color={colors.main}>
+            <Typography variant="body2" fontWeight={600} color={colors.main} sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
               {DOMICILIU_REQUEST_TYPE_LABELS[request.requestType]}
             </Typography>
           </Box>
           <Chip
-            label={DOMICILIU_REQUEST_STATUS_LABELS[request.status]}
+            label={isMobile ? (request.status === 'ACTIVE' ? 'Activ' : 'Final') : DOMICILIU_REQUEST_STATUS_LABELS[request.status]}
             size="small"
             sx={{
               bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
               color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
               fontWeight: 600,
-              fontSize: '0.7rem',
+              fontSize: { xs: '0.65rem', sm: '0.75rem' },
+              height: { xs: 22, sm: 24 },
             }}
           />
         </Box>
 
-        <Typography variant="body2" sx={{ mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <PlaceIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+        <Typography variant="body2" sx={{ mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+          <PlaceIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
           {request.location}
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <PersonIcon sx={{ fontSize: 16 }} />
+        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
+          <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
           {request.personName}
           {request.carPlate && ` • ${request.carPlate}`}
         </Typography>
@@ -1081,7 +1087,7 @@ const DomiciliuParkingPage: React.FC = () => {
       <Paper sx={{ mb: 2, p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
           <TextField
-            placeholder="Caută după locație, persoană, adresă sau număr auto..."
+            placeholder={isMobile ? "Caută..." : "Caută după locație, persoană, adresă sau număr auto..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
@@ -1096,7 +1102,7 @@ const DomiciliuParkingPage: React.FC = () => {
             }}
           />
 
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 150 }, flex: { xs: 1, sm: 'none' } }}>
             <InputLabel>Status</InputLabel>
             <Select
               value={statusFilter}
