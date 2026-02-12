@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { WorkSchedule } from './entities/work-schedule.entity';
 import { ScheduleAssignment } from './entities/schedule-assignment.entity';
 import { ShiftType } from './entities/shift-type.entity';
@@ -872,7 +872,9 @@ export class SchedulesService {
       }
 
       // Get user details (email, name)
-      const users = await this.userRepository.findByIds(userIds);
+      const users = await this.userRepository.find({
+        where: { id: In(userIds) }
+      });
       const userMap = new Map(users.map(u => [u.id, u]));
 
       const monthYear = `${schedule.year}-${String(schedule.month).padStart(2, '0')}`;
