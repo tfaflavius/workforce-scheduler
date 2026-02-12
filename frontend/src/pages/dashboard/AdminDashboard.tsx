@@ -25,6 +25,10 @@ import {
   Warning as DamagesIcon,
   LocalAtm as CashIcon,
   Edit as EditIcon,
+  AddLocation as AmplasareIcon,
+  RemoveCircle as RevocareIcon,
+  Brush as MarcajeIcon,
+  Badge as LegitimatiiIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -38,6 +42,10 @@ import {
   useGetCashCollectionTotalsQuery,
   useGetPendingEditRequestsCountQuery,
 } from '../../store/api/parking.api';
+import {
+  useGetHandicapRequestsQuery,
+  useGetHandicapLegitimationsQuery,
+} from '../../store/api/handicap.api';
 
 interface StatCardProps {
   title: string;
@@ -172,6 +180,10 @@ const AdminDashboard = () => {
   const { data: urgentDamages = [] } = useGetUrgentDamagesQuery();
   const { data: cashTotals } = useGetCashCollectionTotalsQuery({});
   const { data: pendingEditRequests } = useGetPendingEditRequestsCountQuery();
+
+  // Handicap queries
+  const { data: handicapRequests = [] } = useGetHandicapRequestsQuery();
+  const { data: handicapLegitimations = [] } = useGetHandicapLegitimationsQuery();
 
   const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading;
 
@@ -561,6 +573,77 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
               </Grow>
+            </Grid>
+          </Grid>
+        </Box>
+      </Fade>
+
+      <Divider sx={{ my: { xs: 2, sm: 3 } }} />
+
+      {/* Parcări Handicap Section */}
+      <Fade in={true} timeout={1300}>
+        <Box>
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{
+              mb: { xs: 1.5, sm: 2 },
+              fontWeight: 700,
+              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+            }}
+          >
+            ♿ Parcări Handicap
+          </Typography>
+          <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+              <StatCard
+                title="Amplasare Panouri"
+                value={handicapRequests.filter(r => r.requestType === 'AMPLASARE_PANOU').length}
+                subtitle={`${handicapRequests.filter(r => r.requestType === 'AMPLASARE_PANOU' && r.status === 'ACTIVE').length} active`}
+                icon={<AmplasareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
+                color="#059669"
+                bgColor={alpha('#059669', 0.12)}
+                onClick={() => navigate('/parking/handicap')}
+                delay={1000}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+              <StatCard
+                title="Revocare Panouri"
+                value={handicapRequests.filter(r => r.requestType === 'REVOCARE_PANOU').length}
+                subtitle={`${handicapRequests.filter(r => r.requestType === 'REVOCARE_PANOU' && r.status === 'ACTIVE').length} active`}
+                icon={<RevocareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#dc2626' }} />}
+                color="#dc2626"
+                bgColor={alpha('#dc2626', 0.12)}
+                onClick={() => navigate('/parking/handicap')}
+                delay={1100}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+              <StatCard
+                title="Creare Marcaje"
+                value={handicapRequests.filter(r => r.requestType === 'CREARE_MARCAJ').length}
+                subtitle={`${handicapRequests.filter(r => r.requestType === 'CREARE_MARCAJ' && r.status === 'ACTIVE').length} active`}
+                icon={<MarcajeIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#0284c7' }} />}
+                color="#0284c7"
+                bgColor={alpha('#0284c7', 0.12)}
+                onClick={() => navigate('/parking/handicap')}
+                delay={1200}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+              <StatCard
+                title="Legitimații"
+                value={handicapLegitimations.length}
+                subtitle={`${handicapLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
+                icon={<LegitimatiiIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#7c3aed' }} />}
+                color="#7c3aed"
+                bgColor={alpha('#7c3aed', 0.12)}
+                onClick={() => navigate('/parking/handicap')}
+                delay={1300}
+              />
             </Grid>
           </Grid>
         </Box>

@@ -28,11 +28,123 @@ import {
   EventBusy as NoShiftIcon,
   LocationOn as LocationIcon,
   Person as PersonIcon,
+  AddLocation as AmplasareIcon,
+  RemoveCircle as RevocareIcon,
+  Brush as MarcajeIcon,
+  Badge as LegitimatiiIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
+import {
+  useGetHandicapRequestsQuery,
+  useGetHandicapLegitimationsQuery,
+} from '../../store/api/handicap.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
+
+// Departament cu acces la Handicap stats
+const HANDICAP_DEPARTMENT_NAME = 'Parcări Handicap';
+
+// StatCard component pentru secțiunea Handicap
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  onClick?: () => void;
+  delay?: number;
+}
+
+const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick, delay = 0 }: StatCardProps) => {
+  const theme = useTheme();
+
+  return (
+    <Grow in={true} timeout={500 + delay}>
+      <Card
+        sx={{
+          cursor: onClick ? 'pointer' : 'default',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          height: '100%',
+          position: 'relative',
+          overflow: 'hidden',
+          '&:hover': onClick ? {
+            transform: 'translateY(-4px)',
+            boxShadow: theme.palette.mode === 'light'
+              ? `0 8px 20px ${alpha(color, 0.2)}`
+              : `0 8px 20px ${alpha(color, 0.35)}`,
+          } : {},
+        }}
+        onClick={onClick}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: -20,
+            right: -20,
+            width: 70,
+            height: 70,
+            borderRadius: '50%',
+            background: alpha(color, 0.08),
+          }}
+        />
+        <CardContent sx={{ p: { xs: 1.5, sm: 2 }, position: 'relative' }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography
+                variant="overline"
+                color="text.secondary"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: { xs: '0.55rem', sm: '0.65rem' },
+                  letterSpacing: '0.5px',
+                }}
+              >
+                {title}
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{
+                  color,
+                  fontWeight: 800,
+                  my: 0.25,
+                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
+                  lineHeight: 1,
+                }}
+              >
+                {value}
+              </Typography>
+              {subtitle && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
+                >
+                  {subtitle}
+                </Typography>
+              )}
+            </Box>
+            <Box
+              sx={{
+                p: { xs: 1, sm: 1.25 },
+                borderRadius: 2,
+                bgcolor: bgColor,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: `0 2px 8px ${alpha(color, 0.2)}`,
+              }}
+            >
+              {icon}
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+    </Grow>
+  );
+};
 
 interface ShiftCardProps {
   date: Date;
@@ -163,6 +275,17 @@ const EmployeeDashboard = () => {
   });
 
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
+
+  // Check if user is in Parcări Handicap department
+  const isHandicapDepartment = user?.department?.name === HANDICAP_DEPARTMENT_NAME;
+
+  // Handicap queries - only fetch if user is in Parcări Handicap department
+  const { data: handicapRequests = [] } = useGetHandicapRequestsQuery(undefined, {
+    skip: !isHandicapDepartment,
+  });
+  const { data: handicapLegitimations = [] } = useGetHandicapLegitimationsQuery(undefined, {
+    skip: !isHandicapDepartment,
+  });
 
   const myApprovedLeaveDates = useMemo(() => {
     if (!user) return new Set<string>();
@@ -774,6 +897,77 @@ const EmployeeDashboard = () => {
           </Box>
         </Paper>
       </Grow>
+
+      {/* Secțiune Parcări Handicap - doar pentru departamentul Parcări Handicap */}
+      {isHandicapDepartment && (
+        <Fade in={true} timeout={1000}>
+          <Box sx={{ mt: { xs: 2.5, sm: 3, md: 4 } }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{
+                mb: { xs: 1.5, sm: 2 },
+                fontWeight: 700,
+                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+              }}
+            >
+              ♿ Parcări Handicap - Statistici
+            </Typography>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
+              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <StatCard
+                  title="Amplasare Panouri"
+                  value={handicapRequests.filter(r => r.requestType === 'AMPLASARE_PANOU').length}
+                  subtitle={`${handicapRequests.filter(r => r.requestType === 'AMPLASARE_PANOU' && r.status === 'ACTIVE').length} active`}
+                  icon={<AmplasareIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#059669' }} />}
+                  color="#059669"
+                  bgColor={alpha('#059669', 0.12)}
+                  onClick={() => navigate('/parking/handicap')}
+                  delay={0}
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <StatCard
+                  title="Revocare Panouri"
+                  value={handicapRequests.filter(r => r.requestType === 'REVOCARE_PANOU').length}
+                  subtitle={`${handicapRequests.filter(r => r.requestType === 'REVOCARE_PANOU' && r.status === 'ACTIVE').length} active`}
+                  icon={<RevocareIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#dc2626' }} />}
+                  color="#dc2626"
+                  bgColor={alpha('#dc2626', 0.12)}
+                  onClick={() => navigate('/parking/handicap')}
+                  delay={100}
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <StatCard
+                  title="Creare Marcaje"
+                  value={handicapRequests.filter(r => r.requestType === 'CREARE_MARCAJ').length}
+                  subtitle={`${handicapRequests.filter(r => r.requestType === 'CREARE_MARCAJ' && r.status === 'ACTIVE').length} active`}
+                  icon={<MarcajeIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#0284c7' }} />}
+                  color="#0284c7"
+                  bgColor={alpha('#0284c7', 0.12)}
+                  onClick={() => navigate('/parking/handicap')}
+                  delay={200}
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <StatCard
+                  title="Legitimații"
+                  value={handicapLegitimations.length}
+                  subtitle={`${handicapLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
+                  icon={<LegitimatiiIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#7c3aed' }} />}
+                  color="#7c3aed"
+                  bgColor={alpha('#7c3aed', 0.12)}
+                  onClick={() => navigate('/parking/handicap')}
+                  delay={300}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        </Fade>
+      )}
     </Box>
   );
 };
