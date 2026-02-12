@@ -157,7 +157,6 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
     personName: '',
     handicapCertificateNumber: '',
     carPlate: '',
-    autoNumber: '',
     phone: '',
   });
 
@@ -183,7 +182,6 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         personName: '',
         handicapCertificateNumber: '',
         carPlate: '',
-        autoNumber: '',
         phone: '',
       });
       setError(null);
@@ -207,7 +205,6 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         personName: '',
         handicapCertificateNumber: '',
         carPlate: '',
-        autoNumber: '',
         phone: '',
       });
     } catch (err: any) {
@@ -227,7 +224,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   const isFormValid = () => {
     if (!formData.location || !formData.description) return false;
     if (isPersonFieldsRequired) {
-      return !!(formData.personName && formData.handicapCertificateNumber && formData.carPlate && formData.autoNumber && formData.phone);
+      return !!(formData.personName && formData.handicapCertificateNumber && formData.carPlate && formData.phone);
     }
     return true;
   };
@@ -355,22 +352,6 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                 fullWidth
                 size="medium"
                 placeholder="Ex: BH-01-ABC"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <CarIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-
-              <TextField
-                label="Număr auto (serie șasiu/CIV) *"
-                value={formData.autoNumber}
-                onChange={(e) => setFormData({ ...formData, autoNumber: e.target.value.toUpperCase() })}
-                fullWidth
-                size="medium"
-                placeholder="Ex: WVWZZZ3CZWE123456"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">

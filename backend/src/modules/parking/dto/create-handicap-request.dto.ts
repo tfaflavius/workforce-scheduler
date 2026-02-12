@@ -38,9 +38,8 @@ export class CreateHandicapRequestDto {
   @MaxLength(20)
   carPlate?: string;
 
-  @ValidateIf((o) => o.requestType !== 'CREARE_MARCAJ')
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(50)
   autoNumber?: string;
 
