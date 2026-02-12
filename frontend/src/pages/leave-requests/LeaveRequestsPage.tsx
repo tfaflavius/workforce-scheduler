@@ -549,8 +549,8 @@ export const LeaveRequestsPage = () => {
             <Alert severity="info">
               <Typography variant="body2">
                 {leaveType === 'MEDICAL'
-                  ? 'Concediul medical nu necesită aprobare cu 7 zile în avans.'
-                  : 'Cererea trebuie făcută cu cel puțin 7 zile înainte de data de început.'}
+                  ? 'Concediul medical nu necesită aprobare cu 1 zi în avans.'
+                  : 'Cererea trebuie făcută cu cel puțin 1 zi înainte de data de început.'}
               </Typography>
             </Alert>
           </Stack>

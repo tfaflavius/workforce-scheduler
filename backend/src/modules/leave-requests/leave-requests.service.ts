@@ -75,14 +75,14 @@ export class LeaveRequestsService {
     // Calculate number of days
     const days = this.calculateBusinessDays(startDate, endDate);
 
-    // Validate 7 days in advance (except for MEDICAL)
+    // Validate 1 day in advance (except for MEDICAL)
     if (dto.leaveType !== 'MEDICAL') {
       const minDate = new Date(today);
-      minDate.setDate(minDate.getDate() + 7);
+      minDate.setDate(minDate.getDate() + 1);
 
       if (startDate < minDate) {
         throw new BadRequestException(
-          'Cererea trebuie făcută cu cel puțin 7 zile în avans (excepție: Concediu Medical)',
+          'Cererea trebuie făcută cu cel puțin 1 zi în avans (excepție: Concediu Medical)',
         );
       }
     }
