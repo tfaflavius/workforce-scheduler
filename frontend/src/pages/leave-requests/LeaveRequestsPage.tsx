@@ -261,10 +261,14 @@ export const LeaveRequestsPage = () => {
       </Typography>
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 4 }}>
         {balances.map((balance, index) => {
+          // Types without balance limit: VACATION, SPECIAL, EXTRA_DAYS
+          const typesWithoutLimit: LeaveType[] = ['VACATION', 'SPECIAL', 'EXTRA_DAYS'];
+          const hasNoLimit = typesWithoutLimit.includes(balance.leaveType);
+
           const remaining = balance.totalDays - balance.usedDays;
-          const usedPercentage = (balance.usedDays / balance.totalDays) * 100;
-          const isLow = remaining <= balance.totalDays * 0.2 && remaining > 0;
-          const isEmpty = remaining === 0;
+          const usedPercentage = hasNoLimit ? 0 : (balance.usedDays / balance.totalDays) * 100;
+          const isLow = !hasNoLimit && remaining <= balance.totalDays * 0.2 && remaining > 0;
+          const isEmpty = !hasNoLimit && remaining === 0;
 
           return (
             <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={balance.id}>
@@ -322,63 +326,103 @@ export const LeaveRequestsPage = () => {
                     {LEAVE_TYPE_LABELS[balance.leaveType]}
                   </Typography>
 
-                  <Typography
-                    variant="h4"
-                    fontWeight="bold"
-                    sx={{
-                      fontSize: { xs: '1.5rem', sm: '2rem' },
-                      color: isEmpty
-                        ? 'grey.500'
-                        : isLow
-                          ? '#f59e0b'
-                          : '#10b981',
-                      lineHeight: 1,
-                    }}
-                  >
-                    {remaining}
-                  </Typography>
+                  {hasNoLimit ? (
+                    // For types without limit, show only used days
+                    <>
+                      <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                        sx={{
+                          fontSize: { xs: '1.5rem', sm: '2rem' },
+                          color: '#10b981',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {balance.usedDays}
+                      </Typography>
 
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, display: 'block', mb: 1 }}
-                  >
-                    din {balance.totalDays} zile
-                  </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, display: 'block', mb: 1 }}
+                      >
+                        zile folosite
+                      </Typography>
 
-                  {/* Progress Bar */}
-                  <LinearProgress
-                    variant="determinate"
-                    value={usedPercentage}
-                    sx={{
-                      height: 6,
-                      borderRadius: 3,
-                      bgcolor: alpha(
-                        isEmpty ? theme.palette.grey[500] : isLow ? '#f59e0b' : '#10b981',
-                        0.15
-                      ),
-                      '& .MuiLinearProgress-bar': {
-                        borderRadius: 3,
-                        bgcolor: isEmpty
-                          ? 'grey.500'
-                          : isLow
-                            ? '#f59e0b'
-                            : '#10b981',
-                      },
-                    }}
-                  />
+                      <Chip
+                        label="Fără limită"
+                        size="small"
+                        sx={{
+                          fontSize: '0.6rem',
+                          height: 20,
+                          bgcolor: alpha('#10b981', 0.1),
+                          color: '#10b981',
+                          fontWeight: 600,
+                        }}
+                      />
+                    </>
+                  ) : (
+                    // For types with limit (BIRTHDAY, MEDICAL), show remaining
+                    <>
+                      <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                        sx={{
+                          fontSize: { xs: '1.5rem', sm: '2rem' },
+                          color: isEmpty
+                            ? 'grey.500'
+                            : isLow
+                              ? '#f59e0b'
+                              : '#10b981',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {remaining}
+                      </Typography>
 
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: { xs: '0.55rem', sm: '0.65rem' },
-                      color: 'text.secondary',
-                      mt: 0.5,
-                      display: 'block',
-                    }}
-                  >
-                    {balance.usedDays} folosite
-                  </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, display: 'block', mb: 1 }}
+                      >
+                        din {balance.totalDays} zile
+                      </Typography>
+
+                      {/* Progress Bar */}
+                      <LinearProgress
+                        variant="determinate"
+                        value={usedPercentage}
+                        sx={{
+                          height: 6,
+                          borderRadius: 3,
+                          bgcolor: alpha(
+                            isEmpty ? theme.palette.grey[500] : isLow ? '#f59e0b' : '#10b981',
+                            0.15
+                          ),
+                          '& .MuiLinearProgress-bar': {
+                            borderRadius: 3,
+                            bgcolor: isEmpty
+                              ? 'grey.500'
+                              : isLow
+                                ? '#f59e0b'
+                                : '#10b981',
+                          },
+                        }}
+                      />
+
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: { xs: '0.55rem', sm: '0.65rem' },
+                          color: 'text.secondary',
+                          mt: 0.5,
+                          display: 'block',
+                        }}
+                      >
+                        {balance.usedDays} folosite
+                      </Typography>
+                    </>
+                  )}
                 </Paper>
               </Grow>
             </Grid>

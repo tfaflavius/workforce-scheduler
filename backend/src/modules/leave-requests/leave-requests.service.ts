@@ -113,11 +113,14 @@ export class LeaveRequestsService {
       }
     }
 
-    // Check leave balance
+    // Check leave balance only for BIRTHDAY and MEDICAL
+    // VACATION, SPECIAL, and EXTRA_DAYS have no limits
     const year = startDate.getFullYear();
     let balance = await this.getOrCreateBalance(userId, dto.leaveType, year);
 
-    if (balance.remainingDays < days) {
+    // Only enforce balance limits for BIRTHDAY and MEDICAL leave types
+    const typesWithBalanceLimit: LeaveType[] = ['BIRTHDAY', 'MEDICAL'];
+    if (typesWithBalanceLimit.includes(dto.leaveType) && balance.remainingDays < days) {
       throw new BadRequestException(
         `Nu ai suficiente zile de ${LEAVE_TYPE_LABELS[dto.leaveType]}. Disponibile: ${balance.remainingDays}, solicitate: ${days}`,
       );
