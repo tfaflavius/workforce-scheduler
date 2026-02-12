@@ -191,7 +191,7 @@ export const handicapApi = createApi({
     resolveHandicapLegitimation: builder.mutation<HandicapLegitimation, { id: string; data: ResolveHandicapLegitimationDto }>({
       query: ({ id, data }) => ({
         url: `/parking/handicap-legitimations/${id}/resolve`,
-        method: 'POST',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: (_result, _error, { id }) => [
@@ -292,7 +292,7 @@ export const handicapApi = createApi({
     resolveRevolutionarLegitimation: builder.mutation<RevolutionarLegitimation, { id: string; data: ResolveRevolutionarLegitimationDto }>({
       query: ({ id, data }) => ({
         url: `/parking/revolutionar-legitimations/${id}/resolve`,
-        method: 'POST',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: (_result, _error, { id }) => [

@@ -91,7 +91,7 @@ export class HandicapLegitimationsController {
     return this.legitimationsService.update(id, req.user.id, dto, req.user);
   }
 
-  @Post(':id/resolve')
+  @Patch(':id/resolve')
   async resolve(
     @Request() req,
     @Param('id') id: string,
