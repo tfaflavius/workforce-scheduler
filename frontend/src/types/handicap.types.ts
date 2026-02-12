@@ -147,3 +147,69 @@ export interface HandicapLegitimationReportFilters {
   endDate?: string;
   status?: HandicapLegitimationStatus;
 }
+
+// ============== LEGITIMAȚII REVOLUȚIONAR/DEPORTAT ==============
+
+export type RevolutionarLegitimationStatus = 'ACTIVE' | 'FINALIZAT';
+
+export const REVOLUTIONAR_LEGITIMATION_STATUS_LABELS: Record<RevolutionarLegitimationStatus, string> = {
+  ACTIVE: 'Activ',
+  FINALIZAT: 'Finalizat',
+};
+
+export interface RevolutionarLegitimation {
+  id: string;
+  status: RevolutionarLegitimationStatus;
+  personName: string;
+  cnp?: string;
+  lawNumber: string; // Lege / Hotărâre în loc de certificat handicap
+  carPlate: string;
+  autoNumber?: string;
+  phone?: string;
+  description?: string;
+  createdBy: string;
+  resolvedBy?: string;
+  lastModifiedBy?: string;
+  resolutionDescription?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  creator?: UserReference;
+  resolver?: UserReference;
+  lastModifier?: UserReference;
+  comments?: RevolutionarLegitimationComment[];
+}
+
+export interface RevolutionarLegitimationComment extends ParkingComment {
+  legitimationId: string;
+}
+
+export interface CreateRevolutionarLegitimationDto {
+  personName: string;
+  cnp?: string;
+  lawNumber: string;
+  carPlate: string;
+  autoNumber?: string;
+  phone?: string;
+  description?: string;
+}
+
+export interface UpdateRevolutionarLegitimationDto {
+  personName?: string;
+  cnp?: string;
+  lawNumber?: string;
+  carPlate?: string;
+  autoNumber?: string;
+  phone?: string;
+  description?: string;
+}
+
+export interface ResolveRevolutionarLegitimationDto {
+  resolutionDescription: string;
+}
+
+export interface RevolutionarLegitimationReportFilters {
+  startDate?: string;
+  endDate?: string;
+  status?: RevolutionarLegitimationStatus;
+}

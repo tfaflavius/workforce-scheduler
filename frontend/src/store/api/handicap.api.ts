@@ -16,6 +16,13 @@ import type {
   UpdateHandicapLegitimationDto,
   ResolveHandicapLegitimationDto,
   HandicapLegitimationReportFilters,
+  RevolutionarLegitimation,
+  RevolutionarLegitimationComment,
+  RevolutionarLegitimationStatus,
+  CreateRevolutionarLegitimationDto,
+  UpdateRevolutionarLegitimationDto,
+  ResolveRevolutionarLegitimationDto,
+  RevolutionarLegitimationReportFilters,
 } from '../../types/handicap.types';
 import type { ParkingHistory, CreateCommentDto } from '../../types/parking.types';
 
@@ -33,7 +40,7 @@ export const handicapApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['HandicapRequests', 'HandicapComments', 'HandicapHistory', 'HandicapLegitimations', 'HandicapLegitimationComments', 'HandicapLegitimationHistory'],
+  tagTypes: ['HandicapRequests', 'HandicapComments', 'HandicapHistory', 'HandicapLegitimations', 'HandicapLegitimationComments', 'HandicapLegitimationHistory', 'RevolutionarLegitimations', 'RevolutionarLegitimationComments', 'RevolutionarLegitimationHistory'],
   endpoints: (builder) => ({
     // Get all handicap requests
     getHandicapRequests: builder.query<HandicapRequest[], { status?: HandicapRequestStatus; type?: HandicapRequestType } | void>({
@@ -234,6 +241,107 @@ export const handicapApi = createApi({
         params,
       }),
     }),
+
+    // ============== LEGITIMAȚII REVOLUȚIONAR/DEPORTAT ==============
+
+    // Get all revolutionar legitimations
+    getRevolutionarLegitimations: builder.query<RevolutionarLegitimation[], { status?: RevolutionarLegitimationStatus } | void>({
+      query: (params) => ({
+        url: '/parking/revolutionar-legitimations',
+        params: params || undefined,
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'RevolutionarLegitimations' as const, id })),
+              { type: 'RevolutionarLegitimations', id: 'LIST' },
+            ]
+          : [{ type: 'RevolutionarLegitimations', id: 'LIST' }],
+    }),
+
+    // Get single revolutionar legitimation
+    getRevolutionarLegitimation: builder.query<RevolutionarLegitimation, string>({
+      query: (id) => `/parking/revolutionar-legitimations/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'RevolutionarLegitimations', id }],
+    }),
+
+    // Create revolutionar legitimation
+    createRevolutionarLegitimation: builder.mutation<RevolutionarLegitimation, CreateRevolutionarLegitimationDto>({
+      query: (body) => ({
+        url: '/parking/revolutionar-legitimations',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [{ type: 'RevolutionarLegitimations', id: 'LIST' }],
+    }),
+
+    // Update revolutionar legitimation (Admin only)
+    updateRevolutionarLegitimation: builder.mutation<RevolutionarLegitimation, { id: string; data: UpdateRevolutionarLegitimationDto }>({
+      query: ({ id, data }) => ({
+        url: `/parking/revolutionar-legitimations/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RevolutionarLegitimations', id },
+        { type: 'RevolutionarLegitimations', id: 'LIST' },
+      ],
+    }),
+
+    // Resolve revolutionar legitimation
+    resolveRevolutionarLegitimation: builder.mutation<RevolutionarLegitimation, { id: string; data: ResolveRevolutionarLegitimationDto }>({
+      query: ({ id, data }) => ({
+        url: `/parking/revolutionar-legitimations/${id}/resolve`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RevolutionarLegitimations', id },
+        { type: 'RevolutionarLegitimations', id: 'LIST' },
+      ],
+    }),
+
+    // Delete revolutionar legitimation (Admin only)
+    deleteRevolutionarLegitimation: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/parking/revolutionar-legitimations/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'RevolutionarLegitimations', id: 'LIST' }],
+    }),
+
+    // Get comments for a revolutionar legitimation
+    getRevolutionarLegitimationComments: builder.query<RevolutionarLegitimationComment[], string>({
+      query: (legitimationId) => `/parking/revolutionar-legitimations/${legitimationId}/comments`,
+      providesTags: (_result, _error, legitimationId) => [{ type: 'RevolutionarLegitimationComments', id: legitimationId }],
+    }),
+
+    // Add comment to a revolutionar legitimation
+    addRevolutionarLegitimationComment: builder.mutation<RevolutionarLegitimationComment, { legitimationId: string; data: CreateCommentDto }>({
+      query: ({ legitimationId, data }) => ({
+        url: `/parking/revolutionar-legitimations/${legitimationId}/comments`,
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { legitimationId }) => [
+        { type: 'RevolutionarLegitimationComments', id: legitimationId },
+        { type: 'RevolutionarLegitimations', id: legitimationId },
+      ],
+    }),
+
+    // Get history for a revolutionar legitimation
+    getRevolutionarLegitimationHistory: builder.query<ParkingHistory[], string>({
+      query: (legitimationId) => `/parking/revolutionar-legitimations/${legitimationId}/history`,
+      providesTags: (_result, _error, legitimationId) => [{ type: 'RevolutionarLegitimationHistory', id: legitimationId }],
+    }),
+
+    // Get revolutionar legitimations for reports
+    getRevolutionarLegitimationsForReports: builder.query<RevolutionarLegitimation[], RevolutionarLegitimationReportFilters>({
+      query: (params) => ({
+        url: '/parking/revolutionar-legitimations/reports',
+        params,
+      }),
+    }),
   }),
 });
 
@@ -248,7 +356,7 @@ export const {
   useAddHandicapCommentMutation,
   useGetHandicapHistoryQuery,
   useGetHandicapRequestsForReportsQuery,
-  // Legitimații
+  // Legitimații Handicap
   useGetHandicapLegitimationsQuery,
   useGetHandicapLegitimationQuery,
   useCreateHandicapLegitimationMutation,
@@ -259,4 +367,15 @@ export const {
   useAddHandicapLegitimationCommentMutation,
   useGetHandicapLegitimationHistoryQuery,
   useGetHandicapLegitimationsForReportsQuery,
+  // Legitimații Revoluționar/Deportat
+  useGetRevolutionarLegitimationsQuery,
+  useGetRevolutionarLegitimationQuery,
+  useCreateRevolutionarLegitimationMutation,
+  useUpdateRevolutionarLegitimationMutation,
+  useResolveRevolutionarLegitimationMutation,
+  useDeleteRevolutionarLegitimationMutation,
+  useGetRevolutionarLegitimationCommentsQuery,
+  useAddRevolutionarLegitimationCommentMutation,
+  useGetRevolutionarLegitimationHistoryQuery,
+  useGetRevolutionarLegitimationsForReportsQuery,
 } = handicapApi;

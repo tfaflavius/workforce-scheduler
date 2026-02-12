@@ -18,6 +18,8 @@ import { DomiciliuRequest } from './entities/domiciliu-request.entity';
 import { DomiciliuRequestComment } from './entities/domiciliu-request-comment.entity';
 import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
 import { HandicapLegitimationComment } from './entities/handicap-legitimation-comment.entity';
+import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
+import { RevolutionarLegitimationComment } from './entities/revolutionar-legitimation-comment.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 
@@ -30,6 +32,7 @@ import { EditRequestService } from './edit-request.service';
 import { HandicapRequestsService } from './handicap-requests.service';
 import { DomiciliuRequestsService } from './domiciliu-requests.service';
 import { HandicapLegitimationsService } from './handicap-legitimations.service';
+import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 
 // Controllers
 import { ParkingLotsController } from './parking-lots.controller';
@@ -40,6 +43,7 @@ import { EditRequestController } from './edit-request.controller';
 import { HandicapRequestsController } from './handicap-requests.controller';
 import { DomiciliuRequestsController } from './domiciliu-requests.controller';
 import { HandicapLegitimationsController } from './handicap-legitimations.controller';
+import { RevolutionarLegitimationsController } from './revolutionar-legitimations.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
@@ -66,6 +70,8 @@ import { EmailModule } from '../../common/email/email.module';
       DomiciliuRequestComment,
       HandicapLegitimation,
       HandicapLegitimationComment,
+      RevolutionarLegitimation,
+      RevolutionarLegitimationComment,
       User,
       Department,
     ]),
@@ -82,6 +88,7 @@ import { EmailModule } from '../../common/email/email.module';
     HandicapRequestsController,
     DomiciliuRequestsController,
     HandicapLegitimationsController,
+    RevolutionarLegitimationsController,
   ],
   providers: [
     ParkingLotsService,
@@ -92,6 +99,7 @@ import { EmailModule } from '../../common/email/email.module';
     HandicapRequestsService,
     DomiciliuRequestsService,
     HandicapLegitimationsService,
+    RevolutionarLegitimationsService,
     ParkingUrgentScheduler,
   ],
   exports: [
@@ -103,6 +111,7 @@ import { EmailModule } from '../../common/email/email.module';
     HandicapRequestsService,
     DomiciliuRequestsService,
     HandicapLegitimationsService,
+    RevolutionarLegitimationsService,
   ],
 })
 export class ParkingModule {}

@@ -214,3 +214,13 @@ export const HANDICAP_LEGITIMATION_STATUS = {
 } as const;
 
 export type HandicapLegitimationStatus = typeof HANDICAP_LEGITIMATION_STATUS[keyof typeof HANDICAP_LEGITIMATION_STATUS];
+
+// ============== LEGITIMAȚII REVOLUȚIONAR/DEPORTAT ==============
+
+// Status pentru legitimații revoluționar
+export const REVOLUTIONAR_LEGITIMATION_STATUS = {
+  ACTIVE: 'ACTIVE',
+  FINALIZAT: 'FINALIZAT',
+} as const;
+
+export type RevolutionarLegitimationStatus = typeof REVOLUTIONAR_LEGITIMATION_STATUS[keyof typeof REVOLUTIONAR_LEGITIMATION_STATUS];

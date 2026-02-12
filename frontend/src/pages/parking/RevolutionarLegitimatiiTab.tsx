@@ -28,12 +28,12 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import {
-  CardMembership as LegitimationIcon,
+  MilitaryTech as RevolutionarIcon,
   AddCircle as AddIcon,
   Person as PersonIcon,
   Phone as PhoneIcon,
   DirectionsCar as CarIcon,
-  Badge as CertificateIcon,
+  Gavel as LawIcon,
   Close as CloseIcon,
   Delete as DeleteIcon,
   Comment as CommentIcon,
@@ -47,37 +47,37 @@ import {
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
-  useGetHandicapLegitimationsQuery,
-  useCreateHandicapLegitimationMutation,
-  useUpdateHandicapLegitimationMutation,
-  useDeleteHandicapLegitimationMutation,
-  useAddHandicapLegitimationCommentMutation,
-  useGetHandicapLegitimationHistoryQuery,
-  useGetHandicapLegitimationQuery,
+  useGetRevolutionarLegitimationsQuery,
+  useCreateRevolutionarLegitimationMutation,
+  useUpdateRevolutionarLegitimationMutation,
+  useDeleteRevolutionarLegitimationMutation,
+  useAddRevolutionarLegitimationCommentMutation,
+  useGetRevolutionarLegitimationHistoryQuery,
+  useGetRevolutionarLegitimationQuery,
 } from '../../store/api/handicap.api';
 import type {
-  HandicapLegitimation,
-  HandicapLegitimationStatus,
-  CreateHandicapLegitimationDto,
+  RevolutionarLegitimation,
+  RevolutionarLegitimationStatus,
+  CreateRevolutionarLegitimationDto,
 } from '../../types/handicap.types';
-import { HANDICAP_LEGITIMATION_STATUS_LABELS } from '../../types/handicap.types';
+import { REVOLUTIONAR_LEGITIMATION_STATUS_LABELS } from '../../types/handicap.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 
-// Culori
-const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
+// Culori - violet pentru a diferenția de handicap (verde)
+const REVOLUTIONAR_COLOR = { main: '#7c3aed', bg: '#7c3aed15' };
 
-interface HandicapLegitimatiiTabProps {
+interface RevolutionarLegitimatiiTabProps {
   isAdmin: boolean;
   canEdit: boolean;
   searchQuery: string;
-  statusFilter: HandicapLegitimationStatus | '';
+  statusFilter: RevolutionarLegitimationStatus | '';
   initialOpenId?: string | null;
   onOpenIdHandled?: () => void;
 }
 
 // ============== LEGITIMATION CARD ==============
 interface LegitimationCardProps {
-  legitimation: HandicapLegitimation;
+  legitimation: RevolutionarLegitimation;
   onClick: () => void;
 }
 
@@ -91,13 +91,13 @@ const LegitimationCard: React.FC<LegitimationCardProps> = ({ legitimation, onCli
       sx={{
         cursor: 'pointer',
         borderRadius: 2,
-        border: `1px solid ${alpha(LEGITIMATION_COLOR.main, 0.2)}`,
+        border: `1px solid ${alpha(REVOLUTIONAR_COLOR.main, 0.2)}`,
         transition: 'all 0.2s ease',
         bgcolor: isFinalizat ? alpha(theme.palette.success.main, 0.05) : 'background.paper',
         '&:hover': {
           transform: 'translateY(-2px)',
-          boxShadow: `0 4px 12px ${alpha(LEGITIMATION_COLOR.main, 0.15)}`,
-          borderColor: LEGITIMATION_COLOR.main,
+          boxShadow: `0 4px 12px ${alpha(REVOLUTIONAR_COLOR.main, 0.15)}`,
+          borderColor: REVOLUTIONAR_COLOR.main,
         },
         '&:active': {
           transform: 'translateY(0)',
@@ -117,18 +117,18 @@ const LegitimationCard: React.FC<LegitimationCardProps> = ({ legitimation, onCli
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  bgcolor: LEGITIMATION_COLOR.bg,
-                  color: LEGITIMATION_COLOR.main,
+                  bgcolor: REVOLUTIONAR_COLOR.bg,
+                  color: REVOLUTIONAR_COLOR.main,
                 }}
               >
-                <LegitimationIcon sx={{ fontSize: 18 }} />
+                <RevolutionarIcon sx={{ fontSize: 18 }} />
               </Box>
               <Typography variant="subtitle2" fontWeight={600}>
                 {legitimation.personName}
               </Typography>
             </Box>
             <Chip
-              label={HANDICAP_LEGITIMATION_STATUS_LABELS[legitimation.status]}
+              label={REVOLUTIONAR_LEGITIMATION_STATUS_LABELS[legitimation.status]}
               size="small"
               sx={{
                 bgcolor: isFinalizat ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
@@ -148,9 +148,9 @@ const LegitimationCard: React.FC<LegitimationCardProps> = ({ legitimation, onCli
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <CertificateIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <LawIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
               <Typography variant="body2" color="text.secondary">
-                {legitimation.handicapCertificateNumber}
+                {legitimation.lawNumber}
               </Typography>
             </Box>
           </Stack>
@@ -185,12 +185,12 @@ interface CreateLegitimationDialogProps {
 const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [createLegitimation, { isLoading }] = useCreateHandicapLegitimationMutation();
+  const [createLegitimation, { isLoading }] = useCreateRevolutionarLegitimationMutation();
 
-  const [formData, setFormData] = useState<CreateHandicapLegitimationDto>({
+  const [formData, setFormData] = useState<CreateRevolutionarLegitimationDto>({
     personName: '',
     cnp: '',
-    handicapCertificateNumber: '',
+    lawNumber: '',
     carPlate: '',
     autoNumber: '',
     phone: '',
@@ -204,7 +204,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
       setFormData({
         personName: '',
         cnp: '',
-        handicapCertificateNumber: '',
+        lawNumber: '',
         carPlate: '',
         autoNumber: '',
         phone: '',
@@ -216,7 +216,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
   };
 
   const isFormValid = () => {
-    return !!(formData.personName && formData.handicapCertificateNumber && formData.carPlate);
+    return !!(formData.personName && formData.lawNumber && formData.carPlate);
   };
 
   return (
@@ -235,13 +235,13 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
           display: 'flex',
           alignItems: 'center',
           gap: 1,
-          background: `linear-gradient(135deg, ${LEGITIMATION_COLOR.main}, ${alpha(LEGITIMATION_COLOR.main, 0.7)})`,
+          background: `linear-gradient(135deg, ${REVOLUTIONAR_COLOR.main}, ${alpha(REVOLUTIONAR_COLOR.main, 0.7)})`,
           color: 'white',
         }}
       >
-        <LegitimationIcon />
+        <RevolutionarIcon />
         <Typography variant="h6" component="span">
-          Solicitare legitimație handicap
+          Solicitare legitimație revoluționar/deportat
         </Typography>
         <IconButton onClick={onClose} sx={{ ml: 'auto', color: 'white' }}>
           <CloseIcon />
@@ -285,15 +285,16 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
           />
 
           <TextField
-            label="Număr certificat handicap"
-            value={formData.handicapCertificateNumber}
-            onChange={(e) => setFormData({ ...formData, handicapCertificateNumber: e.target.value })}
+            label="Lege / Hotărâre"
+            value={formData.lawNumber}
+            onChange={(e) => setFormData({ ...formData, lawNumber: e.target.value })}
             required
             fullWidth
+            placeholder="Ex: Legea nr. 341/2004"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <CertificateIcon color="action" />
+                  <LawIcon color="action" />
                 </InputAdornment>
               ),
             }}
@@ -359,8 +360,8 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
           disabled={!isFormValid() || isLoading}
           startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <AddIcon />}
           sx={{
-            bgcolor: LEGITIMATION_COLOR.main,
-            '&:hover': { bgcolor: alpha(LEGITIMATION_COLOR.main, 0.9) },
+            bgcolor: REVOLUTIONAR_COLOR.main,
+            '&:hover': { bgcolor: alpha(REVOLUTIONAR_COLOR.main, 0.9) },
           }}
         >
           {isLoading ? 'Se creează...' : 'Creează'}
@@ -394,23 +395,23 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
   const [editData, setEditData] = useState({
     personName: '',
     cnp: '',
-    handicapCertificateNumber: '',
+    lawNumber: '',
     carPlate: '',
     autoNumber: '',
     phone: '',
     description: '',
   });
 
-  const { data: legitimation, isLoading, refetch } = useGetHandicapLegitimationQuery(legitimationId || '', {
+  const { data: legitimation, isLoading, refetch } = useGetRevolutionarLegitimationQuery(legitimationId || '', {
     skip: !legitimationId,
   });
-  const { data: history = [] } = useGetHandicapLegitimationHistoryQuery(legitimationId || '', {
+  const { data: history = [] } = useGetRevolutionarLegitimationHistoryQuery(legitimationId || '', {
     skip: !legitimationId || activeSection !== 'history',
   });
 
-  const [addComment, { isLoading: isAddingComment }] = useAddHandicapLegitimationCommentMutation();
-  const [updateLegitimation, { isLoading: isUpdating }] = useUpdateHandicapLegitimationMutation();
-  const [deleteLegitimation, { isLoading: isDeleting }] = useDeleteHandicapLegitimationMutation();
+  const [addComment, { isLoading: isAddingComment }] = useAddRevolutionarLegitimationCommentMutation();
+  const [updateLegitimation, { isLoading: isUpdating }] = useUpdateRevolutionarLegitimationMutation();
+  const [deleteLegitimation, { isLoading: isDeleting }] = useDeleteRevolutionarLegitimationMutation();
 
   // Populate edit data when legitimation loads
   useEffect(() => {
@@ -418,7 +419,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
       setEditData({
         personName: legitimation.personName || '',
         cnp: legitimation.cnp || '',
-        handicapCertificateNumber: legitimation.handicapCertificateNumber || '',
+        lawNumber: legitimation.lawNumber || '',
         carPlate: legitimation.carPlate || '',
         autoNumber: legitimation.autoNumber || '',
         phone: legitimation.phone || '',
@@ -432,7 +433,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
       setEditData({
         personName: legitimation.personName || '',
         cnp: legitimation.cnp || '',
-        handicapCertificateNumber: legitimation.handicapCertificateNumber || '',
+        lawNumber: legitimation.lawNumber || '',
         carPlate: legitimation.carPlate || '',
         autoNumber: legitimation.autoNumber || '',
         phone: legitimation.phone || '',
@@ -498,17 +499,17 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: 1,
-            background: `linear-gradient(135deg, ${LEGITIMATION_COLOR.main}, ${alpha(LEGITIMATION_COLOR.main, 0.7)})`,
+            background: `linear-gradient(135deg, ${REVOLUTIONAR_COLOR.main}, ${alpha(REVOLUTIONAR_COLOR.main, 0.7)})`,
             color: 'white',
           }}
         >
-          <LegitimationIcon />
+          <RevolutionarIcon />
           <Typography variant="h6" component="span" sx={{ flex: 1 }}>
-            Detalii legitimație
+            Detalii legitimație revoluționar/deportat
           </Typography>
           {legitimation && (
             <Chip
-              label={HANDICAP_LEGITIMATION_STATUS_LABELS[legitimation.status]}
+              label={REVOLUTIONAR_LEGITIMATION_STATUS_LABELS[legitimation.status]}
               size="small"
               sx={{
                 bgcolor: legitimation.status === 'FINALIZAT' ? 'success.light' : 'warning.light',
@@ -550,8 +551,8 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                       py: 1.5,
                       borderRadius: 0,
                       borderBottom: activeSection === section ? 2 : 0,
-                      borderColor: LEGITIMATION_COLOR.main,
-                      color: activeSection === section ? LEGITIMATION_COLOR.main : 'text.secondary',
+                      borderColor: REVOLUTIONAR_COLOR.main,
+                      color: activeSection === section ? REVOLUTIONAR_COLOR.main : 'text.secondary',
                       fontWeight: activeSection === section ? 600 : 400,
                     }}
                     startIcon={
@@ -602,7 +603,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                               onClick={handleSaveEdit}
                               size="small"
                               disabled={isUpdating}
-                              sx={{ bgcolor: LEGITIMATION_COLOR.main }}
+                              sx={{ bgcolor: REVOLUTIONAR_COLOR.main }}
                             >
                               Salvează
                             </Button>
@@ -643,15 +644,15 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                             }}
                           />
                           <TextField
-                            label="Nr. certificat handicap"
-                            value={editData.handicapCertificateNumber}
-                            onChange={(e) => setEditData({ ...editData, handicapCertificateNumber: e.target.value })}
+                            label="Lege / Hotărâre"
+                            value={editData.lawNumber}
+                            onChange={(e) => setEditData({ ...editData, lawNumber: e.target.value })}
                             fullWidth
                             required
                             InputProps={{
                               startAdornment: (
                                 <InputAdornment position="start">
-                                  <CertificateIcon color="action" />
+                                  <LawIcon color="action" />
                                 </InputAdornment>
                               ),
                             }}
@@ -704,10 +705,10 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                     ) : (
                       // View mode
                       <>
-                        <Paper sx={{ p: 2, bgcolor: LEGITIMATION_COLOR.bg }}>
+                        <Paper sx={{ p: 2, bgcolor: REVOLUTIONAR_COLOR.bg }}>
                           <Stack spacing={1.5}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <PersonIcon sx={{ color: LEGITIMATION_COLOR.main }} />
+                              <PersonIcon sx={{ color: REVOLUTIONAR_COLOR.main }} />
                               <Typography variant="body1" fontWeight={600}>
                                 {legitimation.personName}
                               </Typography>
@@ -719,9 +720,9 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                               </Box>
                             )}
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <CertificateIcon sx={{ color: 'text.secondary' }} />
+                              <LawIcon sx={{ color: 'text.secondary' }} />
                               <Typography variant="body2">
-                                Certificat: {legitimation.handicapCertificateNumber}
+                                Lege / Hotărâre: {legitimation.lawNumber}
                               </Typography>
                             </Box>
                             <Divider />
@@ -806,7 +807,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                           startIcon={
                             isAddingComment ? <CircularProgress size={16} color="inherit" /> : <SendIcon />
                           }
-                          sx={{ bgcolor: LEGITIMATION_COLOR.main }}
+                          sx={{ bgcolor: REVOLUTIONAR_COLOR.main }}
                         >
                           Trimite
                         </Button>
@@ -819,7 +820,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                         legitimation.comments.map((comment) => (
                           <ListItem key={comment.id} alignItems="flex-start" sx={{ px: 0 }}>
                             <ListItemAvatar>
-                              <Avatar sx={{ bgcolor: LEGITIMATION_COLOR.main }}>
+                              <Avatar sx={{ bgcolor: REVOLUTIONAR_COLOR.main }}>
                                 {comment.user?.fullName?.charAt(0) || 'U'}
                               </Avatar>
                             </ListItemAvatar>
@@ -926,7 +927,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
 };
 
 // ============== MAIN TAB COMPONENT ==============
-const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
+const RevolutionarLegitimatiiTab: React.FC<RevolutionarLegitimatiiTabProps> = ({
   isAdmin,
   canEdit,
   searchQuery,
@@ -937,8 +938,8 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedLegitimationId, setSelectedLegitimationId] = useState<string | null>(null);
 
-  const { data: legitimations = [], isLoading } = useGetHandicapLegitimationsQuery(
-    statusFilter ? { status: statusFilter as HandicapLegitimationStatus } : undefined
+  const { data: legitimations = [], isLoading } = useGetRevolutionarLegitimationsQuery(
+    statusFilter ? { status: statusFilter as RevolutionarLegitimationStatus } : undefined
   );
 
   // Handle initial open from notification
@@ -959,7 +960,7 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
       (l) =>
         l.personName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         l.carPlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        l.handicapCertificateNumber.toLowerCase().includes(searchQuery.toLowerCase())
+        l.lawNumber.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [legitimations, searchQuery]);
 
@@ -970,16 +971,16 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
       {/* Header with create button */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <LegitimationIcon sx={{ color: LEGITIMATION_COLOR.main }} />
-          Legitimații Handicap ({activeCount} active)
+          <RevolutionarIcon sx={{ color: REVOLUTIONAR_COLOR.main }} />
+          Legitimații Revoluționar/Deportat ({activeCount} active)
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => setCreateDialogOpen(true)}
           sx={{
-            bgcolor: LEGITIMATION_COLOR.main,
-            '&:hover': { bgcolor: alpha(LEGITIMATION_COLOR.main, 0.9) },
+            bgcolor: REVOLUTIONAR_COLOR.main,
+            '&:hover': { bgcolor: alpha(REVOLUTIONAR_COLOR.main, 0.9) },
           }}
         >
           Adaugă
@@ -999,26 +1000,26 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
             p: 4,
             textAlign: 'center',
             borderRadius: 3,
-            bgcolor: LEGITIMATION_COLOR.bg,
+            bgcolor: REVOLUTIONAR_COLOR.bg,
           }}
         >
-          <LegitimationIcon sx={{ fontSize: 64, color: alpha(LEGITIMATION_COLOR.main, 0.3), mb: 2 }} />
+          <RevolutionarIcon sx={{ fontSize: 64, color: alpha(REVOLUTIONAR_COLOR.main, 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            Nu există legitimații handicap
+            Nu există legitimații
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {searchQuery ? 'Nu s-au găsit rezultate pentru căutarea ta' : 'Nu există legitimații handicap încă'}
+            {searchQuery ? 'Nu s-au găsit rezultate pentru căutarea ta' : 'Nu există legitimații încă'}
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setCreateDialogOpen(true)}
             sx={{
-              bgcolor: LEGITIMATION_COLOR.main,
-              '&:hover': { bgcolor: alpha(LEGITIMATION_COLOR.main, 0.9) },
+              bgcolor: REVOLUTIONAR_COLOR.main,
+              '&:hover': { bgcolor: alpha(REVOLUTIONAR_COLOR.main, 0.9) },
             }}
           >
-            Creează prima legitimație handicap
+            Creează prima legitimație
           </Button>
         </Paper>
       ) : (
@@ -1047,4 +1048,4 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   );
 };
 
-export default HandicapLegitimatiiTab;
+export default RevolutionarLegitimatiiTab;

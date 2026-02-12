@@ -86,8 +86,10 @@ import {
   HANDICAP_REQUEST_STATUS_LABELS,
 } from '../../types/handicap.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
-import { CardMembership as LegitimationIcon } from '@mui/icons-material';
+import { CardMembership as LegitimationIcon, MilitaryTech as RevolutionarIcon } from '@mui/icons-material';
 import HandicapLegitimatiiTab from './HandicapLegitimatiiTab';
+import RevolutionarLegitimatiiTab from './RevolutionarLegitimatiiTab';
+import type { RevolutionarLegitimationStatus } from '../../types/handicap.types';
 
 // Departamente cu acces
 const ALLOWED_DEPARTMENTS = ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'];
@@ -96,6 +98,7 @@ const HANDICAP_PARKING_DEPARTMENT_NAME = 'Parcări Handicap';
 
 // Culori pentru legitimații
 const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
+const REVOLUTIONAR_COLOR = { main: '#7c3aed', bg: '#7c3aed15' };
 
 // Culori pentru tipuri de solicitări
 const REQUEST_TYPE_COLORS: Record<HandicapRequestType, { main: string; bg: string }> = {
@@ -1141,6 +1144,7 @@ const HandicapParkingPage: React.FC = () => {
   const [createDialogType, setCreateDialogType] = useState<HandicapRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [openLegitimationId, setOpenLegitimationId] = useState<string | null>(null);
+  const [openRevolutionarLegitimationId, setOpenRevolutionarLegitimationId] = useState<string | null>(null);
 
   const { user } = useAppSelector((state) => state.auth);
 
@@ -1212,9 +1216,12 @@ const HandicapParkingPage: React.FC = () => {
     },
   ];
 
-  // Numărul de tab-uri pentru solicitări (0, 1, 2) și tab-ul Legitimații (3) - dacă e vizibil
-  const legitimationsTabIndex = requestTabConfig.length;
-  const isLegitimationsTab = canSeeLegitimations && tabValue === legitimationsTabIndex;
+  // Numărul de tab-uri pentru solicitări (0, 1, 2) și tab-urile Legitimații (3, 4) - dacă sunt vizibile
+  const handicapLegitimationsTabIndex = requestTabConfig.length; // index 3
+  const revolutionarLegitimationsTabIndex = requestTabConfig.length + 1; // index 4
+  const isHandicapLegitimationsTab = canSeeLegitimations && tabValue === handicapLegitimationsTabIndex;
+  const isRevolutionarLegitimationsTab = canSeeLegitimations && tabValue === revolutionarLegitimationsTabIndex;
+  const isLegitimationsTab = isHandicapLegitimationsTab || isRevolutionarLegitimationsTab;
 
   // tabConfig pentru render - folosit doar pentru primele 3 tab-uri
   const tabConfig = requestTabConfig;
@@ -1391,7 +1398,11 @@ const HandicapParkingPage: React.FC = () => {
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
-              background: isLegitimationsTab ? LEGITIMATION_COLOR.main : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
+              background: isHandicapLegitimationsTab
+                ? LEGITIMATION_COLOR.main
+                : isRevolutionarLegitimationsTab
+                  ? REVOLUTIONAR_COLOR.main
+                  : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
             },
             '& .MuiTab-root': {
               minHeight: { xs: 56, sm: 64, md: 72 },
@@ -1448,7 +1459,7 @@ const HandicapParkingPage: React.FC = () => {
               }}
             />
           ))}
-          {/* Tab Legitimații - vizibil doar pentru Admin și Parcări Handicap */}
+          {/* Tab Legitimații Handicap - vizibil doar pentru Admin și Parcări Handicap */}
           {canSeeLegitimations && (
             <Tab
               icon={
@@ -1456,23 +1467,52 @@ const HandicapParkingPage: React.FC = () => {
                   sx={{
                     p: { xs: 0.5, sm: 0.75 },
                     borderRadius: '50%',
-                    bgcolor: isLegitimationsTab ? alpha(LEGITIMATION_COLOR.main, 0.15) : 'transparent',
+                    bgcolor: isHandicapLegitimationsTab ? alpha(LEGITIMATION_COLOR.main, 0.15) : 'transparent',
                     display: 'flex',
                     '& .MuiSvgIcon-root': {
                       fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                      color: isLegitimationsTab ? LEGITIMATION_COLOR.main : 'text.secondary',
+                      color: isHandicapLegitimationsTab ? LEGITIMATION_COLOR.main : 'text.secondary',
                     },
                   }}
                 >
                   <LegitimationIcon />
                 </Box>
               }
-              label={isMobile ? 'Legitimații' : 'Legitimații'}
+              label={isMobile ? 'L. Handicap' : 'Legitimații Handicap'}
               iconPosition="top"
               sx={{
                 '&.Mui-selected': {
                   color: LEGITIMATION_COLOR.main,
                   bgcolor: alpha(LEGITIMATION_COLOR.main, 0.1),
+                },
+              }}
+            />
+          )}
+          {/* Tab Legitimații Revoluționar/Deportat - vizibil doar pentru Admin și Parcări Handicap */}
+          {canSeeLegitimations && (
+            <Tab
+              icon={
+                <Box
+                  sx={{
+                    p: { xs: 0.5, sm: 0.75 },
+                    borderRadius: '50%',
+                    bgcolor: isRevolutionarLegitimationsTab ? alpha(REVOLUTIONAR_COLOR.main, 0.15) : 'transparent',
+                    display: 'flex',
+                    '& .MuiSvgIcon-root': {
+                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                      color: isRevolutionarLegitimationsTab ? REVOLUTIONAR_COLOR.main : 'text.secondary',
+                    },
+                  }}
+                >
+                  <RevolutionarIcon />
+                </Box>
+              }
+              label={isMobile ? 'L. Revoluționar' : 'Legitimații Revoluționar'}
+              iconPosition="top"
+              sx={{
+                '&.Mui-selected': {
+                  color: REVOLUTIONAR_COLOR.main,
+                  bgcolor: alpha(REVOLUTIONAR_COLOR.main, 0.1),
                 },
               }}
             />
@@ -1533,9 +1573,9 @@ const HandicapParkingPage: React.FC = () => {
         </TabPanel>
       ))}
 
-      {/* Content - Tab Legitimații */}
+      {/* Content - Tab Legitimații Handicap */}
       {canSeeLegitimations && (
-        <TabPanel value={tabValue} index={legitimationsTabIndex}>
+        <TabPanel value={tabValue} index={handicapLegitimationsTabIndex}>
           <HandicapLegitimatiiTab
             isAdmin={isAdmin}
             canEdit={canEditHandicap}
@@ -1543,6 +1583,20 @@ const HandicapParkingPage: React.FC = () => {
             statusFilter={statusFilter as HandicapLegitimationStatus | ''}
             initialOpenId={openLegitimationId}
             onOpenIdHandled={() => setOpenLegitimationId(null)}
+          />
+        </TabPanel>
+      )}
+
+      {/* Content - Tab Legitimații Revoluționar/Deportat */}
+      {canSeeLegitimations && (
+        <TabPanel value={tabValue} index={revolutionarLegitimationsTabIndex}>
+          <RevolutionarLegitimatiiTab
+            isAdmin={isAdmin}
+            canEdit={canEditHandicap}
+            searchQuery={searchQuery}
+            statusFilter={statusFilter as RevolutionarLegitimationStatus | ''}
+            initialOpenId={openRevolutionarLegitimationId}
+            onOpenIdHandled={() => setOpenRevolutionarLegitimationId(null)}
           />
         </TabPanel>
       )}
