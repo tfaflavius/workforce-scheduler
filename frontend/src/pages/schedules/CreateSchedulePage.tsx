@@ -390,7 +390,8 @@ const CreateSchedulePage: React.FC = () => {
 
         // Mapare notes -> local shift id
         let localShiftId = '';
-        if (notes === 'Concediu') {
+        // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+        if (notes === 'Concediu' || notes?.startsWith('Concediu:') || notes?.includes('Concediu')) {
           // Determină dacă e 12H sau 8H bazat pe pattern-ul detectat sau default 12H
           localShiftId = detectedPattern === '8H' ? 'vacation_8' : 'vacation_12';
         } else if (notes.includes('07:00-19:00')) {
@@ -718,7 +719,8 @@ const CreateSchedulePage: React.FC = () => {
 
   // Obține info pentru o asignare existentă
   const getExistingShiftInfo = (notes: string) => {
-    if (notes === 'Concediu') {
+    // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+    if (notes === 'Concediu' || notes?.startsWith('Concediu:') || notes?.includes('Concediu')) {
       return { label: 'CO', color: '#FF9800' };
     }
     if (notes.includes('07:00-19:00')) {

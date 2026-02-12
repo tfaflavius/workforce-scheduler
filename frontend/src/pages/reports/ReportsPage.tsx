@@ -204,7 +204,8 @@ const ReportsPage: React.FC = () => {
 
   // Obține info pentru o asignare existentă
   const getExistingShiftInfo = (notes: string) => {
-    if (notes === 'Concediu') {
+    // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+    if (notes === 'Concediu' || notes?.startsWith('Concediu:') || notes?.includes('Concediu')) {
       return { label: 'CO', color: '#FF9800', type: 'VACATION' as const };
     }
     if (notes.includes('07:00-19:00')) {

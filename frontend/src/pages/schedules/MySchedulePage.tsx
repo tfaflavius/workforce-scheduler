@@ -43,7 +43,8 @@ import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.type
 const getShiftInfoFromNotes = (notes: string | undefined | null) => {
   if (!notes) return { name: 'Liber', isNightShift: false, startTime: '', endTime: '', hours: 0 };
 
-  if (notes === 'Concediu') {
+  // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+  if (notes === 'Concediu' || notes.startsWith('Concediu:') || notes.includes('Concediu')) {
     return { name: 'Concediu', isNightShift: false, startTime: '', endTime: '', hours: 0 };
   }
   if (notes.includes('07:00-19:00')) {

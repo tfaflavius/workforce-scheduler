@@ -132,7 +132,8 @@ const getStatusIcon = (status: ShiftSwapStatus) => {
 // Helper to get shift info from notes
 const getShiftInfoFromNotes = (notes: string | undefined | null) => {
   if (!notes) return { name: 'Liber', startTime: '', endTime: '' };
-  if (notes === 'Concediu') return { name: 'Concediu', startTime: '', endTime: '' };
+  // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+  if (notes === 'Concediu' || notes.startsWith('Concediu:') || notes.includes('Concediu')) return { name: 'Concediu', startTime: '', endTime: '' };
   if (notes.includes('07:00-19:00')) return { name: 'Zi 12h', startTime: '07:00', endTime: '19:00' };
   if (notes.includes('19:00-07:00')) return { name: 'Noapte 12h', startTime: '19:00', endTime: '07:00' };
   if (notes.includes('07:30-15:30')) return { name: 'Zi 8h', startTime: '07:30', endTime: '15:30' };

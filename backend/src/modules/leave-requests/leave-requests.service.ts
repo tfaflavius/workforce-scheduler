@@ -454,9 +454,17 @@ export class LeaveRequestsService {
           existing.leaveType = request.leaveType;
           existing.notes = `Concediu: ${LEAVE_TYPE_LABELS[request.leaveType]}`;
           await this.scheduleAssignmentRepository.save(existing);
+        } else {
+          // Create new assignment for leave
+          const newAssignment = this.scheduleAssignmentRepository.create({
+            userId: request.userId,
+            shiftDate: current,
+            isRestDay: true,
+            leaveType: request.leaveType,
+            notes: `Concediu: ${LEAVE_TYPE_LABELS[request.leaveType]}`,
+          });
+          await this.scheduleAssignmentRepository.save(newAssignment);
         }
-        // Note: If no existing assignment, leave it - the schedule will show the leave
-        // when rendering based on the leave_requests table
       }
 
       current.setDate(current.getDate() + 1);
