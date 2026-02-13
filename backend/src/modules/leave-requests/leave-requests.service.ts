@@ -12,6 +12,7 @@ import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { RespondLeaveRequestDto } from './dto/respond-leave-request.dto';
 import { UpdateLeaveBalanceDto } from './dto/update-leave-balance.dto';
 import { NotificationsService } from '../notifications/notifications.service';
+import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { User } from '../users/entities/user.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
@@ -49,6 +50,7 @@ export class LeaveRequestsService {
     @InjectRepository(Department)
     private departmentRepository: Repository<Department>,
     private notificationsService: NotificationsService,
+    private pushNotificationService: PushNotificationService,
     private emailService: EmailService,
   ) {}
 
@@ -500,6 +502,14 @@ export class LeaveRequestsService {
         },
       });
 
+      // Push notification cu URL către pagina de gestionare concedii
+      await this.pushNotificationService.sendToUser(
+        admin.id,
+        '📋 Cerere Nouă de Concediu',
+        `${user.fullName} a solicitat ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate})`,
+        { url: '/admin/leave-requests' },
+      );
+
       // Email către admin
       await this.emailService.sendLeaveRequestNotificationToApprover(
         admin.email,
@@ -559,6 +569,16 @@ export class LeaveRequestsService {
         adminMessage: request.adminMessage,
       },
     });
+
+    // Push notification cu URL către programul utilizatorului
+    await this.pushNotificationService.sendToUser(
+      request.userId,
+      approved ? '✅ Concediu Aprobat' : '❌ Concediu Respins',
+      approved
+        ? `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost aprobată!`
+        : `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost respinsă.`,
+      { url: '/schedules' },
+    );
 
     // Email către angajat
     const user = await this.userRepository.findOne({ where: { id: request.userId } });

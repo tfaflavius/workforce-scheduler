@@ -13,6 +13,7 @@ import { User, UserRole } from '../users/entities/user.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { PushNotificationService } from '../notifications/push-notification.service';
 import { EmailService } from '../../common/email/email.service';
 import { CreateSwapRequestDto } from './dto/create-swap-request.dto';
 import { RespondSwapDto } from './dto/respond-swap.dto';
@@ -34,6 +35,7 @@ export class ShiftSwapsService {
     @InjectRepository(WorkSchedule)
     private readonly scheduleRepository: Repository<WorkSchedule>,
     private readonly notificationsService: NotificationsService,
+    private readonly pushNotificationService: PushNotificationService,
     private readonly emailService: EmailService,
   ) {}
 
@@ -232,6 +234,14 @@ export class ShiftSwapsService {
       message: `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsă de administrator.${dto.adminNotes ? ` Motiv: ${dto.adminNotes}` : ''}`,
       data: { swapRequestId },
     });
+
+    // Push notification către solicitant
+    await this.pushNotificationService.sendToUser(
+      swapRequest.requesterId,
+      '❌ Schimb Respins',
+      `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsă`,
+      { url: '/shift-swaps' },
+    );
 
     // Email către solicitant
     if (requester) {
@@ -452,6 +462,14 @@ export class ShiftSwapsService {
         data: { swapRequestId: request.id },
       });
 
+      // Push notification cu URL către pagina de gestionare schimburi
+      await this.pushNotificationService.sendToUser(
+        admin.id,
+        '🔄 Cerere Schimb de Tură',
+        `${requester.fullName}: ${requesterDateFormatted} ↔ ${targetDateFormatted}`,
+        { url: '/admin/shift-swaps' },
+      );
+
       // Email către admin
       await this.emailService.sendShiftSwapNotification({
         recipientEmail: admin.email,
@@ -474,6 +492,14 @@ export class ShiftSwapsService {
         message: `${requester.fullName} dorește să schimbe tura din ${requesterDateFormatted} cu tura ta din ${targetDateFormatted}. Motiv: ${request.reason}`,
         data: { swapRequestId: request.id },
       });
+
+      // Push notification cu URL către pagina de schimburi a userului
+      await this.pushNotificationService.sendToUser(
+        user.id,
+        '🔄 Cerere Schimb de Tură',
+        `${requester.fullName} dorește să schimbe tura cu tine (${targetDateFormatted})`,
+        { url: '/shift-swaps' },
+      );
 
       // Email către user
       await this.emailService.sendShiftSwapNotification({
@@ -512,6 +538,14 @@ export class ShiftSwapsService {
       data: { swapRequestId: request.id },
     });
 
+    // Push notification către solicitant
+    await this.pushNotificationService.sendToUser(
+      request.requesterId,
+      responseType === SwapResponseType.ACCEPTED ? '✅ Schimb Acceptat' : '❌ Schimb Refuzat',
+      `${responder.fullName} ${responseText} schimbul pentru ${requesterDateFormatted}`,
+      { url: '/shift-swaps' },
+    );
+
     // Email către solicitant
     if (requester) {
       await this.emailService.sendShiftSwapNotification({
@@ -540,6 +574,14 @@ export class ShiftSwapsService {
           message: `${responder.fullName} a acceptat să facă schimb cu ${request.requester?.fullName || 'solicitant'}. Așteaptă aprobarea ta.`,
           data: { swapRequestId: request.id },
         });
+
+        // Push notification către admin
+        await this.pushNotificationService.sendToUser(
+          admin.id,
+          '⏳ Schimb Așteaptă Aprobare',
+          `${responder.fullName} a acceptat schimbul cu ${request.requester?.fullName || 'solicitant'}`,
+          { url: '/admin/shift-swaps' },
+        );
 
         // Email către admin
         await this.emailService.sendShiftSwapNotification({
@@ -581,6 +623,14 @@ export class ShiftSwapsService {
       data: { swapRequestId: request.id },
     });
 
+    // Push notification către solicitant
+    await this.pushNotificationService.sendToUser(
+      request.requesterId,
+      '🎉 Schimb Aprobat!',
+      `Acum lucrezi în ${targetDateFormatted} în loc de ${requesterDateFormatted}`,
+      { url: '/schedules' },
+    );
+
     // Email către solicitant
     if (requester) {
       await this.emailService.sendShiftSwapNotification({
@@ -602,6 +652,14 @@ export class ShiftSwapsService {
       message: `Schimbul a fost aprobat! Acum lucrezi în ${requesterDateFormatted} în loc de ${targetDateFormatted}.`,
       data: { swapRequestId: request.id },
     });
+
+    // Push notification către userul aprobat
+    await this.pushNotificationService.sendToUser(
+      approvedResponderId,
+      '🎉 Schimb Aprobat!',
+      `Acum lucrezi în ${requesterDateFormatted} în loc de ${targetDateFormatted}`,
+      { url: '/schedules' },
+    );
 
     // Email către userul aprobat
     if (approvedResponder) {
