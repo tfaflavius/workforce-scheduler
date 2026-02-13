@@ -853,6 +853,54 @@ export class SchedulesService {
   }
 
   /**
+   * Get today's dispatcher assignments (employees working in Dispecerat position)
+   */
+  async getTodayDispatcherAssignments(): Promise<any[]> {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    // Query assignments for today with Dispecerat work position
+    const assignments = await this.assignmentRepository
+      .createQueryBuilder('assignment')
+      .leftJoinAndSelect('assignment.user', 'user')
+      .leftJoinAndSelect('assignment.shiftType', 'shiftType')
+      .leftJoinAndSelect('assignment.workPosition', 'workPosition')
+      .leftJoinAndSelect('assignment.schedule', 'schedule')
+      .where('DATE(assignment.shift_date) = :today', { today: todayStr })
+      .andWhere('schedule.status = :status', { status: 'APPROVED' })
+      .andWhere('workPosition.short_name = :position', { position: 'DISP' })
+      .orderBy('shiftType.start_time', 'ASC')
+      .getMany();
+
+    // Format the response
+    // Extract shift code from name (e.g., "Zi (07-19)" -> "Z", "Noapte (19-07)" -> "N")
+    return assignments.map(assignment => {
+      const shiftName = assignment.shiftType?.name || '';
+      let shiftCode = '';
+      if (shiftName.toLowerCase().includes('zi')) {
+        shiftCode = 'Z';
+      } else if (shiftName.toLowerCase().includes('noapte')) {
+        shiftCode = 'N';
+      } else if (shiftName.toLowerCase().includes('liber')) {
+        shiftCode = 'L';
+      }
+
+      return {
+        id: assignment.id,
+        userId: assignment.userId,
+        userName: assignment.user?.fullName || 'Unknown',
+        userEmail: assignment.user?.email,
+        shiftType: assignment.shiftType?.name || 'Unknown',
+        shiftCode,
+        startTime: assignment.shiftType?.startTime,
+        endTime: assignment.shiftType?.endTime,
+        workPosition: assignment.workPosition?.name || 'Dispecerat',
+        workPositionCode: assignment.workPosition?.shortName || 'DISP',
+      };
+    });
+  }
+
+  /**
    * Send email notifications to all employees affected by a schedule
    */
   async sendScheduleNotifications(

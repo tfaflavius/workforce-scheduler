@@ -17,6 +17,20 @@ import type { RootState } from '../store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Type for today's dispatcher
+export interface TodayDispatcher {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  shiftType: string;
+  shiftCode: string;
+  startTime: string;
+  endTime: string;
+  workPosition: string;
+  workPositionCode: string;
+}
+
 export const schedulesApi = createApi({
   reducerPath: 'schedulesApi',
   baseQuery: fetchBaseQuery({
@@ -168,6 +182,12 @@ export const schedulesApi = createApi({
       providesTags: ['Schedule'],
     }),
 
+    // Get today's dispatcher assignments
+    getTodayDispatchers: builder.query<TodayDispatcher[], void>({
+      query: () => '/schedules/today/dispatchers',
+      providesTags: ['Schedule'],
+    }),
+
     // Export schedule to PDF or Excel
     exportSchedule: builder.mutation<
       ReportResponse,
@@ -202,5 +222,6 @@ export const {
   useRejectScheduleMutation,
   useCloneScheduleMutation,
   useGetDashboardStatsQuery,
+  useGetTodayDispatchersQuery,
   useExportScheduleMutation,
 } = schedulesApi;

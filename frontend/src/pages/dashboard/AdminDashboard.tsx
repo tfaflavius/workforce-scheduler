@@ -12,6 +12,12 @@ import {
   Fade,
   alpha,
   useTheme,
+  Chip,
+  Avatar,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from '@mui/material';
 import {
   PendingActions as PendingIcon,
@@ -30,8 +36,11 @@ import {
   Brush as MarcajeIcon,
   Badge as LegitimatiiIcon,
   MilitaryTech as RevolutionarIcon,
+  Headset as DispatcherIcon,
+  AccessTime as TimeIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
-import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
+import { useGetSchedulesQuery, useGetTodayDispatchersQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetAllSwapRequestsQuery } from '../../store/api/shiftSwaps.api';
 import { useGetAllLeaveRequestsQuery } from '../../store/api/leaveRequests.api';
@@ -188,7 +197,10 @@ const AdminDashboard = () => {
   const { data: handicapLegitimations = [] } = useGetHandicapLegitimationsQuery();
   const { data: revolutionarLegitimations = [] } = useGetRevolutionarLegitimationsQuery();
 
-  const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading;
+  // Today's dispatchers query
+  const { data: todayDispatchers = [], isLoading: dispatchersLoading } = useGetTodayDispatchersQuery();
+
+  const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading || dispatchersLoading;
 
   // Loading state - after all hooks
   if (isLoading) {
@@ -281,6 +293,148 @@ const AdminDashboard = () => {
           </Stack>
         </Box>
       </Fade>
+
+      {/* Today's Dispatchers Section */}
+      <Fade in={true} timeout={650}>
+        <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{
+              mb: { xs: 1.5, sm: 2 },
+              fontWeight: 700,
+              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+            }}
+          >
+            🎧 Dispecerat Astăzi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </Typography>
+          <Grow in={true} timeout={600}>
+            <Card
+              sx={{
+                background: theme.palette.mode === 'light'
+                  ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
+                  : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                color: 'white',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Background decorations */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -40,
+                  right: -40,
+                  width: 150,
+                  height: 150,
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                }}
+              />
+              <CardContent sx={{ p: { xs: 2, sm: 3 }, position: 'relative' }}>
+                <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+                  <Box
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      display: 'flex',
+                    }}
+                  >
+                    <DispatcherIcon sx={{ fontSize: 28 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" fontWeight="bold">
+                      Personal în Dispecerat
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      {todayDispatchers.length > 0
+                        ? `${todayDispatchers.length} ${todayDispatchers.length === 1 ? 'persoană programată' : 'persoane programate'}`
+                        : 'Nicio persoană programată'}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                {todayDispatchers.length > 0 ? (
+                  <List sx={{ py: 0 }}>
+                    {todayDispatchers.map((dispatcher, index) => (
+                      <ListItem
+                        key={dispatcher.id}
+                        sx={{
+                          bgcolor: 'rgba(255,255,255,0.1)',
+                          borderRadius: 2,
+                          mb: index < todayDispatchers.length - 1 ? 1 : 0,
+                          px: 2,
+                          py: 1,
+                        }}
+                      >
+                        <ListItemAvatar>
+                          <Avatar
+                            sx={{
+                              bgcolor: 'rgba(255,255,255,0.25)',
+                              color: 'white',
+                            }}
+                          >
+                            <PersonIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Typography variant="subtitle1" fontWeight="bold" color="white">
+                              {dispatcher.userName}
+                            </Typography>
+                          }
+                          secondary={
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                              <Chip
+                                icon={<TimeIcon sx={{ fontSize: 16, color: 'white !important' }} />}
+                                label={`${dispatcher.startTime} - ${dispatcher.endTime}`}
+                                size="small"
+                                sx={{
+                                  bgcolor: 'rgba(255,255,255,0.2)',
+                                  color: 'white',
+                                  fontWeight: 600,
+                                  '& .MuiChip-icon': { color: 'white' },
+                                }}
+                              />
+                              <Chip
+                                label={dispatcher.shiftCode || dispatcher.shiftType}
+                                size="small"
+                                sx={{
+                                  bgcolor: dispatcher.shiftCode === 'Z' ? '#fbbf24' : dispatcher.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
+                                  color: dispatcher.shiftCode === 'Z' ? '#000' : '#fff',
+                                  fontWeight: 700,
+                                }}
+                              />
+                            </Stack>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Box
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.1)',
+                      borderRadius: 2,
+                      p: 3,
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      Nu există personal programat în dispecerat pentru ziua de astăzi.
+                    </Typography>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Grow>
+        </Box>
+      </Fade>
+
+      <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
       {/* Programe Section */}
       <Fade in={true} timeout={700}>

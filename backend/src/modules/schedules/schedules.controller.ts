@@ -51,6 +51,11 @@ export class SchedulesController {
     return this.schedulesService.getDashboardStats();
   }
 
+  @Get('today/dispatchers')
+  getTodayDispatchers() {
+    return this.schedulesService.getTodayDispatcherAssignments();
+  }
+
   @Get('shift-types')
   getShiftTypes() {
     return this.schedulesService.getShiftTypes();
