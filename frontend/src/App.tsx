@@ -7,6 +7,7 @@ import { AppRoutes } from './routes/AppRoutes';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { initializeAuth, updateToken, logout } from './store/slices/auth.slice';
 import { supabase } from './lib/supabase';
+import { InstallPrompt } from './components/pwa/InstallPrompt';
 
 const theme = createTheme({
   palette: {
@@ -73,6 +74,7 @@ function App() {
         <CssBaseline />
         <BrowserRouter>
           <AppContent />
+          <InstallPrompt />
         </BrowserRouter>
       </ThemeProvider>
     </Provider>

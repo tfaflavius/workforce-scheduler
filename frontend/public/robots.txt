@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# WorkSchedule PWA
+# https://workforce-scheduler.vercel.app

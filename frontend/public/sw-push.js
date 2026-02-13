@@ -20,11 +20,17 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
     vibrate: [200, 100, 200],
     tag: data.tag || 'notification-' + Date.now(),
     renotify: true,
     requireInteraction: false,
     data: data.data || { url: '/dashboard' },
+    actions: [
+      { action: 'view', title: 'Vezi' },
+      { action: 'close', title: 'Închide' },
+    ],
   };
 
   event.waitUntil(
