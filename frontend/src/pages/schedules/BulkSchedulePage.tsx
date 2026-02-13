@@ -1385,6 +1385,7 @@ const BulkSchedulePage: React.FC = () => {
                   <ListItemButton onClick={() => handleApplyTemplate(template)}>
                     <ListItemText
                       primary={template.name}
+                      secondaryTypographyProps={{ component: 'div' }}
                       secondary={
                         <Stack direction="row" spacing={0.5} mt={0.5}>
                           {template.pattern.map((shiftId, idx) => {
