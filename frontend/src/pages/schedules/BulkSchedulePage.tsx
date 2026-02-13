@@ -30,6 +30,16 @@ import {
   Badge,
   Collapse,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  ListItemIcon,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -39,6 +49,11 @@ import {
   SelectAll as SelectAllIcon,
   CheckCircle as CheckCircleIcon,
   Group as GroupIcon,
+  FlashOn as FlashOnIcon,
+  ContentCopy as ContentCopyIcon,
+  DateRange as DateRangeIcon,
+  PlaylistAdd as PlaylistAddIcon,
+  Today as TodayIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useCreateScheduleMutation, useUpdateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery, useGetWorkPositionsQuery } from '../../store/api/schedulesApi';
@@ -118,10 +133,27 @@ const BulkSchedulePage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [savingProgress, setSavingProgress] = useState<{ current: number; total: number } | null>(null);
 
+  // Dialog states pentru acțiuni rapide
+  const [quickActionDialog, setQuickActionDialog] = useState<'apply_day' | 'apply_week' | 'copy' | 'template' | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedShiftForAction, setSelectedShiftForAction] = useState<string>('');
+  const [copySourceUserId, setCopySourceUserId] = useState<string>('');
+  const [copyTargetUserIds, setCopyTargetUserIds] = useState<string[]>([]);
+  const [selectedWeekStart, setSelectedWeekStart] = useState<string>('');
+  const [templatePattern, setTemplatePattern] = useState<string[]>([]);
+
+  // Template-uri predefinite
+  const SHIFT_TEMPLATES = [
+    { id: 'znll', name: 'Zi-Noapte-Liber-Liber', pattern: ['day_12', 'night_12', '', ''] },
+    { id: 'zznll', name: 'Zi-Zi-Noapte-Liber-Liber', pattern: ['day_12', 'day_12', 'night_12', '', ''] },
+    { id: 'zzlnnl', name: 'Zi-Zi-Liber-Noapte-Noapte-Liber', pattern: ['day_12', 'day_12', '', 'night_12', 'night_12', ''] },
+    { id: 'work5', name: '5 zile lucru (L-V)', pattern: ['day_12', 'day_12', 'day_12', 'day_12', 'day_12', '', ''] },
+  ];
+
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   // API hooks
-  const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
+  const { data: users = [] } = useGetUsersQuery({ isActive: true });
   const { data: existingSchedules = [], isLoading: schedulesLoading, refetch: refetchSchedules } = useGetSchedulesQuery({ monthYear });
   const { data: dbShiftTypes = [] } = useGetShiftTypesQuery();
   const { data: dbWorkPositions = [] } = useGetWorkPositionsQuery();
@@ -455,6 +487,104 @@ const BulkSchedulePage: React.FC = () => {
     return shift ? { label: shift.shortLabel, color: shift.color } : null;
   };
 
+  // ===== ACȚIUNI RAPIDE =====
+
+  // 1. Aplică tura la toți utilizatorii selectați pentru o zi specifică
+  const handleApplyShiftToDay = () => {
+    if (!selectedDay || !selectedShiftForAction) return;
+
+    selectedUserIds.forEach(userId => {
+      handleShiftChange(userId, selectedDay, selectedShiftForAction);
+    });
+
+    setQuickActionDialog(null);
+    setSelectedDay(null);
+    setSelectedShiftForAction('');
+    setSuccessMessage(`Tura aplicată pentru ${selectedUserIds.length} angajați în ziua selectată.`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  // 2. Aplică tura pe toată săptămâna (7 zile de la data selectată)
+  const handleApplyShiftToWeek = () => {
+    if (!selectedWeekStart || !selectedShiftForAction) return;
+
+    const startDate = new Date(selectedWeekStart);
+    const dates: string[] = [];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      // Verifică dacă data e în luna curentă
+      if (calendarDays.some(d => d.date === dateStr)) {
+        dates.push(dateStr);
+      }
+    }
+
+    selectedUserIds.forEach(userId => {
+      dates.forEach(date => {
+        handleShiftChange(userId, date, selectedShiftForAction);
+      });
+    });
+
+    setQuickActionDialog(null);
+    setSelectedWeekStart('');
+    setSelectedShiftForAction('');
+    setSuccessMessage(`Tura aplicată pe ${dates.length} zile pentru ${selectedUserIds.length} angajați.`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  // 3. Copiază programul de la un angajat la alții
+  const handleCopySchedule = () => {
+    if (!copySourceUserId || copyTargetUserIds.length === 0) return;
+
+    const sourceAssignments = bulkAssignments[copySourceUserId] || {};
+    const sourcePositions = bulkWorkPositions[copySourceUserId] || {};
+
+    copyTargetUserIds.forEach(targetUserId => {
+      // Copiază toate asignările
+      Object.entries(sourceAssignments).forEach(([date, shiftId]) => {
+        handleShiftChange(targetUserId, date, shiftId);
+      });
+
+      // Copiază pozițiile
+      setBulkWorkPositions(prev => ({
+        ...prev,
+        [targetUserId]: { ...sourcePositions }
+      }));
+    });
+
+    setQuickActionDialog(null);
+    setCopySourceUserId('');
+    setCopyTargetUserIds([]);
+    setSuccessMessage(`Programul copiat la ${copyTargetUserIds.length} angajați.`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  // 4. Aplică un template de program
+  const handleApplyTemplate = (template: { pattern: string[] }) => {
+    if (selectedUserIds.length === 0) return;
+
+    selectedUserIds.forEach(userId => {
+      let patternIndex = 0;
+      calendarDays.forEach(({ date }) => {
+        const shiftId = template.pattern[patternIndex % template.pattern.length];
+        handleShiftChange(userId, date, shiftId);
+        patternIndex++;
+      });
+    });
+
+    setQuickActionDialog(null);
+    setSuccessMessage(`Template aplicat pentru ${selectedUserIds.length} angajați.`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  // Handler pentru click pe header de zi (pentru aplicare rapidă)
+  const handleDayHeaderClick = (date: string) => {
+    setSelectedDay(date);
+    setQuickActionDialog('apply_day');
+  };
+
   return (
     <Box sx={{ width: '100%', p: { xs: 1, sm: 2, md: 3 } }}>
       <Stack spacing={2}>
@@ -636,6 +766,54 @@ const BulkSchedulePage: React.FC = () => {
           </Stack>
         </Paper>
 
+        {/* Acțiuni Rapide */}
+        {selectedUserIds.length > 0 && (
+          <Card sx={{ bgcolor: 'primary.50', border: '1px solid', borderColor: 'primary.200' }}>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+              <Stack direction="row" alignItems="center" spacing={1} mb={1}>
+                <FlashOnIcon color="primary" fontSize="small" />
+                <Typography variant="subtitle2" fontWeight="bold" color="primary.main">
+                  Acțiuni Rapide
+                </Typography>
+              </Stack>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flexWrap="wrap">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<TodayIcon />}
+                  onClick={() => setQuickActionDialog('apply_day')}
+                >
+                  Aplică Tură pe Zi
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<DateRangeIcon />}
+                  onClick={() => setQuickActionDialog('apply_week')}
+                >
+                  Aplică Tură pe Săptămână
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<ContentCopyIcon />}
+                  onClick={() => setQuickActionDialog('copy')}
+                >
+                  Copiază Program
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<PlaylistAddIcon />}
+                  onClick={() => setQuickActionDialog('template')}
+                >
+                  Aplică Template
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tabel principal */}
         {selectedUserIds.length > 0 ? (
           <Card sx={{ overflow: 'hidden' }}>
@@ -719,27 +897,33 @@ const BulkSchedulePage: React.FC = () => {
                       >
                         Angajat
                       </TableCell>
-                      {calendarDays.map(({ day, dayOfWeek, isWeekend }) => (
-                        <TableCell
-                          key={day}
-                          align="center"
-                          sx={{
-                            p: 0.3,
-                            minWidth: 45,
-                            bgcolor: isWeekend ? 'grey.200' : 'background.paper',
-                            fontWeight: 'bold',
-                            fontSize: '0.65rem',
-                          }}
-                        >
-                          <Box>
-                            <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? 'error.main' : 'text.secondary' }}>
-                              {dayOfWeek}
-                            </Typography>
-                            <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
-                              {day}
-                            </Typography>
-                          </Box>
-                        </TableCell>
+                      {calendarDays.map(({ day, date, dayOfWeek, isWeekend }) => (
+                        <Tooltip key={day} title="Click pentru a aplica tură rapidă" arrow>
+                          <TableCell
+                            align="center"
+                            onClick={() => handleDayHeaderClick(date)}
+                            sx={{
+                              p: 0.3,
+                              minWidth: 45,
+                              bgcolor: isWeekend ? 'grey.200' : 'background.paper',
+                              fontWeight: 'bold',
+                              fontSize: '0.65rem',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                bgcolor: 'primary.50',
+                              },
+                            }}
+                          >
+                            <Box>
+                              <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? 'error.main' : 'text.secondary' }}>
+                                {dayOfWeek}
+                              </Typography>
+                              <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
+                                {day}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                        </Tooltip>
                       ))}
                     </TableRow>
                   </TableHead>
@@ -883,6 +1067,374 @@ const BulkSchedulePage: React.FC = () => {
           </Card>
         )}
       </Stack>
+
+      {/* ===== DIALOGURI ACȚIUNI RAPIDE ===== */}
+
+      {/* Dialog: Aplică Tură pe Zi */}
+      <Dialog
+        open={quickActionDialog === 'apply_day'}
+        onClose={() => { setQuickActionDialog(null); setSelectedDay(null); setSelectedShiftForAction(''); }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <TodayIcon color="primary" />
+            <Typography variant="h6">Aplică Tură pe Zi</Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Selectează ziua și tura pentru a o aplica la toți cei {selectedUserIds.length} angajați selectați.
+            </Typography>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Ziua</InputLabel>
+              <Select
+                value={selectedDay || ''}
+                onChange={(e) => setSelectedDay(e.target.value)}
+                label="Ziua"
+              >
+                {calendarDays.map(({ day, date, dayOfWeek, isWeekend }) => (
+                  <MenuItem key={date} value={date}>
+                    {day} {dayOfWeek} {isWeekend ? '(weekend)' : ''}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Tura</InputLabel>
+              <Select
+                value={selectedShiftForAction}
+                onChange={(e) => setSelectedShiftForAction(e.target.value)}
+                label="Tura"
+              >
+                <MenuItem value="">
+                  <em>Liber (șterge tura)</em>
+                </MenuItem>
+                {shiftOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          bgcolor: option.color,
+                        }}
+                      />
+                      <Typography>{option.label}</Typography>
+                    </Stack>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setQuickActionDialog(null); setSelectedDay(null); setSelectedShiftForAction(''); }}>
+            Anulează
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleApplyShiftToDay}
+            disabled={!selectedDay}
+          >
+            Aplică
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Aplică Tură pe Săptămână */}
+      <Dialog
+        open={quickActionDialog === 'apply_week'}
+        onClose={() => { setQuickActionDialog(null); setSelectedWeekStart(''); setSelectedShiftForAction(''); }}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <DateRangeIcon color="primary" />
+            <Typography variant="h6">Aplică Tură pe Săptămână</Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Selectează prima zi a săptămânii și tura. Tura va fi aplicată pentru 7 zile consecutive.
+            </Typography>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Prima zi din săptămână</InputLabel>
+              <Select
+                value={selectedWeekStart}
+                onChange={(e) => setSelectedWeekStart(e.target.value)}
+                label="Prima zi din săptămână"
+              >
+                {calendarDays.slice(0, -6).map(({ day, date, dayOfWeek }) => (
+                  <MenuItem key={date} value={date}>
+                    {day} {dayOfWeek} - {day + 6 <= daysInMonth ? day + 6 : daysInMonth} (7 zile)
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Tura</InputLabel>
+              <Select
+                value={selectedShiftForAction}
+                onChange={(e) => setSelectedShiftForAction(e.target.value)}
+                label="Tura"
+              >
+                <MenuItem value="">
+                  <em>Liber (șterge turele)</em>
+                </MenuItem>
+                {shiftOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          bgcolor: option.color,
+                        }}
+                      />
+                      <Typography>{option.label}</Typography>
+                    </Stack>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setQuickActionDialog(null); setSelectedWeekStart(''); setSelectedShiftForAction(''); }}>
+            Anulează
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleApplyShiftToWeek}
+            disabled={!selectedWeekStart}
+          >
+            Aplică pe 7 Zile
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Copiază Program */}
+      <Dialog
+        open={quickActionDialog === 'copy'}
+        onClose={() => { setQuickActionDialog(null); setCopySourceUserId(''); setCopyTargetUserIds([]); }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <ContentCopyIcon color="primary" />
+            <Typography variant="h6">Copiază Program</Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Copiază programul unui angajat la alți angajați selectați.
+            </Typography>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Copiază de la</InputLabel>
+              <Select
+                value={copySourceUserId}
+                onChange={(e) => setCopySourceUserId(e.target.value)}
+                label="Copiază de la"
+              >
+                {selectedUserIds.map(userId => {
+                  const user = eligibleUsers.find(u => u.id === userId);
+                  return (
+                    <MenuItem key={userId} value={userId}>
+                      {user?.fullName} ({user?.department?.name})
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+
+            <Divider />
+
+            <Typography variant="subtitle2">Copiază la:</Typography>
+            <Paper variant="outlined" sx={{ maxHeight: 200, overflow: 'auto' }}>
+              <List dense>
+                {selectedUserIds
+                  .filter(id => id !== copySourceUserId)
+                  .map(userId => {
+                    const user = eligibleUsers.find(u => u.id === userId);
+                    const isSelected = copyTargetUserIds.includes(userId);
+                    return (
+                      <ListItem key={userId} disablePadding>
+                        <ListItemButton
+                          onClick={() => {
+                            setCopyTargetUserIds(prev =>
+                              isSelected
+                                ? prev.filter(id => id !== userId)
+                                : [...prev, userId]
+                            );
+                          }}
+                        >
+                          <ListItemIcon>
+                            <Checkbox
+                              edge="start"
+                              checked={isSelected}
+                              tabIndex={-1}
+                              disableRipple
+                              size="small"
+                            />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={user?.fullName}
+                            secondary={user?.department?.name}
+                          />
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+              </List>
+            </Paper>
+
+            <Button
+              size="small"
+              onClick={() => {
+                const allOthers = selectedUserIds.filter(id => id !== copySourceUserId);
+                setCopyTargetUserIds(
+                  copyTargetUserIds.length === allOthers.length ? [] : allOthers
+                );
+              }}
+            >
+              {copyTargetUserIds.length === selectedUserIds.filter(id => id !== copySourceUserId).length
+                ? 'Deselectează Toți'
+                : 'Selectează Toți'}
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setQuickActionDialog(null); setCopySourceUserId(''); setCopyTargetUserIds([]); }}>
+            Anulează
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCopySchedule}
+            disabled={!copySourceUserId || copyTargetUserIds.length === 0}
+          >
+            Copiază ({copyTargetUserIds.length})
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Aplică Template */}
+      <Dialog
+        open={quickActionDialog === 'template'}
+        onClose={() => setQuickActionDialog(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <PlaylistAddIcon color="primary" />
+            <Typography variant="h6">Aplică Template de Program</Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              Selectează un template care se va repeta pentru toată luna.
+              Se aplică la toți cei {selectedUserIds.length} angajați selectați.
+            </Typography>
+
+            <Alert severity="info" sx={{ fontSize: '0.85rem' }}>
+              Template-ul se repetă ciclic: după ultimul element, revine la primul.
+            </Alert>
+
+            <List>
+              {SHIFT_TEMPLATES.map((template) => (
+                <Paper key={template.id} variant="outlined" sx={{ mb: 1 }}>
+                  <ListItemButton onClick={() => handleApplyTemplate(template)}>
+                    <ListItemText
+                      primary={template.name}
+                      secondary={
+                        <Stack direction="row" spacing={0.5} mt={0.5}>
+                          {template.pattern.map((shiftId, idx) => {
+                            const shift = shiftOptions.find(s => s.id === shiftId);
+                            return (
+                              <Chip
+                                key={idx}
+                                label={shift?.shortLabel || 'L'}
+                                size="small"
+                                sx={{
+                                  bgcolor: shift?.color || 'grey.300',
+                                  color: shift ? 'white' : 'inherit',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.7rem',
+                                  height: 22,
+                                  minWidth: 28,
+                                }}
+                              />
+                            );
+                          })}
+                        </Stack>
+                      }
+                    />
+                  </ListItemButton>
+                </Paper>
+              ))}
+            </List>
+
+            <Divider />
+
+            <Typography variant="subtitle2">Template personalizat:</Typography>
+            <Stack direction="row" spacing={0.5} flexWrap="wrap">
+              {Array.from({ length: 7 }).map((_, idx) => (
+                <FormControl key={idx} size="small" sx={{ width: 70 }}>
+                  <InputLabel>Zi {idx + 1}</InputLabel>
+                  <Select
+                    value={templatePattern[idx] || ''}
+                    onChange={(e) => {
+                      const newPattern = [...templatePattern];
+                      newPattern[idx] = e.target.value;
+                      setTemplatePattern(newPattern);
+                    }}
+                    label={`Zi ${idx + 1}`}
+                  >
+                    <MenuItem value="">L</MenuItem>
+                    {shiftOptions.map((option) => (
+                      <MenuItem key={option.id} value={option.id}>
+                        {option.shortLabel}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ))}
+            </Stack>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => {
+                if (templatePattern.length > 0) {
+                  handleApplyTemplate({ pattern: templatePattern });
+                }
+              }}
+              disabled={templatePattern.length === 0 || templatePattern.every(p => !p)}
+            >
+              Aplică Template Personalizat
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setQuickActionDialog(null); setTemplatePattern([]); }}>
+            Închide
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
