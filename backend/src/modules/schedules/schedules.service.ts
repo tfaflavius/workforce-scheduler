@@ -856,8 +856,12 @@ export class SchedulesService {
    * Get today's dispatcher assignments (employees working in Dispecerat position)
    */
   async getTodayDispatcherAssignments(): Promise<any[]> {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Use Romania timezone (Europe/Bucharest) to get correct "today" date
+    const now = new Date();
+    const romaniaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Bucharest' }));
+    const todayStr = romaniaTime.toISOString().split('T')[0]; // YYYY-MM-DD format in Romania timezone
+
+    this.logger.log(`Fetching dispatchers for today: ${todayStr} (Romania time)`);
 
     // Query assignments for today with Dispecerat work position
     const assignments = await this.assignmentRepository
