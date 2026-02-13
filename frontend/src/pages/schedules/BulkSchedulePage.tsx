@@ -738,22 +738,28 @@ const BulkSchedulePage: React.FC = () => {
         </Card>
 
         {/* Legendă */}
-        <Paper sx={{ p: 1.5 }}>
-          <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
-            <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
+        <Paper sx={{ p: { xs: 1, sm: 1.5 }, overflowX: 'auto' }}>
+          <Stack
+            direction="row"
+            spacing={{ xs: 0.5, sm: 1 }}
+            flexWrap="wrap"
+            alignItems="center"
+            sx={{ gap: { xs: 0.5, sm: 1 } }}
+          >
+            <Typography variant="caption" fontWeight="bold" sx={{ mr: 1, whiteSpace: 'nowrap' }}>
               Legendă ({shiftPattern}):
             </Typography>
             {shiftOptions.map((option) => (
               <Chip
                 key={option.id}
-                label={`${option.shortLabel} - ${option.label}`}
+                label={isMobile ? option.shortLabel : `${option.shortLabel} - ${option.label}`}
                 size="small"
                 sx={{
                   bgcolor: option.color,
                   color: 'white',
                   fontWeight: 'bold',
-                  fontSize: '0.7rem',
-                  height: 24,
+                  fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                  height: { xs: 20, sm: 24 },
                 }}
               />
             ))}
@@ -761,7 +767,7 @@ const BulkSchedulePage: React.FC = () => {
               label="L - Liber"
               variant="outlined"
               size="small"
-              sx={{ fontSize: '0.7rem', height: 24 }}
+              sx={{ fontSize: { xs: '0.65rem', sm: '0.7rem' }, height: { xs: 20, sm: 24 } }}
             />
           </Stack>
         </Paper>
@@ -776,38 +782,47 @@ const BulkSchedulePage: React.FC = () => {
                   Acțiuni Rapide
                 </Typography>
               </Stack>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flexWrap="wrap">
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1}
+                flexWrap="wrap"
+                sx={{ '& > button': { flex: { xs: '1 1 100%', sm: '0 0 auto' } } }}
+              >
                 <Button
                   size="small"
                   variant="outlined"
                   startIcon={<TodayIcon />}
                   onClick={() => setQuickActionDialog('apply_day')}
+                  fullWidth={isMobile}
                 >
-                  Aplică Tură pe Zi
+                  {isMobile ? 'Tură/Zi' : 'Aplică Tură pe Zi'}
                 </Button>
                 <Button
                   size="small"
                   variant="outlined"
                   startIcon={<DateRangeIcon />}
                   onClick={() => setQuickActionDialog('apply_week')}
+                  fullWidth={isMobile}
                 >
-                  Aplică Tură pe Săptămână
+                  {isMobile ? 'Tură/Săptămână' : 'Aplică Tură pe Săptămână'}
                 </Button>
                 <Button
                   size="small"
                   variant="outlined"
                   startIcon={<ContentCopyIcon />}
                   onClick={() => setQuickActionDialog('copy')}
+                  fullWidth={isMobile}
                 >
-                  Copiază Program
+                  {isMobile ? 'Copiază' : 'Copiază Program'}
                 </Button>
                 <Button
                   size="small"
                   variant="outlined"
                   startIcon={<PlaylistAddIcon />}
                   onClick={() => setQuickActionDialog('template')}
+                  fullWidth={isMobile}
                 >
-                  Aplică Template
+                  {isMobile ? 'Template' : 'Aplică Template'}
                 </Button>
               </Stack>
             </CardContent>
@@ -818,7 +833,7 @@ const BulkSchedulePage: React.FC = () => {
         {selectedUserIds.length > 0 ? (
           <Card sx={{ overflow: 'hidden' }}>
             <CardContent sx={{ p: 0 }}>
-              <TableContainer sx={{ maxHeight: 'calc(100vh - 450px)', minHeight: 300 }}>
+              <TableContainer sx={{ maxHeight: { xs: 'calc(100vh - 500px)', sm: 'calc(100vh - 450px)' }, minHeight: { xs: 250, sm: 300 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     {/* Rând cu statistici pe zi */}
@@ -1033,11 +1048,16 @@ const BulkSchedulePage: React.FC = () => {
         {selectedUserIds.length > 0 && (
           <Card>
             <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                spacing={{ xs: 1.5, sm: 0 }}
+              >
                 <Box>
-                  <Typography variant="body2">
-                    <strong>{selectedUserIds.length}</strong> angajați selectați |
-                    Lună: <strong>{monthOptions.find(m => m.value === monthYear)?.label}</strong>
+                  <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                    <strong>{selectedUserIds.length}</strong> angajați |
+                    {!isMobile && ' Lună:'} <strong>{monthOptions.find(m => m.value === monthYear)?.label}</strong>
                   </Typography>
                   {savingProgress && (
                     <Typography variant="caption" color="text.secondary">
@@ -1045,10 +1065,12 @@ const BulkSchedulePage: React.FC = () => {
                     </Typography>
                   )}
                 </Box>
-                <Stack direction="row" spacing={1}>
+                <Stack direction="row" spacing={1} justifyContent={{ xs: 'stretch', sm: 'flex-end' }}>
                   <Button
                     variant="outlined"
                     onClick={() => navigate('/schedules')}
+                    size={isMobile ? 'small' : 'medium'}
+                    sx={{ flex: { xs: 1, sm: 'none' } }}
                   >
                     Anulează
                   </Button>
@@ -1058,8 +1080,10 @@ const BulkSchedulePage: React.FC = () => {
                     startIcon={savingProgress ? <CircularProgress size={16} /> : <SaveIcon />}
                     onClick={handleSaveAll}
                     disabled={!!savingProgress}
+                    size={isMobile ? 'small' : 'medium'}
+                    sx={{ flex: { xs: 2, sm: 'none' } }}
                   >
-                    {savingProgress ? 'Salvare...' : `Salvează Toate (${selectedUserIds.length})`}
+                    {savingProgress ? 'Salvare...' : (isMobile ? `Salvează (${selectedUserIds.length})` : `Salvează Toate (${selectedUserIds.length})`)}
                   </Button>
                 </Stack>
               </Stack>
@@ -1392,10 +1416,15 @@ const BulkSchedulePage: React.FC = () => {
             <Divider />
 
             <Typography variant="subtitle2">Template personalizat:</Typography>
-            <Stack direction="row" spacing={0.5} flexWrap="wrap">
+            <Stack
+              direction="row"
+              spacing={0.5}
+              flexWrap="wrap"
+              sx={{ gap: { xs: 0.5, sm: 0.5 }, '& > *': { mb: { xs: 0.5, sm: 0 } } }}
+            >
               {Array.from({ length: 7 }).map((_, idx) => (
-                <FormControl key={idx} size="small" sx={{ width: 70 }}>
-                  <InputLabel>Zi {idx + 1}</InputLabel>
+                <FormControl key={idx} size="small" sx={{ width: { xs: 60, sm: 70 }, minWidth: { xs: 60, sm: 70 } }}>
+                  <InputLabel sx={{ fontSize: { xs: '0.75rem', sm: '1rem' } }}>Zi {idx + 1}</InputLabel>
                   <Select
                     value={templatePattern[idx] || ''}
                     onChange={(e) => {
@@ -1404,6 +1433,7 @@ const BulkSchedulePage: React.FC = () => {
                       setTemplatePattern(newPattern);
                     }}
                     label={`Zi ${idx + 1}`}
+                    sx={{ fontSize: { xs: '0.8rem', sm: '1rem' } }}
                   >
                     <MenuItem value="">L</MenuItem>
                     {shiftOptions.map((option) => (
@@ -1418,6 +1448,7 @@ const BulkSchedulePage: React.FC = () => {
             <Button
               variant="outlined"
               size="small"
+              fullWidth
               onClick={() => {
                 if (templatePattern.length > 0) {
                   handleApplyTemplate({ pattern: templatePattern });
