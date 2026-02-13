@@ -497,8 +497,24 @@ const SchedulesPage: React.FC = () => {
           </Stack>
         </GradientHeader>
 
-        {/* Create Button */}
-        <Box sx={{ display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-end' } }}>
+        {/* Create Buttons */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent={{ xs: 'stretch', sm: 'flex-end' }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<GroupIcon />}
+            onClick={() => navigate('/schedules/bulk')}
+            fullWidth={isMobile}
+            size={isMobile ? 'medium' : 'large'}
+            sx={{
+              px: { xs: 2, sm: 3 },
+              py: { xs: 1, sm: 1.25 },
+              fontWeight: 600,
+              borderRadius: 2,
+            }}
+          >
+            {isMobile ? 'Programare Masă' : 'Programare în Masă'}
+          </Button>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -518,7 +534,7 @@ const SchedulesPage: React.FC = () => {
           >
             {isMobile ? 'Creează Program' : 'Creează Program Nou'}
           </Button>
-        </Box>
+        </Stack>
 
         {/* Selector Lună și Filtre */}
         <Paper sx={{ p: 2, width: '100%' }}>

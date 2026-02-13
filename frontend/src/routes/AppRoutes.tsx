@@ -3,6 +3,7 @@ import { LoginPage } from '../pages/auth/LoginPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import SchedulesPage from '../pages/schedules/SchedulesPage';
 import CreateSchedulePage from '../pages/schedules/CreateSchedulePage';
+import BulkSchedulePage from '../pages/schedules/BulkSchedulePage';
 import EditSchedulePage from '../pages/schedules/EditSchedulePage';
 import PendingSchedulesPage from '../pages/schedules/PendingSchedulesPage';
 import RejectedSchedulesPage from '../pages/schedules/RejectedSchedulesPage';
@@ -92,6 +93,15 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
               <CreateSchedulePage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/schedules/bulk"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+              <BulkSchedulePage />
             </ProtectedRoute>
           }
         />
