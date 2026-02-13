@@ -40,8 +40,8 @@ export class ParkingUrgentScheduler {
     private readonly revolutionarLegitimationRepository: Repository<RevolutionarLegitimation>,
   ) {}
 
-  // Rulează zilnic la 08:00 și 13:00 pentru a marca problemele urgente (după 48h nerezolvate)
-  @Cron('0 8,13 * * *')
+  // Rulează doar în zilele lucrătoare (Luni-Vineri) la 08:00 și 13:00 pentru a marca problemele urgente (după 48h nerezolvate)
+  @Cron('0 8,13 * * 1-5')
   async handleMarkUrgent() {
     this.logger.log('Verificare probleme și prejudicii nerezolvate de 48h+...');
 
@@ -57,8 +57,8 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Rulează la 08:00 - notificări către Admini, Manageri, Dispecerat + Întreținere (doar asignat)
-  @Cron('0 8 * * *')
+  // Rulează doar în zilele lucrătoare (Luni-Vineri) la 08:00 - notificări către Admini, Manageri, Dispecerat + Întreținere (doar asignat)
+  @Cron('0 8 * * 1-5')
   async handleNotifyUrgentMorning() {
     this.logger.log('Trimitere notificări 08:00 (inclusiv Admini)...');
 
@@ -75,8 +75,8 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Rulează la 13:00 - notificări către Manageri, Dispecerat + Întreținere (doar asignat) - FĂRĂ Admini
-  @Cron('0 13 * * *')
+  // Rulează doar în zilele lucrătoare (Luni-Vineri) la 13:00 - notificări către Manageri, Dispecerat + Întreținere (doar asignat) - FĂRĂ Admini
+  @Cron('0 13 * * 1-5')
   async handleNotifyUrgentAfternoon() {
     this.logger.log('Trimitere notificări 13:00 (fără Admini)...');
 
@@ -93,8 +93,8 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Rulează zilnic la 18:00 pentru raportul de încasări
-  @Cron('0 18 * * *')
+  // Rulează doar în zilele lucrătoare (Luni-Vineri) la 18:00 pentru raportul de încasări
+  @Cron('0 18 * * 1-5')
   async handleDailyCashReport() {
     this.logger.log('Generare raport zilnic încasări...');
 
@@ -106,10 +106,10 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Rulează zilnic la 09:00 pentru raportul Handicap către Admin și Parcări Handicap
-  @Cron('0 9 * * *')
+  // Rulează doar în zilele lucrătoare (Luni-Vineri) la 09:00 pentru raportul Handicap către Admin și Parcări Handicap
+  @Cron('0 9 * * 1-5')
   async handleDailyHandicapReport() {
-    this.logger.log('Generare raport zilnic Handicap pentru Admin și Parcări Handicap...');
+    this.logger.log('Generare raport zilnic Handicap pentru Admin și Parcări Handicap (zile lucrătoare)...');
 
     try {
       await this.sendDailyHandicapReportToAdminAndHandicapDept();

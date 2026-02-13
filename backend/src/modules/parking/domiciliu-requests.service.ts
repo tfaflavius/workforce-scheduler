@@ -20,7 +20,6 @@ import {
   DomiciliuRequestType,
   DomiciliuRequestStatus,
 } from './constants/parking.constants';
-import { EmailService } from '../../common/email/email.service';
 
 @Injectable()
 export class DomiciliuRequestsService {
@@ -36,7 +35,6 @@ export class DomiciliuRequestsService {
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
     private readonly notificationsService: NotificationsService,
-    private readonly emailService: EmailService,
   ) {}
 
   async create(userId: string, dto: CreateDomiciliuRequestDto): Promise<DomiciliuRequest> {
@@ -184,7 +182,7 @@ export class DomiciliuRequestsService {
 
     const requestTypeLabel = DOMICILIU_REQUEST_TYPE_LABELS[request.requestType];
 
-    // Trimite notificări in-app către toți userii din echipa de întreținere
+    // Trimite notificări in-app către toți userii din echipa de întreținere (email-urile se trimit doar în digest-ul zilnic)
     const notifications = maintenanceUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_ASSIGNED,
@@ -198,22 +196,6 @@ export class DomiciliuRequestsService {
     }));
 
     await this.notificationsService.createMany(notifications);
-
-    // Trimite email-uri către toți userii din echipa de întreținere
-    for (const user of maintenanceUsers) {
-      await this.emailService.sendDomiciliuRequestNotification({
-        recipientEmail: user.email,
-        recipientName: user.fullName,
-        requestType: request.requestType,
-        location: request.location,
-        personName: request.personName,
-        address: request.address,
-        carPlate: request.carPlate,
-        description: request.description,
-        creatorName: creatorName,
-        emailType: 'new_request',
-      });
-    }
   }
 
   private async notifyOnResolution(request: DomiciliuRequest, resolverUserId: string): Promise<void> {
@@ -270,7 +252,7 @@ export class DomiciliuRequestsService {
       return;
     }
 
-    // Trimite notificări in-app
+    // Trimite notificări in-app (email-urile se trimit doar în digest-ul zilnic)
     const notifications = uniqueUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_RESOLVED,
@@ -285,23 +267,6 @@ export class DomiciliuRequestsService {
     }));
 
     await this.notificationsService.createMany(notifications);
-
-    // Trimite email-uri
-    for (const user of uniqueUsers) {
-      await this.emailService.sendDomiciliuRequestNotification({
-        recipientEmail: user.email,
-        recipientName: user.fullName,
-        requestType: request.requestType,
-        location: request.location,
-        personName: request.personName,
-        address: request.address,
-        carPlate: request.carPlate,
-        description: request.description,
-        creatorName: resolverName,
-        emailType: 'request_resolved',
-        resolutionDescription: request.resolutionDescription,
-      });
-    }
   }
 
   async findAll(status?: DomiciliuRequestStatus, requestType?: DomiciliuRequestType): Promise<DomiciliuRequest[]> {

@@ -16,7 +16,6 @@ import {
   HANDICAP_PARKING_DEPARTMENT_NAME,
   RevolutionarLegitimationStatus,
 } from './constants/parking.constants';
-import { EmailService } from '../../common/email/email.service';
 
 @Injectable()
 export class RevolutionarLegitimationsService {
@@ -32,7 +31,6 @@ export class RevolutionarLegitimationsService {
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
     private readonly notificationsService: NotificationsService,
-    private readonly emailService: EmailService,
   ) {}
 
   async create(userId: string, dto: CreateRevolutionarLegitimationDto): Promise<RevolutionarLegitimation> {
@@ -168,7 +166,7 @@ export class RevolutionarLegitimationsService {
     const creator = await this.userRepository.findOne({ where: { id: creatorUserId } });
     const creatorName = creator?.fullName || 'Un utilizator';
 
-    // Trimite notificări in-app
+    // Trimite notificări in-app (email-urile se trimit doar în digest-ul zilnic)
     const notifications = allUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_ASSIGNED,
@@ -182,20 +180,6 @@ export class RevolutionarLegitimationsService {
     }));
 
     await this.notificationsService.createMany(notifications);
-
-    // Trimite email-uri
-    for (const user of allUsers) {
-      await this.emailService.sendRevolutionarLegitimationNotification({
-        recipientEmail: user.email,
-        recipientName: user.fullName,
-        personName: legitimation.personName,
-        carPlate: legitimation.carPlate,
-        lawNumber: legitimation.lawNumber,
-        description: legitimation.description || '',
-        creatorName: creatorName,
-        emailType: 'new_request',
-      });
-    }
   }
 
   private async notifyOnResolution(legitimation: RevolutionarLegitimation, resolverUserId: string): Promise<void> {
@@ -239,7 +223,7 @@ export class RevolutionarLegitimationsService {
       return;
     }
 
-    // Trimite notificări in-app
+    // Trimite notificări in-app (email-urile se trimit doar în digest-ul zilnic)
     const notifications = uniqueUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_RESOLVED,
@@ -253,21 +237,6 @@ export class RevolutionarLegitimationsService {
     }));
 
     await this.notificationsService.createMany(notifications);
-
-    // Trimite email-uri
-    for (const user of uniqueUsers) {
-      await this.emailService.sendRevolutionarLegitimationNotification({
-        recipientEmail: user.email,
-        recipientName: user.fullName,
-        personName: legitimation.personName,
-        carPlate: legitimation.carPlate,
-        lawNumber: legitimation.lawNumber,
-        description: legitimation.description || '',
-        creatorName: resolverName,
-        emailType: 'request_resolved',
-        resolutionDescription: legitimation.resolutionDescription,
-      });
-    }
   }
 
   async findAll(status?: RevolutionarLegitimationStatus): Promise<RevolutionarLegitimation[]> {
