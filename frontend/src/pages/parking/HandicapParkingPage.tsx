@@ -1076,19 +1076,21 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
         </Typography>
 
         {request.personName && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
+          <Box
+            component="div"
             sx={{
               display: 'flex',
               alignItems: 'center',
               gap: 0.5,
               fontSize: { xs: '0.75rem', sm: '0.8rem' },
               flexWrap: 'wrap',
+              color: 'text.secondary',
             }}
           >
             <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, flexShrink: 0 }} />
-            <span>{request.personName}</span>
+            <Typography component="span" variant="body2" color="inherit" sx={{ fontSize: 'inherit' }}>
+              {request.personName}
+            </Typography>
             {request.carPlate && (
               <Chip
                 label={request.carPlate}
@@ -1101,7 +1103,7 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
                 }}
               />
             )}
-          </Typography>
+          </Box>
         )}
 
         <Box sx={{
