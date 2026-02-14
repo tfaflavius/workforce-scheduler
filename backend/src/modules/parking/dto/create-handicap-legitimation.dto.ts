@@ -12,12 +12,12 @@ export class CreateHandicapLegitimationDto {
   cnp?: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Numărul certificatului de handicap este obligatoriu' })
+  @IsNotEmpty({ message: 'Numarul certificatului de handicap este obligatoriu' })
   @MaxLength(100)
   handicapCertificateNumber: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Numărul de înmatriculare este obligatoriu' })
+  @IsNotEmpty({ message: 'Numarul de inmatriculare este obligatoriu' })
   @MaxLength(20)
   carPlate: string;
 

@@ -108,13 +108,13 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
               <strong>Echipament avariat:</strong> {damage.damagedEquipment}
             </Typography>
             <Typography variant="body2">
-              <strong>Persoană:</strong> {damage.personName}
+              <strong>Persoana:</strong> {damage.personName}
             </Typography>
             <Typography variant="body2">
               <strong>Telefon:</strong> {damage.phone}
             </Typography>
             <Typography variant="body2">
-              <strong>Nr. Mașină:</strong> {damage.carPlate}
+              <strong>Nr. Masina:</strong> {damage.carPlate}
             </Typography>
             <Typography variant="body2">
               <strong>Descriere:</strong> {damage.description}
@@ -160,7 +160,7 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
                 <TextField
                   fullWidth
                   size="small"
-                  placeholder="Adaugă un comentariu..."
+                  placeholder="Adauga un comentariu..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   disabled={addingComment}
@@ -187,7 +187,7 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
                 <CircularProgress size={24} />
               </Box>
             ) : comments.length === 0 ? (
-              <Alert severity="info">Nu există comentarii.</Alert>
+              <Alert severity="info">Nu exista comentarii.</Alert>
             ) : (
               <Stack spacing={1}>
                 {comments.map((comment) => (
@@ -216,7 +216,7 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
                 <CircularProgress size={24} />
               </Box>
             ) : history.length === 0 ? (
-              <Alert severity="info">Nu există istoric.</Alert>
+              <Alert severity="info">Nu exista istoric.</Alert>
             ) : (
               <Stack spacing={1}>
                 {history.map((item) => (
@@ -254,7 +254,7 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Închide</Button>
+        <Button onClick={onClose}>Inchide</Button>
       </DialogActions>
     </Dialog>
   );

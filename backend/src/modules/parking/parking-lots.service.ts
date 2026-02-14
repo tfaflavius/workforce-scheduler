@@ -28,7 +28,7 @@ export class ParkingLotsService {
     });
 
     if (!parkingLot) {
-      throw new NotFoundException(`Parcarea cu ID ${id} nu a fost găsită`);
+      throw new NotFoundException(`Parcarea cu ID ${id} nu a fost gasita`);
     }
 
     return parkingLot;
@@ -55,7 +55,7 @@ export class ParkingLotsService {
     });
 
     if (!machine) {
-      throw new NotFoundException(`Automatul cu ID ${id} nu a fost găsit`);
+      throw new NotFoundException(`Automatul cu ID ${id} nu a fost gasit`);
     }
 
     return machine;
@@ -72,13 +72,13 @@ export class ParkingLotsService {
     const parkingLotsData = [
       { name: 'Parcare Baritiu', code: 'BARITIU', machines: ['631', '632'] },
       { name: 'Parcarea Doja', code: 'DOJA', machines: ['681', '682', '683'] },
-      { name: 'Parcarea Brașovului', code: 'BRASOVULUI', machines: ['611', '612'] },
-      { name: 'Parcarea Independenței', code: 'INDEPENDENTEI', machines: ['601', '602'] },
+      { name: 'Parcarea Brasovului', code: 'BRASOVULUI', machines: ['611', '612'] },
+      { name: 'Parcarea Independentei', code: 'INDEPENDENTEI', machines: ['601', '602'] },
       { name: 'Parcarea Iosif Vulcan', code: 'IOSIF_VULCAN', machines: ['661'] },
       { name: 'Parcarea Tribunalului', code: 'TRIBUNALULUI', machines: ['651', '652'] },
       { name: 'Parcarea Spital Municipal', code: 'SPITAL_MUNICIPAL', machines: ['641'] },
       { name: 'Parcarea Cetate', code: 'CETATE', machines: ['671', '672', '673'] },
-      { name: 'Parcarea Primărie', code: 'PRIMARIE', machines: ['621'] },
+      { name: 'Parcarea Primarie', code: 'PRIMARIE', machines: ['621'] },
     ];
 
     let totalMachines = 0;

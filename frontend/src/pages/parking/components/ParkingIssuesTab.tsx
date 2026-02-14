@@ -107,7 +107,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Ești sigur că vrei să ștergi această problemă?')) {
+    if (window.confirm('Esti sigur ca vrei sa stergi aceasta problema?')) {
       try {
         await deleteIssue(id).unwrap();
       } catch (error) {
@@ -322,7 +322,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
                     borderRadius: 1.5,
                   }}
                 >
-                  Finalizează
+                  Finalizeaza
                 </Button>
               )}
               {isAdminOrManager && issue.status === 'ACTIVE' && (
@@ -379,12 +379,12 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
               <TableCell sx={{ width: 40, p: { xs: 1, sm: 1.5 } }}></TableCell>
               <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Parcare</TableCell>
               <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 100 }}>Echipament</TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Firmă</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Firma</TableCell>
               <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 150 }}>Descriere</TableCell>
               <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 80 }}>Status</TableCell>
               <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 100 }}>Data</TableCell>
               <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 100 }}>Creat de</TableCell>
-              <TableCell align="right" sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Acțiuni</TableCell>
+              <TableCell align="right" sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Actiuni</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -486,7 +486,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
                         </IconButton>
                       )}
                       {isAdminOrManager && issue.status === 'ACTIVE' && (
-                        <Tooltip title="Editează">
+                        <Tooltip title="Editeaza">
                           <IconButton
                             size="small"
                             color="primary"
@@ -623,7 +623,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
               },
             }}
           >
-            {isMobile ? 'Adaugă' : 'Adaugă Problemă'}
+            {isMobile ? 'Adauga' : 'Adauga Problema'}
           </Button>
         </Stack>
       </Paper>
@@ -641,7 +641,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
             fontSize: { xs: '0.8rem', sm: '0.875rem' },
           }}
         >
-          Nu există probleme în această categorie.
+          Nu exista probleme in aceasta categorie.
         </Alert>
       ) : isMobile || isTablet ? (
         <Box>

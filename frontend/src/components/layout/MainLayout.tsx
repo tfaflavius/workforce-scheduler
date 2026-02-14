@@ -56,7 +56,7 @@ interface MenuItem {
   roles: UserRole[];
   requiresDepartment?: string;
   requiresDepartments?: string[];
-  excludeDepartments?: string[];  // Departamente care NU văd acest meniu
+  excludeDepartments?: string[];  // Departamente care NU vad acest meniu
 }
 
 export const MainLayout = () => {
@@ -99,8 +99,8 @@ export const MainLayout = () => {
     }
   };
 
-  // Departamente care nu au acces la Schimburi Ture și Programul Meu
-  const PARKING_ONLY_DEPARTMENTS = ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'];
+  // Departamente care nu au acces la Schimburi Ture si Programul Meu
+  const PARKING_ONLY_DEPARTMENTS = ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'];
 
   const menuItems: MenuItem[] = [
     {
@@ -160,26 +160,26 @@ export const MainLayout = () => {
       roles: ['ADMIN'],
     },
     {
-      text: 'Parcări Etajate',
+      text: 'Parcari Etajate',
       icon: <ParkingIcon />,
       path: '/parking',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: ['Dispecerat', 'Întreținere Parcări'],
-      excludeDepartments: ['Parcări Handicap', 'Parcări Domiciliu'],
+      requiresDepartments: ['Dispecerat', 'Intretinere Parcari'],
+      excludeDepartments: ['Parcari Handicap', 'Parcari Domiciliu'],
     },
     {
-      text: 'Parcări Handicap',
+      text: 'Parcari Handicap',
       icon: <HandicapIcon />,
       path: '/parking/handicap',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'],
+      requiresDepartments: ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
     },
     {
-      text: 'Parcări Domiciliu',
+      text: 'Parcari Domiciliu',
       icon: <HomeIcon />,
       path: '/parking/domiciliu',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: ['Întreținere Parcări', 'Parcări Handicap', 'Parcări Domiciliu'],
+      requiresDepartments: ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
     },
   ];
 
@@ -192,7 +192,7 @@ export const MainLayout = () => {
     // Admin vede tot
     if (user.role === 'ADMIN') return true;
 
-    // Manager vede tot EXCEPTÂND dacă există excludeDepartments
+    // Manager vede tot EXCEPTAND daca exista excludeDepartments
     if (user.role === 'MANAGER') {
       if (item.excludeDepartments && item.excludeDepartments.includes(userDepartment)) {
         return false;
@@ -200,8 +200,8 @@ export const MainLayout = () => {
       return true;
     }
 
-    // USER - verificări multiple
-    // 1. Verifică excludeDepartments - dacă departamentul user-ului e exclus, nu vede
+    // USER - verificari multiple
+    // 1. Verifica excludeDepartments - daca departamentul user-ului e exclus, nu vede
     if (item.excludeDepartments && item.excludeDepartments.includes(userDepartment)) {
       return false;
     }

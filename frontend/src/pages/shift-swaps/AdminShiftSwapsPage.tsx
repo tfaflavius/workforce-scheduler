@@ -91,9 +91,9 @@ const getStatusColor = (status: ShiftSwapStatus) => {
 const getStatusLabel = (status: ShiftSwapStatus) => {
   switch (status) {
     case 'PENDING':
-      return 'În așteptare răspuns';
+      return 'In asteptare raspuns';
     case 'AWAITING_ADMIN':
-      return 'Așteaptă aprobare';
+      return 'Asteapta aprobare';
     case 'APPROVED':
       return 'Aprobat';
     case 'REJECTED':
@@ -191,13 +191,13 @@ const AdminShiftSwapsPage = () => {
       setActionDialogOpen(false);
       setSelectedRequest(null);
       setAdminNotes('');
-      setSuccessMessage(actionType === 'approve' ? 'Schimbul de tură a fost aprobat cu succes!' : 'Cererea a fost respinsă.');
+      setSuccessMessage(actionType === 'approve' ? 'Schimbul de tura a fost aprobat cu succes!' : 'Cererea a fost respinsa.');
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error: unknown) {
       console.error('Error processing swap request:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
-        ? (error.data as { message?: string })?.message || 'A apărut o eroare la procesarea cererii.'
-        : 'A apărut o eroare la procesarea cererii.';
+        ? (error.data as { message?: string })?.message || 'A aparut o eroare la procesarea cererii.'
+        : 'A aparut o eroare la procesarea cererii.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
@@ -302,7 +302,7 @@ const AdminShiftSwapsPage = () => {
                     onClick={() => handleOpenActionDialog(request, 'approve')}
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' } }}
                   >
-                    Aprobă
+                    Aproba
                   </Button>
                   <Button
                     variant="outlined"
@@ -340,7 +340,7 @@ const AdminShiftSwapsPage = () => {
       {/* Header with Gradient */}
       <GradientHeader
         title="Administrare Schimburi"
-        subtitle="Gestionează și aprobă cererile de schimb de ture"
+        subtitle="Gestioneaza si aproba cererile de schimb de ture"
         icon={<AdminIcon />}
         gradient="#6366f1 0%, #8b5cf6 100%"
       >
@@ -376,9 +376,9 @@ const AdminShiftSwapsPage = () => {
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <StatCard
-            title="Așteaptă Aprobare"
+            title="Asteapta Aprobare"
             value={awaitingAdminRequests.length}
-            subtitle={awaitingAdminRequests.length > 0 ? 'Acțiune necesară' : undefined}
+            subtitle={awaitingAdminRequests.length > 0 ? 'Actiune necesara' : undefined}
             icon={<TimeIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f59e0b' }} />}
             color="#f59e0b"
             bgColor={alpha('#f59e0b', 0.12)}
@@ -388,9 +388,9 @@ const AdminShiftSwapsPage = () => {
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <StatCard
-            title="În Curs"
+            title="In Curs"
             value={pendingRequests.length}
-            subtitle="Așteaptă răspuns"
+            subtitle="Asteapta raspuns"
             icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#2563eb' }} />}
             color="#2563eb"
             bgColor={alpha('#2563eb', 0.12)}
@@ -431,7 +431,7 @@ const AdminShiftSwapsPage = () => {
           <Tab
             label={
               <Stack direction="row" alignItems="center" spacing={1}>
-                <span>Așteaptă Aprobare</span>
+                <span>Asteapta Aprobare</span>
                 {awaitingAdminRequests.length > 0 && (
                   <Chip label={awaitingAdminRequests.length} size="small" color="info" />
                 )}
@@ -441,7 +441,7 @@ const AdminShiftSwapsPage = () => {
           <Tab
             label={
               <Stack direction="row" alignItems="center" spacing={1}>
-                <span>În Curs</span>
+                <span>In Curs</span>
                 {pendingRequests.length > 0 && (
                   <Chip label={pendingRequests.length} size="small" color="warning" />
                 )}
@@ -456,7 +456,7 @@ const AdminShiftSwapsPage = () => {
           <TabPanel value={tabValue} index={0}>
             {awaitingAdminRequests.length === 0 ? (
               <Alert severity="info" icon={<CheckIcon />}>
-                Nu există cereri care așteaptă aprobarea ta.
+                Nu exista cereri care asteapta aprobarea ta.
               </Alert>
             ) : (
               awaitingAdminRequests.map((request) => renderRequestCard(request))
@@ -467,7 +467,7 @@ const AdminShiftSwapsPage = () => {
           <TabPanel value={tabValue} index={1}>
             {pendingRequests.length === 0 ? (
               <Alert severity="info" icon={<SwapIcon />}>
-                Nu există cereri în curs de procesare.
+                Nu exista cereri in curs de procesare.
               </Alert>
             ) : (
               pendingRequests.map((request) => renderRequestCard(request))
@@ -477,7 +477,7 @@ const AdminShiftSwapsPage = () => {
           {/* History */}
           <TabPanel value={tabValue} index={2}>
             {completedRequests.length === 0 ? (
-              <Alert severity="info">Nu există cereri finalizate.</Alert>
+              <Alert severity="info">Nu exista cereri finalizate.</Alert>
             ) : isMobile ? (
               // Mobile view - cards instead of table
               <Stack spacing={2}>
@@ -521,7 +521,7 @@ const AdminShiftSwapsPage = () => {
                       <TableCell>Solicitant</TableCell>
                       <TableCell>Schimb cu</TableCell>
                       <TableCell>Status</TableCell>
-                      <TableCell align="right">Acțiuni</TableCell>
+                      <TableCell align="right">Actiuni</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -608,7 +608,7 @@ const AdminShiftSwapsPage = () => {
 
               {selectedRequest.responses && selectedRequest.responses.length > 0 && (
                 <Box>
-                  <Typography variant="caption" color="text.secondary">Răspunsuri</Typography>
+                  <Typography variant="caption" color="text.secondary">Raspunsuri</Typography>
                   <Stack spacing={1} sx={{ mt: 1 }}>
                     {selectedRequest.responses.map((response) => (
                       <Paper key={response.id} variant="outlined" sx={{ p: 1.5 }}>
@@ -654,7 +654,7 @@ const AdminShiftSwapsPage = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDetailsDialogOpen(false)}>Închide</Button>
+          <Button onClick={() => setDetailsDialogOpen(false)}>Inchide</Button>
           {selectedRequest?.status === 'AWAITING_ADMIN' && (
             <>
               <Button
@@ -665,7 +665,7 @@ const AdminShiftSwapsPage = () => {
                   handleOpenActionDialog(selectedRequest, 'approve');
                 }}
               >
-                Aprobă
+                Aproba
               </Button>
               <Button
                 variant="outlined"
@@ -691,30 +691,30 @@ const AdminShiftSwapsPage = () => {
         fullScreen={isMobile}
       >
         <DialogTitle>
-          {actionType === 'approve' ? 'Aprobă Schimbul de Tură' : 'Respinge Cererea de Schimb'}
+          {actionType === 'approve' ? 'Aproba Schimbul de Tura' : 'Respinge Cererea de Schimb'}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {selectedRequest && (
               <Alert severity={actionType === 'approve' ? 'success' : 'warning'}>
                 {actionType === 'approve'
-                  ? `Vei aproba schimbul între ${selectedRequest.requester?.fullName} și ${selectedRequest.responses?.find((r) => r.response === 'ACCEPTED')?.responder?.fullName}. ${selectedRequest.requester?.fullName} va lucra în ${formatDateShort(selectedRequest.targetDate)}, iar colegul în ${formatDateShort(selectedRequest.requesterDate)}.`
+                  ? `Vei aproba schimbul intre ${selectedRequest.requester?.fullName} si ${selectedRequest.responses?.find((r) => r.response === 'ACCEPTED')?.responder?.fullName}. ${selectedRequest.requester?.fullName} va lucra in ${formatDateShort(selectedRequest.targetDate)}, iar colegul in ${formatDateShort(selectedRequest.requesterDate)}.`
                   : `Vei respinge cererea de schimb pentru datele ${formatDateShort(selectedRequest.requesterDate)} ↔ ${formatDateShort(selectedRequest.targetDate)}.`}
               </Alert>
             )}
             <TextField
-              label={actionType === 'approve' ? 'Note (opțional)' : 'Motiv respingere'}
+              label={actionType === 'approve' ? 'Note (optional)' : 'Motiv respingere'}
               multiline
               rows={3}
               value={adminNotes}
               onChange={(e) => setAdminNotes(e.target.value)}
-              placeholder={actionType === 'approve' ? 'Adaugă note...' : 'Explică de ce respingi...'}
+              placeholder={actionType === 'approve' ? 'Adauga note...' : 'Explica de ce respingi...'}
               required={actionType === 'reject'}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setActionDialogOpen(false)}>Anulează</Button>
+          <Button onClick={() => setActionDialogOpen(false)}>Anuleaza</Button>
           <Button
             variant="contained"
             color={actionType === 'approve' ? 'success' : 'error'}
@@ -722,7 +722,7 @@ const AdminShiftSwapsPage = () => {
             disabled={approving || rejecting || (actionType === 'reject' && !adminNotes)}
             startIcon={(approving || rejecting) ? <CircularProgress size={20} /> : (actionType === 'approve' ? <CheckIcon /> : <CloseIcon />)}
           >
-            {(approving || rejecting) ? 'Se procesează...' : (actionType === 'approve' ? 'Aprobă' : 'Respinge')}
+            {(approving || rejecting) ? 'Se proceseaza...' : (actionType === 'approve' ? 'Aproba' : 'Respinge')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -139,13 +139,13 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
     // Header
     doc.setFontSize(18);
     doc.setTextColor(5, 150, 105);
-    doc.text('Raport Solicitări Parcări Domiciliu', 14, 22);
+    doc.text('Raport Solicitari Parcari Domiciliu', 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
     const periodText = startDate && endDate
       ? `Perioada: ${format(new Date(startDate), 'dd.MM.yyyy')} - ${format(new Date(endDate), 'dd.MM.yyyy')}`
-      : 'Toate înregistrările';
+      : 'Toate inregistrarile';
     doc.text(periodText, 14, 30);
     doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
 
@@ -154,7 +154,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
     doc.setTextColor(0);
     doc.text('Statistici:', 14, 48);
     doc.setFontSize(10);
-    doc.text(`Total solicitări: ${stats.total}`, 14, 56);
+    doc.text(`Total solicitari: ${stats.total}`, 14, 56);
     doc.text(`Active: ${stats.active}`, 14, 62);
     doc.text(`Finalizate: ${stats.resolved}`, 14, 68);
 
@@ -171,7 +171,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
 
     autoTable(doc, {
       startY: 78,
-      head: [['Tip', 'Locație', 'Nr. Locuri', 'Persoană', 'Nr. Auto', 'Status', 'Data']],
+      head: [['Tip', 'Locatie', 'Nr. Locuri', 'Persoana', 'Nr. Auto', 'Status', 'Data']],
       body: tableData,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [5, 150, 105] },
@@ -185,15 +185,15 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
   const exportToExcel = () => {
     const excelData = filteredRequests.map(r => ({
       'Tip Solicitare': DOMICILIU_REQUEST_TYPE_LABELS[r.requestType],
-      'Locație Parcare': r.location,
+      'Locatie Parcare': r.location,
       'Link Google Maps': r.googleMapsLink || '',
       'Nr. Locuri': r.numberOfSpots || '',
       'Tip Parcaj': r.parkingLayout || '',
-      'Nume Persoană': r.personName || '',
+      'Nume Persoana': r.personName || '',
       'CNP': r.cnp || '',
       'Adresa Domiciliu': r.address || '',
       'Nr. Auto': r.carPlate || '',
-      'Marcă Auto': r.carBrand || '',
+      'Marca Auto': r.carBrand || '',
       'Telefon': r.phone || '',
       'Email': r.email || '',
       'Nr. Contract': r.contractNumber || '',
@@ -203,12 +203,12 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
       'Creat de': r.creator?.fullName || '',
       'Rezolvat de': r.resolver?.fullName || '',
       'Data Rezolvare': r.resolvedAt ? format(new Date(r.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
-      'Descriere Rezoluție': r.resolutionDescription || '',
+      'Descriere Rezolutie': r.resolutionDescription || '',
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Solicitări Domiciliu');
+    XLSX.utils.book_append_sheet(wb, ws, 'Solicitari Domiciliu');
 
     // Auto-width columns
     const maxWidth = 50;
@@ -276,7 +276,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
           maxDate={endDate || undefined}
         />
         <DatePickerField
-          label="Până la"
+          label="Pana la"
           value={endDate}
           onChange={onEndDateChange}
           minDate={startDate || undefined}
@@ -317,7 +317,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
         onClick={() => refetch()}
         fullWidth
       >
-        Actualizează date
+        Actualizeaza date
       </Button>
     </Stack>
   );
@@ -326,7 +326,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
   const ExportDrawerContent = (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6">Exportă Raport</Typography>
+        <Typography variant="h6">Exporta Raport</Typography>
         <IconButton onClick={() => setExportDrawerOpen(false)}>
           <CloseIcon />
         </IconButton>
@@ -346,7 +346,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             py: 1.5,
           }}
         >
-          Exportă PDF
+          Exporta PDF
         </Button>
 
         <Button
@@ -362,12 +362,12 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             py: 1.5,
           }}
         >
-          Exportă Excel
+          Exporta Excel
         </Button>
       </Stack>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-        {filteredRequests.length} înregistrări vor fi exportate
+        {filteredRequests.length} inregistrari vor fi exportate
       </Typography>
     </Box>
   );
@@ -402,10 +402,10 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             <HomeIcon sx={{ fontSize: 32 }} />
             <Box>
               <Typography variant="h5" fontWeight={700}>
-                Rapoarte Parcări Domiciliu
+                Rapoarte Parcari Domiciliu
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Solicitări de trasare și revocare locuri de parcare
+                Solicitari de trasare si revocare locuri de parcare
               </Typography>
             </Box>
           </Stack>
@@ -440,7 +440,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
-            title="Trasări"
+            title="Trasari"
             value={stats.byType.TRASARE_LOCURI.active + stats.byType.TRASARE_LOCURI.resolved}
             icon={<ApproveLocationIcon />}
             color="#059669"
@@ -484,7 +484,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
         </Box>
       ) : filteredRequests.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Nu există solicitări pentru filtrele selectate.
+          Nu exista solicitari pentru filtrele selectate.
         </Alert>
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
@@ -492,8 +492,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#059669', 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Tip</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Locație</TableCell>
-                {!isMobile && <TableCell sx={{ fontWeight: 600 }}>Persoană</TableCell>}
+                <TableCell sx={{ fontWeight: 600 }}>Locatie</TableCell>
+                {!isMobile && <TableCell sx={{ fontWeight: 600 }}>Persoana</TableCell>}
                 {!isMobile && <TableCell sx={{ fontWeight: 600 }}>Nr. Auto</TableCell>}
                 <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Data</TableCell>
@@ -544,7 +544,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
           {filteredRequests.length > 50 && (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                Afișate primele 50 din {filteredRequests.length} înregistrări. Exportă pentru lista completă.
+                Afisate primele 50 din {filteredRequests.length} inregistrari. Exporta pentru lista completa.
               </Typography>
             </Box>
           )}
@@ -578,7 +578,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             onClick={exportToPDF}
             sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
           >
-            Exportă PDF
+            Exporta PDF
           </Button>
           <Button
             variant="contained"
@@ -586,7 +586,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             onClick={exportToExcel}
             sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
           >
-            Exportă Excel
+            Exporta Excel
           </Button>
         </Stack>
       )}

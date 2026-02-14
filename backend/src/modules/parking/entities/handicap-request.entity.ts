@@ -23,7 +23,7 @@ export class HandicapRequest {
   @Column({ length: 20, default: 'ACTIVE' })
   status: HandicapRequestStatus;
 
-  // Câmpuri comune pentru toate tipurile
+  // Campuri comune pentru toate tipurile
   @Column({ type: 'text' })
   location: string;
 
@@ -33,7 +33,7 @@ export class HandicapRequest {
   @Column({ type: 'text' })
   description: string;
 
-  // Câmpuri specifice pentru AMPLASARE_PANOU și REVOCARE_PANOU
+  // Campuri specifice pentru AMPLASARE_PANOU si REVOCARE_PANOU
   // Nullable pentru CREARE_MARCAJ
   @Column({ name: 'person_name', length: 255, nullable: true })
   personName: string;
@@ -50,7 +50,7 @@ export class HandicapRequest {
   @Column({ length: 20, nullable: true })
   phone: string;
 
-  // CNP - vizibil doar pentru Admin și departamentele Parcări Handicap/Domiciliu
+  // CNP - vizibil doar pentru Admin si departamentele Parcari Handicap/Domiciliu
   @Column({ length: 20, nullable: true })
   cnp: string;
 

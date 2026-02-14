@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../store';
+import { removeDiacritics } from '../../utils/removeDiacritics';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -83,6 +84,8 @@ export const usersApi = createApi({
         url: '/users',
         params: filters || undefined,
       }),
+      transformResponse: (response: User[]) =>
+        response.map(u => ({ ...u, fullName: removeDiacritics(u.fullName) })),
       providesTags: (result) =>
         result
           ? [
@@ -94,11 +97,13 @@ export const usersApi = createApi({
 
     getUser: builder.query<User, string>({
       query: (id) => `/users/${id}`,
+      transformResponse: (response: User) => ({ ...response, fullName: removeDiacritics(response.fullName) }),
       providesTags: (_result, _error, id) => [{ type: 'User', id }],
     }),
 
     getCurrentUser: builder.query<User, void>({
       query: () => '/users/me',
+      transformResponse: (response: User) => ({ ...response, fullName: removeDiacritics(response.fullName) }),
       providesTags: ['User'],
     }),
 

@@ -7,7 +7,7 @@ export class CreateSwapRequestDto {
 
   @IsDateString()
   @IsNotEmpty()
-  targetDate: string; // Data pe care o dorește (YYYY-MM-DD)
+  targetDate: string; // Data pe care o doreste (YYYY-MM-DD)
 
   @IsString()
   @IsNotEmpty()

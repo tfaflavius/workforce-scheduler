@@ -143,13 +143,13 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
     // Header
     doc.setFontSize(18);
     doc.setTextColor(99, 102, 241);
-    doc.text('Raport Solicitări Parcări Handicap', 14, 22);
+    doc.text('Raport Solicitari Parcari Handicap', 14, 22);
 
     doc.setFontSize(10);
     doc.setTextColor(100);
     const periodText = startDate && endDate
       ? `Perioada: ${format(new Date(startDate), 'dd.MM.yyyy')} - ${format(new Date(endDate), 'dd.MM.yyyy')}`
-      : 'Toate înregistrările';
+      : 'Toate inregistrarile';
     doc.text(periodText, 14, 30);
     doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
 
@@ -158,7 +158,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
     doc.setTextColor(0);
     doc.text('Statistici:', 14, 48);
     doc.setFontSize(10);
-    doc.text(`Total solicitări: ${stats.total}`, 14, 56);
+    doc.text(`Total solicitari: ${stats.total}`, 14, 56);
     doc.text(`Active: ${stats.active}`, 14, 62);
     doc.text(`Finalizate: ${stats.resolved}`, 14, 68);
 
@@ -175,7 +175,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
 
     autoTable(doc, {
       startY: 78,
-      head: [['Tip', 'Locație', 'Persoană', 'Nr. Auto', 'Status', 'Data', 'Rezolvat de']],
+      head: [['Tip', 'Locatie', 'Persoana', 'Nr. Auto', 'Status', 'Data', 'Rezolvat de']],
       body: tableData,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [99, 102, 241] },
@@ -189,12 +189,12 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
   const exportToExcel = () => {
     const excelData = filteredRequests.map(r => ({
       'Tip Solicitare': HANDICAP_REQUEST_TYPE_LABELS[r.requestType],
-      'Locație': r.location,
+      'Locatie': r.location,
       'Link Google Maps': r.googleMapsLink || '',
-      'Persoană': r.personName || '',
+      'Persoana': r.personName || '',
       'Nr. Certificat': r.handicapCertificateNumber || '',
       'Nr. Auto': r.carPlate || '',
-      'Nr. Legitimație Auto': r.autoNumber || '',
+      'Nr. Legitimatie Auto': r.autoNumber || '',
       'Telefon': r.phone || '',
       'Descriere': r.description,
       'Status': HANDICAP_REQUEST_STATUS_LABELS[r.status],
@@ -202,12 +202,12 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
       'Creat de': r.creator?.fullName || '',
       'Rezolvat de': r.resolver?.fullName || '',
       'Data Rezolvare': r.resolvedAt ? format(new Date(r.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
-      'Descriere Rezoluție': r.resolutionDescription || '',
+      'Descriere Rezolutie': r.resolutionDescription || '',
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Solicitări Handicap');
+    XLSX.utils.book_append_sheet(wb, ws, 'Solicitari Handicap');
 
     // Auto-width columns
     const maxWidth = 50;
@@ -275,7 +275,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
           maxDate={endDate || undefined}
         />
         <DatePickerField
-          label="Până la"
+          label="Pana la"
           value={endDate}
           onChange={onEndDateChange}
           minDate={startDate || undefined}
@@ -317,7 +317,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
         onClick={() => refetch()}
         fullWidth
       >
-        Actualizează date
+        Actualizeaza date
       </Button>
     </Stack>
   );
@@ -326,7 +326,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
   const ExportDrawerContent = (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h6">Exportă Raport</Typography>
+        <Typography variant="h6">Exporta Raport</Typography>
         <IconButton onClick={() => setExportDrawerOpen(false)}>
           <CloseIcon />
         </IconButton>
@@ -346,7 +346,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             py: 1.5,
           }}
         >
-          Exportă PDF
+          Exporta PDF
         </Button>
 
         <Button
@@ -362,12 +362,12 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             py: 1.5,
           }}
         >
-          Exportă Excel
+          Exporta Excel
         </Button>
       </Stack>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-        {filteredRequests.length} înregistrări vor fi exportate
+        {filteredRequests.length} inregistrari vor fi exportate
       </Typography>
     </Box>
   );
@@ -402,10 +402,10 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             <HandicapIcon sx={{ fontSize: 32 }} />
             <Box>
               <Typography variant="h5" fontWeight={700}>
-                Rapoarte Parcări Handicap
+                Rapoarte Parcari Handicap
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Solicitări de amplasare/revocare panouri și creare marcaje
+                Solicitari de amplasare/revocare panouri si creare marcaje
               </Typography>
             </Box>
           </Stack>
@@ -440,7 +440,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
-            title="Amplasări"
+            title="Amplasari"
             value={stats.byType.AMPLASARE_PANOU.active + stats.byType.AMPLASARE_PANOU.resolved}
             icon={<PlacementIcon />}
             color="#2563eb"
@@ -484,7 +484,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
         </Box>
       ) : filteredRequests.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Nu există solicitări pentru filtrele selectate.
+          Nu exista solicitari pentru filtrele selectate.
         </Alert>
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
@@ -492,8 +492,8 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#6366f1', 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Tip</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Locație</TableCell>
-                {!isMobile && <TableCell sx={{ fontWeight: 600 }}>Persoană</TableCell>}
+                <TableCell sx={{ fontWeight: 600 }}>Locatie</TableCell>
+                {!isMobile && <TableCell sx={{ fontWeight: 600 }}>Persoana</TableCell>}
                 {!isMobile && <TableCell sx={{ fontWeight: 600 }}>Nr. Auto</TableCell>}
                 <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Data</TableCell>
@@ -544,7 +544,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
           {filteredRequests.length > 50 && (
             <Box sx={{ p: 2, textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">
-                Afișate primele 50 din {filteredRequests.length} înregistrări. Exportă pentru lista completă.
+                Afisate primele 50 din {filteredRequests.length} inregistrari. Exporta pentru lista completa.
               </Typography>
             </Box>
           )}
@@ -578,7 +578,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             onClick={exportToPDF}
             sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
           >
-            Exportă PDF
+            Exporta PDF
           </Button>
           <Button
             variant="contained"
@@ -586,7 +586,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             onClick={exportToExcel}
             sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
           >
-            Exportă Excel
+            Exporta Excel
           </Button>
         </Stack>
       )}

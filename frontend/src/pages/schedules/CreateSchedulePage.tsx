@@ -55,14 +55,14 @@ interface ShiftOption {
   isVacation: boolean;
 }
 
-// Opțiuni pentru tura de 12 ore
+// Optiuni pentru tura de 12 ore
 const SHIFT_OPTIONS_12H: ShiftOption[] = [
   { id: 'day_12', label: 'Zi 07-19', shortLabel: 'Z', startTime: '07:00', endTime: '19:00', color: '#4CAF50', isNightShift: false, isVacation: false },
   { id: 'night_12', label: 'Noapte 19-07', shortLabel: 'N', startTime: '19:00', endTime: '07:00', color: '#3F51B5', isNightShift: true, isVacation: false },
   { id: 'vacation_12', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
 
-// Opțiuni pentru tura de 8 ore
+// Optiuni pentru tura de 8 ore
 const SHIFT_OPTIONS_8H: ShiftOption[] = [
   { id: 'day1_8', label: 'Zi 06-14', shortLabel: 'Z1', startTime: '06:00', endTime: '14:00', color: '#00BCD4', isNightShift: false, isVacation: false },
   { id: 'day2_8', label: 'Zi 14-22', shortLabel: 'Z2', startTime: '14:00', endTime: '22:00', color: '#9C27B0', isNightShift: false, isVacation: false },
@@ -74,7 +74,7 @@ const SHIFT_OPTIONS_8H: ShiftOption[] = [
   { id: 'vacation_8', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
 
-// Generează lista de luni pentru anul 2026 (toate cele 12 luni)
+// Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
   const options = [];
   const year = 2026;
@@ -99,11 +99,11 @@ const CreateSchedulePage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
-  // Verifică rolul utilizatorului
+  // Verifica rolul utilizatorului
   const isAdmin = currentUser?.role === 'ADMIN';
   const isManager = currentUser?.role === 'MANAGER';
 
-  // Obține parametrii din URL
+  // Obtine parametrii din URL
   const urlUserId = searchParams.get('userId');
   const urlMonth = searchParams.get('month');
 
@@ -116,12 +116,12 @@ const CreateSchedulePage: React.FC = () => {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
   const [assignments, setAssignments] = useState<Record<string, string>>({});
-  // Poziția de lucru pentru fiecare zi: { date: workPositionId }
+  // Pozitia de lucru pentru fiecare zi: { date: workPositionId }
   const [workPositions, setWorkPositions] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Lista de luni (generată o singură dată)
+  // Lista de luni (generata o singura data)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   // API hooks
@@ -143,13 +143,13 @@ const CreateSchedulePage: React.FC = () => {
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
   const [updateSchedule, { isLoading: updating }] = useUpdateScheduleMutation();
 
-  // Mapează shift types din DB la opțiunile locale
+  // Mapeaza shift types din DB la optiunile locale
   const getShiftTypeId = (localId: string): string | null => {
     // Log pentru debugging
     console.log('Looking for shift type:', localId);
     console.log('Available DB shift types:', dbShiftTypes);
 
-    // Mapare bazată pe numele din DB
+    // Mapare bazata pe numele din DB
     const nameMapping: Record<string, string> = {
       'day_12': 'Zi 07-19',
       'night_12': 'Noapte 19-07',
@@ -170,7 +170,7 @@ const CreateSchedulePage: React.FC = () => {
       return null;
     }
 
-    // Găsește shift type în DB după nume exact
+    // Gaseste shift type in DB dupa nume exact
     const dbShift = dbShiftTypes.find(st => st.name === expectedName);
 
     if (dbShift) {
@@ -178,7 +178,7 @@ const CreateSchedulePage: React.FC = () => {
       return dbShift.id;
     }
 
-    // Fallback - caută după pattern în nume
+    // Fallback - cauta dupa pattern in nume
     const isVacation = localId.includes('vacation');
     const pattern = localId.includes('_12') ? 'SHIFT_12H' : 'SHIFT_8H';
 
@@ -199,7 +199,7 @@ const CreateSchedulePage: React.FC = () => {
     return null;
   };
 
-  // Setează utilizatorul din URL dacă există
+  // Seteaza utilizatorul din URL daca exista
   useEffect(() => {
     if (urlUserId && users.length > 0) {
       const userExists = users.find(u => u.id === urlUserId);
@@ -209,16 +209,15 @@ const CreateSchedulePage: React.FC = () => {
     }
   }, [urlUserId, users]);
 
-  // Filtrăm doar angajații și managerii (nu adminii) și sortăm după departament
+  // Filtram doar angajatii si managerii (nu adminii) si sortam dupa departament
   const eligibleUsers = useMemo(() => {
     const filtered = users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
 
-    // Sortare după departament: Dispecerat → Control → Întreținere
+    // Sortare dupa departament: Dispecerat → Control → Intretinere
     const departmentOrder: Record<string, number> = {
       'Dispecerat': 1,
       'Control': 2,
-      'Întreținere': 3,
-      'Intretinere': 3, // fallback pentru varianta fără diacritice
+      'Intretinere': 3,
     };
 
     filtered.sort((a, b) => {
@@ -228,30 +227,30 @@ const CreateSchedulePage: React.FC = () => {
       const orderA = departmentOrder[deptA] || 99;
       const orderB = departmentOrder[deptB] || 99;
 
-      // Prima sortare: după departament
+      // Prima sortare: dupa departament
       if (orderA !== orderB) {
         return orderA - orderB;
       }
 
-      // A doua sortare: alfabetic după nume în cadrul aceluiași departament
+      // A doua sortare: alfabetic dupa nume in cadrul aceluiasi departament
       return a.fullName.localeCompare(b.fullName);
     });
 
     return filtered;
   }, [users]);
 
-  // Obține utilizatorul selectat
+  // Obtine utilizatorul selectat
   const selectedUser = useMemo(() => {
     return eligibleUsers.find(u => u.id === selectedUserId);
   }, [eligibleUsers, selectedUserId]);
 
-  // Determină poziția de lucru implicită în funcție de departamentul utilizatorului
+  // Determina pozitia de lucru implicita in functie de departamentul utilizatorului
   const getDefaultPositionForUser = useMemo(() => {
     if (!selectedUser || dbWorkPositions.length === 0) return null;
 
     const userDepartment = selectedUser.department?.name?.toLowerCase() || '';
 
-    // Dacă userul este de la Control, poziția implicită este Control
+    // Daca userul este de la Control, pozitia implicita este Control
     if (userDepartment.includes('control')) {
       const controlPosition = dbWorkPositions.find(
         p => p.name.toLowerCase().includes('control') || p.shortName.toLowerCase() === 'c'
@@ -259,17 +258,17 @@ const CreateSchedulePage: React.FC = () => {
       return controlPosition?.id || dbWorkPositions[0].id;
     }
 
-    // Pentru Dispecerat sau orice alt departament, poziția implicită este Dispecerat
+    // Pentru Dispecerat sau orice alt departament, pozitia implicita este Dispecerat
     const dispeceratPosition = dbWorkPositions.find(
       p => p.name.toLowerCase().includes('dispecerat') || p.shortName.toLowerCase() === 'd'
     );
     return dispeceratPosition?.id || dbWorkPositions[0].id;
   }, [selectedUser, dbWorkPositions]);
 
-  // Obține opțiunile de tură în funcție de tipul selectat
+  // Obtine optiunile de tura in functie de tipul selectat
   const shiftOptions = shiftPattern === '12H' ? SHIFT_OPTIONS_12H : SHIFT_OPTIONS_8H;
 
-  // Generează zilele lunii
+  // Genereaza zilele lunii
   const daysInMonth = useMemo(() => {
     const [year, month] = monthYear.split('-').map(Number);
     const date = new Date(year, month, 0);
@@ -291,7 +290,7 @@ const CreateSchedulePage: React.FC = () => {
     return days;
   }, [monthYear, daysInMonth]);
 
-  // Creează un map cu toate asignările existente pentru toți angajații + scheduleId
+  // Creeaza un map cu toate asignarile existente pentru toti angajatii + scheduleId
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, Record<string, { shiftId: string; notes: string; workPositionId?: string }>> = {};
 
@@ -301,10 +300,10 @@ const CreateSchedulePage: React.FC = () => {
           if (!userAssignmentsMap[assignment.userId]) {
             userAssignmentsMap[assignment.userId] = {};
           }
-          // Normalizează data pentru a evita probleme cu timezone
+          // Normalizeaza data pentru a evita probleme cu timezone
           // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
           const normalizedDate = assignment.shiftDate.split('T')[0];
-          // Validează workPositionId - acceptă dacă există în dbWorkPositions
+          // Valideaza workPositionId - accepta daca exista in dbWorkPositions
           const wpId = assignment.workPositionId;
           const existsInDb = wpId && dbWorkPositions.some(p => p.id === wpId);
           userAssignmentsMap[assignment.userId][normalizedDate] = {
@@ -319,7 +318,7 @@ const CreateSchedulePage: React.FC = () => {
     return userAssignmentsMap;
   }, [existingSchedules, dbWorkPositions]);
 
-  // Găsește scheduleId-ul existent pentru un user în luna curentă
+  // Gaseste scheduleId-ul existent pentru un user in luna curenta
   const getExistingScheduleId = (userId: string): string | null => {
     for (const schedule of existingSchedules) {
       if (schedule.assignments?.some(a => a.userId === userId)) {
@@ -329,36 +328,36 @@ const CreateSchedulePage: React.FC = () => {
     return null;
   };
 
-  // Referință pentru a ține minte ce combinație user+month a fost încărcată
+  // Referinta pentru a tine minte ce combinatie user+month a fost incarcata
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
 
-  // Verifică dacă existingSchedules s-au încărcat (nu mai e loading)
+  // Verifica daca existingSchedules s-au incarcat (nu mai e loading)
   const { isLoading: schedulesLoading } = useGetSchedulesQuery({ monthYear });
 
-  // Încarcă asignările existente ale utilizatorului selectat când se editează
+  // Incarca asignarile existente ale utilizatorului selectat cand se editeaza
   useEffect(() => {
-    // Nu face nimic dacă nu avem user selectat
+    // Nu face nimic daca nu avem user selectat
     if (!selectedUserId) {
       setAssignments({});
       setLoadedKey(null);
       return;
     }
 
-    // Așteaptă să se încarce datele
+    // Asteapta sa se incarce datele
     if (schedulesLoading) {
       console.log('Waiting for schedules to load...');
       return;
     }
 
-    // Creează o cheie unică pentru combinația user + month
+    // Creeaza o cheie unica pentru combinatia user + month
     const currentKey = `${selectedUserId}-${monthYear}`;
 
-    // Nu reîncarcă dacă e aceeași combinație
+    // Nu reincarca daca e aceeasi combinatie
     if (currentKey === loadedKey) {
       return;
     }
 
-    // Dacă s-a schimbat userul sau luna, încearcă să încarce asignările
+    // Daca s-a schimbat userul sau luna, incearca sa incarce asignarile
     const userExistingAssignments = allUsersAssignments[selectedUserId];
 
     console.log('Checking assignments for user:', selectedUserId, 'month:', monthYear);
@@ -366,12 +365,12 @@ const CreateSchedulePage: React.FC = () => {
     console.log('User existing assignments:', userExistingAssignments);
 
     if (userExistingAssignments && Object.keys(userExistingAssignments).length > 0) {
-      // Convertește asignările din DB la formatul local (cu id-uri locale)
+      // Converteste asignarile din DB la formatul local (cu id-uri locale)
       const loadedAssignments: Record<string, string> = {};
       const loadedWorkPositions: Record<string, string> = {};
       let detectedPattern: ShiftPatternType | null = null;
 
-      // Prima trecere - detectează pattern-ul
+      // Prima trecere - detecteaza pattern-ul
       Object.entries(userExistingAssignments).forEach(([, assignment]) => {
         const notes = assignment.notes;
         if (notes.includes('07:00-19:00') || notes.includes('19:00-07:00')) {
@@ -384,15 +383,15 @@ const CreateSchedulePage: React.FC = () => {
         }
       });
 
-      // A doua trecere - mapează asignările și pozițiile
+      // A doua trecere - mapeaza asignarile si pozitiile
       Object.entries(userExistingAssignments).forEach(([date, assignment]) => {
         const notes = assignment.notes;
 
         // Mapare notes -> local shift id
         let localShiftId = '';
-        // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+        // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihna" etc.)
         if (notes === 'Concediu' || notes?.startsWith('Concediu:') || notes?.includes('Concediu')) {
-          // Determină dacă e 12H sau 8H bazat pe pattern-ul detectat sau default 12H
+          // Determina daca e 12H sau 8H bazat pe pattern-ul detectat sau default 12H
           localShiftId = detectedPattern === '8H' ? 'vacation_8' : 'vacation_12';
         } else if (notes.includes('07:00-19:00')) {
           localShiftId = 'day_12';
@@ -416,30 +415,30 @@ const CreateSchedulePage: React.FC = () => {
 
         if (localShiftId) {
           loadedAssignments[date] = localShiftId;
-          // Încarcă poziția de lucru dacă există în dbWorkPositions
+          // Incarca pozitia de lucru daca exista in dbWorkPositions
           const wpId = assignment.workPositionId;
           const existsInDb = wpId && dbWorkPositions.some(p => p.id === wpId);
           if (existsInDb) {
             loadedWorkPositions[date] = wpId;
           } else if (dbWorkPositions.length > 0) {
-            // Dacă nu există poziție validă în DB, setează default-ul bazat pe departament
+            // Daca nu exista pozitie valida in DB, seteaza default-ul bazat pe departament
             const defaultPos = getDefaultPositionForUser || dbWorkPositions[0].id;
             loadedWorkPositions[date] = defaultPos;
           }
         }
       });
 
-      // Setează tipul de tură detectat
+      // Seteaza tipul de tura detectat
       if (detectedPattern) {
         setShiftPattern(detectedPattern);
       }
 
-      // Pre-populează și cu concedii aprobate care nu sunt încă în program
+      // Pre-populeaza si cu concedii aprobate care nu sunt inca in program
       const userLeaves = approvedLeaves.filter(leave => leave.userId === selectedUserId);
       if (userLeaves.length > 0) {
         userLeaves.forEach(leave => {
           leave.dates.forEach(date => {
-            // Adaugă doar dacă nu există deja o asignare pentru acea zi
+            // Adauga doar daca nu exista deja o asignare pentru acea zi
             if (!loadedAssignments[date]) {
               const vacationId = detectedPattern === '8H' ? 'vacation_8' : 'vacation_12';
               loadedAssignments[date] = vacationId;
@@ -449,23 +448,23 @@ const CreateSchedulePage: React.FC = () => {
         });
       }
 
-      // Setează asignările și pozițiile încărcate
+      // Seteaza asignarile si pozitiile incarcate
       console.log('✅ Loading existing assignments for user:', selectedUserId, loadedAssignments);
       console.log('✅ Loading existing work positions:', loadedWorkPositions);
       setAssignments(loadedAssignments);
       setWorkPositions(loadedWorkPositions);
       setLoadedKey(currentKey);
     } else {
-      // Nu are asignări existente - verifică dacă are concedii aprobate
+      // Nu are asignari existente - verifica daca are concedii aprobate
       console.log('⚠️ No existing assignments for user:', selectedUserId, 'in month:', monthYear);
 
-      // Pre-populează cu concedii aprobate dacă există
+      // Pre-populeaza cu concedii aprobate daca exista
       const userLeaves = approvedLeaves.filter(leave => leave.userId === selectedUserId);
       if (userLeaves.length > 0) {
         const leaveAssignments: Record<string, string> = {};
         userLeaves.forEach(leave => {
           leave.dates.forEach(date => {
-            // Folosește vacation_12 sau vacation_8 în funcție de pattern
+            // Foloseste vacation_12 sau vacation_8 in functie de pattern
             leaveAssignments[date] = shiftPattern === '8H' ? 'vacation_8' : 'vacation_12';
           });
         });
@@ -489,14 +488,14 @@ const CreateSchedulePage: React.FC = () => {
       console.log('Total assignments:', Object.keys(newAssignments).length);
       return newAssignments;
     });
-    // Dacă șterge tura, șterge și poziția
+    // Daca sterge tura, sterge si pozitia
     if (shiftId === '') {
       setWorkPositions(prev => {
         const { [date]: _, ...rest } = prev;
         return rest;
       });
     } else if (!workPositions[date] && dbWorkPositions.length > 0) {
-      // Setează poziția default în funcție de departamentul utilizatorului
+      // Seteaza pozitia default in functie de departamentul utilizatorului
       // Control -> Control, Dispecerat/altele -> Dispecerat
       const defaultPositionId = getDefaultPositionForUser || dbWorkPositions[0].id;
       console.log('Setting default position for user department:', selectedUser?.department?.name, '->', defaultPositionId);
@@ -507,7 +506,7 @@ const CreateSchedulePage: React.FC = () => {
     }
   };
 
-  // Handler pentru schimbarea poziției de lucru
+  // Handler pentru schimbarea pozitiei de lucru
   const handleWorkPositionChange = (date: string, positionId: string) => {
     console.log('=== POSITION CHANGE ===', { date, positionId });
     setWorkPositions(prev => ({
@@ -516,17 +515,17 @@ const CreateSchedulePage: React.FC = () => {
     }));
   };
 
-  // Curăță toate asignările
+  // Curata toate asignarile
   const handleClearAll = () => {
     setAssignments({});
     setWorkPositions({});
   };
 
-  // Creează lista de asignări
+  // Creeaza lista de asignari
   const createAssignmentDtos = (): ScheduleAssignmentDto[] => {
     const validAssignments: ScheduleAssignmentDto[] = [];
 
-    // Default work position ID - în funcție de departamentul utilizatorului
+    // Default work position ID - in functie de departamentul utilizatorului
     // Control -> Control, Dispecerat/altele -> Dispecerat
     const defaultPositionId = getDefaultPositionForUser || (dbWorkPositions.length > 0 ? dbWorkPositions[0].id : null);
 
@@ -543,8 +542,8 @@ const CreateSchedulePage: React.FC = () => {
         return;
       }
 
-      // Creează assignment-ul de bază FĂRĂ workPositionId
-      // workPositionId va fi adăugat doar dacă avem poziții valide din DB
+      // Creeaza assignment-ul de baza FARA workPositionId
+      // workPositionId va fi adaugat doar daca avem pozitii valide din DB
       const assignment: ScheduleAssignmentDto = {
         userId: selectedUserId,
         shiftTypeId: dbShiftTypeId,
@@ -552,28 +551,28 @@ const CreateSchedulePage: React.FC = () => {
         notes: shiftOption?.isVacation ? 'Concediu' : `${shiftOption?.startTime}-${shiftOption?.endTime}`,
       };
 
-      // IMPORTANT: Adaugă workPositionId DOAR dacă:
-      // 1. Avem poziții încărcate din DB (dbWorkPositions.length > 0)
-      // 2. Avem o poziție validă (fie salvată, fie default)
-      // 3. Poziția există în dbWorkPositions (validare prin existență, nu prin format UUID)
+      // IMPORTANT: Adauga workPositionId DOAR daca:
+      // 1. Avem pozitii incarcate din DB (dbWorkPositions.length > 0)
+      // 2. Avem o pozitie valida (fie salvata, fie default)
+      // 3. Pozitia exista in dbWorkPositions (validare prin existenta, nu prin format UUID)
       if (dbWorkPositions.length > 0) {
         const savedPositionId = workPositions[date];
         const existsInDb = (id: string) => id && dbWorkPositions.some(p => p.id === id);
 
         console.log(`Position for ${date}: saved=${savedPositionId}, default=${defaultPositionId}`);
 
-        // Verifică dacă poziția salvată există în DB
+        // Verifica daca pozitia salvata exista in DB
         if (savedPositionId && existsInDb(savedPositionId)) {
           assignment.workPositionId = savedPositionId;
           console.log(`  -> Using SAVED position: ${savedPositionId}`);
         } else if (defaultPositionId && existsInDb(defaultPositionId)) {
-          // Folosește default doar dacă există în DB
+          // Foloseste default doar daca exista in DB
           assignment.workPositionId = defaultPositionId;
           console.log(`  -> Using DEFAULT position: ${defaultPositionId}`);
         }
-        // Dacă nici una nu există în DB, NU adăugăm workPositionId deloc
+        // Daca nici una nu exista in DB, NU adaugam workPositionId deloc
       }
-      // Dacă dbWorkPositions e gol, NU adăugăm workPositionId
+      // Daca dbWorkPositions e gol, NU adaugam workPositionId
 
       validAssignments.push(assignment);
     });
@@ -581,16 +580,16 @@ const CreateSchedulePage: React.FC = () => {
     return validAssignments;
   };
 
-  // Salvează programul (pentru Admin - salvează direct)
+  // Salveaza programul (pentru Admin - salveaza direct)
   const handleSave = async () => {
     if (!selectedUserId) return;
 
     try {
       const assignmentDtos = createAssignmentDtos();
 
-      // Verifică că s-au creat assignments
+      // Verifica ca s-au creat assignments
       if (assignmentDtos.length === 0 && Object.keys(assignments).length > 0) {
-        setErrorMessage('Nu s-au putut crea asignările. Verifică că datele sunt corecte.');
+        setErrorMessage('Nu s-au putut crea asignarile. Verifica ca datele sunt corecte.');
         return;
       }
 
@@ -606,14 +605,14 @@ const CreateSchedulePage: React.FC = () => {
       console.log('Assignment DTOs to send:', JSON.stringify(assignmentDtos, null, 2));
       console.log('Number of assignments:', assignmentDtos.length);
 
-      // Verificare finală: toate workPositionId trebuie să existe în dbWorkPositions
+      // Verificare finala: toate workPositionId trebuie sa existe in dbWorkPositions
       const invalidAssignments = assignmentDtos.filter(a =>
         a.workPositionId !== undefined &&
         !dbWorkPositions.some(p => p.id === a.workPositionId)
       );
       if (invalidAssignments.length > 0) {
         console.error('❌ Found invalid workPositionIds:', invalidAssignments);
-        setErrorMessage('Eroare internă: poziții de lucru invalide detectate. Reîncărcați pagina.');
+        setErrorMessage('Eroare interna: pozitii de lucru invalide detectate. Reincarcati pagina.');
         return;
       }
 
@@ -629,7 +628,7 @@ const CreateSchedulePage: React.FC = () => {
         }).unwrap();
 
         setSuccessMessage(isAdmin
-          ? 'Programul a fost actualizat și aprobat cu succes!'
+          ? 'Programul a fost actualizat si aprobat cu succes!'
           : 'Programul a fost actualizat ca draft.');
       } else {
         // CREATE program nou
@@ -645,7 +644,7 @@ const CreateSchedulePage: React.FC = () => {
         await createSchedule(requestBody).unwrap();
 
         setSuccessMessage(isAdmin
-          ? 'Programul a fost salvat și aprobat cu succes!'
+          ? 'Programul a fost salvat si aprobat cu succes!'
           : 'Programul a fost salvat ca draft.');
       }
 
@@ -653,23 +652,23 @@ const CreateSchedulePage: React.FC = () => {
     } catch (err: unknown) {
       console.error('Failed to save schedule:', err);
       const errorMsg = err && typeof err === 'object' && 'data' in err
-        ? (err.data as { message?: string })?.message || 'A apărut o eroare la salvarea programului.'
-        : 'A apărut o eroare la salvarea programului.';
+        ? (err.data as { message?: string })?.message || 'A aparut o eroare la salvarea programului.'
+        : 'A aparut o eroare la salvarea programului.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
-  // Salvează și trimite pentru aprobare (pentru Manager)
+  // Salveaza si trimite pentru aprobare (pentru Manager)
   const handleSaveAndSubmit = async () => {
     if (!selectedUserId) return;
 
     try {
       const assignmentDtos = createAssignmentDtos();
 
-      // Verifică că s-au creat assignments
+      // Verifica ca s-au creat assignments
       if (assignmentDtos.length === 0 && Object.keys(assignments).length > 0) {
-        setErrorMessage('Nu s-au putut crea asignările. Verifică că datele sunt corecte.');
+        setErrorMessage('Nu s-au putut crea asignarile. Verifica ca datele sunt corecte.');
         return;
       }
 
@@ -697,19 +696,19 @@ const CreateSchedulePage: React.FC = () => {
         }).unwrap();
       }
 
-      setSuccessMessage('Programul a fost trimis pentru aprobare. Un administrator îl va revizui.');
+      setSuccessMessage('Programul a fost trimis pentru aprobare. Un administrator il va revizui.');
       setTimeout(() => navigate('/schedules'), 2000);
     } catch (err: unknown) {
       console.error('Failed to submit schedule:', err);
       const errorMsg = err && typeof err === 'object' && 'data' in err
-        ? (err.data as { message?: string })?.message || 'A apărut o eroare la trimiterea programului.'
-        : 'A apărut o eroare la trimiterea programului.';
+        ? (err.data as { message?: string })?.message || 'A aparut o eroare la trimiterea programului.'
+        : 'A aparut o eroare la trimiterea programului.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
-  // Obține culoarea pentru o zi
+  // Obtine culoarea pentru o zi
   const getDayColor = (date: string) => {
     const shiftId = assignments[date];
     if (!shiftId) return 'transparent';
@@ -717,9 +716,9 @@ const CreateSchedulePage: React.FC = () => {
     return shift?.color || 'transparent';
   };
 
-  // Obține info pentru o asignare existentă
+  // Obtine info pentru o asignare existenta
   const getExistingShiftInfo = (notes: string) => {
-    // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+    // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihna" etc.)
     if (notes === 'Concediu' || notes?.startsWith('Concediu:') || notes?.includes('Concediu')) {
       return { label: 'CO', color: '#FF9800' };
     }
@@ -764,12 +763,12 @@ const CreateSchedulePage: React.FC = () => {
             variant="outlined"
             size="small"
           >
-            Înapoi
+            Inapoi
           </Button>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant={isMobile ? 'h6' : 'h5'} noWrap>Creare Program de Lucru</Typography>
             <Typography variant="caption" color="text.secondary" noWrap>
-              Creează programul lunar pentru un user sau manager
+              Creeaza programul lunar pentru un user sau manager
             </Typography>
           </Box>
         </Stack>
@@ -789,14 +788,14 @@ const CreateSchedulePage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ width: '100%' }}>
-            Eroare la crearea programului. Încercați din nou.
+            Eroare la crearea programului. Incercati din nou.
           </Alert>
         )}
 
         {/* Info despre permisiuni */}
         {isManager && !isAdmin && (
           <Alert severity="info" sx={{ width: '100%' }}>
-            Ca <strong>Manager</strong>, poți crea programe pentru angajați. Acestea vor trebui <strong>aprobate de un administrator</strong> înainte de a fi active.
+            Ca <strong>Manager</strong>, poti crea programe pentru angajati. Acestea vor trebui <strong>aprobate de un administrator</strong> inainte de a fi active.
           </Alert>
         )}
         {isAdmin && (
@@ -805,7 +804,7 @@ const CreateSchedulePage: React.FC = () => {
           </Alert>
         )}
 
-        {/* Selectori - User, Tip Tură, Lună */}
+        {/* Selectori - User, Tip Tura, Luna */}
         <Card sx={{ width: '100%' }}>
           <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
             <Box sx={{
@@ -841,19 +840,19 @@ const CreateSchedulePage: React.FC = () => {
                 </FormControl>
               </Box>
 
-              {/* Selector Tip Tură */}
+              {/* Selector Tip Tura */}
               <Box sx={{ flex: 1, minWidth: { md: 150 } }}>
                 <FormControl fullWidth size="small">
-                  <InputLabel>Tip Tură</InputLabel>
+                  <InputLabel>Tip Tura</InputLabel>
                   <Select
                     value={shiftPattern}
                     onChange={(e) => {
                       const newPattern = e.target.value as ShiftPatternType;
-                      // Doar schimbă pattern-ul, nu șterge asignările
-                      // Asignările incompatibile vor fi convertite sau ignorate la salvare
+                      // Doar schimba pattern-ul, nu sterge asignarile
+                      // Asignarile incompatibile vor fi convertite sau ignorate la salvare
                       if (Object.keys(assignments).length > 0) {
-                        // Avertizează utilizatorul că are asignări care vor fi șterse
-                        if (window.confirm('Schimbarea tipului de tură va șterge asignările curente. Continuați?')) {
+                        // Avertizeaza utilizatorul ca are asignari care vor fi sterse
+                        if (window.confirm('Schimbarea tipului de tura va sterge asignarile curente. Continuati?')) {
                           setShiftPattern(newPattern);
                           setAssignments({});
                         }
@@ -861,15 +860,15 @@ const CreateSchedulePage: React.FC = () => {
                         setShiftPattern(newPattern);
                       }
                     }}
-                    label="Tip Tură"
+                    label="Tip Tura"
                   >
-                    <MenuItem value="12H">Tură 12 ore</MenuItem>
-                    <MenuItem value="8H">Tură 8 ore</MenuItem>
+                    <MenuItem value="12H">Tura 12 ore</MenuItem>
+                    <MenuItem value="8H">Tura 8 ore</MenuItem>
                   </Select>
                 </FormControl>
               </Box>
 
-              {/* Selector Lună */}
+              {/* Selector Luna */}
               <Box sx={{ flex: 1, minWidth: { md: 180 } }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Luna</InputLabel>
@@ -877,16 +876,16 @@ const CreateSchedulePage: React.FC = () => {
                     value={monthYear}
                     onChange={(e) => {
                       const newMonth = e.target.value;
-                      // Doar schimbă luna, resetează asignările pentru noua lună
+                      // Doar schimba luna, reseteaza asignarile pentru noua luna
                       if (Object.keys(assignments).length > 0) {
-                        if (window.confirm('Schimbarea lunii va șterge asignările curente. Continuați?')) {
+                        if (window.confirm('Schimbarea lunii va sterge asignarile curente. Continuati?')) {
                           setMonthYear(newMonth);
                           setAssignments({});
-                          setLoadedKey(null); // Permite reîncărcarea pentru luna nouă
+                          setLoadedKey(null); // Permite reincarcarea pentru luna noua
                         }
                       } else {
                         setMonthYear(newMonth);
-                        setLoadedKey(null); // Permite reîncărcarea pentru luna nouă
+                        setLoadedKey(null); // Permite reincarcarea pentru luna noua
                       }
                     }}
                     label="Luna"
@@ -903,11 +902,11 @@ const CreateSchedulePage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Legendă Ture */}
+        {/* Legenda Ture */}
         <Paper sx={{ p: 1.5, width: '100%' }}>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
             <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
-              Legendă ({shiftPattern}):
+              Legenda ({shiftPattern}):
             </Typography>
             {shiftOptions.map((option) => (
               <Chip
@@ -932,15 +931,15 @@ const CreateSchedulePage: React.FC = () => {
           </Stack>
           {shiftPattern === '12H' && (
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              * După tura de zi (Z) - 24h liber | După tura de noapte (N) - 48h liber
+              * Dupa tura de zi (Z) - 24h liber | Dupa tura de noapte (N) - 48h liber
             </Typography>
           )}
-          {/* Legendă poziții de lucru */}
+          {/* Legenda pozitii de lucru */}
           {dbWorkPositions.length > 0 && (
             <Box sx={{ mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
                 <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
-                  Poziție lucru:
+                  Pozitie lucru:
                 </Typography>
                 {dbWorkPositions.map((position) => (
                   <Chip
@@ -969,7 +968,7 @@ const CreateSchedulePage: React.FC = () => {
                 <Typography variant="subtitle1" fontWeight="bold">
                   Program {new Date(`${monthYear}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
                 </Typography>
-                <Tooltip title="Șterge toate selecțiile">
+                <Tooltip title="Sterge toate selectiile">
                   <IconButton onClick={handleClearAll} color="error" size="small">
                     <ClearIcon fontSize="small" />
                   </IconButton>
@@ -1043,7 +1042,7 @@ const CreateSchedulePage: React.FC = () => {
                       </Typography>
                     </Box>
 
-                    {/* Selector tură */}
+                    {/* Selector tura */}
                     <FormControl fullWidth size="small" sx={{ mb: { xs: 0.25, sm: 0.5 } }}>
                       <Select
                         value={assignments[date] || ''}
@@ -1085,7 +1084,7 @@ const CreateSchedulePage: React.FC = () => {
                       </Select>
                     </FormControl>
 
-                    {/* Selector poziție de lucru - doar dacă există o tură asignată */}
+                    {/* Selector pozitie de lucru - doar daca exista o tura asignata */}
                     {assignments[date] && dbWorkPositions.length > 0 && (
                       <FormControl fullWidth size="small">
                         <Select
@@ -1132,11 +1131,11 @@ const CreateSchedulePage: React.FC = () => {
           </Card>
         ) : (
           <Alert severity="info" sx={{ width: '100%' }}>
-            Selectează un user sau manager pentru a crea programul de lucru.
+            Selecteaza un user sau manager pentru a crea programul de lucru.
           </Alert>
         )}
 
-        {/* Sumar și butoane */}
+        {/* Sumar si butoane */}
         {selectedUserId && (
           <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
@@ -1149,10 +1148,10 @@ const CreateSchedulePage: React.FC = () => {
                 </Box>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   <Button variant="outlined" size="small" onClick={() => navigate('/schedules')}>
-                    Anulează
+                    Anuleaza
                   </Button>
                   {isAdmin ? (
-                    // Admin - salvează și aprobă direct
+                    // Admin - salveaza si aproba direct
                     <Button
                       variant="contained"
                       size="small"
@@ -1161,10 +1160,10 @@ const CreateSchedulePage: React.FC = () => {
                       onClick={handleSave}
                       disabled={creating || updating || Object.keys(assignments).length === 0}
                     >
-                      {(creating || updating) ? 'Salvare...' : 'Salvează și Aprobă'}
+                      {(creating || updating) ? 'Salvare...' : 'Salveaza si Aproba'}
                     </Button>
                   ) : (
-                    // Manager - salvează ca draft sau trimite pentru aprobare
+                    // Manager - salveaza ca draft sau trimite pentru aprobare
                     <>
                       <Button
                         variant="outlined"
@@ -1173,7 +1172,7 @@ const CreateSchedulePage: React.FC = () => {
                         onClick={handleSave}
                         disabled={creating || updating || Object.keys(assignments).length === 0}
                       >
-                        Salvează Draft
+                        Salveaza Draft
                       </Button>
                       <Button
                         variant="contained"
@@ -1193,7 +1192,7 @@ const CreateSchedulePage: React.FC = () => {
           </Card>
         )}
 
-        {/* Secțiunea cu toți angajații și programele lor */}
+        {/* Sectiunea cu toti angajatii si programele lor */}
         <Divider sx={{ my: 1 }} />
 
         <Card sx={{ width: '100%' }}>
@@ -1201,7 +1200,7 @@ const CreateSchedulePage: React.FC = () => {
             <Stack direction="row" alignItems="center" spacing={1} mb={2} sx={{ minWidth: 0 }}>
               <GroupIcon color="primary" sx={{ flexShrink: 0 }} />
               <Typography variant="subtitle1" fontWeight="bold" noWrap sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>
-                Programele Tuturor Angajaților - {new Date(`${monthYear}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
+                Programele Tuturor Angajatilor - {new Date(`${monthYear}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
               </Typography>
             </Stack>
 
@@ -1287,8 +1286,8 @@ const CreateSchedulePage: React.FC = () => {
                           </Stack>
                         </TableCell>
                         {calendarDays.map(({ date, isWeekend }) => {
-                          // Pentru utilizatorul curent, arată asignările din state
-                          // Pentru alți utilizatori, arată asignările din baza de date
+                          // Pentru utilizatorul curent, arata asignarile din state
+                          // Pentru alti utilizatori, arata asignarile din baza de date
                           const currentUserShift = isCurrentUser ? assignments[date] : null;
                           const existingAssignment = userAssignments[date];
 
@@ -1334,7 +1333,7 @@ const CreateSchedulePage: React.FC = () => {
 
             {eligibleUsers.length === 0 && (
               <Alert severity="info" sx={{ mt: 2 }}>
-                Nu există angajați sau manageri activi.
+                Nu exista angajati sau manageri activi.
               </Alert>
             )}
           </CardContent>

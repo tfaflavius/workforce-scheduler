@@ -21,14 +21,14 @@ export class RevolutionarLegitimation {
   @Column({ length: 20, default: 'ACTIVE' })
   status: RevolutionarLegitimationStatus;
 
-  // Date persoană
+  // Date persoana
   @Column({ name: 'person_name', length: 255 })
   personName: string;
 
   @Column({ length: 20, nullable: true })
   cnp: string;
 
-  // Lege / Hotărâre în loc de certificat handicap
+  // Lege / Hotarare in loc de certificat handicap
   @Column({ name: 'law_number', length: 100 })
   lawNumber: string;
 

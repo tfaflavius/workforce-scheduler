@@ -13,6 +13,7 @@ import {
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import type { CreateUserRequest, UpdateUserRequest } from '../../store/api/users.api';
 import DatePickerField from '../common/DatePickerField';
+import { removeDiacritics } from '../../utils/removeDiacritics';
 
 interface UserFormProps {
   initialData?: Partial<CreateUserRequest & UpdateUserRequest & { id: string }>;
@@ -72,7 +73,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       } else if (formData.password.length < 6) {
         newErrors.password = 'Minim 6 caractere';
       } else if (!/^(?=.*[A-Z])(?=.*[0-9])/.test(formData.password)) {
-        newErrors.password = 'Parola trebuie să conțină cel puțin o majusculă și o cifră';
+        newErrors.password = 'Parola trebuie sa contina cel putin o majuscula si o cifra';
       }
 
       if (!formData.fullName) {
@@ -110,7 +111,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   const handleChange = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | { value: unknown }>
   ) => {
-    const value = e.target.value as string;
+    const value = field === 'fullName' ? removeDiacritics(e.target.value as string) : e.target.value as string;
     setFormData({ ...formData, [field]: value });
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
@@ -141,7 +142,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 
         {isCreate && (
           <TextField
-            label="Parolă"
+            label="Parola"
             type="password"
             value={formData.password}
             onChange={handleChange('password')}
@@ -172,7 +173,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         />
 
         <DatePickerField
-          label="Data Nașterii"
+          label="Data Nasterii"
           value={formData.birthDate || null}
           onChange={(value) => {
             setFormData({ ...formData, birthDate: value || '' });
@@ -181,7 +182,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             }
           }}
           error={!!errors.birthDate}
-          helperText={errors.birthDate || 'Necesară pentru concediul de zi de naștere'}
+          helperText={errors.birthDate || 'Necesara pentru concediul de zi de nastere'}
           fullWidth
           isBirthDate
         />
@@ -208,7 +209,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             label="Departament"
           >
             <MenuItem value="">
-              <em>Fără departament</em>
+              <em>Fara departament</em>
             </MenuItem>
             {departments?.map((dept) => (
               <MenuItem key={dept.id} value={dept.id}>
@@ -221,10 +222,10 @@ export const UserForm: React.FC<UserFormProps> = ({
 
         <Stack direction="row" spacing={2} justifyContent="flex-end">
           <Button onClick={onCancel} disabled={isLoading}>
-            Anulează
+            Anuleaza
           </Button>
           <Button type="submit" variant="contained" disabled={isLoading}>
-            {isLoading ? <CircularProgress size={24} /> : isCreate ? 'Creează' : 'Salvează'}
+            {isLoading ? <CircularProgress size={24} /> : isCreate ? 'Creeaza' : 'Salveaza'}
           </Button>
         </Stack>
       </Stack>

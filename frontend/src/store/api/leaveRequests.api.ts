@@ -25,7 +25,7 @@ export const leaveRequestsApi = createApi({
   }),
   tagTypes: ['LeaveRequests', 'MyLeaveRequests', 'LeaveBalance'],
   endpoints: (builder) => ({
-    // Crează cerere de concediu
+    // Creaza cerere de concediu
     createLeaveRequest: builder.mutation<LeaveRequest, CreateLeaveRequestDto>({
       query: (body) => ({
         url: '',
@@ -41,7 +41,7 @@ export const leaveRequestsApi = createApi({
       providesTags: ['MyLeaveRequests'],
     }),
 
-    // Balanța mea de zile
+    // Balanta mea de zile
     getMyLeaveBalance: builder.query<LeaveBalance[], number | void>({
       query: (year) => ({
         url: '/my-balance',
@@ -65,12 +65,12 @@ export const leaveRequestsApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'LeaveRequests', id }],
     }),
 
-    // Verifică suprapuneri (admin)
+    // Verifica suprapuneri (admin)
     checkOverlaps: builder.query<LeaveRequest[], string>({
       query: (id) => `/${id}/overlaps`,
     }),
 
-    // Balanța unui user (admin)
+    // Balanta unui user (admin)
     getUserBalance: builder.query<LeaveBalance[], { userId: string; year?: number }>({
       query: ({ userId, year }) => ({
         url: `/user/${userId}/balance`,
@@ -78,7 +78,7 @@ export const leaveRequestsApi = createApi({
       }),
     }),
 
-    // Actualizează balanța unui user (admin)
+    // Actualizeaza balanta unui user (admin)
     updateUserBalance: builder.mutation<LeaveBalance, { userId: string; data: UpdateLeaveBalanceDto; year?: number }>({
       query: ({ userId, data, year }) => ({
         url: `/user/${userId}/balance`,
@@ -89,7 +89,7 @@ export const leaveRequestsApi = createApi({
       invalidatesTags: ['LeaveBalance'],
     }),
 
-    // Răspunde la cerere (admin)
+    // Raspunde la cerere (admin)
     respondToLeaveRequest: builder.mutation<LeaveRequest, { id: string; data: RespondLeaveRequestDto }>({
       query: ({ id, data }) => ({
         url: `/${id}/respond`,
@@ -99,7 +99,7 @@ export const leaveRequestsApi = createApi({
       invalidatesTags: ['LeaveRequests', 'MyLeaveRequests', 'LeaveBalance'],
     }),
 
-    // Anulează cerere
+    // Anuleaza cerere
     cancelLeaveRequest: builder.mutation<void, string>({
       query: (id) => ({
         url: `/${id}`,
@@ -108,7 +108,7 @@ export const leaveRequestsApi = createApi({
       invalidatesTags: ['LeaveRequests', 'MyLeaveRequests'],
     }),
 
-    // Concedii aprobate pe lună (pentru pre-populare în programare)
+    // Concedii aprobate pe luna (pentru pre-populare in programare)
     getApprovedLeavesByMonth: builder.query<{ userId: string; dates: string[]; leaveType: string }[], string>({
       query: (monthYear) => ({
         url: '/approved-by-month',

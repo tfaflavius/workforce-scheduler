@@ -48,8 +48,8 @@ export class EmailController {
     return {
       success,
       message: success
-        ? `Email de test trimis cu succes către ${dto.email}`
-        : 'Eroare la trimiterea emailului. Verifică configurația Resend.',
+        ? `Email de test trimis cu succes catre ${dto.email}`
+        : 'Eroare la trimiterea emailului. Verifica configuratia Resend.',
     };
   }
 
@@ -61,7 +61,7 @@ export class EmailController {
       recipientEmail: dto.email,
       recipientName: dto.name,
       parkingLotName: 'Parcare Test',
-      damagedEquipment: 'Barieră Test',
+      damagedEquipment: 'Bariera Test',
       personName: 'Ion Popescu',
       carPlate: 'B-123-TST',
       description: 'Aceasta este o descriere de test pentru email prejudiciu.',
@@ -74,7 +74,7 @@ export class EmailController {
     return {
       success,
       message: success
-        ? `Email prejudiciu (${damageType}) trimis cu succes către ${dto.email}`
+        ? `Email prejudiciu (${damageType}) trimis cu succes catre ${dto.email}`
         : 'Eroare la trimiterea emailului.',
     };
   }
@@ -88,13 +88,13 @@ export class EmailController {
       requesterName: 'Ion Popescu',
       requesterDate: '15 Februarie 2026',
       targetDate: '18 Februarie 2026',
-      reason: 'Am o urgență personală și am nevoie să schimb tura.',
+      reason: 'Am o urgenta personala si am nevoie sa schimb tura.',
       swapType: 'new_request',
     });
     return {
       success,
       message: success
-        ? `Email schimb tură trimis cu succes către ${dto.email}`
+        ? `Email schimb tura trimis cu succes catre ${dto.email}`
         : 'Eroare la trimiterea emailului.',
     };
   }
@@ -114,7 +114,7 @@ export class EmailController {
     return {
       success,
       message: success
-        ? `Email cerere concediu trimis cu succes către ${dto.email}`
+        ? `Email cerere concediu trimis cu succes catre ${dto.email}`
         : 'Eroare la trimiterea emailului.',
     };
   }
@@ -140,7 +140,7 @@ export class EmailController {
       requesterName: 'Ion Popescu',
       requesterDate: '15 Februarie 2026',
       targetDate: '18 Februarie 2026',
-      reason: 'Test schimb tură',
+      reason: 'Test schimb tura',
       swapType: 'new_request',
     });
 
@@ -160,8 +160,8 @@ export class EmailController {
       recipientEmail: dto.email,
       recipientName: dto.name,
       parkingLotName: 'Parcare Test',
-      equipment: 'Barieră intrare',
-      description: 'Test problemă parcare',
+      equipment: 'Bariera intrare',
+      description: 'Test problema parcare',
       isUrgent: false,
       creatorName: 'Admin Test',
       issueType: 'new_issue',
@@ -172,7 +172,7 @@ export class EmailController {
       recipientEmail: dto.email,
       recipientName: dto.name,
       parkingLotName: 'Parcare Test',
-      damagedEquipment: 'Barieră Test',
+      damagedEquipment: 'Bariera Test',
       personName: 'Ion Popescu',
       carPlate: 'B-123-TST',
       description: 'Test prejudiciu',
@@ -231,7 +231,7 @@ export class EmailController {
 
     return {
       success: results.failed === 0,
-      message: `Emailuri trimise: ${results.sent}/${results.total}. Eșuate: ${results.failed}`,
+      message: `Emailuri trimise: ${results.sent}/${results.total}. Esuate: ${results.failed}`,
       results,
     };
   }

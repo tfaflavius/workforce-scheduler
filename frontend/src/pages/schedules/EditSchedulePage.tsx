@@ -82,7 +82,7 @@ export const EditSchedulePage: React.FC = () => {
         schedule.assignments.map((a) => ({
           userId: a.userId,
           shiftTypeId: a.shiftTypeId,
-          // Normalizează data pentru a evita probleme cu timezone
+          // Normalizeaza data pentru a evita probleme cu timezone
           shiftDate: a.shiftDate.split('T')[0],
           notes: a.notes || undefined,
         }))
@@ -225,7 +225,7 @@ export const EditSchedulePage: React.FC = () => {
       if (validation.violations && validation.violations.length > 0) {
         // Show violations to user and ask for confirmation
         setValidationDetails(validation);
-        setError('Acest program încalcă legea muncii. Verificați detaliile de mai jos și confirmați aprobarea dacă doriți să continuați.');
+        setError('Acest program incalca legea muncii. Verificati detaliile de mai jos si confirmati aprobarea daca doriti sa continuati.');
         return;
       }
 
@@ -470,7 +470,7 @@ export const EditSchedulePage: React.FC = () => {
           <Paper sx={{ p: 3, bgcolor: 'error.lighter', border: '1px solid', borderColor: 'error.main' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
               <Typography variant="h6" color="error">
-                Încălcări ale Legii Muncii Detectate:
+                Incalcari ale Legii Muncii Detectate:
               </Typography>
               {schedule.status === 'DRAFT' ? (
                 <Button
@@ -490,14 +490,14 @@ export const EditSchedulePage: React.FC = () => {
                   onClick={handleForceApprove}
                   disabled={approving}
                 >
-                  Aprobă Cu Încălcări
+                  Aproba Cu Incalcari
                 </Button>
               ) : null}
             </Stack>
             <Alert severity="warning" sx={{ mb: 2 }}>
               {schedule.status === 'PENDING_APPROVAL'
-                ? 'Acest program încalcă legea muncii. Ca administrator, poți aproba oricum, dar angajații pot refuza să lucreze în aceste condiții.'
-                : 'Acest program încalcă legea muncii. Ca administrator, poți forța trimiterea pentru aprobare, dar angajații pot refuza să lucreze în aceste condiții.'
+                ? 'Acest program incalca legea muncii. Ca administrator, poti aproba oricum, dar angajatii pot refuza sa lucreze in aceste conditii.'
+                : 'Acest program incalca legea muncii. Ca administrator, poti forta trimiterea pentru aprobare, dar angajatii pot refuza sa lucreze in aceste conditii.'
               }
             </Alert>
             <Stack spacing={2}>
@@ -512,7 +512,7 @@ export const EditSchedulePage: React.FC = () => {
                   {violation.legalReference && (
                     <Alert severity="info" sx={{ mt: 1, mb: 1 }}>
                       <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                        Referință Legală:
+                        Referinta Legala:
                       </Typography>
                       <Typography variant="caption" display="block">
                         {violation.legalReference}
@@ -526,17 +526,17 @@ export const EditSchedulePage: React.FC = () => {
                   )}
                   {violation.weekNumber && (
                     <Typography variant="caption" color="text.secondary" display="block">
-                      Săptămâna: {violation.weekNumber}
+                      Saptamana: {violation.weekNumber}
                     </Typography>
                   )}
                   {violation.actualRest !== undefined && violation.requiredRest && (
                     <Typography variant="caption" color="text.secondary" display="block">
-                      Perioadă odihnă: {violation.actualRest.toFixed(1)}h (necesar: {violation.requiredRest}h)
+                      Perioada odihna: {violation.actualRest.toFixed(1)}h (necesar: {violation.requiredRest}h)
                     </Typography>
                   )}
                   {violation.hours !== undefined && (
                     <Typography variant="caption" color="text.secondary" display="block">
-                      Ore săptămânale: {violation.hours}h
+                      Ore saptamanale: {violation.hours}h
                     </Typography>
                   )}
                   {violation.days !== undefined && (

@@ -19,7 +19,7 @@ export class ShiftSwapResponse {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Cererea de schimb la care răspunde
+  // Cererea de schimb la care raspunde
   @Column({ type: 'uuid', name: 'swap_request_id' })
   swapRequestId: string;
 
@@ -27,7 +27,7 @@ export class ShiftSwapResponse {
   @JoinColumn({ name: 'swap_request_id' })
   swapRequest: ShiftSwapRequest;
 
-  // Userul care răspunde
+  // Userul care raspunde
   @Column({ type: 'uuid', name: 'responder_id' })
   responderId: string;
 
@@ -35,13 +35,13 @@ export class ShiftSwapResponse {
   @JoinColumn({ name: 'responder_id' })
   responder: User;
 
-  // Tipul răspunsului
+  // Tipul raspunsului
   @Column({
     type: 'varchar',
   })
   response: SwapResponseType;
 
-  // Mesaj opțional
+  // Mesaj optional
   @Column({ type: 'text', nullable: true })
   message: string | null;
 

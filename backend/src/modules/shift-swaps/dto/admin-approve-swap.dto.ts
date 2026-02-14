@@ -8,7 +8,7 @@ export class AdminApproveSwapDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  adminNotes?: string; // Note opționale de la admin
+  adminNotes?: string; // Note optionale de la admin
 }
 
 export class AdminRejectSwapDto {

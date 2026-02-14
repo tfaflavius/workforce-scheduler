@@ -27,7 +27,7 @@ export const shiftSwapsApi = createApi({
   }),
   tagTypes: ['ShiftSwaps', 'MySwapRequests'],
   endpoints: (builder) => ({
-    // Crează cerere de schimb
+    // Creaza cerere de schimb
     createSwapRequest: builder.mutation<ShiftSwapRequest, CreateSwapRequestDto>({
       query: (body) => ({
         url: '',
@@ -58,12 +58,12 @@ export const shiftSwapsApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'ShiftSwaps', id }],
     }),
 
-    // Useri care lucrează într-o dată
+    // Useri care lucreaza intr-o data
     getUsersOnDate: builder.query<UserOnDate[], string>({
       query: (date) => `/users-on-date/${date}`,
     }),
 
-    // Răspunde la cerere
+    // Raspunde la cerere
     respondToSwapRequest: builder.mutation<ShiftSwapResponse, { id: string; data: RespondSwapDto }>({
       query: ({ id, data }) => ({
         url: `/${id}/respond`,
@@ -73,7 +73,7 @@ export const shiftSwapsApi = createApi({
       invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
     }),
 
-    // Admin aprobă
+    // Admin aproba
     approveSwapRequest: builder.mutation<ShiftSwapRequest, { id: string; data: AdminApproveSwapDto }>({
       query: ({ id, data }) => ({
         url: `/${id}/approve`,
@@ -93,7 +93,7 @@ export const shiftSwapsApi = createApi({
       invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
     }),
 
-    // Anulează cerere
+    // Anuleaza cerere
     cancelSwapRequest: builder.mutation<ShiftSwapRequest, string>({
       query: (id) => ({
         url: `/${id}/cancel`,

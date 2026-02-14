@@ -106,13 +106,13 @@ const PendingSchedulesPage = () => {
           gutterBottom
           sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
         >
-          Aprobări Programe
+          Aprobari Programe
         </Typography>
         <Typography
           variant="body2"
           color="text.secondary"
         >
-          Revizuiește și aprobă programele trimise de manageri
+          Revizuieste si aproba programele trimise de manageri
         </Typography>
       </Box>
 
@@ -175,7 +175,7 @@ const PendingSchedulesPage = () => {
                   fontSize: { xs: '0.875rem', sm: '1rem' },
                 }}
               >
-                Programe în așteptare
+                Programe in asteptare
               </Typography>
             </Box>
           </Stack>
@@ -251,7 +251,7 @@ const PendingSchedulesPage = () => {
 
                 <Divider sx={{ mb: 2.5 }} />
 
-                {/* Detalii program - Grid mare și clar */}
+                {/* Detalii program - Grid mare si clar */}
                 <Box
                   sx={{
                     display: 'grid',
@@ -309,7 +309,7 @@ const PendingSchedulesPage = () => {
                   </Stack>
                 </Box>
 
-                {/* Butoane acțiuni - Mari și clare */}
+                {/* Butoane actiuni - Mari si clare */}
                 <Stack
                   direction={{ xs: 'column', sm: 'row' }}
                   spacing={2}
@@ -342,7 +342,7 @@ const PendingSchedulesPage = () => {
                       fontWeight: 600,
                     }}
                   >
-                    Aprobă
+                    Aproba
                   </Button>
                   <Button
                     variant="contained"
@@ -395,7 +395,7 @@ const PendingSchedulesPage = () => {
             color="text.secondary"
             sx={{ mb: 4, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}
           >
-            Nu există programe care necesită aprobare.
+            Nu exista programe care necesita aprobare.
           </Typography>
           <Button
             variant="contained"
@@ -420,8 +420,8 @@ const PendingSchedulesPage = () => {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Ești sigur că vrei să respingi programul "{selectedSchedule?.name}"?
-            Te rugăm să specifici motivul respingerii.
+            Esti sigur ca vrei sa respingi programul "{selectedSchedule?.name}"?
+            Te rugam sa specifici motivul respingerii.
           </Typography>
           <TextField
             autoFocus
@@ -441,7 +441,7 @@ const PendingSchedulesPage = () => {
             onClick={() => setRejectDialogOpen(false)}
             size="large"
           >
-            Anulează
+            Anuleaza
           </Button>
           <Button
             variant="contained"

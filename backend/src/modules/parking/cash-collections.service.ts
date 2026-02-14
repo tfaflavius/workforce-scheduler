@@ -88,7 +88,7 @@ export class CashCollectionsService {
     });
 
     if (!collection) {
-      throw new NotFoundException(`Ridicarea cu ID ${id} nu a fost găsită`);
+      throw new NotFoundException(`Ridicarea cu ID ${id} nu a fost gasita`);
     }
 
     return collection;
@@ -97,15 +97,15 @@ export class CashCollectionsService {
   async getTotals(filters?: CashCollectionFilters): Promise<CashCollectionTotals> {
     const collections = await this.findAll(filters);
 
-    // Calculează totalul general
+    // Calculeaza totalul general
     const totalAmount = collections.reduce(
       (sum, c) => sum + parseFloat(c.amount.toString()),
       0
     );
 
-    // Grupează per parcare
+    // Grupeaza per parcare
     const byParkingLotMap = new Map<string, { name: string; total: number; count: number }>();
-    // Grupează per automat
+    // Grupeaza per automat
     const byMachineMap = new Map<string, { number: string; parkingName: string; total: number; count: number }>();
 
     for (const collection of collections) {
@@ -154,7 +154,7 @@ export class CashCollectionsService {
 
   async delete(id: string, user: User): Promise<void> {
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Doar administratorii pot șterge ridicările');
+      throw new ForbiddenException('Doar administratorii pot sterge ridicarile');
     }
 
     const collection = await this.findOne(id);

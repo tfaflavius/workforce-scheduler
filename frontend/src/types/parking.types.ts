@@ -59,7 +59,7 @@ export const HISTORY_ACTION_LABELS: Record<ParkingHistoryAction, string> = {
   CREATED: 'Creat',
   UPDATED: 'Modificat',
   RESOLVED: 'Finalizat',
-  DELETED: 'Șters',
+  DELETED: 'Sters',
 };
 
 // Parking Issue Types
@@ -201,7 +201,7 @@ export interface CashCollectionFilters {
 // Resolution Type Labels
 export const RESOLUTION_TYPE_LABELS: Record<DamageResolutionType, string> = {
   RECUPERAT: 'Recuperare prejudiciu',
-  TRIMIS_JURIDIC: 'Trimis la Direcția Juridică',
+  TRIMIS_JURIDIC: 'Trimis la Directia Juridica',
 };
 
 // Status Labels
@@ -250,13 +250,13 @@ export interface ReviewEditRequestDto {
 }
 
 export const EDIT_REQUEST_STATUS_LABELS: Record<EditRequestStatus, string> = {
-  PENDING: 'În așteptare',
+  PENDING: 'In asteptare',
   APPROVED: 'Aprobat',
   REJECTED: 'Respins',
 };
 
 export const EDIT_REQUEST_TYPE_LABELS: Record<EditRequestType, string> = {
-  PARKING_ISSUE: 'Problemă Parcare',
+  PARKING_ISSUE: 'Problema Parcare',
   PARKING_DAMAGE: 'Prejudiciu Parcare',
-  CASH_COLLECTION: 'Ridicare Încasări',
+  CASH_COLLECTION: 'Ridicare Incasari',
 };

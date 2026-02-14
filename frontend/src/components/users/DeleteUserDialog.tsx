@@ -34,28 +34,28 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({ open, onClos
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Șterge Utilizator</DialogTitle>
+      <DialogTitle>Sterge Utilizator</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            {(error as any)?.data?.message || 'A apărut o eroare la ștergerea utilizatorului'}
+            {(error as any)?.data?.message || 'A aparut o eroare la stergerea utilizatorului'}
           </Alert>
         )}
 
         <DialogContentText>
-          Ești sigur că vrei să ștergi utilizatorul{' '}
+          Esti sigur ca vrei sa stergi utilizatorul{' '}
           <strong>{user?.fullName}</strong> ({user?.email})?
         </DialogContentText>
         <DialogContentText sx={{ mt: 2, color: 'error.main' }}>
-          Această acțiune este permanentă și nu poate fi anulată.
+          Aceasta actiune este permanenta si nu poate fi anulata.
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isLoading}>
-          Anulează
+          Anuleaza
         </Button>
         <Button onClick={handleDelete} color="error" variant="contained" disabled={isLoading}>
-          {isLoading ? <CircularProgress size={24} /> : 'Șterge'}
+          {isLoading ? <CircularProgress size={24} /> : 'Sterge'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -139,7 +139,7 @@ export const InstallPrompt: React.FC = () => {
                 <MobileIcon sx={{ color: 'white' }} />
               </Box>
               <Typography variant="subtitle1" fontWeight="bold">
-                Instalează Aplicația
+                Instaleaza Aplicatia
               </Typography>
             </Stack>
             <IconButton size="small" onClick={handleDismiss}>
@@ -149,8 +149,8 @@ export const InstallPrompt: React.FC = () => {
 
           <Typography variant="body2" color="text.secondary">
             {isIOS
-              ? 'Adaugă WorkSchedule pe ecranul principal pentru acces rapid și notificări.'
-              : 'Instalează WorkSchedule pe dispozitivul tău pentru acces rapid, notificări push și utilizare offline.'}
+              ? 'Adauga WorkSchedule pe ecranul principal pentru acces rapid si notificari.'
+              : 'Instaleaza WorkSchedule pe dispozitivul tau pentru acces rapid, notificari push si utilizare offline.'}
           </Typography>
 
           {!isIOS && deferredPrompt && (
@@ -166,7 +166,7 @@ export const InstallPrompt: React.FC = () => {
                 fontWeight: 600,
               }}
             >
-              Instalează Acum
+              Instaleaza Acum
             </Button>
           )}
 
@@ -182,13 +182,13 @@ export const InstallPrompt: React.FC = () => {
                 <Stack direction="row" spacing={1} alignItems="center">
                   <ShareIcon fontSize="small" color="primary" />
                   <Typography variant="body2">
-                    1. Apasă butonul <strong>Share</strong>
+                    1. Apasa butonul <strong>Share</strong>
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <InstallIcon fontSize="small" color="primary" />
                   <Typography variant="body2">
-                    2. Selectează <strong>"Add to Home Screen"</strong>
+                    2. Selecteaza <strong>"Add to Home Screen"</strong>
                   </Typography>
                 </Stack>
               </Stack>

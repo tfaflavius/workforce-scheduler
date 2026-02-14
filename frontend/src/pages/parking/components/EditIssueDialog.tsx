@@ -102,12 +102,12 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
 
   const handleSubmit = async () => {
     if (!hasChanges()) {
-      setError('Nu ai făcut nicio modificare');
+      setError('Nu ai facut nicio modificare');
       return;
     }
 
     if (!isAdmin && !reason.trim()) {
-      setError('Te rugăm să specifici motivul modificării');
+      setError('Te rugam sa specifici motivul modificarii');
       return;
     }
 
@@ -129,10 +129,10 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <EditIcon color="primary" />
-        <span>Editează Problemă</span>
+        <span>Editeaza Problema</span>
         {!isAdmin && (
           <Chip
-            label="Necesită aprobare"
+            label="Necesita aprobare"
             color="warning"
             size="small"
             sx={{ ml: 'auto' }}
@@ -150,7 +150,7 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
 
           {!isAdmin && (
             <Alert severity="info">
-              Ca manager, modificările propuse vor fi trimise pentru aprobare la un administrator.
+              Ca manager, modificarile propuse vor fi trimise pentru aprobare la un administrator.
             </Alert>
           )}
 
@@ -185,10 +185,10 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
           </FormControl>
 
           <FormControl fullWidth>
-            <InputLabel>Firmă contactată</InputLabel>
+            <InputLabel>Firma contactata</InputLabel>
             <Select
               value={formData.contactedCompany}
-              label="Firmă contactată"
+              label="Firma contactata"
               onChange={(e) => setFormData({ ...formData, contactedCompany: e.target.value })}
             >
               {companyList.map((company) => (
@@ -203,7 +203,7 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
             fullWidth
             multiline
             rows={3}
-            label="Descriere problemă"
+            label="Descriere problema"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           />
@@ -213,10 +213,10 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
               fullWidth
               multiline
               rows={2}
-              label="Motivul modificării *"
+              label="Motivul modificarii *"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Explică de ce este necesară această modificare..."
+              placeholder="Explica de ce este necesara aceasta modificare..."
               helperText="Acest mesaj va fi trimis administratorului pentru aprobare"
             />
           )}
@@ -224,7 +224,7 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
           {hasChanges() && (
             <Alert severity="warning" icon={false}>
               <Typography variant="subtitle2" gutterBottom>
-                Modificări propuse:
+                Modificari propuse:
               </Typography>
               {formData.parkingLotId !== issue.parkingLotId && (
                 <Typography variant="body2">
@@ -238,12 +238,12 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
               )}
               {formData.contactedCompany !== issue.contactedCompany && (
                 <Typography variant="body2">
-                  • Firmă: {issue.contactedCompany} → {formData.contactedCompany}
+                  • Firma: {issue.contactedCompany} → {formData.contactedCompany}
                 </Typography>
               )}
               {formData.description !== issue.description && (
                 <Typography variant="body2">
-                  • Descriere modificată
+                  • Descriere modificata
                 </Typography>
               )}
             </Alert>
@@ -253,7 +253,7 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
 
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose} disabled={isLoading}>
-          Anulează
+          Anuleaza
         </Button>
         <Button
           variant="contained"
@@ -261,7 +261,7 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
           disabled={isLoading || !hasChanges()}
           startIcon={isLoading ? <CircularProgress size={20} /> : <EditIcon />}
         >
-          {isAdmin ? 'Salvează' : 'Trimite pentru aprobare'}
+          {isAdmin ? 'Salveaza' : 'Trimite pentru aprobare'}
         </Button>
       </DialogActions>
     </Dialog>

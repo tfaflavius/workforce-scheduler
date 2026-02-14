@@ -301,7 +301,7 @@ const UsersPage: React.FC = () => {
                     fontSize: { xs: '0.8rem', sm: '0.875rem' }
                   }}
                 >
-                  Gestionează utilizatorii și permisiunile
+                  Gestioneaza utilizatorii si permisiunile
                 </Typography>
               </Box>
             </Stack>
@@ -324,7 +324,7 @@ const UsersPage: React.FC = () => {
                   },
                 }}
               >
-                Adaugă Utilizator
+                Adauga Utilizator
               </Button>
             )}
           </Stack>
@@ -346,7 +346,7 @@ const UsersPage: React.FC = () => {
                 {/* Search always visible */}
                 <Box sx={{ p: 2, pb: 1.5 }}>
                   <TextField
-                    placeholder="Caută utilizator..."
+                    placeholder="Cauta utilizator..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     size="small"
@@ -423,7 +423,7 @@ const UsersPage: React.FC = () => {
                         label="Status"
                       >
                         <MenuItem value="">Toate</MenuItem>
-                        <MenuItem value="pending">În așteptare</MenuItem>
+                        <MenuItem value="pending">In asteptare</MenuItem>
                         <MenuItem value="active">Activ</MenuItem>
                         <MenuItem value="inactive">Inactiv</MenuItem>
                       </Select>
@@ -448,7 +448,7 @@ const UsersPage: React.FC = () => {
 
               <Stack direction="column" spacing={2}>
                 <TextField
-                  placeholder="Caută după nume sau email..."
+                  placeholder="Cauta dupa nume sau email..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   size="small"
@@ -497,7 +497,7 @@ const UsersPage: React.FC = () => {
                       label="Status"
                     >
                       <MenuItem value="">Toate</MenuItem>
-                      <MenuItem value="pending">În așteptare</MenuItem>
+                      <MenuItem value="pending">In asteptare</MenuItem>
                       <MenuItem value="active">Activ</MenuItem>
                       <MenuItem value="inactive">Inactiv</MenuItem>
                     </Select>
@@ -514,7 +514,7 @@ const UsersPage: React.FC = () => {
         <Box>
           {error && (
             <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-              Eroare la încărcarea utilizatorilor
+              Eroare la incarcarea utilizatorilor
             </Alert>
           )}
 
@@ -535,7 +535,7 @@ const UsersPage: React.FC = () => {
               }
             >
               <Typography variant="body2" fontWeight="medium">
-                <strong>{pendingUsersCount}</strong> {pendingUsersCount === 1 ? 'cont așteaptă' : 'conturi așteaptă'} aprobare
+                <strong>{pendingUsersCount}</strong> {pendingUsersCount === 1 ? 'cont asteapta' : 'conturi asteapta'} aprobare
               </Typography>
             </Alert>
           )}
@@ -555,7 +555,7 @@ const UsersPage: React.FC = () => {
               <Card sx={{ borderRadius: 2 }}>
                 <CardContent sx={{ py: 6, textAlign: 'center' }}>
                   <Typography variant="body1" color="text.secondary">
-                    Nu s-au găsit utilizatori
+                    Nu s-au gasit utilizatori
                   </Typography>
                 </CardContent>
               </Card>
@@ -707,7 +707,7 @@ const UsersPage: React.FC = () => {
                         <TableCell sx={{ fontWeight: 700 }}>Departament</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>Ultima Autentificare</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 700 }}>Acțiuni</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>Actiuni</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -715,7 +715,7 @@ const UsersPage: React.FC = () => {
                         <TableRow>
                           <TableCell colSpan={7} align="center">
                             <Typography variant="body2" color="text.secondary" sx={{ py: 4 }}>
-                              Nu s-au găsit utilizatori
+                              Nu s-au gasit utilizatori
                             </Typography>
                           </TableCell>
                         </TableRow>
@@ -767,7 +767,7 @@ const UsersPage: React.FC = () => {
                             <TableCell>
                               {user.lastLogin
                                 ? new Date(user.lastLogin).toLocaleDateString('ro-RO')
-                                : 'Niciodată'}
+                                : 'Niciodata'}
                             </TableCell>
                             <TableCell align="right">
                               {isAdmin && (
@@ -794,7 +794,7 @@ const UsersPage: React.FC = () => {
                   page={page}
                   onPageChange={handleChangePage}
                   onRowsPerPageChange={handleChangeRowsPerPage}
-                  labelRowsPerPage="Rânduri per pagină:"
+                  labelRowsPerPage="Randuri per pagina:"
                   labelDisplayedRows={({ from, to, count }) => `${from}-${to} din ${count}`}
                 />
               </>
@@ -807,28 +807,28 @@ const UsersPage: React.FC = () => {
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItemComponent onClick={handleEdit}>
           <EditIcon fontSize="small" sx={{ mr: 1.5 }} />
-          Editează
+          Editeaza
         </MenuItemComponent>
         <MenuItemComponent onClick={handleChangePassword}>
           <LockIcon fontSize="small" sx={{ mr: 1.5 }} />
-          Schimbă Parola
+          Schimba Parola
         </MenuItemComponent>
         <MenuItemComponent onClick={handleToggleStatus}>
           {selectedUser?.isActive ? (
             <>
               <InactiveIcon fontSize="small" sx={{ mr: 1.5 }} />
-              Dezactivează
+              Dezactiveaza
             </>
           ) : (
             <>
               <ActiveIcon fontSize="small" sx={{ mr: 1.5 }} />
-              Activează
+              Activeaza
             </>
           )}
         </MenuItemComponent>
         <MenuItemComponent onClick={handleDelete} sx={{ color: 'error.main' }}>
           <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} />
-          Șterge
+          Sterge
         </MenuItemComponent>
       </Menu>
 
@@ -843,7 +843,7 @@ const UsersPage: React.FC = () => {
           sx: { borderRadius: isMobile ? 0 : 3 },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Adaugă Utilizator Nou</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Adauga Utilizator Nou</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
             <UserForm
@@ -867,7 +867,7 @@ const UsersPage: React.FC = () => {
           sx: { borderRadius: isMobile ? 0 : 3 },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>Editează Utilizator</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Editeaza Utilizator</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
             <UserForm

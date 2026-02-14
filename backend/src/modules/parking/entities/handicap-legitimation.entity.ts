@@ -20,7 +20,7 @@ export class HandicapLegitimation {
   @Column({ length: 20, default: 'ACTIVE' })
   status: HandicapLegitimationStatus;
 
-  // Date persoană
+  // Date persoana
   @Column({ name: 'person_name', length: 255 })
   personName: string;
 

@@ -163,11 +163,11 @@ export class ReportsService {
       { header: 'Angajat', key: 'employee', width: 25 },
       { header: 'Data', key: 'date', width: 12 },
       { header: 'Tura', key: 'shift', width: 20 },
-      { header: 'Început', key: 'start', width: 10 },
-      { header: 'Sfârșit', key: 'end', width: 10 },
+      { header: 'Inceput', key: 'start', width: 10 },
+      { header: 'Sfarsit', key: 'end', width: 10 },
       { header: 'Ore', key: 'hours', width: 8 },
       { header: 'Noapte', key: 'isNight', width: 8 },
-      { header: 'Notițe', key: 'notes', width: 30 },
+      { header: 'Notite', key: 'notes', width: 30 },
     ];
 
     // Add header styling
@@ -195,12 +195,12 @@ export class ReportsService {
         });
       });
 
-    // Sheet 2: Rezumat Săptămânal (if included)
+    // Sheet 2: Rezumat Saptamanal (if included)
     if (weeklySummaries && weeklySummaries.length > 0) {
-      const weeklySheet = workbook.addWorksheet('Rezumat Săptămânal');
+      const weeklySheet = workbook.addWorksheet('Rezumat Saptamanal');
       weeklySheet.columns = [
         { header: 'Angajat', key: 'employee', width: 25 },
-        { header: 'Săptămâna', key: 'week', width: 12 },
+        { header: 'Saptamana', key: 'week', width: 12 },
         { header: 'Total Ore', key: 'totalHours', width: 12 },
         { header: 'Zile Lucrate', key: 'daysWorked', width: 12 },
       ];
@@ -217,21 +217,21 @@ export class ReportsService {
       weeklySummaries.forEach((summary) => {
         weeklySheet.addRow({
           employee: summary.userName,
-          week: `Săptămâna ${summary.weekNumber}`,
+          week: `Saptamana ${summary.weekNumber}`,
           totalHours: summary.totalHours,
           daysWorked: summary.daysWorked,
         });
       });
     }
 
-    // Sheet 3: Încălcări Legea Muncii (if included)
+    // Sheet 3: Incalcari Legea Muncii (if included)
     if (validation && validation.violations && validation.violations.length > 0) {
-      const violationsSheet = workbook.addWorksheet('Încălcări');
+      const violationsSheet = workbook.addWorksheet('Incalcari');
       violationsSheet.columns = [
         { header: 'Severitate', key: 'severity', width: 12 },
         { header: 'Tip', key: 'type', width: 20 },
         { header: 'Mesaj', key: 'message', width: 50 },
-        { header: 'Referință Legală', key: 'legalRef', width: 40 },
+        { header: 'Referinta Legala', key: 'legalRef', width: 40 },
         { header: 'Angajat', key: 'employee', width: 25 },
       ];
 
@@ -441,7 +441,7 @@ export class ReportsService {
       { header: 'Ore Lucrate', key: 'actualHours', width: 15 },
       { header: 'Ore Suplimentare', key: 'overtimeHours', width: 18 },
       { header: 'Status Aprobare', key: 'approvalStatus', width: 15 },
-      { header: 'Notițe', key: 'notes', width: 30 },
+      { header: 'Notite', key: 'notes', width: 30 },
     ];
 
     // Header styling
@@ -485,11 +485,11 @@ export class ReportsService {
       });
     });
 
-    // Sheet 2: Rezumat Săptămânal
-    const weeklySheet = workbook.addWorksheet('Rezumat Săptămânal');
+    // Sheet 2: Rezumat Saptamanal
+    const weeklySheet = workbook.addWorksheet('Rezumat Saptamanal');
     weeklySheet.columns = [
       { header: 'Angajat', key: 'employee', width: 25 },
-      { header: 'Săptămâna', key: 'weekNumber', width: 12 },
+      { header: 'Saptamana', key: 'weekNumber', width: 12 },
       { header: 'Ore Planificate', key: 'plannedHours', width: 15 },
       { header: 'Ore Lucrate', key: 'actualHours', width: 15 },
       { header: 'Ore Suplimentare', key: 'overtimeHours', width: 18 },
@@ -510,7 +510,7 @@ export class ReportsService {
       userSummary.weeklySummaries.forEach((weekly: any) => {
         weeklySheet.addRow({
           employee: weekly.userName,
-          weekNumber: `Săptămâna ${weekly.weekNumber}`,
+          weekNumber: `Saptamana ${weekly.weekNumber}`,
           plannedHours: weekly.plannedHours,
           actualHours: weekly.actualHours,
           overtimeHours: weekly.overtimeHours,

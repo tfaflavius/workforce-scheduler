@@ -35,8 +35,8 @@ import {
 export class HandicapRequestsController {
   constructor(private readonly handicapRequestsService: HandicapRequestsService) {}
 
-  // Verifică dacă utilizatorul poate vedea CNP-ul
-  // CNP vizibil doar pentru Admin și departamentele Parcări Handicap/Domiciliu
+  // Verifica daca utilizatorul poate vedea CNP-ul
+  // CNP vizibil doar pentru Admin si departamentele Parcari Handicap/Domiciliu
   private canSeeCnp(user: any): boolean {
     if (user.role === UserRole.ADMIN) {
       return true;
@@ -48,7 +48,7 @@ export class HandicapRequestsController {
     );
   }
 
-  // Filtrează CNP din rezultate pentru utilizatorii neautorizați
+  // Filtreaza CNP din rezultate pentru utilizatorii neautorizati
   private filterCnp(request: HandicapRequest, canSeeCnp: boolean): HandicapRequest {
     if (!canSeeCnp && request.cnp) {
       return { ...request, cnp: undefined };
@@ -97,7 +97,7 @@ export class HandicapRequestsController {
     return this.handicapRequestsService.getComments(id);
   }
 
-  // Admin și userii de la departamentul Parcări Handicap pot edita
+  // Admin si userii de la departamentul Parcari Handicap pot edita
   @Patch(':id')
   async update(
     @Param('id') id: string,

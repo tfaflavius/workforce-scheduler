@@ -59,15 +59,15 @@ export interface UpdateLeaveBalanceDto {
 }
 
 export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
-  VACATION: 'Concediu de Odihnă',
+  VACATION: 'Concediu de Odihna',
   MEDICAL: 'Concediu Medical',
-  BIRTHDAY: 'Concediu Zi de Naștere',
+  BIRTHDAY: 'Concediu Zi de Nastere',
   SPECIAL: 'Concediu Special',
   EXTRA_DAYS: 'Zile Suplimentare',
 };
 
 export const LEAVE_STATUS_LABELS: Record<LeaveRequestStatus, string> = {
-  PENDING: 'În Așteptare',
+  PENDING: 'In Asteptare',
   APPROVED: 'Aprobat',
   REJECTED: 'Respins',
 };

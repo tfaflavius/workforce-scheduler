@@ -45,9 +45,9 @@ import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 
 // Departament cu acces la Handicap stats
-const HANDICAP_DEPARTMENT_NAME = 'Parcări Handicap';
+const HANDICAP_DEPARTMENT_NAME = 'Parcari Handicap';
 
-// StatCard component pentru secțiunea Handicap
+// StatCard component pentru sectiunea Handicap
 interface StatCardProps {
   title: string;
   value: number | string;
@@ -157,7 +157,7 @@ interface ShiftCardProps {
 
 const ShiftCard = ({ date, assignment, isToday, isWeekend }: ShiftCardProps) => {
   const theme = useTheme();
-  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'];
+  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
   const dayOfWeek = dayNames[date.getDay()];
 
   return (
@@ -216,7 +216,7 @@ const ShiftCard = ({ date, assignment, isToday, isWeekend }: ShiftCardProps) => 
                   <DayIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'warning.main' }} />
                 )}
                 <Typography variant="caption" fontWeight="bold" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
-                  {assignment.shiftType?.name || 'Tură'}
+                  {assignment.shiftType?.name || 'Tura'}
                 </Typography>
               </Stack>
               <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' } }}>
@@ -278,10 +278,10 @@ const EmployeeDashboard = () => {
 
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
 
-  // Check if user is in Parcări Handicap department
+  // Check if user is in Parcari Handicap department
   const isHandicapDepartment = user?.department?.name === HANDICAP_DEPARTMENT_NAME;
 
-  // Handicap queries - only fetch if user is in Parcări Handicap department
+  // Handicap queries - only fetch if user is in Parcari Handicap department
   const { data: handicapRequests = [] } = useGetHandicapRequestsQuery(undefined, {
     skip: !isHandicapDepartment,
   });
@@ -428,7 +428,7 @@ const EmployeeDashboard = () => {
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
   ];
 
-  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'];
+  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
 
   if (isLoading) {
     return (
@@ -560,7 +560,7 @@ const EmployeeDashboard = () => {
                       fontWeight="bold"
                       sx={{ fontSize: { xs: '1.15rem', sm: '1.5rem' } }}
                     >
-                      Zi Liberă 🎉
+                      Zi Libera 🎉
                     </Typography>
                   )}
                 </Box>
@@ -615,7 +615,7 @@ const EmployeeDashboard = () => {
                       {hoursDifference > 0 ? `+${hoursDifference}` : hoursDifference}h
                     </Typography>
                     <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' }, opacity: 0.85 }}>
-                      Diferența
+                      Diferenta
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 6, sm: 2.4 }}>
@@ -824,7 +824,7 @@ const EmployeeDashboard = () => {
                                   <DayIcon sx={{ fontSize: 18, color: 'warning.main' }} />
                                 )}
                                 <Typography variant="body2" fontWeight="bold">
-                                  {assignment.shiftType?.name || 'Tură'}
+                                  {assignment.shiftType?.name || 'Tura'}
                                 </Typography>
                                 {assignment.workPosition && (
                                   <Box
@@ -855,7 +855,7 @@ const EmployeeDashboard = () => {
                             </Box>
                           ) : (
                             <Typography variant="body2" color="text.disabled" fontWeight="medium">
-                              Zi liberă
+                              Zi libera
                             </Typography>
                           )}
                         </Stack>
@@ -903,7 +903,7 @@ const EmployeeDashboard = () => {
         </Paper>
       </Grow>
 
-      {/* Secțiune Parcări Handicap - doar pentru departamentul Parcări Handicap */}
+      {/* Sectiune Parcari Handicap - doar pentru departamentul Parcari Handicap */}
       {isHandicapDepartment && (
         <>
           <Fade in={true} timeout={1000}>
@@ -919,7 +919,7 @@ const EmployeeDashboard = () => {
                   letterSpacing: '1px',
                 }}
               >
-                ♿ Parcări Handicap - Solicitări
+                ♿ Parcari Handicap - Solicitari
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
@@ -977,12 +977,12 @@ const EmployeeDashboard = () => {
                   letterSpacing: '1px',
                 }}
               >
-                🪪 Legitimații
+                🪪 Legitimatii
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
                 <Grid size={{ xs: 6, sm: 6, md: 6 }}>
                   <StatCard
-                    title="Legitimații Handicap"
+                    title="Legitimatii Handicap"
                     value={handicapLegitimations.length}
                     subtitle={`${handicapLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
                     icon={<LegitimatiiIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#059669' }} />}
@@ -994,7 +994,7 @@ const EmployeeDashboard = () => {
                 </Grid>
                 <Grid size={{ xs: 6, sm: 6, md: 6 }}>
                   <StatCard
-                    title="Legitimații Revoluționar"
+                    title="Legitimatii Revolutionar"
                     value={revolutionarLegitimations.length}
                     subtitle={`${revolutionarLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
                     icon={<RevolutionarIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#7c3aed' }} />}

@@ -91,7 +91,7 @@ export const PushNotificationSettings: React.FC = () => {
       }
 
       if (!vapidKey) {
-        setError('Nu s-a putut obține cheia VAPID. Reîncarcă pagina și încearcă din nou.');
+        setError('Nu s-a putut obtine cheia VAPID. Reincarca pagina si incearca din nou.');
         setLoading(false);
         return;
       }
@@ -101,7 +101,7 @@ export const PushNotificationSettings: React.FC = () => {
       setPermission(permissionResult);
 
       if (permissionResult !== 'granted') {
-        setError('Permisiunea pentru notificări a fost refuzată. Verifică setările browser-ului.');
+        setError('Permisiunea pentru notificari a fost refuzata. Verifica setarile browser-ului.');
         setLoading(false);
         return;
       }
@@ -109,7 +109,7 @@ export const PushNotificationSettings: React.FC = () => {
       // Use the existing PWA service worker (which imports sw-push.js)
       const registration = await navigator.serviceWorker.ready;
       if (!registration) {
-        setError('Service worker nu este disponibil. Reîncarcă pagina.');
+        setError('Service worker nu este disponibil. Reincarca pagina.');
         setLoading(false);
         return;
       }
@@ -142,10 +142,10 @@ export const PushNotificationSettings: React.FC = () => {
       await subscribeToPush(subscription.toJSON() as PushSubscriptionJSON);
       await refetchStatus();
 
-      setSuccess('Notificările push au fost activate cu succes!');
+      setSuccess('Notificarile push au fost activate cu succes!');
     } catch (err: any) {
       console.error('Error subscribing to push:', err);
-      setError(err.message || 'Eroare la activarea notificărilor push');
+      setError(err.message || 'Eroare la activarea notificarilor push');
     } finally {
       setLoading(false);
     }
@@ -168,10 +168,10 @@ export const PushNotificationSettings: React.FC = () => {
       setCurrentSubscription(null);
       await refetchStatus();
 
-      setSuccess('Notificările push au fost dezactivate.');
+      setSuccess('Notificarile push au fost dezactivate.');
     } catch (err: any) {
       console.error('Error unsubscribing from push:', err);
-      setError(err.message || 'Eroare la dezactivarea notificărilor push');
+      setError(err.message || 'Eroare la dezactivarea notificarilor push');
     } finally {
       setLoading(false);
     }
@@ -183,9 +183,9 @@ export const PushNotificationSettings: React.FC = () => {
 
     try {
       await testPush();
-      setSuccess('Notificarea de test a fost trimisă! Verifică-ți dispozitivul.');
+      setSuccess('Notificarea de test a fost trimisa! Verifica-ti dispozitivul.');
     } catch (err: any) {
-      setError('Eroare la trimiterea notificării de test');
+      setError('Eroare la trimiterea notificarii de test');
     }
   };
 
@@ -199,10 +199,10 @@ export const PushNotificationSettings: React.FC = () => {
             <NotificationsOffIcon color="disabled" />
             <Box>
               <Typography variant="subtitle1" fontWeight="bold">
-                Notificări Push
+                Notificari Push
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Browser-ul tău nu suportă notificări push.
+                Browser-ul tau nu suporta notificari push.
               </Typography>
             </Box>
           </Stack>
@@ -225,10 +225,10 @@ export const PushNotificationSettings: React.FC = () => {
               )}
               <Box>
                 <Typography variant="h6" fontWeight="bold">
-                  Notificări Push
+                  Notificari Push
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Primește notificări chiar și când aplicația este închisă
+                  Primeste notificari chiar si cand aplicatia este inchisa
                 </Typography>
               </Box>
             </Stack>
@@ -276,11 +276,11 @@ export const PushNotificationSettings: React.FC = () => {
           {/* Info Box */}
           <Alert severity="info" icon={false}>
             <Typography variant="body2">
-              <strong>Cum funcționează:</strong> După activare, vei primi notificări pe acest dispozitiv pentru:
+              <strong>Cum functioneaza:</strong> Dupa activare, vei primi notificari pe acest dispozitiv pentru:
             </Typography>
             <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
-              <li>Aprobări și respingeri de programe</li>
-              <li>Cereri de schimb de tură</li>
+              <li>Aprobari si respingeri de programe</li>
+              <li>Cereri de schimb de tura</li>
               <li>Cereri de concediu</li>
               <li>Reminder-uri pentru ture</li>
             </Box>
@@ -292,12 +292,12 @@ export const PushNotificationSettings: React.FC = () => {
 
           {permission === 'denied' && (
             <Alert severity="warning">
-              Notificările sunt blocate în browser. Pentru a le activa:
+              Notificarile sunt blocate in browser. Pentru a le activa:
               <ol style={{ marginBottom: 0 }}>
-                <li>Click pe iconița de lacăt din bara de adrese</li>
-                <li>Găsește setarea "Notificări"</li>
-                <li>Schimbă în "Permite"</li>
-                <li>Reîncarcă pagina</li>
+                <li>Click pe iconita de lacat din bara de adrese</li>
+                <li>Gaseste setarea "Notificari"</li>
+                <li>Schimba in "Permite"</li>
+                <li>Reincarca pagina</li>
               </ol>
             </Alert>
           )}
@@ -324,7 +324,7 @@ export const PushNotificationSettings: React.FC = () => {
                 }}
                 disabled={loading}
               >
-                Resetează
+                Reseteaza
               </Button>
             </Stack>
           )}

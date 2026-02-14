@@ -33,7 +33,7 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
 
   const handleSubmit = async () => {
     if (!resolutionDescription.trim()) {
-      setError('Descrierea rezolvării este obligatorie');
+      setError('Descrierea rezolvarii este obligatorie');
       return;
     }
 
@@ -44,7 +44,7 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
       }).unwrap();
       handleClose();
     } catch (err: any) {
-      setError(err.data?.message || 'A apărut o eroare');
+      setError(err.data?.message || 'A aparut o eroare');
     }
   };
 
@@ -56,7 +56,7 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
-      <DialogTitle>Finalizează Problema</DialogTitle>
+      <DialogTitle>Finalizeaza Problema</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
@@ -64,7 +64,7 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
           {/* Issue Details */}
           <Stack spacing={1}>
             <Typography variant="subtitle2" color="text.secondary">
-              Detalii problemă:
+              Detalii problema:
             </Typography>
             <Typography variant="body2">
               <strong>Parcare:</strong> {issue.parkingLot?.name}
@@ -73,7 +73,7 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
               <strong>Echipament:</strong> {issue.equipment}
             </Typography>
             <Typography variant="body2">
-              <strong>Firmă contactată:</strong> {issue.contactedCompany}
+              <strong>Firma contactata:</strong> {issue.contactedCompany}
             </Typography>
             <Typography variant="body2">
               <strong>Descriere:</strong> {issue.description}
@@ -83,20 +83,20 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
           <Divider />
 
           <TextField
-            label="Descrierea rezolvării"
+            label="Descrierea rezolvarii"
             multiline
             rows={4}
             value={resolutionDescription}
             onChange={(e) => setResolutionDescription(e.target.value)}
             required
             fullWidth
-            placeholder="Descrie cum a fost rezolvată problema..."
+            placeholder="Descrie cum a fost rezolvata problema..."
           />
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleClose} disabled={isLoading}>
-          Anulează
+          Anuleaza
         </Button>
         <Button
           onClick={handleSubmit}
@@ -104,7 +104,7 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
           color="success"
           disabled={isLoading}
         >
-          {isLoading ? <CircularProgress size={24} /> : 'Finalizează'}
+          {isLoading ? <CircularProgress size={24} /> : 'Finalizeaza'}
         </Button>
       </DialogActions>
     </Dialog>

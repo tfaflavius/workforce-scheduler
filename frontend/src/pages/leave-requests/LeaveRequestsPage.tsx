@@ -144,27 +144,27 @@ export const LeaveRequestsPage = () => {
     try {
       await createRequest(dto).unwrap();
       handleCloseDialog();
-      setSuccessMessage('Cererea de concediu a fost trimisă cu succes!');
+      setSuccessMessage('Cererea de concediu a fost trimisa cu succes!');
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: unknown) {
       const errorMsg = err && typeof err === 'object' && 'data' in err
-        ? (err.data as { message?: string })?.message || 'A apărut o eroare la crearea cererii.'
-        : 'A apărut o eroare la crearea cererii.';
+        ? (err.data as { message?: string })?.message || 'A aparut o eroare la crearea cererii.'
+        : 'A aparut o eroare la crearea cererii.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
   const handleCancel = async (id: string) => {
-    if (window.confirm('Ești sigur că vrei să anulezi această cerere?')) {
+    if (window.confirm('Esti sigur ca vrei sa anulezi aceasta cerere?')) {
       try {
         await cancelRequest(id).unwrap();
-        setSuccessMessage('Cererea a fost anulată cu succes.');
+        setSuccessMessage('Cererea a fost anulata cu succes.');
         setTimeout(() => setSuccessMessage(null), 5000);
       } catch (err: unknown) {
         const errorMsg = err && typeof err === 'object' && 'data' in err
-          ? (err.data as { message?: string })?.message || 'A apărut o eroare la anularea cererii.'
-          : 'A apărut o eroare la anularea cererii.';
+          ? (err.data as { message?: string })?.message || 'A aparut o eroare la anularea cererii.'
+          : 'A aparut o eroare la anularea cererii.';
         setErrorMessage(errorMsg);
         setTimeout(() => setErrorMessage(null), 5000);
       }
@@ -175,7 +175,7 @@ export const LeaveRequestsPage = () => {
     if (error?.data?.message) {
       return error.data.message;
     }
-    return 'A apărut o eroare. Încearcă din nou.';
+    return 'A aparut o eroare. Incearca din nou.';
   };
 
   // Check if user has birthDate set (needed for BIRTHDAY leave)
@@ -206,7 +206,7 @@ export const LeaveRequestsPage = () => {
       {/* Header with Gradient */}
       <GradientHeader
         title="Concediile Mele"
-        subtitle="Solicită și gestionează cererile tale de concediu"
+        subtitle="Solicita si gestioneaza cererile tale de concediu"
         icon={<BeachIcon />}
         gradient="#10b981 0%, #059669 100%"
       >
@@ -219,7 +219,7 @@ export const LeaveRequestsPage = () => {
         {pendingCount > 0 && (
           <Chip
             icon={<PendingIcon sx={{ fontSize: 16 }} />}
-            label={`${pendingCount} în așteptare`}
+            label={`${pendingCount} in asteptare`}
             sx={{ bgcolor: 'rgba(255,255,255,0.3)', color: 'white' }}
             size="small"
           />
@@ -239,7 +239,7 @@ export const LeaveRequestsPage = () => {
             '&:hover': { bgcolor: '#059669' },
           }}
         >
-          Cerere Nouă de Concediu
+          Cerere Noua de Concediu
         </Button>
       </Box>
 
@@ -350,7 +350,7 @@ export const LeaveRequestsPage = () => {
                       </Typography>
 
                       <Chip
-                        label="Fără limită"
+                        label="Fara limita"
                         size="small"
                         sx={{
                           fontSize: '0.6rem',
@@ -439,8 +439,8 @@ export const LeaveRequestsPage = () => {
         <EmptyState
           icon={<EventBusyIcon sx={{ fontSize: 64, color: '#10b981' }} />}
           title="Nicio cerere de concediu"
-          description="Bucură-te de zilele tale libere! Apasă butonul de mai sus pentru a solicita concediu."
-          actionLabel="Solicită Concediu"
+          description="Bucura-te de zilele tale libere! Apasa butonul de mai sus pentru a solicita concediu."
+          actionLabel="Solicita Concediu"
           onAction={handleOpenDialog}
         />
       ) : (
@@ -488,7 +488,7 @@ export const LeaveRequestsPage = () => {
                       size="small"
                     />
                     {request.status === 'PENDING' && (
-                      <Tooltip title="Anulează cererea">
+                      <Tooltip title="Anuleaza cererea">
                         <IconButton
                           size="small"
                           color="error"
@@ -529,7 +529,7 @@ export const LeaveRequestsPage = () => {
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
             <BeachIcon color="primary" />
-            <span>Cerere Nouă de Concediu</span>
+            <span>Cerere Noua de Concediu</span>
           </Stack>
         </DialogTitle>
         <DialogContent>
@@ -556,7 +556,7 @@ export const LeaveRequestsPage = () => {
                     <span>{option.label}</span>
                     {option.disabled && (
                       <Typography variant="caption" color="text.secondary">
-                        (completează data nașterii în profil)
+                        (completeaza data nasterii in profil)
                       </Typography>
                     )}
                   </Stack>
@@ -565,7 +565,7 @@ export const LeaveRequestsPage = () => {
             </TextField>
 
             <DatePickerField
-              label="Data Început"
+              label="Data Inceput"
               value={startDate || null}
               onChange={(value) => setStartDate(value || '')}
               fullWidth
@@ -573,7 +573,7 @@ export const LeaveRequestsPage = () => {
             />
 
             <DatePickerField
-              label="Data Sfârșit"
+              label="Data Sfarsit"
               value={endDate || null}
               onChange={(value) => setEndDate(value || '')}
               fullWidth
@@ -581,26 +581,26 @@ export const LeaveRequestsPage = () => {
             />
 
             <TextField
-              label="Motiv (opțional)"
+              label="Motiv (optional)"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               multiline
               rows={3}
               fullWidth
-              helperText="Explică motivul cererii tale"
+              helperText="Explica motivul cererii tale"
             />
 
             <Alert severity="info">
               <Typography variant="body2">
                 {leaveType === 'MEDICAL'
-                  ? 'Concediul medical nu necesită aprobare cu 1 zi în avans.'
-                  : 'Cererea trebuie făcută cu cel puțin 1 zi înainte de data de început.'}
+                  ? 'Concediul medical nu necesita aprobare cu 1 zi in avans.'
+                  : 'Cererea trebuie facuta cu cel putin 1 zi inainte de data de inceput.'}
               </Typography>
             </Alert>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Anulează</Button>
+          <Button onClick={handleCloseDialog}>Anuleaza</Button>
           <Button
             variant="contained"
             onClick={handleSubmit}

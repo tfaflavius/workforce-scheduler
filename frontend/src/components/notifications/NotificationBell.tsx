@@ -181,7 +181,7 @@ export const NotificationBell: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // Poll pentru notificări la fiecare 30 secunde
+  // Poll pentru notificari la fiecare 30 secunde
   const { data: notifications = [], isLoading } = useGetNotificationsQuery(
     { limit: 10 },
     { pollingInterval: 30000 }
@@ -224,7 +224,7 @@ export const NotificationBell: React.FC = () => {
       <IconButton
         color="inherit"
         onClick={handleOpen}
-        aria-label={`${unreadCount} notificări necitite`}
+        aria-label={`${unreadCount} notificari necitite`}
       >
         <Badge badgeContent={unreadCount} color="error" max={99}>
           {unreadCount > 0 ? <NotificationsIcon /> : <NotificationsNoneIcon />}

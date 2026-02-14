@@ -92,7 +92,7 @@ export class NotificationsService {
       userId,
       type: NotificationType.SCHEDULE_APPROVED,
       title: 'Program aprobat',
-      message: `Programul tău pentru ${monthName} ${year} a fost aprobat de ${approverName}.`,
+      message: `Programul tau pentru ${monthName} ${year} a fost aprobat de ${approverName}.`,
       data: { monthYear, approverName },
     });
   }
@@ -135,7 +135,7 @@ export class NotificationsService {
       userId,
       type: NotificationType.SCHEDULE_CREATED,
       title: 'Program nou creat',
-      message: `A fost creat un program nou pentru ${monthName} ${year} de către ${creatorName}.`,
+      message: `A fost creat un program nou pentru ${monthName} ${year} de catre ${creatorName}.`,
       data: { monthYear, creatorName },
     }));
 
@@ -174,8 +174,8 @@ export class NotificationsService {
     return this.create({
       userId,
       type: NotificationType.SHIFT_REMINDER,
-      title: 'Reminder tură',
-      message: `Tura ta ${shiftType} începe în curând (${shiftTime}).`,
+      title: 'Reminder tura',
+      message: `Tura ta ${shiftType} incepe in curand (${shiftTime}).`,
       data: { shiftDate, shiftTime, shiftType },
     });
   }

@@ -54,7 +54,7 @@ export const TaskForm = ({ task, onSubmit, onCancel, isLoading, error }: TaskFor
     }
 
     if (formData.title.length > 500) {
-      newErrors.title = 'Titlul nu poate depăși 500 caractere';
+      newErrors.title = 'Titlul nu poate depasi 500 caractere';
     }
 
     setErrors(newErrors);
@@ -125,10 +125,10 @@ export const TaskForm = ({ task, onSubmit, onCancel, isLoading, error }: TaskFor
           </FormControl>
 
           <FormControl fullWidth required>
-            <InputLabel>Urgență</InputLabel>
+            <InputLabel>Urgenta</InputLabel>
             <Select
               value={formData.urgency}
-              label="Urgență"
+              label="Urgenta"
               onChange={(e) => setFormData({ ...formData, urgency: e.target.value as TaskUrgency })}
             >
               <MenuItem value="LOW">LOW</MenuItem>
@@ -148,7 +148,7 @@ export const TaskForm = ({ task, onSubmit, onCancel, isLoading, error }: TaskFor
         />
 
         <DatePickerField
-          label="Data Limită"
+          label="Data Limita"
           value={formData.dueDate || null}
           onChange={(value) => setFormData({ ...formData, dueDate: value || '' })}
           minDate={new Date().toISOString().split('T')[0]}
@@ -161,14 +161,14 @@ export const TaskForm = ({ task, onSubmit, onCancel, isLoading, error }: TaskFor
             onClick={onCancel}
             disabled={isLoading}
           >
-            Anulează
+            Anuleaza
           </Button>
           <Button
             type="submit"
             variant="contained"
             disabled={isLoading}
           >
-            {task ? 'Actualizează' : 'Creează'} Task
+            {task ? 'Actualizeaza' : 'Creeaza'} Task
           </Button>
         </Stack>
       </Stack>

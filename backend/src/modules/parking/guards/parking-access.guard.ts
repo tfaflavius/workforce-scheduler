@@ -22,19 +22,19 @@ export class ParkingAccessGuard implements CanActivate {
       return false;
     }
 
-    // ADMIN și MANAGER au acces direct
+    // ADMIN si MANAGER au acces direct
     if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
       return true;
     }
 
-    // Pentru USER, verificăm dacă e din departamentele cu acces la parcări
+    // Pentru USER, verificam daca e din departamentele cu acces la parcari
     if (user.departmentId) {
       const department = await this.departmentRepository.findOne({
         where: { id: user.departmentId },
       });
 
       if (department) {
-        // Permite acces pentru Dispecerat și Întreținere Parcări
+        // Permite acces pentru Dispecerat si Intretinere Parcari
         const allowedDepartments = [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME];
         if (allowedDepartments.includes(department.name)) {
           return true;

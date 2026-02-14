@@ -35,7 +35,7 @@ export const scheduleGeneratorApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    // Preview auto-generate (nu salvează)
+    // Preview auto-generate (nu salveaza)
     previewAutoGenerate: builder.mutation<GenerationResult, string>({
       query: (monthYear) => ({
         url: '/auto-generate/preview',
@@ -44,7 +44,7 @@ export const scheduleGeneratorApi = createApi({
       }),
     }),
 
-    // Auto-generate și salvează
+    // Auto-generate si salveaza
     autoGenerateSchedule: builder.mutation<GenerationResult, string>({
       query: (monthYear) => ({
         url: '/auto-generate',

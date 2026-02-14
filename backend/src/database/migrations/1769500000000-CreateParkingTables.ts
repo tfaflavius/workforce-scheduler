@@ -4,19 +4,19 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
   name = 'CreateParkingTables1769500000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 1. Creare departament "Întreținere Parcări"
+    // 1. Creare departament "Intretinere Parcari"
     await queryRunner.query(`
       INSERT INTO departments (id, name, created_at, updated_at)
       VALUES (
         uuid_generate_v4(),
-        'Întreținere Parcări',
+        'Intretinere Parcari',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
       )
       ON CONFLICT (name) DO NOTHING
     `);
 
-    // 2. Creare tabelă parking_lots
+    // 2. Creare tabela parking_lots
     await queryRunner.query(`
       CREATE TABLE parking_lots (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -29,7 +29,7 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       )
     `);
 
-    // 3. Creare tabelă payment_machines
+    // 3. Creare tabela payment_machines
     await queryRunner.query(`
       CREATE TABLE payment_machines (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -42,7 +42,7 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       )
     `);
 
-    // 4. Creare tabelă parking_issues
+    // 4. Creare tabela parking_issues
     await queryRunner.query(`
       CREATE TABLE parking_issues (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -61,7 +61,7 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       )
     `);
 
-    // 5. Creare tabelă parking_damages
+    // 5. Creare tabela parking_damages
     await queryRunner.query(`
       CREATE TABLE parking_damages (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -83,7 +83,7 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       )
     `);
 
-    // 6. Creare tabelă cash_collections
+    // 6. Creare tabela cash_collections
     await queryRunner.query(`
       CREATE TABLE cash_collections (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -97,7 +97,7 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       )
     `);
 
-    // 7. Creare indexuri pentru performanță
+    // 7. Creare indexuri pentru performanta
     await queryRunner.query(`CREATE INDEX idx_parking_issues_status ON parking_issues(status)`);
     await queryRunner.query(`CREATE INDEX idx_parking_issues_parking_lot ON parking_issues(parking_lot_id)`);
     await queryRunner.query(`CREATE INDEX idx_parking_issues_assigned_to ON parking_issues(assigned_to)`);
@@ -111,7 +111,7 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
     await queryRunner.query(`CREATE INDEX idx_cash_collections_machine ON cash_collections(payment_machine_id)`);
     await queryRunner.query(`CREATE INDEX idx_cash_collections_collected_at ON cash_collections(collected_at DESC)`);
 
-    // 8. Seed date parcări și automate
+    // 8. Seed date parcari si automate
     // Parcare Baritiu
     await queryRunner.query(`
       INSERT INTO parking_lots (id, name, code) VALUES
@@ -135,10 +135,10 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       ('a1000000-0000-0000-0000-000000000002', '683')
     `);
 
-    // Parcarea Brașovului
+    // Parcarea Brasovului
     await queryRunner.query(`
       INSERT INTO parking_lots (id, name, code) VALUES
-      ('a1000000-0000-0000-0000-000000000003', 'Parcarea Brașovului', 'BRASOVULUI')
+      ('a1000000-0000-0000-0000-000000000003', 'Parcarea Brasovului', 'BRASOVULUI')
     `);
     await queryRunner.query(`
       INSERT INTO payment_machines (parking_lot_id, machine_number) VALUES
@@ -146,10 +146,10 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       ('a1000000-0000-0000-0000-000000000003', '612')
     `);
 
-    // Parcarea Independenței
+    // Parcarea Independentei
     await queryRunner.query(`
       INSERT INTO parking_lots (id, name, code) VALUES
-      ('a1000000-0000-0000-0000-000000000004', 'Parcarea Independenței', 'INDEPENDENTEI')
+      ('a1000000-0000-0000-0000-000000000004', 'Parcarea Independentei', 'INDEPENDENTEI')
     `);
     await queryRunner.query(`
       INSERT INTO payment_machines (parking_lot_id, machine_number) VALUES
@@ -200,10 +200,10 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
       ('a1000000-0000-0000-0000-000000000008', '673')
     `);
 
-    // Parcarea Primărie
+    // Parcarea Primarie
     await queryRunner.query(`
       INSERT INTO parking_lots (id, name, code) VALUES
-      ('a1000000-0000-0000-0000-000000000009', 'Parcarea Primărie', 'PRIMARIE')
+      ('a1000000-0000-0000-0000-000000000009', 'Parcarea Primarie', 'PRIMARIE')
     `);
     await queryRunner.query(`
       INSERT INTO payment_machines (parking_lot_id, machine_number) VALUES
@@ -232,6 +232,6 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE IF EXISTS parking_lots`);
 
     // Delete department (optional)
-    await queryRunner.query(`DELETE FROM departments WHERE name = 'Întreținere Parcări'`);
+    await queryRunner.query(`DELETE FROM departments WHERE name = 'Intretinere Parcari'`);
   }
 }

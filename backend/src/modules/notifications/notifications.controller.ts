@@ -96,7 +96,7 @@ export class NotificationsController {
     await this.pushNotificationService.sendToUser(
       req.user.id,
       '🔔 Test Notificare',
-      'Notificările push funcționează corect!',
+      'Notificarile push functioneaza corect!',
       { url: '/dashboard' },
     );
     return { success: true, message: 'Test notification sent' };

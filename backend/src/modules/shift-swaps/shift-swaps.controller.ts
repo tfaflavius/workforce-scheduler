@@ -24,7 +24,7 @@ export class ShiftSwapsController {
   constructor(private readonly shiftSwapsService: ShiftSwapsService) {}
 
   /**
-   * Creează o cerere de schimb de tură
+   * Creeaza o cerere de schimb de tura
    * Accesibil: USER, MANAGER
    */
   @Post()
@@ -55,7 +55,7 @@ export class ShiftSwapsController {
 
   /**
    * Detalii cerere
-   * Accesibil: Toți (cu verificare în service)
+   * Accesibil: Toti (cu verificare in service)
    */
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -63,7 +63,7 @@ export class ShiftSwapsController {
   }
 
   /**
-   * Găsește userii care lucrează într-o dată
+   * Gaseste userii care lucreaza intr-o data
    * Accesibil: USER, MANAGER
    */
   @Get('users-on-date/:date')
@@ -73,7 +73,7 @@ export class ShiftSwapsController {
   }
 
   /**
-   * Răspunde la o cerere de schimb
+   * Raspunde la o cerere de schimb
    * Accesibil: USER, MANAGER
    */
   @Post(':id/respond')
@@ -87,7 +87,7 @@ export class ShiftSwapsController {
   }
 
   /**
-   * Admin aprobă schimbul
+   * Admin aproba schimbul
    * Accesibil: ADMIN
    */
   @Post(':id/approve')
@@ -115,7 +115,7 @@ export class ShiftSwapsController {
   }
 
   /**
-   * Anulează cererea (doar solicitantul)
+   * Anuleaza cererea (doar solicitantul)
    * Accesibil: USER, MANAGER
    */
   @Post(':id/cancel')

@@ -65,7 +65,7 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
   const handleSubmit = async () => {
     if (!formData.parkingLotId || !formData.damagedEquipment || !formData.personName ||
         !formData.phone || !formData.carPlate || !formData.description) {
-      setError('Toate câmpurile sunt obligatorii');
+      setError('Toate campurile sunt obligatorii');
       return;
     }
 
@@ -79,7 +79,7 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
       }).unwrap();
       handleClose();
     } catch (err: any) {
-      setError(err.data?.message || 'A apărut o eroare');
+      setError(err.data?.message || 'A aparut o eroare');
     }
   };
 
@@ -111,13 +111,13 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
     <FriendlyDialog
       open={open}
       onClose={handleClose}
-      title="Înregistrează Prejudiciu"
-      subtitle="Documentează avarierea echipamentului"
+      title="Inregistreaza Prejudiciu"
+      subtitle="Documenteaza avarierea echipamentului"
       icon={<DamageIcon />}
       variant="error"
       maxWidth="sm"
       loading={isLoading}
-      loadingText="Se încarcă datele..."
+      loadingText="Se incarca datele..."
       actions={
         <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'flex-end' }}>
           <FriendlyButton
@@ -125,17 +125,17 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
             onClick={handleClose}
             disabled={creating}
           >
-            Anulează
+            Anuleaza
           </FriendlyButton>
           <FriendlyButton
             colorVariant="error"
             onClick={handleSubmit}
             loading={creating}
-            loadingText="Se salvează..."
+            loadingText="Se salveaza..."
             icon={<SaveIcon />}
             disabled={isLoading}
           >
-            Salvează
+            Salveaza
           </FriendlyButton>
         </Stack>
       }
@@ -195,7 +195,7 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
         </Stack>
 
         <FriendlyTextField
-          label="Număr de Mașină"
+          label="Numar de Masina"
           value={formData.carPlate}
           onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
           required
@@ -212,7 +212,7 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           required
           fullWidth
-          placeholder="Descrie prejudiciul în detaliu..."
+          placeholder="Descrie prejudiciul in detaliu..."
           startIcon={<DescriptionIcon />}
           characterLimit={500}
         />
@@ -247,10 +247,10 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
               </Box>
               <Box>
                 <Typography variant="subtitle2" fontWeight={700}>
-                  Semnătura contravenientului
+                  Semnatura contravenientului
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Desenează semnătura în spațiul de mai jos
+                  Deseneaza semnatura in spatiul de mai jos
                 </Typography>
               </Box>
             </Stack>
@@ -261,7 +261,7 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
               onClick={() => signatureRef.current?.clear()}
               icon={<DeleteIcon />}
             >
-              Șterge
+              Sterge
             </FriendlyButton>
           </Stack>
           <Box

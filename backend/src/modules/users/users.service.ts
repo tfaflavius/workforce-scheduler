@@ -16,6 +16,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserFiltersDto } from './dto/user-filters.dto';
 import { SupabaseService } from '../../common/supabase/supabase.service';
 import { EmailService } from '../../common/email/email.service';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class UsersService {
@@ -42,6 +43,7 @@ export class UsersService {
 
     const user = this.userRepository.create({
       ...createUserDto,
+      fullName: createUserDto.fullName ? removeDiacritics(createUserDto.fullName) : createUserDto.fullName,
       password: hashedPassword,
     });
 
@@ -52,7 +54,7 @@ export class UsersService {
     await this.emailService.sendWelcomeEmail({
       employeeEmail: savedUser.email,
       employeeName: savedUser.fullName,
-      temporaryPassword: createUserDto.password, // Parola originală (înainte de hash)
+      temporaryPassword: createUserDto.password, // Parola originala (inainte de hash)
       loginUrl: `${frontendUrl}/login`,
     });
 
@@ -98,12 +100,15 @@ export class UsersService {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    // Dacă se actualizează departmentId, trebuie să ștergem relația department
-    // pentru ca TypeORM să folosească noul departmentId
+    // Daca se actualizeaza departmentId, trebuie sa stergem relatia department
+    // pentru ca TypeORM sa foloseasca noul departmentId
     if (updateUserDto.departmentId !== undefined) {
       delete (user as any).department;
     }
 
+    if (updateUserDto.fullName) {
+      updateUserDto.fullName = removeDiacritics(updateUserDto.fullName);
+    }
     Object.assign(user, updateUserDto);
     return this.userRepository.save(user);
   }

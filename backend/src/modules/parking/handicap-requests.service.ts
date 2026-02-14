@@ -56,25 +56,25 @@ export class HandicapRequestsService {
 
     const savedRequest = await this.handicapRequestRepository.save(request);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     await this.recordHistory(savedRequest.id, 'CREATED', userId, {
       requestType: dto.requestType,
       location: dto.location,
     });
 
-    // Notifică echipa de Întreținere Parcări
+    // Notifica echipa de Intretinere Parcari
     await this.notifyMaintenanceTeam(savedRequest, userId);
 
     return this.findOne(savedRequest.id);
   }
 
   async update(id: string, userId: string, dto: UpdateHandicapRequestDto, user: any): Promise<HandicapRequest> {
-    // Admin și userii de la departamentul Parcări Handicap pot edita
+    // Admin si userii de la departamentul Parcari Handicap pot edita
     const canEdit = user.role === UserRole.ADMIN ||
       user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
-      throw new ForbiddenException('Doar administratorii și departamentul Parcări Handicap pot modifica solicitările');
+      throw new ForbiddenException('Doar administratorii si departamentul Parcari Handicap pot modifica solicitarile');
     }
 
     const request = await this.findOne(id);
@@ -122,7 +122,7 @@ export class HandicapRequestsService {
 
     await this.handicapRequestRepository.save(request);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     if (Object.keys(changes).length > 0) {
       await this.recordHistory(id, 'UPDATED', userId, changes);
     }
@@ -147,7 +147,7 @@ export class HandicapRequestsService {
   }
 
   private async notifyMaintenanceTeam(request: HandicapRequest, creatorUserId: string): Promise<void> {
-    // Găsește departamentul Întreținere Parcări
+    // Gaseste departamentul Intretinere Parcari
     const maintenanceDept = await this.departmentRepository.findOne({
       where: { name: MAINTENANCE_DEPARTMENT_NAME },
     });
@@ -156,7 +156,7 @@ export class HandicapRequestsService {
       return;
     }
 
-    // Găsește toți userii din departamentul Întreținere Parcări
+    // Gaseste toti userii din departamentul Intretinere Parcari
     const maintenanceUsers = await this.userRepository.find({
       where: {
         departmentId: maintenanceDept.id,
@@ -168,18 +168,18 @@ export class HandicapRequestsService {
       return;
     }
 
-    // Obține creatorul
+    // Obtine creatorul
     const creator = await this.userRepository.findOne({ where: { id: creatorUserId } });
     const creatorName = creator?.fullName || 'Un utilizator';
 
     const requestTypeLabel = HANDICAP_REQUEST_TYPE_LABELS[request.requestType];
 
-    // Trimite notificări in-app către toți userii din echipa de întreținere (email-urile se trimit doar în digest-ul zilnic)
+    // Trimite notificari in-app catre toti userii din echipa de intretinere (email-urile se trimit doar in digest-ul zilnic)
     const notifications = maintenanceUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_ASSIGNED,
-      title: `Solicitare nouă: ${requestTypeLabel}`,
-      message: `O nouă solicitare de tip "${requestTypeLabel}" la locația ${request.location} necesită atenția ta.`,
+      title: `Solicitare noua: ${requestTypeLabel}`,
+      message: `O noua solicitare de tip "${requestTypeLabel}" la locatia ${request.location} necesita atentia ta.`,
       data: {
         handicapRequestId: request.id,
         requestType: request.requestType,
@@ -196,10 +196,10 @@ export class HandicapRequestsService {
 
     const requestTypeLabel = HANDICAP_REQUEST_TYPE_LABELS[request.requestType];
 
-    // Lista utilizatorilor care trebuie notificați
+    // Lista utilizatorilor care trebuie notificati
     const usersToNotify: User[] = [];
 
-    // 1. Creatorul solicitării
+    // 1. Creatorul solicitarii
     if (request.createdBy !== resolverUserId) {
       const creator = await this.userRepository.findOne({ where: { id: request.createdBy } });
       if (creator) {
@@ -207,7 +207,7 @@ export class HandicapRequestsService {
       }
     }
 
-    // 2. Toți userii din Parcări Handicap
+    // 2. Toti userii din Parcari Handicap
     const handicapDept = await this.departmentRepository.findOne({
       where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
     });
@@ -218,7 +218,7 @@ export class HandicapRequestsService {
       usersToNotify.push(...handicapUsers.filter(u => u.id !== resolverUserId));
     }
 
-    // 3. Toți userii din Parcări Domiciliu
+    // 3. Toti userii din Parcari Domiciliu
     const domiciliuDept = await this.departmentRepository.findOne({
       where: { name: DOMICILIU_PARKING_DEPARTMENT_NAME },
     });
@@ -229,13 +229,13 @@ export class HandicapRequestsService {
       usersToNotify.push(...domiciliuUsers.filter(u => u.id !== resolverUserId));
     }
 
-    // 4. Toți adminii
+    // 4. Toti adminii
     const admins = await this.userRepository.find({
       where: { role: UserRole.ADMIN, isActive: true },
     });
     usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
 
-    // Elimină duplicatele
+    // Elimina duplicatele
     const uniqueUsers = usersToNotify.filter((user, index, self) =>
       index === self.findIndex(u => u.id === user.id)
     );
@@ -244,12 +244,12 @@ export class HandicapRequestsService {
       return;
     }
 
-    // Trimite notificări in-app (email-urile se trimit doar în digest-ul zilnic)
+    // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
     const notifications = uniqueUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_RESOLVED,
-      title: `Solicitare finalizată: ${requestTypeLabel}`,
-      message: `Solicitarea de tip "${requestTypeLabel}" la locația ${request.location} a fost finalizată de ${resolverName}.`,
+      title: `Solicitare finalizata: ${requestTypeLabel}`,
+      message: `Solicitarea de tip "${requestTypeLabel}" la locatia ${request.location} a fost finalizata de ${resolverName}.`,
       data: {
         handicapRequestId: request.id,
         requestType: request.requestType,
@@ -285,7 +285,7 @@ export class HandicapRequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException(`Solicitarea cu ID ${id} nu a fost găsită`);
+      throw new NotFoundException(`Solicitarea cu ID ${id} nu a fost gasita`);
     }
 
     return request;
@@ -303,7 +303,7 @@ export class HandicapRequestsService {
     const request = await this.findOne(id);
 
     if (request.status === 'FINALIZAT') {
-      throw new ForbiddenException('Această solicitare este deja finalizată');
+      throw new ForbiddenException('Aceasta solicitare este deja finalizata');
     }
 
     request.status = 'FINALIZAT';
@@ -314,12 +314,12 @@ export class HandicapRequestsService {
 
     await this.handicapRequestRepository.save(request);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     await this.recordHistory(id, 'RESOLVED', userId, {
       resolutionDescription: dto.resolutionDescription,
     });
 
-    // Notifică toate părțile implicate
+    // Notifica toate partile implicate
     await this.notifyOnResolution(request, userId);
 
     return this.findOne(id);
@@ -336,7 +336,7 @@ export class HandicapRequestsService {
 
     await this.commentRepository.save(comment);
 
-    // Notifică despre comentariu
+    // Notifica despre comentariu
     await this.notifyAboutComment(request, userId, dto.content);
 
     return this.commentRepository.findOne({
@@ -351,13 +351,13 @@ export class HandicapRequestsService {
 
     const requestTypeLabel = HANDICAP_REQUEST_TYPE_LABELS[request.requestType];
 
-    // Notifică creatorul solicitării (dacă nu e el cel care comentează)
+    // Notifica creatorul solicitarii (daca nu e el cel care comenteaza)
     if (request.createdBy !== commenterUserId) {
       await this.notificationsService.create({
         userId: request.createdBy,
         type: NotificationType.PARKING_ISSUE_RESOLVED,
         title: 'Comentariu nou la solicitare',
-        message: `${commenterName} a adăugat un comentariu la solicitarea ta de tip "${requestTypeLabel}".`,
+        message: `${commenterName} a adaugat un comentariu la solicitarea ta de tip "${requestTypeLabel}".`,
         data: {
           handicapRequestId: request.id,
           requestType: request.requestType,
@@ -365,7 +365,7 @@ export class HandicapRequestsService {
       });
     }
 
-    // Notifică echipa de întreținere
+    // Notifica echipa de intretinere
     const maintenanceDept = await this.departmentRepository.findOne({
       where: { name: MAINTENANCE_DEPARTMENT_NAME },
     });
@@ -381,7 +381,7 @@ export class HandicapRequestsService {
           userId: user.id,
           type: NotificationType.PARKING_ISSUE_RESOLVED,
           title: 'Comentariu nou la solicitare handicap',
-          message: `${commenterName} a adăugat un comentariu la solicitarea "${requestTypeLabel}" de la ${request.location}.`,
+          message: `${commenterName} a adaugat un comentariu la solicitarea "${requestTypeLabel}" de la ${request.location}.`,
           data: {
             handicapRequestId: request.id,
             requestType: request.requestType,
@@ -403,12 +403,12 @@ export class HandicapRequestsService {
 
   async delete(id: string, user: User): Promise<void> {
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Doar administratorii pot șterge solicitările');
+      throw new ForbiddenException('Doar administratorii pot sterge solicitarile');
     }
 
     const request = await this.findOne(id);
 
-    // Înregistrează în history înainte de ștergere
+    // Inregistreaza in history inainte de stergere
     await this.recordHistory(id, 'DELETED', user.id, {
       requestType: request.requestType,
       location: request.location,

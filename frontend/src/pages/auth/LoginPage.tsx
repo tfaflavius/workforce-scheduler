@@ -98,7 +98,7 @@ export const LoginPage = () => {
       }
     } catch (err: any) {
       console.error('Login failed:', err);
-      setError('Email sau parolă incorecte. Încearcă din nou.');
+      setError('Email sau parola incorecte. Incearca din nou.');
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +116,7 @@ export const LoginPage = () => {
     }
 
     if (password.length < 6) {
-      setError('Parola trebuie să aibă cel puțin 6 caractere');
+      setError('Parola trebuie sa aiba cel putin 6 caractere');
       setIsLoading(false);
       return;
     }
@@ -139,18 +139,18 @@ export const LoginPage = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Înregistrarea a eșuat');
+        throw new Error(data.message || 'Inregistrarea a esuat');
       }
 
-      setSuccess(data.message || 'Cont creat cu succes! Un administrator va aproba contul tău în curând.');
+      setSuccess(data.message || 'Cont creat cu succes! Un administrator va aproba contul tau in curand.');
       resetForm();
 
     } catch (err: any) {
       console.error('Registration failed:', err);
       if (err.message.includes('already exists')) {
-        setError('Un cont cu acest email există deja');
+        setError('Un cont cu acest email exista deja');
       } else {
-        setError(err.message || 'Înregistrarea a eșuat. Încearcă din nou.');
+        setError(err.message || 'Inregistrarea a esuat. Incearca din nou.');
       }
     } finally {
       setIsLoading(false);
@@ -303,9 +303,9 @@ export const LoginPage = () => {
                     fontSize: { md: '1rem', lg: '1.1rem' },
                   }}
                 >
-                  Platforma completă pentru gestionarea programelor de lucru.
-                  Managerii creează programe, administratorii le aprobă, iar
-                  angajații își pot vizualiza programul zilnic și lunar.
+                  Platforma completa pentru gestionarea programelor de lucru.
+                  Managerii creeaza programe, administratorii le aproba, iar
+                  angajatii isi pot vizualiza programul zilnic si lunar.
                 </Typography>
               </Fade>
 
@@ -319,9 +319,9 @@ export const LoginPage = () => {
                     flexWrap="wrap"
                   >
                     {[
-                      { value: '100+', label: 'Angajați' },
-                      { value: '50+', label: 'Programe/Lună' },
-                      { value: '99%', label: 'Satisfacție' },
+                      { value: '100+', label: 'Angajati' },
+                      { value: '50+', label: 'Programe/Luna' },
+                      { value: '99%', label: 'Satisfactie' },
                     ].map((stat) => (
                       <Box
                         key={stat.label}
@@ -407,7 +407,7 @@ export const LoginPage = () => {
                   }}
                 >
                   <Tab label="🔐 Autentificare" />
-                  <Tab label="✨ Înregistrare" />
+                  <Tab label="✨ Inregistrare" />
                 </Tabs>
               </Box>
 
@@ -457,7 +457,7 @@ export const LoginPage = () => {
                   color="text.secondary"
                   sx={{ mb: 3, fontSize: { xs: '0.875rem', sm: '0.95rem' } }}
                 >
-                  Autentifică-te pentru a accesa platforma
+                  Autentifica-te pentru a accesa platforma
                 </Typography>
 
                 <form onSubmit={handleLogin}>
@@ -483,7 +483,7 @@ export const LoginPage = () => {
 
                   <TextField
                     fullWidth
-                    label="Parolă"
+                    label="Parola"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -559,7 +559,7 @@ export const LoginPage = () => {
                       }}
                       onClick={() => setActiveTab(1)}
                     >
-                      Înregistrează-te
+                      Inregistreaza-te
                     </Typography>
                   </Typography>
                 </Box>
@@ -573,14 +573,14 @@ export const LoginPage = () => {
                   gutterBottom
                   sx={{ fontSize: { xs: '1.35rem', sm: '1.5rem' } }}
                 >
-                  Creează un cont 🚀
+                  Creeaza un cont 🚀
                 </Typography>
                 <Typography
                   variant="body2"
                   color="text.secondary"
                   sx={{ mb: 3, fontSize: { xs: '0.875rem', sm: '0.95rem' } }}
                 >
-                  Completează datele pentru a te înregistra
+                  Completeaza datele pentru a te inregistra
                 </Typography>
 
                 <form onSubmit={handleRegister}>
@@ -625,7 +625,7 @@ export const LoginPage = () => {
 
                   <TextField
                     fullWidth
-                    label="Telefon (opțional)"
+                    label="Telefon (optional)"
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -644,7 +644,7 @@ export const LoginPage = () => {
 
                   <TextField
                     fullWidth
-                    label="Parolă"
+                    label="Parola"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -676,7 +676,7 @@ export const LoginPage = () => {
 
                   <TextField
                     fullWidth
-                    label="Confirmă parola"
+                    label="Confirma parola"
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -722,7 +722,7 @@ export const LoginPage = () => {
                     {isLoading ? (
                       <CircularProgress size={26} color="inherit" />
                     ) : (
-                      'Creează cont'
+                      'Creeaza cont'
                     )}
                   </Button>
                 </form>
@@ -741,7 +741,7 @@ export const LoginPage = () => {
                       }}
                       onClick={() => setActiveTab(0)}
                     >
-                      Autentifică-te
+                      Autentifica-te
                     </Typography>
                   </Typography>
                 </Box>

@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { User } from '../../types/user.types';
 import { supabase } from '../../lib/supabase';
+import { removeDiacritics } from '../../utils/removeDiacritics';
 
 interface AuthState {
   user: User | null;
@@ -47,6 +48,7 @@ export const initializeAuth = createAsyncThunk(
 
         if (response.ok) {
           const user = await response.json();
+          user.fullName = removeDiacritics(user.fullName);
           console.log('✅ User loaded:', user.email);
           return { user, token: session.access_token };
         } else {
@@ -75,7 +77,7 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      state.user = action.payload.user;
+      state.user = { ...action.payload.user, fullName: removeDiacritics(action.payload.user.fullName) };
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.isLoading = false;

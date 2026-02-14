@@ -4,21 +4,21 @@ export class AddParkingCommentsAndHistory1769600000000 implements MigrationInter
   name = 'AddParkingCommentsAndHistory1769600000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // 1. Adăugăm coloană pentru ultima modificare la parking_issues
+    // 1. Adaugam coloana pentru ultima modificare la parking_issues
     await queryRunner.query(`
       ALTER TABLE parking_issues
       ADD COLUMN IF NOT EXISTS last_modified_by UUID REFERENCES users(id) ON DELETE SET NULL,
       ADD COLUMN IF NOT EXISTS is_urgent BOOLEAN DEFAULT false
     `);
 
-    // 2. Adăugăm coloană pentru ultima modificare la parking_damages
+    // 2. Adaugam coloana pentru ultima modificare la parking_damages
     await queryRunner.query(`
       ALTER TABLE parking_damages
       ADD COLUMN IF NOT EXISTS last_modified_by UUID REFERENCES users(id) ON DELETE SET NULL,
       ADD COLUMN IF NOT EXISTS is_urgent BOOLEAN DEFAULT false
     `);
 
-    // 3. Creăm tabela pentru comentarii la probleme
+    // 3. Cream tabela pentru comentarii la probleme
     await queryRunner.query(`
       CREATE TABLE parking_issue_comments (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -30,7 +30,7 @@ export class AddParkingCommentsAndHistory1769600000000 implements MigrationInter
       )
     `);
 
-    // 4. Creăm tabela pentru comentarii la prejudicii
+    // 4. Cream tabela pentru comentarii la prejudicii
     await queryRunner.query(`
       CREATE TABLE parking_damage_comments (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -42,7 +42,7 @@ export class AddParkingCommentsAndHistory1769600000000 implements MigrationInter
       )
     `);
 
-    // 5. Creăm tabela pentru istoricul modificărilor
+    // 5. Cream tabela pentru istoricul modificarilor
     await queryRunner.query(`
       CREATE TABLE parking_history (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -55,7 +55,7 @@ export class AddParkingCommentsAndHistory1769600000000 implements MigrationInter
       )
     `);
 
-    // 6. Indexuri pentru performanță
+    // 6. Indexuri pentru performanta
     await queryRunner.query(`CREATE INDEX idx_parking_issue_comments_issue ON parking_issue_comments(issue_id)`);
     await queryRunner.query(`CREATE INDEX idx_parking_damage_comments_damage ON parking_damage_comments(damage_id)`);
     await queryRunner.query(`CREATE INDEX idx_parking_history_entity ON parking_history(entity_type, entity_id)`);

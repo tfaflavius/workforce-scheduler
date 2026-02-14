@@ -42,11 +42,11 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     }
 
     if (!formData.newPassword) {
-      errors.newPassword = 'Parola nouă este obligatorie';
+      errors.newPassword = 'Parola noua este obligatorie';
     } else if (formData.newPassword.length < 6) {
       errors.newPassword = 'Minim 6 caractere';
     } else if (!/^(?=.*[A-Z])(?=.*[0-9])/.test(formData.newPassword)) {
-      errors.newPassword = 'Parola trebuie să conțină cel puțin o majusculă și o cifră';
+      errors.newPassword = 'Parola trebuie sa contina cel putin o majuscula si o cifra';
     }
 
     if (!formData.confirmPassword) {
@@ -91,8 +91,8 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
     <FriendlyDialog
       open={open}
       onClose={handleClose}
-      title="Schimbă Parola"
-      subtitle={isAdmin ? 'Resetează parola utilizatorului' : 'Actualizează-ți parola de acces'}
+      title="Schimba Parola"
+      subtitle={isAdmin ? 'Reseteaza parola utilizatorului' : 'Actualizeaza-ti parola de acces'}
       icon={<LockIcon />}
       variant="primary"
       maxWidth="sm"
@@ -103,17 +103,17 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
             onClick={handleClose}
             disabled={isLoading}
           >
-            Anulează
+            Anuleaza
           </FriendlyButton>
           <FriendlyButton
             colorVariant="primary"
             onClick={handleSubmit}
             loading={isLoading}
-            loadingText="Se salvează..."
+            loadingText="Se salveaza..."
             icon={<ResetIcon />}
             disabled={isSuccess}
           >
-            Schimbă Parola
+            Schimba Parola
           </FriendlyButton>
         </Stack>
       }
@@ -123,14 +123,14 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           <FriendlyAlert
             severity="success"
             title="Succes!"
-            message="Parola a fost schimbată cu succes!"
+            message="Parola a fost schimbata cu succes!"
           />
         )}
 
         {error && (
           <FriendlyAlert
             severity="error"
-            message={(error as any)?.data?.message || 'A apărut o eroare la schimbarea parolei'}
+            message={(error as any)?.data?.message || 'A aparut o eroare la schimbarea parolei'}
           />
         )}
 
@@ -150,7 +150,7 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
         )}
 
         <FriendlyTextField
-          label="Parola Nouă"
+          label="Parola Noua"
           type="password"
           value={formData.newPassword}
           onChange={handleChange('newPassword')}
@@ -160,11 +160,11 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           required
           autoFocus={isAdmin}
           startIcon={<LockIcon />}
-          hint="Minim 6 caractere, o majusculă și o cifră"
+          hint="Minim 6 caractere, o majuscula si o cifra"
         />
 
         <FriendlyTextField
-          label="Confirmă Parola Nouă"
+          label="Confirma Parola Noua"
           type="password"
           value={formData.confirmPassword}
           onChange={handleChange('confirmPassword')}

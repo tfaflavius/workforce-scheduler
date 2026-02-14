@@ -49,25 +49,25 @@ export class RevolutionarLegitimationsService {
 
     const savedLegitimation = await this.legitimationRepository.save(legitimation);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     await this.recordHistory(savedLegitimation.id, 'CREATED', userId, {
       personName: dto.personName,
       carPlate: dto.carPlate,
     });
 
-    // Notifică departamentul Parcări Handicap
+    // Notifica departamentul Parcari Handicap
     await this.notifyHandicapDepartment(savedLegitimation, userId);
 
     return this.findOne(savedLegitimation.id);
   }
 
   async update(id: string, userId: string, dto: UpdateRevolutionarLegitimationDto, user: any): Promise<RevolutionarLegitimation> {
-    // Admin și userii de la departamentul Parcări Handicap pot edita
+    // Admin si userii de la departamentul Parcari Handicap pot edita
     const canEdit = user.role === UserRole.ADMIN ||
       user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
-      throw new ForbiddenException('Doar administratorii și departamentul Parcări Handicap pot modifica legitimațiile');
+      throw new ForbiddenException('Doar administratorii si departamentul Parcari Handicap pot modifica legitimatiile');
     }
 
     const legitimation = await this.findOne(id);
@@ -107,7 +107,7 @@ export class RevolutionarLegitimationsService {
 
     await this.legitimationRepository.save(legitimation);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     if (Object.keys(changes).length > 0) {
       await this.recordHistory(id, 'UPDATED', userId, changes);
     }
@@ -132,7 +132,7 @@ export class RevolutionarLegitimationsService {
   }
 
   private async notifyHandicapDepartment(legitimation: RevolutionarLegitimation, creatorUserId: string): Promise<void> {
-    // Găsește departamentul Parcări Handicap
+    // Gaseste departamentul Parcari Handicap
     const handicapDept = await this.departmentRepository.findOne({
       where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
     });
@@ -141,7 +141,7 @@ export class RevolutionarLegitimationsService {
       return;
     }
 
-    // Găsește toți userii din departamentul Parcări Handicap
+    // Gaseste toti userii din departamentul Parcari Handicap
     const handicapUsers = await this.userRepository.find({
       where: {
         departmentId: handicapDept.id,
@@ -149,7 +149,7 @@ export class RevolutionarLegitimationsService {
       },
     });
 
-    // Adaugă și adminii
+    // Adauga si adminii
     const admins = await this.userRepository.find({
       where: { role: UserRole.ADMIN, isActive: true },
     });
@@ -162,16 +162,16 @@ export class RevolutionarLegitimationsService {
       return;
     }
 
-    // Obține creatorul
+    // Obtine creatorul
     const creator = await this.userRepository.findOne({ where: { id: creatorUserId } });
     const creatorName = creator?.fullName || 'Un utilizator';
 
-    // Trimite notificări in-app (email-urile se trimit doar în digest-ul zilnic)
+    // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
     const notifications = allUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_ASSIGNED,
-      title: 'Solicitare legitimație revoluționar/deportat nouă',
-      message: `O nouă solicitare de legitimație pentru ${legitimation.personName} (${legitimation.carPlate}) a fost creată de ${creatorName}.`,
+      title: 'Solicitare legitimatie revolutionar/deportat noua',
+      message: `O noua solicitare de legitimatie pentru ${legitimation.personName} (${legitimation.carPlate}) a fost creata de ${creatorName}.`,
       data: {
         revolutionarLegitimationId: legitimation.id,
         personName: legitimation.personName,
@@ -186,10 +186,10 @@ export class RevolutionarLegitimationsService {
     const resolver = await this.userRepository.findOne({ where: { id: resolverUserId } });
     const resolverName = resolver?.fullName || 'Un utilizator';
 
-    // Lista utilizatorilor care trebuie notificați
+    // Lista utilizatorilor care trebuie notificati
     const usersToNotify: User[] = [];
 
-    // 1. Creatorul legitimației
+    // 1. Creatorul legitimatiei
     if (legitimation.createdBy !== resolverUserId) {
       const creator = await this.userRepository.findOne({ where: { id: legitimation.createdBy } });
       if (creator) {
@@ -197,7 +197,7 @@ export class RevolutionarLegitimationsService {
       }
     }
 
-    // 2. Toți userii din Parcări Handicap
+    // 2. Toti userii din Parcari Handicap
     const handicapDept = await this.departmentRepository.findOne({
       where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
     });
@@ -208,13 +208,13 @@ export class RevolutionarLegitimationsService {
       usersToNotify.push(...handicapUsers.filter(u => u.id !== resolverUserId));
     }
 
-    // 3. Toți adminii
+    // 3. Toti adminii
     const admins = await this.userRepository.find({
       where: { role: UserRole.ADMIN, isActive: true },
     });
     usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
 
-    // Elimină duplicatele
+    // Elimina duplicatele
     const uniqueUsers = usersToNotify.filter((user, index, self) =>
       index === self.findIndex(u => u.id === user.id)
     );
@@ -223,12 +223,12 @@ export class RevolutionarLegitimationsService {
       return;
     }
 
-    // Trimite notificări in-app (email-urile se trimit doar în digest-ul zilnic)
+    // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
     const notifications = uniqueUsers.map(user => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_RESOLVED,
-      title: 'Legitimație revoluționar/deportat finalizată',
-      message: `Legitimația pentru ${legitimation.personName} a fost finalizată de ${resolverName}.`,
+      title: 'Legitimatie revolutionar/deportat finalizata',
+      message: `Legitimatia pentru ${legitimation.personName} a fost finalizata de ${resolverName}.`,
       data: {
         revolutionarLegitimationId: legitimation.id,
         personName: legitimation.personName,
@@ -259,7 +259,7 @@ export class RevolutionarLegitimationsService {
     });
 
     if (!legitimation) {
-      throw new NotFoundException(`Legitimația cu ID ${id} nu a fost găsită`);
+      throw new NotFoundException(`Legitimatia cu ID ${id} nu a fost gasita`);
     }
 
     return legitimation;
@@ -277,7 +277,7 @@ export class RevolutionarLegitimationsService {
     const legitimation = await this.findOne(id);
 
     if (legitimation.status === 'FINALIZAT') {
-      throw new ForbiddenException('Această legitimație este deja finalizată');
+      throw new ForbiddenException('Aceasta legitimatie este deja finalizata');
     }
 
     legitimation.status = 'FINALIZAT';
@@ -288,12 +288,12 @@ export class RevolutionarLegitimationsService {
 
     await this.legitimationRepository.save(legitimation);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     await this.recordHistory(id, 'RESOLVED', userId, {
       resolutionDescription: dto.resolutionDescription,
     });
 
-    // Notifică toate părțile implicate
+    // Notifica toate partile implicate
     await this.notifyOnResolution(legitimation, userId);
 
     return this.findOne(id);
@@ -310,7 +310,7 @@ export class RevolutionarLegitimationsService {
 
     await this.commentRepository.save(comment);
 
-    // Notifică despre comentariu
+    // Notifica despre comentariu
     await this.notifyAboutComment(legitimation, userId, dto.content);
 
     return this.commentRepository.findOne({
@@ -323,13 +323,13 @@ export class RevolutionarLegitimationsService {
     const commenter = await this.userRepository.findOne({ where: { id: commenterUserId } });
     const commenterName = commenter?.fullName || 'Un utilizator';
 
-    // Notifică creatorul legitimației (dacă nu e el cel care comentează)
+    // Notifica creatorul legitimatiei (daca nu e el cel care comenteaza)
     if (legitimation.createdBy !== commenterUserId) {
       await this.notificationsService.create({
         userId: legitimation.createdBy,
         type: NotificationType.PARKING_ISSUE_RESOLVED,
-        title: 'Comentariu nou la legitimație revoluționar/deportat',
-        message: `${commenterName} a adăugat un comentariu la legitimația pentru ${legitimation.personName}.`,
+        title: 'Comentariu nou la legitimatie revolutionar/deportat',
+        message: `${commenterName} a adaugat un comentariu la legitimatia pentru ${legitimation.personName}.`,
         data: {
           revolutionarLegitimationId: legitimation.id,
           personName: legitimation.personName,
@@ -337,7 +337,7 @@ export class RevolutionarLegitimationsService {
       });
     }
 
-    // Notifică departamentul Parcări Handicap
+    // Notifica departamentul Parcari Handicap
     const handicapDept = await this.departmentRepository.findOne({
       where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
     });
@@ -352,8 +352,8 @@ export class RevolutionarLegitimationsService {
         const notifications = toNotify.map(user => ({
           userId: user.id,
           type: NotificationType.PARKING_ISSUE_RESOLVED,
-          title: 'Comentariu nou la legitimație revoluționar/deportat',
-          message: `${commenterName} a adăugat un comentariu la legitimația pentru ${legitimation.personName}.`,
+          title: 'Comentariu nou la legitimatie revolutionar/deportat',
+          message: `${commenterName} a adaugat un comentariu la legitimatia pentru ${legitimation.personName}.`,
           data: {
             revolutionarLegitimationId: legitimation.id,
             personName: legitimation.personName,
@@ -375,12 +375,12 @@ export class RevolutionarLegitimationsService {
 
   async delete(id: string, user: User): Promise<void> {
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Doar administratorii pot șterge legitimațiile');
+      throw new ForbiddenException('Doar administratorii pot sterge legitimatiile');
     }
 
     const legitimation = await this.findOne(id);
 
-    // Înregistrează în history înainte de ștergere
+    // Inregistreaza in history inainte de stergere
     await this.recordHistory(id, 'DELETED', user.id, {
       personName: legitimation.personName,
       carPlate: legitimation.carPlate,

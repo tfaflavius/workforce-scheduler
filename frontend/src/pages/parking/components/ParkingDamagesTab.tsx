@@ -101,7 +101,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Ești sigur că vrei să ștergi acest prejudiciu?')) {
+    if (window.confirm('Esti sigur ca vrei sa stergi acest prejudiciu?')) {
       try {
         await deleteDamage(id).unwrap();
       } catch (error) {
@@ -176,13 +176,13 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
                 <strong>Echipament avariat:</strong> {damage.damagedEquipment}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                <strong>Persoană:</strong> {damage.personName}
+                <strong>Persoana:</strong> {damage.personName}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                 <strong>Telefon:</strong> {damage.phone}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                <strong>Nr. Mașină:</strong> {damage.carPlate}
+                <strong>Nr. Masina:</strong> {damage.carPlate}
               </Typography>
             </Box>
 
@@ -227,7 +227,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
                   onClick={() => handleResolve(damage)}
                   sx={{ borderRadius: 2 }}
                 >
-                  Finalizează
+                  Finalizeaza
                 </Button>
               )}
               {isAdminOrManager && damage.status === 'ACTIVE' && (
@@ -280,13 +280,13 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
             <TableCell></TableCell>
             <TableCell>Parcare</TableCell>
             <TableCell>Echipament</TableCell>
-            <TableCell>Persoană</TableCell>
+            <TableCell>Persoana</TableCell>
             <TableCell>Telefon</TableCell>
-            <TableCell>Nr. Mașină</TableCell>
+            <TableCell>Nr. Masina</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Data</TableCell>
             <TableCell>Creat de</TableCell>
-            <TableCell align="right">Acțiuni</TableCell>
+            <TableCell align="right">Actiuni</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -352,7 +352,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
                     </IconButton>
                   )}
                   {isAdminOrManager && damage.status === 'ACTIVE' && (
-                    <Tooltip title="Editează">
+                    <Tooltip title="Editeaza">
                       <IconButton
                         size="small"
                         color="primary"
@@ -452,7 +452,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
                 px: { xs: 2, sm: 3 },
               }}
             >
-              {isMobile ? 'Adaugă' : 'Adaugă Prejudiciu'}
+              {isMobile ? 'Adauga' : 'Adauga Prejudiciu'}
             </Button>
           </Stack>
         </Paper>
@@ -466,7 +466,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
       ) : damages.length === 0 ? (
         <Fade in={true} timeout={600}>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Nu există prejudicii în această categorie.
+            Nu exista prejudicii in aceasta categorie.
           </Alert>
         </Fade>
       ) : isMobile || isTablet ? (

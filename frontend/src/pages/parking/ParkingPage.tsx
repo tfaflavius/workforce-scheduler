@@ -32,7 +32,7 @@ import {
 } from '../../store/api/parking.api';
 
 // Nume departament pentru verificare
-const MAINTENANCE_DEPARTMENT_NAME = 'Întreținere Parcări';
+const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -92,7 +92,7 @@ const ParkingPage: React.FC = () => {
     }
   }, [location.state]);
 
-  // Check if user is from Întreținere Parcări department
+  // Check if user is from Intretinere Parcari department
   const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
 
   // Fetch data for badge counts - skip for maintenance users
@@ -118,28 +118,28 @@ const ParkingPage: React.FC = () => {
   const tabConfig = [
     {
       icon: <IssuesIcon />,
-      label: 'Probleme Parcări',
+      label: 'Probleme Parcari',
       shortLabel: 'Probleme',
       color: '#ef4444',
       bgColor: alpha('#ef4444', 0.1),
     },
     {
       icon: <DamagesIcon />,
-      label: 'Prejudicii Parcări',
+      label: 'Prejudicii Parcari',
       shortLabel: 'Prejudicii',
       color: '#f59e0b',
       bgColor: alpha('#f59e0b', 0.1),
     },
     {
       icon: <CashIcon />,
-      label: 'Automate de Plată',
-      shortLabel: 'Ridicări',
+      label: 'Automate de Plata',
+      shortLabel: 'Ridicari',
       color: '#10b981',
       bgColor: alpha('#10b981', 0.1),
     },
   ];
 
-  // If user is from Întreținere Parcări, show only their assigned issues
+  // If user is from Intretinere Parcari, show only their assigned issues
   if (isMaintenanceUser) {
     return (
       <Box
@@ -209,7 +209,7 @@ const ParkingPage: React.FC = () => {
                     fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   }}
                 >
-                  Problemele din parcări alocate pentru rezolvare • {maintenanceActiveCount} active
+                  Problemele din parcari alocate pentru rezolvare • {maintenanceActiveCount} active
                 </Typography>
               </Box>
             </Box>
@@ -280,7 +280,7 @@ const ParkingPage: React.FC = () => {
               position: 'relative',
             }}
           >
-            Parcări Etajate
+            Parcari Etajate
           </Typography>
           <Typography
             variant="body2"
@@ -290,7 +290,7 @@ const ParkingPage: React.FC = () => {
               position: 'relative',
             }}
           >
-            Gestionează problemele, prejudiciile și ridicările de numerar din parcări
+            Gestioneaza problemele, prejudiciile si ridicarile de numerar din parcari
           </Typography>
         </Box>
       </Grow>

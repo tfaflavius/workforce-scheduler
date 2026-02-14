@@ -241,7 +241,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
       >
         <LegitimationIcon />
         <Typography variant="h6" component="span">
-          Solicitare legitimație handicap
+          Solicitare legitimatie handicap
         </Typography>
         <IconButton onClick={onClose} sx={{ ml: 'auto', color: 'white' }}>
           <CloseIcon />
@@ -251,11 +251,11 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
       <DialogContent sx={{ pt: 3 }}>
         <Stack spacing={2.5}>
           <Divider sx={{ my: 1 }}>
-            <Chip label="Date persoană" size="small" />
+            <Chip label="Date persoana" size="small" />
           </Divider>
 
           <TextField
-            label="Nume și prenume"
+            label="Nume si prenume"
             value={formData.personName}
             onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
             required
@@ -274,7 +274,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
             value={formData.cnp}
             onChange={(e) => setFormData({ ...formData, cnp: e.target.value })}
             fullWidth
-            placeholder="Opțional"
+            placeholder="Optional"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -285,7 +285,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
           />
 
           <TextField
-            label="Număr certificat handicap"
+            label="Numar certificat handicap"
             value={formData.handicapCertificateNumber}
             onChange={(e) => setFormData({ ...formData, handicapCertificateNumber: e.target.value })}
             required
@@ -301,7 +301,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
-              label="Număr înmatriculare"
+              label="Numar inmatriculare"
               value={formData.carPlate}
               onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
               required
@@ -315,11 +315,11 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
               }}
             />
             <TextField
-              label="Număr legitimație"
+              label="Numar legitimatie"
               value={formData.autoNumber}
               onChange={(e) => setFormData({ ...formData, autoNumber: e.target.value })}
               fullWidth
-              placeholder="Opțional"
+              placeholder="Optional"
             />
           </Stack>
 
@@ -338,20 +338,20 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
           />
 
           <TextField
-            label="Descriere (opțional)"
+            label="Descriere (optional)"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             fullWidth
             multiline
             rows={3}
-            placeholder="Informații suplimentare..."
+            placeholder="Informatii suplimentare..."
           />
         </Stack>
       </DialogContent>
 
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose} disabled={isLoading}>
-          Anulează
+          Anuleaza
         </Button>
         <Button
           variant="contained"
@@ -363,7 +363,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
             '&:hover': { bgcolor: alpha(LEGITIMATION_COLOR.main, 0.9) },
           }}
         >
-          {isLoading ? 'Se creează...' : 'Creează'}
+          {isLoading ? 'Se creeaza...' : 'Creeaza'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -469,7 +469,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
 
   const handleDelete = async () => {
     if (!legitimationId) return;
-    if (window.confirm('Sigur doriți să ștergeți această legitimație?')) {
+    if (window.confirm('Sigur doriti sa stergeti aceasta legitimatie?')) {
       try {
         await deleteLegitimation(legitimationId).unwrap();
         onClose();
@@ -504,7 +504,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
         >
           <LegitimationIcon />
           <Typography variant="h6" component="span" sx={{ flex: 1 }}>
-            Detalii legitimație
+            Detalii legitimatie
           </Typography>
           {legitimation && (
             <Chip
@@ -583,7 +583,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                             onClick={handleStartEdit}
                             size="small"
                           >
-                            Editează
+                            Editeaza
                           </Button>
                         ) : (
                           <Stack direction="row" spacing={1}>
@@ -594,7 +594,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                               size="small"
                               color="inherit"
                             >
-                              Anulează
+                              Anuleaza
                             </Button>
                             <Button
                               variant="contained"
@@ -604,7 +604,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                               disabled={isUpdating}
                               sx={{ bgcolor: LEGITIMATION_COLOR.main }}
                             >
-                              Salvează
+                              Salveaza
                             </Button>
                           </Stack>
                         )}
@@ -616,7 +616,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                       <Paper sx={{ p: 2 }}>
                         <Stack spacing={2}>
                           <TextField
-                            label="Nume persoană"
+                            label="Nume persoana"
                             value={editData.personName}
                             onChange={(e) => setEditData({ ...editData, personName: e.target.value })}
                             fullWidth
@@ -658,7 +658,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                           />
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                             <TextField
-                              label="Număr înmatriculare"
+                              label="Numar inmatriculare"
                               value={editData.carPlate}
                               onChange={(e) => setEditData({ ...editData, carPlate: e.target.value.toUpperCase() })}
                               fullWidth
@@ -672,7 +672,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                               }}
                             />
                             <TextField
-                              label="Nr. legitimație"
+                              label="Nr. legitimatie"
                               value={editData.autoNumber}
                               onChange={(e) => setEditData({ ...editData, autoNumber: e.target.value.toUpperCase() })}
                               fullWidth
@@ -728,8 +728,8 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <CarIcon sx={{ color: 'text.secondary' }} />
                               <Typography variant="body2">
-                                Înmatriculare: {legitimation.carPlate}
-                                {legitimation.autoNumber && ` • Legitimație: ${legitimation.autoNumber}`}
+                                Inmatriculare: {legitimation.carPlate}
+                                {legitimation.autoNumber && ` • Legitimatie: ${legitimation.autoNumber}`}
                               </Typography>
                             </Box>
                             {legitimation.phone && (
@@ -755,7 +755,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                         {legitimation.resolutionDescription && (
                           <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.success.main, 0.1) }}>
                             <Typography variant="subtitle2" gutterBottom color="success.dark">
-                              Rezoluție
+                              Rezolutie
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                               {legitimation.resolutionDescription}
@@ -792,7 +792,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                         fullWidth
                         multiline
                         rows={2}
-                        placeholder="Adaugă un comentariu..."
+                        placeholder="Adauga un comentariu..."
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
                         disabled={isAddingComment}
@@ -840,7 +840,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                         ))
                       ) : (
                         <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
-                          Nu există comentarii încă
+                          Nu exista comentarii inca
                         </Typography>
                       )}
                     </List>
@@ -888,7 +888,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                       ))
                     ) : (
                       <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
-                        Nu există istoric
+                        Nu exista istoric
                       </Typography>
                     )}
                   </List>
@@ -897,7 +897,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
             </>
           ) : (
             <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography color="text.secondary">Legitimația nu a fost găsită</Typography>
+              <Typography color="text.secondary">Legitimatia nu a fost gasita</Typography>
             </Box>
           )}
         </DialogContent>
@@ -911,12 +911,12 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
                 disabled={isDeleting}
                 startIcon={isDeleting ? <CircularProgress size={16} /> : <DeleteIcon />}
               >
-                Șterge
+                Sterge
               </Button>
             )}
             <Box sx={{ flex: 1 }} />
             <Button onClick={onClose} variant="outlined">
-              Închide
+              Inchide
             </Button>
           </DialogActions>
         )}
@@ -971,7 +971,7 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <LegitimationIcon sx={{ color: LEGITIMATION_COLOR.main }} />
-          Legitimații Handicap ({activeCount} active)
+          Legitimatii Handicap ({activeCount} active)
         </Typography>
         <Button
           variant="contained"
@@ -982,7 +982,7 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
             '&:hover': { bgcolor: alpha(LEGITIMATION_COLOR.main, 0.9) },
           }}
         >
-          Adaugă
+          Adauga
         </Button>
       </Box>
 
@@ -1004,10 +1004,10 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
         >
           <LegitimationIcon sx={{ fontSize: 64, color: alpha(LEGITIMATION_COLOR.main, 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            Nu există legitimații handicap
+            Nu exista legitimatii handicap
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {searchQuery ? 'Nu s-au găsit rezultate pentru căutarea ta' : 'Nu există legitimații handicap încă'}
+            {searchQuery ? 'Nu s-au gasit rezultate pentru cautarea ta' : 'Nu exista legitimatii handicap inca'}
           </Typography>
           <Button
             variant="contained"
@@ -1018,7 +1018,7 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
               '&:hover': { bgcolor: alpha(LEGITIMATION_COLOR.main, 0.9) },
             }}
           >
-            Creează prima legitimație handicap
+            Creeaza prima legitimatie handicap
           </Button>
         </Paper>
       ) : (

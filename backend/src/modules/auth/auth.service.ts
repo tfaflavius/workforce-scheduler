@@ -54,7 +54,7 @@ export class AuthService {
 
       // Don't auto-login - user needs admin approval first
       return {
-        message: 'Cont creat cu succes! Un administrator va aproba contul tău în curând.',
+        message: 'Cont creat cu succes! Un administrator va aproba contul tau in curand.',
         user: this.sanitizeUser(user),
         requiresAdminApproval: true,
       };
@@ -83,7 +83,7 @@ export class AuthService {
 
       // Check if user is approved by admin
       if (!user.isActive) {
-        throw new UnauthorizedException('Contul tău așteaptă aprobarea unui administrator. Vei primi acces în curând.');
+        throw new UnauthorizedException('Contul tau asteapta aprobarea unui administrator. Vei primi acces in curand.');
       }
 
       // Update last login

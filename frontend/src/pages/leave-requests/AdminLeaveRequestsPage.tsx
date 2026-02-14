@@ -172,14 +172,14 @@ export const AdminLeaveRequestsPage = () => {
       handleCloseDialog();
       setSuccessMessage(
         responseType === 'APPROVED'
-          ? 'Cererea a fost aprobată cu succes!'
-          : 'Cererea a fost respinsă.'
+          ? 'Cererea a fost aprobata cu succes!'
+          : 'Cererea a fost respinsa.'
       );
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: unknown) {
       const errorMsg = err && typeof err === 'object' && 'data' in err
-        ? (err.data as { message?: string })?.message || 'A apărut o eroare la procesarea cererii.'
-        : 'A apărut o eroare la procesarea cererii.';
+        ? (err.data as { message?: string })?.message || 'A aparut o eroare la procesarea cererii.'
+        : 'A aparut o eroare la procesarea cererii.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
@@ -213,7 +213,7 @@ export const AdminLeaveRequestsPage = () => {
       {/* Header with Gradient */}
       <GradientHeader
         title="Gestionare Concedii"
-        subtitle="Aprobă sau respinge cererile de concediu ale angajaților"
+        subtitle="Aproba sau respinge cererile de concediu ale angajatilor"
         icon={<AdminIcon />}
         gradient="#10b981 0%, #059669 100%"
       >
@@ -249,9 +249,9 @@ export const AdminLeaveRequestsPage = () => {
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
         <Grid size={{ xs: 6, sm: 4 }}>
           <StatCard
-            title="În Așteptare"
+            title="In Asteptare"
             value={pendingRequests.length}
-            subtitle={pendingRequests.length > 0 ? 'Necesită acțiune' : undefined}
+            subtitle={pendingRequests.length > 0 ? 'Necesita actiune' : undefined}
             icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f59e0b' }} />}
             color="#f59e0b"
             bgColor={alpha('#f59e0b', 0.12)}
@@ -293,7 +293,7 @@ export const AdminLeaveRequestsPage = () => {
         <Tab
           label={
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <span>{isMobile ? 'Așteaptă' : 'Așteaptă Aprobare'}</span>
+              <span>{isMobile ? 'Asteapta' : 'Asteapta Aprobare'}</span>
               {pendingRequests.length > 0 && (
                 <Chip label={pendingRequests.length} size="small" color="warning" sx={{ height: 20, fontSize: '0.7rem' }} />
               )}
@@ -326,8 +326,8 @@ export const AdminLeaveRequestsPage = () => {
       {displayedRequests.length === 0 ? (
         <EmptyState
           icon={<EventBusyIcon sx={{ fontSize: 64, color: tabValue === 0 ? '#f59e0b' : tabValue === 1 ? '#10b981' : '#ef4444' }} />}
-          title={tabValue === 0 ? 'Nicio cerere în așteptare' : tabValue === 1 ? 'Nicio cerere aprobată' : 'Nicio cerere respinsă'}
-          description={tabValue === 0 ? 'Nu ai cereri de concediu de procesat momentan.' : 'Nu există cereri în această categorie.'}
+          title={tabValue === 0 ? 'Nicio cerere in asteptare' : tabValue === 1 ? 'Nicio cerere aprobata' : 'Nicio cerere respinsa'}
+          description={tabValue === 0 ? 'Nu ai cereri de concediu de procesat momentan.' : 'Nu exista cereri in aceasta categorie.'}
         />
       ) : (
         <Stack spacing={2}>
@@ -399,7 +399,7 @@ export const AdminLeaveRequestsPage = () => {
                   <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} alignItems="center" flexShrink={0}>
                     {request.status === 'PENDING' ? (
                       <>
-                        <Tooltip title="Aprobă">
+                        <Tooltip title="Aproba">
                           <IconButton
                             color="success"
                             onClick={() => handleOpenDialog(request, 'APPROVED')}
@@ -460,7 +460,7 @@ export const AdminLeaveRequestsPage = () => {
               <RejectIcon color="error" />
             )}
             <span>
-              {responseType === 'APPROVED' ? 'Aprobă' : 'Respinge'} Cererea
+              {responseType === 'APPROVED' ? 'Aproba' : 'Respinge'} Cererea
             </span>
           </Stack>
         </DialogTitle>
@@ -478,7 +478,7 @@ export const AdminLeaveRequestsPage = () => {
                   <strong>Tip:</strong> {LEAVE_TYPE_LABELS[selectedRequest.leaveType]}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Perioadă:</strong> {formatDate(selectedRequest.startDate)} - {formatDate(selectedRequest.endDate)}
+                  <strong>Perioada:</strong> {formatDate(selectedRequest.startDate)} - {formatDate(selectedRequest.endDate)}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Zile:</strong> {calculateDays(selectedRequest.startDate, selectedRequest.endDate)}
@@ -489,7 +489,7 @@ export const AdminLeaveRequestsPage = () => {
             {overlaps.length > 0 && (
               <Alert severity="warning" icon={<WarningIcon />}>
                 <Typography variant="subtitle2" gutterBottom>
-                  ⚠️ Suprapuneri în departament:
+                  ⚠️ Suprapuneri in departament:
                 </Typography>
                 {overlaps.map((overlap) => (
                   <Typography key={overlap.id} variant="body2">
@@ -500,7 +500,7 @@ export const AdminLeaveRequestsPage = () => {
             )}
 
             <TextField
-              label={responseType === 'APPROVED' ? 'Mesaj (opțional)' : 'Motivul respingerii'}
+              label={responseType === 'APPROVED' ? 'Mesaj (optional)' : 'Motivul respingerii'}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               multiline
@@ -508,20 +508,20 @@ export const AdminLeaveRequestsPage = () => {
               fullWidth
               helperText={
                 responseType === 'APPROVED'
-                  ? 'Poți adăuga un mesaj pentru angajat'
-                  : 'Explică de ce cererea a fost respinsă'
+                  ? 'Poti adauga un mesaj pentru angajat'
+                  : 'Explica de ce cererea a fost respinsa'
               }
             />
 
             {responseType === 'APPROVED' && (
               <Alert severity="info">
-                La aprobare, concediul va fi adăugat automat în programul de lucru al angajatului.
+                La aprobare, concediul va fi adaugat automat in programul de lucru al angajatului.
               </Alert>
             )}
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Anulează</Button>
+          <Button onClick={handleCloseDialog}>Anuleaza</Button>
           <Button
             variant="contained"
             color={responseType === 'APPROVED' ? 'success' : 'error'}
@@ -537,7 +537,7 @@ export const AdminLeaveRequestsPage = () => {
               )
             }
           >
-            {responseType === 'APPROVED' ? 'Aprobă' : 'Respinge'}
+            {responseType === 'APPROVED' ? 'Aproba' : 'Respinge'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -23,7 +23,7 @@ export class DomiciliuRequest {
   @Column({ length: 20, default: 'ACTIVE' })
   status: DomiciliuRequestStatus;
 
-  // Câmpuri comune pentru toate tipurile
+  // Campuri comune pentru toate tipurile
   @Column({ type: 'text' })
   location: string;
 
@@ -33,14 +33,14 @@ export class DomiciliuRequest {
   @Column({ type: 'text' })
   description: string;
 
-  // Câmpuri specifice parcări domiciliu
+  // Campuri specifice parcari domiciliu
   @Column({ name: 'number_of_spots', type: 'int', nullable: true })
   numberOfSpots: number;
 
   @Column({ name: 'parking_layout', length: 20, nullable: true })
   parkingLayout: ParkingLayoutType;
 
-  // Date persoană (opționale - nu sunt necesare pentru trasare/revocare)
+  // Date persoana (optionale - nu sunt necesare pentru trasare/revocare)
   @Column({ name: 'person_name', length: 255, nullable: true })
   personName: string;
 
@@ -62,7 +62,7 @@ export class DomiciliuRequest {
   @Column({ length: 255, nullable: true })
   email: string;
 
-  // Număr contract/autorizație
+  // Numar contract/autorizatie
   @Column({ name: 'contract_number', length: 100, nullable: true })
   contractNumber: string;
 

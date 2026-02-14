@@ -633,10 +633,10 @@ export class SchedulesService {
           violations.push({
             type: 'INSUFFICIENT_REST_12H',
             severity: 'CRITICAL',
-            message: `Ture 12h: Odihnă insuficientă după tură ${isNightShift ? 'de noapte' : 'de zi'} (${hoursBetween.toFixed(1)}h < ${requiredRest}h necesar)`,
+            message: `Ture 12h: Odihna insuficienta dupa tura ${isNightShift ? 'de noapte' : 'de zi'} (${hoursBetween.toFixed(1)}h < ${requiredRest}h necesar)`,
             legalReference: isNightShift
-              ? 'Codul Muncii Art. 111: Angajații care prestează muncă de noapte au dreptul la cel puțin 48 ore de repaus între ture.'
-              : 'Codul Muncii Art. 110: Durata zilnică normală a timpului de muncă este de maximum 8 ore. Pentru ture de 12h, este necesar un repaus de minimum 24h.',
+              ? 'Codul Muncii Art. 111: Angajatii care presteaza munca de noapte au dreptul la cel putin 48 ore de repaus intre ture.'
+              : 'Codul Muncii Art. 110: Durata zilnica normala a timpului de munca este de maximum 8 ore. Pentru ture de 12h, este necesar un repaus de minimum 24h.',
             userId: current.userId,
             dates: [current.shiftDate, next.shiftDate],
             shiftType: isNightShift ? 'night' : 'day',
@@ -653,8 +653,8 @@ export class SchedulesService {
           violations.push({
             type: 'EXCESSIVE_WEEKLY_HOURS_12H',
             severity: 'CRITICAL',
-            message: `Săptămâna ${weekNumber}: ${hours}h depășește maximul de 48h (ture 12h)`,
-            legalReference: 'Codul Muncii Art. 112: Durata maximă legală a timpului de muncă nu poate depăși 48 de ore pe săptămână, inclusiv orele suplimentare.',
+            message: `Saptamana ${weekNumber}: ${hours}h depaseste maximul de 48h (ture 12h)`,
+            legalReference: 'Codul Muncii Art. 112: Durata maxima legala a timpului de munca nu poate depasi 48 de ore pe saptamana, inclusiv orele suplimentare.',
             userId: sortedAssignments[0].userId,
             weekNumber,
             hours,
@@ -675,8 +675,8 @@ export class SchedulesService {
           violations.push({
             type: 'EXCESSIVE_WORK_DAYS',
             severity: 'CRITICAL',
-            message: `Săptămâna ${weekNumber}: ${data.days} zile de lucru depășește maximul de 5 zile (ture 8h)`,
-            legalReference: 'Codul Muncii Art. 110 și Art. 113: Săptămâna de lucru este de maximum 5 zile lucrătoare. Angajații au dreptul la minimum 2 zile de repaus săptămânal.',
+            message: `Saptamana ${weekNumber}: ${data.days} zile de lucru depaseste maximul de 5 zile (ture 8h)`,
+            legalReference: 'Codul Muncii Art. 110 si Art. 113: Saptamana de lucru este de maximum 5 zile lucratoare. Angajatii au dreptul la minimum 2 zile de repaus saptamanal.',
             userId: sortedAssignments[0].userId,
             weekNumber,
             days: data.days,
@@ -688,8 +688,8 @@ export class SchedulesService {
           violations.push({
             type: 'EXCESSIVE_WEEKLY_HOURS_8H',
             severity: 'CRITICAL',
-            message: `Săptămâna ${weekNumber}: ${data.hours}h depășește maximul de 40h (ture 8h)`,
-            legalReference: 'Codul Muncii Art. 110: Durata normală a timpului de muncă este de 8 ore pe zi și de 40 de ore pe săptămână.',
+            message: `Saptamana ${weekNumber}: ${data.hours}h depaseste maximul de 40h (ture 8h)`,
+            legalReference: 'Codul Muncii Art. 110: Durata normala a timpului de munca este de 8 ore pe zi si de 40 de ore pe saptamana.',
             userId: sortedAssignments[0].userId,
             weekNumber,
             hours: data.hours,
@@ -698,7 +698,7 @@ export class SchedulesService {
           warnings.push({
             type: 'AT_WEEKLY_LIMIT',
             severity: 'WARNING',
-            message: `Săptămâna ${weekNumber}: ${data.hours}h atinge limita de 40h`,
+            message: `Saptamana ${weekNumber}: ${data.hours}h atinge limita de 40h`,
             userId: sortedAssignments[0].userId,
             weekNumber,
             hours: data.hours,
@@ -722,8 +722,8 @@ export class SchedulesService {
           violations.push({
             type: 'INSUFFICIENT_REST_8H',
             severity: 'CRITICAL',
-            message: `Ture 8h: Odihnă insuficientă între ture (${hoursBetween.toFixed(1)}h < 11h necesar)`,
-            legalReference: 'Codul Muncii Art. 113: Durata minimă a repausului zilnic este de 12 ore consecutive. În cazul programului de lucru în ture, repausul între ture trebuie să fie de minimum 11 ore.',
+            message: `Ture 8h: Odihna insuficienta intre ture (${hoursBetween.toFixed(1)}h < 11h necesar)`,
+            legalReference: 'Codul Muncii Art. 113: Durata minima a repausului zilnic este de 12 ore consecutive. In cazul programului de lucru in ture, repausul intre ture trebuie sa fie de minimum 11 ore.',
             userId: current.userId,
             dates: [current.shiftDate, next.shiftDate],
             actualRest: hoursBetween,
@@ -949,7 +949,7 @@ export class SchedulesService {
             day: 'numeric',
             month: 'long'
           }),
-          shiftType: a.shiftType?.name || 'Tură',
+          shiftType: a.shiftType?.name || 'Tura',
           startTime: a.shiftType?.startTime || '',
           endTime: a.shiftType?.endTime || '',
           workPosition: a.workPosition?.name || 'Dispecerat',

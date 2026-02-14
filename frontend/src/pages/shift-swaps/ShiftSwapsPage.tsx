@@ -94,9 +94,9 @@ const getStatusColor = (status: ShiftSwapStatus) => {
 const getStatusLabel = (status: ShiftSwapStatus) => {
   switch (status) {
     case 'PENDING':
-      return 'În așteptare';
+      return 'In asteptare';
     case 'AWAITING_ADMIN':
-      return 'Așteaptă aprobare admin';
+      return 'Asteapta aprobare admin';
     case 'APPROVED':
       return 'Aprobat';
     case 'REJECTED':
@@ -132,7 +132,7 @@ const getStatusIcon = (status: ShiftSwapStatus) => {
 // Helper to get shift info from notes
 const getShiftInfoFromNotes = (notes: string | undefined | null) => {
   if (!notes) return { name: 'Liber', startTime: '', endTime: '' };
-  // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+  // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihna" etc.)
   if (notes === 'Concediu' || notes.startsWith('Concediu:') || notes.includes('Concediu')) return { name: 'Concediu', startTime: '', endTime: '' };
   if (notes.includes('07:00-19:00')) return { name: 'Zi 12h', startTime: '07:00', endTime: '19:00' };
   if (notes.includes('19:00-07:00')) return { name: 'Noapte 12h', startTime: '19:00', endTime: '07:00' };
@@ -229,13 +229,13 @@ const ShiftSwapsPage = () => {
       setRequesterDate('');
       setTargetDate('');
       setReason('');
-      setSuccessMessage('Cererea de schimb a fost trimisă cu succes!');
+      setSuccessMessage('Cererea de schimb a fost trimisa cu succes!');
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error: unknown) {
       console.error('Error creating swap request:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
-        ? (error.data as { message?: string })?.message || 'A apărut o eroare la crearea cererii.'
-        : 'A apărut o eroare la crearea cererii.';
+        ? (error.data as { message?: string })?.message || 'A aparut o eroare la crearea cererii.'
+        : 'A aparut o eroare la crearea cererii.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
@@ -268,24 +268,24 @@ const ShiftSwapsPage = () => {
     } catch (error: unknown) {
       console.error('Error responding to swap:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
-        ? (error.data as { message?: string })?.message || 'A apărut o eroare la procesarea răspunsului.'
-        : 'A apărut o eroare la procesarea răspunsului.';
+        ? (error.data as { message?: string })?.message || 'A aparut o eroare la procesarea raspunsului.'
+        : 'A aparut o eroare la procesarea raspunsului.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
   const handleCancelSwap = async (id: string) => {
-    if (window.confirm('Ești sigur că vrei să anulezi această cerere de schimb?')) {
+    if (window.confirm('Esti sigur ca vrei sa anulezi aceasta cerere de schimb?')) {
       try {
         await cancelSwap(id).unwrap();
-        setSuccessMessage('Cererea a fost anulată.');
+        setSuccessMessage('Cererea a fost anulata.');
         setTimeout(() => setSuccessMessage(null), 5000);
       } catch (error: unknown) {
         console.error('Error cancelling swap:', error);
         const errorMsg = error && typeof error === 'object' && 'data' in error
-          ? (error.data as { message?: string })?.message || 'A apărut o eroare la anularea cererii.'
-          : 'A apărut o eroare la anularea cererii.';
+          ? (error.data as { message?: string })?.message || 'A aparut o eroare la anularea cererii.'
+          : 'A aparut o eroare la anularea cererii.';
         setErrorMessage(errorMsg);
         setTimeout(() => setErrorMessage(null), 5000);
       }
@@ -419,7 +419,7 @@ const ShiftSwapsPage = () => {
                     startIcon={<CheckIcon />}
                     onClick={() => handleOpenRespondDialog(request, true)}
                   >
-                    Acceptă
+                    Accepta
                   </Button>
                   <Button
                     variant="outlined"
@@ -428,7 +428,7 @@ const ShiftSwapsPage = () => {
                     startIcon={<CloseIcon />}
                     onClick={() => handleOpenRespondDialog(request, false)}
                   >
-                    Refuză
+                    Refuza
                   </Button>
                 </>
               )}
@@ -445,7 +445,7 @@ const ShiftSwapsPage = () => {
 
               {/* Cancel button for sent requests */}
               {isRequester && request.status === 'PENDING' && (
-                <Tooltip title="Anulează cererea">
+                <Tooltip title="Anuleaza cererea">
                   <IconButton
                     color="error"
                     onClick={() => handleCancelSwap(request.id)}
@@ -479,7 +479,7 @@ const ShiftSwapsPage = () => {
       {/* Header with Gradient */}
       <GradientHeader
         title="Schimburi de Ture"
-        subtitle="Solicită sau gestionează schimburile de ture cu colegii"
+        subtitle="Solicita sau gestioneaza schimburile de ture cu colegii"
         icon={<SwapIcon />}
         gradient="#6366f1 0%, #8b5cf6 100%"
       />
@@ -490,7 +490,7 @@ const ShiftSwapsPage = () => {
           <StatCard
             title="Cererile Mele"
             value={sentRequests.length}
-            subtitle={pendingRequestsCount > 0 ? `${pendingRequestsCount} în așteptare` : 'Nicio cerere activă'}
+            subtitle={pendingRequestsCount > 0 ? `${pendingRequestsCount} in asteptare` : 'Nicio cerere activa'}
             icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#6366f1' }} />}
             color="#6366f1"
             bgColor={alpha('#6366f1', 0.12)}
@@ -501,7 +501,7 @@ const ShiftSwapsPage = () => {
           <StatCard
             title="Cereri Primite"
             value={receivedRequests.length}
-            subtitle={unrespondedCount > 0 ? `${unrespondedCount} necesită răspuns` : 'Toate rezolvate'}
+            subtitle={unrespondedCount > 0 ? `${unrespondedCount} necesita raspuns` : 'Toate rezolvate'}
             icon={<InboxIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#10b981' }} />}
             color="#10b981"
             bgColor={alpha('#10b981', 0.12)}
@@ -530,7 +530,7 @@ const ShiftSwapsPage = () => {
                 },
               }}
             >
-              Cerere Nouă
+              Cerere Noua
             </Button>
           </Box>
         </Grid>
@@ -587,7 +587,7 @@ const ShiftSwapsPage = () => {
           <TabPanel value={tabValue} index={0}>
             {sentRequests.length === 0 ? (
               <Alert severity="info" icon={<SwapIcon />}>
-                Nu ai trimis nicio cerere de schimb. Apasă "Cerere Nouă" pentru a solicita un schimb de tură.
+                Nu ai trimis nicio cerere de schimb. Apasa "Cerere Noua" pentru a solicita un schimb de tura.
               </Alert>
             ) : (
               sentRequests.map((request) => renderRequestCard(request, false))
@@ -618,18 +618,18 @@ const ShiftSwapsPage = () => {
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
             <SwapIcon color="primary" />
-            <span>Cerere Nouă de Schimb</span>
+            <span>Cerere Noua de Schimb</span>
           </Stack>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ mt: 1 }}>
             {/* Select My Date (requester date) */}
             <FormControl fullWidth>
-              <InputLabel>Tura mea pe care vreau să o schimb</InputLabel>
+              <InputLabel>Tura mea pe care vreau sa o schimb</InputLabel>
               <Select
                 value={requesterDate}
                 onChange={(e) => handleRequesterDateChange(e.target.value)}
-                label="Tura mea pe care vreau să o schimb"
+                label="Tura mea pe care vreau sa o schimb"
               >
                 {myAssignments.length === 0 ? (
                   <MenuItem disabled>Nu ai ture programate</MenuItem>
@@ -666,7 +666,7 @@ const ShiftSwapsPage = () => {
                     .filter(d => d.date !== requesterDate) // Exclude requester date
                     .map((dateInfo) => (
                       <MenuItem key={dateInfo.date} value={dateInfo.date}>
-                        {formatDate(dateInfo.date)} ({dateInfo.count} {dateInfo.count === 1 ? 'coleg' : 'colegi'} lucrează)
+                        {formatDate(dateInfo.date)} ({dateInfo.count} {dateInfo.count === 1 ? 'coleg' : 'colegi'} lucreaza)
                       </MenuItem>
                     ))
                 )}
@@ -677,7 +677,7 @@ const ShiftSwapsPage = () => {
             {targetDate && usersOnDate.length > 0 && (
               <Alert severity="info">
                 <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Colegi care lucrează în {formatDateShort(targetDate)}:</strong>
+                  <strong>Colegi care lucreaza in {formatDateShort(targetDate)}:</strong>
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
                   {usersOnDate.map((u: UserOnDate) => (
@@ -700,19 +700,19 @@ const ShiftSwapsPage = () => {
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Explică de ce dorești să faci schimbul..."
+              placeholder="Explica de ce doresti sa faci schimbul..."
               required
-              helperText="Obligatoriu - explică motivul cererii tale"
+              helperText="Obligatoriu - explica motivul cererii tale"
             />
 
             <Alert severity="info" sx={{ mt: 1 }}>
-              După ce trimiți cererea, toți colegii care lucrează în data dorită vor fi notificați.
-              Dacă cineva acceptă, un administrator va trebui să aprobe schimbul final.
+              Dupa ce trimiti cererea, toti colegii care lucreaza in data dorita vor fi notificati.
+              Daca cineva accepta, un administrator va trebui sa aprobe schimbul final.
             </Alert>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setCreateDialogOpen(false)}>Anulează</Button>
+          <Button onClick={() => setCreateDialogOpen(false)}>Anuleaza</Button>
           <Button
             variant="contained"
             onClick={handleCreateSwapRequest}
@@ -732,7 +732,7 @@ const ShiftSwapsPage = () => {
         fullWidth
       >
         <DialogTitle>
-          {responseAccepted ? 'Acceptă Cererea de Schimb' : 'Refuză Cererea de Schimb'}
+          {responseAccepted ? 'Accepta Cererea de Schimb' : 'Refuza Cererea de Schimb'}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
@@ -740,7 +740,7 @@ const ShiftSwapsPage = () => {
               <>
                 <Alert severity={responseAccepted ? 'success' : 'warning'}>
                   {responseAccepted
-                    ? `Vei accepta să faci schimb cu ${selectedRequest.requester?.fullName}. Tu vei lucra în ${formatDateShort(selectedRequest.requesterDate)} în loc de ${formatDateShort(selectedRequest.targetDate)}.`
+                    ? `Vei accepta sa faci schimb cu ${selectedRequest.requester?.fullName}. Tu vei lucra in ${formatDateShort(selectedRequest.requesterDate)} in loc de ${formatDateShort(selectedRequest.targetDate)}.`
                     : `Vei refuza cererea de schimb de la ${selectedRequest.requester?.fullName}.`}
                 </Alert>
                 <Box>
@@ -748,26 +748,26 @@ const ShiftSwapsPage = () => {
                     <strong>Detalii schimb:</strong>
                   </Typography>
                   <Typography variant="body2">
-                    • {selectedRequest.requester?.fullName} vrea să lucreze în: <strong>{formatDateShort(selectedRequest.targetDate)}</strong>
+                    • {selectedRequest.requester?.fullName} vrea sa lucreze in: <strong>{formatDateShort(selectedRequest.targetDate)}</strong>
                   </Typography>
                   <Typography variant="body2">
-                    • În schimb, tu vei lucra în: <strong>{formatDateShort(selectedRequest.requesterDate)}</strong>
+                    • In schimb, tu vei lucra in: <strong>{formatDateShort(selectedRequest.requesterDate)}</strong>
                   </Typography>
                 </Box>
               </>
             )}
             <TextField
-              label="Mesaj (opțional)"
+              label="Mesaj (optional)"
               multiline
               rows={2}
               value={responseMessage}
               onChange={(e) => setResponseMessage(e.target.value)}
-              placeholder={responseAccepted ? 'Adaugă un mesaj...' : 'Explică de ce refuzi...'}
+              placeholder={responseAccepted ? 'Adauga un mesaj...' : 'Explica de ce refuzi...'}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setRespondDialogOpen(false)}>Anulează</Button>
+          <Button onClick={() => setRespondDialogOpen(false)}>Anuleaza</Button>
           <Button
             variant="contained"
             color={responseAccepted ? 'success' : 'error'}
@@ -775,7 +775,7 @@ const ShiftSwapsPage = () => {
             disabled={responding}
             startIcon={responding ? <CircularProgress size={20} /> : (responseAccepted ? <CheckIcon /> : <CloseIcon />)}
           >
-            {responding ? 'Se procesează...' : (responseAccepted ? 'Acceptă' : 'Refuză')}
+            {responding ? 'Se proceseaza...' : (responseAccepted ? 'Accepta' : 'Refuza')}
           </Button>
         </DialogActions>
       </Dialog>

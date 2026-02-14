@@ -172,7 +172,7 @@ const AdminEditRequestsPage: React.FC = () => {
 
           <Box>
             <Typography variant="subtitle2" gutterBottom>
-              Modificări propuse:
+              Modificari propuse:
             </Typography>
             {Object.entries(request.proposedChanges).map(([key, value]) => (
               <Typography key={key} variant="body2" sx={{ ml: 1 }}>
@@ -199,7 +199,7 @@ const AdminEditRequestsPage: React.FC = () => {
                 onClick={() => handleApprove(request)}
                 sx={{ flex: 1 }}
               >
-                Aprobă
+                Aproba
               </Button>
               <Button
                 variant="contained"
@@ -228,7 +228,7 @@ const AdminEditRequestsPage: React.FC = () => {
             <TableCell>Motiv</TableCell>
             <TableCell>Data</TableCell>
             <TableCell>Status</TableCell>
-            <TableCell align="right">Acțiuni</TableCell>
+            <TableCell align="right">Actiuni</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -241,7 +241,7 @@ const AdminEditRequestsPage: React.FC = () => {
               </TableCell>
               <TableCell>{request.requester?.fullName}</TableCell>
               <TableCell>
-                <Tooltip title={request.reason || 'Fără motiv'}>
+                <Tooltip title={request.reason || 'Fara motiv'}>
                   <Typography
                     variant="body2"
                     sx={{
@@ -276,7 +276,7 @@ const AdminEditRequestsPage: React.FC = () => {
                   </Tooltip>
                   {request.status === 'PENDING' && (
                     <>
-                      <Tooltip title="Aprobă">
+                      <Tooltip title="Aproba">
                         <IconButton
                           size="small"
                           color="success"
@@ -309,7 +309,7 @@ const AdminEditRequestsPage: React.FC = () => {
     <Box sx={{ pb: { xs: 10, sm: 4 } }}>
       <GradientHeader
         title="Cereri de Editare"
-        subtitle="Aprobă sau respinge cererile de modificare"
+        subtitle="Aproba sau respinge cererile de modificare"
         gradient="#ff9800 0%, #f57c00 100%"
       />
 
@@ -331,7 +331,7 @@ const AdminEditRequestsPage: React.FC = () => {
           onClick={() => navigate('/parking')}
           variant="outlined"
         >
-          Înapoi la Parcări
+          Inapoi la Parcari
         </Button>
 
         <Stack direction="row" spacing={1} alignItems="center">
@@ -345,7 +345,7 @@ const AdminEditRequestsPage: React.FC = () => {
               },
             }}
           >
-            <Tab label={`În așteptare (${pendingCount})`} value="PENDING" />
+            <Tab label={`In asteptare (${pendingCount})`} value="PENDING" />
             <Tab label="Aprobate" value="APPROVED" />
             <Tab label="Respinse" value="REJECTED" />
             <Tab label="Toate" value="ALL" />
@@ -369,7 +369,7 @@ const AdminEditRequestsPage: React.FC = () => {
         </Box>
       ) : requests.length === 0 ? (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          Nu există cereri de editare în această categorie.
+          Nu exista cereri de editare in aceasta categorie.
         </Alert>
       ) : isMobile ? (
         requests.map(renderRequestCard)
@@ -385,14 +385,14 @@ const AdminEditRequestsPage: React.FC = () => {
         fullWidth
       >
         <DialogTitle>
-          {approving ? 'Confirmă aprobarea' : 'Respinge cererea'}
+          {approving ? 'Confirma aprobarea' : 'Respinge cererea'}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Alert severity={approving ? 'success' : 'warning'}>
               {approving
-                ? 'Modificările vor fi aplicate imediat după aprobare.'
-                : 'Te rugăm să specifici motivul respingerii.'}
+                ? 'Modificarile vor fi aplicate imediat dupa aprobare.'
+                : 'Te rugam sa specifici motivul respingerii.'}
             </Alert>
 
             {!approving && (
@@ -403,14 +403,14 @@ const AdminEditRequestsPage: React.FC = () => {
                 label="Motivul respingerii *"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Explică de ce respingi această cerere..."
+                placeholder="Explica de ce respingi aceasta cerere..."
               />
             )}
 
             {selectedRequest && (
               <Box>
                 <Typography variant="subtitle2" gutterBottom>
-                  Modificări propuse:
+                  Modificari propuse:
                 </Typography>
                 {Object.entries(selectedRequest.proposedChanges).map(([key, value]) => (
                   <Typography key={key} variant="body2" sx={{ ml: 1 }}>
@@ -423,7 +423,7 @@ const AdminEditRequestsPage: React.FC = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setReviewDialogOpen(false)} disabled={reviewing}>
-            Anulează
+            Anuleaza
           </Button>
           <Button
             variant="contained"
@@ -440,7 +440,7 @@ const AdminEditRequestsPage: React.FC = () => {
               )
             }
           >
-            {approving ? 'Aprobă' : 'Respinge'}
+            {approving ? 'Aproba' : 'Respinge'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -476,7 +476,7 @@ const AdminEditRequestsPage: React.FC = () => {
 
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">
-                  Data solicitării
+                  Data solicitarii
                 </Typography>
                 <Typography variant="body1">
                   {formatDate(selectedRequest.createdAt)}
@@ -505,7 +505,7 @@ const AdminEditRequestsPage: React.FC = () => {
 
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  Modificări propuse
+                  Modificari propuse
                 </Typography>
                 <Paper variant="outlined" sx={{ p: 1.5 }}>
                   {Object.entries(selectedRequest.proposedChanges).map(([key, value]) => (
@@ -545,7 +545,7 @@ const AdminEditRequestsPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setViewDialogOpen(false)}>Închide</Button>
+          <Button onClick={() => setViewDialogOpen(false)}>Inchide</Button>
         </DialogActions>
       </Dialog>
     </Box>

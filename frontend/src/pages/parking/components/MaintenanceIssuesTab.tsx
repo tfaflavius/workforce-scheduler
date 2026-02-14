@@ -267,7 +267,7 @@ const MaintenanceIssuesTab: React.FC = () => {
                     borderRadius: 1.5,
                   }}
                 >
-                  Finalizează
+                  Finalizeaza
                 </Button>
               )}
             </Box>
@@ -334,7 +334,7 @@ const MaintenanceIssuesTab: React.FC = () => {
               {activeIssues.length}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Probleme active alocate ție
+              Probleme active alocate tie
             </Typography>
           </Box>
         </Box>
@@ -368,7 +368,7 @@ const MaintenanceIssuesTab: React.FC = () => {
           }}
           icon={<ResolveIcon />}
         >
-          Nu ai probleme alocate în acest moment. Bună treabă! 🎉
+          Nu ai probleme alocate in acest moment. Buna treaba! 🎉
         </Alert>
       ) : (
         <>

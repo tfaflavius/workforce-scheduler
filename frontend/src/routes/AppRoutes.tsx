@@ -152,10 +152,10 @@ export const AppRoutes = () => {
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<ParkingPage />} />
 
-        {/* Handicap Parking - Întreținere Parcări, Parcări Handicap, Parcări Domiciliu, Admin */}
+        {/* Handicap Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
         <Route path="/parking/handicap" element={<HandicapParkingPage />} />
 
-        {/* Domiciliu Parking - Întreținere Parcări, Parcări Handicap, Parcări Domiciliu, Admin */}
+        {/* Domiciliu Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
         <Route path="/parking/domiciliu" element={<DomiciliuParkingPage />} />
 
         {/* Admin Edit Requests */}

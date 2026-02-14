@@ -27,7 +27,7 @@ export interface HandicapRequest {
   carPlate?: string;
   autoNumber?: string;
   phone?: string;
-  cnp?: string; // Vizibil doar pentru Admin și departamentele Parcări Handicap/Domiciliu
+  cnp?: string; // Vizibil doar pentru Admin si departamentele Parcari Handicap/Domiciliu
   createdBy: string;
   resolvedBy?: string;
   lastModifiedBy?: string;
@@ -82,7 +82,7 @@ export interface HandicapReportFilters {
   type?: HandicapRequestType;
 }
 
-// ============== LEGITIMAȚII HANDICAP ==============
+// ============== LEGITIMATII HANDICAP ==============
 
 export type HandicapLegitimationStatus = 'ACTIVE' | 'FINALIZAT';
 
@@ -148,7 +148,7 @@ export interface HandicapLegitimationReportFilters {
   status?: HandicapLegitimationStatus;
 }
 
-// ============== LEGITIMAȚII REVOLUȚIONAR/DEPORTAT ==============
+// ============== LEGITIMATII REVOLUTIONAR/DEPORTAT ==============
 
 export type RevolutionarLegitimationStatus = 'ACTIVE' | 'FINALIZAT';
 
@@ -162,7 +162,7 @@ export interface RevolutionarLegitimation {
   status: RevolutionarLegitimationStatus;
   personName: string;
   cnp?: string;
-  lawNumber: string; // Lege / Hotărâre în loc de certificat handicap
+  lawNumber: string; // Lege / Hotarare in loc de certificat handicap
   carPlate: string;
   autoNumber?: string;
   phone?: string;

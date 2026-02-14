@@ -83,7 +83,7 @@ const CashCollectionsTab: React.FC = () => {
   const isAdmin = user?.role === 'ADMIN';
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Ești sigur că vrei să ștergi această ridicare?')) {
+    if (window.confirm('Esti sigur ca vrei sa stergi aceasta ridicare?')) {
       try {
         await deleteCollection(id).unwrap();
       } catch (error) {
@@ -208,11 +208,11 @@ const CashCollectionsTab: React.FC = () => {
           <TableRow>
             <TableCell>Parcare</TableCell>
             <TableCell>Automat</TableCell>
-            <TableCell align="right">Sumă</TableCell>
+            <TableCell align="right">Suma</TableCell>
             <TableCell>Ridicat de</TableCell>
             <TableCell>Data</TableCell>
             <TableCell>Note</TableCell>
-            {isAdmin && <TableCell align="right">Acțiuni</TableCell>}
+            {isAdmin && <TableCell align="right">Actiuni</TableCell>}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -320,7 +320,7 @@ const CashCollectionsTab: React.FC = () => {
                   {formatCurrency(totals.totalAmount)}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                  Total General ({totals.count} ridicări)
+                  Total General ({totals.count} ridicari)
                 </Typography>
               </CardContent>
             </Card>
@@ -416,7 +416,7 @@ const CashCollectionsTab: React.FC = () => {
                   />
 
                   <DatePickerField
-                    label="Până la"
+                    label="Pana la"
                     value={endDate || null}
                     onChange={(value) => setEndDate(value || '')}
                     size="small"
@@ -425,7 +425,7 @@ const CashCollectionsTab: React.FC = () => {
                   />
 
                   <Button size="small" onClick={clearFilters} variant="outlined" sx={{ borderRadius: 2 }}>
-                    Resetează Filtre
+                    Reseteaza Filtre
                   </Button>
                 </Stack>
               </Collapse>
@@ -485,7 +485,7 @@ const CashCollectionsTab: React.FC = () => {
 
               <Box sx={{ minWidth: 160 }}>
                 <DatePickerField
-                  label="Până la"
+                  label="Pana la"
                   value={endDate || null}
                   onChange={(value) => setEndDate(value || '')}
                   size="small"
@@ -494,7 +494,7 @@ const CashCollectionsTab: React.FC = () => {
               </Box>
 
               <Button size="small" onClick={clearFilters} sx={{ borderRadius: 2 }}>
-                Resetează
+                Reseteaza
               </Button>
             </Stack>
           )}
@@ -528,7 +528,7 @@ const CashCollectionsTab: React.FC = () => {
               },
             }}
           >
-            {isMobile ? 'Adaugă' : 'Înregistrează Ridicare'}
+            {isMobile ? 'Adauga' : 'Inregistreaza Ridicare'}
           </Button>
         </Box>
       </Grow>
@@ -541,7 +541,7 @@ const CashCollectionsTab: React.FC = () => {
       ) : collections.length === 0 ? (
         <Fade in={true} timeout={600}>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            Nu există ridicări înregistrate.
+            Nu exista ridicari inregistrate.
           </Alert>
         </Fade>
       ) : isMobile || isTablet ? (

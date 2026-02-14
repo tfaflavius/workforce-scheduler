@@ -12,12 +12,12 @@ export class CreateRevolutionarLegitimationDto {
   cnp?: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Lege / Hotărâre este obligatorie' })
+  @IsNotEmpty({ message: 'Lege / Hotarare este obligatorie' })
   @MaxLength(100)
   lawNumber: string;
 
   @IsString()
-  @IsNotEmpty({ message: 'Numărul de înmatriculare este obligatoriu' })
+  @IsNotEmpty({ message: 'Numarul de inmatriculare este obligatoriu' })
   @MaxLength(20)
   carPlate: string;
 

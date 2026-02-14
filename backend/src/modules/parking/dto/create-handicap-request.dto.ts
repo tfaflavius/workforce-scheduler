@@ -19,7 +19,7 @@ export class CreateHandicapRequestDto {
   @IsNotEmpty()
   description: string;
 
-  // Câmpuri obligatorii doar pentru AMPLASARE_PANOU și REVOCARE_PANOU
+  // Campuri obligatorii doar pentru AMPLASARE_PANOU si REVOCARE_PANOU
   @ValidateIf((o) => o.requestType !== 'CREARE_MARCAJ')
   @IsString()
   @IsNotEmpty()
@@ -49,7 +49,7 @@ export class CreateHandicapRequestDto {
   @MaxLength(20)
   phone?: string;
 
-  // CNP - vizibil doar pentru Admin și departamentele Parcări Handicap/Domiciliu
+  // CNP - vizibil doar pentru Admin si departamentele Parcari Handicap/Domiciliu
   @IsString()
   @IsOptional()
   @MaxLength(20)

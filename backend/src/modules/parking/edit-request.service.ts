@@ -34,7 +34,7 @@ export class EditRequestService {
   async create(userId: string, dto: CreateEditRequestDto): Promise<EditRequest> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('Utilizator negăsit');
+      throw new NotFoundException('Utilizator negasit');
     }
 
     // Adminii pot edita direct, nu au nevoie de aprobare
@@ -42,15 +42,15 @@ export class EditRequestService {
       return this.applyChangesDirectly(userId, dto);
     }
 
-    // Managerii trebuie să ceară aprobare
+    // Managerii trebuie sa ceara aprobare
     if (user.role !== UserRole.MANAGER) {
       throw new ForbiddenException('Doar managerii pot crea cereri de editare');
     }
 
-    // Obține datele originale
+    // Obtine datele originale
     const originalData = await this.getOriginalData(dto.requestType, dto.entityId);
 
-    // Calculează modificările propuse cu valori vechi și noi
+    // Calculeaza modificarile propuse cu valori vechi si noi
     const proposedChanges: Record<string, { from: any; to: any }> = {};
     for (const [key, newValue] of Object.entries(dto.proposedChanges)) {
       proposedChanges[key] = {
@@ -71,7 +71,7 @@ export class EditRequestService {
 
     const saved = await this.editRequestRepository.save(editRequest);
 
-    // Notifică adminii - în background
+    // Notifica adminii - in background
     this.notifyAdmins(saved, user).catch(err => {
       this.logger.error(`Failed to notify admins: ${err.message}`);
     });
@@ -101,7 +101,7 @@ export class EditRequestService {
     });
 
     if (!editRequest) {
-      throw new NotFoundException('Cerere de editare negăsită');
+      throw new NotFoundException('Cerere de editare negasita');
     }
 
     return editRequest;
@@ -116,11 +116,11 @@ export class EditRequestService {
     const editRequest = await this.findOne(id);
 
     if (editRequest.status !== 'PENDING') {
-      throw new BadRequestException('Această cerere a fost deja procesată');
+      throw new BadRequestException('Aceasta cerere a fost deja procesata');
     }
 
     if (dto.approved) {
-      // Aplică modificările
+      // Aplica modificarile
       await this.applyChanges(editRequest);
       editRequest.status = 'APPROVED';
     } else {
@@ -136,7 +136,7 @@ export class EditRequestService {
 
     const saved = await this.editRequestRepository.save(editRequest);
 
-    // Notifică solicitantul - în background
+    // Notifica solicitantul - in background
     this.notifyRequester(saved, reviewer).catch(err => {
       this.logger.error(`Failed to notify requester: ${err.message}`);
     });
@@ -163,7 +163,7 @@ export class EditRequestService {
           where: { id: entityId },
           relations: ['parkingLot'],
         });
-        if (!issue) throw new NotFoundException('Problemă negăsită');
+        if (!issue) throw new NotFoundException('Problema negasita');
         return {
           equipment: issue.equipment,
           contactedCompany: issue.contactedCompany,
@@ -177,7 +177,7 @@ export class EditRequestService {
           where: { id: entityId },
           relations: ['parkingLot'],
         });
-        if (!damage) throw new NotFoundException('Prejudiciu negăsit');
+        if (!damage) throw new NotFoundException('Prejudiciu negasit');
         return {
           damagedEquipment: damage.damagedEquipment,
           personName: damage.personName,
@@ -193,7 +193,7 @@ export class EditRequestService {
           where: { id: entityId },
           relations: ['parkingLot', 'paymentMachine'],
         });
-        if (!collection) throw new NotFoundException('Încasare negăsită');
+        if (!collection) throw new NotFoundException('Incasare negasita');
         return {
           paymentMachineId: collection.paymentMachineId,
           paymentMachineName: collection.paymentMachine?.machineNumber,
@@ -212,7 +212,7 @@ export class EditRequestService {
   private async applyChanges(editRequest: EditRequest): Promise<void> {
     const changes: Record<string, any> = {};
 
-    // Exclude câmpurile virtuale care nu sunt coloane în baza de date
+    // Exclude campurile virtuale care nu sunt coloane in baza de date
     const excludedFields = ['parkingLotName', 'paymentMachineName'];
 
     for (const [key, value] of Object.entries(editRequest.proposedChanges)) {
@@ -237,7 +237,7 @@ export class EditRequestService {
   }
 
   private async applyChangesDirectly(userId: string, dto: CreateEditRequestDto): Promise<EditRequest> {
-    // Admin poate edita direct fără aprobare
+    // Admin poate edita direct fara aprobare
     const originalData = await this.getOriginalData(dto.requestType, dto.entityId);
 
     const proposedChanges: Record<string, { from: any; to: any }> = {};
@@ -248,7 +248,7 @@ export class EditRequestService {
       };
     }
 
-    // Creăm cererea ca și cum ar fi fost aprobată instant
+    // Cream cererea ca si cum ar fi fost aprobata instant
     const editRequest = this.editRequestRepository.create({
       requestType: dto.requestType,
       entityId: dto.entityId,
@@ -261,8 +261,8 @@ export class EditRequestService {
       status: 'APPROVED',
     });
 
-    // Aplicăm modificările
-    // Exclude câmpurile virtuale care nu sunt coloane în baza de date
+    // Aplicam modificarile
+    // Exclude campurile virtuale care nu sunt coloane in baza de date
     const excludedFields = ['parkingLotName', 'paymentMachineName'];
 
     const changes: Record<string, any> = {};
@@ -296,7 +296,7 @@ export class EditRequestService {
     const saved = await this.editRequestRepository.save(editRequest);
     this.logger.log(`Edit request saved with id: ${saved.id}`);
 
-    // Notifică managerii și adminii - în background pentru a nu bloca răspunsul
+    // Notifica managerii si adminii - in background pentru a nu bloca raspunsul
     this.notifyManagersAndAdmins(saved, userId).catch(err => {
       this.logger.error(`Failed to notify managers and admins: ${err.message}`);
     });
@@ -311,13 +311,13 @@ export class EditRequestService {
 
     const entityDescription = await this.getEntityDescription(editRequest.requestType, editRequest.entityId);
 
-    // Notificări in-app
+    // Notificari in-app
     for (const admin of admins) {
       await this.notificationsService.create({
         userId: admin.id,
         type: NotificationType.EDIT_REQUEST_CREATED,
-        title: 'Cerere de editare nouă',
-        message: `${requester.fullName} solicită aprobare pentru editarea: ${entityDescription}`,
+        title: 'Cerere de editare noua',
+        message: `${requester.fullName} solicita aprobare pentru editarea: ${entityDescription}`,
         data: {
           editRequestId: editRequest.id,
           requestType: editRequest.requestType,
@@ -351,10 +351,10 @@ export class EditRequestService {
       type: editRequest.status === 'APPROVED'
         ? NotificationType.EDIT_REQUEST_APPROVED
         : NotificationType.EDIT_REQUEST_REJECTED,
-      title: editRequest.status === 'APPROVED' ? 'Cerere aprobată' : 'Cerere respinsă',
+      title: editRequest.status === 'APPROVED' ? 'Cerere aprobata' : 'Cerere respinsa',
       message: editRequest.status === 'APPROVED'
-        ? `Cererea ta de editare pentru ${entityDescription} a fost aprobată de ${reviewer.fullName}.`
-        : `Cererea ta de editare pentru ${entityDescription} a fost respinsă. Motiv: ${editRequest.rejectionReason}`,
+        ? `Cererea ta de editare pentru ${entityDescription} a fost aprobata de ${reviewer.fullName}.`
+        : `Cererea ta de editare pentru ${entityDescription} a fost respinsa. Motiv: ${editRequest.rejectionReason}`,
       data: {
         editRequestId: editRequest.id,
         requestType: editRequest.requestType,
@@ -428,7 +428,7 @@ export class EditRequestService {
           where: { id: entityId },
           relations: ['parkingLot'],
         });
-        return issue ? `Problemă: ${issue.equipment} - ${issue.parkingLot?.name}` : 'Problemă';
+        return issue ? `Problema: ${issue.equipment} - ${issue.parkingLot?.name}` : 'Problema';
 
       case 'PARKING_DAMAGE':
         const damage = await this.parkingDamageRepository.findOne({
@@ -442,7 +442,7 @@ export class EditRequestService {
           where: { id: entityId },
           relations: ['parkingLot'],
         });
-        return collection ? `Încasare: ${collection.amount} RON - ${collection.parkingLot?.name}` : 'Încasare';
+        return collection ? `Incasare: ${collection.amount} RON - ${collection.parkingLot?.name}` : 'Incasare';
 
       default:
         return 'Element';

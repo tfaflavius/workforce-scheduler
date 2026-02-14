@@ -26,12 +26,12 @@ export class RevolutionarLegitimationsController {
   constructor(private readonly legitimationsService: RevolutionarLegitimationsService) {}
 
   private checkAccess(user: any): void {
-    // Doar Admin și departamentul Parcări Handicap pot accesa
+    // Doar Admin si departamentul Parcari Handicap pot accesa
     const isAdmin = user.role === UserRole.ADMIN;
     const isHandicapDepartment = user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!isAdmin && !isHandicapDepartment) {
-      throw new ForbiddenException('Nu aveți permisiunea să accesați această resursă');
+      throw new ForbiddenException('Nu aveti permisiunea sa accesati aceasta resursa');
     }
   }
 

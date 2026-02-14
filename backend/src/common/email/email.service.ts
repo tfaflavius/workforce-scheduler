@@ -266,7 +266,7 @@ export class EmailService {
     '@workforce.com',           // Toate conturile interne de test
     '@test.com',                // Conturi de test generice
     '@example.com',             // Conturi de exemplu
-    'test@',                    // Orice email care începe cu test@
+    'test@',                    // Orice email care incepe cu test@
     'tartaflavius22@gmail.com', // Cont personal de test
   ];
 
@@ -285,20 +285,20 @@ export class EmailService {
   }
 
   /**
-   * Verifică dacă un email este un cont de test
+   * Verifica daca un email este un cont de test
    * Conturile de test nu primesc email-uri automate
    */
   private isTestEmail(email: string): boolean {
     const emailLower = email.toLowerCase();
     return this.testEmailPatterns.some(pattern => {
       if (pattern.startsWith('@')) {
-        // Verifică domeniul (ex: @workforce.com)
+        // Verifica domeniul (ex: @workforce.com)
         return emailLower.endsWith(pattern);
       } else if (pattern.endsWith('@')) {
-        // Verifică prefixul (ex: test@)
+        // Verifica prefixul (ex: test@)
         return emailLower.startsWith(pattern);
       }
-      // Verifică potrivire exactă sau parțială
+      // Verifica potrivire exacta sau partiala
       return emailLower.includes(pattern);
     });
   }
@@ -325,9 +325,9 @@ export class EmailService {
 
   private getLeaveTypeLabel(leaveType: string): string {
     const labels: Record<string, string> = {
-      'ANNUAL': 'Concediu de odihnă',
+      'ANNUAL': 'Concediu de odihna',
       'SICK': 'Concediu medical',
-      'UNPAID': 'Concediu fără plată',
+      'UNPAID': 'Concediu fara plata',
       'OTHER': 'Alte tipuri'
     };
     return labels[leaveType] || leaveType;
@@ -352,7 +352,7 @@ export class EmailService {
 
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
             <p style="color: #666; font-size: 12px; margin: 0;">
-              Acest email a fost trimis automat. Te rugăm să nu răspunzi la acest mesaj.
+              Acest email a fost trimis automat. Te rugam sa nu raspunzi la acest mesaj.
             </p>
           </div>
         </div>
@@ -367,7 +367,7 @@ export class EmailService {
       return false;
     }
 
-    // Blochează email-urile către conturile de test (dacă nu este forțat)
+    // Blocheaza email-urile catre conturile de test (daca nu este fortat)
     if (!forceTestEmail && this.isTestEmail(to)) {
       this.logger.log(`Email skipped (test account): ${subject} to ${to}`);
       return false;
@@ -389,8 +389,8 @@ export class EmailService {
   }
 
   /**
-   * Trimite email forțat - inclusiv la conturile de test
-   * Folosit doar când se solicită explicit trimiterea de email-uri de test
+   * Trimite email fortat - inclusiv la conturile de test
+   * Folosit doar cand se solicita explicit trimiterea de email-uri de test
    */
   async sendForcedEmail(to: string, subject: string, html: string): Promise<boolean> {
     return this.sendEmail(to, subject, html, true);
@@ -438,7 +438,7 @@ export class EmailService {
           <thead>
             <tr style="background-color: #f5f5f5;">
               <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Data</th>
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tip Tură</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tip Tura</th>
               <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Interval Orar</th>
             </tr>
           </thead>
@@ -460,11 +460,11 @@ export class EmailService {
     }
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.employeeName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.employeeName}</strong>!</p>
 
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${actionColor};">
         <p style="margin: 0; font-size: 16px;">
-          Programul tău de lucru pentru luna <strong>${monthFormatted}</strong> ${actionText}.
+          Programul tau de lucru pentru luna <strong>${monthFormatted}</strong> ${actionText}.
         </p>
       </div>
 
@@ -472,7 +472,7 @@ export class EmailService {
       ${shiftsTable}
 
       <p style="margin-top: 30px;">
-        Pentru a vizualiza programul complet, te rugăm să accesezi aplicația WorkSchedule.
+        Pentru a vizualiza programul complet, te rugam sa accesezi aplicatia WorkSchedule.
       </p>
     `;
 
@@ -517,16 +517,16 @@ export class EmailService {
 
     switch (data.status) {
       case 'submitted':
-        statusText = 'a fost înregistrată și așteaptă aprobare';
+        statusText = 'a fost inregistrata si asteapta aprobare';
         statusColor = '#2196F3';
         break;
       case 'approved':
-        statusText = 'a fost aprobată';
+        statusText = 'a fost aprobata';
         statusColor = '#4CAF50';
         gradientColors = '#4CAF50 0%, #45a049 100%';
         break;
       case 'rejected':
-        statusText = 'a fost respinsă';
+        statusText = 'a fost respinsa';
         statusColor = '#f44336';
         gradientColors = '#f44336 0%, #d32f2f 100%';
         break;
@@ -552,7 +552,7 @@ export class EmailService {
     }
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.employeeName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.employeeName}</strong>!</p>
 
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
         <p style="margin: 0; font-size: 16px;">
@@ -593,9 +593,9 @@ export class EmailService {
 
   async sendLeaveRequestNotification(data: LeaveRequestEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'submitted': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} înregistrată`,
-      'approved': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} aprobată ✅`,
-      'rejected': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} respinsă`,
+      'submitted': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} inregistrata`,
+      'approved': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} aprobata ✅`,
+      'rejected': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} respinsa`,
     };
 
     return this.sendEmail(
@@ -605,7 +605,7 @@ export class EmailService {
     );
   }
 
-  // Notificare pentru manageri/admini când se creează o cerere nouă
+  // Notificare pentru manageri/admini cand se creeaza o cerere noua
   async sendLeaveRequestNotificationToApprover(
     approverEmail: string,
     approverName: string,
@@ -616,11 +616,11 @@ export class EmailService {
     totalDays: number
   ): Promise<boolean> {
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${approverName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${approverName}</strong>!</p>
 
       <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
         <p style="margin: 0; font-size: 16px;">
-          <strong>${employeeName}</strong> a depus o cerere de concediu care necesită aprobare.
+          <strong>${employeeName}</strong> a depus o cerere de concediu care necesita aprobare.
         </p>
       </div>
 
@@ -648,7 +648,7 @@ export class EmailService {
 
       <p style="margin-top: 30px;">
         <a href="${this.appUrl}/leave-requests" style="display: inline-block; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
-          Aprobă sau Respinge
+          Aproba sau Respinge
         </a>
       </p>
     `;
@@ -656,7 +656,7 @@ export class EmailService {
     return this.sendEmail(
       approverEmail,
       `⏳ Cerere de concediu de la ${employeeName}`,
-      this.generateBaseTemplate('WorkSchedule', 'Cerere Concediu Nouă', content, '#ff9800 0%, #f57c00 100%')
+      this.generateBaseTemplate('WorkSchedule', 'Cerere Concediu Noua', content, '#ff9800 0%, #f57c00 100%')
     );
   }
 
@@ -666,26 +666,26 @@ export class EmailService {
     let statusText = '';
     let statusColor = '#f44336';
     let gradientColors = '#f44336 0%, #d32f2f 100%';
-    let subtitle = 'Problemă Parcare';
+    let subtitle = 'Problema Parcare';
 
     switch (data.issueType) {
       case 'new_issue':
-        statusText = data.isUrgent ? 'O problemă URGENTĂ a fost raportată' : 'O nouă problemă a fost raportată';
+        statusText = data.isUrgent ? 'O problema URGENTA a fost raportata' : 'O noua problema a fost raportata';
         statusColor = data.isUrgent ? '#f44336' : '#ff9800';
         gradientColors = data.isUrgent ? '#f44336 0%, #d32f2f 100%' : '#ff9800 0%, #f57c00 100%';
-        subtitle = data.isUrgent ? '🚨 Problemă Urgentă Parcare' : 'Problemă Nouă Parcare';
+        subtitle = data.isUrgent ? '🚨 Problema Urgenta Parcare' : 'Problema Noua Parcare';
         break;
       case 'issue_resolved':
-        statusText = 'Problema a fost rezolvată';
+        statusText = 'Problema a fost rezolvata';
         statusColor = '#4CAF50';
         gradientColors = '#4CAF50 0%, #45a049 100%';
-        subtitle = '✅ Problemă Rezolvată';
+        subtitle = '✅ Problema Rezolvata';
         break;
       case 'urgent_reminder':
-        statusText = 'Această problemă urgentă este nerezolvată de peste 48 de ore!';
+        statusText = 'Aceasta problema urgenta este nerezolvata de peste 48 de ore!';
         statusColor = '#f44336';
         gradientColors = '#f44336 0%, #d32f2f 100%';
-        subtitle = '🚨 Reminder Problemă Urgentă';
+        subtitle = '🚨 Reminder Problema Urgenta';
         break;
     }
 
@@ -693,7 +693,7 @@ export class EmailService {
     if (data.issueType === 'issue_resolved' && data.resolutionDescription) {
       resolutionSection = `
         <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4CAF50;">
-          <strong>Soluția aplicată:</strong>
+          <strong>Solutia aplicata:</strong>
           <p style="margin: 10px 0 0 0;">${data.resolutionDescription}</p>
         </div>
       `;
@@ -704,14 +704,14 @@ export class EmailService {
       : '';
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
 
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
         <p style="margin: 0; font-size: 16px;">${statusText}</p>
       </div>
 
       <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px 0; color: #333;">Detalii problemă: ${urgentBadge}</h3>
+        <h3 style="margin: 0 0 15px 0; color: #333;">Detalii problema: ${urgentBadge}</h3>
         <table style="width: 100%;">
           <tr>
             <td style="padding: 5px 0; color: #666;">Parcare:</td>
@@ -747,10 +747,10 @@ export class EmailService {
   async sendParkingIssueNotification(data: ParkingIssueEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
       'new_issue': data.isUrgent
-        ? `🚨 URGENT: Problemă la ${data.parkingLotName}`
-        : `Problemă nouă la ${data.parkingLotName}`,
-      'issue_resolved': `✅ Problemă rezolvată la ${data.parkingLotName}`,
-      'urgent_reminder': `🚨 REMINDER: Problemă urgentă nerezolvată la ${data.parkingLotName}`,
+        ? `🚨 URGENT: Problema la ${data.parkingLotName}`
+        : `Problema noua la ${data.parkingLotName}`,
+      'issue_resolved': `✅ Problema rezolvata la ${data.parkingLotName}`,
+      'urgent_reminder': `🚨 REMINDER: Problema urgenta nerezolvata la ${data.parkingLotName}`,
     };
 
     return this.sendEmail(
@@ -767,55 +767,55 @@ export class EmailService {
     if (data.temporaryPassword) {
       passwordSection = `
         <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
-          <strong>⚠️ Parola temporară:</strong>
+          <strong>⚠️ Parola temporara:</strong>
           <p style="margin: 10px 0 0 0; font-family: monospace; font-size: 18px; background: #f5f5f5; padding: 10px; border-radius: 4px;">
             ${data.temporaryPassword}
           </p>
           <p style="color: #666; font-size: 12px; margin-top: 10px;">
-            Te rugăm să îți schimbi parola după prima autentificare.
+            Te rugam sa iti schimbi parola dupa prima autentificare.
           </p>
         </div>
       `;
     }
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.employeeName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.employeeName}</strong>!</p>
 
       <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196F3;">
         <p style="margin: 0; font-size: 16px;">
-          🎉 Bine ai venit în echipa <strong>WorkSchedule</strong>!
+          🎉 Bine ai venit in echipa <strong>WorkSchedule</strong>!
         </p>
         <p style="margin: 10px 0 0 0;">
-          Contul tău a fost creat și poți accesa aplicația pentru a vedea programul de lucru, cererile de concediu și multe altele.
+          Contul tau a fost creat si poti accesa aplicatia pentru a vedea programul de lucru, cererile de concediu si multe altele.
         </p>
       </div>
 
       ${passwordSection}
 
       <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px 0; color: #333;">Ce poți face în aplicație:</h3>
+        <h3 style="margin: 0 0 15px 0; color: #333;">Ce poti face in aplicatie:</h3>
         <ul style="margin: 0; padding-left: 20px;">
-          <li style="padding: 5px 0;">📅 Vizualizează programul tău de lucru</li>
+          <li style="padding: 5px 0;">📅 Vizualizeaza programul tau de lucru</li>
           <li style="padding: 5px 0;">🏖️ Trimite cereri de concediu</li>
-          <li style="padding: 5px 0;">🔔 Primește notificări importante</li>
-          <li style="padding: 5px 0;">📊 Vezi statistici și rapoarte</li>
+          <li style="padding: 5px 0;">🔔 Primeste notificari importante</li>
+          <li style="padding: 5px 0;">📊 Vezi statistici si rapoarte</li>
         </ul>
       </div>
 
       <p style="margin-top: 30px;">
         <a href="${data.loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
-          Accesează aplicația
+          Acceseaza aplicatia
         </a>
       </p>
 
       <p style="color: #666; margin-top: 20px;">
-        Dacă ai întrebări, contactează administratorul sistemului.
+        Daca ai intrebari, contacteaza administratorul sistemului.
       </p>
     `;
 
     return this.sendEmail(
       data.employeeEmail,
-      '🎉 Bine ai venit în WorkSchedule!',
+      '🎉 Bine ai venit in WorkSchedule!',
       this.generateBaseTemplate('WorkSchedule', 'Bine ai venit!', content, '#4CAF50 0%, #45a049 100%')
     );
   }
@@ -824,37 +824,37 @@ export class EmailService {
 
   async sendPasswordResetEmail(data: PasswordResetEmailData): Promise<boolean> {
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.employeeName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.employeeName}</strong>!</p>
 
       <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
         <p style="margin: 0; font-size: 16px;">
-          Am primit o cerere de resetare a parolei pentru contul tău.
+          Am primit o cerere de resetare a parolei pentru contul tau.
         </p>
       </div>
 
-      <p>Dacă tu ai solicitat această resetare, apasă butonul de mai jos pentru a-ți seta o parolă nouă:</p>
+      <p>Daca tu ai solicitat aceasta resetare, apasa butonul de mai jos pentru a-ti seta o parola noua:</p>
 
       <p style="margin-top: 30px; text-align: center;">
         <a href="${data.resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
-          Resetează parola
+          Reseteaza parola
         </a>
       </p>
 
       <p style="color: #666; font-size: 14px; margin-top: 30px;">
-        Acest link este valid pentru <strong>1 oră</strong>.
+        Acest link este valid pentru <strong>1 ora</strong>.
       </p>
 
       <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f44336;">
         <p style="margin: 0; font-size: 14px; color: #666;">
-          ⚠️ Dacă nu ai solicitat resetarea parolei, te rugăm să ignori acest email. Parola ta actuală va rămâne neschimbată.
+          ⚠️ Daca nu ai solicitat resetarea parolei, te rugam sa ignori acest email. Parola ta actuala va ramane neschimbata.
         </p>
       </div>
     `;
 
     return this.sendEmail(
       data.employeeEmail,
-      '🔐 Resetare parolă WorkSchedule',
-      this.generateBaseTemplate('WorkSchedule', 'Resetare Parolă', content, '#ff9800 0%, #f57c00 100%')
+      '🔐 Resetare parola WorkSchedule',
+      this.generateBaseTemplate('WorkSchedule', 'Resetare Parola', content, '#ff9800 0%, #f57c00 100%')
     );
   }
 
@@ -903,7 +903,7 @@ export class EmailService {
       : '';
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
 
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
         <p style="margin: 0; font-size: 16px;">${statusText}</p>
@@ -921,11 +921,11 @@ export class EmailService {
             <td style="padding: 5px 0; font-weight: bold;">${data.damagedEquipment}</td>
           </tr>
           <tr>
-            <td style="padding: 5px 0; color: #666;">Persoană responsabilă:</td>
+            <td style="padding: 5px 0; color: #666;">Persoana responsabila:</td>
             <td style="padding: 5px 0; font-weight: bold;">${data.personName}</td>
           </tr>
           <tr>
-            <td style="padding: 5px 0; color: #666;">Număr mașină:</td>
+            <td style="padding: 5px 0; color: #666;">Numar masina:</td>
             <td style="padding: 5px 0; font-weight: bold;">${data.carPlate}</td>
           </tr>
           <tr>
@@ -973,35 +973,35 @@ export class EmailService {
     let statusText = '';
     let statusColor = '#2196F3';
     let gradientColors = '#2196F3 0%, #1976D2 100%';
-    let subtitle = 'Schimb de Tură';
+    let subtitle = 'Schimb de Tura';
 
     switch (data.swapType) {
       case 'new_request':
-        statusText = `${data.requesterName} dorește să facă schimb de tură cu tine`;
+        statusText = `${data.requesterName} doreste sa faca schimb de tura cu tine`;
         statusColor = '#ff9800';
         gradientColors = '#ff9800 0%, #f57c00 100%';
-        subtitle = '🔄 Cerere Schimb de Tură';
+        subtitle = '🔄 Cerere Schimb de Tura';
         break;
       case 'response_accepted':
         statusText = `${data.responderName} a acceptat cererea ta de schimb`;
         statusColor = '#4CAF50';
         gradientColors = '#4CAF50 0%, #45a049 100%';
-        subtitle = '✅ Cerere Acceptată';
+        subtitle = '✅ Cerere Acceptata';
         break;
       case 'response_declined':
         statusText = `${data.responderName} a refuzat cererea ta de schimb`;
         statusColor = '#f44336';
         gradientColors = '#f44336 0%, #d32f2f 100%';
-        subtitle = '❌ Cerere Refuzată';
+        subtitle = '❌ Cerere Refuzata';
         break;
       case 'approved':
-        statusText = 'Schimbul de tură a fost aprobat de administrator!';
+        statusText = 'Schimbul de tura a fost aprobat de administrator!';
         statusColor = '#4CAF50';
         gradientColors = '#4CAF50 0%, #45a049 100%';
         subtitle = '✅ Schimb Aprobat';
         break;
       case 'rejected':
-        statusText = 'Schimbul de tură a fost respins de administrator';
+        statusText = 'Schimbul de tura a fost respins de administrator';
         statusColor = '#f44336';
         gradientColors = '#f44336 0%, #d32f2f 100%';
         subtitle = '❌ Schimb Respins';
@@ -1012,7 +1012,7 @@ export class EmailService {
     if (data.adminNotes) {
       adminNotesSection = `
         <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #ff9800;">
-          <strong>Notă administrator:</strong>
+          <strong>Nota administrator:</strong>
           <p style="margin: 10px 0 0 0;">${data.adminNotes}</p>
         </div>
       `;
@@ -1029,7 +1029,7 @@ export class EmailService {
     }
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
 
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
         <p style="margin: 0; font-size: 16px;">${statusText}</p>
@@ -1047,7 +1047,7 @@ export class EmailService {
             <td style="padding: 5px 0; font-weight: bold;">${data.requesterDate}</td>
           </tr>
           <tr>
-            <td style="padding: 5px 0; color: #666;">Data dorită:</td>
+            <td style="padding: 5px 0; color: #666;">Data dorita:</td>
             <td style="padding: 5px 0; font-weight: bold;">${data.targetDate}</td>
           </tr>
           ${reasonSection}
@@ -1068,11 +1068,11 @@ export class EmailService {
 
   async sendShiftSwapNotification(data: ShiftSwapEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_request': `🔄 Cerere de schimb de tură de la ${data.requesterName}`,
-      'response_accepted': `✅ ${data.responderName} a acceptat schimbul de tură`,
-      'response_declined': `❌ ${data.responderName} a refuzat schimbul de tură`,
-      'approved': `✅ Schimbul de tură a fost aprobat!`,
-      'rejected': `❌ Schimbul de tură a fost respins`,
+      'new_request': `🔄 Cerere de schimb de tura de la ${data.requesterName}`,
+      'response_accepted': `✅ ${data.responderName} a acceptat schimbul de tura`,
+      'response_declined': `❌ ${data.responderName} a refuzat schimbul de tura`,
+      'approved': `✅ Schimbul de tura a fost aprobat!`,
+      'rejected': `❌ Schimbul de tura a fost respins`,
     };
 
     return this.sendEmail(
@@ -1103,15 +1103,15 @@ export class EmailService {
     `).join('');
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
 
       <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196F3;">
-        <h2 style="margin: 0 0 10px 0; color: #1976D2;">📊 Raport Încasări - ${data.reportDate}</h2>
+        <h2 style="margin: 0 0 10px 0; color: #1976D2;">📊 Raport Incasari - ${data.reportDate}</h2>
         <p style="margin: 0; font-size: 24px; font-weight: bold; color: #333;">
           Total: ${data.totalAmount.toFixed(2)} RON
         </p>
         <p style="margin: 5px 0 0 0; color: #666;">
-          ${data.collectionCount} ridicări înregistrate
+          ${data.collectionCount} ridicari inregistrate
         </p>
       </div>
 
@@ -1120,7 +1120,7 @@ export class EmailService {
         <thead>
           <tr style="background-color: #f5f5f5;">
             <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Parcare</th>
-            <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Ridicări</th>
+            <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Ridicari</th>
             <th style="padding: 12px; border: 1px solid #ddd; text-align: right;">Total</th>
           </tr>
         </thead>
@@ -1135,7 +1135,7 @@ export class EmailService {
           <tr style="background-color: #f5f5f5;">
             <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Automat</th>
             <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Parcare</th>
-            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Ridicări</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Ridicari</th>
             <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Total</th>
           </tr>
         </thead>
@@ -1153,8 +1153,8 @@ export class EmailService {
 
     return this.sendEmail(
       data.recipientEmail,
-      `📊 Raport Încasări Parcări - ${data.reportDate}`,
-      this.generateBaseTemplate('WorkSchedule', 'Raport Zilnic Încasări', content, '#2196F3 0%, #1976D2 100%')
+      `📊 Raport Incasari Parcari - ${data.reportDate}`,
+      this.generateBaseTemplate('WorkSchedule', 'Raport Zilnic Incasari', content, '#2196F3 0%, #1976D2 100%')
     );
   }
 
@@ -1220,8 +1220,8 @@ export class EmailService {
             <tr style="background-color: #f5f5f5;">
               <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Parcare</th>
               <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Echipament</th>
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Persoană</th>
-              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Nr. Mașină</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Persoana</th>
+              <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Nr. Masina</th>
               <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Vechime</th>
             </tr>
           </thead>
@@ -1241,11 +1241,11 @@ export class EmailService {
     ` : '';
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
 
       <div style="background-color: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
         <p style="margin: 0; font-size: 16px;">
-          Ai <strong>${totalItems}</strong> ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} care necesită atenție.
+          Ai <strong>${totalItems}</strong> ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} care necesita atentie.
         </p>
       </div>
 
@@ -1255,14 +1255,14 @@ export class EmailService {
 
       <p style="margin-top: 30px;">
         <a href="${this.appUrl}/parking" style="display: inline-block; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
-          Rezolvă acum
+          Rezolva acum
         </a>
       </p>
     `;
 
     return this.sendEmail(
       data.recipientEmail,
-      `⏰ Reminder: ${totalItems} ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} - Parcări`,
+      `⏰ Reminder: ${totalItems} ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} - Parcari`,
       this.generateBaseTemplate('WorkSchedule', 'Reminder Elemente Nerezolvate', content, '#ff9800 0%, #f57c00 100%')
     );
   }
@@ -1271,9 +1271,9 @@ export class EmailService {
 
   private getRequestTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      'PARKING_ISSUE': 'Problemă Parcare',
+      'PARKING_ISSUE': 'Problema Parcare',
       'PARKING_DAMAGE': 'Prejudiciu Parcare',
-      'CASH_COLLECTION': 'Ridicare Încasări',
+      'CASH_COLLECTION': 'Ridicare Incasari',
     };
     return labels[type] || type;
   }
@@ -1286,20 +1286,20 @@ export class EmailService {
 
     switch (data.status) {
       case 'new_request':
-        statusText = `${data.requesterName} solicită aprobare pentru editarea unui element`;
-        subtitle = '📝 Cerere de Editare Nouă';
+        statusText = `${data.requesterName} solicita aprobare pentru editarea unui element`;
+        subtitle = '📝 Cerere de Editare Noua';
         break;
       case 'approved':
-        statusText = 'Cererea ta de editare a fost aprobată!';
+        statusText = 'Cererea ta de editare a fost aprobata!';
         statusColor = '#4CAF50';
         gradientColors = '#4CAF50 0%, #45a049 100%';
-        subtitle = '✅ Cerere Aprobată';
+        subtitle = '✅ Cerere Aprobata';
         break;
       case 'rejected':
-        statusText = 'Cererea ta de editare a fost respinsă.';
+        statusText = 'Cererea ta de editare a fost respinsa.';
         statusColor = '#f44336';
         gradientColors = '#f44336 0%, #d32f2f 100%';
-        subtitle = '❌ Cerere Respinsă';
+        subtitle = '❌ Cerere Respinsa';
         break;
     }
 
@@ -1332,7 +1332,7 @@ export class EmailService {
     }
 
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${data.recipientName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
 
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
         <p style="margin: 0; font-size: 16px;">${statusText}</p>
@@ -1354,13 +1354,13 @@ export class EmailService {
 
       ${reasonSection}
 
-      <h4 style="color: #333; margin-top: 20px;">Modificări propuse:</h4>
+      <h4 style="color: #333; margin-top: 20px;">Modificari propuse:</h4>
       <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
         <thead>
           <tr style="background-color: #f5f5f5;">
-            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Câmp</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Camp</th>
             <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Valoare veche</th>
-            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Valoare nouă</th>
+            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Valoare noua</th>
           </tr>
         </thead>
         <tbody>
@@ -1372,15 +1372,15 @@ export class EmailService {
 
       <p style="margin-top: 30px;">
         <a href="${this.appUrl}/admin/edit-requests" style="display: inline-block; background: linear-gradient(135deg, ${gradientColors}); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
-          ${data.status === 'new_request' ? 'Aprobă sau Respinge' : 'Vezi detalii'}
+          ${data.status === 'new_request' ? 'Aproba sau Respinge' : 'Vezi detalii'}
         </a>
       </p>
     `;
 
     const subjects: Record<string, string> = {
       'new_request': `📝 Cerere de editare de la ${data.requesterName}`,
-      'approved': `✅ Cerere de editare aprobată - ${this.getRequestTypeLabel(data.requestType)}`,
-      'rejected': `❌ Cerere de editare respinsă - ${this.getRequestTypeLabel(data.requestType)}`,
+      'approved': `✅ Cerere de editare aprobata - ${this.getRequestTypeLabel(data.requestType)}`,
+      'rejected': `❌ Cerere de editare respinsa - ${this.getRequestTypeLabel(data.requestType)}`,
     };
 
     return this.sendEmail(
@@ -1394,19 +1394,19 @@ export class EmailService {
 
   async sendTestEmail(toEmail: string, toName: string): Promise<boolean> {
     const content = `
-      <p style="font-size: 16px;">Bună ziua, <strong>${toName}</strong>!</p>
+      <p style="font-size: 16px;">Buna ziua, <strong>${toName}</strong>!</p>
 
       <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4CAF50;">
-        <h2 style="margin: 0 0 10px 0; color: #4CAF50;">✅ Emailurile funcționează!</h2>
-        <p style="margin: 0;">Acesta este un email de test pentru a confirma că sistemul de notificări funcționează corect.</p>
+        <h2 style="margin: 0 0 10px 0; color: #4CAF50;">✅ Emailurile functioneaza!</h2>
+        <p style="margin: 0;">Acesta este un email de test pentru a confirma ca sistemul de notificari functioneaza corect.</p>
       </div>
 
       <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px 0; color: #333;">Tipuri de notificări active:</h3>
+        <h3 style="margin: 0 0 15px 0; color: #333;">Tipuri de notificari active:</h3>
         <ul style="margin: 0; padding-left: 20px;">
           <li style="padding: 5px 0;">📅 Programe de lucru (creat, modificat, aprobat, respins)</li>
           <li style="padding: 5px 0;">🏖️ Cereri de concediu (depus, aprobat, respins)</li>
-          <li style="padding: 5px 0;">🚗 Probleme parcări (nouă, rezolvată, reminder urgent)</li>
+          <li style="padding: 5px 0;">🚗 Probleme parcari (noua, rezolvata, reminder urgent)</li>
           <li style="padding: 5px 0;">👋 Welcome email la creare cont nou</li>
         </ul>
       </div>
@@ -1416,10 +1416,10 @@ export class EmailService {
       </p>
     `;
 
-    // Folosim forceTestEmail=true pentru că este un test manual solicitat
+    // Folosim forceTestEmail=true pentru ca este un test manual solicitat
     return this.sendEmail(
       toEmail,
-      '🧪 Test WorkSchedule - Emailurile funcționează!',
+      '🧪 Test WorkSchedule - Emailurile functioneaza!',
       this.generateBaseTemplate('WorkSchedule', 'Email de Test', content, '#4CAF50 0%, #45a049 100%'),
       true // Force send to test accounts when explicitly requested
     );
@@ -1431,54 +1431,54 @@ export class EmailService {
     const roleLabel = role === 'ADMIN' ? 'Administrator' : role === 'MANAGER' ? 'Manager' : 'Utilizator';
 
     const content = `
-      <p style="font-size: 18px;">Bună ziua, <strong>${toName}</strong>! 👋</p>
+      <p style="font-size: 18px;">Buna ziua, <strong>${toName}</strong>! 👋</p>
 
       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; margin: 25px 0; color: white;">
         <h2 style="margin: 0 0 15px 0; color: white;">🎉 Bine ai venit pe Workforce App!</h2>
         <p style="margin: 0; font-size: 16px; opacity: 0.95;">
-          Suntem încântați să te avem alături de echipa noastră. Aplicația Workforce este aici pentru a-ți face munca mai ușoară și mai organizată.
+          Suntem incantati sa te avem alaturi de echipa noastra. Aplicatia Workforce este aici pentru a-ti face munca mai usoara si mai organizata.
         </p>
       </div>
 
       <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-        <h3 style="margin: 0 0 15px 0; color: #333;">📱 Ce poți face în aplicație:</h3>
+        <h3 style="margin: 0 0 15px 0; color: #333;">📱 Ce poti face in aplicatie:</h3>
         <ul style="margin: 0; padding-left: 20px; line-height: 2;">
-          <li style="padding: 5px 0;">📅 <strong>Vizualizează programul de lucru</strong> - Turele tale sunt mereu la îndemână</li>
-          <li style="padding: 5px 0;">🔄 <strong>Solicită schimburi de ture</strong> - Schimbă tura cu un coleg în câteva click-uri</li>
-          <li style="padding: 5px 0;">🏖️ <strong>Cere concediu</strong> - Depune cereri direct din aplicație</li>
-          <li style="padding: 5px 0;">🔔 <strong>Primește notificări</strong> - Fii la curent cu toate schimbările</li>
-          <li style="padding: 5px 0;">🚗 <strong>Gestionează parcările</strong> - Raportează probleme și prejudicii</li>
+          <li style="padding: 5px 0;">📅 <strong>Vizualizeaza programul de lucru</strong> - Turele tale sunt mereu la indemana</li>
+          <li style="padding: 5px 0;">🔄 <strong>Solicita schimburi de ture</strong> - Schimba tura cu un coleg in cateva click-uri</li>
+          <li style="padding: 5px 0;">🏖️ <strong>Cere concediu</strong> - Depune cereri direct din aplicatie</li>
+          <li style="padding: 5px 0;">🔔 <strong>Primeste notificari</strong> - Fii la curent cu toate schimbarile</li>
+          <li style="padding: 5px 0;">🚗 <strong>Gestioneaza parcarile</strong> - Raporteaza probleme si prejudicii</li>
         </ul>
       </div>
 
       <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196F3;">
         <p style="margin: 0; font-size: 14px;">
-          <strong>Rolul tău:</strong> ${roleLabel}<br>
+          <strong>Rolul tau:</strong> ${roleLabel}<br>
           <strong>Email:</strong> ${toEmail}
         </p>
       </div>
 
       <div style="text-align: center; margin: 30px 0;">
         <a href="https://workforce-scheduler.vercel.app" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; font-size: 16px;">
-          🚀 Accesează Aplicația
+          🚀 Acceseaza Aplicatia
         </a>
       </div>
 
       <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
         <p style="margin: 0; font-size: 14px;">
-          💡 <strong>Sfat:</strong> Instalează aplicația pe telefon pentru acces rapid! Deschide site-ul în browser și apasă "Adaugă pe ecranul principal".
+          💡 <strong>Sfat:</strong> Instaleaza aplicatia pe telefon pentru acces rapid! Deschide site-ul in browser si apasa "Adauga pe ecranul principal".
         </p>
       </div>
 
       <p style="color: #666; font-size: 14px; margin-top: 30px; text-align: center;">
-        Dacă ai întrebări sau ai nevoie de ajutor, nu ezita să contactezi administratorul.
+        Daca ai intrebari sau ai nevoie de ajutor, nu ezita sa contactezi administratorul.
       </p>
     `;
 
     return this.sendEmail(
       toEmail,
       '🎉 Bine ai venit pe Workforce App!',
-      this.generateBaseTemplate('Workforce App', 'Bine ai venit în echipă!', content, '#667eea 0%, #764ba2 100%')
+      this.generateBaseTemplate('Workforce App', 'Bine ai venit in echipa!', content, '#667eea 0%, #764ba2 100%')
     );
   }
 
@@ -1499,20 +1499,20 @@ export class EmailService {
     let statusText = '';
     let statusColor = '#2196F3';
     let gradientColors = '#6366f1 0%, #8b5cf6 100%';
-    let subtitle = 'Parcări Handicap';
+    let subtitle = 'Parcari Handicap';
 
     switch (data.emailType) {
       case 'new_request':
-        statusText = `O nouă solicitare de tip "${requestTypeLabel}" a fost creată`;
+        statusText = `O noua solicitare de tip "${requestTypeLabel}" a fost creata`;
         statusColor = '#2563eb';
         gradientColors = '#2563eb 0%, #6366f1 100%';
-        subtitle = '🆕 Solicitare Nouă';
+        subtitle = '🆕 Solicitare Noua';
         break;
       case 'request_resolved':
-        statusText = `Solicitarea de tip "${requestTypeLabel}" a fost finalizată`;
+        statusText = `Solicitarea de tip "${requestTypeLabel}" a fost finalizata`;
         statusColor = '#10b981';
         gradientColors = '#10b981 0%, #059669 100%';
-        subtitle = '✅ Solicitare Finalizată';
+        subtitle = '✅ Solicitare Finalizata';
         break;
     }
 
@@ -1531,7 +1531,7 @@ export class EmailService {
             <td style="padding: 8px 0; color: #333; font-weight: bold;">${requestTypeLabel}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; color: #666;">Locație:</td>
+            <td style="padding: 8px 0; color: #666;">Locatie:</td>
             <td style="padding: 8px 0; color: #333;">${data.location}</td>
           </tr>
     `;
@@ -1539,7 +1539,7 @@ export class EmailService {
     if (data.personName) {
       content += `
           <tr>
-            <td style="padding: 8px 0; color: #666;">Persoană:</td>
+            <td style="padding: 8px 0; color: #666;">Persoana:</td>
             <td style="padding: 8px 0; color: #333;">${data.personName}</td>
           </tr>
       `;
@@ -1566,7 +1566,7 @@ export class EmailService {
     if (data.emailType === 'request_resolved' && data.resolutionDescription) {
       content += `
         <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50;">
-          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere rezoluție:</p>
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere rezolutie:</p>
           <p style="margin: 0; color: #333;">${data.resolutionDescription}</p>
         </div>
       `;
@@ -1580,15 +1580,15 @@ export class EmailService {
       </div>
     `;
 
-    return this.generateBaseTemplate('Parcări Handicap', subtitle, content, gradientColors);
+    return this.generateBaseTemplate('Parcari Handicap', subtitle, content, gradientColors);
   }
 
   async sendHandicapRequestNotification(data: HandicapRequestEmailData): Promise<boolean> {
     const requestTypeLabel = this.getHandicapRequestTypeLabel(data.requestType);
 
     const subjects: Record<string, string> = {
-      'new_request': `🆕 Solicitare nouă: ${requestTypeLabel}`,
-      'request_resolved': `✅ Solicitare finalizată: ${requestTypeLabel}`,
+      'new_request': `🆕 Solicitare noua: ${requestTypeLabel}`,
+      'request_resolved': `✅ Solicitare finalizata: ${requestTypeLabel}`,
     };
 
     return this.sendEmail(
@@ -1615,20 +1615,20 @@ export class EmailService {
     let statusText = '';
     let statusColor = '#2196F3';
     let gradientColors = '#059669 0%, #10b981 100%';
-    let subtitle = 'Parcări Domiciliu';
+    let subtitle = 'Parcari Domiciliu';
 
     switch (data.emailType) {
       case 'new_request':
-        statusText = `O nouă solicitare de tip "${requestTypeLabel}" a fost creată`;
+        statusText = `O noua solicitare de tip "${requestTypeLabel}" a fost creata`;
         statusColor = '#059669';
         gradientColors = '#059669 0%, #10b981 100%';
-        subtitle = '🏠 Solicitare Nouă';
+        subtitle = '🏠 Solicitare Noua';
         break;
       case 'request_resolved':
-        statusText = `Solicitarea de tip "${requestTypeLabel}" a fost finalizată`;
+        statusText = `Solicitarea de tip "${requestTypeLabel}" a fost finalizata`;
         statusColor = '#10b981';
         gradientColors = '#10b981 0%, #059669 100%';
-        subtitle = '✅ Solicitare Finalizată';
+        subtitle = '✅ Solicitare Finalizata';
         break;
     }
 
@@ -1647,7 +1647,7 @@ export class EmailService {
             <td style="padding: 8px 0; color: #333; font-weight: bold;">${requestTypeLabel}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; color: #666;">Persoană:</td>
+            <td style="padding: 8px 0; color: #666;">Persoana:</td>
             <td style="padding: 8px 0; color: #333; font-weight: bold;">${data.personName}</td>
           </tr>
           <tr>
@@ -1655,11 +1655,11 @@ export class EmailService {
             <td style="padding: 8px 0; color: #333;">${data.address}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; color: #666;">Nr. mașină:</td>
+            <td style="padding: 8px 0; color: #666;">Nr. masina:</td>
             <td style="padding: 8px 0; color: #333;">${data.carPlate}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; color: #666;">Locație:</td>
+            <td style="padding: 8px 0; color: #666;">Locatie:</td>
             <td style="padding: 8px 0; color: #333;">${data.location}</td>
           </tr>
           <tr>
@@ -1682,7 +1682,7 @@ export class EmailService {
     if (data.emailType === 'request_resolved' && data.resolutionDescription) {
       content += `
         <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #4CAF50;">
-          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere rezoluție:</p>
+          <p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">Descriere rezolutie:</p>
           <p style="margin: 0; color: #333;">${data.resolutionDescription}</p>
         </div>
       `;
@@ -1696,15 +1696,15 @@ export class EmailService {
       </div>
     `;
 
-    return this.generateBaseTemplate('Parcări Domiciliu', subtitle, content, gradientColors);
+    return this.generateBaseTemplate('Parcari Domiciliu', subtitle, content, gradientColors);
   }
 
   async sendDomiciliuRequestNotification(data: DomiciliuRequestEmailData): Promise<boolean> {
     const requestTypeLabel = this.getDomiciliuRequestTypeLabel(data.requestType);
 
     const subjects: Record<string, string> = {
-      'new_request': `🏠 Solicitare nouă: ${requestTypeLabel}`,
-      'request_resolved': `✅ Solicitare finalizată: ${requestTypeLabel}`,
+      'new_request': `🏠 Solicitare noua: ${requestTypeLabel}`,
+      'request_resolved': `✅ Solicitare finalizata: ${requestTypeLabel}`,
     };
 
     return this.sendEmail(
@@ -1714,21 +1714,21 @@ export class EmailService {
     );
   }
 
-  // ============== LEGITIMAȚII HANDICAP ==============
+  // ============== LEGITIMATII HANDICAP ==============
 
   private generateHandicapLegitimationHtml(data: HandicapLegitimationEmailData): string {
     const isNewRequest = data.emailType === 'new_request';
 
     const headerColor = isNewRequest ? '#6366f1' : '#10b981';
-    const headerText = isNewRequest ? 'Solicitare legitimație nouă' : 'Legitimație finalizată';
+    const headerText = isNewRequest ? 'Solicitare legitimatie noua' : 'Legitimatie finalizata';
     const icon = isNewRequest ? '🎫' : '✅';
 
     let contentHtml = `
       <div style="background-color: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-        <h3 style="margin: 0 0 12px 0; color: #1e293b;">Date legitimație</h3>
+        <h3 style="margin: 0 0 12px 0; color: #1e293b;">Date legitimatie</h3>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="padding: 8px 0; color: #64748b; width: 40%;">Persoană:</td>
+            <td style="padding: 8px 0; color: #64748b; width: 40%;">Persoana:</td>
             <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.personName}</td>
           </tr>
           <tr>
@@ -1736,7 +1736,7 @@ export class EmailService {
             <td style="padding: 8px 0; color: #1e293b;">${data.handicapCertificateNumber}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; color: #64748b;">Nr. înmatriculare:</td>
+            <td style="padding: 8px 0; color: #64748b;">Nr. inmatriculare:</td>
             <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.carPlate}</td>
           </tr>
           ${data.description ? `
@@ -1752,7 +1752,7 @@ export class EmailService {
     if (!isNewRequest && data.resolutionDescription) {
       contentHtml += `
         <div style="background-color: #ecfdf5; padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #10b981;">
-          <h4 style="margin: 0 0 8px 0; color: #065f46;">Rezoluție</h4>
+          <h4 style="margin: 0 0 8px 0; color: #065f46;">Rezolutie</h4>
           <p style="margin: 0; color: #047857;">${data.resolutionDescription}</p>
         </div>
       `;
@@ -1776,12 +1776,12 @@ export class EmailService {
           <tr>
             <td style="padding: 32px;">
               <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                Bună ziua, ${data.recipientName}!
+                Buna ziua, ${data.recipientName}!
               </p>
               <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
                 ${isNewRequest
-                  ? `<strong>${data.creatorName}</strong> a creat o nouă solicitare de legitimație handicap.`
-                  : `Solicitarea de legitimație pentru <strong>${data.personName}</strong> a fost finalizată de <strong>${data.creatorName}</strong>.`
+                  ? `<strong>${data.creatorName}</strong> a creat o noua solicitare de legitimatie handicap.`
+                  : `Solicitarea de legitimatie pentru <strong>${data.personName}</strong> a fost finalizata de <strong>${data.creatorName}</strong>.`
                 }
               </p>
               ${contentHtml}
@@ -1796,7 +1796,7 @@ export class EmailService {
           <tr>
             <td style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
               <p style="color: #94a3b8; font-size: 14px; margin: 0;">
-                Acest email a fost trimis automat de sistemul de management parcări.
+                Acest email a fost trimis automat de sistemul de management parcari.
               </p>
             </td>
           </tr>
@@ -1808,8 +1808,8 @@ export class EmailService {
 
   async sendHandicapLegitimationNotification(data: HandicapLegitimationEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_request': `🎫 Solicitare legitimație handicap nouă`,
-      'request_resolved': `✅ Legitimație handicap finalizată`,
+      'new_request': `🎫 Solicitare legitimatie handicap noua`,
+      'request_resolved': `✅ Legitimatie handicap finalizata`,
     };
 
     return this.sendEmail(
@@ -1823,23 +1823,23 @@ export class EmailService {
     const isNewRequest = data.emailType === 'new_request';
 
     const headerColor = isNewRequest ? '#7c3aed' : '#10b981';
-    const headerText = isNewRequest ? 'Solicitare legitimație revoluționar/deportat nouă' : 'Legitimație revoluționar/deportat finalizată';
+    const headerText = isNewRequest ? 'Solicitare legitimatie revolutionar/deportat noua' : 'Legitimatie revolutionar/deportat finalizata';
     const icon = isNewRequest ? '🏅' : '✅';
 
     let contentHtml = `
       <div style="background-color: #f8fafc; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-        <h3 style="margin: 0 0 12px 0; color: #1e293b;">Date legitimație</h3>
+        <h3 style="margin: 0 0 12px 0; color: #1e293b;">Date legitimatie</h3>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="padding: 8px 0; color: #64748b; width: 40%;">Persoană:</td>
+            <td style="padding: 8px 0; color: #64748b; width: 40%;">Persoana:</td>
             <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.personName}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; color: #64748b;">Lege / Hotărâre:</td>
+            <td style="padding: 8px 0; color: #64748b;">Lege / Hotarare:</td>
             <td style="padding: 8px 0; color: #1e293b;">${data.lawNumber}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; color: #64748b;">Nr. înmatriculare:</td>
+            <td style="padding: 8px 0; color: #64748b;">Nr. inmatriculare:</td>
             <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.carPlate}</td>
           </tr>
           ${data.description ? `
@@ -1855,7 +1855,7 @@ export class EmailService {
     if (!isNewRequest && data.resolutionDescription) {
       contentHtml += `
         <div style="background-color: #ecfdf5; padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #10b981;">
-          <h4 style="margin: 0 0 8px 0; color: #065f46;">Rezoluție</h4>
+          <h4 style="margin: 0 0 8px 0; color: #065f46;">Rezolutie</h4>
           <p style="margin: 0; color: #047857;">${data.resolutionDescription}</p>
         </div>
       `;
@@ -1879,12 +1879,12 @@ export class EmailService {
           <tr>
             <td style="padding: 32px;">
               <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                Bună ziua, ${data.recipientName}!
+                Buna ziua, ${data.recipientName}!
               </p>
               <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
                 ${isNewRequest
-                  ? `<strong>${data.creatorName}</strong> a creat o nouă solicitare de legitimație revoluționar/deportat.`
-                  : `Solicitarea de legitimație pentru <strong>${data.personName}</strong> a fost finalizată de <strong>${data.creatorName}</strong>.`
+                  ? `<strong>${data.creatorName}</strong> a creat o noua solicitare de legitimatie revolutionar/deportat.`
+                  : `Solicitarea de legitimatie pentru <strong>${data.personName}</strong> a fost finalizata de <strong>${data.creatorName}</strong>.`
                 }
               </p>
               ${contentHtml}
@@ -1899,7 +1899,7 @@ export class EmailService {
           <tr>
             <td style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
               <p style="color: #94a3b8; font-size: 14px; margin: 0;">
-                Acest email a fost trimis automat de sistemul de management parcări.
+                Acest email a fost trimis automat de sistemul de management parcari.
               </p>
             </td>
           </tr>
@@ -1911,8 +1911,8 @@ export class EmailService {
 
   async sendRevolutionarLegitimationNotification(data: RevolutionarLegitimationEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_request': `🏅 Solicitare legitimație revoluționar/deportat nouă`,
-      'request_resolved': `✅ Legitimație revoluționar/deportat finalizată`,
+      'new_request': `🏅 Solicitare legitimatie revolutionar/deportat noua`,
+      'request_resolved': `✅ Legitimatie revolutionar/deportat finalizata`,
     };
 
     return this.sendEmail(
@@ -1938,7 +1938,7 @@ export class EmailService {
         return `
           <div style="margin-bottom: 20px;">
             <h3 style="color: #374151; margin-bottom: 10px;">${title}</h3>
-            <p style="color: #6b7280; font-style: italic;">Nu există solicitări</p>
+            <p style="color: #6b7280; font-style: italic;">Nu exista solicitari</p>
           </div>
         `;
       }
@@ -1962,8 +1962,8 @@ export class EmailService {
             <thead>
               <tr style="background-color: #f3f4f6;">
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Tip</th>
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Locație</th>
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoană</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Locatie</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoana</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Auto</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Vechime</th>
@@ -1982,8 +1982,8 @@ export class EmailService {
       if (data.legitimations.length === 0) {
         return `
           <div style="margin-bottom: 20px;">
-            <h3 style="color: #059669; margin-bottom: 10px;">♿ Legitimații Handicap Active</h3>
-            <p style="color: #6b7280; font-style: italic;">Nu există legitimații handicap active</p>
+            <h3 style="color: #059669; margin-bottom: 10px;">♿ Legitimatii Handicap Active</h3>
+            <p style="color: #6b7280; font-style: italic;">Nu exista legitimatii handicap active</p>
           </div>
         `;
       }
@@ -2000,11 +2000,11 @@ export class EmailService {
 
       return `
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #059669; margin-bottom: 10px;">♿ Legitimații Handicap Active (${data.legitimations.length})</h3>
+          <h3 style="color: #059669; margin-bottom: 10px;">♿ Legitimatii Handicap Active (${data.legitimations.length})</h3>
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <thead>
               <tr style="background-color: #f3f4f6;">
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoană</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoana</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Auto</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Certificat</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat</th>
@@ -2024,8 +2024,8 @@ export class EmailService {
       if (revLegitimations.length === 0) {
         return `
           <div style="margin-bottom: 20px;">
-            <h3 style="color: #7c3aed; margin-bottom: 10px;">🏅 Legitimații Revoluționar/Deportat Active</h3>
-            <p style="color: #6b7280; font-style: italic;">Nu există legitimații revoluționar/deportat active</p>
+            <h3 style="color: #7c3aed; margin-bottom: 10px;">🏅 Legitimatii Revolutionar/Deportat Active</h3>
+            <p style="color: #6b7280; font-style: italic;">Nu exista legitimatii revolutionar/deportat active</p>
           </div>
         `;
       }
@@ -2042,13 +2042,13 @@ export class EmailService {
 
       return `
         <div style="margin-bottom: 25px;">
-          <h3 style="color: #7c3aed; margin-bottom: 10px;">🏅 Legitimații Revoluționar/Deportat Active (${revLegitimations.length})</h3>
+          <h3 style="color: #7c3aed; margin-bottom: 10px;">🏅 Legitimatii Revolutionar/Deportat Active (${revLegitimations.length})</h3>
           <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <thead>
               <tr style="background-color: #f3f4f6;">
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoană</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Persoana</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Nr. Auto</th>
-                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Lege / Hotărâre</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Lege / Hotarare</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Creat de</th>
               </tr>
@@ -2075,7 +2075,7 @@ export class EmailService {
         </div>
 
         <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-          <p style="margin-bottom: 20px;">Bună ziua, ${data.recipientName}!</p>
+          <p style="margin-bottom: 20px;">Buna ziua, ${data.recipientName}!</p>
 
           <!-- Sumar -->
           <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
@@ -2103,13 +2103,13 @@ export class EmailService {
               </div>
               <div style="background: #7c3aed; color: white; padding: 15px 20px; border-radius: 8px; min-width: 100px; text-align: center;">
                 <div style="font-size: 24px; font-weight: bold;">${summary.revolutionarLegitimationsCount || 0}</div>
-                <div style="font-size: 12px;">Leg. Revoluționar</div>
+                <div style="font-size: 12px;">Leg. Revolutionar</div>
               </div>
             </div>
           </div>
 
-          ${generateRequestTable(data.createdToday, '🆕 Create Astăzi')}
-          ${generateRequestTable(data.resolvedToday, '✅ Finalizate Astăzi', true)}
+          ${generateRequestTable(data.createdToday, '🆕 Create Astazi')}
+          ${generateRequestTable(data.resolvedToday, '✅ Finalizate Astazi', true)}
           ${summary.expiredCount > 0 ? generateRequestTable(data.expiredRequests, '🚨 Expirate (mai vechi de 5 zile)') : ''}
           ${generateRequestTable(data.activeRequests, '📋 Active')}
           ${generateHandicapLegitimationsTable()}
@@ -2117,7 +2117,7 @@ export class EmailService {
 
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
             <a href="${this.appUrl}/handicap" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 500;">
-              Deschide Aplicația
+              Deschide Aplicatia
             </a>
           </div>
         </div>

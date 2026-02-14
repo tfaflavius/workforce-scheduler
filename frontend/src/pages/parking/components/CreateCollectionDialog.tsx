@@ -64,7 +64,7 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
 
   const handleSubmit = async () => {
     if (!formData.parkingLotId || !formData.paymentMachineId || formData.amount <= 0) {
-      setError('Toate câmpurile sunt obligatorii și suma trebuie să fie pozitivă');
+      setError('Toate campurile sunt obligatorii si suma trebuie sa fie pozitiva');
       return;
     }
 
@@ -72,7 +72,7 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
       await createCollection(formData).unwrap();
       handleClose();
     } catch (err: any) {
-      setError(err.data?.message || 'A apărut o eroare');
+      setError(err.data?.message || 'A aparut o eroare');
     }
   };
 
@@ -108,13 +108,13 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
     <FriendlyDialog
       open={open}
       onClose={handleClose}
-      title="Înregistrează Ridicare Numerar"
-      subtitle="Golirea automatului de plată"
+      title="Inregistreaza Ridicare Numerar"
+      subtitle="Golirea automatului de plata"
       icon={<CashIcon />}
       variant="success"
       maxWidth="sm"
       loading={lotsLoading}
-      loadingText="Se încarcă datele..."
+      loadingText="Se incarca datele..."
       actions={
         <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'flex-end' }}>
           <FriendlyButton
@@ -122,17 +122,17 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
             onClick={handleClose}
             disabled={creating}
           >
-            Anulează
+            Anuleaza
           </FriendlyButton>
           <FriendlyButton
             colorVariant="success"
             onClick={handleSubmit}
             loading={creating}
-            loadingText="Se salvează..."
+            loadingText="Se salveaza..."
             icon={<SaveIcon />}
             disabled={lotsLoading}
           >
-            Salvează
+            Salveaza
           </FriendlyButton>
         </Stack>
       }
@@ -158,19 +158,19 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
           />
 
           <FriendlySelect
-            label="Automatul de Plată"
+            label="Automatul de Plata"
             value={formData.paymentMachineId}
             onChange={(e) => setFormData({ ...formData, paymentMachineId: e.target.value as string })}
             options={machineOptions}
             startIcon={<MachineIcon />}
             required
             disabled={!selectedParkingLotId || machinesLoading}
-            hint={machinesLoading ? 'Se încarcă automatele...' : machines.length === 0 && selectedParkingLotId ? 'Nu există automate' : undefined}
+            hint={machinesLoading ? 'Se incarca automatele...' : machines.length === 0 && selectedParkingLotId ? 'Nu exista automate' : undefined}
           />
         </Stack>
 
         <FriendlyTextField
-          label="Suma ridicată"
+          label="Suma ridicata"
           type="number"
           value={formData.amount || ''}
           onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
@@ -204,13 +204,13 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
         />
 
         <FriendlyTextField
-          label="Note (opțional)"
+          label="Note (optional)"
           multiline
           rows={2}
           value={formData.notes}
           onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           fullWidth
-          placeholder="Observații despre ridicare..."
+          placeholder="Observatii despre ridicare..."
           startIcon={<NotesIcon />}
         />
 
@@ -219,7 +219,7 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
           <FriendlyAlert
             severity="success"
             icon={<CashIcon />}
-            message={`Vei înregistra o ridicare de ${formData.amount.toLocaleString('ro-RO', {
+            message={`Vei inregistra o ridicare de ${formData.amount.toLocaleString('ro-RO', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })} RON${selectedParkingLot ? ` de la ${selectedParkingLot.name}` : ''}`}

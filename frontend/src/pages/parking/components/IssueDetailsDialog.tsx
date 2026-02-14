@@ -88,7 +88,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile}>
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">Detalii Problemă</Typography>
+          <Typography variant="h6">Detalii Problema</Typography>
           <Chip
             label={ISSUE_STATUS_LABELS[issue.status]}
             color={getStatusColor(issue.status)}
@@ -108,7 +108,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
               <strong>Echipament:</strong> {issue.equipment}
             </Typography>
             <Typography variant="body2">
-              <strong>Firmă contactată:</strong> {issue.contactedCompany}
+              <strong>Firma contactata:</strong> {issue.contactedCompany}
             </Typography>
             <Typography variant="body2">
               <strong>Descriere:</strong> {issue.description}
@@ -154,7 +154,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
                 <TextField
                   fullWidth
                   size="small"
-                  placeholder="Adaugă un comentariu..."
+                  placeholder="Adauga un comentariu..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   disabled={addingComment}
@@ -181,7 +181,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
                 <CircularProgress size={24} />
               </Box>
             ) : comments.length === 0 ? (
-              <Alert severity="info">Nu există comentarii.</Alert>
+              <Alert severity="info">Nu exista comentarii.</Alert>
             ) : (
               <Stack spacing={1}>
                 {comments.map((comment) => (
@@ -210,7 +210,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
                 <CircularProgress size={24} />
               </Box>
             ) : history.length === 0 ? (
-              <Alert severity="info">Nu există istoric.</Alert>
+              <Alert severity="info">Nu exista istoric.</Alert>
             ) : (
               <Stack spacing={1}>
                 {history.map((item) => (
@@ -248,7 +248,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Închide</Button>
+        <Button onClick={onClose}>Inchide</Button>
       </DialogActions>
     </Dialog>
   );

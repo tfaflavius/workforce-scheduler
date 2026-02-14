@@ -8,5 +8,5 @@ export class RespondSwapDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  message?: string; // Mesaj opțional
+  message?: string; // Mesaj optional
 }

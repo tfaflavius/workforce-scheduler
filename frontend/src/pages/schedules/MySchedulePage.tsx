@@ -43,7 +43,7 @@ import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.type
 const getShiftInfoFromNotes = (notes: string | undefined | null) => {
   if (!notes) return { name: 'Liber', isNightShift: false, startTime: '', endTime: '', hours: 0 };
 
-  // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+  // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihna" etc.)
   if (notes === 'Concediu' || notes.startsWith('Concediu:') || notes.includes('Concediu')) {
     return { name: 'Concediu', isNightShift: false, startTime: '', endTime: '', hours: 0 };
   }
@@ -80,12 +80,12 @@ const MySchedulePage = () => {
   const currentYear = currentDate.getFullYear();
   const monthYear = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
-  // Afișează programele aprobate sau în așteptare pentru utilizatorul curent
+  // Afiseaza programele aprobate sau in asteptare pentru utilizatorul curent
   const { data: schedules, isLoading } = useGetSchedulesQuery({
     monthYear,
   });
 
-  // Obține concediile aprobate pentru luna curentă
+  // Obtine concediile aprobate pentru luna curenta
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
 
   // Concediile aprobate ale utilizatorului curent
@@ -126,7 +126,7 @@ const MySchedulePage = () => {
     const day = String(date.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
 
-    // Mai întâi caută în asignările din program
+    // Mai intai cauta in asignarile din program
     const existingAssignment = myAssignments.find((a) => {
       // Handle both string dates and Date objects
       const assignmentDate = typeof a.shiftDate === 'string'
@@ -137,7 +137,7 @@ const MySchedulePage = () => {
 
     if (existingAssignment) return existingAssignment;
 
-    // Dacă nu există asignare dar e zi de concediu aprobat, returnează o asignare virtuală
+    // Daca nu exista asignare dar e zi de concediu aprobat, returneaza o asignare virtuala
     if (myApprovedLeaveDates.has(dateStr)) {
       return {
         id: `leave-${dateStr}`,
@@ -163,8 +163,8 @@ const MySchedulePage = () => {
     if (viewMode === 'week') {
       const startOfWeek = new Date(currentDate);
       const day = startOfWeek.getDay();
-      // Dacă e Duminică (day=0), săptămâna începe cu 6 zile în urmă (Luni trecut)
-      // Altfel, săptămâna începe Luni (day-1 zile în urmă)
+      // Daca e Duminica (day=0), saptamana incepe cu 6 zile in urma (Luni trecut)
+      // Altfel, saptamana incepe Luni (day-1 zile in urma)
       const daysToSubtract = day === 0 ? 6 : day - 1;
       startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
 
@@ -221,7 +221,7 @@ const MySchedulePage = () => {
   const dayShifts = myAssignments.filter((a) => !getShiftInfoFromNotes(a.notes).isNightShift).length;
   const nightShifts = myAssignments.filter((a) => getShiftInfoFromNotes(a.notes).isNightShift).length;
 
-  // Calculează zilele lucrătoare și norma de ore pentru luna curentă
+  // Calculeaza zilele lucratoare si norma de ore pentru luna curenta
   const workingDaysInMonth = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -245,8 +245,8 @@ const MySchedulePage = () => {
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
   ];
 
-  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'];
-  const dayNamesFull = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
+  const dayNamesFull = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'];
 
   if (isLoading) {
     return (
@@ -269,7 +269,7 @@ const MySchedulePage = () => {
           Programul Meu de Lucru
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-          Vizualizează programul tău zilnic și lunar
+          Vizualizeaza programul tau zilnic si lunar
         </Typography>
       </Box>
 
@@ -356,7 +356,7 @@ const MySchedulePage = () => {
                     fontWeight="bold"
                     sx={{ my: 0.5, fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' } }}
                   >
-                    Zi Liberă
+                    Zi Libera
                   </Typography>
                 )}
               </Box>
@@ -387,7 +387,7 @@ const MySchedulePage = () => {
                   >
                     {hoursDifference > 0 ? `+${hoursDifference}` : hoursDifference}h
                   </Typography>
-                  <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' } }}>Diferența</Typography>
+                  <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' } }}>Diferenta</Typography>
                 </Grid>
                 <Grid size={{ xs: 6, sm: 2 }}>
                   <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>{totalShifts}</Typography>
@@ -450,7 +450,7 @@ const MySchedulePage = () => {
             sx={{ alignSelf: { xs: 'center', sm: 'auto' } }}
           >
             <ToggleButton value="week" sx={{ px: { xs: 1.5, sm: 2 }, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-              Săptămânal
+              Saptamanal
             </ToggleButton>
             <ToggleButton value="month" sx={{ px: { xs: 1.5, sm: 2 }, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
               Lunar
@@ -635,7 +635,7 @@ const MySchedulePage = () => {
                           );
                         })() : (
                           <Typography variant="body2" color="text.disabled">
-                            Zi liberă
+                            Zi libera
                           </Typography>
                         )}
                       </Stack>
@@ -760,7 +760,7 @@ const MySchedulePage = () => {
                             <NoShiftIcon sx={{ color: 'grey.500', fontSize: 28 }} />
                           </Avatar>
                           <Typography variant="h6" color="text.secondary">
-                            Zi Liberă
+                            Zi Libera
                           </Typography>
                         </Stack>
                       )}
@@ -881,7 +881,7 @@ const MySchedulePage = () => {
                     <TimeIcon color="action" fontSize={isMobile ? 'small' : 'medium'} />
                   </ListItemIcon>
                   <ListItemText
-                    primary="Medie Ore/Tură"
+                    primary="Medie Ore/Tura"
                     secondary={totalShifts > 0 ? `${(totalHours / totalShifts).toFixed(1)} ore` : 'N/A'}
                     primaryTypographyProps={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                     secondaryTypographyProps={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}

@@ -22,7 +22,7 @@ export class AddWorkPositions1704000000005 implements MigrationInterface {
     await queryRunner.query(`
       INSERT INTO work_positions (id, name, short_name, color, icon, description, display_order, is_active)
       VALUES
-        ('00000000-0000-0000-0000-000000000001', 'Dispecerat', 'DISP', '#2196F3', 'headset', 'Activitate în dispecerat', 1, true),
+        ('00000000-0000-0000-0000-000000000001', 'Dispecerat', 'DISP', '#2196F3', 'headset', 'Activitate in dispecerat', 1, true),
         ('00000000-0000-0000-0000-000000000002', 'Control', 'CTRL', '#4CAF50', 'search', 'Activitate de control', 2, true)
     `);
 

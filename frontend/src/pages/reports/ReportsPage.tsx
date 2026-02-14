@@ -52,7 +52,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-// Generează lista de luni pentru anul 2026 (toate cele 12 luni)
+// Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
   const options = [];
   const year = 2026;
@@ -71,8 +71,8 @@ const generateMonthOptions = () => {
 };
 
 const SWAP_STATUS_LABELS: Record<ShiftSwapStatus, string> = {
-  PENDING: 'În așteptare',
-  AWAITING_ADMIN: 'Așteaptă admin',
+  PENDING: 'In asteptare',
+  AWAITING_ADMIN: 'Asteapta admin',
   APPROVED: 'Aprobat',
   REJECTED: 'Respins',
   CANCELLED: 'Anulat',
@@ -105,7 +105,7 @@ const ReportsPage: React.FC = () => {
     return new Date().toISOString().split('T')[0];
   });
 
-  // Lista de luni (generată o singură dată)
+  // Lista de luni (generata o singura data)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: schedules = [], isLoading: schedulesLoading } = useGetSchedulesQuery({
@@ -117,7 +117,7 @@ const ReportsPage: React.FC = () => {
 
   const isLoading = schedulesLoading || leavesLoading || swapsLoading;
 
-  // Filtrăm doar angajații și managerii
+  // Filtram doar angajatii si managerii
   const eligibleUsers = useMemo(() => {
     return users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
   }, [users]);
@@ -133,7 +133,7 @@ const ReportsPage: React.FC = () => {
     return Array.from(deptSet);
   }, [users]);
 
-  // Generează zilele lunii
+  // Genereaza zilele lunii
   const daysInMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const date = new Date(year, month, 0);
@@ -155,16 +155,16 @@ const ReportsPage: React.FC = () => {
     return days;
   }, [selectedMonth, daysInMonth]);
 
-  // Calculează numărul de zile lucrătoare din lună și norma de ore
+  // Calculeaza numarul de zile lucratoare din luna si norma de ore
   const workingDaysInMonth = useMemo(() => {
     return calendarDays.filter(d => !d.isWeekend).length;
   }, [calendarDays]);
 
   const monthlyHoursNorm = useMemo(() => {
-    return workingDaysInMonth * 8; // 8 ore pe zi lucrătoare
+    return workingDaysInMonth * 8; // 8 ore pe zi lucratoare
   }, [workingDaysInMonth]);
 
-  // Creează un map cu toate asignările existente pentru toți angajații
+  // Creeaza un map cu toate asignarile existente pentru toti angajatii
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, {
       assignments: Record<string, { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string } }>;
@@ -182,7 +182,7 @@ const ReportsPage: React.FC = () => {
               status: schedule.status,
             };
           }
-          // Normalizează data pentru a evita probleme cu timezone
+          // Normalizeaza data pentru a evita probleme cu timezone
           const normalizedDate = assignment.shiftDate.split('T')[0];
           userAssignmentsMap[assignment.userId].assignments[normalizedDate] = {
             shiftId: assignment.shiftTypeId,
@@ -202,9 +202,9 @@ const ReportsPage: React.FC = () => {
     return userAssignmentsMap;
   }, [schedules]);
 
-  // Obține info pentru o asignare existentă
+  // Obtine info pentru o asignare existenta
   const getExistingShiftInfo = (notes: string) => {
-    // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihnă" etc.)
+    // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihna" etc.)
     if (notes === 'Concediu' || notes?.startsWith('Concediu:') || notes?.includes('Concediu')) {
       return { label: 'CO', color: '#FF9800', type: 'VACATION' as const };
     }
@@ -242,7 +242,7 @@ const ReportsPage: React.FC = () => {
   const filteredUsers = useMemo(() => {
     let filtered = [...eligibleUsers];
 
-    // Filtru după nume
+    // Filtru dupa nume
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(user =>
@@ -250,7 +250,7 @@ const ReportsPage: React.FC = () => {
       );
     }
 
-    // Filtru după departament
+    // Filtru dupa departament
     if (selectedDepartment !== 'ALL') {
       filtered = filtered.filter(user => user.departmentId === selectedDepartment);
     }
@@ -258,7 +258,7 @@ const ReportsPage: React.FC = () => {
     return filtered;
   }, [eligibleUsers, searchQuery, selectedDepartment]);
 
-  // Filtrare concedii după luna selectată și status
+  // Filtrare concedii dupa luna selectata si status
   const filteredLeaveRequests = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const startOfMonth = new Date(year, month - 1, 1);
@@ -286,7 +286,7 @@ const ReportsPage: React.FC = () => {
     });
   }, [leaveRequests, selectedMonth, selectedLeaveStatus, searchQuery, selectedDepartment]);
 
-  // Filtrare schimburi de tură după luna selectată și status
+  // Filtrare schimburi de tura dupa luna selectata si status
   const filteredSwapRequests = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const startOfMonth = new Date(year, month - 1, 1);
@@ -311,7 +311,7 @@ const ReportsPage: React.FC = () => {
     });
   }, [swapRequests, selectedMonth, selectedSwapStatus, searchQuery]);
 
-  // Calculează totaluri pentru fiecare angajat
+  // Calculeaza totaluri pentru fiecare angajat
   const getUserStats = (userId: string) => {
     const userAssignments = allUsersAssignments[userId]?.assignments || {};
     const stats = {
@@ -416,10 +416,10 @@ const ReportsPage: React.FC = () => {
 
     doc.setFontSize(10);
     doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 22);
-    doc.text(`Total angajați: ${filteredUsers.length} | Zile lucrătoare: ${workingDaysInMonth} | Normă lunară: ${monthlyHoursNorm} ore`, 14, 27);
+    doc.text(`Total angajati: ${filteredUsers.length} | Zile lucratoare: ${workingDaysInMonth} | Norma lunara: ${monthlyHoursNorm} ore`, 14, 27);
 
-    // Prepare table data - fiecare tură pe 2 linii (shift + workPosition)
-    const headers = ['Angajat', ...calendarDays.map(d => `${d.day}`), 'Total ore', 'Normă', 'Diferența', 'Ture zi', 'Ture noapte', 'CO'];
+    // Prepare table data - fiecare tura pe 2 linii (shift + workPosition)
+    const headers = ['Angajat', ...calendarDays.map(d => `${d.day}`), 'Total ore', 'Norma', 'Diferenta', 'Ture zi', 'Ture noapte', 'CO'];
     const rows = filteredUsers.map(targetUser => {
       const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
       const stats = getUserStats(targetUser.id);
@@ -433,7 +433,7 @@ const ReportsPage: React.FC = () => {
           if (assignment) {
             const shiftLabel = getExistingShiftInfo(assignment.notes).label;
             const workPosLabel = assignment.workPosition?.shortName || '';
-            // Afișează tură + poziție pe linii separate
+            // Afiseaza tura + pozitie pe linii separate
             return workPosLabel ? `${shiftLabel}\n${workPosLabel}` : shiftLabel;
           }
           return '-';
@@ -472,7 +472,7 @@ const ReportsPage: React.FC = () => {
       },
       didParseCell: function(data) {
         if (data.section === 'body' && data.column.index > 0 && data.column.index <= calendarDays.length) {
-          // Extrage doar eticheta turei (prima linie din celulă)
+          // Extrage doar eticheta turei (prima linie din celula)
           const cellText = data.cell.text[0] || '';
           const shiftLabel = cellText.split('\n')[0];
           const color = shiftColorMap[shiftLabel];
@@ -482,18 +482,18 @@ const ReportsPage: React.FC = () => {
             data.cell.styles.fontStyle = 'bold';
           }
         }
-        // Coloana "Diferența" - colorată în funcție de valoare
-        const diffColumnIndex = calendarDays.length + 3; // După zilele + Total ore + Normă
+        // Coloana "Diferenta" - colorata in functie de valoare
+        const diffColumnIndex = calendarDays.length + 3; // Dupa zilele + Total ore + Norma
         if (data.section === 'body' && data.column.index === diffColumnIndex) {
           const cellText = data.cell.text[0] || '0';
           const diffValue = parseInt(cellText.replace('+', ''), 10);
           if (diffValue > 0) {
-            // Ore suplimentare - roșu
+            // Ore suplimentare - rosu
             data.cell.styles.fillColor = [244, 67, 54];
             data.cell.styles.textColor = [255, 255, 255];
             data.cell.styles.fontStyle = 'bold';
           } else if (diffValue < 0) {
-            // Sub normă - portocaliu/galben
+            // Sub norma - portocaliu/galben
             data.cell.styles.fillColor = [255, 152, 0];
             data.cell.styles.textColor = [255, 255, 255];
             data.cell.styles.fontStyle = 'bold';
@@ -552,32 +552,32 @@ const ReportsPage: React.FC = () => {
       xPos += boxWidth + doc.getTextWidth(` = ${item.text}`) + 6;
     });
 
-    // Adaugă legenda pentru poziții de lucru
+    // Adauga legenda pentru pozitii de lucru
     const yPosWorkPosition = yPos + 10;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text('Poziții de lucru:', 14, yPosWorkPosition);
+    doc.text('Pozitii de lucru:', 14, yPosWorkPosition);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.text('DISP = Dispecerat | CTRL = Control (afișat sub tură)', 14, yPosWorkPosition + 5);
+    doc.text('DISP = Dispecerat | CTRL = Control (afisat sub tura)', 14, yPosWorkPosition + 5);
 
-    // Adaugă legenda pentru diferența de ore
+    // Adauga legenda pentru diferenta de ore
     const yPosDiff = yPosWorkPosition + 12;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text('Diferența ore:', 14, yPosDiff);
+    doc.text('Diferenta ore:', 14, yPosDiff);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
 
-    // Căsuțe colorate pentru legendă diferență
-    doc.setFillColor(244, 67, 54); // Roșu
+    // Casute colorate pentru legenda diferenta
+    doc.setFillColor(244, 67, 54); // Rosu
     doc.rect(14, yPosDiff + 2, 10, 4, 'F');
     doc.setTextColor(0, 0, 0);
     doc.text(' = Ore suplimentare (+)', 25, yPosDiff + 5);
 
     doc.setFillColor(255, 152, 0); // Portocaliu
     doc.rect(80, yPosDiff + 2, 10, 4, 'F');
-    doc.text(' = Sub normă (-)', 91, yPosDiff + 5);
+    doc.text(' = Sub norma (-)', 91, yPosDiff + 5);
 
     doc.setFillColor(76, 175, 80); // Verde
     doc.rect(140, yPosDiff + 2, 10, 4, 'F');
@@ -590,7 +590,7 @@ const ReportsPage: React.FC = () => {
   const handleExportScheduleExcel = () => {
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
 
-    const headers = ['Angajat', 'Rol', ...calendarDays.map(d => `${d.day} ${d.dayOfWeek}`), 'Total ore', 'Normă', 'Diferența', 'Ture zi', 'Ture noapte', 'Concediu', 'Liber'];
+    const headers = ['Angajat', 'Rol', ...calendarDays.map(d => `${d.day} ${d.dayOfWeek}`), 'Total ore', 'Norma', 'Diferenta', 'Ture zi', 'Ture noapte', 'Concediu', 'Liber'];
 
     const rows = filteredUsers.map(targetUser => {
       const userAssignments = allUsersAssignments[targetUser.id]?.assignments || {};
@@ -606,7 +606,7 @@ const ReportsPage: React.FC = () => {
           if (assignment) {
             const shiftLabel = getExistingShiftInfo(assignment.notes).label;
             const workPosLabel = assignment.workPosition?.shortName || '';
-            // Afișează tură + poziție (ex: "Z/DISP" sau doar "Z")
+            // Afiseaza tura + pozitie (ex: "Z/DISP" sau doar "Z")
             return workPosLabel ? `${shiftLabel}/${workPosLabel}` : shiftLabel;
           }
           return '-';
@@ -625,12 +625,12 @@ const ReportsPage: React.FC = () => {
     const wsData = [
       [`Raport Program de lucru - ${monthLabel}`],
       [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
-      [`Total angajați: ${filteredUsers.length} | Zile lucrătoare: ${workingDaysInMonth} | Normă lunară: ${monthlyHoursNorm} ore (8 ore/zi)`],
+      [`Total angajati: ${filteredUsers.length} | Zile lucratoare: ${workingDaysInMonth} | Norma lunara: ${monthlyHoursNorm} ore (8 ore/zi)`],
       [],
       headers,
       ...rows,
       [],
-      ['Legendă ture:'],
+      ['Legenda ture:'],
       ['Z = Zi 12 ore (07:00-19:00)'],
       ['N = Noapte 12 ore (19:00-07:00)'],
       ['Z1 = Zi 8 ore (06:00-14:00)'],
@@ -641,14 +641,14 @@ const ReportsPage: React.FC = () => {
       ['N8 = Noapte 8 ore (22:00-06:00)'],
       ['CO = Concediu'],
       [],
-      ['Legendă poziții de lucru:'],
+      ['Legenda pozitii de lucru:'],
       ['DISP = Dispecerat'],
       ['CTRL = Control'],
-      ['Format: TURĂ/POZIȚIE (ex: Z/DISP = Zi 12h la Dispecerat)'],
+      ['Format: TURA/POZITIE (ex: Z/DISP = Zi 12h la Dispecerat)'],
       [],
-      ['Legendă diferență ore:'],
-      ['Valoare pozitivă (+) = Ore suplimentare peste normă'],
-      ['Valoare negativă (-) = Sub norma lunară'],
+      ['Legenda diferenta ore:'],
+      ['Valoare pozitiva (+) = Ore suplimentare peste norma'],
+      ['Valoare negativa (-) = Sub norma lunara'],
       ['Valoare zero (0) = Conform normei lunare'],
     ];
 
@@ -684,9 +684,9 @@ const ReportsPage: React.FC = () => {
       .filter(r => r.status === 'APPROVED')
       .reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
 
-    doc.text(`Aprobate: ${approved} | În așteptare: ${pending} | Respinse: ${rejected} | Total zile aprobate: ${totalDays}`, 14, 32);
+    doc.text(`Aprobate: ${approved} | In asteptare: ${pending} | Respinse: ${rejected} | Total zile aprobate: ${totalDays}`, 14, 32);
 
-    const headers = ['Angajat', 'Departament', 'Tip concediu', 'Data de început', 'Data de sfârșit', 'Zile', 'Status', 'Motiv'];
+    const headers = ['Angajat', 'Departament', 'Tip concediu', 'Data de inceput', 'Data de sfarsit', 'Zile', 'Status', 'Motiv'];
     const rows = filteredLeaveRequests.map(req => [
       req.user?.fullName || 'N/A',
       req.user?.department?.name || 'N/A',
@@ -734,7 +734,7 @@ const ReportsPage: React.FC = () => {
       .filter(r => r.status === 'APPROVED')
       .reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
 
-    const headers = ['Angajat', 'Departament', 'Tip concediu', 'Data de început', 'Data de sfârșit', 'Zile lucrătoare', 'Status', 'Motiv', 'Mesaj admin'];
+    const headers = ['Angajat', 'Departament', 'Tip concediu', 'Data de inceput', 'Data de sfarsit', 'Zile lucratoare', 'Status', 'Motiv', 'Mesaj admin'];
     const rows = filteredLeaveRequests.map(req => [
       req.user?.fullName || 'N/A',
       req.user?.department?.name || 'N/A',
@@ -755,7 +755,7 @@ const ReportsPage: React.FC = () => {
       ['Sumar:'],
       [`Total cereri: ${filteredLeaveRequests.length}`],
       [`Aprobate: ${approved}`],
-      [`În așteptare: ${pending}`],
+      [`In asteptare: ${pending}`],
       [`Respinse: ${rejected}`],
       [`Total zile aprobate: ${totalDays}`],
       [],
@@ -783,7 +783,7 @@ const ReportsPage: React.FC = () => {
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
 
     doc.setFontSize(18);
-    doc.text(`Raport schimburi de tură - ${monthLabel}`, 14, 15);
+    doc.text(`Raport schimburi de tura - ${monthLabel}`, 14, 15);
 
     doc.setFontSize(10);
     doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 22);
@@ -794,9 +794,9 @@ const ReportsPage: React.FC = () => {
     const pending = filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length;
     const rejected = filteredSwapRequests.filter(r => r.status === 'REJECTED').length;
 
-    doc.text(`Aprobate: ${approved} | În așteptare: ${pending} | Respinse: ${rejected}`, 14, 32);
+    doc.text(`Aprobate: ${approved} | In asteptare: ${pending} | Respinse: ${rejected}`, 14, 32);
 
-    const headers = ['Solicitant', 'Data solicitantului', 'Tura solicitantului', 'Data dorită', 'Tura dorită', 'Înlocuitor', 'Status', 'Motiv'];
+    const headers = ['Solicitant', 'Data solicitantului', 'Tura solicitantului', 'Data dorita', 'Tura dorita', 'Inlocuitor', 'Status', 'Motiv'];
     const rows = filteredSwapRequests.map(req => [
       req.requester?.fullName || 'N/A',
       new Date(req.requesterDate).toLocaleDateString('ro-RO'),
@@ -840,7 +840,7 @@ const ReportsPage: React.FC = () => {
     const pending = filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length;
     const rejected = filteredSwapRequests.filter(r => r.status === 'REJECTED').length;
 
-    const headers = ['Solicitant', 'Data solicitantului', 'Tura solicitantului', 'Data dorită', 'Tura dorită', 'Înlocuitor aprobat', 'Status', 'Motiv', 'Notă admin'];
+    const headers = ['Solicitant', 'Data solicitantului', 'Tura solicitantului', 'Data dorita', 'Tura dorita', 'Inlocuitor aprobat', 'Status', 'Motiv', 'Nota admin'];
     const rows = filteredSwapRequests.map(req => [
       req.requester?.fullName || 'N/A',
       new Date(req.requesterDate).toLocaleDateString('ro-RO'),
@@ -855,13 +855,13 @@ const ReportsPage: React.FC = () => {
 
     const wb = XLSX.utils.book_new();
     const wsData = [
-      [`Raport schimburi de tură - ${monthLabel}`],
+      [`Raport schimburi de tura - ${monthLabel}`],
       [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
       [],
       ['Sumar:'],
       [`Total cereri: ${filteredSwapRequests.length}`],
       [`Aprobate: ${approved}`],
-      [`În așteptare: ${pending}`],
+      [`In asteptare: ${pending}`],
       [`Respinse: ${rejected}`],
       [],
       headers,
@@ -908,7 +908,7 @@ const ReportsPage: React.FC = () => {
     const totalVacationDays = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).vacationDays, 0);
 
     doc.setFontSize(10);
-    doc.text(`Total angajați: ${filteredUsers.length}`, 20, yPos); yPos += 6;
+    doc.text(`Total angajati: ${filteredUsers.length}`, 20, yPos); yPos += 6;
     doc.text(`Total ore lucrate: ${totalHours}`, 20, yPos); yPos += 6;
     doc.text(`Total ture de zi: ${totalDayShifts}`, 20, yPos); yPos += 6;
     doc.text(`Total ture de noapte: ${totalNightShifts}`, 20, yPos); yPos += 6;
@@ -934,7 +934,7 @@ const ReportsPage: React.FC = () => {
 
     doc.setFontSize(10);
     doc.text(`Total cereri concediu: ${filteredLeaveRequests.length}`, 20, yPos); yPos += 6;
-    doc.text(`Aprobate: ${approvedLeaves.length} | În așteptare: ${pendingLeaves.length} | Respinse: ${rejectedLeaves.length}`, 20, yPos); yPos += 6;
+    doc.text(`Aprobate: ${approvedLeaves.length} | In asteptare: ${pendingLeaves.length} | Respinse: ${rejectedLeaves.length}`, 20, yPos); yPos += 6;
     doc.text(`Total zile concediu aprobate: ${totalLeaveDays}`, 20, yPos); yPos += 8;
 
     doc.text('Defalcare pe tipuri de concediu:', 20, yPos); yPos += 6;
@@ -947,7 +947,7 @@ const ReportsPage: React.FC = () => {
     // Section 3: Shift Swap Statistics
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('3. Statistici schimburi de tură', 14, yPos);
+    doc.text('3. Statistici schimburi de tura', 14, yPos);
     doc.setFont('helvetica', 'normal');
     yPos += 10;
 
@@ -957,12 +957,12 @@ const ReportsPage: React.FC = () => {
 
     doc.setFontSize(10);
     doc.text(`Total cereri schimb: ${filteredSwapRequests.length}`, 20, yPos); yPos += 6;
-    doc.text(`Aprobate: ${approvedSwaps.length} | În așteptare: ${pendingSwaps.length} | Respinse: ${rejectedSwaps.length}`, 20, yPos); yPos += 15;
+    doc.text(`Aprobate: ${approvedSwaps.length} | In asteptare: ${pendingSwaps.length} | Respinse: ${rejectedSwaps.length}`, 20, yPos); yPos += 15;
 
     // Section 4: Summary Table
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('4. Tabel sumar pe angajați', 14, yPos);
+    doc.text('4. Tabel sumar pe angajati', 14, yPos);
     yPos += 8;
 
     const summaryHeaders = ['Angajat', 'Ore lucrate', 'Zile CO', 'Schimburi'];
@@ -1012,7 +1012,7 @@ const ReportsPage: React.FC = () => {
       [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
       [],
       ['=== STATISTICI PROGRAM DE LUCRU ==='],
-      [`Total angajați: ${filteredUsers.length}`],
+      [`Total angajati: ${filteredUsers.length}`],
       [`Total ore lucrate: ${totalHours}`],
       [`Total ture de zi: ${totalDayShifts}`],
       [`Total ture de noapte: ${totalNightShifts}`],
@@ -1051,7 +1051,7 @@ const ReportsPage: React.FC = () => {
     });
 
     const wsEmployees = XLSX.utils.aoa_to_sheet([
-      [`Detalii pe angajați - ${monthLabel}`],
+      [`Detalii pe angajati - ${monthLabel}`],
       [],
       employeeHeaders,
       ...employeeRows,
@@ -1060,7 +1060,7 @@ const ReportsPage: React.FC = () => {
       { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 },
       { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 18 },
     ];
-    XLSX.utils.book_append_sheet(wb, wsEmployees, 'Pe Angajați');
+    XLSX.utils.book_append_sheet(wb, wsEmployees, 'Pe Angajati');
 
     XLSX.writeFile(wb, `raport-total-${selectedMonth}.xlsx`);
   };
@@ -1076,7 +1076,7 @@ const ReportsPage: React.FC = () => {
         </Stack>
 
         <TextField
-          placeholder="Caută după nume..."
+          placeholder="Cauta dupa nume..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
@@ -1100,11 +1100,11 @@ const ReportsPage: React.FC = () => {
         </FormControl>
       </Stack>
 
-      {/* Legendă */}
+      {/* Legenda */}
       <Paper sx={{ p: 1.5, bgcolor: 'grey.50' }}>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
           <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
-            Legendă:
+            Legenda:
           </Typography>
           <Chip label="Z - Zi 12h" size="small" sx={{ bgcolor: '#4CAF50', color: 'white', fontSize: '0.7rem', height: 24 }} />
           <Chip label="N - Noapte 12h" size="small" sx={{ bgcolor: '#3F51B5', color: 'white', fontSize: '0.7rem', height: 24 }} />
@@ -1118,7 +1118,7 @@ const ReportsPage: React.FC = () => {
 
       <Alert severity="info" icon={false}>
         <Typography variant="body2">
-          <strong>{filteredUsers.length}</strong> angajați selectați pentru luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
+          <strong>{filteredUsers.length}</strong> angajati selectati pentru luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
         </Typography>
       </Alert>
 
@@ -1134,7 +1134,7 @@ const ReportsPage: React.FC = () => {
           disabled={filteredUsers.length === 0 || isLoading}
           sx={{ minWidth: 200 }}
         >
-          Descarcă PDF
+          Descarca PDF
         </Button>
         <Button
           variant="contained"
@@ -1146,7 +1146,7 @@ const ReportsPage: React.FC = () => {
           disabled={filteredUsers.length === 0 || isLoading}
           sx={{ minWidth: 200 }}
         >
-          Descarcă Excel
+          Descarca Excel
         </Button>
       </Stack>
     </Stack>
@@ -1162,7 +1162,7 @@ const ReportsPage: React.FC = () => {
         </Stack>
 
         <TextField
-          placeholder="Caută după nume..."
+          placeholder="Cauta dupa nume..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
@@ -1177,7 +1177,7 @@ const ReportsPage: React.FC = () => {
             label="Status"
           >
             <MenuItem value="ALL">Toate</MenuItem>
-            <MenuItem value="PENDING">În așteptare</MenuItem>
+            <MenuItem value="PENDING">In asteptare</MenuItem>
             <MenuItem value="APPROVED">Aprobate</MenuItem>
             <MenuItem value="REJECTED">Respinse</MenuItem>
           </Select>
@@ -1211,7 +1211,7 @@ const ReportsPage: React.FC = () => {
             <Typography variant="h4" color="warning.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredLeaveRequests.filter(r => r.status === 'PENDING').length}
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>În așteptare</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>In asteptare</Typography>
           </Box>
           <Box textAlign="center">
             <Typography variant="h4" color="success.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
@@ -1238,7 +1238,7 @@ const ReportsPage: React.FC = () => {
 
       <Alert severity="info" icon={false}>
         <Typography variant="body2">
-          <strong>{filteredLeaveRequests.length}</strong> cereri de concediu în luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
+          <strong>{filteredLeaveRequests.length}</strong> cereri de concediu in luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
         </Typography>
       </Alert>
 
@@ -1254,7 +1254,7 @@ const ReportsPage: React.FC = () => {
           disabled={filteredLeaveRequests.length === 0 || isLoading}
           sx={{ minWidth: 200 }}
         >
-          Descarcă PDF
+          Descarca PDF
         </Button>
         <Button
           variant="contained"
@@ -1266,7 +1266,7 @@ const ReportsPage: React.FC = () => {
           disabled={filteredLeaveRequests.length === 0 || isLoading}
           sx={{ minWidth: 200 }}
         >
-          Descarcă Excel
+          Descarca Excel
         </Button>
       </Stack>
     </Stack>
@@ -1282,7 +1282,7 @@ const ReportsPage: React.FC = () => {
         </Stack>
 
         <TextField
-          placeholder="Caută după nume..."
+          placeholder="Cauta dupa nume..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
@@ -1297,8 +1297,8 @@ const ReportsPage: React.FC = () => {
             label="Status"
           >
             <MenuItem value="ALL">Toate</MenuItem>
-            <MenuItem value="PENDING">În așteptare</MenuItem>
-            <MenuItem value="AWAITING_ADMIN">Așteaptă admin</MenuItem>
+            <MenuItem value="PENDING">In asteptare</MenuItem>
+            <MenuItem value="AWAITING_ADMIN">Asteapta admin</MenuItem>
             <MenuItem value="APPROVED">Aprobate</MenuItem>
             <MenuItem value="REJECTED">Respinse</MenuItem>
           </Select>
@@ -1316,7 +1316,7 @@ const ReportsPage: React.FC = () => {
             <Typography variant="h4" color="warning.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
               {filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length}
             </Typography>
-            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>În așteptare</Typography>
+            <Typography variant="caption" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>In asteptare</Typography>
           </Box>
           <Box textAlign="center">
             <Typography variant="h4" color="success.main" fontWeight="bold" sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}>
@@ -1341,7 +1341,7 @@ const ReportsPage: React.FC = () => {
 
       <Alert severity="info" icon={false}>
         <Typography variant="body2">
-          <strong>{filteredSwapRequests.length}</strong> cereri de schimb în luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
+          <strong>{filteredSwapRequests.length}</strong> cereri de schimb in luna <strong>{monthOptions.find(m => m.value === selectedMonth)?.label}</strong>
         </Typography>
       </Alert>
 
@@ -1357,7 +1357,7 @@ const ReportsPage: React.FC = () => {
           disabled={filteredSwapRequests.length === 0 || isLoading}
           sx={{ minWidth: 200 }}
         >
-          Descarcă PDF
+          Descarca PDF
         </Button>
         <Button
           variant="contained"
@@ -1369,7 +1369,7 @@ const ReportsPage: React.FC = () => {
           disabled={filteredSwapRequests.length === 0 || isLoading}
           sx={{ minWidth: 200 }}
         >
-          Descarcă Excel
+          Descarca Excel
         </Button>
       </Stack>
     </Stack>
@@ -1415,12 +1415,12 @@ const ReportsPage: React.FC = () => {
               <Typography variant="h3" color="success.main" fontWeight="bold" sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
                 {filteredUsers.length}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Angajați</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Angajati</Typography>
             </Box>
           </Box>
         </Paper>
 
-        {/* Detalii pe secțiuni */}
+        {/* Detalii pe sectiuni */}
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -1437,22 +1437,22 @@ const ReportsPage: React.FC = () => {
             </Typography>
             <Typography variant="body2">Total cereri: {filteredLeaveRequests.length}</Typography>
             <Typography variant="body2">Aprobate: {approvedLeaves.length}</Typography>
-            <Typography variant="body2">În așteptare: {filteredLeaveRequests.filter(r => r.status === 'PENDING').length}</Typography>
+            <Typography variant="body2">In asteptare: {filteredLeaveRequests.filter(r => r.status === 'PENDING').length}</Typography>
           </Paper>
 
           <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-              🔄 Schimburi de Tură
+              🔄 Schimburi de Tura
             </Typography>
             <Typography variant="body2">Total cereri: {filteredSwapRequests.length}</Typography>
             <Typography variant="body2">Aprobate: {approvedSwaps}</Typography>
-            <Typography variant="body2">În așteptare: {filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length}</Typography>
+            <Typography variant="body2">In asteptare: {filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN').length}</Typography>
           </Paper>
         </Stack>
 
         <Alert severity="success" icon={false}>
           <Typography variant="body2">
-            Raportul total include date din toate cele 3 secțiuni: program de lucru, concedii și schimburi de tură.
+            Raportul total include date din toate cele 3 sectiuni: program de lucru, concedii si schimburi de tura.
           </Typography>
         </Alert>
 
@@ -1468,7 +1468,7 @@ const ReportsPage: React.FC = () => {
             disabled={isLoading}
             sx={{ minWidth: 200 }}
           >
-            Descarcă PDF
+            Descarca PDF
           </Button>
           <Button
             variant="contained"
@@ -1480,7 +1480,7 @@ const ReportsPage: React.FC = () => {
             disabled={isLoading}
             sx={{ minWidth: 200 }}
           >
-            Descarcă Excel
+            Descarca Excel
           </Button>
         </Stack>
       </Stack>
@@ -1500,7 +1500,7 @@ const ReportsPage: React.FC = () => {
         {/* Header with Gradient */}
         <GradientHeader
           title="Rapoarte"
-          subtitle={`Generează rapoarte pentru ${monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth}`}
+          subtitle={`Genereaza rapoarte pentru ${monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth}`}
           icon={<ReportIcon />}
           gradient="#6366f1 0%, #8b5cf6 100%"
         >
@@ -1512,7 +1512,7 @@ const ReportsPage: React.FC = () => {
           />
           <Chip
             icon={<PeopleIcon sx={{ fontSize: 16 }} />}
-            label={`${filteredUsers.length} angajați`}
+            label={`${filteredUsers.length} angajati`}
             sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
             size="small"
           />
@@ -1530,7 +1530,7 @@ const ReportsPage: React.FC = () => {
             <StatCard
               title="Ore lucrate"
               value={totalHoursAll}
-              subtitle={`Normă: ${monthlyHoursNorm * filteredUsers.length}`}
+              subtitle={`Norma: ${monthlyHoursNorm * filteredUsers.length}`}
               icon={<TimeIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#6366f1' }} />}
               color="#6366f1"
               bgColor={alpha('#6366f1', 0.12)}
@@ -1539,7 +1539,7 @@ const ReportsPage: React.FC = () => {
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatCard
-              title="Angajați"
+              title="Angajati"
               value={filteredUsers.length}
               icon={<PeopleIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#10b981' }} />}
               color="#10b981"
@@ -1571,11 +1571,11 @@ const ReportsPage: React.FC = () => {
           </Grid>
         </Grid>
 
-        {/* Card cu filtre și export */}
+        {/* Card cu filtre si export */}
         <Card>
           <CardContent>
             <Stack spacing={3}>
-              {/* Selector Lună */}
+              {/* Selector Luna */}
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <CalendarIcon color="action" fontSize="small" />
@@ -1630,19 +1630,19 @@ const ReportsPage: React.FC = () => {
                 <Tab
                   icon={<ParkingIcon />}
                   iconPosition="start"
-                  label={isMobile ? 'Parcări' : 'Parcări Etajate'}
+                  label={isMobile ? 'Parcari' : 'Parcari Etajate'}
                   sx={{ minHeight: 48 }}
                 />
                 <Tab
                   icon={<HandicapIcon />}
                   iconPosition="start"
-                  label={isMobile ? 'Handicap' : 'Parcări Handicap'}
+                  label={isMobile ? 'Handicap' : 'Parcari Handicap'}
                   sx={{ minHeight: 48 }}
                 />
                 <Tab
                   icon={<HomeIcon />}
                   iconPosition="start"
-                  label={isMobile ? 'Domiciliu' : 'Parcări Domiciliu'}
+                  label={isMobile ? 'Domiciliu' : 'Parcari Domiciliu'}
                   sx={{ minHeight: 48 }}
                 />
               </Tabs>

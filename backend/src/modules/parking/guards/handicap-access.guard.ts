@@ -26,19 +26,19 @@ export class HandicapAccessGuard implements CanActivate {
       return false;
     }
 
-    // ADMIN și MANAGER au acces direct
+    // ADMIN si MANAGER au acces direct
     if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
       return true;
     }
 
-    // Pentru USER, verificăm dacă e din departamentele cu acces la parcări handicap
+    // Pentru USER, verificam daca e din departamentele cu acces la parcari handicap
     if (user.departmentId) {
       const department = await this.departmentRepository.findOne({
         where: { id: user.departmentId },
       });
 
       if (department) {
-        // Permite acces pentru Întreținere Parcări, Parcări Handicap, Parcări Domiciliu
+        // Permite acces pentru Intretinere Parcari, Parcari Handicap, Parcari Domiciliu
         const allowedDepartments = [
           MAINTENANCE_DEPARTMENT_NAME,
           HANDICAP_PARKING_DEPARTMENT_NAME,

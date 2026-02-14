@@ -85,7 +85,7 @@ const UserProfilePage: React.FC = () => {
 
   if (error || !user) {
     return (
-      <Alert severity="error">A apărut o eroare la încărcarea profilului</Alert>
+      <Alert severity="error">A aparut o eroare la incarcarea profilului</Alert>
     );
   }
 
@@ -102,7 +102,7 @@ const UserProfilePage: React.FC = () => {
           Profilul Meu
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Gestionează informațiile contului tău
+          Gestioneaza informatiile contului tau
         </Typography>
       </Box>
 
@@ -120,7 +120,7 @@ const UserProfilePage: React.FC = () => {
             fullWidth={isMobile}
             size={isMobile ? "large" : "medium"}
           >
-            Editează Profil
+            Editeaza Profil
           </Button>
           <Button
             variant="outlined"
@@ -129,7 +129,7 @@ const UserProfilePage: React.FC = () => {
             fullWidth={isMobile}
             size={isMobile ? "large" : "medium"}
           >
-            Schimbă Parola
+            Schimba Parola
           </Button>
         </Stack>
       )}
@@ -138,7 +138,7 @@ const UserProfilePage: React.FC = () => {
         <Card sx={{ width: '100%' }}>
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
             <Typography variant="h6" gutterBottom>
-              Editează Profil
+              Editeaza Profil
             </Typography>
             <Divider sx={{ mb: 3 }} />
             <UserForm
@@ -275,7 +275,7 @@ const UserProfilePage: React.FC = () => {
                       Departament
                     </Typography>
                     <Typography variant="body1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                      {user.department?.name || 'Fără departament'}
+                      {user.department?.name || 'Fara departament'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -293,7 +293,7 @@ const UserProfilePage: React.FC = () => {
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" display="block">
-                      Data Nașterii
+                      Data Nasterii
                     </Typography>
                     <Typography variant="body1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                       {user.birthDate
@@ -302,7 +302,7 @@ const UserProfilePage: React.FC = () => {
                             month: 'long',
                             year: 'numeric',
                           })
-                        : 'Nu este setată'}
+                        : 'Nu este setata'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -325,7 +325,7 @@ const UserProfilePage: React.FC = () => {
                     <Typography variant="body1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                       {user.lastLogin
                         ? new Date(user.lastLogin).toLocaleString('ro-RO')
-                        : 'Niciodată'}
+                        : 'Niciodata'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -340,7 +340,7 @@ const UserProfilePage: React.FC = () => {
           <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
               <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                Informații Cont
+                Informatii Cont
               </Typography>
               <Divider sx={{ mb: 3 }} />
               <Box
@@ -352,7 +352,7 @@ const UserProfilePage: React.FC = () => {
               >
                 <Box>
                   <Typography variant="caption" color="text.secondary" display="block">
-                    Data Creării
+                    Data Crearii
                   </Typography>
                   <Typography variant="body1" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                     {new Date(user.createdAt).toLocaleDateString('ro-RO')}

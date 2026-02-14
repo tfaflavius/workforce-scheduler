@@ -112,12 +112,12 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
 
   const handleSubmit = async () => {
     if (!hasChanges()) {
-      setError('Nu ai făcut nicio modificare');
+      setError('Nu ai facut nicio modificare');
       return;
     }
 
     if (!isAdmin && !reason.trim()) {
-      setError('Te rugăm să specifici motivul modificării');
+      setError('Te rugam sa specifici motivul modificarii');
       return;
     }
 
@@ -139,10 +139,10 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <EditIcon color="primary" />
-        <span>Editează Prejudiciu</span>
+        <span>Editeaza Prejudiciu</span>
         {!isAdmin && (
           <Chip
-            label="Necesită aprobare"
+            label="Necesita aprobare"
             color="warning"
             size="small"
             sx={{ ml: 'auto' }}
@@ -160,7 +160,7 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
 
           {!isAdmin && (
             <Alert severity="info">
-              Ca manager, modificările propuse vor fi trimise pentru aprobare la un administrator.
+              Ca manager, modificarile propuse vor fi trimise pentru aprobare la un administrator.
             </Alert>
           )}
 
@@ -196,7 +196,7 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
 
           <TextField
             fullWidth
-            label="Nume persoană responsabilă"
+            label="Nume persoana responsabila"
             value={formData.personName}
             onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
           />
@@ -210,7 +210,7 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
 
           <TextField
             fullWidth
-            label="Număr mașină"
+            label="Numar masina"
             value={formData.carPlate}
             onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
           />
@@ -229,10 +229,10 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
               fullWidth
               multiline
               rows={2}
-              label="Motivul modificării *"
+              label="Motivul modificarii *"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Explică de ce este necesară această modificare..."
+              placeholder="Explica de ce este necesara aceasta modificare..."
               helperText="Acest mesaj va fi trimis administratorului pentru aprobare"
             />
           )}
@@ -240,7 +240,7 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
           {hasChanges() && (
             <Alert severity="warning" icon={false}>
               <Typography variant="subtitle2" gutterBottom>
-                Modificări propuse:
+                Modificari propuse:
               </Typography>
               {formData.parkingLotId !== damage.parkingLotId && (
                 <Typography variant="body2">
@@ -254,7 +254,7 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
               )}
               {formData.personName !== damage.personName && (
                 <Typography variant="body2">
-                  • Persoană: {damage.personName} → {formData.personName}
+                  • Persoana: {damage.personName} → {formData.personName}
                 </Typography>
               )}
               {formData.phone !== damage.phone && (
@@ -264,12 +264,12 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
               )}
               {formData.carPlate !== damage.carPlate && (
                 <Typography variant="body2">
-                  • Nr. mașină: {damage.carPlate} → {formData.carPlate}
+                  • Nr. masina: {damage.carPlate} → {formData.carPlate}
                 </Typography>
               )}
               {formData.description !== damage.description && (
                 <Typography variant="body2">
-                  • Descriere modificată
+                  • Descriere modificata
                 </Typography>
               )}
             </Alert>
@@ -279,7 +279,7 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
 
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose} disabled={isLoading}>
-          Anulează
+          Anuleaza
         </Button>
         <Button
           variant="contained"
@@ -287,7 +287,7 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
           disabled={isLoading || !hasChanges()}
           startIcon={isLoading ? <CircularProgress size={20} /> : <EditIcon />}
         >
-          {isAdmin ? 'Salvează' : 'Trimite pentru aprobare'}
+          {isAdmin ? 'Salveaza' : 'Trimite pentru aprobare'}
         </Button>
       </DialogActions>
     </Dialog>

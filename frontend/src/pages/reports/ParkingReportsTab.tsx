@@ -226,7 +226,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
     doc.setFontSize(18);
     doc.setTextColor(239, 68, 68);
-    doc.text('Raport Probleme Parcări', pageWidth / 2, 20, { align: 'center' });
+    doc.text('Raport Probleme Parcari', pageWidth / 2, 20, { align: 'center' });
 
     doc.setFontSize(11);
     doc.setTextColor(100);
@@ -249,7 +249,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     ]);
 
     autoTable(doc, {
-      head: [['Parcare', 'Echipament', 'Descriere', 'Companie', 'Status', 'Urgent', 'Creat de', 'Data creării', 'Data rezolvării']],
+      head: [['Parcare', 'Echipament', 'Descriere', 'Companie', 'Status', 'Urgent', 'Creat de', 'Data crearii', 'Data rezolvarii']],
       body: tableData,
       startY: 42,
       styles: { fontSize: 8, cellPadding: 2 },
@@ -274,15 +274,15 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       'Parcare': issue.parkingLot?.name || '-',
       'Echipament': issue.equipment || '-',
       'Descriere': issue.description || '-',
-      'Companie Contactată': issue.contactedCompany || '-',
+      'Companie Contactata': issue.contactedCompany || '-',
       'Status': issue.status === 'ACTIVE' ? 'Activ' : 'Finalizat',
       'Urgent': issue.isUrgent ? 'Da' : 'Nu',
       'Creat de': issue.creator?.fullName || '-',
       'Atribuit lui': issue.assignee?.fullName || '-',
-      'Data creării': formatDateTime(issue.createdAt),
-      'Data rezolvării': issue.resolvedAt ? formatDateTime(issue.resolvedAt) : '-',
+      'Data crearii': formatDateTime(issue.createdAt),
+      'Data rezolvarii': issue.resolvedAt ? formatDateTime(issue.resolvedAt) : '-',
       'Rezolvat de': issue.resolver?.fullName || '-',
-      'Descrierea rezolvării': issue.resolutionDescription || '-',
+      'Descrierea rezolvarii': issue.resolutionDescription || '-',
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -292,7 +292,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       { wch: 12 }, { wch: 8 }, { wch: 20 }, { wch: 20 },
       { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 40 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, 'Probleme Parcări');
+    XLSX.utils.book_append_sheet(wb, ws, 'Probleme Parcari');
     XLSX.writeFile(wb, `raport-probleme-parcari_${startDate}_${endDate}.xlsx`);
     setExportDrawerOpen(false);
   };
@@ -303,7 +303,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
     doc.setFontSize(18);
     doc.setTextColor(249, 115, 22);
-    doc.text('Raport Prejudicii Parcări', pageWidth / 2, 20, { align: 'center' });
+    doc.text('Raport Prejudicii Parcari', pageWidth / 2, 20, { align: 'center' });
 
     doc.setFontSize(11);
     doc.setTextColor(100);
@@ -325,7 +325,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     ]);
 
     autoTable(doc, {
-      head: [['Parcare', 'Echipament avariat', 'Persoană', 'Nr. înmatriculare', 'Telefon', 'Status', 'Tip rezoluție', 'Data']],
+      head: [['Parcare', 'Echipament avariat', 'Persoana', 'Nr. inmatriculare', 'Telefon', 'Status', 'Tip rezolutie', 'Data']],
       body: tableData,
       startY: 42,
       styles: { fontSize: 8, cellPadding: 2 },
@@ -351,16 +351,16 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       'Echipament avariat': damage.damagedEquipment || '-',
       'Descriere': damage.description || '-',
       'Numele persoanei': damage.personName || '-',
-      'Nr. înmatriculare': damage.carPlate || '-',
+      'Nr. inmatriculare': damage.carPlate || '-',
       'Telefon': damage.phone || '-',
       'Status': damage.status === 'ACTIVE' ? 'Activ' : 'Finalizat',
       'Urgent': damage.isUrgent ? 'Da' : 'Nu',
-      'Tip rezoluție': damage.resolutionType === 'RECUPERAT' ? 'Recuperat' : damage.resolutionType === 'TRIMIS_JURIDIC' ? 'Trimis la juridic' : '-',
-      'Descrierea rezoluției': damage.resolutionDescription || '-',
+      'Tip rezolutie': damage.resolutionType === 'RECUPERAT' ? 'Recuperat' : damage.resolutionType === 'TRIMIS_JURIDIC' ? 'Trimis la juridic' : '-',
+      'Descrierea rezolutiei': damage.resolutionDescription || '-',
       'Creat de': damage.creator?.fullName || '-',
-      'Data creării': formatDateTime(damage.createdAt),
+      'Data crearii': formatDateTime(damage.createdAt),
       'Rezolvat de': damage.resolver?.fullName || '-',
-      'Data rezolvării': damage.resolvedAt ? formatDateTime(damage.resolvedAt) : '-',
+      'Data rezolvarii': damage.resolvedAt ? formatDateTime(damage.resolvedAt) : '-',
     }));
 
     const ws = XLSX.utils.json_to_sheet(data);
@@ -371,7 +371,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       { wch: 15 }, { wch: 40 }, { wch: 20 }, { wch: 18 },
       { wch: 20 }, { wch: 18 },
     ];
-    XLSX.utils.book_append_sheet(wb, ws, 'Prejudicii Parcări');
+    XLSX.utils.book_append_sheet(wb, ws, 'Prejudicii Parcari');
     XLSX.writeFile(wb, `raport-prejudicii-parcari_${startDate}_${endDate}.xlsx`);
     setExportDrawerOpen(false);
   };
@@ -382,7 +382,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
     doc.setFontSize(18);
     doc.setTextColor(16, 185, 129);
-    doc.text('Raport ridicări numerar automate', pageWidth / 2, 20, { align: 'center' });
+    doc.text('Raport ridicari numerar automate', pageWidth / 2, 20, { align: 'center' });
 
     doc.setFontSize(11);
     doc.setTextColor(100);
@@ -390,7 +390,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
     doc.setFontSize(12);
     doc.setTextColor(16, 185, 129);
-    doc.text(`TOTAL: ${formatCurrency(collectionTotals?.totalAmount || 0)} din ${collectionTotals?.count || 0} ridicări`, pageWidth / 2, 36, { align: 'center' });
+    doc.text(`TOTAL: ${formatCurrency(collectionTotals?.totalAmount || 0)} din ${collectionTotals?.count || 0} ridicari`, pageWidth / 2, 36, { align: 'center' });
 
     const tableData = allCollections.map(collection => [
       collection.parkingLot?.name || '-',
@@ -402,7 +402,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     ]);
 
     autoTable(doc, {
-      head: [['Parcare', 'Automat', 'Sumă', 'Ridicat de', 'Data', 'Note']],
+      head: [['Parcare', 'Automat', 'Suma', 'Ridicat de', 'Data', 'Note']],
       body: tableData,
       startY: 44,
       styles: { fontSize: 9, cellPadding: 3 },
@@ -415,10 +415,10 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       const finalY = (doc as any).lastAutoTable.finalY || 100;
       doc.setFontSize(11);
       doc.setTextColor(0);
-      doc.text('Totaluri pe parcări:', 14, finalY + 10);
+      doc.text('Totaluri pe parcari:', 14, finalY + 10);
       collectionTotals.byParkingLot.forEach((item, index) => {
         doc.setFontSize(10);
-        doc.text(`${item.parkingLotName}: ${formatCurrency(item.totalAmount)} din ${item.count} ridicări`, 20, finalY + 18 + (index * 6));
+        doc.text(`${item.parkingLotName}: ${formatCurrency(item.totalAmount)} din ${item.count} ridicari`, 20, finalY + 18 + (index * 6));
       });
     }
 
@@ -438,9 +438,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     const data = allCollections.map(collection => ({
       'Parcare': collection.parkingLot?.name || '-',
       'Automat': collection.paymentMachine?.machineNumber || '-',
-      'Sumă (RON)': collection.amount,
+      'Suma (RON)': collection.amount,
       'Ridicat de': collection.collector?.fullName || '-',
-      'Data și ora': formatDateTime(collection.collectedAt),
+      'Data si ora': formatDateTime(collection.collectedAt),
       'Note': collection.notes || '-',
     }));
 
@@ -448,9 +448,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     const wb = XLSX.utils.book_new();
 
     XLSX.utils.sheet_add_aoa(ws, [
-      ['Raport ridicări numerar'],
+      ['Raport ridicari numerar'],
       [`Perioada: ${formatDate(startDate)} - ${formatDate(endDate)}`],
-      [`Total: ${formatCurrency(collectionTotals?.totalAmount || 0)} din ${collectionTotals?.count || 0} ridicări`],
+      [`Total: ${formatCurrency(collectionTotals?.totalAmount || 0)} din ${collectionTotals?.count || 0} ridicari`],
       [],
     ], { origin: 'A1' });
 
@@ -459,7 +459,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 40 },
     ];
 
-    XLSX.utils.book_append_sheet(wb, ws, 'Ridicări numerar');
+    XLSX.utils.book_append_sheet(wb, ws, 'Ridicari numerar');
     XLSX.writeFile(wb, `raport-ridicari-numerar_${startDate}_${endDate}.xlsx`);
     setExportDrawerOpen(false);
   };
@@ -469,7 +469,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     {
       id: 'issues' as ReportType,
       title: 'Probleme',
-      subtitle: `${issueStats.total} ${issueStats.total === 1 ? 'înregistrare' : 'înregistrări'}`,
+      subtitle: `${issueStats.total} ${issueStats.total === 1 ? 'inregistrare' : 'inregistrari'}`,
       icon: <IssueIcon />,
       color: '#ef4444',
       bgColor: alpha('#ef4444', 0.1),
@@ -481,7 +481,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     {
       id: 'damages' as ReportType,
       title: 'Prejudicii',
-      subtitle: `${damageStats.total} ${damageStats.total === 1 ? 'înregistrare' : 'înregistrări'}`,
+      subtitle: `${damageStats.total} ${damageStats.total === 1 ? 'inregistrare' : 'inregistrari'}`,
       icon: <DamageIcon />,
       color: '#f97316',
       bgColor: alpha('#f97316', 0.1),
@@ -498,7 +498,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       color: '#10b981',
       bgColor: alpha('#10b981', 0.1),
       stats: [
-        { label: (collectionTotals?.count || 0) === 1 ? 'Ridicare' : 'Ridicări', value: collectionTotals?.count || 0, color: '#10b981' },
+        { label: (collectionTotals?.count || 0) === 1 ? 'Ridicare' : 'Ridicari', value: collectionTotals?.count || 0, color: '#10b981' },
       ],
     },
   ];
@@ -594,7 +594,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                <strong>Persoană:</strong> {damage.personName}
+                <strong>Persoana:</strong> {damage.personName}
               </Typography>
               <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                 <strong>Auto:</strong> {damage.carPlate}
@@ -658,7 +658,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
           label="Parcare"
           onChange={(e) => setSelectedParkingLot(e.target.value)}
         >
-          <MenuItem value="ALL">Toate Parcările</MenuItem>
+          <MenuItem value="ALL">Toate Parcarile</MenuItem>
           {parkingLots.map((lot) => (
             <MenuItem key={lot.id} value={lot.id}>{lot.name}</MenuItem>
           ))}
@@ -674,7 +674,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       />
 
       <DatePickerField
-        label="Până la"
+        label="Pana la"
         value={endDate || null}
         onChange={(value) => onEndDateChange(value || '')}
         size="small"
@@ -718,7 +718,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
         onClick={clearFilters}
         startIcon={<CloseIcon />}
       >
-        Resetează filtrele
+        Reseteaza filtrele
       </Button>
     </Stack>
   );
@@ -727,17 +727,17 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   const renderExportOptions = () => {
     const exportOptions = selectedReport === 'issues'
       ? [
-          { label: 'Descarcă PDF', icon: <PdfIcon />, onClick: handleExportIssuesPDF, color: '#ef4444' },
-          { label: 'Descarcă Excel', icon: <ExcelIcon />, onClick: handleExportIssuesExcel, color: '#10b981' },
+          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportIssuesPDF, color: '#ef4444' },
+          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportIssuesExcel, color: '#10b981' },
         ]
       : selectedReport === 'damages'
       ? [
-          { label: 'Descarcă PDF', icon: <PdfIcon />, onClick: handleExportDamagesPDF, color: '#f97316' },
-          { label: 'Descarcă Excel', icon: <ExcelIcon />, onClick: handleExportDamagesExcel, color: '#10b981' },
+          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportDamagesPDF, color: '#f97316' },
+          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportDamagesExcel, color: '#10b981' },
         ]
       : [
-          { label: 'Descarcă PDF', icon: <PdfIcon />, onClick: handleExportCollectionsPDF, color: '#ef4444' },
-          { label: 'Descarcă Excel', icon: <ExcelIcon />, onClick: handleExportCollectionsExcel, color: '#10b981' },
+          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportCollectionsPDF, color: '#ef4444' },
+          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportCollectionsExcel, color: '#10b981' },
         ];
 
     const count = selectedReport === 'issues'
@@ -749,10 +749,10 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h6" fontWeight="bold" gutterBottom>
-          Exportă raport
+          Exporta raport
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          {count === 1 ? '1 înregistrare va fi exportată' : `${count} înregistrări vor fi exportate`}
+          {count === 1 ? '1 inregistrare va fi exportata' : `${count} inregistrari vor fi exportate`}
         </Typography>
         <Stack spacing={2}>
           {exportOptions.map((option, index) => (
@@ -811,7 +811,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
                   </Badge>
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Reîncarcă">
+              <Tooltip title="Reincarca">
                 <IconButton size="small" onClick={handleRefresh} disabled={isLoading}>
                   <RefreshIcon fontSize="small" sx={{ animation: isLoading ? 'spin 1s linear infinite' : 'none' }} />
                 </IconButton>
@@ -885,9 +885,9 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
           <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
             {selectedReport === 'issues' && (
               <>
-                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${issueStats.active} ${issueStats.active === 1 ? 'activă' : 'active'}`} size="small" sx={{ bgcolor: alpha('#f59e0b', 0.1), color: '#f59e0b' }} />
-                <Chip icon={<ResolvedIcon sx={{ fontSize: 16 }} />} label={`${issueStats.resolved} ${issueStats.resolved === 1 ? 'finalizată' : 'finalizate'}`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
-                <Chip icon={<IssueIcon sx={{ fontSize: 16 }} />} label={`${issueStats.urgent} ${issueStats.urgent === 1 ? 'urgentă' : 'urgente'}`} size="small" sx={{ bgcolor: alpha('#ef4444', 0.1), color: '#ef4444' }} />
+                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${issueStats.active} ${issueStats.active === 1 ? 'activa' : 'active'}`} size="small" sx={{ bgcolor: alpha('#f59e0b', 0.1), color: '#f59e0b' }} />
+                <Chip icon={<ResolvedIcon sx={{ fontSize: 16 }} />} label={`${issueStats.resolved} ${issueStats.resolved === 1 ? 'finalizata' : 'finalizate'}`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
+                <Chip icon={<IssueIcon sx={{ fontSize: 16 }} />} label={`${issueStats.urgent} ${issueStats.urgent === 1 ? 'urgenta' : 'urgente'}`} size="small" sx={{ bgcolor: alpha('#ef4444', 0.1), color: '#ef4444' }} />
               </>
             )}
             {selectedReport === 'damages' && (
@@ -899,7 +899,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
             )}
             {selectedReport === 'collections' && (
               <>
-                <Chip icon={<PaymentIcon sx={{ fontSize: 16 }} />} label={`${collectionTotals?.count || 0} ${(collectionTotals?.count || 0) === 1 ? 'ridicare' : 'ridicări'}`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
+                <Chip icon={<PaymentIcon sx={{ fontSize: 16 }} />} label={`${collectionTotals?.count || 0} ${(collectionTotals?.count || 0) === 1 ? 'ridicare' : 'ridicari'}`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
                 <Chip label={formatCurrency(collectionTotals?.totalAmount || 0)} size="small" sx={{ bgcolor: alpha('#10b981', 0.15), color: '#059669', fontWeight: 'bold' }} />
               </>
             )}
@@ -919,21 +919,21 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
         <Box sx={{ maxHeight: isMobile ? 'calc(100vh - 420px)' : 400, overflowY: 'auto', pr: 0.5 }}>
           {selectedReport === 'issues' && (
             filteredIssues.length === 0 ? (
-              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu există probleme pentru perioada selectată.</Alert>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu exista probleme pentru perioada selectata.</Alert>
             ) : (
               filteredIssues.slice(0, 20).map((issue, index) => renderIssueCard(issue, index))
             )
           )}
           {selectedReport === 'damages' && (
             filteredDamages.length === 0 ? (
-              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu există prejudicii pentru perioada selectată.</Alert>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu exista prejudicii pentru perioada selectata.</Alert>
             ) : (
               filteredDamages.slice(0, 20).map((damage, index) => renderDamageCard(damage, index))
             )
           )}
           {selectedReport === 'collections' && (
             allCollections.length === 0 ? (
-              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu există ridicări pentru perioada selectată.</Alert>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>Nu exista ridicari pentru perioada selectata.</Alert>
             ) : (
               allCollections.slice(0, 20).map((collection, index) => renderCollectionCard(collection, index))
             )
@@ -948,7 +948,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
         (selectedReport === 'collections' && allCollections.length > 20)
       ) && (
         <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-          Se afișează primele 20 de înregistrări. Exportă raportul pentru lista completă.
+          Se afiseaza primele 20 de inregistrari. Exporta raportul pentru lista completa.
         </Alert>
       )}
 
@@ -966,7 +966,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
                 '&:hover': { bgcolor: selectedReport === 'issues' ? '#dc2626' : selectedReport === 'damages' ? '#ea580c' : '#dc2626' },
               }}
             >
-              Descarcă PDF
+              Descarca PDF
             </Button>
             <Button
               variant="contained"
@@ -975,7 +975,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
               onClick={selectedReport === 'issues' ? handleExportIssuesExcel : selectedReport === 'damages' ? handleExportDamagesExcel : handleExportCollectionsExcel}
               disabled={(selectedReport === 'issues' && filteredIssues.length === 0) || (selectedReport === 'damages' && filteredDamages.length === 0) || (selectedReport === 'collections' && allCollections.length === 0)}
             >
-              Descarcă Excel
+              Descarca Excel
             </Button>
           </Stack>
         </Fade>
@@ -1009,7 +1009,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
             sx={{ mt: 2 }}
             onClick={() => setFiltersOpen(false)}
           >
-            Aplică filtrele
+            Aplica filtrele
           </Button>
         </Box>
       </SwipeableDrawer>

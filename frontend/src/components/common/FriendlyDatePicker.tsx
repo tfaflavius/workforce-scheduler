@@ -248,7 +248,7 @@ export const FriendlyDatePicker: React.FC<FriendlyDatePickerProps> = ({
           )}
           {showSuccessState && value && !error && (
             <Typography variant="caption" color="success.main">
-              Dată selectată
+              Data selectata
             </Typography>
           )}
           {hint && !error && !(showSuccessState && value) && (

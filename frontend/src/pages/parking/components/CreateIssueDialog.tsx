@@ -53,7 +53,7 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
 
   const handleSubmit = async () => {
     if (!formData.parkingLotId || !formData.equipment || !formData.contactedCompany || !formData.description) {
-      setError('Toate câmpurile sunt obligatorii');
+      setError('Toate campurile sunt obligatorii');
       return;
     }
 
@@ -61,7 +61,7 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
       await createIssue(formData).unwrap();
       handleClose();
     } catch (err: any) {
-      setError(err.data?.message || 'A apărut o eroare');
+      setError(err.data?.message || 'A aparut o eroare');
     }
   };
 
@@ -89,13 +89,13 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
     <FriendlyDialog
       open={open}
       onClose={handleClose}
-      title="Adaugă Problemă Nouă"
-      subtitle="Raportează o problemă la echipamentul parcării"
+      title="Adauga Problema Noua"
+      subtitle="Raporteaza o problema la echipamentul parcarii"
       icon={<IssueIcon />}
       variant="error"
       maxWidth="sm"
       loading={isLoading}
-      loadingText="Se încarcă datele..."
+      loadingText="Se incarca datele..."
       actions={
         <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'flex-end' }}>
           <FriendlyButton
@@ -103,17 +103,17 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
             onClick={handleClose}
             disabled={creating}
           >
-            Anulează
+            Anuleaza
           </FriendlyButton>
           <FriendlyButton
             colorVariant="error"
             onClick={handleSubmit}
             loading={creating}
-            loadingText="Se salvează..."
+            loadingText="Se salveaza..."
             icon={<SaveIcon />}
             disabled={isLoading}
           >
-            Salvează
+            Salveaza
           </FriendlyButton>
         </Stack>
       }
@@ -144,7 +144,7 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
           startIcon={<EquipmentIcon />}
           freeSolo
           required
-          placeholder="Selectează sau scrie echipamentul"
+          placeholder="Selecteaza sau scrie echipamentul"
         />
 
         <FriendlyAutocomplete
@@ -155,7 +155,7 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
           startIcon={<CompanyIcon />}
           freeSolo
           required
-          placeholder="Selectează sau scrie firma"
+          placeholder="Selecteaza sau scrie firma"
         />
 
         <FriendlyTextField
@@ -166,7 +166,7 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           required
           fullWidth
-          placeholder="Descrie problema în detaliu..."
+          placeholder="Descrie problema in detaliu..."
           startIcon={<DescriptionIcon />}
           characterLimit={1000}
         />

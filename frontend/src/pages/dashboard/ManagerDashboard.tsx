@@ -253,7 +253,7 @@ const ManagerDashboard = () => {
                   fontSize: { xs: '0.8rem', sm: '0.875rem', md: '1rem' }
                 }}
               >
-                Gestionează programele de lucru ale echipei tale
+                Gestioneaza programele de lucru ale echipei tale
               </Typography>
             </Box>
           </Stack>
@@ -284,7 +284,7 @@ const ManagerDashboard = () => {
             }
           >
             <Typography variant="body2" fontWeight="medium">
-              ⚠️ Ai {myRejected.length} program(e) respins(e) care necesită atenție!
+              ⚠️ Ai {myRejected.length} program(e) respins(e) care necesita atentie!
             </Typography>
           </Alert>
         </Fade>
@@ -321,7 +321,7 @@ const ManagerDashboard = () => {
             </Grid>
             <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <StatCard
-                title="În Așteptare"
+                title="In Asteptare"
                 value={myPending.length}
                 subtitle="Trimise spre aprobare"
                 icon={<PendingIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
@@ -362,7 +362,7 @@ const ManagerDashboard = () => {
 
       <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-      {/* Parcări Etajate Section */}
+      {/* Parcari Etajate Section */}
       <Fade in={true} timeout={1000}>
         <Box>
           <Typography
@@ -376,14 +376,14 @@ const ManagerDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            🅿️ Parcări Etajate
+            🅿️ Parcari Etajate
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               <StatCard
                 title="Probleme Active"
                 value={activeIssues.length}
-                subtitle={urgentIssues.length > 0 ? `${urgentIssues.length} urgente` : 'Niciuna urgentă'}
+                subtitle={urgentIssues.length > 0 ? `${urgentIssues.length} urgente` : 'Niciuna urgenta'}
                 icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                 color="#ef4444"
                 bgColor={alpha('#ef4444', 0.12)}
@@ -396,7 +396,7 @@ const ManagerDashboard = () => {
               <StatCard
                 title="Prejudicii Active"
                 value={activeDamages.length}
-                subtitle={urgentDamages.length > 0 ? `${urgentDamages.length} urgente` : 'Niciuna urgentă'}
+                subtitle={urgentDamages.length > 0 ? `${urgentDamages.length} urgente` : 'Niciuna urgenta'}
                 icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                 color="#f59e0b"
                 bgColor={alpha('#f59e0b', 0.12)}
@@ -450,7 +450,7 @@ const ManagerDashboard = () => {
                             opacity: 0.9,
                           }}
                         >
-                          Total Încasări Automate
+                          Total Incasari Automate
                         </Typography>
                         <Typography
                           variant="h4"
@@ -478,7 +478,7 @@ const ManagerDashboard = () => {
                             opacity: 0.85,
                           }}
                         >
-                          {cashTotals ? `${cashTotals.count || 0} ridicări înregistrate` : 'Nicio ridicare'}
+                          {cashTotals ? `${cashTotals.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
                         </Typography>
                       </Box>
                       <Box

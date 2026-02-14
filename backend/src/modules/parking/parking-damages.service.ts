@@ -41,7 +41,7 @@ export class ParkingDamagesService {
 
     const savedDamage = await this.parkingDamageRepository.save(damage);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     await this.recordHistory(savedDamage.id, 'CREATED', userId, {
       parkingLotId: dto.parkingLotId,
       damagedEquipment: dto.damagedEquipment,
@@ -49,7 +49,7 @@ export class ParkingDamagesService {
       carPlate: dto.carPlate,
     });
 
-    // Notifică managerii și adminii
+    // Notifica managerii si adminii
     await this.notifyManagersAndAdmins(savedDamage, 'CREATED', userId);
 
     return this.findOne(savedDamage.id);
@@ -76,7 +76,7 @@ export class ParkingDamagesService {
     action: 'CREATED' | 'UPDATED' | 'RESOLVED',
     actorUserId: string,
   ): Promise<void> {
-    // Găsește toți managerii și adminii activi
+    // Gaseste toti managerii si adminii activi
     const managersAndAdmins = await this.userRepository.find({
       where: [
         { role: UserRole.ADMIN, isActive: true },
@@ -84,16 +84,16 @@ export class ParkingDamagesService {
       ],
     });
 
-    // Exclude actorul din lista de notificați
+    // Exclude actorul din lista de notificati
     const toNotify = managersAndAdmins.filter(u => u.id !== actorUserId);
 
     if (toNotify.length === 0) return;
 
-    // Obține detaliile actorului
+    // Obtine detaliile actorului
     const actor = await this.userRepository.findOne({ where: { id: actorUserId } });
     const actorName = actor?.fullName || 'Un utilizator';
 
-    // Obține parcarea
+    // Obtine parcarea
     const damageWithParkingLot = await this.parkingDamageRepository.findOne({
       where: { id: damage.id },
       relations: ['parkingLot'],
@@ -106,7 +106,7 @@ export class ParkingDamagesService {
     switch (action) {
       case 'CREATED':
         title = 'Prejudiciu nou creat';
-        message = `${actorName} a înregistrat un prejudiciu nou la ${parkingName} (${damage.damagedEquipment}).`;
+        message = `${actorName} a inregistrat un prejudiciu nou la ${parkingName} (${damage.damagedEquipment}).`;
         break;
       case 'UPDATED':
         title = 'Prejudiciu modificat';
@@ -133,8 +133,8 @@ export class ParkingDamagesService {
 
     await this.notificationsService.createMany(notifications);
 
-    // Trimite emailuri către TOȚI managerii și adminii (inclusiv actorul)
-    // Emailurile sunt importante pentru audit și confirmare, spre deosebire de notificările in-app
+    // Trimite emailuri catre TOTI managerii si adminii (inclusiv actorul)
+    // Emailurile sunt importante pentru audit si confirmare, spre deosebire de notificarile in-app
     if (action === 'CREATED' || action === 'RESOLVED') {
       for (const user of managersAndAdmins) {
         await this.emailService.sendParkingDamageNotification({
@@ -188,7 +188,7 @@ export class ParkingDamagesService {
     });
 
     if (!damage) {
-      throw new NotFoundException(`Prejudiciul cu ID ${id} nu a fost găsit`);
+      throw new NotFoundException(`Prejudiciul cu ID ${id} nu a fost gasit`);
     }
 
     return damage;
@@ -215,21 +215,21 @@ export class ParkingDamagesService {
     damage.resolvedBy = userId;
     damage.lastModifiedBy = userId;
     damage.resolvedAt = new Date();
-    damage.isUrgent = false; // Resetează urgența
+    damage.isUrgent = false; // Reseteaza urgenta
 
     await this.parkingDamageRepository.save(damage);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     await this.recordHistory(id, 'RESOLVED', userId, {
       resolutionType: dto.resolutionType,
       resolutionDescription: dto.resolutionDescription,
     });
 
-    // Obține rezolvatorul
+    // Obtine rezolvatorul
     const resolver = await this.userRepository.findOne({ where: { id: userId } });
     const resolverName = resolver?.fullName || 'Un utilizator';
 
-    // Notifică creatorul prejudiciului că a fost rezolvat (dacă nu e același user)
+    // Notifica creatorul prejudiciului ca a fost rezolvat (daca nu e acelasi user)
     if (damage.createdBy !== userId) {
       const creator = await this.userRepository.findOne({ where: { id: damage.createdBy } });
       if (creator) {
@@ -248,7 +248,7 @@ export class ParkingDamagesService {
           },
         });
 
-        // Email către creator
+        // Email catre creator
         await this.emailService.sendParkingDamageNotification({
           recipientEmail: creator.email,
           recipientName: creator.fullName,
@@ -266,7 +266,7 @@ export class ParkingDamagesService {
       }
     }
 
-    // Notifică managerii și adminii
+    // Notifica managerii si adminii
     await this.notifyManagersAndAdmins(damage, 'RESOLVED', userId);
 
     return this.findOne(id);
@@ -283,7 +283,7 @@ export class ParkingDamagesService {
 
     await this.commentRepository.save(comment);
 
-    // Notifică managerii și adminii despre comentariu
+    // Notifica managerii si adminii despre comentariu
     const managersAndAdmins = await this.userRepository.find({
       where: [
         { role: UserRole.ADMIN, isActive: true },
@@ -299,7 +299,7 @@ export class ParkingDamagesService {
         userId: user.id,
         type: NotificationType.PARKING_ISSUE_RESOLVED,
         title: 'Comentariu nou la prejudiciu',
-        message: `${actor?.fullName || 'Un utilizator'} a adăugat un comentariu la prejudiciul de la ${damage.parkingLot?.name || 'parcare'}.`,
+        message: `${actor?.fullName || 'Un utilizator'} a adaugat un comentariu la prejudiciul de la ${damage.parkingLot?.name || 'parcare'}.`,
         data: {
           damageId: damage.id,
           commentId: comment.id,
@@ -325,12 +325,12 @@ export class ParkingDamagesService {
 
   async delete(id: string, user: User): Promise<void> {
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Doar administratorii pot șterge prejudiciile');
+      throw new ForbiddenException('Doar administratorii pot sterge prejudiciile');
     }
 
     const damage = await this.findOne(id);
 
-    // Înregistrează în history
+    // Inregistreaza in history
     await this.recordHistory(id, 'DELETED', user.id, {
       damagedEquipment: damage.damagedEquipment,
       parkingLotId: damage.parkingLotId,
@@ -339,7 +339,7 @@ export class ParkingDamagesService {
     await this.parkingDamageRepository.remove(damage);
   }
 
-  // Metodă pentru marcarea prejudiciilor urgente (48h)
+  // Metoda pentru marcarea prejudiciilor urgente (48h)
   async markUrgentDamages(): Promise<number> {
     const fortyEightHoursAgo = new Date();
     fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
@@ -356,7 +356,7 @@ export class ParkingDamagesService {
     return result.affected || 0;
   }
 
-  // Metodă pentru obținerea tuturor prejudiciilor active (pentru rapoarte/reminder-uri)
+  // Metoda pentru obtinerea tuturor prejudiciilor active (pentru rapoarte/reminder-uri)
   async findAllActive(): Promise<ParkingDamage[]> {
     return this.parkingDamageRepository.createQueryBuilder('damage')
       .leftJoinAndSelect('damage.parkingLot', 'parkingLot')
@@ -367,9 +367,9 @@ export class ParkingDamagesService {
       .getMany();
   }
 
-  // Metodă pentru obținerea userilor din Dispecerat și Întreținere Parcări
+  // Metoda pentru obtinerea userilor din Dispecerat si Intretinere Parcari
   async getUsersForReminders(): Promise<User[]> {
-    // Găsește departamentele Dispecerat și Întreținere Parcări
+    // Gaseste departamentele Dispecerat si Intretinere Parcari
     const dispeceratDept = await this.departmentRepository.findOne({
       where: { name: 'Dispecerat' },
     });

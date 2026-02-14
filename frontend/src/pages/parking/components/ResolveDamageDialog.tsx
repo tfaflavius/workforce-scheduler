@@ -39,11 +39,11 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
 
   const handleSubmit = async () => {
     if (!resolutionType) {
-      setError('Selectează tipul de finalizare');
+      setError('Selecteaza tipul de finalizare');
       return;
     }
     if (!resolutionDescription.trim()) {
-      setError('Descrierea rezolvării este obligatorie');
+      setError('Descrierea rezolvarii este obligatorie');
       return;
     }
 
@@ -57,7 +57,7 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
       }).unwrap();
       handleClose();
     } catch (err: any) {
-      setError(err.data?.message || 'A apărut o eroare');
+      setError(err.data?.message || 'A aparut o eroare');
     }
   };
 
@@ -70,7 +70,7 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
-      <DialogTitle>Finalizează Prejudiciul</DialogTitle>
+      <DialogTitle>Finalizeaza Prejudiciul</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
@@ -87,13 +87,13 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
               <strong>Echipament:</strong> {damage.damagedEquipment}
             </Typography>
             <Typography variant="body2">
-              <strong>Persoană:</strong> {damage.personName}
+              <strong>Persoana:</strong> {damage.personName}
             </Typography>
             <Typography variant="body2">
               <strong>Telefon:</strong> {damage.phone}
             </Typography>
             <Typography variant="body2">
-              <strong>Nr. Mașină:</strong> {damage.carPlate}
+              <strong>Nr. Masina:</strong> {damage.carPlate}
             </Typography>
             <Typography variant="body2">
               <strong>Descriere:</strong> {damage.description}
@@ -115,7 +115,7 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
           </FormControl>
 
           <TextField
-            label="Descrierea rezolvării"
+            label="Descrierea rezolvarii"
             multiline
             rows={4}
             value={resolutionDescription}
@@ -126,15 +126,15 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
               resolutionType === 'RECUPERAT'
                 ? 'Descrie cum a fost recuperat prejudiciul...'
                 : resolutionType === 'TRIMIS_JURIDIC'
-                ? 'Descrie detaliile trimiterii la Direcția Juridică...'
-                : 'Selectează tipul de finalizare...'
+                ? 'Descrie detaliile trimiterii la Directia Juridica...'
+                : 'Selecteaza tipul de finalizare...'
             }
           />
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleClose} disabled={isLoading}>
-          Anulează
+          Anuleaza
         </Button>
         <Button
           onClick={handleSubmit}
@@ -142,7 +142,7 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
           color="success"
           disabled={isLoading}
         >
-          {isLoading ? <CircularProgress size={24} /> : 'Finalizează'}
+          {isLoading ? <CircularProgress size={24} /> : 'Finalizeaza'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,4 +1,4 @@
-// Lista echipamentelor pentru Probleme Parcări
+// Lista echipamentelor pentru Probleme Parcari
 export const EQUIPMENT_LIST = [
   'Automate de Plata',
   'Bariere',
@@ -72,7 +72,7 @@ export const EQUIPMENT_LIST = [
   'Led-uri',
 ] as const;
 
-// Lista echipamentelor pentru Prejudicii Parcări (subset)
+// Lista echipamentelor pentru Prejudicii Parcari (subset)
 export const DAMAGE_EQUIPMENT_LIST = [
   'Automate de Plata',
   'Bariere',
@@ -109,7 +109,7 @@ export const DAMAGE_EQUIPMENT_LIST = [
 export const COMPANY_LIST = [
   'Stingprod',
   'Electrica',
-  'Întreținere Parcări',
+  'Intretinere Parcari',
   'Jolt Mediesi',
   'Dacian Indries',
   'Gicu',
@@ -136,9 +136,9 @@ export const COMPANY_LIST = [
   'IT Primarie',
 ] as const;
 
-// Firmele care declanșează notificări și alocare către departamentul Întreținere Parcări
+// Firmele care declanseaza notificari si alocare catre departamentul Intretinere Parcari
 export const INTERNAL_MAINTENANCE_COMPANIES = [
-  'Întreținere Parcări',
+  'Intretinere Parcari',
   'Jolt Mediesi',
   'Dacian Indries',
 ] as const;
@@ -151,11 +151,11 @@ export const DAMAGE_RESOLUTION_TYPES = {
 
 // Nume departament pentru verificare acces
 export const DISPECERAT_DEPARTMENT_NAME = 'Dispecerat';
-export const MAINTENANCE_DEPARTMENT_NAME = 'Întreținere Parcări';
-export const HANDICAP_PARKING_DEPARTMENT_NAME = 'Parcări Handicap';
-export const DOMICILIU_PARKING_DEPARTMENT_NAME = 'Parcări Domiciliu';
+export const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
+export const HANDICAP_PARKING_DEPARTMENT_NAME = 'Parcari Handicap';
+export const DOMICILIU_PARKING_DEPARTMENT_NAME = 'Parcari Domiciliu';
 
-// Tipuri de solicitări handicap
+// Tipuri de solicitari handicap
 export const HANDICAP_REQUEST_TYPES = {
   AMPLASARE_PANOU: 'AMPLASARE_PANOU',
   REVOCARE_PANOU: 'REVOCARE_PANOU',
@@ -164,7 +164,7 @@ export const HANDICAP_REQUEST_TYPES = {
 
 export type HandicapRequestType = typeof HANDICAP_REQUEST_TYPES[keyof typeof HANDICAP_REQUEST_TYPES];
 
-// Status pentru solicitări handicap
+// Status pentru solicitari handicap
 export const HANDICAP_REQUEST_STATUS = {
   ACTIVE: 'ACTIVE',
   FINALIZAT: 'FINALIZAT',
@@ -172,16 +172,16 @@ export const HANDICAP_REQUEST_STATUS = {
 
 export type HandicapRequestStatus = typeof HANDICAP_REQUEST_STATUS[keyof typeof HANDICAP_REQUEST_STATUS];
 
-// Labels în limba română pentru tipurile de solicitări handicap
+// Labels in limba romana pentru tipurile de solicitari handicap
 export const HANDICAP_REQUEST_TYPE_LABELS: Record<HandicapRequestType, string> = {
   AMPLASARE_PANOU: 'Amplasare panou',
   REVOCARE_PANOU: 'Revocare panou',
   CREARE_MARCAJ: 'Creare marcaj',
 };
 
-// ============== PARCĂRI DOMICILIU ==============
+// ============== PARCARI DOMICILIU ==============
 
-// Tipuri de solicitări parcări domiciliu
+// Tipuri de solicitari parcari domiciliu
 export const DOMICILIU_REQUEST_TYPES = {
   TRASARE_LOCURI: 'TRASARE_LOCURI',       // Trasare locuri de parcare
   REVOCARE_LOCURI: 'REVOCARE_LOCURI',     // Revocare locuri de parcare
@@ -204,7 +204,7 @@ export const PARKING_LAYOUT_LABELS: Record<ParkingLayoutType, string> = {
   SPIC: 'Spic',
 };
 
-// Status pentru solicitări domiciliu
+// Status pentru solicitari domiciliu
 export const DOMICILIU_REQUEST_STATUS = {
   ACTIVE: 'ACTIVE',
   FINALIZAT: 'FINALIZAT',
@@ -212,15 +212,15 @@ export const DOMICILIU_REQUEST_STATUS = {
 
 export type DomiciliuRequestStatus = typeof DOMICILIU_REQUEST_STATUS[keyof typeof DOMICILIU_REQUEST_STATUS];
 
-// Labels în limba română pentru tipurile de solicitări domiciliu
+// Labels in limba romana pentru tipurile de solicitari domiciliu
 export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
   TRASARE_LOCURI: 'Trasare locuri de parcare',
   REVOCARE_LOCURI: 'Revocare locuri de parcare',
 };
 
-// ============== LEGITIMAȚII HANDICAP ==============
+// ============== LEGITIMATII HANDICAP ==============
 
-// Status pentru legitimații handicap
+// Status pentru legitimatii handicap
 export const HANDICAP_LEGITIMATION_STATUS = {
   ACTIVE: 'ACTIVE',
   FINALIZAT: 'FINALIZAT',
@@ -228,9 +228,9 @@ export const HANDICAP_LEGITIMATION_STATUS = {
 
 export type HandicapLegitimationStatus = typeof HANDICAP_LEGITIMATION_STATUS[keyof typeof HANDICAP_LEGITIMATION_STATUS];
 
-// ============== LEGITIMAȚII REVOLUȚIONAR/DEPORTAT ==============
+// ============== LEGITIMATII REVOLUTIONAR/DEPORTAT ==============
 
-// Status pentru legitimații revoluționar
+// Status pentru legitimatii revolutionar
 export const REVOLUTIONAR_LEGITIMATION_STATUS = {
   ACTIVE: 'ACTIVE',
   FINALIZAT: 'FINALIZAT',

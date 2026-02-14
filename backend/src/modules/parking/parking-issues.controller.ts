@@ -94,7 +94,7 @@ export class ParkingIssuesController {
     @Body() dto: CreateCommentDto,
   ): Promise<ParkingIssueComment> {
     // Accesul este verificat de ParkingAccessGuard la nivel de controller
-    // Permite comentarii pentru: ADMIN, MANAGER, Dispecerat, Întreținere Parcări
+    // Permite comentarii pentru: ADMIN, MANAGER, Dispecerat, Intretinere Parcari
     return this.parkingIssuesService.addComment(id, req.user.id, dto);
   }
 

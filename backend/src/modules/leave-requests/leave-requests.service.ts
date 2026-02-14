@@ -29,9 +29,9 @@ const DEFAULT_LEAVE_DAYS: Record<LeaveType, number> = {
 };
 
 const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
-  VACATION: 'Concediu de Odihnă',
+  VACATION: 'Concediu de Odihna',
   MEDICAL: 'Concediu Medical',
-  BIRTHDAY: 'Concediu Zi de Naștere',
+  BIRTHDAY: 'Concediu Zi de Nastere',
   SPECIAL: 'Concediu Special',
   EXTRA_DAYS: 'Zile Suplimentare',
 };
@@ -61,7 +61,7 @@ export class LeaveRequestsService {
     });
 
     if (!user) {
-      throw new NotFoundException('Utilizatorul nu a fost găsit');
+      throw new NotFoundException('Utilizatorul nu a fost gasit');
     }
 
     const startDate = new Date(dto.startDate);
@@ -71,7 +71,7 @@ export class LeaveRequestsService {
 
     // Validate date range
     if (startDate > endDate) {
-      throw new BadRequestException('Data de început trebuie să fie înainte de data de sfârșit');
+      throw new BadRequestException('Data de inceput trebuie sa fie inainte de data de sfarsit');
     }
 
     // Calculate number of days
@@ -84,7 +84,7 @@ export class LeaveRequestsService {
 
       if (startDate < minDate) {
         throw new BadRequestException(
-          'Cererea trebuie făcută cu cel puțin 1 zi în avans (excepție: Concediu Medical)',
+          'Cererea trebuie facuta cu cel putin 1 zi in avans (exceptie: Concediu Medical)',
         );
       }
     }
@@ -93,7 +93,7 @@ export class LeaveRequestsService {
     if (dto.leaveType === 'BIRTHDAY') {
       if (!user.birthDate) {
         throw new BadRequestException(
-          'Pentru a solicita Concediu de Zi de Naștere, trebuie să completezi data nașterii în profilul tău',
+          'Pentru a solicita Concediu de Zi de Nastere, trebuie sa completezi data nasterii in profilul tau',
         );
       }
 
@@ -105,13 +105,13 @@ export class LeaveRequestsService {
 
       if (startMonth !== birthMonth || startDay !== birthDay) {
         throw new BadRequestException(
-          'Concediul pentru Zi de Naștere poate fi solicitat doar pentru ziua și luna nașterii tale',
+          'Concediul pentru Zi de Nastere poate fi solicitat doar pentru ziua si luna nasterii tale',
         );
       }
 
       // Birthday leave is only 1 day
       if (days > 1) {
-        throw new BadRequestException('Concediul pentru Zi de Naștere este valabil doar pentru o zi');
+        throw new BadRequestException('Concediul pentru Zi de Nastere este valabil doar pentru o zi');
       }
     }
 
@@ -148,7 +148,7 @@ export class LeaveRequestsService {
 
     if (overlapping) {
       throw new BadRequestException(
-        'Ai deja o cerere de concediu pentru această perioadă',
+        'Ai deja o cerere de concediu pentru aceasta perioada',
       );
     }
 
@@ -267,7 +267,7 @@ export class LeaveRequestsService {
     });
 
     if (!request) {
-      throw new NotFoundException('Cererea de concediu nu a fost găsită');
+      throw new NotFoundException('Cererea de concediu nu a fost gasita');
     }
 
     return request;
@@ -303,7 +303,7 @@ export class LeaveRequestsService {
     const request = await this.findOne(id);
 
     if (request.status !== 'PENDING') {
-      throw new BadRequestException('Această cerere a fost deja procesată');
+      throw new BadRequestException('Aceasta cerere a fost deja procesata');
     }
 
     request.status = dto.status as LeaveRequestStatus;
@@ -349,11 +349,11 @@ export class LeaveRequestsService {
     const request = await this.findOne(id);
 
     if (request.userId !== userId) {
-      throw new ForbiddenException('Nu poți anula cererea altui utilizator');
+      throw new ForbiddenException('Nu poti anula cererea altui utilizator');
     }
 
     if (request.status !== 'PENDING') {
-      throw new BadRequestException('Doar cererile în așteptare pot fi anulate');
+      throw new BadRequestException('Doar cererile in asteptare pot fi anulate');
     }
 
     await this.leaveRequestRepository.remove(request);
@@ -490,7 +490,7 @@ export class LeaveRequestsService {
       await this.notificationsService.create({
         userId: admin.id,
         type: NotificationType.LEAVE_REQUEST_CREATED,
-        title: 'Cerere Nouă de Concediu',
+        title: 'Cerere Noua de Concediu',
         message: `${user.fullName} a solicitat ${LEAVE_TYPE_LABELS[request.leaveType]} pentru perioada ${startDate} - ${endDate}`,
         data: {
           leaveRequestId: request.id,
@@ -502,15 +502,15 @@ export class LeaveRequestsService {
         },
       });
 
-      // Push notification cu URL către pagina de gestionare concedii
+      // Push notification cu URL catre pagina de gestionare concedii
       await this.pushNotificationService.sendToUser(
         admin.id,
-        '📋 Cerere Nouă de Concediu',
+        '📋 Cerere Noua de Concediu',
         `${user.fullName} a solicitat ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate})`,
         { url: '/admin/leave-requests' },
       );
 
-      // Email către admin
+      // Email catre admin
       await this.emailService.sendLeaveRequestNotificationToApprover(
         admin.email,
         admin.fullName,
@@ -522,7 +522,7 @@ export class LeaveRequestsService {
       );
     }
 
-    // Email confirmare către angajat
+    // Email confirmare catre angajat
     const leaveTypeMap: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER'> = {
       'VACATION': 'ANNUAL',
       'MEDICAL': 'SICK',
@@ -558,8 +558,8 @@ export class LeaveRequestsService {
         : NotificationType.LEAVE_REQUEST_REJECTED,
       title: approved ? 'Concediu Aprobat' : 'Concediu Respins',
       message: approved
-        ? `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} pentru ${startDate} - ${endDate} a fost aprobată.${request.adminMessage ? ` Mesaj: ${request.adminMessage}` : ''}`
-        : `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} pentru ${startDate} - ${endDate} a fost respinsă.${request.adminMessage ? ` Motiv: ${request.adminMessage}` : ''}`,
+        ? `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} pentru ${startDate} - ${endDate} a fost aprobata.${request.adminMessage ? ` Mesaj: ${request.adminMessage}` : ''}`
+        : `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} pentru ${startDate} - ${endDate} a fost respinsa.${request.adminMessage ? ` Motiv: ${request.adminMessage}` : ''}`,
       data: {
         leaveRequestId: request.id,
         leaveType: request.leaveType,
@@ -570,17 +570,17 @@ export class LeaveRequestsService {
       },
     });
 
-    // Push notification cu URL către programul utilizatorului
+    // Push notification cu URL catre programul utilizatorului
     await this.pushNotificationService.sendToUser(
       request.userId,
       approved ? '✅ Concediu Aprobat' : '❌ Concediu Respins',
       approved
-        ? `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost aprobată!`
-        : `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost respinsă.`,
+        ? `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost aprobata!`
+        : `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost respinsa.`,
       { url: '/schedules' },
     );
 
-    // Email către angajat
+    // Email catre angajat
     const user = await this.userRepository.findOne({ where: { id: request.userId } });
     if (user) {
       const admin = request.adminId
@@ -625,7 +625,7 @@ export class LeaveRequestsService {
     await this.notificationsService.create({
       userId: department.managerId,
       type: NotificationType.LEAVE_REQUEST_APPROVED,
-      title: 'Concediu Aprobat în Departament',
+      title: 'Concediu Aprobat in Departament',
       message: `${request.user.fullName} din departamentul ${department.name} are ${LEAVE_TYPE_LABELS[request.leaveType]} aprobat pentru ${startDate} - ${endDate}`,
       data: {
         leaveRequestId: request.id,

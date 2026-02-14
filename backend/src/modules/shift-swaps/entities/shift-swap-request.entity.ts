@@ -12,12 +12,12 @@ import { User } from '../../users/entities/user.entity';
 import { ShiftSwapResponse } from './shift-swap-response.entity';
 
 export enum ShiftSwapStatus {
-  PENDING = 'PENDING',           // Așteptare răspunsuri de la useri
-  AWAITING_ADMIN = 'AWAITING_ADMIN', // Cel puțin un user a acceptat, așteaptă admin
+  PENDING = 'PENDING',           // Asteptare raspunsuri de la useri
+  AWAITING_ADMIN = 'AWAITING_ADMIN', // Cel putin un user a acceptat, asteapta admin
   APPROVED = 'APPROVED',         // Admin a aprobat schimbul
-  REJECTED = 'REJECTED',         // Admin a respins sau toți userii au refuzat
+  REJECTED = 'REJECTED',         // Admin a respins sau toti userii au refuzat
   CANCELLED = 'CANCELLED',       // Solicitantul a anulat
-  EXPIRED = 'EXPIRED',           // A expirat fără răspuns
+  EXPIRED = 'EXPIRED',           // A expirat fara raspuns
 }
 
 @Entity('shift_swap_requests')
@@ -25,7 +25,7 @@ export class ShiftSwapRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Userul care solicită schimbul
+  // Userul care solicita schimbul
   @Column({ type: 'uuid', name: 'requester_id' })
   requesterId: string;
 
@@ -33,23 +33,23 @@ export class ShiftSwapRequest {
   @JoinColumn({ name: 'requester_id' })
   requester: User;
 
-  // Data pe care o are solicitantul și vrea să o schimbe
+  // Data pe care o are solicitantul si vrea sa o schimbe
   @Column({ type: 'date', name: 'requester_date' })
   requesterDate: Date;
 
-  // Tipul de tură pe care o are solicitantul (pentru referință)
+  // Tipul de tura pe care o are solicitantul (pentru referinta)
   @Column({ type: 'varchar', name: 'requester_shift_type', nullable: true })
   requesterShiftType: string;
 
-  // Data pe care o dorește solicitantul
+  // Data pe care o doreste solicitantul
   @Column({ type: 'date', name: 'target_date' })
   targetDate: Date;
 
-  // Tipul de tură de la data țintă (pentru referință)
+  // Tipul de tura de la data tinta (pentru referinta)
   @Column({ type: 'varchar', name: 'target_shift_type', nullable: true })
   targetShiftType: string;
 
-  // Motivul solicitării
+  // Motivul solicitarii
   @Column({ type: 'text' })
   reason: string;
 
@@ -80,7 +80,7 @@ export class ShiftSwapRequest {
   @Column({ type: 'text', name: 'admin_notes', nullable: true })
   adminNotes: string | null;
 
-  // Răspunsurile de la useri
+  // Raspunsurile de la useri
   @OneToMany(() => ShiftSwapResponse, (response) => response.swapRequest)
   responses: ShiftSwapResponse[];
 

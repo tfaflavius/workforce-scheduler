@@ -76,14 +76,14 @@ interface ShiftOption {
   isVacation: boolean;
 }
 
-// Opțiuni pentru tura de 12 ore
+// Optiuni pentru tura de 12 ore
 const SHIFT_OPTIONS_12H: ShiftOption[] = [
   { id: 'day_12', label: 'Zi 07-19', shortLabel: 'Z', startTime: '07:00', endTime: '19:00', color: '#4CAF50', isNightShift: false, isVacation: false },
   { id: 'night_12', label: 'Noapte 19-07', shortLabel: 'N', startTime: '19:00', endTime: '07:00', color: '#3F51B5', isNightShift: true, isVacation: false },
   { id: 'vacation_12', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
 
-// Opțiuni pentru tura de 8 ore
+// Optiuni pentru tura de 8 ore
 const SHIFT_OPTIONS_8H: ShiftOption[] = [
   { id: 'day1_8', label: 'Zi 06-14', shortLabel: 'Z1', startTime: '06:00', endTime: '14:00', color: '#00BCD4', isNightShift: false, isVacation: false },
   { id: 'day2_8', label: 'Zi 14-22', shortLabel: 'Z2', startTime: '14:00', endTime: '22:00', color: '#9C27B0', isNightShift: false, isVacation: false },
@@ -95,7 +95,7 @@ const SHIFT_OPTIONS_8H: ShiftOption[] = [
   { id: 'vacation_8', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
 
-// Generează lista de luni pentru anul 2026
+// Genereaza lista de luni pentru anul 2026
 const generateMonthOptions = () => {
   const options = [];
   const year = 2026;
@@ -124,16 +124,16 @@ const BulkSchedulePage: React.FC = () => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [showUserSelector, setShowUserSelector] = useState(true);
 
-  // Asignări: { oderId: { date: localShiftId } }
+  // Asignari: { oderId: { date: localShiftId } }
   const [bulkAssignments, setBulkAssignments] = useState<Record<string, Record<string, string>>>({});
-  // Poziții de lucru: { oderId: { date: workPositionId } }
+  // Pozitii de lucru: { oderId: { date: workPositionId } }
   const [bulkWorkPositions, setBulkWorkPositions] = useState<Record<string, Record<string, string>>>({});
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [savingProgress, setSavingProgress] = useState<{ current: number; total: number } | null>(null);
 
-  // Dialog states pentru acțiuni rapide
+  // Dialog states pentru actiuni rapide
   const [quickActionDialog, setQuickActionDialog] = useState<'apply_day' | 'apply_week' | 'copy' | 'template' | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedShiftForAction, setSelectedShiftForAction] = useState<string>('');
@@ -161,13 +161,12 @@ const BulkSchedulePage: React.FC = () => {
   const [createSchedule] = useCreateScheduleMutation();
   const [updateSchedule] = useUpdateScheduleMutation();
 
-  // Filtrăm angajații și managerii, sortăm după departament
+  // Filtram angajatii si managerii, sortam dupa departament
   const eligibleUsers = useMemo(() => {
     const filtered = users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
     const departmentOrder: Record<string, number> = {
       'Dispecerat': 1,
       'Control': 2,
-      'Întreținere': 3,
       'Intretinere': 3,
     };
     filtered.sort((a, b) => {
@@ -179,18 +178,18 @@ const BulkSchedulePage: React.FC = () => {
     return filtered;
   }, [users]);
 
-  // Grupează utilizatorii pe departamente
+  // Grupeaza utilizatorii pe departamente
   const usersByDepartment = useMemo(() => {
     const groups: Record<string, typeof eligibleUsers> = {};
     eligibleUsers.forEach(user => {
-      const dept = user.department?.name || 'Fără Departament';
+      const dept = user.department?.name || 'Fara Departament';
       if (!groups[dept]) groups[dept] = [];
       groups[dept].push(user);
     });
     return groups;
   }, [eligibleUsers]);
 
-  // Opțiunile de tură
+  // Optiunile de tura
   const shiftOptions = shiftPattern === '12H' ? SHIFT_OPTIONS_12H : SHIFT_OPTIONS_8H;
 
   // Zilele lunii
@@ -235,7 +234,7 @@ const BulkSchedulePage: React.FC = () => {
     return dbShift?.id || null;
   }, [dbShiftTypes]);
 
-  // Încarcă asignările existente pentru toți utilizatorii selectați
+  // Incarca asignarile existente pentru toti utilizatorii selectati
   useEffect(() => {
     if (schedulesLoading || selectedUserIds.length === 0) return;
 
@@ -246,7 +245,7 @@ const BulkSchedulePage: React.FC = () => {
       loadedAssignments[userId] = {};
       loadedPositions[userId] = {};
 
-      // Găsește asignările din schedule-uri existente
+      // Gaseste asignarile din schedule-uri existente
       existingSchedules.forEach(schedule => {
         schedule.assignments?.forEach(assignment => {
           if (assignment.userId === userId) {
@@ -277,7 +276,7 @@ const BulkSchedulePage: React.FC = () => {
         });
       });
 
-      // Adaugă concediile aprobate
+      // Adauga concediile aprobate
       const userLeaves = approvedLeaves.filter(leave => leave.userId === userId);
       userLeaves.forEach(leave => {
         leave.dates.forEach(date => {
@@ -292,7 +291,7 @@ const BulkSchedulePage: React.FC = () => {
     setBulkWorkPositions(loadedPositions);
   }, [selectedUserIds, existingSchedules, approvedLeaves, schedulesLoading, shiftPattern, dbWorkPositions]);
 
-  // Handler pentru selecția unui user
+  // Handler pentru selectia unui user
   const handleUserToggle = (userId: string) => {
     setSelectedUserIds(prev =>
       prev.includes(userId)
@@ -301,7 +300,7 @@ const BulkSchedulePage: React.FC = () => {
     );
   };
 
-  // Handler pentru selecția unui departament întreg
+  // Handler pentru selectia unui departament intreg
   const handleDepartmentToggle = (deptName: string) => {
     const deptUsers = usersByDepartment[deptName] || [];
     const deptUserIds = deptUsers.map(u => u.id);
@@ -314,7 +313,7 @@ const BulkSchedulePage: React.FC = () => {
     }
   };
 
-  // Handler pentru selecția tuturor
+  // Handler pentru selectia tuturor
   const handleSelectAll = () => {
     if (selectedUserIds.length === eligibleUsers.length) {
       setSelectedUserIds([]);
@@ -323,7 +322,7 @@ const BulkSchedulePage: React.FC = () => {
     }
   };
 
-  // Handler pentru schimbarea turei unui user într-o zi
+  // Handler pentru schimbarea turei unui user intr-o zi
   const handleShiftChange = (userId: string, date: string, shiftId: string) => {
     setBulkAssignments(prev => {
       const userAssignments = { ...prev[userId] };
@@ -335,7 +334,7 @@ const BulkSchedulePage: React.FC = () => {
       return { ...prev, [userId]: userAssignments };
     });
 
-    // Setează poziția default dacă nu există
+    // Seteaza pozitia default daca nu exista
     if (shiftId !== '' && !bulkWorkPositions[userId]?.[date] && dbWorkPositions.length > 0) {
       const user = eligibleUsers.find(u => u.id === userId);
       const userDept = user?.department?.name?.toLowerCase() || '';
@@ -356,7 +355,7 @@ const BulkSchedulePage: React.FC = () => {
     }
   };
 
-  // Calculează statisticile pentru fiecare zi
+  // Calculeaza statisticile pentru fiecare zi
   const dailyStats = useMemo(() => {
     const stats: Record<string, { total: number; byShift: Record<string, number> }> = {};
 
@@ -378,7 +377,7 @@ const BulkSchedulePage: React.FC = () => {
     return stats;
   }, [calendarDays, selectedUserIds, bulkAssignments]);
 
-  // Găsește scheduleId-ul existent pentru un user
+  // Gaseste scheduleId-ul existent pentru un user
   const getExistingScheduleId = (userId: string): string | null => {
     for (const schedule of existingSchedules) {
       if (schedule.assignments?.some(a => a.userId === userId)) {
@@ -388,7 +387,7 @@ const BulkSchedulePage: React.FC = () => {
     return null;
   };
 
-  // Salvează toate programele
+  // Salveaza toate programele
   const handleSaveAll = async () => {
     if (selectedUserIds.length === 0) return;
 
@@ -401,7 +400,7 @@ const BulkSchedulePage: React.FC = () => {
         const userAssignments = bulkAssignments[userId] || {};
         const userPositions = bulkWorkPositions[userId] || {};
 
-        // Creează assignment DTOs pentru acest user
+        // Creeaza assignment DTOs pentru acest user
         const assignmentDtos: ScheduleAssignmentDto[] = [];
 
         Object.entries(userAssignments).forEach(([date, localShiftId]) => {
@@ -466,7 +465,7 @@ const BulkSchedulePage: React.FC = () => {
         setErrorMessage(`${savedCount} programe salvate, ${failedCount} erori.`);
       }
 
-      // Reîncarcă datele
+      // Reincarca datele
       refetchSchedules();
 
       setTimeout(() => {
@@ -476,20 +475,20 @@ const BulkSchedulePage: React.FC = () => {
 
     } catch (err) {
       console.error('Failed to save schedules:', err);
-      setErrorMessage('A apărut o eroare la salvarea programelor.');
+      setErrorMessage('A aparut o eroare la salvarea programelor.');
       setSavingProgress(null);
     }
   };
 
-  // Obține info pentru tură (culoare, label)
+  // Obtine info pentru tura (culoare, label)
   const getShiftInfo = (localShiftId: string) => {
     const shift = shiftOptions.find(s => s.id === localShiftId);
     return shift ? { label: shift.shortLabel, color: shift.color } : null;
   };
 
-  // ===== ACȚIUNI RAPIDE =====
+  // ===== ACTIUNI RAPIDE =====
 
-  // 1. Aplică tura la toți utilizatorii selectați pentru o zi specifică
+  // 1. Aplica tura la toti utilizatorii selectati pentru o zi specifica
   const handleApplyShiftToDay = () => {
     if (!selectedDay || !selectedShiftForAction) return;
 
@@ -500,11 +499,11 @@ const BulkSchedulePage: React.FC = () => {
     setQuickActionDialog(null);
     setSelectedDay(null);
     setSelectedShiftForAction('');
-    setSuccessMessage(`Tura aplicată pentru ${selectedUserIds.length} angajați în ziua selectată.`);
+    setSuccessMessage(`Tura aplicata pentru ${selectedUserIds.length} angajati in ziua selectata.`);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  // 2. Aplică tura pe toată săptămâna (7 zile de la data selectată)
+  // 2. Aplica tura pe toata saptamana (7 zile de la data selectata)
   const handleApplyShiftToWeek = () => {
     if (!selectedWeekStart || !selectedShiftForAction) return;
 
@@ -515,7 +514,7 @@ const BulkSchedulePage: React.FC = () => {
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
       const dateStr = date.toISOString().split('T')[0];
-      // Verifică dacă data e în luna curentă
+      // Verifica daca data e in luna curenta
       if (calendarDays.some(d => d.date === dateStr)) {
         dates.push(dateStr);
       }
@@ -530,11 +529,11 @@ const BulkSchedulePage: React.FC = () => {
     setQuickActionDialog(null);
     setSelectedWeekStart('');
     setSelectedShiftForAction('');
-    setSuccessMessage(`Tura aplicată pe ${dates.length} zile pentru ${selectedUserIds.length} angajați.`);
+    setSuccessMessage(`Tura aplicata pe ${dates.length} zile pentru ${selectedUserIds.length} angajati.`);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  // 3. Copiază programul de la un angajat la alții
+  // 3. Copiaza programul de la un angajat la altii
   const handleCopySchedule = () => {
     if (!copySourceUserId || copyTargetUserIds.length === 0) return;
 
@@ -542,12 +541,12 @@ const BulkSchedulePage: React.FC = () => {
     const sourcePositions = bulkWorkPositions[copySourceUserId] || {};
 
     copyTargetUserIds.forEach(targetUserId => {
-      // Copiază toate asignările
+      // Copiaza toate asignarile
       Object.entries(sourceAssignments).forEach(([date, shiftId]) => {
         handleShiftChange(targetUserId, date, shiftId);
       });
 
-      // Copiază pozițiile
+      // Copiaza pozitiile
       setBulkWorkPositions(prev => ({
         ...prev,
         [targetUserId]: { ...sourcePositions }
@@ -557,11 +556,11 @@ const BulkSchedulePage: React.FC = () => {
     setQuickActionDialog(null);
     setCopySourceUserId('');
     setCopyTargetUserIds([]);
-    setSuccessMessage(`Programul copiat la ${copyTargetUserIds.length} angajați.`);
+    setSuccessMessage(`Programul copiat la ${copyTargetUserIds.length} angajati.`);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  // 4. Aplică un template de program
+  // 4. Aplica un template de program
   const handleApplyTemplate = (template: { pattern: string[] }) => {
     if (selectedUserIds.length === 0) return;
 
@@ -575,11 +574,11 @@ const BulkSchedulePage: React.FC = () => {
     });
 
     setQuickActionDialog(null);
-    setSuccessMessage(`Template aplicat pentru ${selectedUserIds.length} angajați.`);
+    setSuccessMessage(`Template aplicat pentru ${selectedUserIds.length} angajati.`);
     setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  // Handler pentru click pe header de zi (pentru aplicare rapidă)
+  // Handler pentru click pe header de zi (pentru aplicare rapida)
   const handleDayHeaderClick = (date: string) => {
     setSelectedDay(date);
     setQuickActionDialog('apply_day');
@@ -596,14 +595,14 @@ const BulkSchedulePage: React.FC = () => {
             variant="outlined"
             size="small"
           >
-            Înapoi
+            Inapoi
           </Button>
           <Box sx={{ flex: 1 }}>
             <Typography variant={isMobile ? 'h6' : 'h5'}>
-              Programare în Masă
+              Programare in Masa
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Editează programul pentru mai mulți angajați simultan
+              Editeaza programul pentru mai multi angajati simultan
             </Typography>
           </Box>
         </Stack>
@@ -620,7 +619,7 @@ const BulkSchedulePage: React.FC = () => {
           </Alert>
         )}
 
-        {/* Selectori - Lună și Tip Tură */}
+        {/* Selectori - Luna si Tip Tura */}
         <Card>
           <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
@@ -638,14 +637,14 @@ const BulkSchedulePage: React.FC = () => {
               </FormControl>
 
               <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Tip Tură</InputLabel>
+                <InputLabel>Tip Tura</InputLabel>
                 <Select
                   value={shiftPattern}
                   onChange={(e) => setShiftPattern(e.target.value as ShiftPatternType)}
-                  label="Tip Tură"
+                  label="Tip Tura"
                 >
-                  <MenuItem value="12H">Tură 12 ore</MenuItem>
-                  <MenuItem value="8H">Tură 8 ore</MenuItem>
+                  <MenuItem value="12H">Tura 12 ore</MenuItem>
+                  <MenuItem value="8H">Tura 8 ore</MenuItem>
                 </Select>
               </FormControl>
 
@@ -653,7 +652,7 @@ const BulkSchedulePage: React.FC = () => {
 
               <Chip
                 icon={<GroupIcon />}
-                label={`${selectedUserIds.length} / ${eligibleUsers.length} selectați`}
+                label={`${selectedUserIds.length} / ${eligibleUsers.length} selectati`}
                 color="primary"
                 variant="outlined"
               />
@@ -666,7 +665,7 @@ const BulkSchedulePage: React.FC = () => {
           <CardContent sx={{ p: { xs: 1, sm: 2 } }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
               <Typography variant="subtitle1" fontWeight="bold">
-                Selectează Angajații
+                Selecteaza Angajatii
               </Typography>
               <Stack direction="row" spacing={1}>
                 <Button
@@ -675,7 +674,7 @@ const BulkSchedulePage: React.FC = () => {
                   onClick={handleSelectAll}
                   variant={selectedUserIds.length === eligibleUsers.length ? 'contained' : 'outlined'}
                 >
-                  {selectedUserIds.length === eligibleUsers.length ? 'Deselectează Toți' : 'Selectează Toți'}
+                  {selectedUserIds.length === eligibleUsers.length ? 'Deselecteaza Toti' : 'Selecteaza Toti'}
                 </Button>
                 <IconButton size="small" onClick={() => setShowUserSelector(!showUserSelector)}>
                   {showUserSelector ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -737,7 +736,7 @@ const BulkSchedulePage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Legendă */}
+        {/* Legenda */}
         <Paper sx={{ p: { xs: 1, sm: 1.5 }, overflowX: 'auto' }}>
           <Stack
             direction="row"
@@ -747,7 +746,7 @@ const BulkSchedulePage: React.FC = () => {
             sx={{ gap: { xs: 0.5, sm: 1 } }}
           >
             <Typography variant="caption" fontWeight="bold" sx={{ mr: 1, whiteSpace: 'nowrap' }}>
-              Legendă ({shiftPattern}):
+              Legenda ({shiftPattern}):
             </Typography>
             {shiftOptions.map((option) => (
               <Chip
@@ -772,14 +771,14 @@ const BulkSchedulePage: React.FC = () => {
           </Stack>
         </Paper>
 
-        {/* Acțiuni Rapide */}
+        {/* Actiuni Rapide */}
         {selectedUserIds.length > 0 && (
           <Card sx={{ bgcolor: 'primary.50', border: '1px solid', borderColor: 'primary.200' }}>
             <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
               <Stack direction="row" alignItems="center" spacing={1} mb={1}>
                 <FlashOnIcon color="primary" fontSize="small" />
                 <Typography variant="subtitle2" fontWeight="bold" color="primary.main">
-                  Acțiuni Rapide
+                  Actiuni Rapide
                 </Typography>
               </Stack>
               <Stack
@@ -795,7 +794,7 @@ const BulkSchedulePage: React.FC = () => {
                   onClick={() => setQuickActionDialog('apply_day')}
                   fullWidth={isMobile}
                 >
-                  {isMobile ? 'Tură/Zi' : 'Aplică Tură pe Zi'}
+                  {isMobile ? 'Tura/Zi' : 'Aplica Tura pe Zi'}
                 </Button>
                 <Button
                   size="small"
@@ -804,7 +803,7 @@ const BulkSchedulePage: React.FC = () => {
                   onClick={() => setQuickActionDialog('apply_week')}
                   fullWidth={isMobile}
                 >
-                  {isMobile ? 'Tură/Săptămână' : 'Aplică Tură pe Săptămână'}
+                  {isMobile ? 'Tura/Saptamana' : 'Aplica Tura pe Saptamana'}
                 </Button>
                 <Button
                   size="small"
@@ -813,7 +812,7 @@ const BulkSchedulePage: React.FC = () => {
                   onClick={() => setQuickActionDialog('copy')}
                   fullWidth={isMobile}
                 >
-                  {isMobile ? 'Copiază' : 'Copiază Program'}
+                  {isMobile ? 'Copiaza' : 'Copiaza Program'}
                 </Button>
                 <Button
                   size="small"
@@ -822,7 +821,7 @@ const BulkSchedulePage: React.FC = () => {
                   onClick={() => setQuickActionDialog('template')}
                   fullWidth={isMobile}
                 >
-                  {isMobile ? 'Template' : 'Aplică Template'}
+                  {isMobile ? 'Template' : 'Aplica Template'}
                 </Button>
               </Stack>
             </CardContent>
@@ -836,7 +835,7 @@ const BulkSchedulePage: React.FC = () => {
               <TableContainer sx={{ maxHeight: { xs: 'calc(100vh - 500px)', sm: 'calc(100vh - 450px)' }, minHeight: { xs: 250, sm: 300 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
-                    {/* Rând cu statistici pe zi */}
+                    {/* Rand cu statistici pe zi */}
                     <TableRow>
                       <TableCell
                         sx={{
@@ -897,7 +896,7 @@ const BulkSchedulePage: React.FC = () => {
                       })}
                     </TableRow>
 
-                    {/* Rând cu header zile */}
+                    {/* Rand cu header zile */}
                     <TableRow>
                       <TableCell
                         sx={{
@@ -913,7 +912,7 @@ const BulkSchedulePage: React.FC = () => {
                         Angajat
                       </TableCell>
                       {calendarDays.map(({ day, date, dayOfWeek, isWeekend }) => (
-                        <Tooltip key={day} title="Click pentru a aplica tură rapidă" arrow>
+                        <Tooltip key={day} title="Click pentru a aplica tura rapida" arrow>
                           <TableCell
                             align="center"
                             onClick={() => handleDayHeaderClick(date)}
@@ -1040,7 +1039,7 @@ const BulkSchedulePage: React.FC = () => {
           </Card>
         ) : (
           <Alert severity="info">
-            Selectează cel puțin un angajat pentru a edita programul.
+            Selecteaza cel putin un angajat pentru a edita programul.
           </Alert>
         )}
 
@@ -1056,8 +1055,8 @@ const BulkSchedulePage: React.FC = () => {
               >
                 <Box>
                   <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                    <strong>{selectedUserIds.length}</strong> angajați |
-                    {!isMobile && ' Lună:'} <strong>{monthOptions.find(m => m.value === monthYear)?.label}</strong>
+                    <strong>{selectedUserIds.length}</strong> angajati |
+                    {!isMobile && ' Luna:'} <strong>{monthOptions.find(m => m.value === monthYear)?.label}</strong>
                   </Typography>
                   {savingProgress && (
                     <Typography variant="caption" color="text.secondary">
@@ -1072,7 +1071,7 @@ const BulkSchedulePage: React.FC = () => {
                     size={isMobile ? 'small' : 'medium'}
                     sx={{ flex: { xs: 1, sm: 'none' } }}
                   >
-                    Anulează
+                    Anuleaza
                   </Button>
                   <Button
                     variant="contained"
@@ -1083,7 +1082,7 @@ const BulkSchedulePage: React.FC = () => {
                     size={isMobile ? 'small' : 'medium'}
                     sx={{ flex: { xs: 2, sm: 'none' } }}
                   >
-                    {savingProgress ? 'Salvare...' : (isMobile ? `Salvează (${selectedUserIds.length})` : `Salvează Toate (${selectedUserIds.length})`)}
+                    {savingProgress ? 'Salvare...' : (isMobile ? `Salveaza (${selectedUserIds.length})` : `Salveaza Toate (${selectedUserIds.length})`)}
                   </Button>
                 </Stack>
               </Stack>
@@ -1092,9 +1091,9 @@ const BulkSchedulePage: React.FC = () => {
         )}
       </Stack>
 
-      {/* ===== DIALOGURI ACȚIUNI RAPIDE ===== */}
+      {/* ===== DIALOGURI ACTIUNI RAPIDE ===== */}
 
-      {/* Dialog: Aplică Tură pe Zi */}
+      {/* Dialog: Aplica Tura pe Zi */}
       <Dialog
         open={quickActionDialog === 'apply_day'}
         onClose={() => { setQuickActionDialog(null); setSelectedDay(null); setSelectedShiftForAction(''); }}
@@ -1104,13 +1103,13 @@ const BulkSchedulePage: React.FC = () => {
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
             <TodayIcon color="primary" />
-            <Typography variant="h6">Aplică Tură pe Zi</Typography>
+            <Typography variant="h6">Aplica Tura pe Zi</Typography>
           </Stack>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Selectează ziua și tura pentru a o aplica la toți cei {selectedUserIds.length} angajați selectați.
+              Selecteaza ziua si tura pentru a o aplica la toti cei {selectedUserIds.length} angajati selectati.
             </Typography>
 
             <FormControl fullWidth size="small">
@@ -1136,7 +1135,7 @@ const BulkSchedulePage: React.FC = () => {
                 label="Tura"
               >
                 <MenuItem value="">
-                  <em>Liber (șterge tura)</em>
+                  <em>Liber (sterge tura)</em>
                 </MenuItem>
                 {shiftOptions.map((option) => (
                   <MenuItem key={option.id} value={option.id}>
@@ -1159,19 +1158,19 @@ const BulkSchedulePage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { setQuickActionDialog(null); setSelectedDay(null); setSelectedShiftForAction(''); }}>
-            Anulează
+            Anuleaza
           </Button>
           <Button
             variant="contained"
             onClick={handleApplyShiftToDay}
             disabled={!selectedDay}
           >
-            Aplică
+            Aplica
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog: Aplică Tură pe Săptămână */}
+      {/* Dialog: Aplica Tura pe Saptamana */}
       <Dialog
         open={quickActionDialog === 'apply_week'}
         onClose={() => { setQuickActionDialog(null); setSelectedWeekStart(''); setSelectedShiftForAction(''); }}
@@ -1181,21 +1180,21 @@ const BulkSchedulePage: React.FC = () => {
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
             <DateRangeIcon color="primary" />
-            <Typography variant="h6">Aplică Tură pe Săptămână</Typography>
+            <Typography variant="h6">Aplica Tura pe Saptamana</Typography>
           </Stack>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Selectează prima zi a săptămânii și tura. Tura va fi aplicată pentru 7 zile consecutive.
+              Selecteaza prima zi a saptamanii si tura. Tura va fi aplicata pentru 7 zile consecutive.
             </Typography>
 
             <FormControl fullWidth size="small">
-              <InputLabel>Prima zi din săptămână</InputLabel>
+              <InputLabel>Prima zi din saptamana</InputLabel>
               <Select
                 value={selectedWeekStart}
                 onChange={(e) => setSelectedWeekStart(e.target.value)}
-                label="Prima zi din săptămână"
+                label="Prima zi din saptamana"
               >
                 {calendarDays.slice(0, -6).map(({ day, date, dayOfWeek }) => (
                   <MenuItem key={date} value={date}>
@@ -1213,7 +1212,7 @@ const BulkSchedulePage: React.FC = () => {
                 label="Tura"
               >
                 <MenuItem value="">
-                  <em>Liber (șterge turele)</em>
+                  <em>Liber (sterge turele)</em>
                 </MenuItem>
                 {shiftOptions.map((option) => (
                   <MenuItem key={option.id} value={option.id}>
@@ -1236,19 +1235,19 @@ const BulkSchedulePage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { setQuickActionDialog(null); setSelectedWeekStart(''); setSelectedShiftForAction(''); }}>
-            Anulează
+            Anuleaza
           </Button>
           <Button
             variant="contained"
             onClick={handleApplyShiftToWeek}
             disabled={!selectedWeekStart}
           >
-            Aplică pe 7 Zile
+            Aplica pe 7 Zile
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog: Copiază Program */}
+      {/* Dialog: Copiaza Program */}
       <Dialog
         open={quickActionDialog === 'copy'}
         onClose={() => { setQuickActionDialog(null); setCopySourceUserId(''); setCopyTargetUserIds([]); }}
@@ -1258,21 +1257,21 @@ const BulkSchedulePage: React.FC = () => {
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
             <ContentCopyIcon color="primary" />
-            <Typography variant="h6">Copiază Program</Typography>
+            <Typography variant="h6">Copiaza Program</Typography>
           </Stack>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Copiază programul unui angajat la alți angajați selectați.
+              Copiaza programul unui angajat la alti angajati selectati.
             </Typography>
 
             <FormControl fullWidth size="small">
-              <InputLabel>Copiază de la</InputLabel>
+              <InputLabel>Copiaza de la</InputLabel>
               <Select
                 value={copySourceUserId}
                 onChange={(e) => setCopySourceUserId(e.target.value)}
-                label="Copiază de la"
+                label="Copiaza de la"
               >
                 {selectedUserIds.map(userId => {
                   const user = eligibleUsers.find(u => u.id === userId);
@@ -1287,7 +1286,7 @@ const BulkSchedulePage: React.FC = () => {
 
             <Divider />
 
-            <Typography variant="subtitle2">Copiază la:</Typography>
+            <Typography variant="subtitle2">Copiaza la:</Typography>
             <Paper variant="outlined" sx={{ maxHeight: 200, overflow: 'auto' }}>
               <List dense>
                 {selectedUserIds
@@ -1336,26 +1335,26 @@ const BulkSchedulePage: React.FC = () => {
               }}
             >
               {copyTargetUserIds.length === selectedUserIds.filter(id => id !== copySourceUserId).length
-                ? 'Deselectează Toți'
-                : 'Selectează Toți'}
+                ? 'Deselecteaza Toti'
+                : 'Selecteaza Toti'}
             </Button>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { setQuickActionDialog(null); setCopySourceUserId(''); setCopyTargetUserIds([]); }}>
-            Anulează
+            Anuleaza
           </Button>
           <Button
             variant="contained"
             onClick={handleCopySchedule}
             disabled={!copySourceUserId || copyTargetUserIds.length === 0}
           >
-            Copiază ({copyTargetUserIds.length})
+            Copiaza ({copyTargetUserIds.length})
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog: Aplică Template */}
+      {/* Dialog: Aplica Template */}
       <Dialog
         open={quickActionDialog === 'template'}
         onClose={() => setQuickActionDialog(null)}
@@ -1365,18 +1364,18 @@ const BulkSchedulePage: React.FC = () => {
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
             <PlaylistAddIcon color="primary" />
-            <Typography variant="h6">Aplică Template de Program</Typography>
+            <Typography variant="h6">Aplica Template de Program</Typography>
           </Stack>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">
-              Selectează un template care se va repeta pentru toată luna.
-              Se aplică la toți cei {selectedUserIds.length} angajați selectați.
+              Selecteaza un template care se va repeta pentru toata luna.
+              Se aplica la toti cei {selectedUserIds.length} angajati selectati.
             </Typography>
 
             <Alert severity="info" sx={{ fontSize: '0.85rem' }}>
-              Template-ul se repetă ciclic: după ultimul element, revine la primul.
+              Template-ul se repeta ciclic: dupa ultimul element, revine la primul.
             </Alert>
 
             <List>
@@ -1457,13 +1456,13 @@ const BulkSchedulePage: React.FC = () => {
               }}
               disabled={templatePattern.length === 0 || templatePattern.every(p => !p)}
             >
-              Aplică Template Personalizat
+              Aplica Template Personalizat
             </Button>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { setQuickActionDialog(null); setTemplatePattern([]); }}>
-            Închide
+            Inchide
           </Button>
         </DialogActions>
       </Dialog>

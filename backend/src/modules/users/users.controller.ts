@@ -76,7 +76,7 @@ export class UsersController {
       throw new ForbiddenException('You can only update your own profile');
     }
 
-    // Dacă nu e admin, restricționează câmpurile ce pot fi modificate
+    // Daca nu e admin, restrictioneaza campurile ce pot fi modificate
     if (!isAdmin) {
       // Utilizatorii normali pot modifica doar: fullName, phone, birthDate
       const allowedFields = ['fullName', 'phone', 'birthDate'];

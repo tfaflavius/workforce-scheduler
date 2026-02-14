@@ -35,7 +35,7 @@ const RejectedSchedulesPage: React.FC = () => {
   });
   const { data: users = [] } = useGetUsersQuery({ isActive: true });
 
-  // Creează un map pentru utilizatori
+  // Creeaza un map pentru utilizatori
   const usersMap = useMemo(() => {
     const map: Record<string, any> = {};
     users.forEach(user => {
@@ -44,7 +44,7 @@ const RejectedSchedulesPage: React.FC = () => {
     return map;
   }, [users]);
 
-  // Grupează programele respinse pe lună
+  // Grupeaza programele respinse pe luna
   const groupedSchedules = useMemo(() => {
     const groups: Record<string, typeof rejectedSchedules> = {};
     rejectedSchedules.forEach(schedule => {
@@ -90,7 +90,7 @@ const RejectedSchedulesPage: React.FC = () => {
               </Typography>
             </Stack>
             <Typography variant="body2" color="text.secondary">
-              Programele care au fost respinse și necesită revizuire
+              Programele care au fost respinse si necesita revizuire
             </Typography>
           </Box>
           <Button
@@ -99,7 +99,7 @@ const RejectedSchedulesPage: React.FC = () => {
             onClick={() => refetch()}
             size={isMobile ? 'small' : 'medium'}
           >
-            Reîmprospătează
+            Reimprospateaza
           </Button>
         </Box>
 
@@ -129,18 +129,18 @@ const RejectedSchedulesPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error">
-            Eroare la încărcarea programelor respinse.
+            Eroare la incarcarea programelor respinse.
           </Alert>
         )}
 
         {/* Lista programelor respinse */}
         {rejectedSchedules.length === 0 ? (
           <Alert severity="success" icon={<RejectedIcon />}>
-            Nu există programe respinse.
+            Nu exista programe respinse.
           </Alert>
         ) : (
           Object.entries(groupedSchedules)
-            .sort(([a], [b]) => b.localeCompare(a)) // Sortează descrescător după lună
+            .sort(([a], [b]) => b.localeCompare(a)) // Sorteaza descrescator dupa luna
             .map(([monthYear, schedules]) => (
               <Paper key={monthYear} sx={{ p: 2 }}>
                 <Stack direction="row" alignItems="center" spacing={1} mb={2}>
@@ -153,7 +153,7 @@ const RejectedSchedulesPage: React.FC = () => {
 
                 <Stack spacing={2}>
                   {schedules.map((schedule) => {
-                    // Găsește utilizatorii din asignări
+                    // Gaseste utilizatorii din asignari
                     const assignedUserIds = new Set(
                       schedule.assignments?.map(a => a.userId) || []
                     );
@@ -207,11 +207,11 @@ const RejectedSchedulesPage: React.FC = () => {
                               </Alert>
                             )}
 
-                            {/* Utilizatori afectați */}
+                            {/* Utilizatori afectati */}
                             {assignedUsers.length > 0 && (
                               <Box>
                                 <Typography variant="caption" color="text.secondary" gutterBottom>
-                                  Angajați în program:
+                                  Angajati in program:
                                 </Typography>
                                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
                                   {assignedUsers.slice(0, 5).map(user => (
@@ -225,7 +225,7 @@ const RejectedSchedulesPage: React.FC = () => {
                                   ))}
                                   {assignedUsers.length > 5 && (
                                     <Chip
-                                      label={`+${assignedUsers.length - 5} alții`}
+                                      label={`+${assignedUsers.length - 5} altii`}
                                       size="small"
                                       variant="outlined"
                                     />
@@ -234,7 +234,7 @@ const RejectedSchedulesPage: React.FC = () => {
                               </Box>
                             )}
 
-                            {/* Acțiuni */}
+                            {/* Actiuni */}
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <Button
                                 size="small"
@@ -242,7 +242,7 @@ const RejectedSchedulesPage: React.FC = () => {
                                 startIcon={<EditIcon />}
                                 onClick={() => navigate(`/schedules/${schedule.id}`)}
                               >
-                                Editează și Retrimite
+                                Editeaza si Retrimite
                               </Button>
                             </Stack>
                           </Stack>

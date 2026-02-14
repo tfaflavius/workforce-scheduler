@@ -287,7 +287,7 @@ const AdminDashboard = () => {
                   fontSize: { xs: '0.8rem', sm: '0.875rem', md: '1rem' }
                 }}
               >
-                Gestionează programele de lucru și utilizatorii
+                Gestioneaza programele de lucru si utilizatorii
               </Typography>
             </Box>
           </Stack>
@@ -308,7 +308,7 @@ const AdminDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            🎧 Dispecerat Astăzi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+            🎧 Dispecerat Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
           </Typography>
           <Grow in={true} timeout={600}>
             <Card
@@ -347,12 +347,12 @@ const AdminDashboard = () => {
                   </Box>
                   <Box sx={{ minWidth: 0 }}>
                     <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
-                      Personal în Dispecerat
+                      Personal in Dispecerat
                     </Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       {todayDispatchers.length > 0
-                        ? `${todayDispatchers.length} ${todayDispatchers.length === 1 ? 'persoană programată' : 'persoane programate'}`
-                        : 'Nicio persoană programată'}
+                        ? `${todayDispatchers.length} ${todayDispatchers.length === 1 ? 'persoana programata' : 'persoane programate'}`
+                        : 'Nicio persoana programata'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -438,7 +438,7 @@ const AdminDashboard = () => {
                     }}
                   >
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                      Nu există personal programat în dispecerat pentru ziua de astăzi.
+                      Nu exista personal programat in dispecerat pentru ziua de astazi.
                     </Typography>
                   </Box>
                 )}
@@ -469,9 +469,9 @@ const AdminDashboard = () => {
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             <Grid size={{ xs: 6, sm: 6, md: 3 }}>
               <StatCard
-                title="În Așteptare"
+                title="In Asteptare"
                 value={pendingCount}
-                subtitle="Necesită aprobare"
+                subtitle="Necesita aprobare"
                 icon={<PendingIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                 color="#f59e0b"
                 bgColor={alpha('#f59e0b', 0.12)}
@@ -496,7 +496,7 @@ const AdminDashboard = () => {
               <StatCard
                 title="Respinse"
                 value={rejectedSchedules?.length || 0}
-                subtitle="Necesită revizuire"
+                subtitle="Necesita revizuire"
                 icon={<RejectedIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                 color="#ef4444"
                 bgColor={alpha('#ef4444', 0.12)}
@@ -522,7 +522,7 @@ const AdminDashboard = () => {
 
       <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-      {/* Schimburi și Concedii Section */}
+      {/* Schimburi si Concedii Section */}
       <Fade in={true} timeout={900}>
         <Box>
           <Typography
@@ -543,7 +543,7 @@ const AdminDashboard = () => {
               <StatCard
                 title="Schimburi Pending"
                 value={pendingSwaps}
-                subtitle="Necesită aprobare"
+                subtitle="Necesita aprobare"
                 icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#06b6d4' }} />}
                 color="#06b6d4"
                 bgColor={alpha('#06b6d4', 0.12)}
@@ -556,7 +556,7 @@ const AdminDashboard = () => {
               <StatCard
                 title="Concedii Pending"
                 value={pendingLeaves}
-                subtitle="Necesită aprobare"
+                subtitle="Necesita aprobare"
                 icon={<BeachIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
                 color="#8b5cf6"
                 bgColor={alpha('#8b5cf6', 0.12)}
@@ -595,7 +595,7 @@ const AdminDashboard = () => {
 
       <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-      {/* Parcări Etajate Section */}
+      {/* Parcari Etajate Section */}
       <Fade in={true} timeout={1100}>
         <Box>
           <Typography
@@ -609,14 +609,14 @@ const AdminDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            🅿️ Parcări Etajate
+            🅿️ Parcari Etajate
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               <StatCard
                 title="Probleme Active"
                 value={activeIssues.length}
-                subtitle={urgentIssues.length > 0 ? `${urgentIssues.length} urgente` : 'Niciuna urgentă'}
+                subtitle={urgentIssues.length > 0 ? `${urgentIssues.length} urgente` : 'Niciuna urgenta'}
                 icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                 color="#ef4444"
                 bgColor={alpha('#ef4444', 0.12)}
@@ -629,7 +629,7 @@ const AdminDashboard = () => {
               <StatCard
                 title="Prejudicii Active"
                 value={activeDamages.length}
-                subtitle={urgentDamages.length > 0 ? `${urgentDamages.length} urgente` : 'Niciuna urgentă'}
+                subtitle={urgentDamages.length > 0 ? `${urgentDamages.length} urgente` : 'Niciuna urgenta'}
                 icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                 color="#f59e0b"
                 bgColor={alpha('#f59e0b', 0.12)}
@@ -642,7 +642,7 @@ const AdminDashboard = () => {
               <StatCard
                 title="Cereri Editare"
                 value={pendingEditRequests?.count || 0}
-                subtitle="În așteptare aprobare"
+                subtitle="In asteptare aprobare"
                 icon={<EditIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
                 color="#8b5cf6"
                 bgColor={alpha('#8b5cf6', 0.12)}
@@ -696,7 +696,7 @@ const AdminDashboard = () => {
                             opacity: 0.9,
                           }}
                         >
-                          Total Încasări Automate
+                          Total Incasari Automate
                         </Typography>
                         <Typography
                           variant="h4"
@@ -724,7 +724,7 @@ const AdminDashboard = () => {
                             opacity: 0.85,
                           }}
                         >
-                          {cashTotals ? `${cashTotals.count || 0} ridicări înregistrate` : 'Nicio ridicare'}
+                          {cashTotals ? `${cashTotals.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
                         </Typography>
                       </Box>
                       <Box
@@ -751,7 +751,7 @@ const AdminDashboard = () => {
 
       <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-      {/* Parcări Handicap Section */}
+      {/* Parcari Handicap Section */}
       <Fade in={true} timeout={1300}>
         <Box>
           <Typography
@@ -765,7 +765,7 @@ const AdminDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            ♿ Parcări Handicap - Solicitări
+            ♿ Parcari Handicap - Solicitari
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             <Grid size={{ xs: 6, sm: 6, md: 4 }}>
@@ -810,7 +810,7 @@ const AdminDashboard = () => {
 
       <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
-      {/* Legitimații Section */}
+      {/* Legitimatii Section */}
       <Fade in={true} timeout={1500}>
         <Box>
           <Typography
@@ -824,12 +824,12 @@ const AdminDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            🪪 Legitimații
+            🪪 Legitimatii
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             <Grid size={{ xs: 6, sm: 6, md: 6 }}>
               <StatCard
-                title="Legitimații Handicap"
+                title="Legitimatii Handicap"
                 value={handicapLegitimations.length}
                 subtitle={`${handicapLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
                 icon={<LegitimatiiIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
@@ -842,7 +842,7 @@ const AdminDashboard = () => {
             </Grid>
             <Grid size={{ xs: 6, sm: 6, md: 6 }}>
               <StatCard
-                title="Legitimații Revoluționar"
+                title="Legitimatii Revolutionar"
                 value={revolutionarLegitimations.length}
                 subtitle={`${revolutionarLegitimations.filter(l => l.status === 'ACTIVE').length} active`}
                 icon={<RevolutionarIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#7c3aed' }} />}

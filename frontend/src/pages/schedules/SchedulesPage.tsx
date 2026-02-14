@@ -56,7 +56,7 @@ import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 
-// Generează lista de luni pentru anul 2026 (toate cele 12 luni)
+// Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
   const options = [];
   const year = 2026;
@@ -76,8 +76,8 @@ const generateMonthOptions = () => {
 
 // Tipuri de filtre
 type ShiftFilter = 'ALL' | '12H' | '8H' | 'VACATION' | 'FREE';
-type DayFilter = 'ALL' | string; // 'ALL' sau numărul zilei (1-31)
-type WorkPositionFilter = 'ALL' | string; // 'ALL' sau ID-ul poziției de lucru
+type DayFilter = 'ALL' | string; // 'ALL' sau numarul zilei (1-31)
+type WorkPositionFilter = 'ALL' | string; // 'ALL' sau ID-ul pozitiei de lucru
 
 const SchedulesPage: React.FC = () => {
   const theme = useTheme();
@@ -106,7 +106,7 @@ const SchedulesPage: React.FC = () => {
   // Legend collapse state (collapsed by default on mobile)
   const [legendExpanded, setLegendExpanded] = useState(!isMobile);
 
-  // Lista de luni (generată o singură dată)
+  // Lista de luni (generata o singura data)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
 
   const { data: schedules = [], isLoading, error } = useGetSchedulesQuery({
@@ -115,16 +115,16 @@ const SchedulesPage: React.FC = () => {
   const { data: users = [] } = useGetUsersQuery({ isActive: true });
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(selectedMonth);
 
-  // Verifică dacă utilizatorul curent este admin
+  // Verifica daca utilizatorul curent este admin
   const isAdmin = user?.role === 'ADMIN';
   const isManager = user?.role === 'MANAGER';
 
-  // Filtrăm doar angajații și managerii
+  // Filtram doar angajatii si managerii
   const eligibleUsers = useMemo(() => {
     return users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
   }, [users]);
 
-  // Extrage lista unică de departamente
+  // Extrage lista unica de departamente
   const departments = useMemo(() => {
     const deptMap = new Map<string, string>();
     eligibleUsers.forEach(u => {
@@ -137,7 +137,7 @@ const SchedulesPage: React.FC = () => {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [eligibleUsers]);
 
-  // Extrage lista unică de poziții de lucru (Dispecerat, Control, etc.)
+  // Extrage lista unica de pozitii de lucru (Dispecerat, Control, etc.)
   const workPositions = useMemo(() => {
     const posMap = new Map<string, { id: string; name: string; shortName?: string; color?: string }>();
     schedules.forEach(schedule => {
@@ -157,7 +157,7 @@ const SchedulesPage: React.FC = () => {
     return Array.from(posMap.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [schedules]);
 
-  // Generează zilele lunii
+  // Genereaza zilele lunii
   const daysInMonth = useMemo(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const date = new Date(year, month, 0);
@@ -179,9 +179,9 @@ const SchedulesPage: React.FC = () => {
     return days;
   }, [selectedMonth, daysInMonth]);
 
-  // Creează un map cu toate asignările existente pentru toți angajații
-  // Include și statusul programului și poziția de lucru
-  // Include și concediile aprobate care nu au încă asignări
+  // Creeaza un map cu toate asignarile existente pentru toti angajatii
+  // Include si statusul programului si pozitia de lucru
+  // Include si concediile aprobate care nu au inca asignari
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, {
       assignments: Record<string, { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string }; isApprovedLeave?: boolean }>;
@@ -189,7 +189,7 @@ const SchedulesPage: React.FC = () => {
       status?: string;
     }> = {};
 
-    // Mai întâi, adaugă concediile aprobate pentru această lună
+    // Mai intai, adauga concediile aprobate pentru aceasta luna
     approvedLeaves.forEach(leave => {
       if (!userAssignmentsMap[leave.userId]) {
         userAssignmentsMap[leave.userId] = {
@@ -205,7 +205,7 @@ const SchedulesPage: React.FC = () => {
       });
     });
 
-    // Apoi, adaugă asignările din programe (acestea suprascriu concediile dacă există)
+    // Apoi, adauga asignarile din programe (acestea suprascriu concediile daca exista)
     schedules.forEach(schedule => {
       if (schedule.assignments) {
         schedule.assignments.forEach(assignment => {
@@ -216,7 +216,7 @@ const SchedulesPage: React.FC = () => {
               status: schedule.status,
             };
           }
-          // Normalizează data pentru a evita probleme cu timezone
+          // Normalizeaza data pentru a evita probleme cu timezone
           // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
           const normalizedDate = assignment.shiftDate.split('T')[0];
           userAssignmentsMap[assignment.userId].assignments[normalizedDate] = {
@@ -237,9 +237,9 @@ const SchedulesPage: React.FC = () => {
     return userAssignmentsMap;
   }, [schedules, approvedLeaves]);
 
-  // Obține info pentru o asignare existentă
+  // Obtine info pentru o asignare existenta
   const getExistingShiftInfo = (notes: string) => {
-    // Check for leave (concediu) - can be "Concediu" or "Concediu: Concediu de Odihnă" etc.
+    // Check for leave (concediu) - can be "Concediu" or "Concediu: Concediu de Odihna" etc.
     if (notes === 'Concediu' || notes?.startsWith('Concediu:') || notes?.includes('Concediu')) {
       return { label: 'CO', color: '#FF9800', type: 'VACATION' as const };
     }
@@ -247,7 +247,7 @@ const SchedulesPage: React.FC = () => {
       return { label: 'Z', color: '#4CAF50', type: '12H' as const };  // Verde
     }
     if (notes.includes('19:00-07:00')) {
-      return { label: 'N', color: '#3F51B5', type: '12H' as const };  // Albastru închis
+      return { label: 'N', color: '#3F51B5', type: '12H' as const };  // Albastru inchis
     }
     if (notes.includes('07:30-15:30')) {
       return { label: 'Z3', color: '#795548', type: '8H' as const };  // Maro
@@ -277,7 +277,7 @@ const SchedulesPage: React.FC = () => {
   const filteredUsers = useMemo(() => {
     let filtered = [...eligibleUsers];
 
-    // Filtru după nume
+    // Filtru dupa nume
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(user =>
@@ -285,12 +285,12 @@ const SchedulesPage: React.FC = () => {
       );
     }
 
-    // Filtru după departament
+    // Filtru dupa departament
     if (departmentFilter !== 'ALL') {
       filtered = filtered.filter(user => user.department?.id === departmentFilter);
     }
 
-    // Filtru după tipul de tură
+    // Filtru dupa tipul de tura
     if (shiftFilter !== 'ALL') {
       filtered = filtered.filter(user => {
         const userAssignments = allUsersAssignments[user.id]?.assignments || {};
@@ -307,25 +307,25 @@ const SchedulesPage: React.FC = () => {
       });
     }
 
-    // Filtru după zi specifică
+    // Filtru dupa zi specifica
     if (dayFilter !== 'ALL') {
       const [year, month] = selectedMonth.split('-').map(Number);
       const targetDate = `${year}-${String(month).padStart(2, '0')}-${String(dayFilter).padStart(2, '0')}`;
 
       filtered = filtered.filter(user => {
         const userAssignments = allUsersAssignments[user.id]?.assignments || {};
-        // Arată doar userii care au tură în ziua selectată
+        // Arata doar userii care au tura in ziua selectata
         return userAssignments[targetDate] !== undefined;
       });
     }
 
-    // Filtru după poziția de lucru (Dispecerat/Control)
+    // Filtru dupa pozitia de lucru (Dispecerat/Control)
     if (workPositionFilter !== 'ALL') {
       filtered = filtered.filter(user => {
         const userAssignments = allUsersAssignments[user.id]?.assignments || {};
         const assignmentValues = Object.values(userAssignments);
 
-        // Arată userii care au cel puțin o tură la poziția selectată
+        // Arata userii care au cel putin o tura la pozitia selectata
         return assignmentValues.some(assignment =>
           assignment.workPosition?.shortName === workPositionFilter ||
           assignment.workPosition?.name === workPositionFilter
@@ -333,12 +333,11 @@ const SchedulesPage: React.FC = () => {
       });
     }
 
-    // Sortare după departament: Dispecerat → Control → Întreținere
+    // Sortare dupa departament: Dispecerat → Control → Intretinere
     const departmentOrder: Record<string, number> = {
       'Dispecerat': 1,
       'Control': 2,
-      'Întreținere': 3,
-      'Intretinere': 3, // fallback pentru varianta fără diacritice
+      'Intretinere': 3,
     };
 
     filtered.sort((a, b) => {
@@ -348,12 +347,12 @@ const SchedulesPage: React.FC = () => {
       const orderA = departmentOrder[deptA] || 99;
       const orderB = departmentOrder[deptB] || 99;
 
-      // Prima sortare: după departament
+      // Prima sortare: dupa departament
       if (orderA !== orderB) {
         return orderA - orderB;
       }
 
-      // A doua sortare: alfabetic după nume în cadrul aceluiași departament
+      // A doua sortare: alfabetic dupa nume in cadrul aceluiasi departament
       return a.fullName.localeCompare(b.fullName);
     });
 
@@ -364,14 +363,14 @@ const SchedulesPage: React.FC = () => {
     navigate('/schedules/create');
   };
 
-  // Verifică dacă utilizatorul poate edita programul
+  // Verifica daca utilizatorul poate edita programul
   const canEditSchedule = (targetUser: any) => {
     if (isAdmin) {
       // Admin poate edita orice program
       return true;
     }
     if (isManager && targetUser.role === 'USER') {
-      // Manager poate edita programele angajaților
+      // Manager poate edita programele angajatilor
       return true;
     }
     return false;
@@ -383,16 +382,16 @@ const SchedulesPage: React.FC = () => {
     setEditDialogOpen(true);
   };
 
-  // Navighează la pagina de editare
+  // Navigheaza la pagina de editare
   const handleConfirmEdit = () => {
     if (selectedUser) {
-      // Navighează la pagina de creare cu utilizatorul preselectat
+      // Navigheaza la pagina de creare cu utilizatorul preselectat
       navigate(`/schedules/create?userId=${selectedUser.id}&month=${selectedMonth}`);
     }
     setEditDialogOpen(false);
   };
 
-  // Obține statusul programului pentru un utilizator
+  // Obtine statusul programului pentru un utilizator
   const getScheduleStatus = (userId: string) => {
     return allUsersAssignments[userId]?.status;
   };
@@ -406,7 +405,7 @@ const SchedulesPage: React.FC = () => {
         return (
           <Chip
             icon={<PendingIcon />}
-            label="Așteaptă aprobare"
+            label="Asteapta aprobare"
             size="small"
             color="warning"
             sx={{ height: 20, fontSize: '0.6rem' }}
@@ -485,7 +484,7 @@ const SchedulesPage: React.FC = () => {
             {pendingCount > 0 && (
               <Chip
                 icon={<PendingIcon />}
-                label={`${pendingCount} în așteptare`}
+                label={`${pendingCount} in asteptare`}
                 size="small"
               />
             )}
@@ -513,7 +512,7 @@ const SchedulesPage: React.FC = () => {
               borderRadius: 2,
             }}
           >
-            {isMobile ? 'Programare Masă' : 'Programare în Masă'}
+            {isMobile ? 'Programare Masa' : 'Programare in Masa'}
           </Button>
           <Button
             variant="contained"
@@ -532,14 +531,14 @@ const SchedulesPage: React.FC = () => {
               },
             }}
           >
-            {isMobile ? 'Creează Program' : 'Creează Program Nou'}
+            {isMobile ? 'Creeaza Program' : 'Creeaza Program Nou'}
           </Button>
         </Stack>
 
-        {/* Selector Lună și Filtre */}
+        {/* Selector Luna si Filtre */}
         <Paper sx={{ p: 2, width: '100%' }}>
           <Stack spacing={2}>
-            {/* Selector Lună */}
+            {/* Selector Luna */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
               <Stack direction="row" spacing={1} alignItems="center">
                 <CalendarIcon color="action" fontSize="small" />
@@ -574,16 +573,16 @@ const SchedulesPage: React.FC = () => {
               <Box sx={{
                 display: 'grid',
                 gridTemplateColumns: {
-                  xs: '1fr',           // Mobile: 1 coloană
+                  xs: '1fr',           // Mobile: 1 coloana
                   sm: 'repeat(2, 1fr)', // Tablet: 2 coloane
                   md: 'repeat(3, 1fr)', // Desktop mic: 3 coloane
-                  lg: 'repeat(6, 1fr)', // Desktop mare: 6 coloane (toate pe un rând)
+                  lg: 'repeat(6, 1fr)', // Desktop mare: 6 coloane (toate pe un rand)
                 },
                 gap: { xs: 1, sm: 1.5, md: 2 },
               }}>
-                {/* Căutare */}
+                {/* Cautare */}
                 <TextField
-                  placeholder="Caută angajat..."
+                  placeholder="Cauta angajat..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   size="small"
@@ -607,13 +606,13 @@ const SchedulesPage: React.FC = () => {
                   </Select>
                 </FormControl>
 
-                {/* Tip Tură */}
+                {/* Tip Tura */}
                 <FormControl size="small" fullWidth>
-                  <InputLabel>Tip Tură</InputLabel>
+                  <InputLabel>Tip Tura</InputLabel>
                   <Select
                     value={shiftFilter}
                     onChange={(e) => setShiftFilter(e.target.value as ShiftFilter)}
-                    label="Tip Tură"
+                    label="Tip Tura"
                   >
                     <MenuItem value="ALL">Toate</MenuItem>
                     <MenuItem value="12H">12 ore</MenuItem>
@@ -623,13 +622,13 @@ const SchedulesPage: React.FC = () => {
                   </Select>
                 </FormControl>
 
-                {/* Loc Muncă */}
+                {/* Loc Munca */}
                 <FormControl size="small" fullWidth>
-                  <InputLabel>Loc Muncă</InputLabel>
+                  <InputLabel>Loc Munca</InputLabel>
                   <Select
                     value={workPositionFilter}
                     onChange={(e) => setWorkPositionFilter(e.target.value)}
-                    label="Loc Muncă"
+                    label="Loc Munca"
                   >
                     <MenuItem value="ALL">Toate</MenuItem>
                     {workPositions.map((pos) => (
@@ -692,7 +691,7 @@ const SchedulesPage: React.FC = () => {
                   </Select>
                 </FormControl>
 
-                {/* Buton Reset Filtre - vizibil când există filtre active */}
+                {/* Buton Reset Filtre - vizibil cand exista filtre active */}
                 {(searchQuery || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL') && (
                   <Button
                     variant="outlined"
@@ -709,7 +708,7 @@ const SchedulesPage: React.FC = () => {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    Resetează
+                    Reseteaza
                   </Button>
                 )}
               </Box>
@@ -717,7 +716,7 @@ const SchedulesPage: React.FC = () => {
           </Stack>
         </Paper>
 
-        {/* Legendă - colapsabilă pe mobile */}
+        {/* Legenda - colapsabila pe mobile */}
         <Paper sx={{ p: { xs: 1, sm: 1.5 }, width: '100%' }}>
           <Stack
             direction="row"
@@ -728,11 +727,11 @@ const SchedulesPage: React.FC = () => {
           >
             <Stack direction="row" spacing={1} alignItems="center">
               <Typography variant="caption" fontWeight="bold">
-                Legendă:
+                Legenda:
               </Typography>
               {isMobile && !legendExpanded && (
                 <Typography variant="caption" color="text.secondary">
-                  (apasă pentru a vedea)
+                  (apasa pentru a vedea)
                 </Typography>
               )}
             </Stack>
@@ -774,20 +773,20 @@ const SchedulesPage: React.FC = () => {
         )}
         {error && (
           <Alert severity="error">
-            Eroare la încărcarea programelor.
+            Eroare la incarcarea programelor.
           </Alert>
         )}
 
-        {/* Tabel cu toți angajații și programele lor */}
+        {/* Tabel cu toti angajatii si programele lor */}
         {!isLoading && !error && (
           <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: { xs: 1, sm: 2 }, '&:last-child': { pb: { xs: 1, sm: 2 } } }}>
               <Stack direction="row" alignItems="center" spacing={1} mb={2} flexWrap="wrap">
                 <GroupIcon color="primary" />
                 <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                  Programele Angajaților - {new Date(`${selectedMonth}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
+                  Programele Angajatilor - {new Date(`${selectedMonth}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
                 </Typography>
-                <Chip label={`${filteredUsers.length} angajați`} size="small" color="primary" />
+                <Chip label={`${filteredUsers.length} angajati`} size="small" color="primary" />
               </Stack>
 
               {filteredUsers.length > 0 ? (
@@ -899,10 +898,10 @@ const SchedulesPage: React.FC = () => {
                                     })}
                                   </Stack>
 
-                                  {/* Mini calendar pentru tabletă/mobil - toate zilele pe landscape, primele 14 pe portrait */}
+                                  {/* Mini calendar pentru tableta/mobil - toate zilele pe landscape, primele 14 pe portrait */}
                                   <Box sx={{ mt: 1 }}>
                                     <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                                      Calendar {!isLandscape && !isMobile ? '(primele 14 zile)' : '(luna completă)'}:
+                                      Calendar {!isLandscape && !isMobile ? '(primele 14 zile)' : '(luna completa)'}:
                                     </Typography>
                                     <Box sx={{
                                       overflowX: 'auto',
@@ -1013,7 +1012,7 @@ const SchedulesPage: React.FC = () => {
                                 fontSize: '0.75rem',
                               }}
                             >
-                              Acțiuni
+                              Actiuni
                             </TableCell>
                           </TableRow>
                         </TableHead>
@@ -1122,8 +1121,8 @@ const SchedulesPage: React.FC = () => {
                                   {canEdit && (
                                     <Tooltip title={
                                       isAdmin
-                                        ? 'Editează programul (Admin)'
-                                        : 'Editează programul (va necesita aprobare)'
+                                        ? 'Editeaza programul (Admin)'
+                                        : 'Editeaza programul (va necesita aprobare)'
                                     }>
                                       <IconButton
                                         size="small"
@@ -1146,9 +1145,9 @@ const SchedulesPage: React.FC = () => {
               ) : (
                 <EmptyState
                   icon={<EventBusyIcon />}
-                  title="Nu s-au găsit angajați"
-                  description="Încearcă să schimbi filtrele sau să resetezi căutarea"
-                  actionLabel={hasActiveFilters ? 'Resetează Filtrele' : undefined}
+                  title="Nu s-au gasit angajati"
+                  description="Incearca sa schimbi filtrele sau sa resetezi cautarea"
+                  actionLabel={hasActiveFilters ? 'Reseteaza Filtrele' : undefined}
                   onAction={hasActiveFilters ? handleResetFilters : undefined}
                 />
               )}
@@ -1166,28 +1165,28 @@ const SchedulesPage: React.FC = () => {
           <Box sx={{ mt: 2 }}>
             {isAdmin ? (
               <Alert severity="info" sx={{ mb: 2 }}>
-                Ca <strong>Administrator</strong>, poți edita direct programul. Modificările vor fi aplicate imediat.
+                Ca <strong>Administrator</strong>, poti edita direct programul. Modificarile vor fi aplicate imediat.
               </Alert>
             ) : (
               <Alert severity="warning" sx={{ mb: 2 }}>
-                Ca <strong>Manager</strong>, poți edita programul angajaților, dar modificările vor trebui <strong>aprobate de un administrator</strong> înainte de a fi active.
+                Ca <strong>Manager</strong>, poti edita programul angajatilor, dar modificarile vor trebui <strong>aprobate de un administrator</strong> inainte de a fi active.
               </Alert>
             )}
             <Typography variant="body2" color="text.secondary">
-              Vei fi redirecționat către pagina de creare/editare program pentru <strong>{selectedUser?.fullName}</strong> pentru luna {new Date(`${selectedMonth}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}.
+              Vei fi redirectionat catre pagina de creare/editare program pentru <strong>{selectedUser?.fullName}</strong> pentru luna {new Date(`${selectedMonth}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}.
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditDialogOpen(false)}>
-            Anulează
+            Anuleaza
           </Button>
           <Button
             variant="contained"
             onClick={handleConfirmEdit}
             startIcon={<EditIcon />}
           >
-            Continuă la Editare
+            Continua la Editare
           </Button>
         </DialogActions>
       </Dialog>

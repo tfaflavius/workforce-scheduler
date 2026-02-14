@@ -141,7 +141,7 @@ export const handicapApi = createApi({
       }),
     }),
 
-    // ============== LEGITIMAȚII HANDICAP ==============
+    // ============== LEGITIMATII HANDICAP ==============
 
     // Get all handicap legitimations
     getHandicapLegitimations: builder.query<HandicapLegitimation[], { status?: HandicapLegitimationStatus } | void>({
@@ -242,7 +242,7 @@ export const handicapApi = createApi({
       }),
     }),
 
-    // ============== LEGITIMAȚII REVOLUȚIONAR/DEPORTAT ==============
+    // ============== LEGITIMATII REVOLUTIONAR/DEPORTAT ==============
 
     // Get all revolutionar legitimations
     getRevolutionarLegitimations: builder.query<RevolutionarLegitimation[], { status?: RevolutionarLegitimationStatus } | void>({
@@ -356,7 +356,7 @@ export const {
   useAddHandicapCommentMutation,
   useGetHandicapHistoryQuery,
   useGetHandicapRequestsForReportsQuery,
-  // Legitimații Handicap
+  // Legitimatii Handicap
   useGetHandicapLegitimationsQuery,
   useGetHandicapLegitimationQuery,
   useCreateHandicapLegitimationMutation,
@@ -367,7 +367,7 @@ export const {
   useAddHandicapLegitimationCommentMutation,
   useGetHandicapLegitimationHistoryQuery,
   useGetHandicapLegitimationsForReportsQuery,
-  // Legitimații Revoluționar/Deportat
+  // Legitimatii Revolutionar/Deportat
   useGetRevolutionarLegitimationsQuery,
   useGetRevolutionarLegitimationQuery,
   useCreateRevolutionarLegitimationMutation,
