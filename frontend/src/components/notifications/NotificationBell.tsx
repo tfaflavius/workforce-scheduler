@@ -41,6 +41,7 @@ import {
   type Notification,
   type NotificationType,
 } from '../../store/api/notifications.api';
+import { useAppSelector } from '../../store/hooks';
 
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
@@ -84,40 +85,49 @@ const getNotificationIcon = (type: NotificationType) => {
   }
 };
 
-// Get navigation path based on notification type and data
-const getNotificationPath = (notification: Notification): { path: string; state?: any } | null => {
+// Get navigation path based on notification type, data, and user role
+const getNotificationPath = (notification: Notification, userRole?: string): { path: string; state?: any } | null => {
   const { type, data } = notification;
+  const isAdmin = userRole === 'ADMIN';
+  const isManager = userRole === 'MANAGER';
+  const isAdminOrManager = isAdmin || isManager;
 
   switch (type) {
     // Schedule notifications
     case 'SCHEDULE_CREATED':
     case 'SCHEDULE_UPDATED':
+      if (data?.scheduleId) {
+        return { path: `/schedules/${data.scheduleId}` };
+      }
+      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
     case 'SCHEDULE_APPROVED':
     case 'SCHEDULE_REJECTED':
       if (data?.scheduleId) {
         return { path: `/schedules/${data.scheduleId}` };
       }
-      return { path: '/schedules' };
+      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
 
     // Shift swap notifications
     case 'SHIFT_SWAP_REQUEST':
+      return { path: isAdmin ? '/admin/shift-swaps' : '/shift-swaps' };
     case 'SHIFT_SWAP_RESPONSE':
     case 'SHIFT_SWAP_ACCEPTED':
-    case 'SHIFT_SWAP_APPROVED':
     case 'SHIFT_SWAP_REJECTED':
       return { path: '/shift-swaps' };
+    case 'SHIFT_SWAP_APPROVED':
+      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
 
     // Leave request notifications
     case 'LEAVE_REQUEST_CREATED':
+    case 'LEAVE_OVERLAP_WARNING':
+      return { path: isAdmin ? '/admin/leave-requests' : '/leave-requests' };
     case 'LEAVE_REQUEST_APPROVED':
     case 'LEAVE_REQUEST_REJECTED':
-    case 'LEAVE_OVERLAP_WARNING':
       return { path: '/leave-requests' };
 
     // Parking notifications - navigate to specific item
     case 'PARKING_ISSUE_ASSIGNED':
     case 'PARKING_ISSUE_RESOLVED':
-      // Check which type of parking notification it is
       if (data?.issueId) {
         return { path: '/parking', state: { openIssueId: data.issueId } };
       }
@@ -156,8 +166,8 @@ const getNotificationPath = (notification: Notification): { path: string; state?
 };
 
 // Check if notification is navigable
-const isNotificationNavigable = (notification: Notification): boolean => {
-  return getNotificationPath(notification) !== null;
+const isNotificationNavigable = (notification: Notification, userRole?: string): boolean => {
+  return getNotificationPath(notification, userRole) !== null;
 };
 
 const getTimeAgo = (dateString: string): string => {
@@ -178,6 +188,8 @@ const getTimeAgo = (dateString: string): string => {
 export const NotificationBell: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.auth);
+  const userRole = user?.role;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -206,8 +218,8 @@ export const NotificationBell: React.FC = () => {
       await markAsRead(notification.id);
     }
 
-    // Navigate to relevant page based on notification type
-    const navInfo = getNotificationPath(notification);
+    // Navigate to relevant page based on notification type and user role
+    const navInfo = getNotificationPath(notification, userRole);
     if (navInfo) {
       navigate(navInfo.path, { state: navInfo.state });
     }
@@ -281,7 +293,7 @@ export const NotificationBell: React.FC = () => {
           </Box>
         ) : (
           notifications.map((notification) => {
-            const isNavigable = isNotificationNavigable(notification);
+            const isNavigable = isNotificationNavigable(notification, userRole);
             return (
               <Tooltip
                 key={notification.id}

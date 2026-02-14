@@ -570,14 +570,14 @@ export class LeaveRequestsService {
       },
     });
 
-    // Push notification cu URL catre programul utilizatorului
+    // Push notification cu URL catre pagina de concedii a utilizatorului
     await this.pushNotificationService.sendToUser(
       request.userId,
       approved ? '✅ Concediu Aprobat' : '❌ Concediu Respins',
       approved
         ? `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost aprobata!`
         : `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost respinsa.`,
-      { url: '/schedules' },
+      { url: '/leave-requests' },
     );
 
     // Email catre angajat

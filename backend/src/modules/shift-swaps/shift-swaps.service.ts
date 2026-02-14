@@ -628,7 +628,7 @@ export class ShiftSwapsService {
       request.requesterId,
       '🎉 Schimb Aprobat!',
       `Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}`,
-      { url: '/schedules' },
+      { url: '/my-schedule' },
     );
 
     // Email catre solicitant
@@ -658,7 +658,7 @@ export class ShiftSwapsService {
       approvedResponderId,
       '🎉 Schimb Aprobat!',
       `Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}`,
-      { url: '/schedules' },
+      { url: '/my-schedule' },
     );
 
     // Email catre userul aprobat
