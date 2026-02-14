@@ -311,23 +311,32 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
             }}
           />
 
-          {/* Google Maps Link - auto-generated from location */}
-          <TextField
-            label="Link Google Maps (auto-generat)"
-            value={formData.googleMapsLink}
-            onChange={(e) => setFormData({ ...formData, googleMapsLink: e.target.value })}
-            fullWidth
-            size="medium"
-            placeholder="Se generează automat din locație..."
-            helperText={formData.googleMapsLink ? 'Generat automat din adresă. Poți modifica manual.' : undefined}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <MapIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
+          {/* Google Maps Link - auto-generated, clickable */}
+          {formData.googleMapsLink && (
+            <Button
+              variant="outlined"
+              startIcon={<MapIcon />}
+              href={formData.googleMapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              fullWidth
+              sx={{
+                justifyContent: 'flex-start',
+                textTransform: 'none',
+                py: 1.25,
+                borderColor: 'divider',
+                color: 'primary.main',
+                fontWeight: 500,
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  bgcolor: alpha(theme.palette.primary.main, 0.04),
+                },
+              }}
+            >
+              Deschide în Google Maps
+            </Button>
+          )}
 
           {/* Câmpuri specifice pentru AMPLASARE și REVOCARE */}
           {isPersonFieldsRequired && (
