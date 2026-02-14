@@ -23,6 +23,7 @@ export interface TodayDispatcher {
   userId: string;
   userName: string;
   userEmail?: string;
+  departmentName?: string;
   shiftType: string;
   shiftCode: string;
   startTime: string;

@@ -863,17 +863,19 @@ export class SchedulesService {
 
     this.logger.log(`Fetching dispatchers for today: ${todayStr} (Romania time)`);
 
-    // Query assignments for today with Dispecerat work position
+    // Query assignments for today with Dispecerat or Control work position
     const assignments = await this.assignmentRepository
       .createQueryBuilder('assignment')
       .leftJoinAndSelect('assignment.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
       .leftJoinAndSelect('assignment.shiftType', 'shiftType')
       .leftJoinAndSelect('assignment.workPosition', 'workPosition')
       .leftJoinAndSelect('assignment.schedule', 'schedule')
       .where('DATE(assignment.shift_date) = :today', { today: todayStr })
       .andWhere('schedule.status = :status', { status: 'APPROVED' })
-      .andWhere('workPosition.short_name = :position', { position: 'DISP' })
-      .orderBy('shiftType.start_time', 'ASC')
+      .andWhere('workPosition.short_name IN (:...positions)', { positions: ['DISP', 'CTRL'] })
+      .orderBy('workPosition.short_name', 'ASC')
+      .addOrderBy('shiftType.start_time', 'ASC')
       .getMany();
 
     // Format the response
@@ -894,6 +896,7 @@ export class SchedulesService {
         userId: assignment.userId,
         userName: assignment.user?.fullName || 'Unknown',
         userEmail: assignment.user?.email,
+        departmentName: assignment.user?.department?.name || '',
         shiftType: assignment.shiftType?.name || 'Unknown',
         shiftCode,
         startTime: assignment.shiftType?.startTime,

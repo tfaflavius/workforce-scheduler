@@ -33,6 +33,7 @@ import {
   Headset as DispatcherIcon,
   Person as PersonIcon,
   AccessTime as TimeIcon,
+  Security as ControlIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery, useGetTodayDispatchersQuery } from '../../store/api/schedulesApi';
 import { useAppSelector } from '../../store/hooks';
@@ -303,157 +304,186 @@ const ManagerDashboard = () => {
       )}
 
       {/* Today's Dispatchers Section */}
-      <Fade in={true} timeout={650}>
-        <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-          <Typography
-            variant="subtitle2"
-            color="text.secondary"
-            sx={{
-              mb: { xs: 1.5, sm: 2 },
-              fontWeight: 700,
-              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-            }}
-          >
-            🎧 Dispecerat Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </Typography>
-          <Grow in={true} timeout={600}>
-            <Card
-              sx={{
-                background: theme.palette.mode === 'light'
-                  ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
-                  : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
-                color: 'white',
-                position: 'relative',
-                overflow: 'hidden',
-              }}
-            >
-              <Box
+      {(() => {
+        const dispatchersDISP = todayDispatchers.filter(d => d.workPositionCode === 'DISP');
+        const dispatchersCTRL = todayDispatchers.filter(d => d.workPositionCode === 'CTRL');
+        const renderDispatcherList = (dispatchers: typeof todayDispatchers) => (
+          <List sx={{ py: 0 }}>
+            {dispatchers.map((dispatcher, index) => (
+              <ListItem
+                key={dispatcher.id}
                 sx={{
-                  position: 'absolute',
-                  top: -40,
-                  right: -40,
-                  width: 150,
-                  height: 150,
-                  borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.1)',
+                  bgcolor: 'rgba(255,255,255,0.1)',
+                  borderRadius: 2,
+                  mb: index < dispatchers.length - 1 ? 0.75 : 0,
+                  px: { xs: 1, sm: 2 },
+                  py: { xs: 0.75, sm: 1 },
                 }}
-              />
-              <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, position: 'relative' }}>
-                <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 1.5, sm: 2 } }}>
-                  <Box
+              >
+                <ListItemAvatar sx={{ minWidth: { xs: 40, sm: 56 } }}>
+                  <Avatar
                     sx={{
-                      p: { xs: 1, sm: 1.5 },
-                      borderRadius: 2,
-                      bgcolor: 'rgba(255,255,255,0.2)',
-                      display: 'flex',
+                      bgcolor: 'rgba(255,255,255,0.25)',
+                      color: 'white',
+                      width: { xs: 32, sm: 40 },
+                      height: { xs: 32, sm: 40 },
                     }}
                   >
-                    <DispatcherIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
-                  </Box>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
-                      Personal in Dispecerat
+                    <PersonIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      color="white"
+                      sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}
+                      noWrap
+                    >
+                      {dispatcher.userName}
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                      {todayDispatchers.length > 0
-                        ? `${todayDispatchers.length} ${todayDispatchers.length === 1 ? 'persoana programata' : 'persoane programate'}`
-                        : 'Nicio persoana programata'}
-                    </Typography>
-                  </Box>
-                </Stack>
-
-                {todayDispatchers.length > 0 ? (
-                  <List sx={{ py: 0 }}>
-                    {todayDispatchers.map((dispatcher, index) => (
-                      <ListItem
-                        key={dispatcher.id}
+                  }
+                  secondary={
+                    <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
+                      <Chip
+                        icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />}
+                        label={`${dispatcher.startTime} - ${dispatcher.endTime}`}
+                        size="small"
                         sx={{
-                          bgcolor: 'rgba(255,255,255,0.1)',
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          color: 'white',
+                          fontWeight: 600,
+                          height: { xs: 24, sm: 28 },
+                          fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                          '& .MuiChip-icon': { color: 'white' },
+                          '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
+                        }}
+                      />
+                      <Chip
+                        label={dispatcher.shiftCode || dispatcher.shiftType}
+                        size="small"
+                        sx={{
+                          bgcolor: dispatcher.shiftCode === 'Z' ? '#fbbf24' : dispatcher.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
+                          color: dispatcher.shiftCode === 'Z' ? '#000' : '#fff',
+                          fontWeight: 700,
+                          height: { xs: 24, sm: 28 },
+                          fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                          '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
+                        }}
+                      />
+                    </Stack>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        );
+
+        return (
+          <Fade in={true} timeout={650}>
+            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={{
+                  mb: { xs: 1.5, sm: 2 },
+                  fontWeight: 700,
+                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                }}
+              >
+                🎧 Dispecerat Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </Typography>
+              <Grow in={true} timeout={600}>
+                <Card
+                  sx={{
+                    background: theme.palette.mode === 'light'
+                      ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
+                      : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                    color: 'white',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -40,
+                      right: -40,
+                      width: 150,
+                      height: 150,
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                    }}
+                  />
+                  <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, position: 'relative' }}>
+                    {/* Dispecerat */}
+                    <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 1.5, sm: 2 } }}>
+                      <Box
+                        sx={{
+                          p: { xs: 1, sm: 1.5 },
                           borderRadius: 2,
-                          mb: index < todayDispatchers.length - 1 ? 0.75 : 0,
-                          px: { xs: 1, sm: 2 },
-                          py: { xs: 0.75, sm: 1 },
+                          bgcolor: 'rgba(255,255,255,0.2)',
+                          display: 'flex',
                         }}
                       >
-                        <ListItemAvatar sx={{ minWidth: { xs: 40, sm: 56 } }}>
-                          <Avatar
+                        <DispatcherIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
+                          Personal Dispecerat
+                        </Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                          {dispatchersDISP.length > 0
+                            ? `${dispatchersDISP.length} ${dispatchersDISP.length === 1 ? 'persoana programata' : 'persoane programate'}`
+                            : 'Nicio persoana programata'}
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    {dispatchersDISP.length > 0 ? renderDispatcherList(dispatchersDISP) : (
+                      <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, textAlign: 'center', mb: dispatchersCTRL.length > 0 ? 2 : 0 }}>
+                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                          Nu exista personal programat in dispecerat.
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Control - doar daca exista */}
+                    {dispatchersCTRL.length > 0 && (
+                      <>
+                        <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mt: 2.5, mb: { xs: 1.5, sm: 2 } }}>
+                          <Box
                             sx={{
-                              bgcolor: 'rgba(255,255,255,0.25)',
-                              color: 'white',
-                              width: { xs: 32, sm: 40 },
-                              height: { xs: 32, sm: 40 },
+                              p: { xs: 1, sm: 1.5 },
+                              borderRadius: 2,
+                              bgcolor: 'rgba(255,255,255,0.2)',
+                              display: 'flex',
                             }}
                           >
-                            <PersonIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Typography
-                              variant="subtitle1"
-                              fontWeight="bold"
-                              color="white"
-                              sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}
-                              noWrap
-                            >
-                              {dispatcher.userName}
+                            <ControlIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
+                              Personal Control
                             </Typography>
-                          }
-                          secondary={
-                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
-                              <Chip
-                                icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />}
-                                label={`${dispatcher.startTime} - ${dispatcher.endTime}`}
-                                size="small"
-                                sx={{
-                                  bgcolor: 'rgba(255,255,255,0.2)',
-                                  color: 'white',
-                                  fontWeight: 600,
-                                  height: { xs: 24, sm: 28 },
-                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
-                                  '& .MuiChip-icon': { color: 'white' },
-                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
-                                }}
-                              />
-                              <Chip
-                                label={dispatcher.shiftCode || dispatcher.shiftType}
-                                size="small"
-                                sx={{
-                                  bgcolor: dispatcher.shiftCode === 'Z' ? '#fbbf24' : dispatcher.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
-                                  color: dispatcher.shiftCode === 'Z' ? '#000' : '#fff',
-                                  fontWeight: 700,
-                                  height: { xs: 24, sm: 28 },
-                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
-                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
-                                }}
-                              />
-                            </Stack>
-                          }
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                ) : (
-                  <Box
-                    sx={{
-                      bgcolor: 'rgba(255,255,255,0.1)',
-                      borderRadius: 2,
-                      p: 3,
-                      textAlign: 'center',
-                    }}
-                  >
-                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                      Nu exista personal programat in dispecerat pentru ziua de astazi.
-                    </Typography>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grow>
-        </Box>
-      </Fade>
+                            <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                              {`${dispatchersCTRL.length} ${dispatchersCTRL.length === 1 ? 'persoana programata' : 'persoane programate'}`}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                        {renderDispatcherList(dispatchersCTRL)}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grow>
+            </Box>
+          </Fade>
+        );
+      })()}
 
       <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 

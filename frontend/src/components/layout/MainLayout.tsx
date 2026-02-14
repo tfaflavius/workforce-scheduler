@@ -171,14 +171,14 @@ export const MainLayout = () => {
       text: 'Parcari Handicap',
       icon: <HandicapIcon />,
       path: '/parking/handicap',
-      roles: ['ADMIN', 'MANAGER', 'USER'],
+      roles: ['ADMIN', 'USER'],
       requiresDepartments: ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
     },
     {
       text: 'Parcari Domiciliu',
       icon: <HomeIcon />,
       path: '/parking/domiciliu',
-      roles: ['ADMIN', 'MANAGER', 'USER'],
+      roles: ['ADMIN', 'USER'],
       requiresDepartments: ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
     },
   ];
