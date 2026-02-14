@@ -253,7 +253,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3 }}>
+      <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
         <Stack spacing={2.5}>
           {error && (
             <Alert severity="error" onClose={() => setError(null)} sx={{ borderRadius: 2 }}>
@@ -266,9 +266,10 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
             label="Locatie parcare (Strada, Numar)"
             value={formData.location}
             onChange={(e) => handleLocationChange(e.target.value)}
-            required
             fullWidth
             placeholder="Ex: Str. Republicii nr. 10"
+            error={!formData.location && !!formData.description}
+            helperText={!formData.location && !!formData.description ? 'Locatia este obligatorie' : ''}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -290,7 +291,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
               sx={{
                 justifyContent: 'flex-start',
                 textTransform: 'none',
-                py: 1.25,
+                py: 1,
                 borderColor: 'divider',
                 color: 'primary.main',
                 fontWeight: 500,
@@ -306,7 +307,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
           )}
 
           {/* Detalii parcari */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <Stack direction="row" spacing={2}>
             <TextField
               label="Cate locuri"
               value={formData.numberOfSpots ?? ''}
@@ -351,11 +352,12 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
             label="Descriere"
             value={formData.description}
             onChange={handleTextChange('description')}
-            required
             fullWidth
             multiline
             rows={3}
             placeholder="Descrieti detaliile solicitarii..."
+            error={!formData.description && !!formData.location}
+            helperText={!formData.description && !!formData.location ? 'Descrierea este obligatorie' : ''}
           />
         </Stack>
       </DialogContent>
