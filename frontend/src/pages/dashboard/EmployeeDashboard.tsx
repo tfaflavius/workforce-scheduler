@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -10,9 +10,7 @@ import {
   Stack,
   CircularProgress,
   Avatar,
-  IconButton,
   Divider,
-  Button,
   Chip,
   List,
   ListItem,
@@ -26,11 +24,6 @@ import {
 } from '@mui/material';
 import {
   Today as TodayIcon,
-  NavigateBefore as PrevIcon,
-  NavigateNext as NextIcon,
-  WbSunny as DayIcon,
-  NightsStay as NightIcon,
-  EventBusy as NoShiftIcon,
   LocationOn as LocationIcon,
   Person as PersonIcon,
   AddLocation as AmplasareIcon,
@@ -157,124 +150,13 @@ const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick, delay
   );
 };
 
-interface ShiftCardProps {
-  date: Date;
-  assignment?: ScheduleAssignment;
-  isToday: boolean;
-  isWeekend: boolean;
-}
-
-const ShiftCard = ({ date, assignment, isToday, isWeekend }: ShiftCardProps) => {
-  const theme = useTheme();
-  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
-  const dayOfWeek = dayNames[date.getDay()];
-
-  return (
-    <Card
-      sx={{
-        border: isToday ? '2px solid' : '1px solid',
-        borderColor: isToday ? 'primary.main' : theme.palette.divider,
-        bgcolor: isToday
-          ? alpha(theme.palette.primary.main, 0.08)
-          : assignment
-            ? theme.palette.background.paper
-            : isWeekend
-              ? alpha(theme.palette.grey[500], 0.08)
-              : alpha(theme.palette.grey[500], 0.04),
-        minHeight: { xs: 70, sm: 80, md: 90 },
-        transition: 'all 0.2s ease',
-        touchAction: 'manipulation',
-        WebkitTapHighlightColor: 'transparent',
-        '&:hover': {
-          transform: 'scale(1.02)',
-          boxShadow: theme.palette.mode === 'light'
-            ? '0 4px 12px rgba(0,0,0,0.1)'
-            : '0 4px 12px rgba(0,0,0,0.3)',
-        },
-        '&:active': {
-          transform: 'scale(0.98)',
-        },
-      }}
-    >
-      <CardContent sx={{ p: 1.25, '&:last-child': { pb: 1.25 } }}>
-        <Stack spacing={0.5}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography
-              variant="caption"
-              color={isWeekend ? 'error.main' : 'text.secondary'}
-              sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, fontWeight: 600 }}
-            >
-              {dayOfWeek}
-            </Typography>
-            <Typography
-              variant="subtitle2"
-              fontWeight="bold"
-              color={isWeekend && !assignment ? 'error.main' : 'text.primary'}
-              sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}
-            >
-              {date.getDate()}
-            </Typography>
-          </Stack>
-          <Divider />
-          {assignment ? (
-            <Box sx={{ pt: 0.5 }}>
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                {assignment.shiftType?.isNightShift ? (
-                  <NightIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'info.main' }} />
-                ) : (
-                  <DayIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'warning.main' }} />
-                )}
-                <Typography variant="caption" fontWeight="bold" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
-                  {assignment.shiftType?.name || 'Tura'}
-                </Typography>
-              </Stack>
-              <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' } }}>
-                {assignment.shiftType?.startTime}-{assignment.shiftType?.endTime}
-              </Typography>
-              {assignment.workPosition && (
-                <Box
-                  sx={{
-                    mt: 0.5,
-                    px: 0.75,
-                    py: 0.25,
-                    bgcolor: assignment.workPosition.color || '#2196F3',
-                    borderRadius: 1,
-                    display: 'inline-block',
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: { xs: '0.5rem', sm: '0.6rem' },
-                      color: 'white',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    {assignment.workPosition.shortName || assignment.workPosition.name}
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          ) : (
-            <Box sx={{ py: 0.75, textAlign: 'center' }}>
-              <NoShiftIcon sx={{ color: 'text.disabled', fontSize: { xs: 16, sm: 18 } }} />
-              <Typography variant="caption" color="text.disabled" display="block" sx={{ fontSize: { xs: '0.55rem', sm: '0.65rem' } }}>
-                Liber
-              </Typography>
-            </Box>
-          )}
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-};
 
 const EmployeeDashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const currentDate = new Date();
 
   const currentMonth = currentDate.getMonth() + 1;
   const currentYear = currentDate.getFullYear();
@@ -380,38 +262,6 @@ const EmployeeDashboard = () => {
     return undefined;
   };
 
-  const getMonthDates = () => {
-    const dates: Date[] = [];
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    for (let i = 1; i <= daysInMonth; i++) {
-      dates.push(new Date(year, month, i));
-    }
-    return dates;
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
-    setCurrentDate(newDate);
-  };
-
-  const goToToday = () => {
-    setCurrentDate(new Date());
-  };
-
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return (
-      date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear()
-    );
-  };
-
-  const monthDates = getMonthDates();
   const todayAssignment = getAssignmentForDate(new Date());
 
   const totalHoursThisMonth = myAssignments.reduce(
@@ -444,8 +294,6 @@ const EmployeeDashboard = () => {
     'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
   ];
-
-  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
 
   if (isLoading) {
     return (
@@ -947,267 +795,6 @@ const EmployeeDashboard = () => {
         </Fade>
       )}
 
-      {/* Monthly Calendar */}
-      <Grow in={true} timeout={800}>
-        <Paper
-          sx={{
-            p: { xs: 2, sm: 3 },
-            borderRadius: { xs: 2, sm: 3 },
-          }}
-        >
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ xs: 'stretch', sm: 'center' }}
-            spacing={2}
-            sx={{ mb: 2.5 }}
-          >
-            <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
-              <IconButton
-                onClick={() => navigateMonth('prev')}
-                size={isMobile ? 'small' : 'medium'}
-                sx={{
-                  bgcolor: alpha(theme.palette.primary.main, 0.08),
-                  '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
-                }}
-              >
-                <PrevIcon />
-              </IconButton>
-              <Typography
-                variant="subtitle1"
-                fontWeight="700"
-                sx={{
-                  fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' },
-                  textAlign: 'center',
-                  minWidth: { xs: 140, sm: 200 },
-                }}
-              >
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </Typography>
-              <IconButton
-                onClick={() => navigateMonth('next')}
-                size={isMobile ? 'small' : 'medium'}
-                sx={{
-                  bgcolor: alpha(theme.palette.primary.main, 0.08),
-                  '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
-                }}
-              >
-                <NextIcon />
-              </IconButton>
-              <Button
-                variant="outlined"
-                onClick={goToToday}
-                size="small"
-                sx={{
-                  ml: 1,
-                  fontWeight: 600,
-                  minWidth: 'auto',
-                  px: { xs: 1.5, sm: 2 },
-                }}
-              >
-                Azi
-              </Button>
-            </Stack>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => navigate('/my-schedule')}
-              fullWidth={isMobile}
-              sx={{
-                minHeight: { xs: 42, sm: 38 },
-                fontWeight: 600,
-                px: { xs: 2, sm: 3 },
-              }}
-            >
-              📅 Program Complet
-            </Button>
-          </Stack>
-
-          {/* Day Headers */}
-          {!isMobile && (
-            <Grid container sx={{ mb: 1.5 }}>
-              {dayNames.map((day, index) => (
-                <Grid size={{ xs: 12 / 7 }} key={day}>
-                  <Typography
-                    variant="caption"
-                    textAlign="center"
-                    color={index === 0 || index === 6 ? 'error.main' : 'text.secondary'}
-                    fontWeight="bold"
-                    sx={{ display: 'block', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}
-                  >
-                    {day}
-                  </Typography>
-                </Grid>
-              ))}
-            </Grid>
-          )}
-
-          {/* Calendar Grid */}
-          {!isMobile ? (
-            <Grid container spacing={{ xs: 0.5, sm: 0.75, md: 1 }}>
-              {Array.from({ length: monthDates[0]?.getDay() || 0 }).map((_, i) => (
-                <Grid size={{ xs: 12 / 7 }} key={`empty-${i}`}>
-                  <Box sx={{ minHeight: { xs: 70, sm: 80, md: 90 } }} />
-                </Grid>
-              ))}
-              {monthDates.map((date) => {
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                return (
-                  <Grid size={{ xs: 12 / 7 }} key={date.toISOString()}>
-                    <ShiftCard
-                      date={date}
-                      assignment={getAssignmentForDate(date)}
-                      isToday={isToday(date)}
-                      isWeekend={isWeekend}
-                    />
-                  </Grid>
-                );
-              })}
-            </Grid>
-          ) : (
-            // Mobile: List view
-            <Stack spacing={1}>
-              {monthDates.map((date) => {
-                const assignment = getAssignmentForDate(date);
-                const today = isToday(date);
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-
-                return (
-                  <Card
-                    key={date.toISOString()}
-                    sx={{
-                      border: today ? '2px solid' : '1px solid',
-                      borderColor: today ? 'primary.main' : 'divider',
-                      bgcolor: today
-                        ? alpha(theme.palette.primary.main, 0.08)
-                        : assignment
-                          ? theme.palette.background.paper
-                          : alpha(theme.palette.grey[500], 0.04),
-                      transition: 'all 0.2s ease',
-                      touchAction: 'manipulation',
-                      WebkitTapHighlightColor: 'transparent',
-                      '&:active': {
-                        transform: 'scale(0.98)',
-                      },
-                    }}
-                  >
-                    <CardContent sx={{ p: 1.75, '&:last-child': { pb: 1.75 } }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Stack direction="row" alignItems="center" spacing={1.5}>
-                          <Box
-                            sx={{
-                              minWidth: 44,
-                              textAlign: 'center',
-                              p: 0.75,
-                              borderRadius: 1.5,
-                              bgcolor: today
-                                ? alpha(theme.palette.primary.main, 0.12)
-                                : 'transparent',
-                            }}
-                          >
-                            <Typography
-                              variant="caption"
-                              color={isWeekend ? 'error.main' : 'text.secondary'}
-                              sx={{ display: 'block', fontSize: '0.65rem', fontWeight: 600 }}
-                            >
-                              {dayNames[date.getDay()]}
-                            </Typography>
-                            <Typography
-                              variant="h6"
-                              fontWeight="bold"
-                              color={isWeekend && !assignment ? 'error.main' : 'text.primary'}
-                              sx={{ lineHeight: 1, fontSize: '1.1rem' }}
-                            >
-                              {date.getDate()}
-                            </Typography>
-                          </Box>
-                          {assignment ? (
-                            <Box>
-                              <Stack direction="row" alignItems="center" spacing={0.5}>
-                                {assignment.shiftType?.isNightShift ? (
-                                  <NightIcon sx={{ fontSize: 18, color: 'info.main' }} />
-                                ) : (
-                                  <DayIcon sx={{ fontSize: 18, color: 'warning.main' }} />
-                                )}
-                                <Typography variant="body2" fontWeight="bold">
-                                  {assignment.shiftType?.name || 'Tura'}
-                                </Typography>
-                                {assignment.workPosition && (
-                                  <Box
-                                    sx={{
-                                      ml: 0.5,
-                                      px: 0.75,
-                                      py: 0.15,
-                                      bgcolor: assignment.workPosition.color || '#2196F3',
-                                      borderRadius: 1,
-                                    }}
-                                  >
-                                    <Typography
-                                      variant="caption"
-                                      sx={{
-                                        fontSize: '0.65rem',
-                                        color: 'white',
-                                        fontWeight: 'bold',
-                                      }}
-                                    >
-                                      {assignment.workPosition.shortName}
-                                    </Typography>
-                                  </Box>
-                                )}
-                              </Stack>
-                              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                                {assignment.shiftType?.startTime} - {assignment.shiftType?.endTime}
-                              </Typography>
-                            </Box>
-                          ) : (
-                            <Typography variant="body2" color="text.disabled" fontWeight="medium">
-                              Zi libera
-                            </Typography>
-                          )}
-                        </Stack>
-                        {today && (
-                          <Typography
-                            variant="caption"
-                            color="primary"
-                            fontWeight="bold"
-                            sx={{
-                              px: 1,
-                              py: 0.25,
-                              bgcolor: alpha(theme.palette.primary.main, 0.1),
-                              borderRadius: 1,
-                              fontSize: '0.7rem',
-                            }}
-                          >
-                            AZI
-                          </Typography>
-                        )}
-                      </Stack>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </Stack>
-          )}
-
-          {/* Legend */}
-          <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" spacing={{ xs: 2, sm: 4 }} justifyContent="center" flexWrap="wrap" gap={1}>
-              <Stack direction="row" alignItems="center" spacing={0.75}>
-                <DayIcon sx={{ color: 'warning.main', fontSize: { xs: 18, sm: 22 } }} />
-                <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>Zi</Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={0.75}>
-                <NightIcon sx={{ color: 'info.main', fontSize: { xs: 18, sm: 22 } }} />
-                <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>Noapte</Typography>
-              </Stack>
-              <Stack direction="row" alignItems="center" spacing={0.75}>
-                <NoShiftIcon sx={{ color: 'text.disabled', fontSize: { xs: 18, sm: 22 } }} />
-                <Typography variant="caption" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>Liber</Typography>
-              </Stack>
-            </Stack>
-          </Box>
-        </Paper>
-      </Grow>
 
       {/* Sectiune Parcari Handicap - doar pentru departamentul Parcari Handicap */}
       {isHandicapDepartment && (
