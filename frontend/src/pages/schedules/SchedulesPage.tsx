@@ -277,6 +277,12 @@ const SchedulesPage: React.FC = () => {
   const filteredUsers = useMemo(() => {
     let filtered = [...eligibleUsers];
 
+    // Calculam data tinta daca avem filtru pe zi
+    const [yearNum, monthNum] = selectedMonth.split('-').map(Number);
+    const targetDate = dayFilter !== 'ALL'
+      ? `${yearNum}-${String(monthNum).padStart(2, '0')}-${String(dayFilter).padStart(2, '0')}`
+      : null;
+
     // Filtru dupa nume
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -290,43 +296,59 @@ const SchedulesPage: React.FC = () => {
       filtered = filtered.filter(user => user.department?.id === departmentFilter);
     }
 
-    // Filtru dupa tipul de tura
+    // Filtru dupa zi specifica - arata doar userii care au tura in ziua selectata
+    if (targetDate) {
+      filtered = filtered.filter(user => {
+        const userAssignments = allUsersAssignments[user.id]?.assignments || {};
+        return userAssignments[targetDate] !== undefined;
+      });
+    }
+
+    // Filtru dupa tipul de tura - tine cont de filtrul pe zi
     if (shiftFilter !== 'ALL') {
       filtered = filtered.filter(user => {
         const userAssignments = allUsersAssignments[user.id]?.assignments || {};
-        const assignmentValues = Object.values(userAssignments);
 
         if (shiftFilter === 'FREE') {
-          return assignmentValues.length === 0;
+          // Daca avem filtru pe zi, verifica daca in ziua respectiva nu are tura
+          if (targetDate) {
+            return userAssignments[targetDate] === undefined;
+          }
+          // Altfel, verifica daca nu are nicio tura in toata luna
+          return Object.keys(userAssignments).length === 0;
         }
 
-        return assignmentValues.some(assignment => {
+        // Daca avem filtru pe zi, verifica tipul turei DOAR in ziua respectiva
+        if (targetDate) {
+          const assignment = userAssignments[targetDate];
+          if (!assignment) return false;
+          const shiftInfo = getExistingShiftInfo(assignment.notes);
+          return shiftInfo.type === shiftFilter;
+        }
+
+        // Fara filtru pe zi - verifica daca are cel putin o tura de tipul selectat in toata luna
+        return Object.values(userAssignments).some(assignment => {
           const shiftInfo = getExistingShiftInfo(assignment.notes);
           return shiftInfo.type === shiftFilter;
         });
       });
     }
 
-    // Filtru dupa zi specifica
-    if (dayFilter !== 'ALL') {
-      const [year, month] = selectedMonth.split('-').map(Number);
-      const targetDate = `${year}-${String(month).padStart(2, '0')}-${String(dayFilter).padStart(2, '0')}`;
-
-      filtered = filtered.filter(user => {
-        const userAssignments = allUsersAssignments[user.id]?.assignments || {};
-        // Arata doar userii care au tura in ziua selectata
-        return userAssignments[targetDate] !== undefined;
-      });
-    }
-
-    // Filtru dupa pozitia de lucru (Dispecerat/Control)
+    // Filtru dupa pozitia de lucru (Dispecerat/Control) - tine cont de filtrul pe zi
     if (workPositionFilter !== 'ALL') {
       filtered = filtered.filter(user => {
         const userAssignments = allUsersAssignments[user.id]?.assignments || {};
-        const assignmentValues = Object.values(userAssignments);
 
-        // Arata userii care au cel putin o tura la pozitia selectata
-        return assignmentValues.some(assignment =>
+        // Daca avem filtru pe zi, verifica pozitia DOAR in ziua respectiva
+        if (targetDate) {
+          const assignment = userAssignments[targetDate];
+          if (!assignment) return false;
+          return assignment.workPosition?.shortName === workPositionFilter ||
+            assignment.workPosition?.name === workPositionFilter;
+        }
+
+        // Fara filtru pe zi - verifica daca are cel putin o tura la pozitia selectata in toata luna
+        return Object.values(userAssignments).some(assignment =>
           assignment.workPosition?.shortName === workPositionFilter ||
           assignment.workPosition?.name === workPositionFilter
         );
