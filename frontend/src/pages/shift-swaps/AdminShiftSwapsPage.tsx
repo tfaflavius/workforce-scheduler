@@ -228,8 +228,8 @@ const AdminShiftSwapsPage = () => {
       <Card key={request.id} sx={{ mb: 2 }}>
         <CardContent>
           <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2}>
-            <Box sx={{ flex: 1 }}>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }} flexWrap="wrap">
                 <Chip
                   icon={getStatusIcon(request.status)}
                   label={getStatusLabel(request.status)}
@@ -242,15 +242,15 @@ const AdminShiftSwapsPage = () => {
               </Stack>
 
               <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                <CalendarIcon color="action" fontSize="small" />
-                <Typography variant="body1" fontWeight="medium">
+                <CalendarIcon color="action" fontSize="small" sx={{ flexShrink: 0 }} />
+                <Typography variant="body1" fontWeight="medium" noWrap>
                   {formatDateShort(request.requesterDate)}
                   <SwapIcon sx={{ mx: 0.5, verticalAlign: 'middle', fontSize: '1rem' }} />
                   {formatDateShort(request.targetDate)}
                 </Typography>
               </Stack>
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 3 }} sx={{ mb: 1 }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.5, sm: 3 }} sx={{ mb: 1 }}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
                   <PersonIcon color="action" fontSize="small" sx={{ flexShrink: 0 }} />
                   <Typography variant="body2" noWrap>
@@ -285,9 +285,9 @@ const AdminShiftSwapsPage = () => {
               )}
             </Box>
 
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ flexShrink: 0 }}>
               <Tooltip title="Vezi detalii">
-                <IconButton onClick={() => handleOpenDetails(request)}>
+                <IconButton onClick={() => handleOpenDetails(request)} size={isMobile ? 'small' : 'medium'}>
                   <ViewIcon />
                 </IconButton>
               </Tooltip>
@@ -300,6 +300,7 @@ const AdminShiftSwapsPage = () => {
                     size="small"
                     startIcon={<CheckIcon />}
                     onClick={() => handleOpenActionDialog(request, 'approve')}
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' } }}
                   >
                     Aprobă
                   </Button>
@@ -309,6 +310,7 @@ const AdminShiftSwapsPage = () => {
                     size="small"
                     startIcon={<CloseIcon />}
                     onClick={() => handleOpenActionDialog(request, 'reject')}
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' } }}
                   >
                     Respinge
                   </Button>

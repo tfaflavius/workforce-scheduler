@@ -333,23 +333,23 @@ const AdminDashboard = () => {
                   background: 'rgba(255, 255, 255, 0.1)',
                 }}
               />
-              <CardContent sx={{ p: { xs: 2, sm: 3 }, position: 'relative' }}>
-                <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, position: 'relative' }}>
+                <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 1.5, sm: 2 } }}>
                   <Box
                     sx={{
-                      p: 1.5,
+                      p: { xs: 1, sm: 1.5 },
                       borderRadius: 2,
                       bgcolor: 'rgba(255,255,255,0.2)',
                       display: 'flex',
                     }}
                   >
-                    <DispatcherIcon sx={{ fontSize: 28 }} />
+                    <DispatcherIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
                   </Box>
-                  <Box>
-                    <Typography variant="h6" fontWeight="bold">
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
                       Personal în Dispecerat
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       {todayDispatchers.length > 0
                         ? `${todayDispatchers.length} ${todayDispatchers.length === 1 ? 'persoană programată' : 'persoane programate'}`
                         : 'Nicio persoană programată'}
@@ -365,38 +365,49 @@ const AdminDashboard = () => {
                         sx={{
                           bgcolor: 'rgba(255,255,255,0.1)',
                           borderRadius: 2,
-                          mb: index < todayDispatchers.length - 1 ? 1 : 0,
-                          px: 2,
-                          py: 1,
+                          mb: index < todayDispatchers.length - 1 ? 0.75 : 0,
+                          px: { xs: 1, sm: 2 },
+                          py: { xs: 0.75, sm: 1 },
                         }}
                       >
-                        <ListItemAvatar>
+                        <ListItemAvatar sx={{ minWidth: { xs: 40, sm: 56 } }}>
                           <Avatar
                             sx={{
                               bgcolor: 'rgba(255,255,255,0.25)',
                               color: 'white',
+                              width: { xs: 32, sm: 40 },
+                              height: { xs: 32, sm: 40 },
                             }}
                           >
-                            <PersonIcon />
+                            <PersonIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
                           primary={
-                            <Typography variant="subtitle1" fontWeight="bold" color="white">
+                            <Typography
+                              variant="subtitle1"
+                              fontWeight="bold"
+                              color="white"
+                              sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}
+                              noWrap
+                            >
                               {dispatcher.userName}
                             </Typography>
                           }
                           secondary={
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
                               <Chip
-                                icon={<TimeIcon sx={{ fontSize: 16, color: 'white !important' }} />}
+                                icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />}
                                 label={`${dispatcher.startTime} - ${dispatcher.endTime}`}
                                 size="small"
                                 sx={{
                                   bgcolor: 'rgba(255,255,255,0.2)',
                                   color: 'white',
                                   fontWeight: 600,
+                                  height: { xs: 24, sm: 28 },
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
                                   '& .MuiChip-icon': { color: 'white' },
+                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
                                 }}
                               />
                               <Chip
@@ -406,6 +417,9 @@ const AdminDashboard = () => {
                                   bgcolor: dispatcher.shiftCode === 'Z' ? '#fbbf24' : dispatcher.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
                                   color: dispatcher.shiftCode === 'Z' ? '#000' : '#fff',
                                   fontWeight: 700,
+                                  height: { xs: 24, sm: 28 },
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
                                 }}
                               />
                             </Stack>

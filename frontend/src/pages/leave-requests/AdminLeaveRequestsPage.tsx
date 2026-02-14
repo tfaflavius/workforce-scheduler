@@ -340,10 +340,10 @@ export const AdminLeaveRequestsPage = () => {
                   alignItems={{ xs: 'flex-start', md: 'center' }}
                   spacing={2}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 1.5, sm: 2 }, flex: 1, minWidth: 0 }}>
                     <Box
                       sx={{
-                        p: 1.5,
+                        p: { xs: 1, sm: 1.5 },
                         borderRadius: 2,
                         bgcolor: 'primary.lighter',
                         color: 'primary.main',
@@ -352,16 +352,17 @@ export const AdminLeaveRequestsPage = () => {
                     >
                       {getLeaveTypeIcon(request.leaveType)}
                     </Box>
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography variant="subtitle1" fontWeight="medium">
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography variant="subtitle1" fontWeight="medium" noWrap>
                         {LEAVE_TYPE_LABELS[request.leaveType]}
                       </Typography>
-                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mt: 0.5 }}>
+                      <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
                         <Chip
                           icon={<PersonIcon />}
                           label={request.user?.fullName || 'N/A'}
                           size="small"
                           variant="outlined"
+                          sx={{ maxWidth: '100%' }}
                         />
                         {request.user?.department && (
                           <Chip
@@ -369,10 +370,11 @@ export const AdminLeaveRequestsPage = () => {
                             label={request.user.department.name}
                             size="small"
                             variant="outlined"
+                            sx={{ maxWidth: '100%' }}
                           />
                         )}
                       </Stack>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: { xs: '0.8rem', sm: '0.875rem' } }} noWrap>
                         {formatDate(request.startDate)} - {formatDate(request.endDate)} ({calculateDays(request.startDate, request.endDate)} zile)
                       </Typography>
                       {request.reason && (

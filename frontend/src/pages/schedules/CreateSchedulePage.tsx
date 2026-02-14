@@ -757,7 +757,7 @@ const CreateSchedulePage: React.FC = () => {
     <Box sx={{ width: '100%', p: { xs: 1, sm: 2, md: 3 } }}>
       <Stack spacing={2}>
         {/* Header */}
-        <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
+        <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} flexWrap="wrap">
           <Button
             startIcon={<ArrowBackIcon />}
             onClick={() => navigate('/schedules')}
@@ -766,9 +766,9 @@ const CreateSchedulePage: React.FC = () => {
           >
             Înapoi
           </Button>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant={isMobile ? 'h6' : 'h5'}>Creare Program de Lucru</Typography>
-            <Typography variant="caption" color="text.secondary">
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant={isMobile ? 'h6' : 'h5'} noWrap>Creare Program de Lucru</Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
               Creează programul lunar pentru un user sau manager
             </Typography>
           </Box>
@@ -1141,13 +1141,13 @@ const CreateSchedulePage: React.FC = () => {
           <Card sx={{ width: '100%' }}>
             <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
               <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1}>
-                <Box>
-                  <Typography variant="body2">
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" noWrap sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
                     <strong>{Object.keys(assignments).length}</strong> zile asignate din <strong>{daysInMonth}</strong> |
                     User: <strong>{eligibleUsers.find(u => u.id === selectedUserId)?.fullName}</strong>
                   </Typography>
                 </Box>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   <Button variant="outlined" size="small" onClick={() => navigate('/schedules')}>
                     Anulează
                   </Button>
@@ -1198,14 +1198,14 @@ const CreateSchedulePage: React.FC = () => {
 
         <Card sx={{ width: '100%' }}>
           <CardContent sx={{ p: { xs: 1, sm: 2 }, '&:last-child': { pb: { xs: 1, sm: 2 } } }}>
-            <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-              <GroupIcon color="primary" />
-              <Typography variant="subtitle1" fontWeight="bold">
+            <Stack direction="row" alignItems="center" spacing={1} mb={2} sx={{ minWidth: 0 }}>
+              <GroupIcon color="primary" sx={{ flexShrink: 0 }} />
+              <Typography variant="subtitle1" fontWeight="bold" noWrap sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>
                 Programele Tuturor Angajaților - {new Date(`${monthYear}-01`).toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })}
               </Typography>
             </Stack>
 
-            <TableContainer sx={{ maxHeight: 400 }}>
+            <TableContainer sx={{ maxHeight: 400, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
