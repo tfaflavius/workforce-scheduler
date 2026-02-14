@@ -1394,7 +1394,9 @@ const HandicapParkingPage: React.FC = () => {
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
-          variant="fullWidth"
+          variant={isMobile ? 'scrollable' : 'fullWidth'}
+          scrollButtons={isMobile ? 'auto' : false}
+          allowScrollButtonsMobile
           sx={{
             minHeight: { xs: 56, sm: 64, md: 72 },
             '& .MuiTabs-indicator': {
@@ -1406,6 +1408,10 @@ const HandicapParkingPage: React.FC = () => {
                   ? REVOLUTIONAR_COLOR.main
                   : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
             },
+            '& .MuiTabs-scrollButtons': {
+              width: 28,
+              '&.Mui-disabled': { opacity: 0.3 },
+            },
             '& .MuiTab-root': {
               minHeight: { xs: 56, sm: 64, md: 72 },
               fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.8rem' },
@@ -1413,6 +1419,7 @@ const HandicapParkingPage: React.FC = () => {
               textTransform: 'none',
               transition: 'all 0.3s ease',
               px: { xs: 0.5, sm: 1.5 },
+              minWidth: { xs: 'auto', sm: 90 },
               '&.Mui-selected': {
                 fontWeight: 600,
               },
@@ -1480,7 +1487,7 @@ const HandicapParkingPage: React.FC = () => {
                   <LegitimationIcon />
                 </Box>
               }
-              label={isMobile ? 'L. Handicap' : 'Legitimații Handicap'}
+              label={isMobile ? 'L. Handic.' : 'Legitimații Handicap'}
               iconPosition="top"
               sx={{
                 '&.Mui-selected': {
@@ -1509,7 +1516,7 @@ const HandicapParkingPage: React.FC = () => {
                   <RevolutionarIcon />
                 </Box>
               }
-              label={isMobile ? 'L. Revoluționar' : 'Legitimații Revoluționar'}
+              label={isMobile ? 'L. Revoluț.' : 'Legitimații Revoluționar'}
               iconPosition="top"
               sx={{
                 '&.Mui-selected': {
