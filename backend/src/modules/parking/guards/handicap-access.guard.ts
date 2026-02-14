@@ -8,6 +8,7 @@ import {
   HANDICAP_PARKING_DEPARTMENT_NAME,
   DOMICILIU_PARKING_DEPARTMENT_NAME,
 } from '../constants/parking.constants';
+import { removeDiacritics } from '../../../common/utils/remove-diacritics';
 
 @Injectable()
 export class HandicapAccessGuard implements CanActivate {
@@ -44,7 +45,7 @@ export class HandicapAccessGuard implements CanActivate {
           HANDICAP_PARKING_DEPARTMENT_NAME,
           DOMICILIU_PARKING_DEPARTMENT_NAME,
         ];
-        if (allowedDepartments.includes(department.name)) {
+        if (allowedDepartments.includes(removeDiacritics(department.name))) {
           return true;
         }
       }

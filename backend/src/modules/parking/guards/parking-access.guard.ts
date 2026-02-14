@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User, UserRole } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
 import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../constants/parking.constants';
+import { removeDiacritics } from '../../../common/utils/remove-diacritics';
 
 @Injectable()
 export class ParkingAccessGuard implements CanActivate {
@@ -36,7 +37,7 @@ export class ParkingAccessGuard implements CanActivate {
       if (department) {
         // Permite acces pentru Dispecerat si Intretinere Parcari
         const allowedDepartments = [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME];
-        if (allowedDepartments.includes(department.name)) {
+        if (allowedDepartments.includes(removeDiacritics(department.name))) {
           return true;
         }
       }

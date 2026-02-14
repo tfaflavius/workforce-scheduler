@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../store';
+import { removeDiacritics } from '../../utils/removeDiacritics';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -28,11 +29,14 @@ export const departmentsApi = createApi({
   endpoints: (builder) => ({
     getDepartments: builder.query<Department[], void>({
       query: () => '/departments',
+      transformResponse: (response: Department[]) =>
+        response.map(d => ({ ...d, name: removeDiacritics(d.name) })),
       providesTags: ['Department'],
     }),
 
     getDepartment: builder.query<Department, string>({
       query: (id) => `/departments/${id}`,
+      transformResponse: (response: Department) => ({ ...response, name: removeDiacritics(response.name) }),
       providesTags: (_result, _error, id) => [{ type: 'Department', id }],
     }),
   }),

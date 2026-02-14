@@ -14,7 +14,7 @@ import { Department } from '../departments/entities/department.entity';
 import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
-import { MAINTENANCE_DEPARTMENT_NAME, HANDICAP_PARKING_DEPARTMENT_NAME, HANDICAP_REQUEST_TYPE_LABELS } from './constants/parking.constants';
+import { MAINTENANCE_DEPARTMENT_NAME, HANDICAP_PARKING_DEPARTMENT_NAME, HANDICAP_REQUEST_TYPE_LABELS, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
 
 @Injectable()
 export class ParkingUrgentScheduler {
@@ -171,7 +171,7 @@ export class ParkingUrgentScheduler {
 
     // Obtine departamentele
     const dispeceratDept = await this.departmentRepository.findOne({
-      where: { name: 'Dispecerat' },
+      where: { name: DISPECERAT_DEPARTMENT_NAME },
     });
 
     const maintenanceDept = await this.departmentRepository.findOne({

@@ -20,6 +20,7 @@ import {
   HandicapRequestType,
   HandicapRequestStatus,
 } from './constants/parking.constants';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class HandicapRequestsService {
@@ -40,10 +41,10 @@ export class HandicapRequestsService {
   async create(userId: string, dto: CreateHandicapRequestDto): Promise<HandicapRequest> {
     const request = this.handicapRequestRepository.create({
       requestType: dto.requestType as HandicapRequestType,
-      location: dto.location,
+      location: removeDiacritics(dto.location),
       googleMapsLink: dto.googleMapsLink,
-      description: dto.description,
-      personName: dto.personName,
+      description: removeDiacritics(dto.description),
+      personName: dto.personName ? removeDiacritics(dto.personName) : dto.personName,
       handicapCertificateNumber: dto.handicapCertificateNumber,
       carPlate: dto.carPlate,
       autoNumber: dto.autoNumber,
@@ -71,7 +72,7 @@ export class HandicapRequestsService {
   async update(id: string, userId: string, dto: UpdateHandicapRequestDto, user: any): Promise<HandicapRequest> {
     // Admin si userii de la departamentul Parcari Handicap pot edita
     const canEdit = user.role === UserRole.ADMIN ||
-      user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
+      removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
       throw new ForbiddenException('Doar administratorii si departamentul Parcari Handicap pot modifica solicitarile');

@@ -49,6 +49,9 @@ export const initializeAuth = createAsyncThunk(
         if (response.ok) {
           const user = await response.json();
           user.fullName = removeDiacritics(user.fullName);
+          if (user.department?.name) {
+            user.department.name = removeDiacritics(user.department.name);
+          }
           console.log('✅ User loaded:', user.email);
           return { user, token: session.access_token };
         } else {
@@ -77,7 +80,11 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setCredentials: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      state.user = { ...action.payload.user, fullName: removeDiacritics(action.payload.user.fullName) };
+      const user = { ...action.payload.user, fullName: removeDiacritics(action.payload.user.fullName) };
+      if (user.department?.name) {
+        user.department = { ...user.department, name: removeDiacritics(user.department.name) };
+      }
+      state.user = user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.isLoading = false;

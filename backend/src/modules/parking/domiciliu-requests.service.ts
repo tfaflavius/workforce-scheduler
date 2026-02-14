@@ -20,6 +20,7 @@ import {
   DomiciliuRequestType,
   DomiciliuRequestStatus,
 } from './constants/parking.constants';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class DomiciliuRequestsService {
@@ -40,10 +41,10 @@ export class DomiciliuRequestsService {
   async create(userId: string, dto: CreateDomiciliuRequestDto): Promise<DomiciliuRequest> {
     const request = this.domiciliuRequestRepository.create({
       requestType: dto.requestType as DomiciliuRequestType,
-      location: dto.location,
+      location: removeDiacritics(dto.location),
       googleMapsLink: dto.googleMapsLink,
-      description: dto.description,
-      personName: dto.personName,
+      description: removeDiacritics(dto.description),
+      personName: dto.personName ? removeDiacritics(dto.personName) : dto.personName,
       cnp: dto.cnp,
       address: dto.address,
       carPlate: dto.carPlate,

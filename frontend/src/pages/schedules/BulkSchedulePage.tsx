@@ -167,7 +167,7 @@ const BulkSchedulePage: React.FC = () => {
     const departmentOrder: Record<string, number> = {
       'Dispecerat': 1,
       'Control': 2,
-      'Intretinere': 3,
+      'Intretinere Parcari': 3,
     };
     filtered.sort((a, b) => {
       const orderA = departmentOrder[a.department?.name || ''] || 99;

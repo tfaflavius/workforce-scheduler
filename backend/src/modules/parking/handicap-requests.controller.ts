@@ -29,6 +29,7 @@ import {
   HANDICAP_PARKING_DEPARTMENT_NAME,
   DOMICILIU_PARKING_DEPARTMENT_NAME,
 } from './constants/parking.constants';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Controller('handicap-requests')
 @UseGuards(JwtAuthGuard, HandicapAccessGuard)
@@ -41,7 +42,7 @@ export class HandicapRequestsController {
     if (user.role === UserRole.ADMIN) {
       return true;
     }
-    const departmentName = user.department?.name;
+    const departmentName = removeDiacritics(user.department?.name || '');
     return (
       departmentName === HANDICAP_PARKING_DEPARTMENT_NAME ||
       departmentName === DOMICILIU_PARKING_DEPARTMENT_NAME

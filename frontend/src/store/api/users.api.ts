@@ -85,7 +85,11 @@ export const usersApi = createApi({
         params: filters || undefined,
       }),
       transformResponse: (response: User[]) =>
-        response.map(u => ({ ...u, fullName: removeDiacritics(u.fullName) })),
+        response.map(u => ({
+          ...u,
+          fullName: removeDiacritics(u.fullName),
+          department: u.department ? { ...u.department, name: removeDiacritics(u.department.name) } : u.department,
+        })),
       providesTags: (result) =>
         result
           ? [
@@ -97,13 +101,21 @@ export const usersApi = createApi({
 
     getUser: builder.query<User, string>({
       query: (id) => `/users/${id}`,
-      transformResponse: (response: User) => ({ ...response, fullName: removeDiacritics(response.fullName) }),
+      transformResponse: (response: User) => ({
+        ...response,
+        fullName: removeDiacritics(response.fullName),
+        department: response.department ? { ...response.department, name: removeDiacritics(response.department.name) } : response.department,
+      }),
       providesTags: (_result, _error, id) => [{ type: 'User', id }],
     }),
 
     getCurrentUser: builder.query<User, void>({
       query: () => '/users/me',
-      transformResponse: (response: User) => ({ ...response, fullName: removeDiacritics(response.fullName) }),
+      transformResponse: (response: User) => ({
+        ...response,
+        fullName: removeDiacritics(response.fullName),
+        department: response.department ? { ...response.department, name: removeDiacritics(response.department.name) } : response.department,
+      }),
       providesTags: ['User'],
     }),
 

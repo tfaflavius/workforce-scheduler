@@ -12,7 +12,8 @@ import { NotificationType } from '../notifications/entities/notification.entity'
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { EmailService } from '../../common/email/email.service';
-import { MAINTENANCE_DEPARTMENT_NAME } from './constants/parking.constants';
+import { MAINTENANCE_DEPARTMENT_NAME, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class ParkingDamagesService {
@@ -34,6 +35,8 @@ export class ParkingDamagesService {
   async create(userId: string, dto: CreateParkingDamageDto): Promise<ParkingDamage> {
     const damage = this.parkingDamageRepository.create({
       ...dto,
+      personName: removeDiacritics(dto.personName),
+      description: removeDiacritics(dto.description),
       createdBy: userId,
       lastModifiedBy: userId,
       status: 'ACTIVE',
@@ -371,7 +374,7 @@ export class ParkingDamagesService {
   async getUsersForReminders(): Promise<User[]> {
     // Gaseste departamentele Dispecerat si Intretinere Parcari
     const dispeceratDept = await this.departmentRepository.findOne({
-      where: { name: 'Dispecerat' },
+      where: { name: DISPECERAT_DEPARTMENT_NAME },
     });
 
     const maintenanceDept = await this.departmentRepository.findOne({

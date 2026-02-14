@@ -16,6 +16,7 @@ import {
   HANDICAP_PARKING_DEPARTMENT_NAME,
   RevolutionarLegitimationStatus,
 } from './constants/parking.constants';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class RevolutionarLegitimationsService {
@@ -35,13 +36,13 @@ export class RevolutionarLegitimationsService {
 
   async create(userId: string, dto: CreateRevolutionarLegitimationDto): Promise<RevolutionarLegitimation> {
     const legitimation = this.legitimationRepository.create({
-      personName: dto.personName,
+      personName: removeDiacritics(dto.personName),
       cnp: dto.cnp,
       lawNumber: dto.lawNumber,
       carPlate: dto.carPlate,
       autoNumber: dto.autoNumber,
       phone: dto.phone,
-      description: dto.description,
+      description: dto.description ? removeDiacritics(dto.description) : dto.description,
       createdBy: userId,
       lastModifiedBy: userId,
       status: 'ACTIVE' as RevolutionarLegitimationStatus,
@@ -64,7 +65,7 @@ export class RevolutionarLegitimationsService {
   async update(id: string, userId: string, dto: UpdateRevolutionarLegitimationDto, user: any): Promise<RevolutionarLegitimation> {
     // Admin si userii de la departamentul Parcari Handicap pot edita
     const canEdit = user.role === UserRole.ADMIN ||
-      user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
+      removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
       throw new ForbiddenException('Doar administratorii si departamentul Parcari Handicap pot modifica legitimatiile');

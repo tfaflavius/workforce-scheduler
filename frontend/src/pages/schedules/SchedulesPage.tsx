@@ -333,11 +333,11 @@ const SchedulesPage: React.FC = () => {
       });
     }
 
-    // Sortare dupa departament: Dispecerat → Control → Intretinere
+    // Sortare dupa departament: Dispecerat → Control → Intretinere Parcari
     const departmentOrder: Record<string, number> = {
       'Dispecerat': 1,
       'Control': 2,
-      'Intretinere': 3,
+      'Intretinere Parcari': 3,
     };
 
     filtered.sort((a, b) => {

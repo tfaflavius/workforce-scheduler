@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Department } from './entities/department.entity';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class DepartmentsService {
@@ -13,6 +14,9 @@ export class DepartmentsService {
   ) {}
 
   async create(createDepartmentDto: CreateDepartmentDto): Promise<Department> {
+    if (createDepartmentDto.name) {
+      createDepartmentDto.name = removeDiacritics(createDepartmentDto.name);
+    }
     const department = this.departmentRepository.create(createDepartmentDto);
     return this.departmentRepository.save(department);
   }
@@ -38,6 +42,9 @@ export class DepartmentsService {
   }
 
   async update(id: string, updateDepartmentDto: UpdateDepartmentDto): Promise<Department> {
+    if (updateDepartmentDto.name) {
+      updateDepartmentDto.name = removeDiacritics(updateDepartmentDto.name);
+    }
     const department = await this.findOne(id);
     Object.assign(department, updateDepartmentDto);
     return this.departmentRepository.save(department);

@@ -19,6 +19,7 @@ import { ResolveHandicapLegitimationDto } from './dto/resolve-handicap-legitimat
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { RevolutionarLegitimationStatus, HANDICAP_PARKING_DEPARTMENT_NAME } from './constants/parking.constants';
 import { UserRole } from '../users/entities/user.entity';
+import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Controller('parking/revolutionar-legitimations')
 @UseGuards(JwtAuthGuard)
@@ -28,7 +29,7 @@ export class RevolutionarLegitimationsController {
   private checkAccess(user: any): void {
     // Doar Admin si departamentul Parcari Handicap pot accesa
     const isAdmin = user.role === UserRole.ADMIN;
-    const isHandicapDepartment = user.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
+    const isHandicapDepartment = removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!isAdmin && !isHandicapDepartment) {
       throw new ForbiddenException('Nu aveti permisiunea sa accesati aceasta resursa');
