@@ -1,18 +1,24 @@
 import type { UserReference, ParkingComment } from './parking.types';
 
 // Domiciliu Request Types
-export type DomiciliuRequestType = 'APROBARE_LOC' | 'REVOCARE_LOC' | 'MODIFICARE_DATE';
+export type DomiciliuRequestType = 'TRASARE_LOCURI' | 'REVOCARE_LOCURI';
 export type DomiciliuRequestStatus = 'ACTIVE' | 'FINALIZAT';
+export type ParkingLayoutType = 'PARALEL' | 'PERPENDICULAR' | 'SPIC';
 
 export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
-  APROBARE_LOC: 'Aprobare loc',
-  REVOCARE_LOC: 'Revocare loc',
-  MODIFICARE_DATE: 'Modificare date',
+  TRASARE_LOCURI: 'Trasare locuri de parcare',
+  REVOCARE_LOCURI: 'Revocare locuri de parcare',
 };
 
 export const DOMICILIU_REQUEST_STATUS_LABELS: Record<DomiciliuRequestStatus, string> = {
   ACTIVE: 'Activ',
   FINALIZAT: 'Finalizat',
+};
+
+export const PARKING_LAYOUT_LABELS: Record<ParkingLayoutType, string> = {
+  PARALEL: 'Paralel',
+  PERPENDICULAR: 'Perpendicular',
+  SPIC: 'Spic',
 };
 
 export interface DomiciliuRequest {
@@ -22,10 +28,12 @@ export interface DomiciliuRequest {
   location: string;
   googleMapsLink?: string;
   description: string;
-  personName: string;
+  numberOfSpots?: number;
+  parkingLayout?: ParkingLayoutType;
+  personName?: string;
   cnp?: string;
-  address: string;
-  carPlate: string;
+  address?: string;
+  carPlate?: string;
   carBrand?: string;
   phone?: string;
   email?: string;
@@ -52,10 +60,12 @@ export interface CreateDomiciliuRequestDto {
   location: string;
   googleMapsLink?: string;
   description: string;
-  personName: string;
+  numberOfSpots?: number;
+  parkingLayout?: ParkingLayoutType;
+  personName?: string;
   cnp?: string;
-  address: string;
-  carPlate: string;
+  address?: string;
+  carPlate?: string;
   carBrand?: string;
   phone?: string;
   email?: string;
@@ -67,6 +77,8 @@ export interface UpdateDomiciliuRequestDto {
   location?: string;
   googleMapsLink?: string;
   description?: string;
+  numberOfSpots?: number;
+  parkingLayout?: ParkingLayoutType;
   personName?: string;
   cnp?: string;
   address?: string;

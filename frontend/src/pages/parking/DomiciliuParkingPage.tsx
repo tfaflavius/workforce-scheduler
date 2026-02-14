@@ -56,8 +56,9 @@ import {
   Send as SendIcon,
   AddLocation as ApproveLocationIcon,
   RemoveCircle as RevokeIcon,
-  Edit as ModifyIcon,
   LocationCity as AddressIcon,
+  FormatListNumbered as SpotsIcon,
+  ViewColumn as LayoutIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -76,9 +77,10 @@ import type {
   DomiciliuRequest,
   DomiciliuRequestType,
   DomiciliuRequestStatus,
+  ParkingLayoutType,
   CreateDomiciliuRequestDto,
 } from '../../types/domiciliu.types';
-import { DOMICILIU_REQUEST_TYPE_LABELS, DOMICILIU_REQUEST_STATUS_LABELS } from '../../types/domiciliu.types';
+import { DOMICILIU_REQUEST_TYPE_LABELS, DOMICILIU_REQUEST_STATUS_LABELS, PARKING_LAYOUT_LABELS } from '../../types/domiciliu.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 
 // Departamente cu acces
@@ -87,16 +89,14 @@ const MAINTENANCE_DEPARTMENT_NAME = 'Întreținere Parcări';
 
 // Culori pentru tipuri de solicitări
 const REQUEST_TYPE_COLORS: Record<DomiciliuRequestType, { main: string; bg: string }> = {
-  APROBARE_LOC: { main: '#059669', bg: '#05966915' },
-  REVOCARE_LOC: { main: '#dc2626', bg: '#dc262615' },
-  MODIFICARE_DATE: { main: '#0284c7', bg: '#0284c715' },
+  TRASARE_LOCURI: { main: '#059669', bg: '#05966915' },
+  REVOCARE_LOCURI: { main: '#dc2626', bg: '#dc262615' },
 };
 
 // Icons pentru tipuri
 const REQUEST_TYPE_ICONS: Record<DomiciliuRequestType, React.ReactNode> = {
-  APROBARE_LOC: <ApproveLocationIcon />,
-  REVOCARE_LOC: <RevokeIcon />,
-  MODIFICARE_DATE: <ModifyIcon />,
+  TRASARE_LOCURI: <ApproveLocationIcon />,
+  REVOCARE_LOCURI: <RevokeIcon />,
 };
 
 interface TabPanelProps {
@@ -142,6 +142,8 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
     location: '',
     googleMapsLink: '',
     description: '',
+    numberOfSpots: undefined,
+    parkingLayout: undefined,
     personName: '',
     cnp: '',
     address: '',
@@ -171,6 +173,8 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         location: '',
         googleMapsLink: '',
         description: '',
+        numberOfSpots: undefined,
+        parkingLayout: undefined,
         personName: '',
         cnp: '',
         address: '',
@@ -194,6 +198,8 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         location: '',
         googleMapsLink: '',
         description: '',
+        numberOfSpots: undefined,
+        parkingLayout: undefined,
         personName: '',
         cnp: '',
         address: '',
@@ -236,10 +242,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
   const isFormValid = () => {
     return !!(
       formData.location &&
-      formData.description &&
-      formData.personName &&
-      formData.address &&
-      formData.carPlate
+      formData.description
     );
   };
 
@@ -325,15 +328,55 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
             </Button>
           )}
 
+          {/* Detalii parcări */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <TextField
+              label="Câte locuri"
+              value={formData.numberOfSpots ?? ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFormData({ ...formData, numberOfSpots: val ? parseInt(val, 10) || undefined : undefined });
+              }}
+              fullWidth
+              type="number"
+              inputProps={{ min: 1 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SpotsIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <FormControl fullWidth>
+              <InputLabel>Tip parcaj</InputLabel>
+              <Select
+                value={formData.parkingLayout ?? ''}
+                label="Tip parcaj"
+                onChange={(e) => setFormData({ ...formData, parkingLayout: (e.target.value || undefined) as ParkingLayoutType | undefined })}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <LayoutIcon color="action" />
+                  </InputAdornment>
+                }
+              >
+                <MenuItem value="">Neselectat</MenuItem>
+                <MenuItem value="PARALEL">Paralel</MenuItem>
+                <MenuItem value="PERPENDICULAR">Perpendicular</MenuItem>
+                <MenuItem value="SPIC">Spic</MenuItem>
+              </Select>
+            </FormControl>
+          </Stack>
+
           <Divider sx={{ my: 1 }}>
-            <Chip label="Date persoană" size="small" />
+            <Chip label="Date persoană (opțional)" size="small" />
           </Divider>
 
           <TextField
-            label="Nume și prenume"
+            label="Nume și prenume (opțional)"
             value={formData.personName}
             onChange={(e) => setFormData({ ...formData, personName: e.target.value })}
-            required
             fullWidth
             InputProps={{
               startAdornment: (
@@ -353,10 +396,9 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
           />
 
           <TextField
-            label="Adresa de domiciliu"
+            label="Adresa de domiciliu (opțional)"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            required
             fullWidth
             multiline
             rows={2}
@@ -371,10 +413,9 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
-              label="Număr auto"
+              label="Număr auto (opțional)"
               value={formData.carPlate}
               onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
-              required
               fullWidth
               placeholder="Ex: BH-01-ABC"
               InputProps={{
@@ -610,59 +651,94 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
                         </Box>
                       </Box>
 
-                      <Divider />
+                      {/* Detalii parcări */}
+                      {(request.numberOfSpots || request.parkingLayout) && (
+                        <>
+                          <Divider />
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            {request.numberOfSpots && (
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" color="text.secondary">Număr locuri</Typography>
+                                <Typography variant="body1" fontWeight={600}>{request.numberOfSpots}</Typography>
+                              </Box>
+                            )}
+                            {request.parkingLayout && (
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" color="text.secondary">Tip parcaj</Typography>
+                                <Typography variant="body1" fontWeight={500}>{PARKING_LAYOUT_LABELS[request.parkingLayout]}</Typography>
+                              </Box>
+                            )}
+                          </Stack>
+                        </>
+                      )}
 
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="body2" color="text.secondary">Persoană</Typography>
-                          <Typography variant="body1" fontWeight={500}>{request.personName}</Typography>
-                        </Box>
-                        {request.cnp && (
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" color="text.secondary">CNP</Typography>
-                            <Typography variant="body1">{request.cnp}</Typography>
-                          </Box>
-                        )}
-                      </Stack>
+                      {/* Date persoană */}
+                      {(request.personName || request.cnp || request.address || request.carPlate) && (
+                        <>
+                          <Divider />
+                          {(request.personName || request.cnp) && (
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                              {request.personName && (
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Persoană</Typography>
+                                  <Typography variant="body1" fontWeight={500}>{request.personName}</Typography>
+                                </Box>
+                              )}
+                              {request.cnp && (
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">CNP</Typography>
+                                  <Typography variant="body1">{request.cnp}</Typography>
+                                </Box>
+                              )}
+                            </Stack>
+                          )}
 
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">Adresa de domiciliu</Typography>
-                        <Typography variant="body1">{request.address}</Typography>
-                      </Box>
+                          {request.address && (
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">Adresa de domiciliu</Typography>
+                              <Typography variant="body1">{request.address}</Typography>
+                            </Box>
+                          )}
 
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="body2" color="text.secondary">Număr Auto</Typography>
-                          <Typography variant="body1" fontWeight={600}>{request.carPlate}</Typography>
-                        </Box>
-                        {request.carBrand && (
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" color="text.secondary">Marcă Auto</Typography>
-                            <Typography variant="body1">{request.carBrand}</Typography>
-                          </Box>
-                        )}
-                      </Stack>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            {request.carPlate && (
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" color="text.secondary">Număr Auto</Typography>
+                                <Typography variant="body1" fontWeight={600}>{request.carPlate}</Typography>
+                              </Box>
+                            )}
+                            {request.carBrand && (
+                              <Box sx={{ flex: 1 }}>
+                                <Typography variant="body2" color="text.secondary">Marcă Auto</Typography>
+                                <Typography variant="body1">{request.carBrand}</Typography>
+                              </Box>
+                            )}
+                          </Stack>
 
-                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                        {request.phone && (
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" color="text.secondary">Telefon</Typography>
-                            <Typography variant="body1">{request.phone}</Typography>
-                          </Box>
-                        )}
-                        {request.email && (
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" color="text.secondary">Email</Typography>
-                            <Typography variant="body1">{request.email}</Typography>
-                          </Box>
-                        )}
-                        {request.contractNumber && (
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" color="text.secondary">Nr. Contract</Typography>
-                            <Typography variant="body1">{request.contractNumber}</Typography>
-                          </Box>
-                        )}
-                      </Stack>
+                          {(request.phone || request.email || request.contractNumber) && (
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                              {request.phone && (
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Telefon</Typography>
+                                  <Typography variant="body1">{request.phone}</Typography>
+                                </Box>
+                              )}
+                              {request.email && (
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Email</Typography>
+                                  <Typography variant="body1">{request.email}</Typography>
+                                </Box>
+                              )}
+                              {request.contractNumber && (
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">Nr. Contract</Typography>
+                                  <Typography variant="body1">{request.contractNumber}</Typography>
+                                </Box>
+                              )}
+                            </Stack>
+                          )}
+                        </>
+                      )}
 
                       <Divider />
                       <Box>
@@ -926,11 +1002,23 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
           {request.location}
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
-          <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
-          {request.personName}
-          {request.carPlate && ` • ${request.carPlate}`}
-        </Typography>
+        {(request.numberOfSpots || request.parkingLayout) && (
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
+            <LayoutIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
+            {request.numberOfSpots && `${request.numberOfSpots} locuri`}
+            {request.numberOfSpots && request.parkingLayout && ' • '}
+            {request.parkingLayout && PARKING_LAYOUT_LABELS[request.parkingLayout]}
+          </Typography>
+        )}
+
+        {(request.personName || request.carPlate) && (
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
+            <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
+            {request.personName}
+            {request.personName && request.carPlate && ' • '}
+            {request.carPlate}
+          </Typography>
+        )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
           <Typography variant="caption" color="text.secondary">
@@ -990,25 +1078,18 @@ const DomiciliuParkingPage: React.FC = () => {
 
   const tabConfig: { type: DomiciliuRequestType; label: string; shortLabel: string; icon: React.ReactNode; color: string }[] = [
     {
-      type: 'APROBARE_LOC',
-      label: 'Aprobare Locuri',
-      shortLabel: 'Aprobare',
+      type: 'TRASARE_LOCURI',
+      label: 'Trasare Locuri',
+      shortLabel: 'Trasare',
       icon: <ApproveLocationIcon />,
-      color: REQUEST_TYPE_COLORS.APROBARE_LOC.main,
+      color: REQUEST_TYPE_COLORS.TRASARE_LOCURI.main,
     },
     {
-      type: 'REVOCARE_LOC',
+      type: 'REVOCARE_LOCURI',
       label: 'Revocare Locuri',
       shortLabel: 'Revocare',
       icon: <RevokeIcon />,
-      color: REQUEST_TYPE_COLORS.REVOCARE_LOC.main,
-    },
-    {
-      type: 'MODIFICARE_DATE',
-      label: 'Modificare Date',
-      shortLabel: 'Modificare',
-      icon: <ModifyIcon />,
-      color: REQUEST_TYPE_COLORS.MODIFICARE_DATE.main,
+      color: REQUEST_TYPE_COLORS.REVOCARE_LOCURI.main,
     },
   ];
 
@@ -1030,12 +1111,13 @@ const DomiciliuParkingPage: React.FC = () => {
   // Count per type for badges
   const countPerType = useMemo(() => {
     const counts: Record<DomiciliuRequestType, number> = {
-      APROBARE_LOC: 0,
-      REVOCARE_LOC: 0,
-      MODIFICARE_DATE: 0,
+      TRASARE_LOCURI: 0,
+      REVOCARE_LOCURI: 0,
     };
     requests.filter(r => r.status === 'ACTIVE').forEach((r) => {
-      counts[r.requestType]++;
+      if (counts[r.requestType] !== undefined) {
+        counts[r.requestType]++;
+      }
     });
     return counts;
   }, [requests]);
@@ -1103,7 +1185,7 @@ const DomiciliuParkingPage: React.FC = () => {
                 variant="body2"
                 sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
               >
-                Gestionează solicitările de aprobare/revocare locuri și modificare date
+                Gestionează solicitările de trasare și revocare locuri de parcare
               </Typography>
             </Box>
           </Box>

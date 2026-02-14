@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { DomiciliuRequestComment } from './domiciliu-request-comment.entity';
-import { DomiciliuRequestType, DomiciliuRequestStatus } from '../constants/parking.constants';
+import { DomiciliuRequestType, DomiciliuRequestStatus, ParkingLayoutType } from '../constants/parking.constants';
 
 @Entity('domiciliu_requests')
 export class DomiciliuRequest {
@@ -33,17 +33,24 @@ export class DomiciliuRequest {
   @Column({ type: 'text' })
   description: string;
 
-  // Date persoană
-  @Column({ name: 'person_name', length: 255 })
+  // Câmpuri specifice parcări domiciliu
+  @Column({ name: 'number_of_spots', type: 'int', nullable: true })
+  numberOfSpots: number;
+
+  @Column({ name: 'parking_layout', length: 20, nullable: true })
+  parkingLayout: ParkingLayoutType;
+
+  // Date persoană (opționale - nu sunt necesare pentru trasare/revocare)
+  @Column({ name: 'person_name', length: 255, nullable: true })
   personName: string;
 
   @Column({ name: 'cnp', length: 20, nullable: true })
   cnp: string;
 
-  @Column({ name: 'address', type: 'text' })
+  @Column({ name: 'address', type: 'text', nullable: true })
   address: string;
 
-  @Column({ name: 'car_plate', length: 20 })
+  @Column({ name: 'car_plate', length: 20, nullable: true })
   carPlate: string;
 
   @Column({ name: 'car_brand', length: 100, nullable: true })

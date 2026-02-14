@@ -183,12 +183,26 @@ export const HANDICAP_REQUEST_TYPE_LABELS: Record<HandicapRequestType, string> =
 
 // Tipuri de solicitări parcări domiciliu
 export const DOMICILIU_REQUEST_TYPES = {
-  APROBARE_LOC: 'APROBARE_LOC',           // Aprobare loc de parcare la domiciliu
-  REVOCARE_LOC: 'REVOCARE_LOC',           // Revocare loc de parcare la domiciliu
-  MODIFICARE_DATE: 'MODIFICARE_DATE',     // Modificare date (mașină, adresă, etc.)
+  TRASARE_LOCURI: 'TRASARE_LOCURI',       // Trasare locuri de parcare
+  REVOCARE_LOCURI: 'REVOCARE_LOCURI',     // Revocare locuri de parcare
 } as const;
 
 export type DomiciliuRequestType = typeof DOMICILIU_REQUEST_TYPES[keyof typeof DOMICILIU_REQUEST_TYPES];
+
+// Tipuri de parcare
+export const PARKING_LAYOUT_TYPES = {
+  PARALEL: 'PARALEL',
+  PERPENDICULAR: 'PERPENDICULAR',
+  SPIC: 'SPIC',
+} as const;
+
+export type ParkingLayoutType = typeof PARKING_LAYOUT_TYPES[keyof typeof PARKING_LAYOUT_TYPES];
+
+export const PARKING_LAYOUT_LABELS: Record<ParkingLayoutType, string> = {
+  PARALEL: 'Paralel',
+  PERPENDICULAR: 'Perpendicular',
+  SPIC: 'Spic',
+};
 
 // Status pentru solicitări domiciliu
 export const DOMICILIU_REQUEST_STATUS = {
@@ -200,9 +214,8 @@ export type DomiciliuRequestStatus = typeof DOMICILIU_REQUEST_STATUS[keyof typeo
 
 // Labels în limba română pentru tipurile de solicitări domiciliu
 export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
-  APROBARE_LOC: 'Aprobare loc',
-  REVOCARE_LOC: 'Revocare loc',
-  MODIFICARE_DATE: 'Modificare date',
+  TRASARE_LOCURI: 'Trasare locuri de parcare',
+  REVOCARE_LOCURI: 'Revocare locuri de parcare',
 };
 
 // ============== LEGITIMAȚII HANDICAP ==============

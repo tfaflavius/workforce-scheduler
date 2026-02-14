@@ -44,7 +44,6 @@ import {
   Refresh as RefreshIcon,
   AddLocation as ApproveLocationIcon,
   RemoveCircle as RevokeIcon,
-  Edit as ModifyIcon,
 } from '@mui/icons-material';
 import DatePickerField from '../../components/common/DatePickerField';
 import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
@@ -64,15 +63,13 @@ interface DomiciliuReportsTabProps {
 }
 
 const REQUEST_TYPE_COLORS: Record<DomiciliuRequestType, string> = {
-  APROBARE_LOC: '#059669',
-  REVOCARE_LOC: '#dc2626',
-  MODIFICARE_DATE: '#0284c7',
+  TRASARE_LOCURI: '#059669',
+  REVOCARE_LOCURI: '#dc2626',
 };
 
 const REQUEST_TYPE_ICONS: Record<DomiciliuRequestType, React.ReactNode> = {
-  APROBARE_LOC: <ApproveLocationIcon />,
-  REVOCARE_LOC: <RevokeIcon />,
-  MODIFICARE_DATE: <ModifyIcon />,
+  TRASARE_LOCURI: <ApproveLocationIcon />,
+  REVOCARE_LOCURI: <RevokeIcon />,
 };
 
 const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
@@ -116,9 +113,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
   // Statistics
   const stats = useMemo(() => {
     const byType: Record<DomiciliuRequestType, { active: number; resolved: number }> = {
-      APROBARE_LOC: { active: 0, resolved: 0 },
-      REVOCARE_LOC: { active: 0, resolved: 0 },
-      MODIFICARE_DATE: { active: 0, resolved: 0 },
+      TRASARE_LOCURI: { active: 0, resolved: 0 },
+      REVOCARE_LOCURI: { active: 0, resolved: 0 },
     };
 
     filteredRequests.forEach(r => {
@@ -166,16 +162,16 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
     const tableData = filteredRequests.map(r => [
       DOMICILIU_REQUEST_TYPE_LABELS[r.requestType],
       r.location,
-      r.personName,
-      r.carPlate,
-      r.address?.substring(0, 30) + (r.address?.length > 30 ? '...' : '') || '-',
+      r.numberOfSpots ? String(r.numberOfSpots) : '-',
+      r.personName || '-',
+      r.carPlate || '-',
       DOMICILIU_REQUEST_STATUS_LABELS[r.status],
       format(new Date(r.createdAt), 'dd.MM.yyyy'),
     ]);
 
     autoTable(doc, {
       startY: 78,
-      head: [['Tip', 'Locație', 'Persoană', 'Nr. Auto', 'Adresa', 'Status', 'Data']],
+      head: [['Tip', 'Locație', 'Nr. Locuri', 'Persoană', 'Nr. Auto', 'Status', 'Data']],
       body: tableData,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [5, 150, 105] },
@@ -191,10 +187,12 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
       'Tip Solicitare': DOMICILIU_REQUEST_TYPE_LABELS[r.requestType],
       'Locație Parcare': r.location,
       'Link Google Maps': r.googleMapsLink || '',
-      'Nume Persoană': r.personName,
+      'Nr. Locuri': r.numberOfSpots || '',
+      'Tip Parcaj': r.parkingLayout || '',
+      'Nume Persoană': r.personName || '',
       'CNP': r.cnp || '',
-      'Adresa Domiciliu': r.address,
-      'Nr. Auto': r.carPlate,
+      'Adresa Domiciliu': r.address || '',
+      'Nr. Auto': r.carPlate || '',
       'Marcă Auto': r.carBrand || '',
       'Telefon': r.phone || '',
       'Email': r.email || '',
@@ -294,9 +292,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             onChange={(e) => setSelectedType(e.target.value as DomiciliuRequestType | 'ALL')}
           >
             <MenuItem value="ALL">Toate tipurile</MenuItem>
-            <MenuItem value="APROBARE_LOC">Aprobare locuri</MenuItem>
-            <MenuItem value="REVOCARE_LOC">Revocare locuri</MenuItem>
-            <MenuItem value="MODIFICARE_DATE">Modificare date</MenuItem>
+            <MenuItem value="TRASARE_LOCURI">Trasare locuri</MenuItem>
+            <MenuItem value="REVOCARE_LOCURI">Revocare locuri</MenuItem>
           </Select>
         </FormControl>
 
@@ -408,7 +405,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
                 Rapoarte Parcări Domiciliu
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Solicitări de aprobare/revocare locuri și modificare date
+                Solicitări de trasare și revocare locuri de parcare
               </Typography>
             </Box>
           </Stack>
@@ -443,8 +440,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
-            title="Aprobări"
-            value={stats.byType.APROBARE_LOC.active + stats.byType.APROBARE_LOC.resolved}
+            title="Trasări"
+            value={stats.byType.TRASARE_LOCURI.active + stats.byType.TRASARE_LOCURI.resolved}
             icon={<ApproveLocationIcon />}
             color="#059669"
           />
@@ -522,8 +519,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
                       {request.location}
                     </Typography>
                   </TableCell>
-                  {!isMobile && <TableCell>{request.personName}</TableCell>}
-                  {!isMobile && <TableCell>{request.carPlate}</TableCell>}
+                  {!isMobile && <TableCell>{request.personName || '-'}</TableCell>}
+                  {!isMobile && <TableCell>{request.carPlate || '-'}</TableCell>}
                   <TableCell>
                     <Chip
                       label={DOMICILIU_REQUEST_STATUS_LABELS[request.status]}
