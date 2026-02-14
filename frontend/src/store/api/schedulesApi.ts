@@ -17,6 +17,26 @@ import type { RootState } from '../store';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+// Type for colleague on shift
+export interface ShiftColleague {
+  id: string;
+  userId: string;
+  userName: string;
+  shiftType: string;
+  shiftCode: string;
+  startTime: string;
+  endTime: string;
+  workPosition: string;
+  workPositionCode: string;
+  isCurrentUser: boolean;
+}
+
+export interface ColleaguesResponse {
+  today: ShiftColleague[];
+  tomorrow: ShiftColleague[];
+  userPosition: string | null;
+}
+
 // Type for today's dispatcher
 export interface TodayDispatcher {
   id: string;
@@ -189,6 +209,12 @@ export const schedulesApi = createApi({
       providesTags: ['Schedule'],
     }),
 
+    // Get colleagues on same work position (today + tomorrow)
+    getShiftColleagues: builder.query<ColleaguesResponse, void>({
+      query: () => '/schedules/today/colleagues',
+      providesTags: ['Schedule'],
+    }),
+
     // Export schedule to PDF or Excel
     exportSchedule: builder.mutation<
       ReportResponse,
@@ -224,5 +250,6 @@ export const {
   useCloneScheduleMutation,
   useGetDashboardStatsQuery,
   useGetTodayDispatchersQuery,
+  useGetShiftColleaguesQuery,
   useExportScheduleMutation,
 } = schedulesApi;

@@ -13,6 +13,11 @@ import {
   IconButton,
   Divider,
   Button,
+  Chip,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
   useMediaQuery,
   useTheme,
   Fade,
@@ -33,8 +38,12 @@ import {
   Brush as MarcajeIcon,
   Badge as LegitimatiiIcon,
   MilitaryTech as RevolutionarIcon,
+  Headset as DispatcherIcon,
+  Security as ControlIcon,
+  AccessTime as TimeIcon,
+  EventNote as TomorrowIcon,
 } from '@mui/icons-material';
-import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
+import { useGetSchedulesQuery, useGetShiftColleaguesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import {
   useGetHandicapRequestsQuery,
@@ -277,6 +286,14 @@ const EmployeeDashboard = () => {
   });
 
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
+
+  // Check if user is in Dispecerat or Control department
+  const isDispatchDepartment = user?.department?.name === 'Dispecerat' || user?.department?.name === 'Control';
+
+  // Get colleagues on same position (only for Dispecerat/Control)
+  const { data: colleaguesData } = useGetShiftColleaguesQuery(undefined, {
+    skip: !isDispatchDepartment,
+  });
 
   // Check if user is in Parcari Handicap department
   const isHandicapDepartment = user?.department?.name === HANDICAP_DEPARTMENT_NAME;
@@ -640,6 +657,295 @@ const EmployeeDashboard = () => {
           </Grid>
         </Box>
       </Fade>
+
+      {/* Colleagues on Shift - for Dispecerat/Control departments */}
+      {isDispatchDepartment && colleaguesData?.userPosition && (
+        <Fade in={true} timeout={700}>
+          <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{
+                mb: { xs: 1.5, sm: 2 },
+                fontWeight: 700,
+                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+              }}
+            >
+              {colleaguesData.userPosition === 'DISP' ? '🎧' : '🛡️'}{' '}
+              Colegi pe tura - {colleaguesData.userPosition === 'DISP' ? 'Dispecerat' : 'Control'}
+            </Typography>
+            <Card
+              sx={{
+                background: theme.palette.mode === 'light'
+                  ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
+                  : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                color: 'white',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -40,
+                  right: -40,
+                  width: 150,
+                  height: 150,
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                }}
+              />
+              <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, position: 'relative' }}>
+                {/* Today */}
+                <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 1.5, sm: 2 } }}>
+                  <Box
+                    sx={{
+                      p: { xs: 1, sm: 1.5 },
+                      borderRadius: 2,
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      display: 'flex',
+                    }}
+                  >
+                    {colleaguesData.userPosition === 'DISP'
+                      ? <DispatcherIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
+                      : <ControlIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />}
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
+                      Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                      {colleaguesData.today.length > 0
+                        ? `${colleaguesData.today.length} ${colleaguesData.today.length === 1 ? 'persoana' : 'persoane'} pe tura`
+                        : 'Nimeni programat'}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                {colleaguesData.today.length > 0 ? (
+                  <List sx={{ py: 0 }}>
+                    {colleaguesData.today.map((colleague, index) => (
+                      <ListItem
+                        key={colleague.id}
+                        sx={{
+                          bgcolor: colleague.isCurrentUser ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
+                          borderRadius: 2,
+                          mb: index < colleaguesData.today.length - 1 ? 0.75 : 0,
+                          px: { xs: 1, sm: 2 },
+                          py: { xs: 0.75, sm: 1 },
+                          border: colleague.isCurrentUser ? '1px solid rgba(255,255,255,0.4)' : 'none',
+                        }}
+                      >
+                        <ListItemAvatar sx={{ minWidth: { xs: 40, sm: 56 } }}>
+                          <Avatar
+                            sx={{
+                              bgcolor: colleague.isCurrentUser ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.25)',
+                              color: 'white',
+                              width: { xs: 32, sm: 40 },
+                              height: { xs: 32, sm: 40 },
+                            }}
+                          >
+                            <PersonIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Stack direction="row" alignItems="center" spacing={0.5}>
+                              <Typography
+                                variant="subtitle1"
+                                fontWeight="bold"
+                                color="white"
+                                sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}
+                                noWrap
+                              >
+                                {colleague.userName}
+                              </Typography>
+                              {colleague.isCurrentUser && (
+                                <Chip
+                                  label="Tu"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: 'rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    height: 20,
+                                    fontSize: '0.65rem',
+                                  }}
+                                />
+                              )}
+                            </Stack>
+                          }
+                          secondary={
+                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
+                              <Chip
+                                icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />}
+                                label={`${colleague.startTime} - ${colleague.endTime}`}
+                                size="small"
+                                sx={{
+                                  bgcolor: 'rgba(255,255,255,0.2)',
+                                  color: 'white',
+                                  fontWeight: 600,
+                                  height: { xs: 24, sm: 28 },
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                  '& .MuiChip-icon': { color: 'white' },
+                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
+                                }}
+                              />
+                              <Chip
+                                label={colleague.shiftCode || colleague.shiftType}
+                                size="small"
+                                sx={{
+                                  bgcolor: colleague.shiftCode === 'Z' ? '#fbbf24' : colleague.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
+                                  color: colleague.shiftCode === 'Z' ? '#000' : '#fff',
+                                  fontWeight: 700,
+                                  height: { xs: 24, sm: 28 },
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
+                                }}
+                              />
+                            </Stack>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      Nu exista colegi programati astazi.
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Tomorrow */}
+                <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mt: 2.5, mb: { xs: 1.5, sm: 2 } }}>
+                  <Box
+                    sx={{
+                      p: { xs: 1, sm: 1.5 },
+                      borderRadius: 2,
+                      bgcolor: 'rgba(255,255,255,0.15)',
+                      display: 'flex',
+                    }}
+                  >
+                    <TomorrowIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
+                      Maine - {(() => {
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        return tomorrow.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
+                      })()}
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                      {colleaguesData.tomorrow.length > 0
+                        ? `${colleaguesData.tomorrow.length} ${colleaguesData.tomorrow.length === 1 ? 'persoana' : 'persoane'} pe tura`
+                        : 'Nimeni programat'}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                {colleaguesData.tomorrow.length > 0 ? (
+                  <List sx={{ py: 0 }}>
+                    {colleaguesData.tomorrow.map((colleague, index) => (
+                      <ListItem
+                        key={colleague.id}
+                        sx={{
+                          bgcolor: colleague.isCurrentUser ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)',
+                          borderRadius: 2,
+                          mb: index < colleaguesData.tomorrow.length - 1 ? 0.75 : 0,
+                          px: { xs: 1, sm: 2 },
+                          py: { xs: 0.75, sm: 1 },
+                          border: colleague.isCurrentUser ? '1px solid rgba(255,255,255,0.3)' : 'none',
+                        }}
+                      >
+                        <ListItemAvatar sx={{ minWidth: { xs: 40, sm: 56 } }}>
+                          <Avatar
+                            sx={{
+                              bgcolor: 'rgba(255,255,255,0.2)',
+                              color: 'white',
+                              width: { xs: 32, sm: 40 },
+                              height: { xs: 32, sm: 40 },
+                            }}
+                          >
+                            <PersonIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Stack direction="row" alignItems="center" spacing={0.5}>
+                              <Typography
+                                variant="subtitle1"
+                                fontWeight="bold"
+                                color="white"
+                                sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}
+                                noWrap
+                              >
+                                {colleague.userName}
+                              </Typography>
+                              {colleague.isCurrentUser && (
+                                <Chip
+                                  label="Tu"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: 'rgba(255,255,255,0.3)',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    height: 20,
+                                    fontSize: '0.65rem',
+                                  }}
+                                />
+                              )}
+                            </Stack>
+                          }
+                          secondary={
+                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
+                              <Chip
+                                icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />}
+                                label={`${colleague.startTime} - ${colleague.endTime}`}
+                                size="small"
+                                sx={{
+                                  bgcolor: 'rgba(255,255,255,0.2)',
+                                  color: 'white',
+                                  fontWeight: 600,
+                                  height: { xs: 24, sm: 28 },
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                  '& .MuiChip-icon': { color: 'white' },
+                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
+                                }}
+                              />
+                              <Chip
+                                label={colleague.shiftCode || colleague.shiftType}
+                                size="small"
+                                sx={{
+                                  bgcolor: colleague.shiftCode === 'Z' ? '#fbbf24' : colleague.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
+                                  color: colleague.shiftCode === 'Z' ? '#000' : '#fff',
+                                  fontWeight: 700,
+                                  height: { xs: 24, sm: 28 },
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                  '& .MuiChip-label': { px: { xs: 0.75, sm: 1 } },
+                                }}
+                              />
+                            </Stack>
+                          }
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Box sx={{ bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2, p: 2, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      Nu exista colegi programati maine.
+                    </Typography>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Box>
+        </Fade>
+      )}
 
       {/* Monthly Calendar */}
       <Grow in={true} timeout={800}>

@@ -56,6 +56,11 @@ export class SchedulesController {
     return this.schedulesService.getTodayDispatcherAssignments();
   }
 
+  @Get('today/colleagues')
+  getTodayColleagues(@Request() req) {
+    return this.schedulesService.getColleaguesByPosition(req.user.id);
+  }
+
   @Get('shift-types')
   getShiftTypes() {
     return this.schedulesService.getShiftTypes();

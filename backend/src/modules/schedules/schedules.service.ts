@@ -908,6 +908,107 @@ export class SchedulesService {
   }
 
   /**
+   * Get colleagues working at the same position (DISP or CTRL) for today and tomorrow.
+   * Only returns results for users in Dispecerat or Control departments.
+   */
+  async getColleaguesByPosition(userId: string): Promise<{ today: any[]; tomorrow: any[]; userPosition: string | null }> {
+    const now = new Date();
+    const romaniaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Bucharest' }));
+    const todayStr = romaniaTime.toISOString().split('T')[0];
+
+    // Tomorrow in Romania timezone
+    const tomorrowDate = new Date(romaniaTime);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+
+    // First, find if this user has an assignment today with a work position
+    const userTodayAssignment = await this.assignmentRepository
+      .createQueryBuilder('assignment')
+      .leftJoinAndSelect('assignment.workPosition', 'workPosition')
+      .leftJoinAndSelect('assignment.schedule', 'schedule')
+      .leftJoinAndSelect('assignment.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
+      .where('assignment.user_id = :userId', { userId })
+      .andWhere('DATE(assignment.shift_date) = :today', { today: todayStr })
+      .andWhere('schedule.status = :status', { status: 'APPROVED' })
+      .getOne();
+
+    // Determine user's position: from today's assignment or from their department
+    let positionCode: string | null = null;
+
+    if (userTodayAssignment?.workPosition?.shortName) {
+      positionCode = userTodayAssignment.workPosition.shortName;
+    } else {
+      // Fallback: check department name
+      const deptName = userTodayAssignment?.user?.department?.name || '';
+      if (deptName === 'Dispecerat') positionCode = 'DISP';
+      else if (deptName === 'Control') positionCode = 'CTRL';
+    }
+
+    // If no position found, try to find from user's department directly
+    if (!positionCode) {
+      const userEntity = await this.assignmentRepository.manager
+        .getRepository('User')
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.department', 'department')
+        .where('user.id = :userId', { userId })
+        .getOne();
+
+      const deptName = (userEntity as any)?.department?.name || '';
+      if (deptName === 'Dispecerat') positionCode = 'DISP';
+      else if (deptName === 'Control') positionCode = 'CTRL';
+    }
+
+    if (!positionCode) {
+      return { today: [], tomorrow: [], userPosition: null };
+    }
+
+    // Helper to fetch colleagues for a given date
+    const fetchColleagues = async (dateStr: string) => {
+      const assignments = await this.assignmentRepository
+        .createQueryBuilder('assignment')
+        .leftJoinAndSelect('assignment.user', 'user')
+        .leftJoinAndSelect('user.department', 'department')
+        .leftJoinAndSelect('assignment.shiftType', 'shiftType')
+        .leftJoinAndSelect('assignment.workPosition', 'workPosition')
+        .leftJoinAndSelect('assignment.schedule', 'schedule')
+        .where('DATE(assignment.shift_date) = :date', { date: dateStr })
+        .andWhere('schedule.status = :status', { status: 'APPROVED' })
+        .andWhere('workPosition.short_name = :position', { position: positionCode })
+        .orderBy('shiftType.start_time', 'ASC')
+        .getMany();
+
+      return assignments.map(assignment => {
+        const shiftName = assignment.shiftType?.name || '';
+        let shiftCode = '';
+        if (shiftName.toLowerCase().includes('zi')) shiftCode = 'Z';
+        else if (shiftName.toLowerCase().includes('noapte')) shiftCode = 'N';
+        else if (shiftName.toLowerCase().includes('liber')) shiftCode = 'L';
+
+        return {
+          id: assignment.id,
+          userId: assignment.userId,
+          userName: assignment.user?.fullName || 'Unknown',
+          shiftType: assignment.shiftType?.name || 'Unknown',
+          shiftCode,
+          startTime: assignment.shiftType?.startTime,
+          endTime: assignment.shiftType?.endTime,
+          workPosition: assignment.workPosition?.name || '',
+          workPositionCode: assignment.workPosition?.shortName || '',
+          isCurrentUser: assignment.userId === userId,
+        };
+      });
+    };
+
+    const [today, tomorrow] = await Promise.all([
+      fetchColleagues(todayStr),
+      fetchColleagues(tomorrowStr),
+    ]);
+
+    return { today, tomorrow, userPosition: positionCode };
+  }
+
+  /**
    * Send email notifications to all employees affected by a schedule
    */
   async sendScheduleNotifications(
