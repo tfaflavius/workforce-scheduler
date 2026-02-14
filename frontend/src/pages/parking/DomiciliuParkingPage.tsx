@@ -42,10 +42,6 @@ import {
   AddCircle as AddIcon,
   Place as PlaceIcon,
   Person as PersonIcon,
-  Phone as PhoneIcon,
-  DirectionsCar as CarIcon,
-  Email as EmailIcon,
-  Badge as ContractIcon,
   Search as SearchIcon,
   Close as CloseIcon,
   Check as CheckIcon,
@@ -56,7 +52,6 @@ import {
   Send as SendIcon,
   AddLocation as ApproveLocationIcon,
   RemoveCircle as RevokeIcon,
-  LocationCity as AddressIcon,
   FormatListNumbered as SpotsIcon,
   ViewColumn as LayoutIcon,
 } from '@mui/icons-material';
@@ -145,14 +140,6 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
     description: '',
     numberOfSpots: undefined,
     parkingLayout: undefined,
-    personName: '',
-    cnp: '',
-    address: '',
-    carPlate: '',
-    carBrand: '',
-    phone: '',
-    email: '',
-    contractNumber: '',
   });
 
   // Sync requestType when dialog opens or type changes
@@ -176,14 +163,6 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         description: '',
         numberOfSpots: undefined,
         parkingLayout: undefined,
-        personName: '',
-        cnp: '',
-        address: '',
-        carPlate: '',
-        carBrand: '',
-        phone: '',
-        email: '',
-        contractNumber: '',
       });
       setError(null);
     }
@@ -201,14 +180,6 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         description: '',
         numberOfSpots: undefined,
         parkingLayout: undefined,
-        personName: '',
-        cnp: '',
-        address: '',
-        carPlate: '',
-        carBrand: '',
-        phone: '',
-        email: '',
-        contractNumber: '',
       });
     } catch (err: any) {
       console.error('Error creating request:', err);
@@ -374,119 +345,6 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
               </Select>
             </FormControl>
           </Stack>
-
-          <Divider sx={{ my: 1 }}>
-            <Chip label="Date persoana (optional)" size="small" />
-          </Divider>
-
-          <TextField
-            label="Nume si prenume (optional)"
-            value={formData.personName}
-            onChange={handleTextChange('personName')}
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            label="CNP (optional)"
-            value={formData.cnp}
-            onChange={(e) => setFormData({ ...formData, cnp: e.target.value })}
-            fullWidth
-            inputProps={{ maxLength: 13 }}
-          />
-
-          <TextField
-            label="Adresa de domiciliu (optional)"
-            value={formData.address}
-            onChange={handleTextChange('address')}
-            fullWidth
-            multiline
-            rows={2}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AddressIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField
-              label="Numar auto (optional)"
-              value={formData.carPlate}
-              onChange={(e) => setFormData({ ...formData, carPlate: e.target.value.toUpperCase() })}
-              fullWidth
-              placeholder="Ex: BH-01-ABC"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CarIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <TextField
-              label="Marca auto (optional)"
-              value={formData.carBrand}
-              onChange={handleTextChange('carBrand')}
-              fullWidth
-              placeholder="Ex: Dacia Logan"
-            />
-          </Stack>
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField
-              label="Telefon (optional)"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              fullWidth
-              type="tel"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PhoneIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <TextField
-              label="Email (optional)"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              fullWidth
-              type="email"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon color="action" />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Stack>
-
-          <TextField
-            label="Numar contract/autorizatie (optional)"
-            value={formData.contractNumber}
-            onChange={handleTextChange('contractNumber')}
-            fullWidth
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <ContractIcon color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
 
           {/* Descriere */}
           <TextField
