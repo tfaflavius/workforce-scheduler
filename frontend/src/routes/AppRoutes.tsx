@@ -18,6 +18,7 @@ import ReportsPage from '../pages/reports/ReportsPage';
 import ParkingPage from '../pages/parking/ParkingPage';
 import HandicapParkingPage from '../pages/parking/HandicapParkingPage';
 import DomiciliuParkingPage from '../pages/parking/DomiciliuParkingPage';
+import DailyReportsPage from '../pages/daily-reports/DailyReportsPage';
 import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
@@ -64,6 +65,9 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Daily Reports - for all users */}
+        <Route path="/daily-reports" element={<DailyReportsPage />} />
 
         {/* Leave Requests - for all users */}
         <Route path="/leave-requests" element={<LeaveRequestsPage />} />

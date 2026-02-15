@@ -251,6 +251,26 @@ export interface HandicapDailyReportData {
   };
 }
 
+export interface WeeklyDailyReportSummaryData {
+  recipientEmail: string;
+  recipientName: string;
+  weekStartDate: string; // Luni
+  weekEndDate: string;   // Vineri
+  reportsByDay: Array<{
+    dayName: string;     // ex: 'Luni', 'Marti', etc.
+    date: string;        // ex: '2024-01-15'
+    reports: Array<{
+      userName: string;
+      departmentName: string;
+      content: string;
+      adminComment?: string;
+      adminCommentedBy?: string;
+    }>;
+  }>;
+  totalReports: number;
+  totalUsers: number;
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -2140,5 +2160,104 @@ export class EmailService {
       </body>
       </html>
     `;
+  }
+
+  // ============== WEEKLY DAILY REPORT SUMMARY ==============
+
+  async sendWeeklyDailyReportSummary(data: WeeklyDailyReportSummaryData): Promise<boolean> {
+    const weekRange = `${this.formatDate(data.weekStartDate)} - ${this.formatDate(data.weekEndDate)}`;
+
+    const dayRows = data.reportsByDay.map(day => {
+      if (day.reports.length === 0) {
+        return `
+          <tr>
+            <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+              <strong style="color: #374151;">${day.dayName} (${this.formatDate(day.date)})</strong>
+              <span style="color: #9ca3af; margin-left: 10px; font-style: italic;">— Niciun raport</span>
+            </td>
+          </tr>
+        `;
+      }
+
+      const dayHeader = `
+        <tr>
+          <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
+            <strong style="color: #1e40af; font-size: 15px;">${day.dayName} (${this.formatDate(day.date)})</strong>
+            <span style="color: #3b82f6; margin-left: 10px;">${day.reports.length} raport${day.reports.length > 1 ? 'e' : ''}</span>
+          </td>
+        </tr>
+      `;
+
+      const reportRows = day.reports.map(report => `
+        <tr>
+          <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top; width: 150px;">
+            <strong style="color: #374151; font-size: 13px;">${report.userName}</strong>
+            <br/>
+            <span style="color: #6b7280; font-size: 11px;">${report.departmentName}</span>
+          </td>
+          <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top;">
+            <div style="color: #374151; font-size: 13px; white-space: pre-line; max-width: 350px;">${report.content}</div>
+            ${report.adminComment ? `
+              <div style="margin-top: 8px; padding: 8px 12px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                <span style="color: #92400e; font-size: 11px; font-weight: 600;">Comentariu Admin${report.adminCommentedBy ? ` (${report.adminCommentedBy})` : ''}:</span>
+                <br/>
+                <span style="color: #78350f; font-size: 12px;">${report.adminComment}</span>
+              </div>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+
+      return dayHeader + reportRows;
+    }).join('');
+
+    const content = `
+      <div style="margin-bottom: 25px;">
+        <h2 style="color: #1e40af; margin: 0 0 5px 0;">Centralizare Rapoarte Zilnice</h2>
+        <p style="color: #6b7280; margin: 0;">Saptamana: ${weekRange}</p>
+      </div>
+
+      <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+        <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Rapoarte</div>
+          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalReports}</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Utilizatori</div>
+          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalUsers}</div>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+        <thead>
+          <tr style="background: #f8fafc;">
+            <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Utilizator</th>
+            <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Raport</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dayRows}
+        </tbody>
+      </table>
+
+      <div style="margin-top: 25px; text-align: center;">
+        <a href="${this.appUrl}/daily-reports" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 500;">
+          Deschide Rapoarte Zilnice
+        </a>
+      </div>
+    `;
+
+    const html = this.generateBaseTemplate(
+      'Centralizare Saptamanala',
+      `Rapoarte Zilnice - ${weekRange}`,
+      content,
+      '#3b82f6 0%, #8b5cf6 100%'
+    );
+
+    return this.sendEmail(
+      data.recipientEmail,
+      `Centralizare Rapoarte Zilnice - ${weekRange}`,
+      html,
+    );
   }
 }

@@ -40,6 +40,7 @@ import {
   LocalParking as ParkingIcon,
   Accessible as HandicapIcon,
   Home as HomeIcon,
+  Description as DailyReportIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -101,6 +102,8 @@ export const MainLayout = () => {
 
   // Departamente care nu au acces la Schimburi Ture si Programul Meu
   const PARKING_ONLY_DEPARTMENTS = ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'];
+  // Departamente care nu au acces la Schimburi Ture (dar vad Programul Meu)
+  const NO_SHIFT_SWAP_DEPARTMENTS = [...PARKING_ONLY_DEPARTMENTS, 'Procese Verbale/Facturare', 'Parcometre', 'Achizitii'];
 
   const menuItems: MenuItem[] = [
     {
@@ -121,13 +124,19 @@ export const MainLayout = () => {
       icon: <SwapIcon />,
       path: '/shift-swaps',
       roles: ['USER', 'MANAGER'],
-      excludeDepartments: PARKING_ONLY_DEPARTMENTS,
+      excludeDepartments: NO_SHIFT_SWAP_DEPARTMENTS,
     },
     {
       text: 'Concedii',
       icon: <BeachIcon />,
       path: '/leave-requests',
       roles: ['USER', 'MANAGER'],
+    },
+    {
+      text: 'Raport Zilnic',
+      icon: <DailyReportIcon />,
+      path: '/daily-reports',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
     },
     {
       text: 'Programe',

@@ -237,3 +237,16 @@ export const REVOLUTIONAR_LEGITIMATION_STATUS = {
 } as const;
 
 export type RevolutionarLegitimationStatus = typeof REVOLUTIONAR_LEGITIMATION_STATUS[keyof typeof REVOLUTIONAR_LEGITIMATION_STATUS];
+
+// ============== DEPARTAMENTE NOI ==============
+
+export const PROCESE_VERBALE_DEPARTMENT_NAME = 'Procese Verbale/Facturare';
+export const PARCOMETRE_DEPARTMENT_NAME = 'Parcometre';
+export const ACHIZITII_DEPARTMENT_NAME = 'Achizitii';
+
+// Departamente cu dashboard simplu (program, concedii, raport zilnic)
+export const SIMPLE_DASHBOARD_DEPARTMENTS = [
+  'Procese Verbale/Facturare',
+  'Parcometre',
+  'Achizitii',
+] as const;

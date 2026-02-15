@@ -699,6 +699,25 @@ const ManagerDashboard = () => {
           </Grid>
         </Box>
       </Fade>
+
+      {/* ============== ACHIZITII — PLACEHOLDER ============== */}
+
+      <Divider sx={{ my: 3 }} />
+      <Fade in timeout={1500}>
+        <Box>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
+            Achizitii
+          </Typography>
+          <Card sx={{ borderRadius: 3, p: 3, textAlign: 'center', bgcolor: alpha('#10b981', 0.06), border: '1px dashed', borderColor: alpha('#10b981', 0.3) }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#10b981', mb: 1 }}>
+              Achizitii
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Sectiunea va fi populata ulterior
+            </Typography>
+          </Card>
+        </Box>
+      </Fade>
     </Box>
   );
 };

@@ -295,10 +295,126 @@ const EmployeeDashboard = () => {
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
   ];
 
+  // Departamente cu dashboard simplu
+  const SIMPLE_DEPARTMENTS = ['Procese Verbale/Facturare', 'Parcometre', 'Achizitii'];
+  const isSimpleDepartment = SIMPLE_DEPARTMENTS.includes(user?.department?.name || '');
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
         <CircularProgress size={48} />
+      </Box>
+    );
+  }
+
+  // Dashboard simplu pentru departamentele noi
+  if (isSimpleDepartment) {
+    const todayStr = `${currentDate.getDate()} ${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    return (
+      <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
+        <Fade in={true} timeout={600}>
+          <Box
+            sx={{
+              mb: { xs: 2.5, sm: 3, md: 4 },
+              p: { xs: 2.5, sm: 3, md: 4 },
+              borderRadius: { xs: 2, sm: 3 },
+              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              color: 'white',
+              position: 'relative',
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.35)',
+            }}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                top: -60,
+                right: -60,
+                width: 200,
+                height: 200,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.1)',
+              }}
+            />
+            <Typography variant={isMobile ? 'h6' : 'h5'} sx={{ fontWeight: 700, mb: 0.5 }}>
+              Buna, {user?.fullName?.split(' ')[0]}!
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              {todayStr} — {user?.department?.name}
+            </Typography>
+          </Box>
+        </Fade>
+
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Grow in={true} timeout={700}>
+              <Card
+                sx={{
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha('#3b82f6', 0.2)}` },
+                }}
+                onClick={() => navigate('/my-schedule')}
+              >
+                <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                  <TodayIcon sx={{ fontSize: 36, color: '#3b82f6', mb: 1 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    Programul Meu
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {todayAssignment
+                      ? `Astazi: ${todayAssignment.shiftType?.name || 'Program'}`
+                      : 'Niciun program astazi'}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grow>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Grow in={true} timeout={900}>
+              <Card
+                sx={{
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha('#10b981', 0.2)}` },
+                }}
+                onClick={() => navigate('/leave-requests')}
+              >
+                <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                  <TimeIcon sx={{ fontSize: 36, color: '#10b981', mb: 1 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    Concedii
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Gestioneaza cererile de concediu
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grow>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <Grow in={true} timeout={1100}>
+              <Card
+                sx={{
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha('#8b5cf6', 0.2)}` },
+                }}
+                onClick={() => navigate('/daily-reports')}
+              >
+                <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                  <TomorrowIcon sx={{ fontSize: 36, color: '#8b5cf6', mb: 1 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                    Raport Zilnic
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Scrie raportul de astazi
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grow>
+          </Grid>
+        </Grid>
       </Box>
     );
   }

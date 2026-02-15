@@ -31,6 +31,7 @@ import {
   LocalParking as ParkingIcon,
   Edit as EditIcon,
   OpenInNew as OpenInNewIcon,
+  Description as DailyReportIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -80,6 +81,10 @@ const getNotificationIcon = (type: NotificationType) => {
       return <EditIcon color="success" fontSize="small" />;
     case 'EDIT_REQUEST_REJECTED':
       return <EditIcon color="error" fontSize="small" />;
+    case 'DAILY_REPORT_SUBMITTED':
+      return <DailyReportIcon color="info" fontSize="small" />;
+    case 'DAILY_REPORT_COMMENTED':
+      return <DailyReportIcon color="success" fontSize="small" />;
     default:
       return <InfoIcon color="action" fontSize="small" />;
   }
@@ -159,6 +164,11 @@ const getNotificationPath = (notification: Notification, userRole?: string): { p
     // Employee absent
     case 'EMPLOYEE_ABSENT':
       return { path: '/schedules' };
+
+    // Daily report notifications
+    case 'DAILY_REPORT_SUBMITTED':
+    case 'DAILY_REPORT_COMMENTED':
+      return { path: '/daily-reports' };
 
     default:
       return null;
