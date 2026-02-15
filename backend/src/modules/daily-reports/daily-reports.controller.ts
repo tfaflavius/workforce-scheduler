@@ -24,6 +24,8 @@ export class DailyReportsController {
   constructor(private readonly dailyReportsService: DailyReportsService) {}
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.USER, UserRole.MANAGER)
   create(@Body() dto: CreateDailyReportDto, @Request() req) {
     return this.dailyReportsService.create(req.user.id, dto);
   }
@@ -42,6 +44,16 @@ export class DailyReportsController {
     return this.dailyReportsService.findMyReports(req.user.id, startDate, endDate);
   }
 
+  @Get('missing')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  getMissingReports(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.dailyReportsService.getMissingReportsForDateRange(startDate, endDate);
+  }
+
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
@@ -55,7 +67,7 @@ export class DailyReportsController {
     if (req.user.role === UserRole.ADMIN) {
       return this.dailyReportsService.findAllForAdmin(startDate, endDate, userId, departmentId);
     }
-    // Manager - rapoarte filtrate
+    // Manager - rapoarte filtrate (Dispecerat + Control(DISP) + Achizitii)
     return this.dailyReportsService.findAllForManager(startDate, endDate);
   }
 

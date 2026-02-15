@@ -5,6 +5,7 @@ import type {
   CreateDailyReportDto,
   UpdateDailyReportDto,
   AdminCommentDto,
+  MissingReportsByDate,
 } from '../../types/daily-report.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -21,7 +22,7 @@ export const dailyReportsApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['DailyReports', 'MyDailyReports', 'TodayReport'],
+  tagTypes: ['DailyReports', 'MyDailyReports', 'TodayReport', 'MissingReports'],
   endpoints: (builder) => ({
     // Creaza sau actualizeaza raportul zilnic
     createDailyReport: builder.mutation<DailyReport, CreateDailyReportDto>({
@@ -70,6 +71,15 @@ export const dailyReportsApi = createApi({
       invalidatesTags: ['DailyReports', 'MyDailyReports', 'TodayReport'],
     }),
 
+    // Rapoarte lipsa (admin/manager)
+    getMissingReports: builder.query<MissingReportsByDate[], { startDate: string; endDate: string }>({
+      query: (params) => ({
+        url: '/missing',
+        params,
+      }),
+      providesTags: ['MissingReports'],
+    }),
+
     // Admin adauga comentariu
     addAdminComment: builder.mutation<DailyReport, { id: string; data: AdminCommentDto }>({
       query: ({ id, data }) => ({
@@ -87,6 +97,7 @@ export const {
   useGetTodayReportQuery,
   useGetMyDailyReportsQuery,
   useGetAllDailyReportsQuery,
+  useGetMissingReportsQuery,
   useUpdateDailyReportMutation,
   useAddAdminCommentMutation,
 } = dailyReportsApi;

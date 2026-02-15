@@ -85,6 +85,8 @@ const getNotificationIcon = (type: NotificationType) => {
       return <DailyReportIcon color="info" fontSize="small" />;
     case 'DAILY_REPORT_COMMENTED':
       return <DailyReportIcon color="success" fontSize="small" />;
+    case 'DAILY_REPORT_MISSING':
+      return <DailyReportIcon color="error" fontSize="small" />;
     default:
       return <InfoIcon color="action" fontSize="small" />;
   }
@@ -168,6 +170,7 @@ const getNotificationPath = (notification: Notification, userRole?: string): { p
     // Daily report notifications
     case 'DAILY_REPORT_SUBMITTED':
     case 'DAILY_REPORT_COMMENTED':
+    case 'DAILY_REPORT_MISSING':
       return { path: '/daily-reports' };
 
     default:

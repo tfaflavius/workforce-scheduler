@@ -45,3 +45,17 @@ export const DAILY_REPORT_STATUS_LABELS: Record<DailyReportStatus, string> = {
   DRAFT: 'Ciorna',
   SUBMITTED: 'Trimis',
 };
+
+export interface MissingReportUser {
+  id: string;
+  fullName: string;
+  department?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface MissingReportsByDate {
+  date: string;
+  users: MissingReportUser[];
+}

@@ -266,9 +266,14 @@ export interface WeeklyDailyReportSummaryData {
       adminComment?: string;
       adminCommentedBy?: string;
     }>;
+    missingUsers?: Array<{
+      userName: string;
+      departmentName: string;
+    }>;
   }>;
   totalReports: number;
   totalUsers: number;
+  totalMissing?: number;
 }
 
 // ============== SERVICE ==============
@@ -2168,7 +2173,10 @@ export class EmailService {
     const weekRange = `${this.formatDate(data.weekStartDate)} - ${this.formatDate(data.weekEndDate)}`;
 
     const dayRows = data.reportsByDay.map(day => {
-      if (day.reports.length === 0) {
+      const missingUsers = day.missingUsers || [];
+      const hasMissing = missingUsers.length > 0;
+
+      if (day.reports.length === 0 && !hasMissing) {
         return `
           <tr>
             <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
@@ -2184,6 +2192,7 @@ export class EmailService {
           <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
             <strong style="color: #1e40af; font-size: 15px;">${day.dayName} (${this.formatDate(day.date)})</strong>
             <span style="color: #3b82f6; margin-left: 10px;">${day.reports.length} raport${day.reports.length > 1 ? 'e' : ''}</span>
+            ${hasMissing ? `<span style="color: #dc2626; margin-left: 10px;">&#9888; ${missingUsers.length} lipsa</span>` : ''}
           </td>
         </tr>
       `;
@@ -2208,7 +2217,19 @@ export class EmailService {
         </tr>
       `).join('');
 
-      return dayHeader + reportRows;
+      // Sectiune cu utilizatori care NU au trimis raportul
+      const missingSection = hasMissing ? `
+        <tr>
+          <td colspan="4" style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; background: #fef2f2;">
+            <strong style="color: #dc2626; font-size: 13px;">&#9888; Nu au trimis raportul (${missingUsers.length}):</strong>
+            <div style="color: #991b1b; font-size: 12px; margin-top: 4px;">
+              ${missingUsers.map(u => `${u.userName} (${u.departmentName})`).join(', ')}
+            </div>
+          </td>
+        </tr>
+      ` : '';
+
+      return dayHeader + reportRows + missingSection;
     }).join('');
 
     const content = `
@@ -2226,6 +2247,12 @@ export class EmailService {
           <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Utilizatori</div>
           <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalUsers}</div>
         </div>
+        ${data.totalMissing ? `
+        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Lipsa Rapoarte</div>
+          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalMissing}</div>
+        </div>
+        ` : ''}
       </div>
 
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">

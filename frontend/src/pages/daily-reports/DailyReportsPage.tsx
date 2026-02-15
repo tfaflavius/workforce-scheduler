@@ -29,6 +29,7 @@ import {
   Comment as CommentIcon,
   CalendarToday as CalendarIcon,
   FilterList as FilterIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
@@ -37,12 +38,34 @@ import {
   useGetTodayReportQuery,
   useGetMyDailyReportsQuery,
   useGetAllDailyReportsQuery,
+  useGetMissingReportsQuery,
   useUpdateDailyReportMutation,
   useAddAdminCommentMutation,
 } from '../../store/api/dailyReports.api';
 import { useGetUsersQuery } from '../../store/api/users.api';
-import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import type { DailyReport } from '../../types/daily-report.types';
+
+// ============== CONSTANTS ==============
+
+const ADMIN_SECTIONS = [
+  'Dispecerat / Control',
+  'Procese Verbale / Facturare',
+  'Parcometre',
+  'Achizitii',
+];
+
+const MANAGER_SECTIONS = [
+  'Dispecerat / Control',
+  'Achizitii',
+];
+
+// Map section names to department names for filtering
+const SECTION_DEPARTMENTS: Record<string, string[]> = {
+  'Dispecerat / Control': ['Dispecerat', 'Control'],
+  'Procese Verbale / Facturare': ['Procese Verbale/Facturare'],
+  'Parcometre': ['Parcometre'],
+  'Achizitii': ['Achizitii'],
+};
 
 // ============== HELPERS ==============
 
@@ -117,8 +140,12 @@ const DailyReportsPage: React.FC = () => {
   const isManager = user?.role === 'MANAGER';
   const canViewAll = isAdmin || isManager;
 
-  // Tab state
+  // Tab state — Admin vede direct "Toate Rapoartele" (fara tabs), USER/MANAGER au tabs
   const [activeTab, setActiveTab] = useState(0);
+
+  // Department section state
+  const sections = isAdmin ? ADMIN_SECTIONS : isManager ? MANAGER_SECTIONS : [];
+  const [activeSection, setActiveSection] = useState(0);
 
   // My report state
   const [reportContent, setReportContent] = useState('');
@@ -133,24 +160,34 @@ const DailyReportsPage: React.FC = () => {
   // Filter state for "Toate Rapoartele"
   const [filterDateRange, setFilterDateRange] = useState(getCurrentWeekRange());
   const [filterUserId, setFilterUserId] = useState('');
-  const [filterDepartmentId, setFilterDepartmentId] = useState('');
 
   // API hooks
-  const { data: todayReport, isLoading: loadingToday, refetch: refetchToday } = useGetTodayReportQuery();
-  const { data: myReports, isLoading: loadingMyReports } = useGetMyDailyReportsQuery(getLast30DaysRange());
+  const { data: todayReport, isLoading: loadingToday, refetch: refetchToday } = useGetTodayReportQuery(
+    undefined,
+    { skip: isAdmin },
+  );
+  const { data: myReports, isLoading: loadingMyReports } = useGetMyDailyReportsQuery(
+    getLast30DaysRange(),
+    { skip: isAdmin },
+  );
   const { data: allReports, isLoading: loadingAllReports } = useGetAllDailyReportsQuery(
     canViewAll
       ? {
           startDate: filterDateRange.startDate,
           endDate: filterDateRange.endDate,
           ...(filterUserId && { userId: filterUserId }),
-          ...(isAdmin && filterDepartmentId && { departmentId: filterDepartmentId }),
         }
       : undefined,
     { skip: !canViewAll },
   );
+  const { data: missingReportsData } = useGetMissingReportsQuery(
+    {
+      startDate: filterDateRange.startDate,
+      endDate: filterDateRange.endDate,
+    },
+    { skip: !canViewAll },
+  );
   const { data: allUsers } = useGetUsersQuery(undefined, { skip: !canViewAll });
-  const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
 
   const [createReport, { isLoading: creating }] = useCreateDailyReportMutation();
   const [updateReport, { isLoading: updating }] = useUpdateDailyReportMutation();
@@ -173,13 +210,44 @@ const DailyReportsPage: React.FC = () => {
       .sort((a, b) => a.fullName.localeCompare(b.fullName));
   }, [allUsers]);
 
-  // Group all reports by date
+  // Filter reports by active section
+  const filteredReports = useMemo(() => {
+    if (!allReports || !canViewAll) return allReports || [];
+    const currentSection = sections[activeSection];
+    if (!currentSection) return allReports;
+
+    const deptNames = SECTION_DEPARTMENTS[currentSection] || [];
+    return allReports.filter((report) => {
+      const reportDept = report.user?.department?.name || '';
+      return deptNames.some((d) => reportDept === d);
+    });
+  }, [allReports, activeSection, sections, canViewAll]);
+
+  // Filter missing reports by active section
+  const filteredMissingReports = useMemo(() => {
+    if (!missingReportsData || !canViewAll) return [];
+    const currentSection = sections[activeSection];
+    if (!currentSection) return missingReportsData;
+
+    const deptNames = SECTION_DEPARTMENTS[currentSection] || [];
+    return missingReportsData
+      .map((dayData) => ({
+        ...dayData,
+        users: dayData.users.filter((u) => {
+          const userDept = u.department?.name || '';
+          return deptNames.some((d) => userDept === d);
+        }),
+      }))
+      .filter((dayData) => dayData.users.length > 0);
+  }, [missingReportsData, activeSection, sections, canViewAll]);
+
+  // Group filtered reports by date
   const groupedReports = useMemo(() => {
-    if (!allReports) return [];
+    if (!filteredReports) return [];
     const groups: { date: string; reports: DailyReport[] }[] = [];
     const dateMap = new Map<string, DailyReport[]>();
 
-    for (const report of allReports) {
+    for (const report of filteredReports) {
       const date = report.date;
       if (!dateMap.has(date)) {
         dateMap.set(date, []);
@@ -192,7 +260,7 @@ const DailyReportsPage: React.FC = () => {
     }
 
     return groups.sort((a, b) => b.date.localeCompare(a.date));
-  }, [allReports]);
+  }, [filteredReports]);
 
   // Handlers
   const handleSaveDraft = async () => {
@@ -261,7 +329,7 @@ const DailyReportsPage: React.FC = () => {
     }
   };
 
-  // ============== RENDER: Tab 1 — Raportul Meu ==============
+  // ============== RENDER: Raportul Meu ==============
 
   const renderMyReport = () => (
     <Fade in>
@@ -478,7 +546,7 @@ const DailyReportsPage: React.FC = () => {
     </Fade>
   );
 
-  // ============== RENDER: Tab 2 — Toate Rapoartele ==============
+  // ============== RENDER: Toate Rapoartele ==============
 
   const renderAllReports = () => (
     <Fade in>
@@ -520,24 +588,6 @@ const DailyReportsPage: React.FC = () => {
                 sx={{ minWidth: 160 }}
               />
 
-              {isAdmin && departments && (
-                <FormControl size="small" sx={{ minWidth: 180 }}>
-                  <InputLabel>Departament</InputLabel>
-                  <Select
-                    value={filterDepartmentId}
-                    label="Departament"
-                    onChange={(e) => setFilterDepartmentId(e.target.value)}
-                  >
-                    <MenuItem value="">Toate</MenuItem>
-                    {departments.map((dept: any) => (
-                      <MenuItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-
               {canViewAll && sortedUsers.length > 0 && (
                 <FormControl size="small" sx={{ minWidth: 180 }}>
                   <InputLabel>Utilizator</InputLabel>
@@ -555,15 +605,76 @@ const DailyReportsPage: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Department section chips */}
+        {sections.length > 0 && (
+          <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+            {sections.map((section, idx) => (
+              <Chip
+                key={section}
+                label={section}
+                onClick={() => setActiveSection(idx)}
+                variant={activeSection === idx ? 'filled' : 'outlined'}
+                color={activeSection === idx ? 'primary' : 'default'}
+                sx={{
+                  fontWeight: activeSection === idx ? 700 : 500,
+                  fontSize: '0.85rem',
+                  px: 1,
+                  transition: 'all 0.2s',
+                }}
+              />
+            ))}
+          </Box>
+        )}
+
+        {/* Missing users for this section */}
+        {filteredMissingReports.length > 0 && (
+          <Card
+            sx={{
+              mb: 3,
+              borderRadius: 2,
+              border: '1px solid #fca5a5',
+              bgcolor: '#fef2f2',
+            }}
+          >
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <WarningIcon sx={{ color: '#dc2626' }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#dc2626' }}>
+                  Utilizatori fara raport
+                </Typography>
+              </Box>
+              {filteredMissingReports.map((dayData) => (
+                <Box key={dayData.date} sx={{ mb: 1.5 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#991b1b', mb: 0.5 }}>
+                    {formatDate(dayData.date)}:
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {dayData.users.map((u) => (
+                      <Chip
+                        key={u.id}
+                        label={`${u.fullName} (${u.department?.name || 'N/A'})`}
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                        sx={{ fontSize: '0.75rem' }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Reports list */}
         {loadingAllReports ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
             <CircularProgress />
           </Box>
-        ) : !allReports || allReports.length === 0 ? (
+        ) : !filteredReports || filteredReports.length === 0 ? (
           <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
             <ReportIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-            <Typography color="text.secondary">Nu exista rapoarte pentru perioada selectata.</Typography>
+            <Typography color="text.secondary">Nu exista rapoarte pentru sectiunea si perioada selectata.</Typography>
           </Paper>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -736,6 +847,31 @@ const DailyReportsPage: React.FC = () => {
 
   // ============== MAIN RENDER ==============
 
+  // Admin: vede direct "Toate Rapoartele" fara tab-uri
+  if (isAdmin) {
+    return (
+      <Box sx={{ maxWidth: 900, mx: 'auto', px: isMobile ? 2 : 3, py: 3 }}>
+        {/* Header */}
+        <Box
+          sx={{
+            mb: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          <ReportIcon sx={{ fontSize: 32, color: 'primary.main' }} />
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Rapoarte Zilnice
+          </Typography>
+        </Box>
+
+        {renderAllReports()}
+      </Box>
+    );
+  }
+
+  // USER / MANAGER: taburi normali
   return (
     <Box sx={{ maxWidth: 900, mx: 'auto', px: isMobile ? 2 : 3, py: 3 }}>
       {/* Header */}

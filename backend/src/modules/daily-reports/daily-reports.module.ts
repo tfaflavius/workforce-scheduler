@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { WorkPosition } from '../schedules/entities/work-position.entity';
+import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { EmailModule } from '../../common/email/email.module';
 
@@ -19,6 +20,7 @@ import { EmailModule } from '../../common/email/email.module';
       Department,
       ScheduleAssignment,
       WorkPosition,
+      LeaveRequest,
     ]),
     NotificationsModule,
     EmailModule,

@@ -151,6 +151,7 @@ export const DAMAGE_RESOLUTION_TYPES = {
 
 // Nume departament pentru verificare acces
 export const DISPECERAT_DEPARTMENT_NAME = 'Dispecerat';
+export const CONTROL_DEPARTMENT_NAME = 'Control';
 export const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
 export const HANDICAP_PARKING_DEPARTMENT_NAME = 'Parcari Handicap';
 export const DOMICILIU_PARKING_DEPARTMENT_NAME = 'Parcari Domiciliu';

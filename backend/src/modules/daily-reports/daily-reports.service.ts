@@ -12,7 +12,32 @@ import { WorkPosition } from '../schedules/entities/work-position.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
-import { DISPECERAT_DEPARTMENT_NAME } from '../parking/constants/parking.constants';
+import {
+  DISPECERAT_DEPARTMENT_NAME,
+  CONTROL_DEPARTMENT_NAME,
+  ACHIZITII_DEPARTMENT_NAME,
+  PARCOMETRE_DEPARTMENT_NAME,
+  HANDICAP_PARKING_DEPARTMENT_NAME,
+  DOMICILIU_PARKING_DEPARTMENT_NAME,
+  PROCESE_VERBALE_DEPARTMENT_NAME,
+} from '../parking/constants/parking.constants';
+import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
+import { isWorkingDay } from './constants/romanian-holidays';
+
+// Departamente cu obligativitate raport in fiecare zi lucratoare
+const WORKDAY_REPORT_DEPARTMENTS = [
+  ACHIZITII_DEPARTMENT_NAME,
+  PARCOMETRE_DEPARTMENT_NAME,
+  HANDICAP_PARKING_DEPARTMENT_NAME,
+  DOMICILIU_PARKING_DEPARTMENT_NAME,
+  PROCESE_VERBALE_DEPARTMENT_NAME,
+];
+
+// Departamente cu obligativitate raport doar in zilele cu tura
+const SCHEDULE_BASED_DEPARTMENTS = [
+  DISPECERAT_DEPARTMENT_NAME,
+  CONTROL_DEPARTMENT_NAME,
+];
 
 @Injectable()
 export class DailyReportsService {
@@ -29,6 +54,8 @@ export class DailyReportsService {
     private readonly scheduleAssignmentRepository: Repository<ScheduleAssignment>,
     @InjectRepository(WorkPosition)
     private readonly workPositionRepository: Repository<WorkPosition>,
+    @InjectRepository(LeaveRequest)
+    private readonly leaveRequestRepository: Repository<LeaveRequest>,
     private readonly notificationsService: NotificationsService,
     private readonly pushNotificationService: PushNotificationService,
   ) {}
@@ -172,19 +199,22 @@ export class DailyReportsService {
     startDate?: string,
     endDate?: string,
   ): Promise<DailyReport[]> {
-    // Gaseste departamentele Dispecerat si Control
+    // Gaseste departamentele Dispecerat, Control si Achizitii
     const dispeceratDept = await this.departmentRepository.findOne({
       where: { name: DISPECERAT_DEPARTMENT_NAME },
     });
     const controlDept = await this.departmentRepository.findOne({
-      where: { name: 'Control' },
+      where: { name: CONTROL_DEPARTMENT_NAME },
+    });
+    const achizitiiDept = await this.departmentRepository.findOne({
+      where: { name: ACHIZITII_DEPARTMENT_NAME },
     });
 
-    if (!dispeceratDept) {
+    if (!dispeceratDept && !achizitiiDept) {
       return [];
     }
 
-    // Rapoartele de la toti userii Dispecerat
+    // Rapoartele relevante pentru manager
     const query = this.dailyReportRepository
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.user', 'user')
@@ -196,15 +226,17 @@ export class DailyReportsService {
       query.andWhere('report.date BETWEEN :startDate AND :endDate', { startDate, endDate });
     }
 
-    // Sub-query: user din Dispecerat SAU user din Control care a lucrat in Dispecerat
+    // Sub-query: user din Dispecerat SAU Control(cu DISP) SAU Achizitii
     const departmentConditions: string[] = [];
     const params: any = { status: DailyReportStatus.SUBMITTED };
 
     // Conditia 1: User din Dispecerat
-    departmentConditions.push('user.departmentId = :dispeceratId');
-    params.dispeceratId = dispeceratDept.id;
+    if (dispeceratDept) {
+      departmentConditions.push('user.departmentId = :dispeceratId');
+      params.dispeceratId = dispeceratDept.id;
+    }
 
-    // Conditia 2: User din Control care a lucrat in Dispecerat (are ScheduleAssignment cu WorkPosition DISP)
+    // Conditia 2: User din Control care a lucrat in Dispecerat
     if (controlDept) {
       departmentConditions.push(
         `(user.departmentId = :controlId AND EXISTS (
@@ -219,7 +251,15 @@ export class DailyReportsService {
       params.controlId = controlDept.id;
     }
 
-    query.andWhere(`(${departmentConditions.join(' OR ')})`, params);
+    // Conditia 3: User din Achizitii
+    if (achizitiiDept) {
+      departmentConditions.push('user.departmentId = :achizitiiId');
+      params.achizitiiId = achizitiiDept.id;
+    }
+
+    if (departmentConditions.length > 0) {
+      query.andWhere(`(${departmentConditions.join(' OR ')})`, params);
+    }
 
     if (startDate && endDate) {
       params.startDate = startDate;
@@ -294,6 +334,145 @@ export class DailyReportsService {
     const end = endDate.toISOString().split('T')[0];
     return this.findAllForManager(start, end);
   }
+
+  // ============== RAPOARTE LIPSA ==============
+
+  /**
+   * Returneaza utilizatorii care ar trebui sa trimita raport intr-o anumita zi
+   */
+  async getUsersWhoShouldReport(date: string): Promise<User[]> {
+    // Weekend sau sarbatoare → nimeni nu face raport
+    if (!isWorkingDay(date)) {
+      return [];
+    }
+
+    // Toti userii activi non-ADMIN cu departament
+    const allUsers = await this.userRepository.find({
+      where: { isActive: true },
+      relations: ['department'],
+    });
+    const nonAdminUsers = allUsers.filter(u => u.role !== UserRole.ADMIN);
+
+    // Userii in concediu aprobat pe aceasta data
+    const usersOnLeave = await this.leaveRequestRepository
+      .createQueryBuilder('lr')
+      .select('lr.user_id', 'userId')
+      .where('lr.status = :status', { status: 'APPROVED' })
+      .andWhere('lr.start_date <= :date', { date })
+      .andWhere('lr.end_date >= :date', { date })
+      .getRawMany();
+
+    const onLeaveUserIds = new Set(usersOnLeave.map(lr => lr.userId));
+
+    // Filtreaza userii care NU sunt in concediu
+    const availableUsers = nonAdminUsers.filter(u => !onLeaveUserIds.has(u.id));
+
+    // Clasificare pe departamente
+    const scheduleBased: User[] = [];
+    const workdayBased: User[] = [];
+
+    for (const user of availableUsers) {
+      const deptName = user.department?.name;
+
+      // Managerii fac raport in fiecare zi lucratoare (indiferent de departament)
+      if (user.role === UserRole.MANAGER) {
+        workdayBased.push(user);
+        continue;
+      }
+
+      if (deptName && SCHEDULE_BASED_DEPARTMENTS.includes(deptName)) {
+        scheduleBased.push(user);
+      } else if (deptName && WORKDAY_REPORT_DEPARTMENTS.includes(deptName)) {
+        workdayBased.push(user);
+      }
+      // Userii din alte departamente (ex: Intretinere Parcari) nu fac raport
+    }
+
+    // Pentru userii cu program: verifica daca au tura in acea zi
+    const scheduleBasedIds = scheduleBased.map(u => u.id);
+    const usersWithShifts = new Set<string>();
+
+    if (scheduleBasedIds.length > 0) {
+      const assignments = await this.scheduleAssignmentRepository
+        .createQueryBuilder('sa')
+        .innerJoin('sa.schedule', 'ws')
+        .select('DISTINCT sa.user_id', 'userId')
+        .where('sa.shift_date = :date', { date })
+        .andWhere('sa.is_rest_day = false')
+        .andWhere('sa.leave_type IS NULL')
+        .andWhere('ws.status = :wsStatus', { wsStatus: 'APPROVED' })
+        .andWhere('sa.user_id IN (:...userIds)', { userIds: scheduleBasedIds })
+        .getRawMany();
+
+      assignments.forEach(a => usersWithShifts.add(a.userId));
+    }
+
+    const scheduleBasedFiltered = scheduleBased.filter(u => usersWithShifts.has(u.id));
+
+    // Deduplicate (un manager din Dispecerat poate aparea in ambele liste)
+    const resultMap = new Map<string, User>();
+    [...workdayBased, ...scheduleBasedFiltered].forEach(u => resultMap.set(u.id, u));
+
+    return Array.from(resultMap.values());
+  }
+
+  /**
+   * Returneaza utilizatorii care ar fi trebuit sa trimita raport dar NU au trimis
+   */
+  async getMissingReports(date: string): Promise<User[]> {
+    const usersWhoShouldReport = await this.getUsersWhoShouldReport(date);
+    if (usersWhoShouldReport.length === 0) return [];
+
+    const userIds = usersWhoShouldReport.map(u => u.id);
+
+    // Gaseste cine a trimis deja
+    const submittedReports = await this.dailyReportRepository.find({
+      where: {
+        date: date as any,
+        status: DailyReportStatus.SUBMITTED,
+        userId: In(userIds),
+      },
+      select: ['userId'],
+    });
+
+    const submittedUserIds = new Set(submittedReports.map(r => r.userId));
+
+    return usersWhoShouldReport.filter(u => !submittedUserIds.has(u.id));
+  }
+
+  /**
+   * Returneaza rapoartele lipsa pentru un interval de date
+   */
+  async getMissingReportsForDateRange(
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ date: string; users: Array<{ id: string; fullName: string; department: { id: string; name: string } | null }> }>> {
+    const result: Array<{ date: string; users: Array<{ id: string; fullName: string; department: { id: string; name: string } | null }> }> = [];
+    const current = new Date(startDate + 'T12:00:00');
+    const end = new Date(endDate + 'T12:00:00');
+
+    while (current <= end) {
+      const dateStr = current.toISOString().split('T')[0];
+      const missingUsers = await this.getMissingReports(dateStr);
+
+      if (missingUsers.length > 0) {
+        result.push({
+          date: dateStr,
+          users: missingUsers.map(u => ({
+            id: u.id,
+            fullName: u.fullName,
+            department: u.department ? { id: u.department.id, name: u.department.name } : null,
+          })),
+        });
+      }
+
+      current.setDate(current.getDate() + 1);
+    }
+
+    return result;
+  }
+
+  // ============== NOTIFICARI ==============
 
   private async notifyOnSubmission(report: DailyReport, userId: string): Promise<void> {
     try {
@@ -382,7 +561,7 @@ export class DailyReportsService {
     }
 
     // Daca e din Control → verifica daca a lucrat in Dispecerat in acea zi
-    if (departmentName === 'Control') {
+    if (departmentName === CONTROL_DEPARTMENT_NAME) {
       const dateStr = typeof reportDate === 'string' ? reportDate : new Date(reportDate).toISOString().split('T')[0];
 
       const assignment = await this.scheduleAssignmentRepository

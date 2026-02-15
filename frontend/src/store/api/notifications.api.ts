@@ -26,7 +26,8 @@ export type NotificationType =
   | 'EDIT_REQUEST_APPROVED'
   | 'EDIT_REQUEST_REJECTED'
   | 'DAILY_REPORT_SUBMITTED'
-  | 'DAILY_REPORT_COMMENTED';
+  | 'DAILY_REPORT_COMMENTED'
+  | 'DAILY_REPORT_MISSING';
 
 export interface NotificationData {
   scheduleId?: string;

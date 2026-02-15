@@ -36,6 +36,7 @@ export enum NotificationType {
   // Daily report notifications
   DAILY_REPORT_SUBMITTED = 'DAILY_REPORT_SUBMITTED',
   DAILY_REPORT_COMMENTED = 'DAILY_REPORT_COMMENTED',
+  DAILY_REPORT_MISSING = 'DAILY_REPORT_MISSING',
 }
 
 @Entity('notifications')
