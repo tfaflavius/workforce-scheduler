@@ -260,6 +260,8 @@ export class EmailService {
   private fromEmail: string;
   private isEnabled: boolean;
   private appUrl: string;
+  private lastEmailSentAt: number = 0;
+  private readonly MIN_EMAIL_INTERVAL_MS = 600; // Resend rate limit: max 2 req/sec
 
   // Lista de email-uri/domenii de test - nu se trimit email-uri automate la acestea
   private readonly testEmailPatterns: string[] = [
@@ -373,6 +375,14 @@ export class EmailService {
       return false;
     }
 
+    // Rate limiting: Resend permite max 2 req/sec - asteptam intre emailuri
+    const now = Date.now();
+    const timeSinceLastEmail = now - this.lastEmailSentAt;
+    if (timeSinceLastEmail < this.MIN_EMAIL_INTERVAL_MS) {
+      const delay = this.MIN_EMAIL_INTERVAL_MS - timeSinceLastEmail;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+
     try {
       await this.resend.emails.send({
         from: this.fromEmail,
@@ -380,9 +390,11 @@ export class EmailService {
         subject,
         html,
       });
+      this.lastEmailSentAt = Date.now();
       this.logger.log(`Email sent successfully to ${to}: ${subject}`);
       return true;
     } catch (error) {
+      this.lastEmailSentAt = Date.now();
       this.logger.error(`Failed to send email to ${to}:`, error);
       return false;
     }
