@@ -44,6 +44,9 @@ import { HandicapLegitimation } from './modules/parking/entities/handicap-legiti
 import { HandicapLegitimationComment } from './modules/parking/entities/handicap-legitimation-comment.entity';
 import { RevolutionarLegitimation } from './modules/parking/entities/revolutionar-legitimation.entity';
 import { RevolutionarLegitimationComment } from './modules/parking/entities/revolutionar-legitimation-comment.entity';
+import { TimeTrackingModule } from './modules/time-tracking/time-tracking.module';
+import { TimeEntry } from './modules/time-tracking/entities/time-entry.entity';
+import { LocationLog } from './modules/time-tracking/entities/location-log.entity';
 
 @Module({
   imports: [
@@ -60,7 +63,7 @@ import { RevolutionarLegitimationComment } from './modules/parking/entities/revo
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
@@ -74,6 +77,7 @@ import { RevolutionarLegitimationComment } from './modules/parking/entities/revo
     LeaveRequestsModule,
     ParkingModule,
     DailyReportsModule,
+    TimeTrackingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
