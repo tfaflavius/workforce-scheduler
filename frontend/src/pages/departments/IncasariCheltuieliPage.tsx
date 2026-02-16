@@ -498,9 +498,11 @@ const IncasariCheltuieliPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {revenueSummary.categories.map((cat) =>
-                cat.isGroup ? renderGroupRows(cat) : renderCategoryRows(cat)
-              )}
+              {revenueSummary.categories
+                .filter((cat) => !cat.parentId)
+                .map((cat) =>
+                  cat.isGroup ? renderGroupRows(cat) : renderCategoryRows(cat)
+                )}
 
               {/* TOTAL row */}
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>

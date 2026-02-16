@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { BudgetPosition, BudgetCategory } from './entities/budget-position.entity';
 import { Acquisition } from './entities/acquisition.entity';
 import { AcquisitionInvoice } from './entities/acquisition-invoice.entity';
@@ -330,7 +330,7 @@ export class AcquisitionsService {
       where.isActive = true;
     }
     // Only top-level categories; children come via relation
-    where.parentId = null as any;
+    where.parentId = IsNull();
     return this.revenueCategoryRepository.find({
       where,
       relations: ['children'],
