@@ -4,11 +4,12 @@ import type {
   TimeEntry,
   LocationLog,
   StartTimerRequest,
+  StopTimerResponse,
   RecordLocationRequest,
   GetTimeEntriesFilters,
 } from '../../types/time-tracking.types';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const timeTrackingApi = createApi({
   reducerPath: 'timeTrackingApi',
@@ -33,7 +34,7 @@ export const timeTrackingApi = createApi({
       invalidatesTags: ['ActiveTimer', 'TimeEntry'],
     }),
 
-    stopTimer: builder.mutation<TimeEntry, string>({
+    stopTimer: builder.mutation<StopTimerResponse, string>({
       query: (id) => ({
         url: `/time-tracking/${id}/stop`,
         method: 'POST',

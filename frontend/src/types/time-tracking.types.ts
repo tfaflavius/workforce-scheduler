@@ -48,6 +48,14 @@ export interface RecordLocationRequest {
   isAutoRecorded?: boolean;
 }
 
+export interface StopTimerResponse extends TimeEntry {
+  scheduleMismatch: boolean;
+  expectedMinutes: number;
+  actualMinutes: number;
+  expectedHours: number;
+  actualHours: number;
+}
+
 export interface GetTimeEntriesFilters {
   startDate?: string;
   endDate?: string;

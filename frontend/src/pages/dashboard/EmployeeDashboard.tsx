@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -21,6 +21,10 @@ import {
   Fade,
   Grow,
   alpha,
+  Button,
+  Alert,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Today as TodayIcon,
@@ -35,6 +39,11 @@ import {
   Security as ControlIcon,
   AccessTime as TimeIcon,
   EventNote as TomorrowIcon,
+  PlayArrow as PlayIcon,
+  Stop as StopIcon,
+  MyLocation as MyLocationIcon,
+  Timer as TimerIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery, useGetShiftColleaguesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
@@ -43,11 +52,22 @@ import {
   useGetHandicapLegitimationsQuery,
   useGetRevolutionarLegitimationsQuery,
 } from '../../store/api/handicap.api';
+import {
+  useStartTimerMutation,
+  useStopTimerMutation,
+  useGetActiveTimerQuery,
+  useGetTimeEntriesQuery,
+  useRecordLocationMutation,
+} from '../../store/api/time-tracking.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 
 // Departament cu acces la Handicap stats
 const HANDICAP_DEPARTMENT_NAME = 'Parcari Handicap';
+const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
+
+// GPS tracking interval (15 minutes)
+const LOCATION_TRACKING_INTERVAL_MS = 15 * 60 * 1000;
 
 // StatCard component pentru sectiunea Handicap
 interface StatCardProps {
@@ -150,6 +170,20 @@ const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick, delay
   );
 };
 
+// Helper: format seconds to HH:MM:SS
+const formatElapsed = (totalSeconds: number): string => {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+};
+
+// Helper: format date to HH:MM
+const formatTime = (dateStr: string): string => {
+  const d = new Date(dateStr);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
 
 const EmployeeDashboard = () => {
   const theme = useTheme();
@@ -180,6 +214,9 @@ const EmployeeDashboard = () => {
   // Check if user is in Parcari Handicap department
   const isHandicapDepartment = user?.department?.name === HANDICAP_DEPARTMENT_NAME;
 
+  // Check if user is in Intretinere Parcari department
+  const isMaintenanceDepartment = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
+
   // Handicap queries - only fetch if user is in Parcari Handicap department
   const { data: handicapRequests = [] } = useGetHandicapRequestsQuery(undefined, {
     skip: !isHandicapDepartment,
@@ -190,6 +227,173 @@ const EmployeeDashboard = () => {
   const { data: revolutionarLegitimations = [] } = useGetRevolutionarLegitimationsQuery(undefined, {
     skip: !isHandicapDepartment,
   });
+
+  // ===== PONTAJ (Time Tracking) - doar pentru Intretinere Parcari =====
+  const { data: activeTimer, refetch: refetchActiveTimer } = useGetActiveTimerQuery(undefined, {
+    skip: !isMaintenanceDepartment,
+    pollingInterval: isMaintenanceDepartment ? 30000 : 0, // poll every 30s
+  });
+
+  const todayISO = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const { data: todayEntries = [] } = useGetTimeEntriesQuery(
+    { startDate: `${todayISO}T00:00:00`, endDate: `${todayISO}T23:59:59` },
+    { skip: !isMaintenanceDepartment },
+  );
+
+  const [startTimerMutation, { isLoading: isStarting }] = useStartTimerMutation();
+  const [stopTimerMutation, { isLoading: isStopping }] = useStopTimerMutation();
+  const [recordLocationMutation] = useRecordLocationMutation();
+
+  // Pontaj local state
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [lastLocation, setLastLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [mismatchAlert, setMismatchAlert] = useState<{
+    show: boolean;
+    type: 'success' | 'warning';
+    expectedHours: number;
+    actualHours: number;
+  } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Capture GPS location
+  const captureLocation = useCallback(
+    async (timeEntryId: string, isAutoRecorded: boolean = true) => {
+      if (!navigator.geolocation) {
+        setLocationError('GPS nu este disponibil pe acest dispozitiv');
+        return;
+      }
+
+      return new Promise<void>((resolve) => {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude, accuracy } = position.coords;
+            setLastLocation({ lat: latitude, lng: longitude });
+            setLocationError(null);
+            try {
+              await recordLocationMutation({
+                timeEntryId,
+                latitude,
+                longitude,
+                accuracy: accuracy || undefined,
+                isAutoRecorded,
+              }).unwrap();
+            } catch (err) {
+              console.error('Failed to record location:', err);
+            }
+            resolve();
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            setLocationError(
+              error.code === 1
+                ? 'Permisiune GPS refuzata. Activeaza locatia.'
+                : error.code === 2
+                  ? 'Locatia nu este disponibila'
+                  : 'Timeout la obtinerea locatiei',
+            );
+            resolve();
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+        );
+      });
+    },
+    [recordLocationMutation],
+  );
+
+  // Timer counter effect
+  useEffect(() => {
+    if (activeTimer && !activeTimer.endTime) {
+      const startTime = new Date(activeTimer.startTime).getTime();
+
+      const updateElapsed = () => {
+        const now = Date.now();
+        setElapsedSeconds(Math.floor((now - startTime) / 1000));
+      };
+
+      updateElapsed();
+      timerIntervalRef.current = setInterval(updateElapsed, 1000);
+
+      return () => {
+        if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      };
+    } else {
+      setElapsedSeconds(0);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
+  }, [activeTimer]);
+
+  // Periodic location tracking effect
+  useEffect(() => {
+    if (activeTimer && !activeTimer.endTime) {
+      // Start periodic location tracking
+      locationIntervalRef.current = setInterval(() => {
+        captureLocation(activeTimer.id, true);
+      }, LOCATION_TRACKING_INTERVAL_MS);
+
+      return () => {
+        if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
+      };
+    } else {
+      if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
+    }
+  }, [activeTimer, captureLocation]);
+
+  // Handle START
+  const handleStartTimer = async () => {
+    try {
+      setMismatchAlert(null);
+      const result = await startTimerMutation().unwrap();
+      // Capture initial location
+      await captureLocation(result.id, false);
+      refetchActiveTimer();
+    } catch (err: any) {
+      console.error('Failed to start timer:', err);
+    }
+  };
+
+  // Handle STOP
+  const handleStopTimer = async () => {
+    if (!activeTimer) return;
+    try {
+      // Capture final location
+      await captureLocation(activeTimer.id, false);
+      // Stop timer
+      const result = await stopTimerMutation(activeTimer.id).unwrap();
+
+      // Check schedule mismatch
+      if (result.scheduleMismatch) {
+        setMismatchAlert({
+          show: true,
+          type: 'warning',
+          expectedHours: result.expectedHours || 0,
+          actualHours: result.actualHours || 0,
+        });
+      } else if (result.expectedHours > 0) {
+        setMismatchAlert({
+          show: true,
+          type: 'success',
+          expectedHours: result.expectedHours,
+          actualHours: result.actualHours,
+        });
+      }
+
+      // Clear intervals
+      if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      setElapsedSeconds(0);
+      refetchActiveTimer();
+    } catch (err: any) {
+      console.error('Failed to stop timer:', err);
+    }
+  };
+
+  // ===== END PONTAJ =====
 
   const myApprovedLeaveDates = useMemo(() => {
     if (!user) return new Set<string>();
@@ -419,6 +623,9 @@ const EmployeeDashboard = () => {
     );
   }
 
+  // Completed entries for today (excluding active)
+  const completedTodayEntries = todayEntries.filter(e => e.endTime);
+
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
       {/* Header */}
@@ -529,7 +736,7 @@ const EmployeeDashboard = () => {
                             }}
                           >
                             <Typography variant="body2" fontWeight="bold" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                              📍 {todayAssignment.workPosition.name}
+                              {todayAssignment.workPosition.name}
                             </Typography>
                           </Box>
                         </Stack>
@@ -541,7 +748,7 @@ const EmployeeDashboard = () => {
                       fontWeight="bold"
                       sx={{ fontSize: { xs: '1.15rem', sm: '1.5rem' } }}
                     >
-                      Zi Libera 🎉
+                      Zi Libera
                     </Typography>
                   )}
                 </Box>
@@ -565,7 +772,7 @@ const EmployeeDashboard = () => {
                     fontWeight: 600,
                   }}
                 >
-                  📊 Sumar {monthNames[currentMonth - 1]} {currentYear}
+                  Sumar {monthNames[currentMonth - 1]} {currentYear}
                 </Typography>
                 <Grid container spacing={1}>
                   <Grid size={{ xs: 4, sm: 2.4 }}>
@@ -622,6 +829,285 @@ const EmployeeDashboard = () => {
         </Box>
       </Fade>
 
+      {/* ===== PONTAJ - doar Intretinere Parcari ===== */}
+      {isMaintenanceDepartment && (
+        <Fade in={true} timeout={700}>
+          <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{
+                mb: { xs: 1.5, sm: 2 },
+                fontWeight: 700,
+                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+              }}
+            >
+              Pontaj
+            </Typography>
+
+            {/* Main Timer Card */}
+            <Card
+              sx={{
+                background: activeTimer && !activeTimer.endTime
+                  ? theme.palette.mode === 'light'
+                    ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                    : 'linear-gradient(135deg, #b45309 0%, #92400e 100%)'
+                  : theme.palette.mode === 'light'
+                    ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'
+                    : 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)',
+                color: 'white',
+                position: 'relative',
+                overflow: 'hidden',
+                mb: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -40,
+                  right: -40,
+                  width: 150,
+                  height: 150,
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                }}
+              />
+              <CardContent sx={{ p: { xs: 2, sm: 3 }, position: 'relative' }}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  alignItems={{ xs: 'center', sm: 'center' }}
+                  justifyContent="space-between"
+                  spacing={2}
+                >
+                  {/* Timer Display */}
+                  <Stack direction="row" alignItems="center" spacing={{ xs: 1.5, sm: 2 }}>
+                    <Box
+                      sx={{
+                        p: { xs: 1.25, sm: 1.5 },
+                        borderRadius: 2,
+                        bgcolor: 'rgba(255,255,255,0.2)',
+                        display: 'flex',
+                      }}
+                    >
+                      <TimerIcon sx={{ fontSize: { xs: 28, sm: 36 } }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h3"
+                        fontWeight="bold"
+                        sx={{
+                          fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                          fontFamily: 'monospace',
+                          letterSpacing: '2px',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {activeTimer && !activeTimer.endTime
+                          ? formatElapsed(elapsedSeconds)
+                          : '00:00:00'}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          opacity: 0.9,
+                          fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                          mt: 0.5,
+                        }}
+                      >
+                        {activeTimer && !activeTimer.endTime
+                          ? `Tura a inceput la ${formatTime(activeTimer.startTime)}`
+                          : 'Nicio tura activa'}
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+                  {/* Start/Stop Button */}
+                  <Button
+                    variant="contained"
+                    size="large"
+                    disabled={isStarting || isStopping}
+                    onClick={activeTimer && !activeTimer.endTime ? handleStopTimer : handleStartTimer}
+                    startIcon={
+                      activeTimer && !activeTimer.endTime
+                        ? <StopIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+                        : <PlayIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+                    }
+                    sx={{
+                      bgcolor: activeTimer && !activeTimer.endTime
+                        ? 'rgba(239, 68, 68, 0.9)'
+                        : 'rgba(255,255,255,0.25)',
+                      color: 'white',
+                      fontWeight: 700,
+                      fontSize: { xs: '0.9rem', sm: '1rem' },
+                      px: { xs: 3, sm: 4 },
+                      py: { xs: 1.25, sm: 1.5 },
+                      borderRadius: 3,
+                      minWidth: { xs: '100%', sm: 'auto' },
+                      textTransform: 'none',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+                      '&:hover': {
+                        bgcolor: activeTimer && !activeTimer.endTime
+                          ? 'rgba(220, 38, 38, 1)'
+                          : 'rgba(255,255,255,0.35)',
+                      },
+                      '&.Mui-disabled': {
+                        bgcolor: 'rgba(255,255,255,0.15)',
+                        color: 'rgba(255,255,255,0.5)',
+                      },
+                    }}
+                  >
+                    {isStarting
+                      ? 'Se porneste...'
+                      : isStopping
+                        ? 'Se opreste...'
+                        : activeTimer && !activeTimer.endTime
+                          ? 'Opreste Tura'
+                          : 'Porneste Tura'}
+                  </Button>
+                </Stack>
+
+                {/* Location info */}
+                {activeTimer && !activeTimer.endTime && (
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{
+                      mt: 2,
+                      p: 1,
+                      bgcolor: 'rgba(255,255,255,0.12)',
+                      borderRadius: 1.5,
+                    }}
+                  >
+                    <MyLocationIcon sx={{ fontSize: { xs: 16, sm: 18 }, opacity: 0.9 }} />
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, opacity: 0.9 }}>
+                      {lastLocation
+                        ? `Locatie: ${lastLocation.lat.toFixed(5)}, ${lastLocation.lng.toFixed(5)}`
+                        : 'Se obtine locatia...'}
+                    </Typography>
+                    <Tooltip title="Actualizeaza locatia">
+                      <IconButton
+                        size="small"
+                        sx={{ color: 'white', opacity: 0.8, p: 0.5 }}
+                        onClick={() => activeTimer && captureLocation(activeTimer.id, false)}
+                      >
+                        <MyLocationIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                )}
+
+                {/* Location error */}
+                {locationError && (
+                  <Alert
+                    severity="warning"
+                    sx={{
+                      mt: 1.5,
+                      bgcolor: 'rgba(255,255,255,0.15)',
+                      color: 'white',
+                      '& .MuiAlert-icon': { color: '#fbbf24' },
+                      fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                    }}
+                  >
+                    {locationError}
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Mismatch Alert */}
+            {mismatchAlert?.show && (
+              <Alert
+                severity={mismatchAlert.type}
+                onClose={() => setMismatchAlert(null)}
+                sx={{ mb: 2, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+              >
+                {mismatchAlert.type === 'warning'
+                  ? `Ai lucrat ${mismatchAlert.actualHours}h, dar programul prevedea ${mismatchAlert.expectedHours}h. Admin-ul a fost notificat.`
+                  : `Tura completa conform programului (${mismatchAlert.actualHours}h / ${mismatchAlert.expectedHours}h).`}
+              </Alert>
+            )}
+
+            {/* Today's entries */}
+            {completedTodayEntries.length > 0 && (
+              <Card sx={{ mb: 2 }}>
+                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                    <HistoryIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: 'text.secondary' }} />
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.85rem' } }}
+                    >
+                      Istoric astazi ({completedTodayEntries.length} {completedTodayEntries.length === 1 ? 'inregistrare' : 'inregistrari'})
+                    </Typography>
+                  </Stack>
+                  <Stack spacing={1}>
+                    {completedTodayEntries.map((entry) => (
+                      <Box
+                        key={entry.id}
+                        sx={{
+                          p: { xs: 1, sm: 1.5 },
+                          bgcolor: alpha(theme.palette.primary.main, 0.04),
+                          borderRadius: 1.5,
+                          border: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          flexWrap="wrap"
+                          gap={0.5}
+                        >
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <TimeIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}
+                            >
+                              {formatTime(entry.startTime)} - {entry.endTime ? formatTime(entry.endTime) : 'In curs'}
+                            </Typography>
+                          </Stack>
+                          <Stack direction="row" alignItems="center" spacing={0.75}>
+                            <Chip
+                              label={entry.durationMinutes
+                                ? `${Math.floor(entry.durationMinutes / 60)}h ${entry.durationMinutes % 60}m`
+                                : 'In curs'}
+                              size="small"
+                              color={entry.endTime ? 'primary' : 'warning'}
+                              sx={{
+                                fontWeight: 600,
+                                height: { xs: 22, sm: 26 },
+                                fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                              }}
+                            />
+                            {entry.locationLogs && entry.locationLogs.length > 0 && (
+                              <Chip
+                                icon={<LocationIcon sx={{ fontSize: 14 }} />}
+                                label={`${entry.locationLogs.length}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  height: { xs: 22, sm: 26 },
+                                  fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                                }}
+                              />
+                            )}
+                          </Stack>
+                        </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
+        </Fade>
+      )}
+
       {/* Colleagues on Shift - for Dispecerat/Control departments */}
       {isDispatchDepartment && colleaguesData?.userPosition && (
         <Fade in={true} timeout={700}>
@@ -637,7 +1123,7 @@ const EmployeeDashboard = () => {
                 letterSpacing: '1px',
               }}
             >
-              {colleaguesData.userPosition === 'DISP' ? '🎧' : '🛡️'}{' '}
+              {colleaguesData.userPosition === 'DISP' ? '' : ''}{' '}
               Colegi pe tura - {colleaguesData.userPosition === 'DISP' ? 'Dispecerat' : 'Control'}
             </Typography>
             <Card
@@ -928,7 +1414,7 @@ const EmployeeDashboard = () => {
                   letterSpacing: '1px',
                 }}
               >
-                ♿ Parcari Handicap - Solicitari
+                Parcari Handicap - Solicitari
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
@@ -986,7 +1472,7 @@ const EmployeeDashboard = () => {
                   letterSpacing: '1px',
                 }}
               >
-                🪪 Legitimatii
+                Legitimatii
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
                 <Grid size={{ xs: 6, sm: 6, md: 6 }}>
