@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -142,5 +143,16 @@ export class ShiftSwapsController {
   @Roles(UserRole.USER, UserRole.MANAGER)
   cancel(@Param('id') id: string, @Request() req) {
     return this.shiftSwapsService.cancelSwapRequest(id, req.user.id);
+  }
+
+  /**
+   * Sterge cererea complet (admin only)
+   * Sterge si toate raspunsurile asociate
+   * Accesibil: ADMIN
+   */
+  @Delete(':id')
+  @Roles(UserRole.ADMIN)
+  remove(@Param('id') id: string) {
+    return this.shiftSwapsService.deleteSwapRequest(id);
   }
 }

@@ -50,12 +50,14 @@ import {
   Error as RejectedIcon,
   Visibility as ViewIcon,
   AdminPanelSettings as AdminIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard } from '../../components/common';
 import {
   useGetAllSwapRequestsQuery,
   useApproveSwapRequestMutation,
   useRejectSwapRequestMutation,
+  useDeleteSwapRequestMutation,
 } from '../../store/api/shiftSwaps.api';
 import type { ShiftSwapRequest, ShiftSwapStatus } from '../../types/shift-swap.types';
 
@@ -148,6 +150,7 @@ const AdminShiftSwapsPage = () => {
   const { data: allRequests = [], isLoading } = useGetAllSwapRequestsQuery({});
   const [approveSwap, { isLoading: approving }] = useApproveSwapRequestMutation();
   const [rejectSwap, { isLoading: rejecting }] = useRejectSwapRequestMutation();
+  const [deleteSwap, { isLoading: deleting }] = useDeleteSwapRequestMutation();
 
   // Filter requests by status
   const awaitingAdminRequests = allRequests.filter((r) => r.status === 'AWAITING_ADMIN');
@@ -206,6 +209,25 @@ const AdminShiftSwapsPage = () => {
       const errorMsg = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message || 'A aparut o eroare la procesarea cererii.'
         : 'A aparut o eroare la procesarea cererii.';
+      setErrorMessage(errorMsg);
+      setTimeout(() => setErrorMessage(null), 5000);
+    }
+  };
+
+  const handleDeleteSwap = async (request: ShiftSwapRequest) => {
+    if (!window.confirm(`Esti sigur ca vrei sa stergi cererea de schimb a lui ${request.requester?.fullName}? Aceasta actiune este ireversibila.`)) {
+      return;
+    }
+
+    try {
+      await deleteSwap(request.id).unwrap();
+      setSuccessMessage('Cererea de schimb a fost stearsa cu succes.');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error: unknown) {
+      console.error('Error deleting swap request:', error);
+      const errorMsg = error && typeof error === 'object' && 'data' in error
+        ? (error.data as { message?: string })?.message || 'A aparut o eroare la stergerea cererii.'
+        : 'A aparut o eroare la stergerea cererii.';
       setErrorMessage(errorMsg);
       setTimeout(() => setErrorMessage(null), 5000);
     }
@@ -300,6 +322,17 @@ const AdminShiftSwapsPage = () => {
               <Tooltip title="Vezi detalii">
                 <IconButton onClick={() => handleOpenDetails(request)} size={isMobile ? 'small' : 'medium'}>
                   <ViewIcon />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Sterge cererea">
+                <IconButton
+                  onClick={() => handleDeleteSwap(request)}
+                  size={isMobile ? 'small' : 'medium'}
+                  color="error"
+                  disabled={deleting}
+                >
+                  <DeleteIcon />
                 </IconButton>
               </Tooltip>
 
@@ -513,9 +546,14 @@ const AdminShiftSwapsPage = () => {
                               {acceptedResponse && ` → ${acceptedResponse.responder?.fullName}`}
                             </Typography>
                           </Box>
-                          <IconButton size="small" onClick={() => handleOpenDetails(request)}>
-                            <ViewIcon fontSize="small" />
-                          </IconButton>
+                          <Stack direction="row" spacing={0.5}>
+                            <IconButton size="small" onClick={() => handleOpenDetails(request)}>
+                              <ViewIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" color="error" onClick={() => handleDeleteSwap(request)} disabled={deleting}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Stack>
                         </Stack>
                       </CardContent>
                     </Card>
@@ -551,9 +589,14 @@ const AdminShiftSwapsPage = () => {
                             />
                           </TableCell>
                           <TableCell align="right">
-                            <IconButton size="small" onClick={() => handleOpenDetails(request)}>
-                              <ViewIcon fontSize="small" />
-                            </IconButton>
+                            <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                              <IconButton size="small" onClick={() => handleOpenDetails(request)}>
+                                <ViewIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton size="small" color="error" onClick={() => handleDeleteSwap(request)} disabled={deleting}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Stack>
                           </TableCell>
                         </TableRow>
                       );

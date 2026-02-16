@@ -103,8 +103,12 @@ export class ShiftSwapsService {
 
     const savedRequest = await this.swapRequestRepository.save(swapRequest);
 
-    // Trimite notificari
-    await this.sendSwapRequestNotifications(savedRequest, requester, targetUsers);
+    // Trimite notificari (non-blocking - nu blocam crearea cererii daca notificarile esueaza)
+    try {
+      await this.sendSwapRequestNotifications(savedRequest, requester, targetUsers);
+    } catch (error) {
+      this.logger.error(`Failed to send swap request notifications: ${error.message}`, error.stack);
+    }
 
     this.logger.log(`Swap request created: ${savedRequest.id} by user ${requesterId}`);
 
@@ -154,9 +158,13 @@ export class ShiftSwapsService {
 
     const savedResponse = await this.swapResponseRepository.save(response);
 
-    // Trimite notificari
+    // Trimite notificari (non-blocking)
     const responder = await this.userRepository.findOne({ where: { id: responderId } });
-    await this.sendSwapResponseNotifications(swapRequest, responder, dto.response);
+    try {
+      await this.sendSwapResponseNotifications(swapRequest, responder, dto.response);
+    } catch (error) {
+      this.logger.error(`Failed to send swap response notifications: ${error.message}`, error.stack);
+    }
 
     // Daca cineva a acceptat, marcheaza cererea ca AWAITING_ADMIN
     // Cererea ramane deschisa pentru alti colegi sa accepte/refuze
@@ -206,8 +214,12 @@ export class ShiftSwapsService {
       adminNotes: dto.adminNotes,
     });
 
-    // Trimite notificari finale
-    await this.sendSwapApprovedNotifications(swapRequest, dto.approvedResponderId);
+    // Trimite notificari finale (non-blocking)
+    try {
+      await this.sendSwapApprovedNotifications(swapRequest, dto.approvedResponderId);
+    } catch (error) {
+      this.logger.error(`Failed to send swap approved notifications: ${error.message}`, error.stack);
+    }
 
     this.logger.log(`Swap approved: ${swapRequestId} by admin ${adminId}`);
 
@@ -234,38 +246,43 @@ export class ShiftSwapsService {
       adminNotes: dto.adminNotes,
     });
 
-    const requesterDateFormatted = this.formatDate(swapRequest.requesterDate);
-    const targetDateFormatted = this.formatDate(swapRequest.targetDate);
-    const requester = await this.userRepository.findOne({ where: { id: swapRequest.requesterId } });
+    // Trimite notificari (non-blocking)
+    try {
+      const requesterDateFormatted = this.formatDate(swapRequest.requesterDate);
+      const targetDateFormatted = this.formatDate(swapRequest.targetDate);
+      const requester = await this.userRepository.findOne({ where: { id: swapRequest.requesterId } });
 
-    // Notifica solicitantul
-    await this.notificationsService.create({
-      userId: swapRequest.requesterId,
-      type: 'SHIFT_SWAP_REJECTED' as any,
-      title: 'Cerere de schimb respinsa',
-      message: `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsa de administrator.${dto.adminNotes ? ` Motiv: ${dto.adminNotes}` : ''}`,
-      data: { swapRequestId },
-    });
-
-    // Push notification catre solicitant
-    await this.pushNotificationService.sendToUser(
-      swapRequest.requesterId,
-      '❌ Schimb Respins',
-      `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsa`,
-      { url: '/shift-swaps' },
-    );
-
-    // Email catre solicitant
-    if (requester) {
-      await this.emailService.sendShiftSwapNotification({
-        recipientEmail: requester.email,
-        recipientName: requester.fullName,
-        requesterName: requester.fullName,
-        requesterDate: requesterDateFormatted,
-        targetDate: targetDateFormatted,
-        swapType: 'rejected',
-        adminNotes: dto.adminNotes,
+      // Notifica solicitantul
+      await this.notificationsService.create({
+        userId: swapRequest.requesterId,
+        type: 'SHIFT_SWAP_REJECTED' as any,
+        title: 'Cerere de schimb respinsa',
+        message: `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsa de administrator.${dto.adminNotes ? ` Motiv: ${dto.adminNotes}` : ''}`,
+        data: { swapRequestId },
       });
+
+      // Push notification catre solicitant
+      await this.pushNotificationService.sendToUser(
+        swapRequest.requesterId,
+        '❌ Schimb Respins',
+        `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsa`,
+        { url: '/shift-swaps' },
+      );
+
+      // Email catre solicitant
+      if (requester) {
+        await this.emailService.sendShiftSwapNotification({
+          recipientEmail: requester.email,
+          recipientName: requester.fullName,
+          requesterName: requester.fullName,
+          requesterDate: requesterDateFormatted,
+          targetDate: targetDateFormatted,
+          swapType: 'rejected',
+          adminNotes: dto.adminNotes,
+        });
+      }
+    } catch (error) {
+      this.logger.error(`Failed to send swap rejected notifications: ${error.message}`, error.stack);
     }
 
     this.logger.log(`Swap rejected: ${swapRequestId} by admin ${adminId}`);
@@ -297,6 +314,24 @@ export class ShiftSwapsService {
     this.logger.log(`Swap cancelled: ${swapRequestId} by user ${userId}`);
 
     return this.findOne(swapRequestId);
+  }
+
+  /**
+   * Sterge complet o cerere (admin only)
+   * Sterge si toate raspunsurile asociate
+   */
+  async deleteSwapRequest(swapRequestId: string): Promise<{ deleted: true }> {
+    const swapRequest = await this.findOne(swapRequestId);
+
+    // Sterge mai intai raspunsurile asociate
+    await this.swapResponseRepository.delete({ swapRequestId });
+
+    // Sterge cererea
+    await this.swapRequestRepository.delete(swapRequestId);
+
+    this.logger.log(`Swap request deleted: ${swapRequestId} (requester: ${swapRequest.requester?.fullName})`);
+
+    return { deleted: true };
   }
 
   /**

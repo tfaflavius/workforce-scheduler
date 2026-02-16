@@ -112,6 +112,15 @@ export const shiftSwapsApi = createApi({
       }),
       invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
     }),
+
+    // Admin sterge cerere complet
+    deleteSwapRequest: builder.mutation<{ deleted: true }, string>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ShiftSwaps', 'MySwapRequests'],
+    }),
   }),
 });
 
@@ -128,4 +137,5 @@ export const {
   useApproveSwapRequestMutation,
   useRejectSwapRequestMutation,
   useCancelSwapRequestMutation,
+  useDeleteSwapRequestMutation,
 } = shiftSwapsApi;
