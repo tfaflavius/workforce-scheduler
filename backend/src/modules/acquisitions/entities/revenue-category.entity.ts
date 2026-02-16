@@ -5,6 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { MonthlyRevenue } from './monthly-revenue.entity';
 
@@ -18,6 +20,16 @@ export class RevenueCategory {
 
   @Column({ type: 'text', nullable: true })
   description: string;
+
+  @Column({ name: 'parent_id', type: 'uuid', nullable: true })
+  parentId: string | null;
+
+  @ManyToOne(() => RevenueCategory, (rc) => rc.children, { onDelete: 'CASCADE', nullable: true })
+  @JoinColumn({ name: 'parent_id' })
+  parent: RevenueCategory | null;
+
+  @OneToMany(() => RevenueCategory, (rc) => rc.parent)
+  children: RevenueCategory[];
 
   @Column({ name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number;

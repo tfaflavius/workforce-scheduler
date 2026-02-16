@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsInt,
   IsBoolean,
+  IsUUID,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -17,6 +18,10 @@ export class CreateRevenueCategoryDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsUUID()
+  parentId?: string;
 
   @IsOptional()
   @IsInt()
@@ -33,6 +38,10 @@ export class UpdateRevenueCategoryDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsUUID()
+  parentId?: string;
 
   @IsOptional()
   @IsInt()

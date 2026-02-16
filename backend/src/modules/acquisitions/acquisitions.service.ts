@@ -329,6 +329,20 @@ export class AcquisitionsService {
     if (!includeInactive) {
       where.isActive = true;
     }
+    // Only top-level categories; children come via relation
+    where.parentId = null as any;
+    return this.revenueCategoryRepository.find({
+      where,
+      relations: ['children'],
+      order: { sortOrder: 'ASC', name: 'ASC' },
+    });
+  }
+
+  async findAllRevenueCategoriesFlat(includeInactive = false) {
+    const where: any = {};
+    if (!includeInactive) {
+      where.isActive = true;
+    }
     return this.revenueCategoryRepository.find({
       where,
       order: { sortOrder: 'ASC', name: 'ASC' },
@@ -344,17 +358,28 @@ export class AcquisitionsService {
   }
 
   async createRevenueCategory(dto: CreateRevenueCategoryDto) {
-    // Auto-set sortOrder if not provided
+    // If parentId provided, verify parent exists
+    if (dto.parentId) {
+      await this.findOneRevenueCategory(dto.parentId);
+    }
+
+    // Auto-set sortOrder scoped to parent level
     if (dto.sortOrder === undefined) {
-      const maxOrder = await this.revenueCategoryRepository
+      const qb = this.revenueCategoryRepository
         .createQueryBuilder('rc')
-        .select('MAX(rc.sortOrder)', 'max')
-        .getRawOne();
+        .select('MAX(rc.sortOrder)', 'max');
+      if (dto.parentId) {
+        qb.where('rc.parentId = :parentId', { parentId: dto.parentId });
+      } else {
+        qb.where('rc.parentId IS NULL');
+      }
+      const maxOrder = await qb.getRawOne();
       dto.sortOrder = (maxOrder?.max || 0) + 1;
     }
     const cat = this.revenueCategoryRepository.create({
       name: dto.name,
       description: dto.description || null,
+      parentId: dto.parentId || null,
       sortOrder: dto.sortOrder,
     });
     return this.revenueCategoryRepository.save(cat);
@@ -434,41 +459,33 @@ export class AcquisitionsService {
   // ===================== REVENUE SUMMARY =====================
 
   async getRevenueSummary(year: number) {
-    const categories = await this.findAllRevenueCategories();
+    // Get ALL active categories (flat list including children)
+    const allCategories = await this.findAllRevenueCategoriesFlat();
+    // Get top-level categories with children loaded
+    const topLevelCategories = await this.findAllRevenueCategories();
     const monthlyData = await this.findMonthlyRevenues(year);
 
-    const categoryMap = new Map<
+    // Build a map of category data (for ALL categories)
+    const categoryDataMap = new Map<
       string,
       {
-        category: RevenueCategory;
         months: Record<number, { incasari: number; cheltuieli: number; notes: string | null; id: string }>;
         totalIncasari: number;
         totalCheltuieli: number;
       }
     >();
 
-    // Initialize all categories
-    for (const cat of categories) {
-      categoryMap.set(cat.id, {
-        category: cat,
-        months: {},
-        totalIncasari: 0,
-        totalCheltuieli: 0,
-      });
+    for (const cat of allCategories) {
+      categoryDataMap.set(cat.id, { months: {}, totalIncasari: 0, totalCheltuieli: 0 });
     }
 
     // Fill monthly data
     for (const mr of monthlyData) {
-      const entry = categoryMap.get(mr.revenueCategoryId);
+      const entry = categoryDataMap.get(mr.revenueCategoryId);
       if (entry) {
         const incasari = Number(mr.incasari);
         const cheltuieli = Number(mr.cheltuieli);
-        entry.months[mr.month] = {
-          incasari,
-          cheltuieli,
-          notes: mr.notes,
-          id: mr.id,
-        };
+        entry.months[mr.month] = { incasari, cheltuieli, notes: mr.notes, id: mr.id };
         entry.totalIncasari += incasari;
         entry.totalCheltuieli += cheltuieli;
       }
@@ -482,25 +499,88 @@ export class AcquisitionsService {
       monthTotals[m] = { incasari: 0, cheltuieli: 0 };
     }
 
-    const result = Array.from(categoryMap.values()).map((entry) => {
-      grandTotalIncasari += entry.totalIncasari;
-      grandTotalCheltuieli += entry.totalCheltuieli;
-      for (let m = 1; m <= 12; m++) {
-        const md = entry.months[m];
-        if (md) {
-          monthTotals[m].incasari += md.incasari;
-          monthTotals[m].cheltuieli += md.cheltuieli;
-        }
-      }
+    // Helper to build summary for a single category
+    const buildCatSummary = (cat: RevenueCategory) => {
+      const data = categoryDataMap.get(cat.id) || { months: {}, totalIncasari: 0, totalCheltuieli: 0 };
       return {
-        categoryId: entry.category.id,
-        categoryName: entry.category.name,
-        sortOrder: entry.category.sortOrder,
-        months: entry.months,
-        totalIncasari: Math.round(entry.totalIncasari * 100) / 100,
-        totalCheltuieli: Math.round(entry.totalCheltuieli * 100) / 100,
+        categoryId: cat.id,
+        categoryName: cat.name,
+        sortOrder: cat.sortOrder,
+        parentId: cat.parentId || null,
+        isGroup: false,
+        months: data.months,
+        totalIncasari: Math.round(data.totalIncasari * 100) / 100,
+        totalCheltuieli: Math.round(data.totalCheltuieli * 100) / 100,
+        children: [] as any[],
       };
-    });
+    };
+
+    const result: any[] = [];
+
+    for (const topCat of topLevelCategories) {
+      const children = (topCat.children || []).filter((c) => c.isActive);
+      children.sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+
+      if (children.length > 0) {
+        // GROUP: parent with children
+        const childSummaries = children.map((child) => buildCatSummary(child));
+
+        // Aggregate children data for parent totals
+        let groupTotalIncasari = 0;
+        let groupTotalCheltuieli = 0;
+        const groupMonths: Record<number, { incasari: number; cheltuieli: number }> = {};
+        for (let m = 1; m <= 12; m++) {
+          groupMonths[m] = { incasari: 0, cheltuieli: 0 };
+        }
+
+        for (const cs of childSummaries) {
+          groupTotalIncasari += cs.totalIncasari;
+          groupTotalCheltuieli += cs.totalCheltuieli;
+          for (let m = 1; m <= 12; m++) {
+            const md = cs.months[m];
+            if (md) {
+              groupMonths[m].incasari += md.incasari;
+              groupMonths[m].cheltuieli += md.cheltuieli;
+            }
+          }
+          // Children contribute to grand totals
+          grandTotalIncasari += cs.totalIncasari;
+          grandTotalCheltuieli += cs.totalCheltuieli;
+          for (let m = 1; m <= 12; m++) {
+            const md = cs.months[m];
+            if (md) {
+              monthTotals[m].incasari += md.incasari;
+              monthTotals[m].cheltuieli += md.cheltuieli;
+            }
+          }
+        }
+
+        result.push({
+          categoryId: topCat.id,
+          categoryName: topCat.name,
+          sortOrder: topCat.sortOrder,
+          parentId: null,
+          isGroup: true,
+          months: groupMonths,
+          totalIncasari: Math.round(groupTotalIncasari * 100) / 100,
+          totalCheltuieli: Math.round(groupTotalCheltuieli * 100) / 100,
+          children: childSummaries,
+        });
+      } else {
+        // SIMPLE: no children, has own data
+        const summary = buildCatSummary(topCat);
+        grandTotalIncasari += summary.totalIncasari;
+        grandTotalCheltuieli += summary.totalCheltuieli;
+        for (let m = 1; m <= 12; m++) {
+          const md = summary.months[m];
+          if (md) {
+            monthTotals[m].incasari += md.incasari;
+            monthTotals[m].cheltuieli += md.cheltuieli;
+          }
+        }
+        result.push(summary);
+      }
+    }
 
     return {
       year,

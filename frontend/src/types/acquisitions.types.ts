@@ -164,6 +164,8 @@ export interface RevenueCategory {
   id: string;
   name: string;
   description: string | null;
+  parentId: string | null;
+  children?: RevenueCategory[];
   sortOrder: number;
   isActive: boolean;
   createdAt: string;
@@ -181,9 +183,12 @@ export interface RevenueSummaryCategory {
   categoryId: string;
   categoryName: string;
   sortOrder: number;
+  parentId: string | null;
+  isGroup: boolean;
   months: Record<number, MonthlyRevenueData>;
   totalIncasari: number;
   totalCheltuieli: number;
+  children?: RevenueSummaryCategory[];
 }
 
 export interface RevenueSummary {
@@ -197,6 +202,7 @@ export interface RevenueSummary {
 export interface CreateRevenueCategoryDto {
   name: string;
   description?: string;
+  parentId?: string;
   sortOrder?: number;
 }
 
