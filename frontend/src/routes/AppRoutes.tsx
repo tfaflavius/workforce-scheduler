@@ -23,6 +23,7 @@ import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
 import ProcesVerbalePage from '../pages/departments/ProcesVerbalePage';
 import ParcometrePage from '../pages/departments/ParcometrePage';
 import AchizitiiPage from '../pages/departments/AchizitiiPage';
+import IncasariCheltuieliPage from '../pages/departments/IncasariCheltuieliPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { useAppSelector } from '../store/hooks';
@@ -197,6 +198,14 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Achizitii']}>
               <AchizitiiPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/incasari-cheltuieli"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Achizitii']}>
+              <IncasariCheltuieliPage />
             </ProtectedRoute>
           }
         />

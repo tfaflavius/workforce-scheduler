@@ -44,6 +44,7 @@ import {
   Receipt as ReceiptIcon,
   ConfirmationNumber as MeterIcon,
   ShoppingCart as ShoppingIcon,
+  BarChart as RevenueIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -209,6 +210,13 @@ export const MainLayout = () => {
       text: 'Achizitii',
       icon: <ShoppingIcon />,
       path: '/achizitii',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: ['Achizitii'],
+    },
+    {
+      text: 'Incasari/Cheltuieli',
+      icon: <RevenueIcon />,
+      path: '/incasari-cheltuieli',
       roles: ['ADMIN', 'MANAGER', 'USER'],
       requiresDepartments: ['Achizitii'],
     },
