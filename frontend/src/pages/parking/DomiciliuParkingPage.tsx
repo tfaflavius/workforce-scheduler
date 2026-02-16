@@ -823,7 +823,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
         WebkitTapHighlightColor: 'transparent',
         minHeight: { xs: 44, sm: 'auto' }, // Touch-friendly minimum height
         '&:hover': {
-          transform: 'translateY(-2px)',
+          transform: { xs: 'none', sm: 'translateY(-2px)' },
           boxShadow: theme.shadows[4],
         },
         '&:active': {
@@ -832,21 +832,22 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
       }}
     >
       <CardContent sx={{ py: { xs: 1.25, sm: 1.5 }, px: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.25, sm: 1.5 } } }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 }, minWidth: 0, flex: 1 }}>
             <Box sx={{
               p: { xs: 0.5, sm: 0.75 },
               borderRadius: 1.5,
               bgcolor: colors.bg,
               color: colors.main,
               display: 'flex',
+              flexShrink: 0,
               '& .MuiSvgIcon-root': {
                 fontSize: { xs: 18, sm: 24 },
               },
             }}>
               {REQUEST_TYPE_ICONS[request.requestType]}
             </Box>
-            <Typography variant="body2" fontWeight={600} color={colors.main} sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+            <Typography variant="body2" fontWeight={600} color={colors.main} sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {DOMICILIU_REQUEST_TYPE_LABELS[request.requestType]}
             </Typography>
           </Box>
@@ -863,32 +864,36 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
           />
         </Box>
 
-        <Typography variant="body2" sx={{ mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-          <PlaceIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
-          {request.location}
+        <Typography variant="body2" sx={{ mb: 0.5, display: 'flex', alignItems: 'flex-start', gap: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' }, lineHeight: 1.4, wordBreak: 'break-word' }}>
+          <PlaceIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary', flexShrink: 0, mt: 0.2 }} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{request.location}</span>
         </Typography>
 
         {(request.numberOfSpots || request.parkingLayout) && (
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
-            <LayoutIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
-            {request.numberOfSpots && `${request.numberOfSpots} locuri`}
-            {request.numberOfSpots && request.parkingLayout && ' • '}
-            {request.parkingLayout && PARKING_LAYOUT_LABELS[request.parkingLayout]}
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <LayoutIcon sx={{ fontSize: { xs: 14, sm: 16 }, flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {request.numberOfSpots && `${request.numberOfSpots} locuri`}
+              {request.numberOfSpots && request.parkingLayout && ' • '}
+              {request.parkingLayout && PARKING_LAYOUT_LABELS[request.parkingLayout]}
+            </span>
           </Typography>
         )}
 
         {(request.personName || request.carPlate) && (
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
-            <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
-            {request.personName}
-            {request.personName && request.carPlate && ' • '}
-            {request.carPlate}
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+            <PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {request.personName}
+              {request.personName && request.carPlate && ' • '}
+              {request.carPlate}
+            </span>
           </Typography>
         )}
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="caption" color="text.secondary">
-            {request.creator?.fullName} • {format(new Date(request.createdAt), 'dd MMM yyyy', { locale: ro })}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider', flexWrap: 'wrap', gap: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
+            {request.creator?.fullName} • {format(new Date(request.createdAt), isMobile ? 'dd/MM/yy' : 'dd MMM yyyy', { locale: ro })}
           </Typography>
           {request.comments && request.comments.length > 0 && (
             <Chip

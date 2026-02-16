@@ -55,6 +55,12 @@ img {
   max-width: 100%;
 }
 
+/* Global text overflow prevention */
+.MuiTypography-root {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
 /* Make tables scrollable horizontally on mobile */
 .MuiTableContainer-root {
   overflow-x: auto;
@@ -80,6 +86,12 @@ img {
 .MuiChip-label {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Ensure CardContent doesn't overflow */
+.MuiCardContent-root {
+  overflow: hidden;
+  min-width: 0;
 }
 
 /* Fix dialog responsive on mobile */
@@ -145,6 +157,9 @@ img {
   /* Alert text smaller on mobile */
   .MuiAlert-message {
     font-size: 0.8rem;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
   }
 
   /* Form controls should be full width on small screens */
@@ -164,6 +179,23 @@ img {
 
   .MuiInputLabel-root {
     font-size: 0.85rem !important;
+  }
+
+  /* Ensure Typography elements don't overflow on small screens */
+  .MuiTypography-root {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Fix CardContent overflow */
+  .MuiCardContent-root {
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  /* Prevent flex containers from overflowing */
+  .MuiStack-root {
+    min-width: 0;
   }
 }
 

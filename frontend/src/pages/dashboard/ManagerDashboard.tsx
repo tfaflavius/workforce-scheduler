@@ -109,7 +109,7 @@ const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick, delay
                 color="text.secondary"
                 sx={{
                   fontWeight: 600,
-                  fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.75rem' },
+                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
                   letterSpacing: '0.5px',
                 }}
               >
@@ -642,7 +642,7 @@ const ManagerDashboard = () => {
                           variant="overline"
                           sx={{
                             fontWeight: 600,
-                            fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.75rem' },
+                            fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
                             letterSpacing: '0.5px',
                             opacity: 0.9,
                           }}

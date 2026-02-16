@@ -641,8 +641,11 @@ const UsersPage: React.FC = () => {
                             sx={{
                               display: 'block',
                               mt: 1.5,
-                              pl: 9,
+                              pl: { xs: 0, sm: 9 },
                               fontWeight: 500,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             📍 {user.department.name}

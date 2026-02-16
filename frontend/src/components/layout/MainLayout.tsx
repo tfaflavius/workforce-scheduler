@@ -393,7 +393,7 @@ export const MainLayout = () => {
               sx={{
                 mt: 0.5,
                 height: { xs: 20, sm: 22 },
-                fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                fontSize: { xs: '0.7rem', sm: '0.7rem' },
                 fontWeight: 600,
                 '& .MuiChip-label': {
                   px: 1,

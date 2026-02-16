@@ -572,7 +572,7 @@ const EmployeeDashboard = () => {
                     <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       {totalHoursThisMonth}h
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' }, opacity: 0.85 }}>
+                    <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, opacity: 0.85 }}>
                       Total Ore
                     </Typography>
                   </Grid>
@@ -580,7 +580,7 @@ const EmployeeDashboard = () => {
                     <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       {monthlyHoursNorm}h
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' }, opacity: 0.85 }}>
+                    <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, opacity: 0.85 }}>
                       Norma
                     </Typography>
                   </Grid>
@@ -595,7 +595,7 @@ const EmployeeDashboard = () => {
                     >
                       {hoursDifference > 0 ? `+${hoursDifference}` : hoursDifference}h
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' }, opacity: 0.85 }}>
+                    <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, opacity: 0.85 }}>
                       Diferenta
                     </Typography>
                   </Grid>
@@ -603,7 +603,7 @@ const EmployeeDashboard = () => {
                     <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       {dayShifts}
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' }, opacity: 0.85 }}>
+                    <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, opacity: 0.85 }}>
                       Ture Zi
                     </Typography>
                   </Grid>
@@ -611,7 +611,7 @@ const EmployeeDashboard = () => {
                     <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       {nightShifts}
                     </Typography>
-                    <Typography variant="caption" sx={{ fontSize: { xs: '0.55rem', sm: '0.7rem' }, opacity: 0.85 }}>
+                    <Typography variant="caption" sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, opacity: 0.85 }}>
                       Ture Noapte
                     </Typography>
                   </Grid>
