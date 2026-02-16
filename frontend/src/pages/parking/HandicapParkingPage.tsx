@@ -1215,8 +1215,10 @@ const HandicapParkingPage: React.FC = () => {
     user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
 
   const isAdmin = user?.role === 'ADMIN';
+  const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const isHandicapDepartmentUser = user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
   const canEditHandicap = isAdmin || isHandicapDepartmentUser;
+  const canCreate = !isMaintenanceUser; // Intretinere Parcari users cannot create requests
 
   if (!hasAccess) {
     return <Navigate to="/dashboard" replace />;
@@ -1393,8 +1395,8 @@ const HandicapParkingPage: React.FC = () => {
               </Select>
             </FormControl>
 
-            {/* Butonul Adauga - ascuns pe tab-ul Legitimatii (are propriul buton) */}
-            {!isLegitimationsTab && tabValue < tabConfig.length && (
+            {/* Butonul Adauga - ascuns pe tab-ul Legitimatii (are propriul buton) si pentru Intretinere Parcari */}
+            {canCreate && !isLegitimationsTab && tabValue < tabConfig.length && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -1587,19 +1589,23 @@ const HandicapParkingPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {searchQuery
                   ? 'Nu s-au gasit rezultate pentru cautarea ta'
-                  : 'Nu exista solicitari de acest tip inca'}
+                  : isMaintenanceUser
+                    ? 'Nu exista solicitari alocate de acest tip'
+                    : 'Nu exista solicitari de acest tip inca'}
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setCreateDialogType(tab.type)}
-                sx={{
-                  bgcolor: tab.color,
-                  '&:hover': { bgcolor: alpha(tab.color, 0.9) },
-                }}
-              >
-                Creeaza prima solicitare
-              </Button>
+              {canCreate && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setCreateDialogType(tab.type)}
+                  sx={{
+                    bgcolor: tab.color,
+                    '&:hover': { bgcolor: alpha(tab.color, 0.9) },
+                  }}
+                >
+                  Creeaza prima solicitare
+                </Button>
+              )}
             </Paper>
           ) : (
             <Stack spacing={1.5}>
@@ -1644,7 +1650,7 @@ const HandicapParkingPage: React.FC = () => {
       )}
 
       {/* Dialogs */}
-      {createDialogType && (
+      {canCreate && createDialogType && (
         <CreateHandicapRequestDialog
           open={!!createDialogType}
           onClose={() => setCreateDialogType(null)}

@@ -39,6 +39,16 @@ export class HandicapRequestsService {
   ) {}
 
   async create(userId: string, dto: CreateHandicapRequestDto): Promise<HandicapRequest> {
+    // Verifica daca utilizatorul este de la Intretinere Parcari - nu are voie sa creeze solicitari
+    const creator = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['department'],
+    });
+    if (creator && creator.role === UserRole.USER &&
+        removeDiacritics(creator.department?.name || '') === MAINTENANCE_DEPARTMENT_NAME) {
+      throw new ForbiddenException('Utilizatorii din departamentul Intretinere Parcari nu pot crea solicitari');
+    }
+
     const request = this.handicapRequestRepository.create({
       requestType: dto.requestType as HandicapRequestType,
       location: removeDiacritics(dto.location),

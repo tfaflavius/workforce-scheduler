@@ -928,6 +928,10 @@ const DomiciliuParkingPage: React.FC = () => {
     }
   }, [location.state]);
 
+  // Check if user is from Intretinere Parcari department
+  const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
+  const canCreate = !isMaintenanceUser; // Intretinere Parcari users cannot create requests
+
   // Access control
   const hasAccess =
     user?.role === 'ADMIN' ||
@@ -1090,18 +1094,20 @@ const DomiciliuParkingPage: React.FC = () => {
             </Select>
           </FormControl>
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
-            sx={{
-              bgcolor: tabConfig[tabValue].color,
-              '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Adauga
-          </Button>
+          {canCreate && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
+              sx={{
+                bgcolor: tabConfig[tabValue].color,
+                '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Adauga
+            </Button>
+          )}
         </Stack>
       </Paper>
 
@@ -1197,19 +1203,23 @@ const DomiciliuParkingPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 {searchQuery
                   ? 'Nu s-au gasit rezultate pentru cautarea ta'
-                  : 'Nu exista solicitari de acest tip inca'}
+                  : isMaintenanceUser
+                    ? 'Nu exista solicitari alocate de acest tip'
+                    : 'Nu exista solicitari de acest tip inca'}
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setCreateDialogType(tab.type)}
-                sx={{
-                  bgcolor: tab.color,
-                  '&:hover': { bgcolor: alpha(tab.color, 0.9) },
-                }}
-              >
-                Creeaza prima solicitare
-              </Button>
+              {canCreate && (
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setCreateDialogType(tab.type)}
+                  sx={{
+                    bgcolor: tab.color,
+                    '&:hover': { bgcolor: alpha(tab.color, 0.9) },
+                  }}
+                >
+                  Creeaza prima solicitare
+                </Button>
+              )}
             </Paper>
           ) : (
             <Stack spacing={1.5}>
@@ -1226,7 +1236,7 @@ const DomiciliuParkingPage: React.FC = () => {
       ))}
 
       {/* Dialogs */}
-      {createDialogType && (
+      {canCreate && createDialogType && (
         <CreateDomiciliuRequestDialog
           open={!!createDialogType}
           onClose={() => setCreateDialogType(null)}
