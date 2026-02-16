@@ -341,10 +341,7 @@ export class DailyReportsService {
    * Returneaza utilizatorii care ar trebui sa trimita raport intr-o anumita zi
    */
   async getUsersWhoShouldReport(date: string): Promise<User[]> {
-    // Weekend sau sarbatoare → nimeni nu face raport
-    if (!isWorkingDay(date)) {
-      return [];
-    }
+    const workingDay = isWorkingDay(date);
 
     // Toti userii activi non-ADMIN cu departament
     const allUsers = await this.userRepository.find({
@@ -374,21 +371,29 @@ export class DailyReportsService {
     for (const user of availableUsers) {
       const deptName = user.department?.name;
 
+      // Dispecerat si Control → verificare pe baza de program (inclusiv sarbatori/weekend)
+      if (deptName && SCHEDULE_BASED_DEPARTMENTS.includes(deptName)) {
+        scheduleBased.push(user);
+        continue;
+      }
+
+      // Restul departamentelor + manageri → doar in zile lucratoare
+      if (!workingDay) continue;
+
       // Managerii fac raport in fiecare zi lucratoare (indiferent de departament)
       if (user.role === UserRole.MANAGER) {
         workdayBased.push(user);
         continue;
       }
 
-      if (deptName && SCHEDULE_BASED_DEPARTMENTS.includes(deptName)) {
-        scheduleBased.push(user);
-      } else if (deptName && WORKDAY_REPORT_DEPARTMENTS.includes(deptName)) {
+      if (deptName && WORKDAY_REPORT_DEPARTMENTS.includes(deptName)) {
         workdayBased.push(user);
       }
       // Userii din alte departamente (ex: Intretinere Parcari) nu fac raport
     }
 
-    // Pentru userii cu program: verifica daca au tura in acea zi
+    // Pentru userii cu program (Dispecerat/Control): verifica daca au tura in acea zi
+    // Acestia trimit raport si in sarbatori/weekend daca sunt programati la lucru
     const scheduleBasedIds = scheduleBased.map(u => u.id);
     const usersWithShifts = new Set<string>();
 
