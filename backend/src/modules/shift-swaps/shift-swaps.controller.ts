@@ -73,6 +73,7 @@ export class ShiftSwapsController {
     @Param('date') date: string,
     @Query('departmentId') departmentId: string,
     @Query('workPositionId') workPositionId: string,
+    @Query('shiftPattern') shiftPattern: string,
     @Request() req,
   ) {
     return this.shiftSwapsService.findUsersWorkingOnDate(
@@ -80,6 +81,7 @@ export class ShiftSwapsController {
       req.user.id,
       departmentId || undefined,
       workPositionId || undefined,
+      shiftPattern || undefined,
     );
   }
 

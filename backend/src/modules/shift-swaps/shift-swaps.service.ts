@@ -60,16 +60,18 @@ export class ShiftSwapsService {
       throw new BadRequestException('Nu ai o tura programata in data selectata');
     }
 
-    // Extrage departmentId si workPositionId pentru filtrare
+    // Extrage departmentId, workPositionId si shiftPattern pentru filtrare
     const departmentId = requester.departmentId || undefined;
     const workPositionId = requesterAssignment.workPositionId || undefined;
+    const shiftPattern = requesterAssignment.schedule?.shiftPattern || undefined;
 
-    // Gaseste userii care lucreaza in data tinta (filtrare pe departament + work position)
+    // Gaseste userii care lucreaza in data tinta (filtrare pe departament + work position + regim ore)
     const targetUsers = await this.findUsersWorkingOnDate(
       dto.targetDate,
       requesterId,
       departmentId,
       workPositionId,
+      shiftPattern,
     );
     if (targetUsers.length === 0) {
       throw new BadRequestException('Nu exista alti utilizatori care lucreaza in data selectata');
@@ -363,13 +365,14 @@ export class ShiftSwapsService {
 
   /**
    * Gaseste userii care lucreaza intr-o anumita data
-   * Optionally filter by departmentId and workPositionId
+   * Optionally filter by departmentId, workPositionId and shiftPattern
    */
   async findUsersWorkingOnDate(
     date: string,
     excludeUserId?: string,
     departmentId?: string,
     workPositionId?: string,
+    shiftPattern?: string,
   ): Promise<User[]> {
     const qb = this.assignmentRepository
       .createQueryBuilder('assignment')
@@ -385,6 +388,11 @@ export class ShiftSwapsService {
 
     if (workPositionId) {
       qb.andWhere('assignment.workPositionId = :workPositionId', { workPositionId });
+    }
+
+    // Filtreaza pe regimul de ore (8h/12h) - doar colegi cu acelasi regim
+    if (shiftPattern) {
+      qb.andWhere('schedule.shiftPattern = :shiftPattern', { shiftPattern });
     }
 
     const assignments = await qb.getMany();
@@ -415,16 +423,17 @@ export class ShiftSwapsService {
       throw new NotFoundException('Utilizatorul nu a fost gasit');
     }
 
-    // Gaseste assignment-ul user-ului pe userDate pentru workPositionId
+    // Gaseste assignment-ul user-ului pe userDate pentru workPositionId si shiftPattern
     const userAssignment = await this.assignmentRepository.findOne({
       where: { userId, shiftDate: new Date(userDate) },
-      relations: ['workPosition'],
+      relations: ['workPosition', 'schedule'],
     });
 
     const departmentId = user.departmentId;
     const workPositionId = userAssignment?.workPositionId || null;
+    const shiftPattern = userAssignment?.schedule?.shiftPattern || null;
 
-    // Cauta assignment-uri viitoare de la alti useri din acelasi departament
+    // Cauta assignment-uri viitoare de la alti useri din acelasi departament si regim
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -448,6 +457,11 @@ export class ShiftSwapsService {
     // Filtreaza pe work position (daca exista) - pentru Control/Dispecerat
     if (workPositionId) {
       qb.andWhere('assignment.workPositionId = :workPositionId', { workPositionId });
+    }
+
+    // Filtreaza pe regimul de ore (SHIFT_8H / SHIFT_12H) - doar colegi cu acelasi regim
+    if (shiftPattern) {
+      qb.andWhere('schedule.shiftPattern = :shiftPattern', { shiftPattern });
     }
 
     qb.groupBy('assignment.shiftDate')
@@ -474,7 +488,7 @@ export class ShiftSwapsService {
         userId,
         shiftDate: new Date(date),
       },
-      relations: ['shiftType', 'workPosition'],
+      relations: ['shiftType', 'workPosition', 'schedule'],
     });
   }
 

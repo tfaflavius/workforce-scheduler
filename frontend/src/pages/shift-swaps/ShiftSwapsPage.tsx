@@ -218,17 +218,29 @@ const ShiftSwapsPage = () => {
   const handleTargetDateChange = async (date: string) => {
     setTargetDate(date);
     if (date) {
-      // Pass department and work position filters to getUsersOnDate
+      // Find the selected assignment and its schedule's shiftPattern
       const selectedAssignment = myAssignments.find((a) => {
         const dateStr = typeof a.shiftDate === 'string'
           ? a.shiftDate.split('T')[0]
           : new Date(a.shiftDate).toISOString().split('T')[0];
         return dateStr === requesterDate;
       });
+
+      // Find shiftPattern from the schedule that contains this assignment
+      let shiftPattern: string | undefined;
+      if (selectedAssignment) {
+        const parentSchedule = schedules.find((s) =>
+          s.assignments?.some((a) => a.id === selectedAssignment.id),
+        );
+        shiftPattern = parentSchedule?.shiftPattern || undefined;
+      }
+
+      // Pass department, work position AND shift pattern filters
       await getUsersOnDate({
         date,
         departmentId: user?.departmentId || undefined,
         workPositionId: selectedAssignment?.workPositionId || undefined,
+        shiftPattern,
       });
     }
   };
