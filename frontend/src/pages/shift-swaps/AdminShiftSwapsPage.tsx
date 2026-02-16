@@ -58,8 +58,9 @@ import {
   useApproveSwapRequestMutation,
   useRejectSwapRequestMutation,
   useDeleteSwapRequestMutation,
+  useLazyGetUsersOnDateQuery,
 } from '../../store/api/shiftSwaps.api';
-import type { ShiftSwapRequest, ShiftSwapStatus } from '../../types/shift-swap.types';
+import type { ShiftSwapRequest, ShiftSwapStatus, UserOnDate } from '../../types/shift-swap.types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -151,6 +152,7 @@ const AdminShiftSwapsPage = () => {
   const [approveSwap, { isLoading: approving }] = useApproveSwapRequestMutation();
   const [rejectSwap, { isLoading: rejecting }] = useRejectSwapRequestMutation();
   const [deleteSwap, { isLoading: deleting }] = useDeleteSwapRequestMutation();
+  const [getUsersOnDate, { data: targetDateUsers = [], isLoading: loadingTargetUsers }] = useLazyGetUsersOnDateQuery();
 
   // Filter requests by status
   const awaitingAdminRequests = allRequests.filter((r) => r.status === 'AWAITING_ADMIN');
@@ -166,13 +168,29 @@ const AdminShiftSwapsPage = () => {
     setDetailsDialogOpen(true);
   };
 
-  const handleOpenActionDialog = (request: ShiftSwapRequest, action: 'approve' | 'reject') => {
+  const handleOpenActionDialog = async (request: ShiftSwapRequest, action: 'approve' | 'reject') => {
     setSelectedRequest(request);
     setActionType(action);
     setAdminNotes('');
-    // Pre-selecteaza primul care a acceptat (sau gol daca sunt mai multi)
     const acceptedResponses = request.responses?.filter((r) => r.response === 'ACCEPTED') || [];
-    setSelectedResponderId(acceptedResponses.length === 1 ? acceptedResponses[0].responderId : '');
+
+    if (action === 'approve') {
+      if (acceptedResponses.length > 0) {
+        // Cineva a acceptat - pre-selecteaza daca e doar unul
+        setSelectedResponderId(acceptedResponses.length === 1 ? acceptedResponses[0].responderId : '');
+      } else {
+        // Nimeni nu a acceptat - adminul alege fortat din lista de colegi pe targetDate
+        setSelectedResponderId('');
+        const targetDateStr = typeof request.targetDate === 'string'
+          ? request.targetDate.split('T')[0]
+          : new Date(request.targetDate).toISOString().split('T')[0];
+        // Fetch userii care lucreaza pe data tinta (exclude requester-ul)
+        await getUsersOnDate({ date: targetDateStr });
+      }
+    } else {
+      setSelectedResponderId('');
+    }
+
     setActionDialogOpen(true);
   };
 
@@ -336,7 +354,7 @@ const AdminShiftSwapsPage = () => {
                 </IconButton>
               </Tooltip>
 
-              {request.status === 'AWAITING_ADMIN' && (
+              {(request.status === 'AWAITING_ADMIN' || request.status === 'PENDING') && (
                 <>
                   <Button
                     variant="contained"
@@ -346,7 +364,7 @@ const AdminShiftSwapsPage = () => {
                     onClick={() => handleOpenActionDialog(request, 'approve')}
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' } }}
                   >
-                    Aproba
+                    {request.status === 'PENDING' ? 'Aloca' : 'Aproba'}
                   </Button>
                   <Button
                     variant="outlined"
@@ -709,7 +727,7 @@ const AdminShiftSwapsPage = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDetailsDialogOpen(false)}>Inchide</Button>
-          {selectedRequest?.status === 'AWAITING_ADMIN' && (
+          {(selectedRequest?.status === 'AWAITING_ADMIN' || selectedRequest?.status === 'PENDING') && (
             <>
               <Button
                 variant="contained"
@@ -719,7 +737,7 @@ const AdminShiftSwapsPage = () => {
                   handleOpenActionDialog(selectedRequest, 'approve');
                 }}
               >
-                Aproba
+                {selectedRequest?.status === 'PENDING' ? 'Aloca' : 'Aproba'}
               </Button>
               <Button
                 variant="outlined"
@@ -745,22 +763,76 @@ const AdminShiftSwapsPage = () => {
         fullScreen={isMobile}
       >
         <DialogTitle>
-          {actionType === 'approve' ? 'Aproba Schimbul de Tura' : 'Respinge Cererea de Schimb'}
+          {actionType === 'approve'
+            ? (selectedRequest?.status === 'PENDING' ? 'Aloca Schimb de Tura' : 'Aproba Schimbul de Tura')
+            : 'Respinge Cererea de Schimb'}
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             {selectedRequest && actionType === 'approve' && (
               <>
-                {/* Show all accepted responders for admin to choose from */}
                 {(() => {
                   const acceptedResponses = selectedRequest.responses?.filter((r) => r.response === 'ACCEPTED') || [];
+
+                  // Cazul 1: Nimeni nu a acceptat - admin aloca fortat
                   if (acceptedResponses.length === 0) {
+                    // Filtram userii de pe targetDate, excludem requester-ul
+                    const availableUsers = targetDateUsers.filter(
+                      (u: UserOnDate) => u.id !== selectedRequest.requesterId
+                    );
+
+                    if (loadingTargetUsers) {
+                      return (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                          <CircularProgress size={24} />
+                          <Typography variant="body2" sx={{ ml: 1 }}>Se incarca colegii...</Typography>
+                        </Box>
+                      );
+                    }
+
+                    if (availableUsers.length === 0) {
+                      return (
+                        <Alert severity="warning">
+                          Nu s-au gasit colegi care lucreaza in {formatDateShort(selectedRequest.targetDate)}.
+                        </Alert>
+                      );
+                    }
+
                     return (
-                      <Alert severity="warning">
-                        Niciun coleg nu a acceptat inca cererea de schimb.
-                      </Alert>
+                      <>
+                        <Alert severity="info">
+                          Niciun coleg nu a acceptat cererea. Selecteaza manual colegul cu care se va face schimbul fortat:
+                        </Alert>
+                        <MuiFormControl component="fieldset">
+                          <FormLabel component="legend">
+                            Colegi care lucreaza in {formatDateShort(selectedRequest.targetDate)}
+                          </FormLabel>
+                          <RadioGroup
+                            value={selectedResponderId}
+                            onChange={(e) => setSelectedResponderId(e.target.value)}
+                          >
+                            {availableUsers.map((user: UserOnDate) => (
+                              <FormControlLabel
+                                key={user.id}
+                                value={user.id}
+                                control={<Radio />}
+                                label={
+                                  <Stack direction="row" alignItems="center" spacing={1}>
+                                    <Avatar sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
+                                      {user.fullName?.charAt(0)}
+                                    </Avatar>
+                                    <Typography variant="body2">{user.fullName}</Typography>
+                                  </Stack>
+                                }
+                              />
+                            ))}
+                          </RadioGroup>
+                        </MuiFormControl>
+                      </>
                     );
                   }
+
+                  // Cazul 2: Un singur coleg a acceptat
                   if (acceptedResponses.length === 1) {
                     return (
                       <Alert severity="success">
@@ -769,6 +841,8 @@ const AdminShiftSwapsPage = () => {
                       </Alert>
                     );
                   }
+
+                  // Cazul 3: Mai multi colegi au acceptat - adminul alege
                   return (
                     <>
                       <Alert severity="info">
@@ -834,7 +908,7 @@ const AdminShiftSwapsPage = () => {
             disabled={approving || rejecting || (actionType === 'reject' && !adminNotes) || (actionType === 'approve' && !selectedResponderId)}
             startIcon={(approving || rejecting) ? <CircularProgress size={20} /> : (actionType === 'approve' ? <CheckIcon /> : <CloseIcon />)}
           >
-            {(approving || rejecting) ? 'Se proceseaza...' : (actionType === 'approve' ? 'Aproba' : 'Respinge')}
+            {(approving || rejecting) ? 'Se proceseaza...' : (actionType === 'approve' ? (selectedRequest?.status === 'PENDING' ? 'Aloca' : 'Aproba') : 'Respinge')}
           </Button>
         </DialogActions>
       </Dialog>

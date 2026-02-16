@@ -182,6 +182,9 @@ export class ShiftSwapsService {
 
   /**
    * Admin aproba schimbul
+   * Suporta doua scenarii:
+   * 1. Cineva a acceptat (AWAITING_ADMIN) - adminul alege din cei care au acceptat
+   * 2. Nimeni nu a acceptat (PENDING) - adminul forteaza alocarea la un coleg
    */
   async adminApproveSwap(
     swapRequestId: string,
@@ -190,17 +193,33 @@ export class ShiftSwapsService {
   ): Promise<ShiftSwapRequest> {
     const swapRequest = await this.findOne(swapRequestId);
 
-    // Verifica statusul
-    if (swapRequest.status !== ShiftSwapStatus.AWAITING_ADMIN) {
+    // Verifica statusul - acceptam PENDING (force-assign) sau AWAITING_ADMIN (normal)
+    if (![ShiftSwapStatus.PENDING, ShiftSwapStatus.AWAITING_ADMIN].includes(swapRequest.status)) {
       throw new BadRequestException('Aceasta cerere nu poate fi aprobata in acest moment');
     }
 
-    // Verifica daca userul ales a acceptat
-    const acceptedResponse = swapRequest.responses?.find(
-      (r) => r.responderId === dto.approvedResponderId && r.response === SwapResponseType.ACCEPTED,
-    );
-    if (!acceptedResponse) {
-      throw new BadRequestException('Utilizatorul selectat nu a acceptat schimbul');
+    // Daca e AWAITING_ADMIN, verificam ca userul ales a acceptat
+    if (swapRequest.status === ShiftSwapStatus.AWAITING_ADMIN) {
+      const acceptedResponse = swapRequest.responses?.find(
+        (r) => r.responderId === dto.approvedResponderId && r.response === SwapResponseType.ACCEPTED,
+      );
+      if (!acceptedResponse) {
+        throw new BadRequestException('Utilizatorul selectat nu a acceptat schimbul');
+      }
+    }
+
+    // Daca e PENDING (force-assign), verificam ca userul ales lucreaza in data tinta
+    if (swapRequest.status === ShiftSwapStatus.PENDING) {
+      const targetDateStr = swapRequest.targetDate instanceof Date
+        ? swapRequest.targetDate.toISOString().split('T')[0]
+        : String(swapRequest.targetDate).split('T')[0];
+      const responderAssignment = await this.findAssignmentForUserAndDate(
+        dto.approvedResponderId,
+        targetDateStr,
+      );
+      if (!responderAssignment) {
+        throw new BadRequestException('Utilizatorul selectat nu lucreaza in data tinta');
+      }
     }
 
     // Efectueaza schimbul in program

@@ -66,10 +66,10 @@ export class ShiftSwapsController {
 
   /**
    * Gaseste userii care lucreaza intr-o data
-   * Accesibil: USER, MANAGER
+   * Accesibil: USER, MANAGER, ADMIN
    */
   @Get('users-on-date/:date')
-  @Roles(UserRole.USER, UserRole.MANAGER)
+  @Roles(UserRole.USER, UserRole.MANAGER, UserRole.ADMIN)
   getUsersOnDate(
     @Param('date') date: string,
     @Query('departmentId') departmentId: string,
