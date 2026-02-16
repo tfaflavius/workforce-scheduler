@@ -58,9 +58,20 @@ export const shiftSwapsApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'ShiftSwaps', id }],
     }),
 
-    // Useri care lucreaza intr-o data
-    getUsersOnDate: builder.query<UserOnDate[], string>({
-      query: (date) => `/users-on-date/${date}`,
+    // Useri care lucreaza intr-o data (cu filtrare optionala pe departament/workPosition)
+    getUsersOnDate: builder.query<UserOnDate[], { date: string; departmentId?: string; workPositionId?: string }>({
+      query: ({ date, departmentId, workPositionId }) => {
+        const params = new URLSearchParams();
+        if (departmentId) params.append('departmentId', departmentId);
+        if (workPositionId) params.append('workPositionId', workPositionId);
+        const queryStr = params.toString();
+        return `/users-on-date/${date}${queryStr ? `?${queryStr}` : ''}`;
+      },
+    }),
+
+    // Date disponibile pentru schimb (filtrate server-side pe departament + work position)
+    getAvailableSwapDates: builder.query<{ date: string; count: number }[], string>({
+      query: (date) => `/available-dates/${date}`,
     }),
 
     // Raspunde la cerere
@@ -111,6 +122,8 @@ export const {
   useGetSwapRequestQuery,
   useGetUsersOnDateQuery,
   useLazyGetUsersOnDateQuery,
+  useGetAvailableSwapDatesQuery,
+  useLazyGetAvailableSwapDatesQuery,
   useRespondToSwapRequestMutation,
   useApproveSwapRequestMutation,
   useRejectSwapRequestMutation,

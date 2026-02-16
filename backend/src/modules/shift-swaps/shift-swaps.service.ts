@@ -60,8 +60,17 @@ export class ShiftSwapsService {
       throw new BadRequestException('Nu ai o tura programata in data selectata');
     }
 
-    // Gaseste userii care lucreaza in data tinta
-    const targetUsers = await this.findUsersWorkingOnDate(dto.targetDate, requesterId);
+    // Extrage departmentId si workPositionId pentru filtrare
+    const departmentId = requester.departmentId || undefined;
+    const workPositionId = requesterAssignment.workPositionId || undefined;
+
+    // Gaseste userii care lucreaza in data tinta (filtrare pe departament + work position)
+    const targetUsers = await this.findUsersWorkingOnDate(
+      dto.targetDate,
+      requesterId,
+      departmentId,
+      workPositionId,
+    );
     if (targetUsers.length === 0) {
       throw new BadRequestException('Nu exista alti utilizatori care lucreaza in data selectata');
     }
@@ -354,14 +363,31 @@ export class ShiftSwapsService {
 
   /**
    * Gaseste userii care lucreaza intr-o anumita data
+   * Optionally filter by departmentId and workPositionId
    */
-  async findUsersWorkingOnDate(date: string, excludeUserId?: string): Promise<User[]> {
-    const assignments = await this.assignmentRepository
+  async findUsersWorkingOnDate(
+    date: string,
+    excludeUserId?: string,
+    departmentId?: string,
+    workPositionId?: string,
+  ): Promise<User[]> {
+    const qb = this.assignmentRepository
       .createQueryBuilder('assignment')
       .leftJoinAndSelect('assignment.user', 'user')
+      .leftJoin('assignment.schedule', 'schedule')
       .where('assignment.shiftDate = :date', { date })
       .andWhere('user.isActive = true')
-      .getMany();
+      .andWhere('schedule.status = :status', { status: 'APPROVED' });
+
+    if (departmentId) {
+      qb.andWhere('user.department_id = :departmentId', { departmentId });
+    }
+
+    if (workPositionId) {
+      qb.andWhere('assignment.workPositionId = :workPositionId', { workPositionId });
+    }
+
+    const assignments = await qb.getMany();
 
     let users = assignments
       .map((a) => a.user)
@@ -375,6 +401,68 @@ export class ShiftSwapsService {
     return uniqueUsers;
   }
 
+  /**
+   * Gaseste datele disponibile pentru schimb de tura
+   * Filtreaza pe departament si work position (doar colegi din acelasi departament)
+   */
+  async findAvailableSwapDates(
+    userDate: string,
+    userId: string,
+  ): Promise<{ date: string; count: number }[]> {
+    // Gaseste user-ul pentru departmentId
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Utilizatorul nu a fost gasit');
+    }
+
+    // Gaseste assignment-ul user-ului pe userDate pentru workPositionId
+    const userAssignment = await this.assignmentRepository.findOne({
+      where: { userId, shiftDate: new Date(userDate) },
+      relations: ['workPosition'],
+    });
+
+    const departmentId = user.departmentId;
+    const workPositionId = userAssignment?.workPositionId || null;
+
+    // Cauta assignment-uri viitoare de la alti useri din acelasi departament
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const qb = this.assignmentRepository
+      .createQueryBuilder('assignment')
+      .leftJoin('assignment.user', 'user')
+      .leftJoin('assignment.schedule', 'schedule')
+      .select('assignment.shiftDate', 'shiftDate')
+      .addSelect('COUNT(DISTINCT user.id)', 'userCount')
+      .where('user.id != :userId', { userId })
+      .andWhere('user.isActive = true')
+      .andWhere('assignment.shiftDate >= :today', { today: today.toISOString().split('T')[0] })
+      .andWhere('schedule.status = :status', { status: 'APPROVED' })
+      .andWhere('assignment.isRestDay = false');
+
+    // Filtreaza pe departament (daca exista)
+    if (departmentId) {
+      qb.andWhere('user.department_id = :departmentId', { departmentId });
+    }
+
+    // Filtreaza pe work position (daca exista) - pentru Control/Dispecerat
+    if (workPositionId) {
+      qb.andWhere('assignment.workPositionId = :workPositionId', { workPositionId });
+    }
+
+    qb.groupBy('assignment.shiftDate')
+      .orderBy('assignment.shiftDate', 'ASC');
+
+    const results = await qb.getRawMany();
+
+    return results.map((r) => ({
+      date: typeof r.shiftDate === 'string'
+        ? r.shiftDate.split('T')[0]
+        : new Date(r.shiftDate).toISOString().split('T')[0],
+      count: parseInt(r.userCount, 10),
+    }));
+  }
+
   // ============ PRIVATE METHODS ============
 
   private async findAssignmentForUserAndDate(
@@ -386,7 +474,7 @@ export class ShiftSwapsService {
         userId,
         shiftDate: new Date(date),
       },
-      relations: ['shiftType'],
+      relations: ['shiftType', 'workPosition'],
     });
   }
 

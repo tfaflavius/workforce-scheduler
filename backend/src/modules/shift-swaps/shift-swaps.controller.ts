@@ -54,12 +54,13 @@ export class ShiftSwapsController {
   }
 
   /**
-   * Detalii cerere
-   * Accesibil: Toti (cu verificare in service)
+   * Gaseste datele disponibile pentru schimb (filtrate pe departament + work position)
+   * Accesibil: USER, MANAGER
    */
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shiftSwapsService.findOne(id);
+  @Get('available-dates/:date')
+  @Roles(UserRole.USER, UserRole.MANAGER)
+  getAvailableSwapDates(@Param('date') date: string, @Request() req) {
+    return this.shiftSwapsService.findAvailableSwapDates(date, req.user.id);
   }
 
   /**
@@ -68,8 +69,27 @@ export class ShiftSwapsController {
    */
   @Get('users-on-date/:date')
   @Roles(UserRole.USER, UserRole.MANAGER)
-  getUsersOnDate(@Param('date') date: string, @Request() req) {
-    return this.shiftSwapsService.findUsersWorkingOnDate(date, req.user.id);
+  getUsersOnDate(
+    @Param('date') date: string,
+    @Query('departmentId') departmentId: string,
+    @Query('workPositionId') workPositionId: string,
+    @Request() req,
+  ) {
+    return this.shiftSwapsService.findUsersWorkingOnDate(
+      date,
+      req.user.id,
+      departmentId || undefined,
+      workPositionId || undefined,
+    );
+  }
+
+  /**
+   * Detalii cerere
+   * Accesibil: Toti (cu verificare in service)
+   */
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.shiftSwapsService.findOne(id);
   }
 
   /**

@@ -52,6 +52,7 @@ import {
   useRespondToSwapRequestMutation,
   useCancelSwapRequestMutation,
   useLazyGetUsersOnDateQuery,
+  useLazyGetAvailableSwapDatesQuery,
 } from '../../store/api/shiftSwaps.api';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import type { ShiftSwapRequest, ShiftSwapStatus, UserOnDate } from '../../types/shift-swap.types';
@@ -165,6 +166,7 @@ const ShiftSwapsPage = () => {
   const [respondToSwap, { isLoading: responding }] = useRespondToSwapRequestMutation();
   const [cancelSwap, { isLoading: cancelling }] = useCancelSwapRequestMutation();
   const [getUsersOnDate, { data: usersOnDate = [] }] = useLazyGetUsersOnDateQuery();
+  const [getAvailableSwapDates, { data: availableSwapDates = [], isLoading: loadingAvailableDates }] = useLazyGetAvailableSwapDatesQuery();
 
   // Get current month schedules to find my shifts
   const currentDate = new Date();
@@ -204,15 +206,30 @@ const ShiftSwapsPage = () => {
     setCreateDialogOpen(true);
   };
 
-  const handleRequesterDateChange = (date: string) => {
+  const handleRequesterDateChange = async (date: string) => {
     setRequesterDate(date);
     setTargetDate(''); // Reset target date when requester date changes
+    if (date) {
+      // Fetch available swap dates from the API (filtered by department + work position server-side)
+      await getAvailableSwapDates(date);
+    }
   };
 
   const handleTargetDateChange = async (date: string) => {
     setTargetDate(date);
     if (date) {
-      await getUsersOnDate(date);
+      // Pass department and work position filters to getUsersOnDate
+      const selectedAssignment = myAssignments.find((a) => {
+        const dateStr = typeof a.shiftDate === 'string'
+          ? a.shiftDate.split('T')[0]
+          : new Date(a.shiftDate).toISOString().split('T')[0];
+        return dateStr === requesterDate;
+      });
+      await getUsersOnDate({
+        date,
+        departmentId: user?.departmentId || undefined,
+        workPositionId: selectedAssignment?.workPositionId || undefined,
+      });
     }
   };
 
@@ -310,35 +327,7 @@ const ShiftSwapsPage = () => {
     });
   };
 
-  // Get available target dates (days when other users work)
-  const getAvailableTargetDates = useMemo(() => {
-    if (!schedules || !user) return [];
-    const dateMap = new Map<string, number>();
-
-    schedules.forEach((schedule) => {
-      if (schedule.assignments) {
-        schedule.assignments.forEach((a) => {
-          if (a.userId !== user.id) {
-            const dateStr = typeof a.shiftDate === 'string'
-              ? a.shiftDate.split('T')[0]
-              : new Date(a.shiftDate).toISOString().split('T')[0];
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (new Date(dateStr) >= today) {
-              dateMap.set(dateStr, (dateMap.get(dateStr) || 0) + 1);
-            }
-          }
-        });
-      }
-    });
-
-    const allDates: { date: string; count: number }[] = [];
-    dateMap.forEach((count, date) => {
-      allDates.push({ date, count });
-    });
-
-    return allDates.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [schedules, user]);
+  // Available target dates are now fetched from the API (filtered by department + work position)
 
   const renderRequestCard = (request: ShiftSwapRequest, isReceived: boolean = false) => {
     const isRequester = request.requesterId === user?.id;
@@ -659,10 +648,14 @@ const ShiftSwapsPage = () => {
                 label="Data pe care o doresc"
                 disabled={!requesterDate}
               >
-                {getAvailableTargetDates.length === 0 ? (
-                  <MenuItem disabled>Nu sunt date disponibile</MenuItem>
+                {loadingAvailableDates ? (
+                  <MenuItem disabled>Se incarca datele...</MenuItem>
+                ) : availableSwapDates.length === 0 ? (
+                  <MenuItem disabled>
+                    {requesterDate ? 'Nu sunt date disponibile cu colegi din acelasi departament' : 'Selecteaza mai intai tura ta'}
+                  </MenuItem>
                 ) : (
-                  getAvailableTargetDates
+                  availableSwapDates
                     .filter(d => d.date !== requesterDate) // Exclude requester date
                     .map((dateInfo) => (
                       <MenuItem key={dateInfo.date} value={dateInfo.date}>
