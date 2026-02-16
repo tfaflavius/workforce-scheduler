@@ -47,6 +47,9 @@ import { RevolutionarLegitimationComment } from './modules/parking/entities/revo
 import { TimeTrackingModule } from './modules/time-tracking/time-tracking.module';
 import { TimeEntry } from './modules/time-tracking/entities/time-entry.entity';
 import { LocationLog } from './modules/time-tracking/entities/location-log.entity';
+import { TasksModule } from './modules/tasks/tasks.module';
+import { Task } from './modules/tasks/entities/task.entity';
+import { TaskHistory } from './modules/tasks/entities/task-history.entity';
 
 @Module({
   imports: [
@@ -63,7 +66,7 @@ import { LocationLog } from './modules/time-tracking/entities/location-log.entit
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
@@ -78,6 +81,7 @@ import { LocationLog } from './modules/time-tracking/entities/location-log.entit
     ParkingModule,
     DailyReportsModule,
     TimeTrackingModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
