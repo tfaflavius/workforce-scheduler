@@ -270,50 +270,55 @@ const CreateSchedulePage: React.FC = () => {
     // Daca userul este de la Control, pozitia implicita este Control
     if (userDepartment.includes('control')) {
       const controlPosition = dbWorkPositions.find(
-        p => p.name.toLowerCase().includes('control') || p.shortName.toLowerCase() === 'c'
+        p => p.name.toLowerCase().includes('control') || p.shortName.toLowerCase() === 'ctrl' || p.shortName.toLowerCase() === 'c'
       );
       return controlPosition?.id || dbWorkPositions[0].id;
     }
 
     // Pentru Dispecerat sau orice alt departament, pozitia implicita este Dispecerat
     const dispeceratPosition = dbWorkPositions.find(
-      p => p.name.toLowerCase().includes('dispecerat') || p.shortName.toLowerCase() === 'd'
+      p => p.name.toLowerCase().includes('dispecerat') || p.shortName.toLowerCase() === 'disp' || p.shortName.toLowerCase() === 'd'
     );
     return dispeceratPosition?.id || dbWorkPositions[0].id;
   }, [selectedUser, dbWorkPositions]);
 
-  // Filtreaza pozitiile de lucru afisate in dropdown in functie de departamentul utilizatorului
+  // Filtreaza si sorteaza pozitiile de lucru in functie de departamentul utilizatorului
+  // Arata TOATE pozitiile dar cu cele relevante departamentului primele (pentru override manual)
   const filteredWorkPositions = useMemo(() => {
     if (!selectedUser || dbWorkPositions.length === 0) return dbWorkPositions;
 
     const userDepartment = selectedUser.department?.name?.toLowerCase() || '';
 
-    // Intretinere Parcari → doar pozitia Intretinere Parcari
-    if (userDepartment.includes('intretinere')) {
-      const filtered = dbWorkPositions.filter(p => p.name.toLowerCase().includes('intretinere'));
-      return filtered.length > 0 ? filtered : dbWorkPositions;
-    }
+    // Determina care pozitii sunt "relevante" pentru departamentul curent
+    const isRelevant = (p: typeof dbWorkPositions[0]): boolean => {
+      if (userDepartment.includes('intretinere')) {
+        return p.name.toLowerCase().includes('intretinere') || p.shortName.toLowerCase() === 'ip';
+      }
 
-    // Departamente de birou → doar pozitia Birouri
-    const officeDepNames = ['parcari handicap', 'parcari domiciliu', 'achizitii', 'parcometre', 'procese verbale'];
-    if (officeDepNames.some(d => userDepartment.includes(d))) {
-      const filtered = dbWorkPositions.filter(p =>
-        p.name.toLowerCase().includes('birouri') || p.shortName.toLowerCase() === 'b'
-      );
-      return filtered.length > 0 ? filtered : dbWorkPositions;
-    }
+      const officeDepNames = ['parcari handicap', 'parcari domiciliu', 'achizitii', 'parcometre', 'procese verbale'];
+      if (officeDepNames.some(d => userDepartment.includes(d))) {
+        return p.name.toLowerCase().includes('birouri') || p.shortName.toLowerCase() === 'b';
+      }
 
-    // Dispecerat/Control → pot vedea ambele (Dispecerat + Control)
-    if (userDepartment.includes('dispecerat') || userDepartment.includes('control')) {
-      const filtered = dbWorkPositions.filter(p =>
-        p.name.toLowerCase().includes('dispecerat') || p.name.toLowerCase().includes('control') ||
-        p.shortName.toLowerCase() === 'd' || p.shortName.toLowerCase() === 'c'
-      );
-      return filtered.length > 0 ? filtered : dbWorkPositions;
-    }
+      if (userDepartment.includes('dispecerat') || userDepartment.includes('control')) {
+        return p.name.toLowerCase().includes('dispecerat') || p.name.toLowerCase().includes('control') ||
+          p.shortName.toLowerCase() === 'disp' || p.shortName.toLowerCase() === 'ctrl' ||
+          p.shortName.toLowerCase() === 'd' || p.shortName.toLowerCase() === 'c';
+      }
 
-    // Alte departamente → toate pozitiile
-    return dbWorkPositions;
+      return true; // Alte departamente - toate sunt relevante
+    };
+
+    // Sorteaza: pozitiile relevante primele, apoi restul
+    const sorted = [...dbWorkPositions].sort((a, b) => {
+      const aRelevant = isRelevant(a);
+      const bRelevant = isRelevant(b);
+      if (aRelevant && !bRelevant) return -1;
+      if (!aRelevant && bRelevant) return 1;
+      return a.displayOrder - b.displayOrder;
+    });
+
+    return sorted;
   }, [selectedUser, dbWorkPositions]);
 
   // Obtine optiunile de tura in functie de tipul selectat

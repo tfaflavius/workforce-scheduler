@@ -27,7 +27,7 @@ export class WorkPositionsService implements OnModuleInit {
       const defaultPositions = [
         {
           name: 'Dispecerat',
-          shortName: 'D',
+          shortName: 'DISP',
           color: '#2196F3',
           icon: 'headset',
           description: 'Pozitie de dispecerat',
@@ -36,11 +36,29 @@ export class WorkPositionsService implements OnModuleInit {
         },
         {
           name: 'Control',
-          shortName: 'C',
+          shortName: 'CTRL',
           color: '#4CAF50',
           icon: 'security',
           description: 'Pozitie de control',
           displayOrder: 2,
+          isActive: true,
+        },
+        {
+          name: 'Intretinere Parcari',
+          shortName: 'IP',
+          color: '#FF9800',
+          icon: 'build',
+          description: 'Pozitie de intretinere parcari',
+          displayOrder: 3,
+          isActive: true,
+        },
+        {
+          name: 'Birouri',
+          shortName: 'B',
+          color: '#607D8B',
+          icon: 'business',
+          description: 'Pozitie de birou',
+          displayOrder: 4,
           isActive: true,
         },
       ];
