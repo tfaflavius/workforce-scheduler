@@ -348,7 +348,7 @@ export class AcquisitionsService {
     if (dto.sortOrder === undefined) {
       const maxOrder = await this.revenueCategoryRepository
         .createQueryBuilder('rc')
-        .select('MAX(rc.sort_order)', 'max')
+        .select('MAX(rc.sortOrder)', 'max')
         .getRawOne();
       dto.sortOrder = (maxOrder?.max || 0) + 1;
     }
