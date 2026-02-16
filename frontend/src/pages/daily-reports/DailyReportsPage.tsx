@@ -284,19 +284,27 @@ const DailyReportsPage: React.FC = () => {
           <Box
             sx={{
               background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-              p: 3,
+              p: { xs: 2, sm: 3 },
               borderRadius: '12px 12px 0 0',
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <CalendarIcon sx={{ color: 'white' }} />
-              <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <CalendarIcon sx={{ color: 'white', fontSize: { xs: 20, sm: 24 } }} />
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.85rem', sm: '1rem', md: '1.25rem' },
+                  wordBreak: 'break-word',
+                }}
+              >
                 Raport Zilnic — {formatDate(getTodayDateString())}
               </Typography>
             </Box>
           </Box>
 
-          <CardContent sx={{ p: 3 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
             {successMessage && (
               <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setSuccessMessage('')}>
                 {successMessage}
@@ -315,9 +323,9 @@ const DailyReportsPage: React.FC = () => {
             ) : todayIsSubmitted && !isEditing ? (
               /* Report already submitted — show content */
               <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <CheckCircleIcon sx={{ color: 'success.main' }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.main' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                  <CheckCircleIcon sx={{ color: 'success.main', fontSize: { xs: 20, sm: 24 } }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'success.main', fontSize: { xs: '0.85rem', sm: '1rem' } }}>
                     Raportul a fost trimis
                   </Typography>
                   <Chip label="Trimis" color="success" size="small" sx={{ ml: 'auto' }} />
@@ -373,12 +381,21 @@ const DailyReportsPage: React.FC = () => {
                   }}
                 />
 
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: { xs: 1, sm: 2 },
+                    justifyContent: 'flex-end',
+                    flexWrap: 'wrap',
+                  }}
+                >
                   <Button
                     variant="outlined"
                     startIcon={<SaveIcon />}
                     onClick={handleSaveDraft}
                     disabled={creating || updating}
+                    size={isMobile ? 'small' : 'medium'}
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
                     Salveaza Ciorna
                   </Button>
@@ -387,7 +404,9 @@ const DailyReportsPage: React.FC = () => {
                     startIcon={<SendIcon />}
                     onClick={handleSubmitReport}
                     disabled={creating || updating || !reportContent.trim()}
+                    size={isMobile ? 'small' : 'medium'}
                     sx={{
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
                       background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
                       '&:hover': {
                         background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
@@ -430,9 +449,9 @@ const DailyReportsPage: React.FC = () => {
                     transition: 'box-shadow 0.2s',
                   }}
                 >
-                  <CardContent sx={{ p: 2.5 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, gap: 1, flexWrap: 'wrap' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: { xs: '0.78rem', sm: '0.875rem' } }}>
                         {formatDate(report.date)}
                       </Typography>
                       <Chip
@@ -490,43 +509,42 @@ const DailyReportsPage: React.FC = () => {
       <Box>
         {/* Filters */}
         <Card sx={{ mb: 3, borderRadius: 2, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <CardContent sx={{ p: 2.5 }}>
+          <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <FilterIcon sx={{ color: 'primary.main' }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              <FilterIcon sx={{ color: 'primary.main', fontSize: { xs: 20, sm: 24 } }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                 Filtre
               </Typography>
             </Box>
 
             <Box
               sx={{
-                display: 'flex',
-                gap: 2,
-                flexWrap: 'wrap',
-                alignItems: 'center',
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' },
+                gap: { xs: 1.5, sm: 2 },
               }}
             >
               <TextField
                 label="Data inceput"
                 type="date"
                 size="small"
+                fullWidth
                 value={filterDateRange.startDate}
                 onChange={(e) => setFilterDateRange((prev) => ({ ...prev, startDate: e.target.value }))}
                 InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 160 }}
               />
               <TextField
                 label="Data sfarsit"
                 type="date"
                 size="small"
+                fullWidth
                 value={filterDateRange.endDate}
                 onChange={(e) => setFilterDateRange((prev) => ({ ...prev, endDate: e.target.value }))}
                 InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 160 }}
               />
 
               {isAdmin && departments && (
-                <FormControl size="small" sx={{ minWidth: 180 }}>
+                <FormControl size="small" fullWidth>
                   <InputLabel>Departament</InputLabel>
                   <Select
                     value={filterDepartmentId}
@@ -544,7 +562,7 @@ const DailyReportsPage: React.FC = () => {
               )}
 
               {canViewAll && sortedUsers.length > 0 && (
-                <FormControl size="small" sx={{ minWidth: 180 }}>
+                <FormControl size="small" fullWidth>
                   <InputLabel>Utilizator</InputLabel>
                   <Select value={filterUserId} label="Utilizator" onChange={(e) => setFilterUserId(e.target.value)}>
                     <MenuItem value="">Toti</MenuItem>
@@ -583,10 +601,20 @@ const DailyReportsPage: React.FC = () => {
                     pb: 1,
                     borderBottom: '2px solid',
                     borderColor: 'primary.main',
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <CalendarIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'primary.main' }}>
+                  <CalendarIcon sx={{ color: 'primary.main', fontSize: { xs: 18, sm: 20 } }} />
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: 700,
+                      color: 'primary.main',
+                      fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
                     {formatDate(group.date)}
                   </Typography>
                   <Chip
@@ -594,7 +622,6 @@ const DailyReportsPage: React.FC = () => {
                     size="small"
                     color="primary"
                     variant="outlined"
-                    sx={{ ml: 'auto' }}
                   />
                 </Box>
 
@@ -609,15 +636,15 @@ const DailyReportsPage: React.FC = () => {
                         transition: 'box-shadow 0.2s',
                       }}
                     >
-                      <CardContent sx={{ p: 2.5 }}>
+                      <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
                         {/* User info */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, mb: 1.5 }}>
                           <Avatar
                             sx={{
-                              width: 36,
-                              height: 36,
+                              width: { xs: 32, sm: 36 },
+                              height: { xs: 32, sm: 36 },
                               bgcolor: 'primary.main',
-                              fontSize: 14,
+                              fontSize: { xs: 12, sm: 14 },
                             }}
                           >
                             {report.user?.fullName
@@ -674,7 +701,7 @@ const DailyReportsPage: React.FC = () => {
                         {isAdmin && (
                           <Box>
                             {commentingReportId === report.id ? (
-                              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                              <Box sx={{ mt: 1 }}>
                                 <TextField
                                   fullWidth
                                   size="small"
@@ -684,33 +711,37 @@ const DailyReportsPage: React.FC = () => {
                                   multiline
                                   maxRows={3}
                                   sx={{
+                                    mb: 1,
                                     '& .MuiOutlinedInput-root': { borderRadius: 2 },
                                   }}
                                 />
-                                <Button
-                                  variant="contained"
-                                  size="small"
-                                  onClick={() => handleAddComment(report.id)}
-                                  disabled={commenting || !commentText.trim()}
-                                  sx={{
-                                    minWidth: 'auto',
-                                    px: 2,
-                                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                                  }}
-                                >
-                                  {commenting ? <CircularProgress size={16} /> : <SendIcon fontSize="small" />}
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  onClick={() => {
-                                    setCommentingReportId(null);
-                                    setCommentText('');
-                                  }}
-                                  sx={{ minWidth: 'auto', px: 2 }}
-                                >
-                                  Anuleaza
-                                </Button>
+                                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => {
+                                      setCommentingReportId(null);
+                                      setCommentText('');
+                                    }}
+                                    sx={{ minWidth: 'auto', px: 2, fontSize: { xs: '0.75rem', sm: '0.8125rem' } }}
+                                  >
+                                    Anuleaza
+                                  </Button>
+                                  <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() => handleAddComment(report.id)}
+                                    disabled={commenting || !commentText.trim()}
+                                    sx={{
+                                      minWidth: 'auto',
+                                      px: 2,
+                                      fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                                      background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                    }}
+                                  >
+                                    {commenting ? <CircularProgress size={16} /> : <SendIcon fontSize="small" />}
+                                  </Button>
+                                </Box>
                               </Box>
                             ) : (
                               <Button
@@ -744,10 +775,10 @@ const DailyReportsPage: React.FC = () => {
   // Admin: vede direct "Toate Rapoartele" fara tab-uri
   if (isAdmin) {
     return (
-      <Box sx={{ maxWidth: 900, mx: 'auto', px: isMobile ? 2 : 3, py: 3 }}>
-        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <ReportIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+      <Box sx={{ maxWidth: 900, mx: 'auto', px: { xs: 1.5, sm: 2, md: 3 }, py: { xs: 2, sm: 3 } }}>
+        <Box sx={{ mb: { xs: 2, sm: 3 }, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <ReportIcon sx={{ fontSize: { xs: 26, sm: 32 }, color: 'primary.main' }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.15rem', sm: '1.4rem' } }}>
             Rapoarte Zilnice
           </Typography>
         </Box>
@@ -758,10 +789,10 @@ const DailyReportsPage: React.FC = () => {
 
   // USER / MANAGER: taburi normali
   return (
-    <Box sx={{ maxWidth: 900, mx: 'auto', px: isMobile ? 2 : 3, py: 3 }}>
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <ReportIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
+    <Box sx={{ maxWidth: 900, mx: 'auto', px: { xs: 1.5, sm: 2, md: 3 }, py: { xs: 2, sm: 3 } }}>
+      <Box sx={{ mb: { xs: 2, sm: 3 }, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <ReportIcon sx={{ fontSize: { xs: 26, sm: 32 }, color: 'primary.main' }} />
+        <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.15rem', sm: '1.4rem' } }}>
           Raport Zilnic
         </Typography>
       </Box>
@@ -769,12 +800,13 @@ const DailyReportsPage: React.FC = () => {
       <Tabs
         value={activeTab}
         onChange={(_, newValue) => setActiveTab(newValue)}
+        variant={isMobile ? 'fullWidth' : 'standard'}
         sx={{
-          mb: 3,
+          mb: { xs: 2, sm: 3 },
           '& .MuiTab-root': {
             textTransform: 'none',
             fontWeight: 600,
-            fontSize: '0.95rem',
+            fontSize: { xs: '0.85rem', sm: '0.95rem' },
           },
         }}
       >

@@ -698,11 +698,12 @@ export const MainLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 1.5, sm: 2, md: 3 },
+          p: { xs: 1, sm: 2, md: 3 },
           width: { xs: '100%', lg: `calc(100% - ${drawerWidth}px)` },
           mt: { xs: '56px', sm: '64px' },
           minHeight: { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 64px)' },
-          overflow: 'auto',
+          overflowX: 'hidden',
+          overflowY: 'auto',
           maxWidth: '100%',
           // Smooth scrolling
           scrollBehavior: 'smooth',
