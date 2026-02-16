@@ -250,6 +250,23 @@ const CreateSchedulePage: React.FC = () => {
 
     const userDepartment = selectedUser.department?.name?.toLowerCase() || '';
 
+    // Intretinere Parcari → pozitia implicita este Intretinere Parcari
+    if (userDepartment.includes('intretinere')) {
+      const pos = dbWorkPositions.find(
+        p => p.name.toLowerCase().includes('intretinere')
+      );
+      return pos?.id || dbWorkPositions[0].id;
+    }
+
+    // Departamente de birou → pozitia implicita este Birouri
+    const officeDepNames = ['parcari handicap', 'parcari domiciliu', 'achizitii', 'parcometre', 'procese verbale'];
+    if (officeDepNames.some(d => userDepartment.includes(d))) {
+      const pos = dbWorkPositions.find(
+        p => p.name.toLowerCase().includes('birouri') || p.shortName.toLowerCase() === 'b'
+      );
+      return pos?.id || dbWorkPositions[0].id;
+    }
+
     // Daca userul este de la Control, pozitia implicita este Control
     if (userDepartment.includes('control')) {
       const controlPosition = dbWorkPositions.find(
@@ -263,6 +280,40 @@ const CreateSchedulePage: React.FC = () => {
       p => p.name.toLowerCase().includes('dispecerat') || p.shortName.toLowerCase() === 'd'
     );
     return dispeceratPosition?.id || dbWorkPositions[0].id;
+  }, [selectedUser, dbWorkPositions]);
+
+  // Filtreaza pozitiile de lucru afisate in dropdown in functie de departamentul utilizatorului
+  const filteredWorkPositions = useMemo(() => {
+    if (!selectedUser || dbWorkPositions.length === 0) return dbWorkPositions;
+
+    const userDepartment = selectedUser.department?.name?.toLowerCase() || '';
+
+    // Intretinere Parcari → doar pozitia Intretinere Parcari
+    if (userDepartment.includes('intretinere')) {
+      const filtered = dbWorkPositions.filter(p => p.name.toLowerCase().includes('intretinere'));
+      return filtered.length > 0 ? filtered : dbWorkPositions;
+    }
+
+    // Departamente de birou → doar pozitia Birouri
+    const officeDepNames = ['parcari handicap', 'parcari domiciliu', 'achizitii', 'parcometre', 'procese verbale'];
+    if (officeDepNames.some(d => userDepartment.includes(d))) {
+      const filtered = dbWorkPositions.filter(p =>
+        p.name.toLowerCase().includes('birouri') || p.shortName.toLowerCase() === 'b'
+      );
+      return filtered.length > 0 ? filtered : dbWorkPositions;
+    }
+
+    // Dispecerat/Control → pot vedea ambele (Dispecerat + Control)
+    if (userDepartment.includes('dispecerat') || userDepartment.includes('control')) {
+      const filtered = dbWorkPositions.filter(p =>
+        p.name.toLowerCase().includes('dispecerat') || p.name.toLowerCase().includes('control') ||
+        p.shortName.toLowerCase() === 'd' || p.shortName.toLowerCase() === 'c'
+      );
+      return filtered.length > 0 ? filtered : dbWorkPositions;
+    }
+
+    // Alte departamente → toate pozitiile
+    return dbWorkPositions;
   }, [selectedUser, dbWorkPositions]);
 
   // Obtine optiunile de tura in functie de tipul selectat
@@ -941,7 +992,7 @@ const CreateSchedulePage: React.FC = () => {
                 <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
                   Pozitie lucru:
                 </Typography>
-                {dbWorkPositions.map((position) => (
+                {filteredWorkPositions.map((position) => (
                   <Chip
                     key={position.id}
                     label={`${position.shortName} - ${position.name}`}
@@ -1088,14 +1139,14 @@ const CreateSchedulePage: React.FC = () => {
                     {assignments[date] && dbWorkPositions.length > 0 && (
                       <FormControl fullWidth size="small">
                         <Select
-                          value={workPositions[date] || dbWorkPositions[0]?.id || ''}
+                          value={workPositions[date] || filteredWorkPositions[0]?.id || ''}
                           onChange={(e) => handleWorkPositionChange(date, e.target.value)}
                           sx={{
                             fontSize: { xs: '0.5rem', sm: '0.6rem' },
                             '& .MuiSelect-select': {
                               py: { xs: 0.15, sm: 0.2 },
                               px: { xs: 0.25, sm: 0.5 },
-                              bgcolor: dbWorkPositions.find(p => p.id === (workPositions[date] || dbWorkPositions[0]?.id))?.color || '#2196F3',
+                              bgcolor: (filteredWorkPositions.find(p => p.id === (workPositions[date] || filteredWorkPositions[0]?.id)) || dbWorkPositions.find(p => p.id === workPositions[date]))?.color || '#2196F3',
                               color: 'white',
                               fontWeight: 'bold',
                               minHeight: 'unset !important',
@@ -1105,7 +1156,7 @@ const CreateSchedulePage: React.FC = () => {
                             },
                           }}
                         >
-                          {dbWorkPositions.map((position) => (
+                          {filteredWorkPositions.map((position) => (
                             <MenuItem
                               key={position.id}
                               value={position.id}
