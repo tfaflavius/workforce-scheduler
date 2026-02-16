@@ -7,6 +7,10 @@ import { AcquisitionInvoice } from './entities/acquisition-invoice.entity';
 import { CreateBudgetPositionDto, UpdateBudgetPositionDto } from './dto/create-budget-position.dto';
 import { CreateAcquisitionDto, UpdateAcquisitionDto } from './dto/create-acquisition.dto';
 import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/create-invoice.dto';
+import { CreateRevenueCategoryDto, UpdateRevenueCategoryDto } from './dto/create-revenue-category.dto';
+import { UpsertMonthlyRevenueDto, UpdateMonthlyRevenueDto } from './dto/create-monthly-revenue.dto';
+import { RevenueCategory } from './entities/revenue-category.entity';
+import { MonthlyRevenue } from './entities/monthly-revenue.entity';
 import { UserRole } from '../users/entities/user.entity';
 
 // Numele departamentului Achizitii - userii din acest departament au acces complet
@@ -21,6 +25,10 @@ export class AcquisitionsService {
     private acquisitionRepository: Repository<Acquisition>,
     @InjectRepository(AcquisitionInvoice)
     private invoiceRepository: Repository<AcquisitionInvoice>,
+    @InjectRepository(RevenueCategory)
+    private revenueCategoryRepository: Repository<RevenueCategory>,
+    @InjectRepository(MonthlyRevenue)
+    private monthlyRevenueRepository: Repository<MonthlyRevenue>,
   ) {}
 
   /**
@@ -311,6 +319,195 @@ export class AcquisitionsService {
       investments: calcCategory(investments),
       currentExpenses: calcCategory(currentExpenses),
       total: calcCategory(positions),
+    };
+  }
+
+  // ===================== REVENUE CATEGORIES =====================
+
+  async findAllRevenueCategories(includeInactive = false) {
+    const where: any = {};
+    if (!includeInactive) {
+      where.isActive = true;
+    }
+    return this.revenueCategoryRepository.find({
+      where,
+      order: { sortOrder: 'ASC', name: 'ASC' },
+    });
+  }
+
+  async findOneRevenueCategory(id: string) {
+    const cat = await this.revenueCategoryRepository.findOne({ where: { id } });
+    if (!cat) {
+      throw new NotFoundException('Categoria de incasari nu a fost gasita');
+    }
+    return cat;
+  }
+
+  async createRevenueCategory(dto: CreateRevenueCategoryDto) {
+    // Auto-set sortOrder if not provided
+    if (dto.sortOrder === undefined) {
+      const maxOrder = await this.revenueCategoryRepository
+        .createQueryBuilder('rc')
+        .select('MAX(rc.sort_order)', 'max')
+        .getRawOne();
+      dto.sortOrder = (maxOrder?.max || 0) + 1;
+    }
+    const cat = this.revenueCategoryRepository.create({
+      name: dto.name,
+      description: dto.description || null,
+      sortOrder: dto.sortOrder,
+    });
+    return this.revenueCategoryRepository.save(cat);
+  }
+
+  async updateRevenueCategory(id: string, dto: UpdateRevenueCategoryDto) {
+    const cat = await this.findOneRevenueCategory(id);
+    if (dto.name !== undefined) cat.name = dto.name;
+    if (dto.description !== undefined) cat.description = dto.description;
+    if (dto.sortOrder !== undefined) cat.sortOrder = dto.sortOrder;
+    if (dto.isActive !== undefined) cat.isActive = dto.isActive;
+    return this.revenueCategoryRepository.save(cat);
+  }
+
+  async deleteRevenueCategory(id: string) {
+    const cat = await this.findOneRevenueCategory(id);
+    await this.revenueCategoryRepository.remove(cat);
+    return { deleted: true };
+  }
+
+  // ===================== MONTHLY REVENUE =====================
+
+  async findMonthlyRevenues(year: number, categoryId?: string) {
+    const query = this.monthlyRevenueRepository
+      .createQueryBuilder('mr')
+      .leftJoinAndSelect('mr.revenueCategory', 'rc')
+      .where('mr.year = :year', { year })
+      .orderBy('rc.sort_order', 'ASC')
+      .addOrderBy('mr.month', 'ASC');
+
+    if (categoryId) {
+      query.andWhere('mr.revenue_category_id = :categoryId', { categoryId });
+    }
+
+    return query.getMany();
+  }
+
+  async upsertMonthlyRevenue(dto: UpsertMonthlyRevenueDto) {
+    // Verify category exists
+    await this.findOneRevenueCategory(dto.revenueCategoryId);
+
+    let existing = await this.monthlyRevenueRepository.findOne({
+      where: {
+        revenueCategoryId: dto.revenueCategoryId,
+        year: dto.year,
+        month: dto.month,
+      },
+    });
+
+    if (existing) {
+      existing.incasari = dto.incasari;
+      existing.cheltuieli = dto.cheltuieli;
+      if (dto.notes !== undefined) existing.notes = dto.notes;
+      return this.monthlyRevenueRepository.save(existing);
+    } else {
+      const mr = this.monthlyRevenueRepository.create({
+        revenueCategoryId: dto.revenueCategoryId,
+        year: dto.year,
+        month: dto.month,
+        incasari: dto.incasari,
+        cheltuieli: dto.cheltuieli,
+        notes: dto.notes || null,
+      });
+      return this.monthlyRevenueRepository.save(mr);
+    }
+  }
+
+  async deleteMonthlyRevenue(id: string) {
+    const mr = await this.monthlyRevenueRepository.findOne({ where: { id } });
+    if (!mr) {
+      throw new NotFoundException('Inregistrarea lunara nu a fost gasita');
+    }
+    await this.monthlyRevenueRepository.remove(mr);
+    return { deleted: true };
+  }
+
+  // ===================== REVENUE SUMMARY =====================
+
+  async getRevenueSummary(year: number) {
+    const categories = await this.findAllRevenueCategories();
+    const monthlyData = await this.findMonthlyRevenues(year);
+
+    const categoryMap = new Map<
+      string,
+      {
+        category: RevenueCategory;
+        months: Record<number, { incasari: number; cheltuieli: number; notes: string | null; id: string }>;
+        totalIncasari: number;
+        totalCheltuieli: number;
+      }
+    >();
+
+    // Initialize all categories
+    for (const cat of categories) {
+      categoryMap.set(cat.id, {
+        category: cat,
+        months: {},
+        totalIncasari: 0,
+        totalCheltuieli: 0,
+      });
+    }
+
+    // Fill monthly data
+    for (const mr of monthlyData) {
+      const entry = categoryMap.get(mr.revenueCategoryId);
+      if (entry) {
+        const incasari = Number(mr.incasari);
+        const cheltuieli = Number(mr.cheltuieli);
+        entry.months[mr.month] = {
+          incasari,
+          cheltuieli,
+          notes: mr.notes,
+          id: mr.id,
+        };
+        entry.totalIncasari += incasari;
+        entry.totalCheltuieli += cheltuieli;
+      }
+    }
+
+    // Compute grand totals
+    let grandTotalIncasari = 0;
+    let grandTotalCheltuieli = 0;
+    const monthTotals: Record<number, { incasari: number; cheltuieli: number }> = {};
+    for (let m = 1; m <= 12; m++) {
+      monthTotals[m] = { incasari: 0, cheltuieli: 0 };
+    }
+
+    const result = Array.from(categoryMap.values()).map((entry) => {
+      grandTotalIncasari += entry.totalIncasari;
+      grandTotalCheltuieli += entry.totalCheltuieli;
+      for (let m = 1; m <= 12; m++) {
+        const md = entry.months[m];
+        if (md) {
+          monthTotals[m].incasari += md.incasari;
+          monthTotals[m].cheltuieli += md.cheltuieli;
+        }
+      }
+      return {
+        categoryId: entry.category.id,
+        categoryName: entry.category.name,
+        sortOrder: entry.category.sortOrder,
+        months: entry.months,
+        totalIncasari: Math.round(entry.totalIncasari * 100) / 100,
+        totalCheltuieli: Math.round(entry.totalCheltuieli * 100) / 100,
+      };
+    });
+
+    return {
+      year,
+      categories: result,
+      monthTotals,
+      grandTotalIncasari: Math.round(grandTotalIncasari * 100) / 100,
+      grandTotalCheltuieli: Math.round(grandTotalCheltuieli * 100) / 100,
     };
   }
 

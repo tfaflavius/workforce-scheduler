@@ -12,6 +12,11 @@ import type {
   UpdateAcquisitionDto,
   CreateInvoiceDto,
   UpdateInvoiceDto,
+  RevenueCategory,
+  RevenueSummary,
+  CreateRevenueCategoryDto,
+  UpdateRevenueCategoryDto,
+  UpsertMonthlyRevenueDto,
 } from '../../types/acquisitions.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -28,7 +33,7 @@ export const acquisitionsApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['BudgetPositions', 'Acquisitions', 'Invoices', 'Summary'],
+  tagTypes: ['BudgetPositions', 'Acquisitions', 'Invoices', 'Summary', 'RevenueCategories', 'RevenueSummary'],
   endpoints: (builder) => ({
     // ===================== BUDGET POSITIONS =====================
 
@@ -141,6 +146,66 @@ export const acquisitionsApi = createApi({
       }),
       providesTags: ['Summary'],
     }),
+
+    // ===================== REVENUE CATEGORIES =====================
+
+    getRevenueCategories: builder.query<RevenueCategory[], void>({
+      query: () => '/revenue-categories',
+      providesTags: ['RevenueCategories'],
+    }),
+
+    createRevenueCategory: builder.mutation<RevenueCategory, CreateRevenueCategoryDto>({
+      query: (body) => ({
+        url: '/revenue-categories',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['RevenueCategories', 'RevenueSummary'],
+    }),
+
+    updateRevenueCategory: builder.mutation<RevenueCategory, { id: string; data: UpdateRevenueCategoryDto }>({
+      query: ({ id, data }) => ({
+        url: `/revenue-categories/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['RevenueCategories', 'RevenueSummary'],
+    }),
+
+    deleteRevenueCategory: builder.mutation<{ deleted: true }, string>({
+      query: (id) => ({
+        url: `/revenue-categories/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['RevenueCategories', 'RevenueSummary'],
+    }),
+
+    // ===================== REVENUE SUMMARY =====================
+
+    getRevenueSummary: builder.query<RevenueSummary, { year: number }>({
+      query: (params) => ({
+        url: '/revenue-summary',
+        params,
+      }),
+      providesTags: ['RevenueSummary'],
+    }),
+
+    upsertMonthlyRevenue: builder.mutation<any, UpsertMonthlyRevenueDto>({
+      query: (body) => ({
+        url: '/monthly-revenue',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['RevenueSummary'],
+    }),
+
+    deleteMonthlyRevenue: builder.mutation<{ deleted: true }, string>({
+      query: (id) => ({
+        url: `/monthly-revenue/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['RevenueSummary'],
+    }),
   }),
 });
 
@@ -158,4 +223,11 @@ export const {
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
   useGetSummaryQuery,
+  useGetRevenueCategoriesQuery,
+  useCreateRevenueCategoryMutation,
+  useUpdateRevenueCategoryMutation,
+  useDeleteRevenueCategoryMutation,
+  useGetRevenueSummaryQuery,
+  useUpsertMonthlyRevenueMutation,
+  useDeleteMonthlyRevenueMutation,
 } = acquisitionsApi;

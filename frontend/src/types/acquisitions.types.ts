@@ -157,3 +157,61 @@ export interface UpdateInvoiceDto {
   monthNumber?: number;
   notes?: string;
 }
+
+// ===================== REVENUE / EXPENSES =====================
+
+export interface RevenueCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MonthlyRevenueData {
+  incasari: number;
+  cheltuieli: number;
+  notes: string | null;
+  id: string;
+}
+
+export interface RevenueSummaryCategory {
+  categoryId: string;
+  categoryName: string;
+  sortOrder: number;
+  months: Record<number, MonthlyRevenueData>;
+  totalIncasari: number;
+  totalCheltuieli: number;
+}
+
+export interface RevenueSummary {
+  year: number;
+  categories: RevenueSummaryCategory[];
+  monthTotals: Record<number, { incasari: number; cheltuieli: number }>;
+  grandTotalIncasari: number;
+  grandTotalCheltuieli: number;
+}
+
+export interface CreateRevenueCategoryDto {
+  name: string;
+  description?: string;
+  sortOrder?: number;
+}
+
+export interface UpdateRevenueCategoryDto {
+  name?: string;
+  description?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}
+
+export interface UpsertMonthlyRevenueDto {
+  revenueCategoryId: string;
+  year: number;
+  month: number;
+  incasari: number;
+  cheltuieli: number;
+  notes?: string;
+}

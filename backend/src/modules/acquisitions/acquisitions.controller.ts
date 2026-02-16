@@ -18,6 +18,8 @@ import { UserRole } from '../users/entities/user.entity';
 import { CreateBudgetPositionDto, UpdateBudgetPositionDto } from './dto/create-budget-position.dto';
 import { CreateAcquisitionDto, UpdateAcquisitionDto } from './dto/create-acquisition.dto';
 import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/create-invoice.dto';
+import { CreateRevenueCategoryDto, UpdateRevenueCategoryDto } from './dto/create-revenue-category.dto';
+import { UpsertMonthlyRevenueDto } from './dto/create-monthly-revenue.dto';
 import { BudgetCategory } from './entities/budget-position.entity';
 
 @Controller('acquisitions')
@@ -117,5 +119,56 @@ export class AcquisitionsController {
   getSummary(@Query('year') year?: string, @Request() req?) {
     this.acquisitionsService.checkAccess(req.user);
     return this.acquisitionsService.getSummary(year ? parseInt(year, 10) : undefined);
+  }
+
+  // ===================== REVENUE CATEGORIES =====================
+
+  @Get('revenue-categories')
+  findAllRevenueCategories(@Request() req?) {
+    this.acquisitionsService.checkAccess(req.user);
+    return this.acquisitionsService.findAllRevenueCategories();
+  }
+
+  @Post('revenue-categories')
+  createRevenueCategory(@Body() dto: CreateRevenueCategoryDto, @Request() req?) {
+    this.acquisitionsService.checkAccess(req.user);
+    return this.acquisitionsService.createRevenueCategory(dto);
+  }
+
+  @Put('revenue-categories/:id')
+  updateRevenueCategory(
+    @Param('id') id: string,
+    @Body() dto: UpdateRevenueCategoryDto,
+    @Request() req?,
+  ) {
+    this.acquisitionsService.checkAccess(req.user);
+    return this.acquisitionsService.updateRevenueCategory(id, dto);
+  }
+
+  @Delete('revenue-categories/:id')
+  deleteRevenueCategory(@Param('id') id: string, @Request() req?) {
+    this.acquisitionsService.checkAccess(req.user);
+    return this.acquisitionsService.deleteRevenueCategory(id);
+  }
+
+  // ===================== MONTHLY REVENUE =====================
+
+  @Get('revenue-summary')
+  getRevenueSummary(@Query('year') year?: string, @Request() req?) {
+    this.acquisitionsService.checkAccess(req.user);
+    const y = year ? parseInt(year, 10) : new Date().getFullYear();
+    return this.acquisitionsService.getRevenueSummary(y);
+  }
+
+  @Post('monthly-revenue')
+  upsertMonthlyRevenue(@Body() dto: UpsertMonthlyRevenueDto, @Request() req?) {
+    this.acquisitionsService.checkAccess(req.user);
+    return this.acquisitionsService.upsertMonthlyRevenue(dto);
+  }
+
+  @Delete('monthly-revenue/:id')
+  deleteMonthlyRevenue(@Param('id') id: string, @Request() req?) {
+    this.acquisitionsService.checkAccess(req.user);
+    return this.acquisitionsService.deleteMonthlyRevenue(id);
   }
 }

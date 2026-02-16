@@ -52,6 +52,8 @@ import {
   Close as CloseIcon,
   TrendingUp as TrendingIcon,
   Savings as SavingsIcon,
+  BarChart as RevenueIcon,
+  Category as CategoryIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard } from '../../components/common';
 import {
@@ -66,12 +68,18 @@ import {
   useCreateInvoiceMutation,
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
+  useGetRevenueSummaryQuery,
+  useCreateRevenueCategoryMutation,
+  useUpdateRevenueCategoryMutation,
+  useDeleteRevenueCategoryMutation,
+  useUpsertMonthlyRevenueMutation,
 } from '../../store/api/acquisitions.api';
 import type {
   BudgetPosition,
   Acquisition,
   AcquisitionInvoice,
   BudgetCategory,
+  RevenueCategory,
 } from '../../types/acquisitions.types';
 
 const formatCurrency = (amount: number) => {
@@ -87,6 +95,8 @@ const formatDate = (dateStr: string | null) => {
   const d = new Date(dateStr);
   return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
+
+const MONTH_LABELS = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const AchizitiiPage: React.FC = () => {
   const theme = useTheme();
@@ -109,7 +119,20 @@ const AchizitiiPage: React.FC = () => {
   const [editingAcq, setEditingAcq] = useState<Acquisition | null>(null);
   const [editingInv, setEditingInv] = useState<AcquisitionInvoice | null>(null);
   const [selectedAcquisition, setSelectedAcquisition] = useState<Acquisition | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<{ type: 'bp' | 'acq' | 'inv'; id: string; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'bp' | 'acq' | 'inv' | 'revcat'; id: string; name: string } | null>(null);
+
+  // Revenue section states
+  const [revCatDialogOpen, setRevCatDialogOpen] = useState(false);
+  const [editingRevCat, setEditingRevCat] = useState<RevenueCategory | null>(null);
+  const [revCatForm, setRevCatForm] = useState({ name: '', description: '' });
+  const [editingCell, setEditingCell] = useState<{
+    categoryId: string;
+    month: number;
+    incasari: string;
+    cheltuieli: string;
+    notes: string;
+  } | null>(null);
+  const [cellDialogOpen, setCellDialogOpen] = useState(false);
 
   // Form states for Budget Position
   const [bpForm, setBpForm] = useState({
@@ -172,6 +195,13 @@ const AchizitiiPage: React.FC = () => {
   const [createInv, { isLoading: creatingInv }] = useCreateInvoiceMutation();
   const [updateInv, { isLoading: updatingInv }] = useUpdateInvoiceMutation();
   const [deleteInv] = useDeleteInvoiceMutation();
+
+  // Revenue API hooks
+  const { data: revenueSummary, isLoading: loadingRevenue } = useGetRevenueSummaryQuery({ year: selectedYear });
+  const [createRevCat] = useCreateRevenueCategoryMutation();
+  const [updateRevCat] = useUpdateRevenueCategoryMutation();
+  const [deleteRevCat] = useDeleteRevenueCategoryMutation();
+  const [upsertMonthlyRevenue] = useUpsertMonthlyRevenueMutation();
 
   // Current category summary
   const categorySummary = useMemo(() => {
@@ -385,6 +415,9 @@ const AchizitiiPage: React.FC = () => {
       } else if (deleteTarget.type === 'inv') {
         await deleteInv(deleteTarget.id).unwrap();
         showSuccess('Factura a fost stearsa');
+      } else if (deleteTarget.type === 'revcat') {
+        await deleteRevCat(deleteTarget.id).unwrap();
+        showSuccess('Categoria a fost stearsa');
       }
       setDeleteConfirmOpen(false);
       setDeleteTarget(null);
@@ -393,7 +426,71 @@ const AchizitiiPage: React.FC = () => {
     }
   };
 
-  const confirmDelete = (type: 'bp' | 'acq' | 'inv', id: string, name: string) => {
+  // ===================== REVENUE CATEGORY HANDLERS =====================
+
+  const handleOpenRevCatDialog = (cat?: RevenueCategory) => {
+    if (cat) {
+      setEditingRevCat(cat);
+      setRevCatForm({ name: cat.name, description: cat.description || '' });
+    } else {
+      setEditingRevCat(null);
+      setRevCatForm({ name: '', description: '' });
+    }
+    setRevCatDialogOpen(true);
+  };
+
+  const handleSaveRevCat = async () => {
+    try {
+      if (editingRevCat) {
+        await updateRevCat({
+          id: editingRevCat.id,
+          data: { name: revCatForm.name, description: revCatForm.description || undefined },
+        }).unwrap();
+        showSuccess('Categoria a fost actualizata');
+      } else {
+        await createRevCat({
+          name: revCatForm.name,
+          description: revCatForm.description || undefined,
+        }).unwrap();
+        showSuccess('Categoria a fost creata');
+      }
+      setRevCatDialogOpen(false);
+    } catch (error) {
+      showError(error);
+    }
+  };
+
+  const handleOpenCellDialog = (categoryId: string, month: number) => {
+    const existing = revenueSummary?.categories.find((c) => c.categoryId === categoryId)?.months[month];
+    setEditingCell({
+      categoryId,
+      month,
+      incasari: existing ? String(existing.incasari) : '0',
+      cheltuieli: existing ? String(existing.cheltuieli) : '0',
+      notes: existing?.notes || '',
+    });
+    setCellDialogOpen(true);
+  };
+
+  const handleSaveCell = async () => {
+    if (!editingCell) return;
+    try {
+      await upsertMonthlyRevenue({
+        revenueCategoryId: editingCell.categoryId,
+        year: selectedYear,
+        month: editingCell.month,
+        incasari: Number(editingCell.incasari) || 0,
+        cheltuieli: Number(editingCell.cheltuieli) || 0,
+        notes: editingCell.notes || undefined,
+      }).unwrap();
+      showSuccess('Datele au fost salvate');
+      setCellDialogOpen(false);
+    } catch (error) {
+      showError(error);
+    }
+  };
+
+  const confirmDelete = (type: 'bp' | 'acq' | 'inv' | 'revcat', id: string, name: string) => {
     setDeleteTarget({ type, id, name });
     setDeleteConfirmOpen(true);
   };
@@ -735,6 +832,202 @@ const AchizitiiPage: React.FC = () => {
           </Card>
         );
       })}
+
+      {/* ===================== INCASARI / CHELTUIELI SECTION ===================== */}
+      <Box sx={{ mt: { xs: 3, sm: 4 } }}>
+        <Divider sx={{ mb: 3 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <RevenueIcon sx={{ color: '#8b5cf6', fontSize: 28 }} />
+            <Typography variant="h5" sx={{ fontWeight: 800, fontSize: { xs: '1.1rem', sm: '1.4rem' } }}>
+              Incasari / Cheltuieli - {selectedYear}
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenRevCatDialog()}
+            sx={{
+              bgcolor: '#8b5cf6',
+              '&:hover': { bgcolor: '#7c3aed' },
+              textTransform: 'none',
+              fontWeight: 600,
+            }}
+          >
+            {isMobile ? 'Categorie' : 'Adauga Categorie'}
+          </Button>
+        </Box>
+
+        {loadingRevenue && <LinearProgress sx={{ mb: 2 }} color="secondary" />}
+
+        {revenueSummary && revenueSummary.categories.length > 0 ? (
+          <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3, overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: 900 }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                  <TableCell sx={{ fontWeight: 700, minWidth: 160, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.06), zIndex: 1 }}>
+                    Categorie
+                  </TableCell>
+                  {MONTH_LABELS.map((label, idx) => (
+                    <TableCell key={idx} align="center" sx={{ fontWeight: 700, minWidth: 80, px: 0.5 }}>
+                      {label}
+                    </TableCell>
+                  ))}
+                  <TableCell align="center" sx={{ fontWeight: 700, minWidth: 100 }}>
+                    Total
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {revenueSummary.categories.map((cat) => (
+                  <React.Fragment key={cat.categoryId}>
+                    {/* Incasari row */}
+                    <TableRow hover>
+                      <TableCell
+                        rowSpan={2}
+                        sx={{
+                          fontWeight: 700,
+                          borderBottom: '2px solid',
+                          borderColor: 'divider',
+                          position: 'sticky',
+                          left: 0,
+                          bgcolor: 'background.paper',
+                          zIndex: 1,
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 700 }}>{cat.categoryName}</Typography>
+                          <Box sx={{ display: 'flex', gap: 0.25 }}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleOpenRevCatDialog({ id: cat.categoryId, name: cat.categoryName, description: null, sortOrder: cat.sortOrder, isActive: true, createdAt: '', updatedAt: '' })}
+                            >
+                              <EditIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                            <IconButton size="small" color="error" onClick={() => confirmDelete('revcat', cat.categoryId, cat.categoryName)}>
+                              <DeleteIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+                        const data = cat.months[month];
+                        return (
+                          <TableCell
+                            key={month}
+                            align="center"
+                            sx={{
+                              cursor: 'pointer',
+                              '&:hover': { bgcolor: alpha('#10b981', 0.08) },
+                              borderBottom: 'none',
+                              py: 0.5,
+                              px: 0.5,
+                            }}
+                            onClick={() => handleOpenCellDialog(cat.categoryId, month)}
+                          >
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#10b981', fontSize: '0.7rem' }}>
+                              {data && data.incasari > 0 ? formatCurrency(data.incasari) : '-'}
+                            </Typography>
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell align="center" sx={{ borderBottom: 'none', py: 0.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981' }}>
+                          {formatCurrency(cat.totalIncasari)}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                    {/* Cheltuieli row */}
+                    <TableRow>
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+                        const data = cat.months[month];
+                        return (
+                          <TableCell
+                            key={month}
+                            align="center"
+                            sx={{
+                              cursor: 'pointer',
+                              '&:hover': { bgcolor: alpha('#ef4444', 0.08) },
+                              borderBottom: '2px solid',
+                              borderColor: 'divider',
+                              py: 0.5,
+                              px: 0.5,
+                            }}
+                            onClick={() => handleOpenCellDialog(cat.categoryId, month)}
+                          >
+                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#ef4444', fontSize: '0.7rem' }}>
+                              {data && data.cheltuieli > 0 ? formatCurrency(data.cheltuieli) : '-'}
+                            </Typography>
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell align="center" sx={{ borderBottom: '2px solid', borderColor: 'divider', py: 0.5 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#ef4444' }}>
+                          {formatCurrency(cat.totalCheltuieli)}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                ))}
+
+                {/* TOTAL row */}
+                <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.04) }}>
+                  <TableCell
+                    rowSpan={2}
+                    sx={{ fontWeight: 800, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.04), zIndex: 1 }}
+                  >
+                    TOTAL
+                  </TableCell>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                    <TableCell key={month} align="center" sx={{ borderBottom: 'none', py: 0.5, px: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.7rem' }}>
+                        {formatCurrency(revenueSummary.monthTotals[month]?.incasari || 0)}
+                      </Typography>
+                    </TableCell>
+                  ))}
+                  <TableCell align="center" sx={{ borderBottom: 'none', py: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: '#10b981' }}>
+                      {formatCurrency(revenueSummary.grandTotalIncasari)}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+                <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.04) }}>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                    <TableCell key={month} align="center" sx={{ py: 0.5, px: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#ef4444', fontSize: '0.7rem' }}>
+                        {formatCurrency(revenueSummary.monthTotals[month]?.cheltuieli || 0)}
+                      </Typography>
+                    </TableCell>
+                  ))}
+                  <TableCell align="center" sx={{ py: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: '#ef4444' }}>
+                      {formatCurrency(revenueSummary.grandTotalCheltuieli)}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : !loadingRevenue ? (
+          <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
+            <CategoryIcon sx={{ fontSize: 64, color: alpha('#8b5cf6', 0.3), mb: 2 }} />
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+              Nicio categorie de incasari/cheltuieli
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Adauga prima categorie pentru a incepe urmarirea incasarilor si cheltuielilor
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenRevCatDialog()}
+              sx={{ color: '#8b5cf6', borderColor: '#8b5cf6' }}
+            >
+              Adauga Categorie
+            </Button>
+          </Card>
+        ) : null}
+      </Box>
 
       {/* ===================== DIALOGS ===================== */}
 
@@ -1313,13 +1606,112 @@ const AchizitiiPage: React.FC = () => {
         )}
       </Dialog>
 
+      {/* Revenue Category Dialog */}
+      <Dialog
+        open={revCatDialogOpen}
+        onClose={() => setRevCatDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {editingRevCat ? 'Editare Categorie' : 'Categorie Noua'}
+          <IconButton onClick={() => setRevCatDialogOpen(false)}><CloseIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Denumire categorie"
+              value={revCatForm.name}
+              onChange={(e) => setRevCatForm({ ...revCatForm, name: e.target.value })}
+              required
+            />
+            <TextField
+              fullWidth
+              label="Descriere (optional)"
+              multiline
+              rows={2}
+              value={revCatForm.description}
+              onChange={(e) => setRevCatForm({ ...revCatForm, description: e.target.value })}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setRevCatDialogOpen(false)}>Anuleaza</Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveRevCat}
+            disabled={!revCatForm.name}
+            sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+          >
+            {editingRevCat ? 'Salveaza' : 'Creeaza'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Monthly Revenue Cell Edit Dialog */}
+      <Dialog
+        open={cellDialogOpen}
+        onClose={() => setCellDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {editingCell
+            ? `${revenueSummary?.categories.find((c) => c.categoryId === editingCell.categoryId)?.categoryName || ''} - ${MONTH_LABELS[editingCell.month - 1]} ${selectedYear}`
+            : 'Editare'}
+          <IconButton onClick={() => setCellDialogOpen(false)}><CloseIcon /></IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              label="Incasari (lei)"
+              type="number"
+              value={editingCell?.incasari || '0'}
+              onChange={(e) => setEditingCell(editingCell ? { ...editingCell, incasari: e.target.value } : null)}
+              inputProps={{ min: 0, step: 0.01 }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#10b981' } } }}
+            />
+            <TextField
+              fullWidth
+              label="Cheltuieli (lei)"
+              type="number"
+              value={editingCell?.cheltuieli || '0'}
+              onChange={(e) => setEditingCell(editingCell ? { ...editingCell, cheltuieli: e.target.value } : null)}
+              inputProps={{ min: 0, step: 0.01 }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#ef4444' } } }}
+            />
+            <TextField
+              fullWidth
+              label="Note (optional)"
+              multiline
+              rows={2}
+              value={editingCell?.notes || ''}
+              onChange={(e) => setEditingCell(editingCell ? { ...editingCell, notes: e.target.value } : null)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setCellDialogOpen(false)}>Anuleaza</Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveCell}
+            sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+          >
+            Salveaza
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
         <DialogTitle sx={{ fontWeight: 700 }}>Confirmare Stergere</DialogTitle>
         <DialogContent>
           <Typography>
             Esti sigur ca vrei sa stergi{' '}
-            {deleteTarget?.type === 'bp' ? 'pozitia bugetara' : deleteTarget?.type === 'acq' ? 'achizitia' : 'factura'}{' '}
+            {deleteTarget?.type === 'bp' ? 'pozitia bugetara' : deleteTarget?.type === 'acq' ? 'achizitia' : deleteTarget?.type === 'revcat' ? 'categoria' : 'factura'}{' '}
             <strong>{deleteTarget?.name}</strong>?
           </Typography>
           {deleteTarget?.type === 'bp' && (
@@ -1330,6 +1722,11 @@ const AchizitiiPage: React.FC = () => {
           {deleteTarget?.type === 'acq' && (
             <Alert severity="warning" sx={{ mt: 1 }}>
               Toate facturile asociate vor fi sterse!
+            </Alert>
+          )}
+          {deleteTarget?.type === 'revcat' && (
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              Toate datele lunare asociate vor fi sterse!
             </Alert>
           )}
         </DialogContent>
