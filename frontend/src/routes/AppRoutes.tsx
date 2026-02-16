@@ -195,7 +195,7 @@ export const AppRoutes = () => {
         <Route
           path="/achizitii"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Achizitii']}>
               <AchizitiiPage />
             </ProtectedRoute>
           }

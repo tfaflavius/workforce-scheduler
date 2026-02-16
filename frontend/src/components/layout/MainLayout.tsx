@@ -209,7 +209,8 @@ export const MainLayout = () => {
       text: 'Achizitii',
       icon: <ShoppingIcon />,
       path: '/achizitii',
-      roles: ['ADMIN'],
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: ['Achizitii'],
     },
   ];
 

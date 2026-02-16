@@ -12,6 +12,7 @@ import { handicapApi } from './api/handicap.api';
 import { domiciliuApi } from './api/domiciliu.api';
 import { dailyReportsApi } from './api/dailyReports.api';
 import { timeTrackingApi } from './api/time-tracking.api';
+import { acquisitionsApi } from './api/acquisitions.api';
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     [domiciliuApi.reducerPath]: domiciliuApi.reducer,
     [dailyReportsApi.reducerPath]: dailyReportsApi.reducer,
     [timeTrackingApi.reducerPath]: timeTrackingApi.reducer,
+    [acquisitionsApi.reducerPath]: acquisitionsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -42,7 +44,8 @@ export const store = configureStore({
       handicapApi.middleware,
       domiciliuApi.middleware,
       dailyReportsApi.middleware,
-      timeTrackingApi.middleware
+      timeTrackingApi.middleware,
+      acquisitionsApi.middleware
     ),
 });
 
