@@ -41,6 +41,9 @@ import {
   Accessible as HandicapIcon,
   Home as HomeIcon,
   Description as DailyReportIcon,
+  Receipt as ReceiptIcon,
+  ConfirmationNumber as MeterIcon,
+  ShoppingCart as ShoppingIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -189,6 +192,24 @@ export const MainLayout = () => {
       path: '/parking/domiciliu',
       roles: ['ADMIN', 'USER'],
       requiresDepartments: ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
+    },
+    {
+      text: 'PV / Facturare',
+      icon: <ReceiptIcon />,
+      path: '/procese-verbale',
+      roles: ['ADMIN'],
+    },
+    {
+      text: 'Parcometre',
+      icon: <MeterIcon />,
+      path: '/parcometre',
+      roles: ['ADMIN'],
+    },
+    {
+      text: 'Achizitii',
+      icon: <ShoppingIcon />,
+      path: '/achizitii',
+      roles: ['ADMIN'],
     },
   ];
 

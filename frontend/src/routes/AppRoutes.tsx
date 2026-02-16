@@ -20,6 +20,9 @@ import HandicapParkingPage from '../pages/parking/HandicapParkingPage';
 import DomiciliuParkingPage from '../pages/parking/DomiciliuParkingPage';
 import DailyReportsPage from '../pages/daily-reports/DailyReportsPage';
 import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
+import ProcesVerbalePage from '../pages/departments/ProcesVerbalePage';
+import ParcometrePage from '../pages/departments/ParcometrePage';
+import AchizitiiPage from '../pages/departments/AchizitiiPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { useAppSelector } from '../store/hooks';
@@ -168,6 +171,32 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
               <AdminEditRequestsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Department pages - Admin only */}
+        <Route
+          path="/procese-verbale"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProcesVerbalePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/parcometre"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ParcometrePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/achizitii"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AchizitiiPage />
             </ProtectedRoute>
           }
         />
