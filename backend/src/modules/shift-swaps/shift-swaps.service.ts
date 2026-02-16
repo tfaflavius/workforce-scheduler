@@ -60,17 +60,15 @@ export class ShiftSwapsService {
       throw new BadRequestException('Nu ai o tura programata in data selectata');
     }
 
-    // Extrage departmentId, workPositionId si shiftPattern pentru filtrare
+    // Extrage departmentId si shiftPattern pentru filtrare
     const departmentId = requester.departmentId || undefined;
-    const workPositionId = requesterAssignment.workPositionId || undefined;
     const shiftPattern = requesterAssignment.schedule?.shiftPattern || undefined;
 
-    // Gaseste userii care lucreaza in data tinta (filtrare pe departament + work position + regim ore)
+    // Gaseste userii care lucreaza in data tinta (filtrare pe departament + regim ore)
     const targetUsers = await this.findUsersWorkingOnDate(
       dto.targetDate,
       requesterId,
       departmentId,
-      workPositionId,
       shiftPattern,
     );
     if (targetUsers.length === 0) {
@@ -371,7 +369,6 @@ export class ShiftSwapsService {
     date: string,
     excludeUserId?: string,
     departmentId?: string,
-    workPositionId?: string,
     shiftPattern?: string,
   ): Promise<User[]> {
     const qb = this.assignmentRepository
@@ -386,9 +383,8 @@ export class ShiftSwapsService {
       qb.andWhere('user.department_id = :departmentId', { departmentId });
     }
 
-    if (workPositionId) {
-      qb.andWhere('assignment.workPositionId = :workPositionId', { workPositionId });
-    }
+    // NU filtram pe workPositionId - userii din Control pot schimba tura
+    // indiferent daca lucreaza la pozitia Control sau Dispecerat
 
     // Filtreaza pe regimul de ore (8h/12h) - doar colegi cu acelasi regim
     if (shiftPattern) {
@@ -430,7 +426,6 @@ export class ShiftSwapsService {
     });
 
     const departmentId = user.departmentId;
-    const workPositionId = userAssignment?.workPositionId || null;
     const shiftPattern = userAssignment?.schedule?.shiftPattern || null;
 
     // Cauta assignment-uri viitoare de la alti useri din acelasi departament si regim
@@ -454,10 +449,8 @@ export class ShiftSwapsService {
       qb.andWhere('user.department_id = :departmentId', { departmentId });
     }
 
-    // Filtreaza pe work position (daca exista) - pentru Control/Dispecerat
-    if (workPositionId) {
-      qb.andWhere('assignment.workPositionId = :workPositionId', { workPositionId });
-    }
+    // NU filtram pe workPositionId - userii din Control pot schimba tura
+    // indiferent daca lucreaza la pozitia Control sau Dispecerat
 
     // Filtreaza pe regimul de ore (SHIFT_8H / SHIFT_12H) - doar colegi cu acelasi regim
     if (shiftPattern) {

@@ -72,7 +72,6 @@ export class ShiftSwapsController {
   getUsersOnDate(
     @Param('date') date: string,
     @Query('departmentId') departmentId: string,
-    @Query('workPositionId') workPositionId: string,
     @Query('shiftPattern') shiftPattern: string,
     @Request() req,
   ) {
@@ -80,7 +79,6 @@ export class ShiftSwapsController {
       date,
       req.user.id,
       departmentId || undefined,
-      workPositionId || undefined,
       shiftPattern || undefined,
     );
   }

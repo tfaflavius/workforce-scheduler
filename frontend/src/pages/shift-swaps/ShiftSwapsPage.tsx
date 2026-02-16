@@ -235,11 +235,10 @@ const ShiftSwapsPage = () => {
         shiftPattern = parentSchedule?.shiftPattern || undefined;
       }
 
-      // Pass department, work position AND shift pattern filters
+      // Pass department and shift pattern filters (no workPositionId - Control users swap across positions)
       await getUsersOnDate({
         date,
         departmentId: user?.departmentId || undefined,
-        workPositionId: selectedAssignment?.workPositionId || undefined,
         shiftPattern,
       });
     }

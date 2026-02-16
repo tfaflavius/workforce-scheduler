@@ -58,12 +58,11 @@ export const shiftSwapsApi = createApi({
       providesTags: (_result, _error, id) => [{ type: 'ShiftSwaps', id }],
     }),
 
-    // Useri care lucreaza intr-o data (cu filtrare optionala pe departament/workPosition/shiftPattern)
-    getUsersOnDate: builder.query<UserOnDate[], { date: string; departmentId?: string; workPositionId?: string; shiftPattern?: string }>({
-      query: ({ date, departmentId, workPositionId, shiftPattern }) => {
+    // Useri care lucreaza intr-o data (cu filtrare optionala pe departament/shiftPattern)
+    getUsersOnDate: builder.query<UserOnDate[], { date: string; departmentId?: string; shiftPattern?: string }>({
+      query: ({ date, departmentId, shiftPattern }) => {
         const params = new URLSearchParams();
         if (departmentId) params.append('departmentId', departmentId);
-        if (workPositionId) params.append('workPositionId', workPositionId);
         if (shiftPattern) params.append('shiftPattern', shiftPattern);
         const queryStr = params.toString();
         return `/users-on-date/${date}${queryStr ? `?${queryStr}` : ''}`;
