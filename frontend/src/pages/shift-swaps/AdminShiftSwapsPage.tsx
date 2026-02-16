@@ -30,6 +30,11 @@ import {
   TableRow,
   alpha,
   Grid,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl as MuiFormControl,
+  FormLabel,
 } from '@mui/material';
 import {
   SwapHoriz as SwapIcon,
@@ -135,6 +140,7 @@ const AdminShiftSwapsPage = () => {
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
   const [adminNotes, setAdminNotes] = useState('');
+  const [selectedResponderId, setSelectedResponderId] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -161,6 +167,9 @@ const AdminShiftSwapsPage = () => {
     setSelectedRequest(request);
     setActionType(action);
     setAdminNotes('');
+    // Pre-selecteaza primul care a acceptat (sau gol daca sunt mai multi)
+    const acceptedResponses = request.responses?.filter((r) => r.response === 'ACCEPTED') || [];
+    setSelectedResponderId(acceptedResponses.length === 1 ? acceptedResponses[0].responderId : '');
     setActionDialogOpen(true);
   };
 
@@ -169,16 +178,15 @@ const AdminShiftSwapsPage = () => {
 
     try {
       if (actionType === 'approve') {
-        // Find the responder who accepted
-        const acceptedResponse = selectedRequest.responses?.find((r) => r.response === 'ACCEPTED');
-        if (!acceptedResponse) {
-          console.error('No accepted response found');
+        if (!selectedResponderId) {
+          setErrorMessage('Selecteaza colegul cu care se va face schimbul.');
+          setTimeout(() => setErrorMessage(null), 5000);
           return;
         }
         await approveSwap({
           id: selectedRequest.id,
           data: {
-            approvedResponderId: acceptedResponse.responderId,
+            approvedResponderId: selectedResponderId,
             adminNotes: adminNotes || undefined,
           },
         }).unwrap();
@@ -222,7 +230,7 @@ const AdminShiftSwapsPage = () => {
   };
 
   const renderRequestCard = (request: ShiftSwapRequest) => {
-    const acceptedResponse = request.responses?.find((r) => r.response === 'ACCEPTED');
+    const acceptedResponses = request.responses?.filter((r) => r.response === 'ACCEPTED') || [];
 
     return (
       <Card key={request.id} sx={{ mb: 2 }}>
@@ -257,11 +265,14 @@ const AdminShiftSwapsPage = () => {
                     Solicitant: <strong>{request.requester?.fullName}</strong>
                   </Typography>
                 </Stack>
-                {acceptedResponse && (
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
-                    <SwapIcon color="success" fontSize="small" sx={{ flexShrink: 0 }} />
-                    <Typography variant="body2" color="success.main" noWrap>
-                      Schimb cu: <strong>{acceptedResponse.responder?.fullName}</strong>
+                {acceptedResponses.length > 0 && (
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }} flexWrap="wrap">
+                    <CheckIcon color="success" fontSize="small" sx={{ flexShrink: 0 }} />
+                    <Typography variant="body2" color="success.main">
+                      {acceptedResponses.length === 1
+                        ? <>Au acceptat: <strong>{acceptedResponses[0].responder?.fullName}</strong></>
+                        : <>Au acceptat: <strong>{acceptedResponses.length} colegi</strong></>
+                      }
                     </Typography>
                   </Stack>
                 )}
@@ -695,11 +706,69 @@ const AdminShiftSwapsPage = () => {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            {selectedRequest && (
-              <Alert severity={actionType === 'approve' ? 'success' : 'warning'}>
-                {actionType === 'approve'
-                  ? `Vei aproba schimbul intre ${selectedRequest.requester?.fullName} si ${selectedRequest.responses?.find((r) => r.response === 'ACCEPTED')?.responder?.fullName}. ${selectedRequest.requester?.fullName} va lucra in ${formatDateShort(selectedRequest.targetDate)}, iar colegul in ${formatDateShort(selectedRequest.requesterDate)}.`
-                  : `Vei respinge cererea de schimb pentru datele ${formatDateShort(selectedRequest.requesterDate)} ↔ ${formatDateShort(selectedRequest.targetDate)}.`}
+            {selectedRequest && actionType === 'approve' && (
+              <>
+                {/* Show all accepted responders for admin to choose from */}
+                {(() => {
+                  const acceptedResponses = selectedRequest.responses?.filter((r) => r.response === 'ACCEPTED') || [];
+                  if (acceptedResponses.length === 0) {
+                    return (
+                      <Alert severity="warning">
+                        Niciun coleg nu a acceptat inca cererea de schimb.
+                      </Alert>
+                    );
+                  }
+                  if (acceptedResponses.length === 1) {
+                    return (
+                      <Alert severity="success">
+                        Vei aproba schimbul intre <strong>{selectedRequest.requester?.fullName}</strong> si <strong>{acceptedResponses[0].responder?.fullName}</strong>.
+                        {selectedRequest.requester?.fullName} va lucra in {formatDateShort(selectedRequest.targetDate)}, iar {acceptedResponses[0].responder?.fullName} in {formatDateShort(selectedRequest.requesterDate)}.
+                      </Alert>
+                    );
+                  }
+                  return (
+                    <>
+                      <Alert severity="info">
+                        <strong>{acceptedResponses.length} colegi</strong> au acceptat cererea. Alege cu cine se va face schimbul:
+                      </Alert>
+                      <MuiFormControl component="fieldset">
+                        <FormLabel component="legend">Selecteaza colegul pentru schimb</FormLabel>
+                        <RadioGroup
+                          value={selectedResponderId}
+                          onChange={(e) => setSelectedResponderId(e.target.value)}
+                        >
+                          {acceptedResponses.map((resp) => (
+                            <FormControlLabel
+                              key={resp.responderId}
+                              value={resp.responderId}
+                              control={<Radio />}
+                              label={
+                                <Stack direction="row" alignItems="center" spacing={1}>
+                                  <Avatar sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
+                                    {resp.responder?.fullName?.charAt(0)}
+                                  </Avatar>
+                                  <Typography variant="body2">
+                                    {resp.responder?.fullName}
+                                    {resp.message && (
+                                      <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                        - "{resp.message}"
+                                      </Typography>
+                                    )}
+                                  </Typography>
+                                </Stack>
+                              }
+                            />
+                          ))}
+                        </RadioGroup>
+                      </MuiFormControl>
+                    </>
+                  );
+                })()}
+              </>
+            )}
+            {selectedRequest && actionType === 'reject' && (
+              <Alert severity="warning">
+                Vei respinge cererea de schimb pentru datele {formatDateShort(selectedRequest.requesterDate)} ↔ {formatDateShort(selectedRequest.targetDate)}.
               </Alert>
             )}
             <TextField
@@ -719,7 +788,7 @@ const AdminShiftSwapsPage = () => {
             variant="contained"
             color={actionType === 'approve' ? 'success' : 'error'}
             onClick={handleAction}
-            disabled={approving || rejecting || (actionType === 'reject' && !adminNotes)}
+            disabled={approving || rejecting || (actionType === 'reject' && !adminNotes) || (actionType === 'approve' && !selectedResponderId)}
             startIcon={(approving || rejecting) ? <CircularProgress size={20} /> : (actionType === 'approve' ? <CheckIcon /> : <CloseIcon />)}
           >
             {(approving || rejecting) ? 'Se proceseaza...' : (actionType === 'approve' ? 'Aproba' : 'Respinge')}

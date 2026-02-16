@@ -121,8 +121,9 @@ export class ShiftSwapsService {
   ): Promise<ShiftSwapResponse> {
     const swapRequest = await this.findOne(swapRequestId);
 
-    // Verifica statusul
-    if (swapRequest.status !== ShiftSwapStatus.PENDING) {
+    // Verifica statusul - permite raspunsuri atat in PENDING cat si in AWAITING_ADMIN
+    // (mai multi colegi pot accepta, adminul alege dintre ei)
+    if (![ShiftSwapStatus.PENDING, ShiftSwapStatus.AWAITING_ADMIN].includes(swapRequest.status)) {
       throw new BadRequestException('Aceasta cerere nu mai accepta raspunsuri');
     }
 
@@ -157,8 +158,10 @@ export class ShiftSwapsService {
     const responder = await this.userRepository.findOne({ where: { id: responderId } });
     await this.sendSwapResponseNotifications(swapRequest, responder, dto.response);
 
-    // Verifica daca cineva a acceptat - actualizeaza statusul
-    if (dto.response === SwapResponseType.ACCEPTED) {
+    // Daca cineva a acceptat, marcheaza cererea ca AWAITING_ADMIN
+    // Cererea ramane deschisa pentru alti colegi sa accepte/refuze
+    // Adminul va alege din toti cei care au acceptat
+    if (dto.response === SwapResponseType.ACCEPTED && swapRequest.status === ShiftSwapStatus.PENDING) {
       await this.swapRequestRepository.update(swapRequestId, {
         status: ShiftSwapStatus.AWAITING_ADMIN,
       });
