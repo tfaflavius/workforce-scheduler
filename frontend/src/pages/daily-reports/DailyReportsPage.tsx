@@ -93,20 +93,6 @@ const getLast30DaysRange = () => {
   };
 };
 
-// Get current week range (Monday to Sunday)
-const getCurrentWeekRange = () => {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  return {
-    startDate: monday.toISOString().split('T')[0],
-    endDate: sunday.toISOString().split('T')[0],
-  };
-};
-
 // ============== COMPONENT ==============
 
 const DailyReportsPage: React.FC = () => {
@@ -131,9 +117,70 @@ const DailyReportsPage: React.FC = () => {
   const [commentText, setCommentText] = useState('');
 
   // Filter state for "Toate Rapoartele"
-  const [filterDateRange, setFilterDateRange] = useState(getCurrentWeekRange());
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
+  const [selectedDay, setSelectedDay] = useState<number | ''>(new Date().getDate());
   const [filterUserId, setFilterUserId] = useState('');
   const [filterDepartmentId, setFilterDepartmentId] = useState('');
+
+  // Generate last 12 months for dropdown
+  const monthOptions = useMemo(() => {
+    const options: { year: number; month: number; label: string }[] = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const label = d.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
+      options.push({
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+      });
+    }
+    return options;
+  }, []);
+
+  // Generate days for selected month
+  const dayOptions = useMemo(() => {
+    const { year, month } = selectedMonth;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+    const days: { day: number; disabled: boolean }[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const isFuture = isCurrentMonth && d > today.getDate();
+      days.push({ day: d, disabled: isFuture });
+    }
+    return days;
+  }, [selectedMonth]);
+
+  // Derive filterDateRange from selectedMonth + selectedDay
+  const filterDateRange = useMemo(() => {
+    const { year, month } = selectedMonth;
+    const mm = String(month + 1).padStart(2, '0');
+    if (selectedDay === '') {
+      // Entire month
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      return {
+        startDate: `${year}-${mm}-01`,
+        endDate: `${year}-${mm}-${String(lastDay).padStart(2, '0')}`,
+      };
+    } else {
+      // Specific day
+      const dd = String(selectedDay).padStart(2, '0');
+      return { startDate: `${year}-${mm}-${dd}`, endDate: `${year}-${mm}-${dd}` };
+    }
+  }, [selectedMonth, selectedDay]);
+
+  // When month changes, reset day
+  const handleMonthChange = (value: string) => {
+    const [year, month] = value.split('-').map(Number);
+    setSelectedMonth({ year, month });
+    const now = new Date();
+    const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+    setSelectedDay(isCurrentMonth ? now.getDate() : '');
+  };
 
   // API hooks
   const { data: todayReport, isLoading: loadingToday, refetch: refetchToday } = useGetTodayReportQuery(
@@ -524,24 +571,44 @@ const DailyReportsPage: React.FC = () => {
                 gap: { xs: 1.5, sm: 2 },
               }}
             >
-              <TextField
-                label="Data inceput"
-                type="date"
-                size="small"
-                fullWidth
-                value={filterDateRange.startDate}
-                onChange={(e) => setFilterDateRange((prev) => ({ ...prev, startDate: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                label="Data sfarsit"
-                type="date"
-                size="small"
-                fullWidth
-                value={filterDateRange.endDate}
-                onChange={(e) => setFilterDateRange((prev) => ({ ...prev, endDate: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
-              />
+              <FormControl size="small" fullWidth>
+                <InputLabel>Luna</InputLabel>
+                <Select
+                  value={`${selectedMonth.year}-${selectedMonth.month}`}
+                  label="Luna"
+                  onChange={(e) => handleMonthChange(e.target.value)}
+                >
+                  {monthOptions.map((opt) => (
+                    <MenuItem key={`${opt.year}-${opt.month}`} value={`${opt.year}-${opt.month}`}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" fullWidth>
+                <InputLabel>Zi</InputLabel>
+                <Select<number | ''>
+                  value={selectedDay}
+                  label="Zi"
+                  onChange={(e) => {
+                    const val = e.target.value as number | '';
+                    setSelectedDay(typeof val === 'number' ? val : '');
+                  }}
+                >
+                  <MenuItem value="">Toate zilele</MenuItem>
+                  {dayOptions.map((opt) => (
+                    <MenuItem
+                      key={opt.day}
+                      value={opt.day}
+                      disabled={opt.disabled}
+                      sx={opt.disabled ? { opacity: 0.4 } : undefined}
+                    >
+                      {opt.day}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
               {isAdmin && departments && (
                 <FormControl size="small" fullWidth>
