@@ -566,6 +566,11 @@ export class ShiftSwapsService {
 
   /**
    * Efectueaza schimbul in program
+   *
+   * Logica pentru departamentul Control:
+   * Cand doi angajati de la Control schimba tura de Dispecerat,
+   * cel care preia DISP-ul NU mai merge la Control in ziua respectiva.
+   * Cel care cedeaza DISP-ul merge la Control in locul celuilalt (daca nu avea deja CTRL).
    */
   private async executeSwap(
     swapRequest: ShiftSwapRequest,
@@ -578,7 +583,7 @@ export class ShiftSwapsService {
       ? swapRequest.targetDate.toISOString().split('T')[0]
       : String(swapRequest.targetDate);
 
-    // Gaseste assignment-urile
+    // Gaseste assignment-urile DISP (prioritar)
     const requesterAssignment = await this.findAssignmentForUserAndDate(
       swapRequest.requesterId,
       requesterDateStr,
@@ -592,7 +597,7 @@ export class ShiftSwapsService {
       throw new BadRequestException('Nu s-au gasit turele pentru schimb');
     }
 
-    // Schimba user-ii intre assignment-uri
+    // Schimba user-ii intre assignment-urile DISP
     const tempUserId = requesterAssignment.userId;
 
     await this.assignmentRepository.update(requesterAssignment.id, {
@@ -603,7 +608,141 @@ export class ShiftSwapsService {
       userId: tempUserId,
     });
 
+    // Gestioneaza assignment-urile CTRL pentru departamentul Control
+    // Cel care preia DISP-ul nu mai merge la CTRL in ziua respectiva -> sterge CTRL
+    // Cel care cedeaza DISP-ul merge la CTRL in ziua celuilalt (daca nu avea deja)
+    await this.handleControlAssignmentsAfterSwap(
+      swapRequest.requesterId,  // requester cedeaza DISP pe requesterDate, preia DISP pe targetDate
+      approvedResponderId,       // responder cedeaza DISP pe targetDate, preia DISP pe requesterDate
+      requesterDateStr,
+      targetDateStr,
+    );
+
     this.logger.log(`Swap executed: ${swapRequest.requesterId} <-> ${approvedResponderId}`);
+  }
+
+  /**
+   * Gestioneaza assignment-urile CTRL dupa un schimb de tura DISP
+   * - Cel care preia DISP pe o zi: sterge CTRL-ul lui din acea zi (nu mai merge la Control)
+   * - Cel care cedeaza DISP pe o zi: creaza CTRL in acea zi (merge la Control in loc)
+   *   folosind tura normala de CTRL a celuilalt din acea zi
+   */
+  private async handleControlAssignmentsAfterSwap(
+    requesterId: string,
+    responderId: string,
+    requesterDate: string,
+    targetDate: string,
+  ): Promise<void> {
+    // Pe requesterDate: responder preia DISP, requester cedeaza DISP
+    // -> Sterge CTRL al responder-ului pe requesterDate (el merge doar la DISP)
+    // -> Requester-ul ar trebui sa aiba deja CTRL pe requesterDate (e ziua lui normala)
+
+    // Pe targetDate: requester preia DISP, responder cedeaza DISP
+    // -> Sterge CTRL al requester-ului pe targetDate (daca exista - el merge doar la DISP)
+    // -> Responder-ul ar trebui sa aiba deja CTRL pe targetDate (e ziua lui normala)
+
+    // Sterge CTRL al responder-ului pe requesterDate
+    const responderCtrlOnRequesterDate = await this.findCtrlAssignment(responderId, requesterDate);
+    if (responderCtrlOnRequesterDate) {
+      await this.assignmentRepository.delete(responderCtrlOnRequesterDate.id);
+      this.logger.log(`Deleted CTRL assignment for responder ${responderId} on ${requesterDate}`);
+    }
+
+    // Sterge CTRL al requester-ului pe targetDate
+    const requesterCtrlOnTargetDate = await this.findCtrlAssignment(requesterId, targetDate);
+    if (requesterCtrlOnTargetDate) {
+      await this.assignmentRepository.delete(requesterCtrlOnTargetDate.id);
+      this.logger.log(`Deleted CTRL assignment for requester ${requesterId} on ${targetDate}`);
+    }
+
+    // Verifica daca requester are CTRL pe requesterDate (ziua lui normala)
+    // Daca nu, creaza unul folosind tura normala CTRL (07:30-15:30 default)
+    const requesterCtrlOnOwnDate = await this.findCtrlAssignment(requesterId, requesterDate);
+    if (!requesterCtrlOnOwnDate) {
+      await this.createDefaultCtrlAssignment(requesterId, requesterDate);
+      this.logger.log(`Created CTRL assignment for requester ${requesterId} on ${requesterDate}`);
+    }
+
+    // Verifica daca responder are CTRL pe targetDate (ziua lui normala)
+    // Daca nu, creaza unul
+    const responderCtrlOnOwnDate = await this.findCtrlAssignment(responderId, targetDate);
+    if (!responderCtrlOnOwnDate) {
+      await this.createDefaultCtrlAssignment(responderId, targetDate);
+      this.logger.log(`Created CTRL assignment for responder ${responderId} on ${targetDate}`);
+    }
+  }
+
+  /**
+   * Gaseste assignment-ul CTRL al unui user pe o data
+   */
+  private async findCtrlAssignment(
+    userId: string,
+    date: string,
+  ): Promise<ScheduleAssignment | null> {
+    const assignments = await this.assignmentRepository.find({
+      where: {
+        userId,
+        shiftDate: new Date(date),
+      },
+      relations: ['workPosition'],
+    });
+
+    return assignments.find(a => a.workPosition?.shortName === 'CTRL') || null;
+  }
+
+  /**
+   * Creaza un assignment CTRL default (07:30-15:30) pentru un user pe o data
+   */
+  private async createDefaultCtrlAssignment(
+    userId: string,
+    date: string,
+  ): Promise<void> {
+    // Gaseste pozitia CTRL
+    const ctrlAssignmentExample = await this.assignmentRepository.findOne({
+      where: { userId },
+      relations: ['workPosition', 'schedule'],
+    });
+
+    if (!ctrlAssignmentExample) return;
+
+    // Gaseste work position CTRL
+    const ctrlPositionAssignment = await this.assignmentRepository
+      .createQueryBuilder('a')
+      .leftJoinAndSelect('a.workPosition', 'wp')
+      .where('wp.shortName = :shortName', { shortName: 'CTRL' })
+      .getOne();
+
+    if (!ctrlPositionAssignment) return;
+
+    // Gaseste shift type Z3 (07:30-15:30) - tura normala CTRL
+    const existingCtrlAssignment = await this.assignmentRepository
+      .createQueryBuilder('a')
+      .leftJoinAndSelect('a.shiftType', 'st')
+      .leftJoinAndSelect('a.workPosition', 'wp')
+      .where('a.userId = :userId', { userId })
+      .andWhere('wp.shortName = :shortName', { shortName: 'CTRL' })
+      .getOne();
+
+    const shiftTypeId = existingCtrlAssignment?.shiftTypeId || ctrlAssignmentExample.shiftTypeId;
+    const notes = existingCtrlAssignment?.notes || '07:30-15:30';
+
+    // Gaseste scheduleId din un assignment existent pe acea data
+    const dateAssignment = await this.assignmentRepository.findOne({
+      where: { shiftDate: new Date(date) },
+      relations: ['schedule'],
+    });
+
+    const newAssignment = this.assignmentRepository.create({
+      userId,
+      shiftDate: new Date(date),
+      shiftTypeId,
+      workPositionId: ctrlPositionAssignment.workPositionId,
+      workScheduleId: dateAssignment?.workScheduleId || ctrlAssignmentExample.workScheduleId,
+      notes,
+      isRestDay: false,
+    });
+
+    await this.assignmentRepository.save(newAssignment);
   }
 
   /**
