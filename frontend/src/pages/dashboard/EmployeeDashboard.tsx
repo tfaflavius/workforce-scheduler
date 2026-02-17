@@ -114,6 +114,12 @@ const EmployeeDashboard = () => {
   // Check if user is in Intretinere Parcari department
   const isMaintenanceDepartment = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
 
+  // Check if user is in Control department
+  const isControlDepartment = user?.department?.name === 'Control';
+
+  // Departments with pontaj + GPS tracking
+  const hasPontaj = isMaintenanceDepartment || isControlDepartment;
+
   // Handicap queries - only fetch if user is in Parcari Handicap department
   const { data: handicapRequests = [] } = useGetHandicapRequestsQuery(undefined, {
     skip: !isHandicapDepartment,
@@ -125,10 +131,10 @@ const EmployeeDashboard = () => {
     skip: !isHandicapDepartment,
   });
 
-  // ===== PONTAJ (Time Tracking) - doar pentru Intretinere Parcari =====
+  // ===== PONTAJ (Time Tracking) - pentru Intretinere Parcari + Control =====
   const { data: activeTimer, refetch: refetchActiveTimer } = useGetActiveTimerQuery(undefined, {
-    skip: !isMaintenanceDepartment,
-    pollingInterval: isMaintenanceDepartment ? 30000 : 0, // poll every 30s
+    skip: !hasPontaj,
+    pollingInterval: hasPontaj ? 30000 : 0, // poll every 30s
   });
 
   const todayISO = useMemo(() => {
@@ -138,7 +144,7 @@ const EmployeeDashboard = () => {
 
   const { data: todayEntries = [] } = useGetTimeEntriesQuery(
     { startDate: `${todayISO}T00:00:00`, endDate: `${todayISO}T23:59:59` },
-    { skip: !isMaintenanceDepartment },
+    { skip: !hasPontaj },
   );
 
   const [startTimerMutation, { isLoading: isStarting }] = useStartTimerMutation();
@@ -740,7 +746,7 @@ const EmployeeDashboard = () => {
       </Fade>
 
       {/* ===== PONTAJ - doar Intretinere Parcari ===== */}
-      {isMaintenanceDepartment && (
+      {hasPontaj && (
         <Fade in={true} timeout={700}>
           <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
             <Typography
