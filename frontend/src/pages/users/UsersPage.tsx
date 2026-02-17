@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -60,6 +60,7 @@ import {
 } from '../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useAppSelector } from '../../store/hooks';
+import { useSearchParams } from 'react-router-dom';
 import { UserForm } from '../../components/users/UserForm';
 import { ChangePasswordDialog } from '../../components/users/ChangePasswordDialog';
 import { DeleteUserDialog } from '../../components/users/DeleteUserDialog';
@@ -70,14 +71,26 @@ const UsersPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentUser = useAppSelector((state) => state.auth.user);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || '');
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(!!searchParams.get('department'));
+
+  // Sync department filter from URL search params
+  useEffect(() => {
+    const deptParam = searchParams.get('department');
+    if (deptParam) {
+      setDepartmentFilter(deptParam);
+      setFiltersExpanded(true);
+      // Clean URL param after applying
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);

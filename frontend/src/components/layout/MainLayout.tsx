@@ -46,10 +46,18 @@ import {
   ShoppingCart as ShoppingIcon,
   BarChart as RevenueIcon,
 } from '@mui/icons-material';
+import {
+  Groups as GroupsIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  FiberManualRecord as DotIcon,
+} from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
 import type { UserRole } from '../../types/user.types';
 import NotificationBell from '../notifications/NotificationBell';
+import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
+import { useGetUsersQuery } from '../../store/api/users.api';
 
 // Responsive drawer width based on screen size
 const getDrawerWidth = (isTablet: boolean) => isTablet ? 220 : 260;
@@ -74,11 +82,25 @@ export const MainLayout = () => {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [deptOpen, setDeptOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+
+  // Departments data for sidebar (ADMIN only)
+  const isAdmin = user?.role === 'ADMIN';
+  const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
+  const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdmin });
+
+  // Count users per department
+  const deptUserCounts = allUsers?.reduce((acc, u) => {
+    if (u.departmentId && u.isActive) {
+      acc[u.departmentId] = (acc[u.departmentId] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>) || {};
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -437,9 +459,8 @@ export const MainLayout = () => {
           const sections: { label: string; paths: string[]; color: string }[] = [
             { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: '#2563eb' },
             { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: '#06b6d4' },
-            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/reports', '/users'], color: '#7c3aed' },
-            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre'], color: '#10b981' },
-            { label: 'Departamente', paths: ['/achizitii', '/incasari-cheltuieli'], color: '#f59e0b' },
+            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/reports', '/users', '/incasari-cheltuieli'], color: '#7c3aed' },
+            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii'], color: '#10b981' },
           ];
 
           // Group filtered menu items into sections
@@ -555,6 +576,119 @@ export const MainLayout = () => {
             </Box>
           ));
         })()}
+
+        {/* Departamente Section - Only for ADMIN */}
+        {isAdmin && departments && departments.length > 0 && (
+          <Box>
+            <Divider sx={{ my: 1, mx: 1, opacity: 0.4 }} />
+            <ListItem
+              disablePadding
+              sx={{ py: 0.25 }}
+            >
+              <ListItemButton
+                onClick={() => setDeptOpen(!deptOpen)}
+                sx={{
+                  borderRadius: 2,
+                  mx: 0.5,
+                  py: { xs: 0.75, sm: 1 },
+                  px: { xs: 1.5, sm: 2 },
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    bgcolor: alpha('#f59e0b', 0.06),
+                  },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    color: '#f59e0b',
+                    minWidth: { xs: 36, sm: 40 },
+                    '& .MuiSvgIcon-root': {
+                      fontSize: { xs: '1.25rem', sm: '1.4rem' },
+                    },
+                  }}
+                >
+                  <GroupsIcon />
+                </ListItemIcon>
+                <ListItemText
+                  primary="Departamente"
+                  primaryTypographyProps={{
+                    fontWeight: 700,
+                    color: alpha('#f59e0b', 0.8),
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    fontSize: '0.65rem',
+                  }}
+                />
+                {deptOpen ? (
+                  <ExpandLessIcon sx={{ fontSize: '1.2rem', color: 'text.secondary' }} />
+                ) : (
+                  <ExpandMoreIcon sx={{ fontSize: '1.2rem', color: 'text.secondary' }} />
+                )}
+              </ListItemButton>
+            </ListItem>
+
+            {deptOpen && (
+              <Fade in={deptOpen}>
+                <Box sx={{ pl: 1 }}>
+                  {[...departments]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((dept) => {
+                      const count = deptUserCounts[dept.id] || 0;
+                      return (
+                        <ListItem key={dept.id} disablePadding sx={{ py: 0.15 }}>
+                          <ListItemButton
+                            onClick={() => handleNavigate(`/users?department=${dept.id}`)}
+                            sx={{
+                              borderRadius: 2,
+                              mx: 0.5,
+                              py: { xs: 0.5, sm: 0.75 },
+                              px: { xs: 1.5, sm: 2 },
+                              minHeight: 0,
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                bgcolor: alpha('#f59e0b', 0.08),
+                                transform: 'translateX(4px)',
+                              },
+                            }}
+                          >
+                            <DotIcon
+                              sx={{
+                                fontSize: 8,
+                                color: alpha('#f59e0b', 0.5),
+                                mr: 1.5,
+                              }}
+                            />
+                            <ListItemText
+                              primary={dept.name}
+                              primaryTypographyProps={{
+                                fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                                fontWeight: 400,
+                                noWrap: true,
+                                color: 'text.secondary',
+                              }}
+                            />
+                            <Chip
+                              label={count}
+                              size="small"
+                              sx={{
+                                height: 20,
+                                minWidth: 28,
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                                bgcolor: alpha('#f59e0b', 0.1),
+                                color: '#f59e0b',
+                                '& .MuiChip-label': { px: 0.75 },
+                              }}
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      );
+                    })}
+                </Box>
+              </Fade>
+            )}
+          </Box>
+        )}
       </List>
 
       <Divider sx={{ opacity: 0.6 }} />
