@@ -182,9 +182,11 @@ const SchedulesPage: React.FC = () => {
   // Creeaza un map cu toate asignarile existente pentru toti angajatii
   // Include si statusul programului si pozitia de lucru
   // Include si concediile aprobate care nu au inca asignari
+  type AssignmentInfo = { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string }; isApprovedLeave?: boolean };
+
   const allUsersAssignments = useMemo(() => {
     const userAssignmentsMap: Record<string, {
-      assignments: Record<string, { shiftId: string; notes: string; workPosition?: { shortName?: string; name?: string; color?: string }; isApprovedLeave?: boolean }>;
+      assignments: Record<string, AssignmentInfo[]>;
       scheduleId?: string;
       status?: string;
     }> = {};
@@ -197,11 +199,11 @@ const SchedulesPage: React.FC = () => {
         };
       }
       leave.dates.forEach(date => {
-        userAssignmentsMap[leave.userId].assignments[date] = {
+        userAssignmentsMap[leave.userId].assignments[date] = [{
           shiftId: 'vacation',
           notes: 'Concediu',
           isApprovedLeave: true,
-        };
+        }];
       });
     });
 
@@ -219,7 +221,7 @@ const SchedulesPage: React.FC = () => {
           // Normalizeaza data pentru a evita probleme cu timezone
           // shiftDate poate veni ca "2026-02-02" sau "2026-02-02T00:00:00.000Z"
           const normalizedDate = assignment.shiftDate.split('T')[0];
-          userAssignmentsMap[assignment.userId].assignments[normalizedDate] = {
+          const newEntry: AssignmentInfo = {
             shiftId: assignment.shiftTypeId,
             notes: assignment.notes || '',
             workPosition: assignment.workPosition ? {
@@ -228,6 +230,15 @@ const SchedulesPage: React.FC = () => {
               color: assignment.workPosition.color,
             } : undefined,
           };
+          // Daca data exista deja si e concediu, suprascrie; altfel, adauga la array
+          const existing = userAssignmentsMap[assignment.userId].assignments[normalizedDate];
+          if (existing && existing.length === 1 && existing[0].isApprovedLeave) {
+            userAssignmentsMap[assignment.userId].assignments[normalizedDate] = [newEntry];
+          } else if (existing) {
+            existing.push(newEntry);
+          } else {
+            userAssignmentsMap[assignment.userId].assignments[normalizedDate] = [newEntry];
+          }
           userAssignmentsMap[assignment.userId].scheduleId = schedule.id;
           userAssignmentsMap[assignment.userId].status = schedule.status;
         });
@@ -320,17 +331,15 @@ const SchedulesPage: React.FC = () => {
 
         // Daca avem filtru pe zi, verifica tipul turei DOAR in ziua respectiva
         if (targetDate) {
-          const assignment = userAssignments[targetDate];
-          if (!assignment) return false;
-          const shiftInfo = getExistingShiftInfo(assignment.notes);
-          return shiftInfo.type === shiftFilter;
+          const assignments = userAssignments[targetDate];
+          if (!assignments) return false;
+          return assignments.some(a => getExistingShiftInfo(a.notes).type === shiftFilter);
         }
 
         // Fara filtru pe zi - verifica daca are cel putin o tura de tipul selectat in toata luna
-        return Object.values(userAssignments).some(assignment => {
-          const shiftInfo = getExistingShiftInfo(assignment.notes);
-          return shiftInfo.type === shiftFilter;
-        });
+        return Object.values(userAssignments).some(assignments =>
+          assignments.some(a => getExistingShiftInfo(a.notes).type === shiftFilter)
+        );
       });
     }
 
@@ -341,16 +350,20 @@ const SchedulesPage: React.FC = () => {
 
         // Daca avem filtru pe zi, verifica pozitia DOAR in ziua respectiva
         if (targetDate) {
-          const assignment = userAssignments[targetDate];
-          if (!assignment) return false;
-          return assignment.workPosition?.shortName === workPositionFilter ||
-            assignment.workPosition?.name === workPositionFilter;
+          const assignments = userAssignments[targetDate];
+          if (!assignments) return false;
+          return assignments.some(a =>
+            a.workPosition?.shortName === workPositionFilter ||
+            a.workPosition?.name === workPositionFilter
+          );
         }
 
         // Fara filtru pe zi - verifica daca are cel putin o tura la pozitia selectata in toata luna
-        return Object.values(userAssignments).some(assignment =>
-          assignment.workPosition?.shortName === workPositionFilter ||
-          assignment.workPosition?.name === workPositionFilter
+        return Object.values(userAssignments).some(assignments =>
+          assignments.some(a =>
+            a.workPosition?.shortName === workPositionFilter ||
+            a.workPosition?.name === workPositionFilter
+          )
         );
       });
     }
@@ -825,9 +838,11 @@ const SchedulesPage: React.FC = () => {
                         const assignmentsList = Object.entries(userAssignments);
                         const totalShifts = assignmentsList.length;
                         const shiftTypes: Record<string, number> = {};
-                        assignmentsList.forEach(([_, assignment]) => {
-                          const info = getExistingShiftInfo(assignment.notes);
-                          shiftTypes[info.label] = (shiftTypes[info.label] || 0) + 1;
+                        assignmentsList.forEach(([_, assignments]) => {
+                          assignments.forEach(assignment => {
+                            const info = getExistingShiftInfo(assignment.notes);
+                            shiftTypes[info.label] = (shiftTypes[info.label] || 0) + 1;
+                          });
                         });
 
                         return (
@@ -933,16 +948,18 @@ const SchedulesPage: React.FC = () => {
                                     }}>
                                       <Stack direction="row" spacing={0.25} sx={{ minWidth: isLandscape || isMobile ? 'max-content' : 'auto' }}>
                                         {(isLandscape || isMobile ? calendarDays : calendarDays.slice(0, 14)).map(({ date, day, isWeekend }) => {
-                                          const assignment = userAssignments[date];
-                                          const shiftInfo = assignment ? getExistingShiftInfo(assignment.notes) : null;
-                                          const workPos = assignment?.workPosition;
+                                          const assignments = userAssignments[date];
+                                          const firstAssignment = assignments?.[0];
+                                          const shiftInfo = firstAssignment ? getExistingShiftInfo(firstAssignment.notes) : null;
+                                          const workPos = firstAssignment?.workPosition;
+                                          const hasMultiple = assignments && assignments.length > 1;
                                           return (
                                             <Box
                                               key={date}
                                               sx={{
                                                 minWidth: isLandscape ? 32 : 28,
                                                 width: isLandscape ? 32 : 28,
-                                                height: isLandscape ? 36 : 32,
+                                                height: isLandscape ? (hasMultiple ? 48 : 36) : (hasMultiple ? 44 : 32),
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
@@ -962,6 +979,14 @@ const SchedulesPage: React.FC = () => {
                                                   {workPos.shortName || workPos.name?.substring(0, 3)}
                                                 </span>
                                               )}
+                                              {hasMultiple && assignments.slice(1).map((a, i) => {
+                                                const si = getExistingShiftInfo(a.notes);
+                                                return (
+                                                  <span key={i} style={{ fontSize: isLandscape ? '0.4rem' : '0.35rem', opacity: 0.85 }}>
+                                                    {si.label} {a.workPosition?.shortName || ''}
+                                                  </span>
+                                                );
+                                              })}
                                             </Box>
                                           );
                                         })}
@@ -1081,35 +1106,60 @@ const SchedulesPage: React.FC = () => {
                                   </Stack>
                                 </TableCell>
                                 {calendarDays.map(({ date, isWeekend }) => {
-                                  const existingAssignment = userAssignments[date];
+                                  const existingAssignments = userAssignments[date];
 
                                   let cellContent: React.ReactNode = '-';
                                   let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
 
-                                  if (existingAssignment) {
-                                    const shiftInfo = getExistingShiftInfo(existingAssignment.notes);
-                                    const workPos = existingAssignment.workPosition;
+                                  if (existingAssignments && existingAssignments.length > 0) {
+                                    const firstAssignment = existingAssignments[0];
+                                    const shiftInfo = getExistingShiftInfo(firstAssignment.notes);
+                                    const workPos = firstAssignment.workPosition;
                                     cellBgColor = shiftInfo.color;
-                                    cellContent = (
-                                      <Box>
-                                        <Typography sx={{ fontSize: '0.6rem', fontWeight: 'bold', lineHeight: 1.2 }}>
-                                          {shiftInfo.label}
-                                        </Typography>
-                                        {workPos && (
-                                          <Typography
-                                            sx={{
-                                              fontSize: '0.45rem',
-                                              fontWeight: 'bold',
-                                              lineHeight: 1,
-                                              opacity: 0.9,
-                                              mt: 0.1,
-                                            }}
-                                          >
-                                            {workPos.shortName || workPos.name?.substring(0, 4)}
+
+                                    if (existingAssignments.length === 1) {
+                                      cellContent = (
+                                        <Box>
+                                          <Typography sx={{ fontSize: '0.6rem', fontWeight: 'bold', lineHeight: 1.2 }}>
+                                            {shiftInfo.label}
                                           </Typography>
-                                        )}
-                                      </Box>
-                                    );
+                                          {workPos && (
+                                            <Typography
+                                              sx={{
+                                                fontSize: '0.45rem',
+                                                fontWeight: 'bold',
+                                                lineHeight: 1,
+                                                opacity: 0.9,
+                                                mt: 0.1,
+                                              }}
+                                            >
+                                              {workPos.shortName || workPos.name?.substring(0, 4)}
+                                            </Typography>
+                                          )}
+                                        </Box>
+                                      );
+                                    } else {
+                                      // Multiple assignments on same day - show stacked
+                                      cellContent = (
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
+                                          {existingAssignments.map((a, i) => {
+                                            const si = getExistingShiftInfo(a.notes);
+                                            return (
+                                              <Box key={i} sx={{ bgcolor: i > 0 ? si.color : undefined, borderRadius: 0.3, px: 0.1 }}>
+                                                <Typography sx={{ fontSize: '0.5rem', fontWeight: 'bold', lineHeight: 1.1 }}>
+                                                  {si.label}
+                                                </Typography>
+                                                {a.workPosition && (
+                                                  <Typography sx={{ fontSize: '0.4rem', fontWeight: 'bold', lineHeight: 1, opacity: 0.9 }}>
+                                                    {a.workPosition.shortName || a.workPosition.name?.substring(0, 4)}
+                                                  </Typography>
+                                                )}
+                                              </Box>
+                                            );
+                                          })}
+                                        </Box>
+                                      );
+                                    }
                                   }
 
                                   return (
@@ -1119,7 +1169,7 @@ const SchedulesPage: React.FC = () => {
                                       sx={{
                                         p: 0.2,
                                         bgcolor: cellBgColor,
-                                        color: existingAssignment ? 'white' : 'text.secondary',
+                                        color: existingAssignments ? 'white' : 'text.secondary',
                                         fontWeight: 'bold',
                                         fontSize: '0.65rem',
                                         border: '1px solid',
