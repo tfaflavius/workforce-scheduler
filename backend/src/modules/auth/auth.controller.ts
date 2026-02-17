@@ -1,12 +1,16 @@
-import { Body, Controller, Post, Get, Headers, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Post, Get, Delete, Headers, Query, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { Public } from './decorators/public.decorator';
+import { SupabaseService } from '../../common/supabase/supabase.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly supabaseService: SupabaseService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -39,5 +43,13 @@ export class AuthController {
   @Post('reset-password')
   async resetPassword(@Body() body: { accessToken: string; newPassword: string }) {
     return this.authService.resetPassword(body.accessToken, body.newPassword);
+  }
+
+  @Delete('supabase-user')
+  async deleteSupabaseUserByEmail(@Query('email') email: string) {
+    if (!email) {
+      throw new UnauthorizedException('Email is required');
+    }
+    return this.supabaseService.deleteUserByEmail(email);
   }
 }

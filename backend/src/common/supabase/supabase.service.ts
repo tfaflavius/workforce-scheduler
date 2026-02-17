@@ -78,6 +78,23 @@ export class SupabaseService {
     }
   }
 
+  async deleteUserByEmail(email: string) {
+    // List users and find by email
+    const { data, error } = await this.supabase.auth.admin.listUsers();
+    if (error) {
+      throw error;
+    }
+    const user = data.users.find(u => u.email === email);
+    if (!user) {
+      throw new Error(`User with email ${email} not found in Supabase Auth`);
+    }
+    const { error: deleteError } = await this.supabase.auth.admin.deleteUser(user.id);
+    if (deleteError) {
+      throw deleteError;
+    }
+    return { deleted: true, userId: user.id, email };
+  }
+
   async updateUserPassword(userId: string, newPassword: string) {
     const { error } = await this.supabase.auth.admin.updateUserById(userId, {
       password: newPassword,
