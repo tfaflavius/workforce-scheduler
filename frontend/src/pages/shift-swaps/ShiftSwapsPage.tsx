@@ -157,6 +157,7 @@ const ShiftSwapsPage = () => {
   const [reason, setReason] = useState('');
   const [responseAccepted, setResponseAccepted] = useState<boolean | null>(null);
   const [responseMessage, setResponseMessage] = useState('');
+  const [respondError, setRespondError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -273,6 +274,7 @@ const ShiftSwapsPage = () => {
     setSelectedRequest(request);
     setResponseAccepted(accepted);
     setResponseMessage('');
+    setRespondError(null);
     setRespondDialogOpen(true);
   };
 
@@ -298,8 +300,7 @@ const ShiftSwapsPage = () => {
       const errorMsg = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message || 'A aparut o eroare la procesarea raspunsului.'
         : 'A aparut o eroare la procesarea raspunsului.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
+      setRespondError(errorMsg);
     }
   };
 
@@ -410,7 +411,7 @@ const ShiftSwapsPage = () => {
 
             <Stack direction="row" spacing={1}>
               {/* Actions for received requests */}
-              {isReceived && request.status === 'PENDING' && !myResponse && (
+              {isReceived && (request.status === 'PENDING' || request.status === 'AWAITING_ADMIN') && !myResponse && (
                 <>
                   <Button
                     variant="contained"
@@ -472,7 +473,7 @@ const ShiftSwapsPage = () => {
 
   // Calculate stats
   const pendingRequestsCount = sentRequests.filter(r => r.status === 'PENDING').length;
-  const unrespondedCount = receivedRequests.filter(r => r.status === 'PENDING' && !r.responses?.find(res => res.responderId === user?.id)).length;
+  const unrespondedCount = receivedRequests.filter(r => (r.status === 'PENDING' || r.status === 'AWAITING_ADMIN') && !r.responses?.find(res => res.responderId === user?.id)).length;
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -570,9 +571,9 @@ const ShiftSwapsPage = () => {
             label={
               <Stack direction="row" alignItems="center" spacing={1}>
                 <span>Cereri Primite</span>
-                {receivedRequests.filter((r) => r.status === 'PENDING' && !r.responses?.find((res) => res.responderId === user?.id)).length > 0 && (
+                {receivedRequests.filter((r) => (r.status === 'PENDING' || r.status === 'AWAITING_ADMIN') && !r.responses?.find((res) => res.responderId === user?.id)).length > 0 && (
                   <Chip
-                    label={receivedRequests.filter((r) => r.status === 'PENDING' && !r.responses?.find((res) => res.responderId === user?.id)).length}
+                    label={receivedRequests.filter((r) => (r.status === 'PENDING' || r.status === 'AWAITING_ADMIN') && !r.responses?.find((res) => res.responderId === user?.id)).length}
                     size="small"
                     color="warning"
                   />
@@ -760,6 +761,11 @@ const ShiftSwapsPage = () => {
                 </Box>
               </>
             )}
+            {respondError && (
+              <Alert severity="error" onClose={() => setRespondError(null)}>
+                {respondError}
+              </Alert>
+            )}
             <TextField
               label="Mesaj (optional)"
               multiline
@@ -771,7 +777,7 @@ const ShiftSwapsPage = () => {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setRespondDialogOpen(false)}>Anuleaza</Button>
+          <Button onClick={() => { setRespondDialogOpen(false); setRespondError(null); }}>Anuleaza</Button>
           <Button
             variant="contained"
             color={responseAccepted ? 'success' : 'error'}
