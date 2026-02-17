@@ -213,6 +213,16 @@ export const AdminLeaveRequestsPage = () => {
       const errorMsg = err && typeof err === 'object' && 'data' in err
         ? (err.data as { message?: string })?.message || 'A aparut o eroare la procesarea cererii.'
         : 'A aparut o eroare la procesarea cererii.';
+
+      // If the request was already processed (e.g. slow network, user clicked again),
+      // treat it as success - close dialog and refresh the list
+      if (errorMsg.includes('deja procesata') || errorMsg.includes('already')) {
+        handleCloseDialog();
+        setSuccessMessage('Cererea a fost deja procesata anterior.');
+        setTimeout(() => setSuccessMessage(null), 5000);
+        return;
+      }
+
       setDialogError(errorMsg);
     }
   };
