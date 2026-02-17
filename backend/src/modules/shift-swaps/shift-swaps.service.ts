@@ -132,9 +132,12 @@ export class ShiftSwapsService {
     }
 
     // Verifica daca userul lucreaza in data tinta
+    const targetDateStr = swapRequest.targetDate instanceof Date
+      ? swapRequest.targetDate.toISOString().split('T')[0]
+      : String(swapRequest.targetDate);
     const responderAssignment = await this.findAssignmentForUserAndDate(
       responderId,
-      swapRequest.targetDate.toISOString().split('T')[0],
+      targetDateStr,
     );
     if (!responderAssignment) {
       throw new ForbiddenException('Nu poti raspunde la aceasta cerere - nu lucrezi in data respectiva');
@@ -557,8 +560,12 @@ export class ShiftSwapsService {
     swapRequest: ShiftSwapRequest,
     approvedResponderId: string,
   ): Promise<void> {
-    const requesterDateStr = swapRequest.requesterDate.toISOString().split('T')[0];
-    const targetDateStr = swapRequest.targetDate.toISOString().split('T')[0];
+    const requesterDateStr = swapRequest.requesterDate instanceof Date
+      ? swapRequest.requesterDate.toISOString().split('T')[0]
+      : String(swapRequest.requesterDate);
+    const targetDateStr = swapRequest.targetDate instanceof Date
+      ? swapRequest.targetDate.toISOString().split('T')[0]
+      : String(swapRequest.targetDate);
 
     // Gaseste assignment-urile
     const requesterAssignment = await this.findAssignmentForUserAndDate(
