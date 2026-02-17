@@ -245,24 +245,37 @@ export class TimeTrackingService {
       throw new BadRequestException('Cannot record location for stopped timer');
     }
 
-    // Use raw query to insert with PostGIS geography
-    const result = await this.locationLogRepository.query(
-      `INSERT INTO location_logs
-       (time_entry_id, user_id, latitude, longitude, accuracy, recorded_at, is_auto_recorded, location)
-       VALUES ($1, $2, $3::numeric, $4::numeric, $5::numeric, $6, $7, ST_SetSRID(ST_MakePoint($4, $3), 4326)::geography)
-       RETURNING *`,
-      [
-        recordLocationDto.timeEntryId,
+    // Try insert with PostGIS geography, fall back to simple insert
+    try {
+      const result = await this.locationLogRepository.query(
+        `INSERT INTO location_logs
+         (time_entry_id, user_id, latitude, longitude, accuracy, recorded_at, is_auto_recorded, location)
+         VALUES ($1, $2, $3::numeric, $4::numeric, $5::numeric, $6, $7, ST_SetSRID(ST_MakePoint($4, $3), 4326)::geography)
+         RETURNING *`,
+        [
+          recordLocationDto.timeEntryId,
+          userId,
+          recordLocationDto.latitude,
+          recordLocationDto.longitude,
+          recordLocationDto.accuracy || null,
+          new Date(),
+          recordLocationDto.isAutoRecorded ?? true,
+        ],
+      );
+      return result[0];
+    } catch {
+      // PostGIS not available - insert without geography column
+      const locationLog = this.locationLogRepository.create({
+        timeEntryId: recordLocationDto.timeEntryId,
         userId,
-        recordLocationDto.latitude,
-        recordLocationDto.longitude,
-        recordLocationDto.accuracy || null,
-        new Date(),
-        recordLocationDto.isAutoRecorded ?? true,
-      ],
-    );
-
-    return result[0];
+        latitude: recordLocationDto.latitude,
+        longitude: recordLocationDto.longitude,
+        accuracy: recordLocationDto.accuracy || null,
+        recordedAt: new Date(),
+        isAutoRecorded: recordLocationDto.isAutoRecorded ?? true,
+      });
+      return this.locationLogRepository.save(locationLog);
+    }
   }
 
   async getLocationHistory(userId: string, timeEntryId: string): Promise<LocationLog[]> {
