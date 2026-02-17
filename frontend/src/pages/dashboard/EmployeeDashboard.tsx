@@ -39,7 +39,6 @@ import {
   EventNote as TomorrowIcon,
   PlayArrow as PlayIcon,
   Stop as StopIcon,
-  MyLocation as MyLocationIcon,
   Timer as TimerIcon,
   History as HistoryIcon,
 } from '@mui/icons-material';
@@ -873,60 +872,7 @@ const EmployeeDashboard = () => {
                   </Button>
                 </Stack>
 
-                {/* Location status - automatic tracking indicator */}
-                {activeTimer && !activeTimer.endTime && (
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1}
-                    sx={{
-                      mt: 2,
-                      p: 1,
-                      bgcolor: 'rgba(255,255,255,0.12)',
-                      borderRadius: 1.5,
-                    }}
-                  >
-                    <MyLocationIcon sx={{ fontSize: { xs: 16, sm: 18 }, opacity: 0.9 }} />
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, opacity: 0.9 }}>
-                      {lastLocation
-                        ? 'Locatia se inregistreaza automat'
-                        : 'Se obtine locatia...'}
-                    </Typography>
-                    {lastLocation && (
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          bgcolor: '#4ade80',
-                          boxShadow: '0 0 6px rgba(74, 222, 128, 0.6)',
-                          animation: 'pulse 2s infinite',
-                          '@keyframes pulse': {
-                            '0%': { opacity: 1 },
-                            '50%': { opacity: 0.4 },
-                            '100%': { opacity: 1 },
-                          },
-                        }}
-                      />
-                    )}
-                  </Stack>
-                )}
-
-                {/* Location error */}
-                {locationError && (
-                  <Alert
-                    severity="warning"
-                    sx={{
-                      mt: 1.5,
-                      bgcolor: 'rgba(255,255,255,0.15)',
-                      color: 'white',
-                      '& .MuiAlert-icon': { color: '#fbbf24' },
-                      fontSize: { xs: '0.75rem', sm: '0.85rem' },
-                    }}
-                  >
-                    {locationError}
-                  </Alert>
-                )}
+                {/* Location tracking runs silently in background - no UI shown */}
               </CardContent>
             </Card>
 
