@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -147,6 +148,10 @@ const getShiftInfoFromNotes = (notes: string | undefined | null) => {
 const ShiftSwapsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
+  const highlightSwapId = (location.state as any)?.highlightSwapId as string | undefined;
+  const highlightRef = useRef<HTMLDivElement>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const { user } = useAppSelector((state) => state.auth);
   const [tabValue, setTabValue] = useState(0);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -195,6 +200,24 @@ const ShiftSwapsPage = () => {
   // Separate my requests and requests where I'm a potential responder (I work on their target date)
   const sentRequests = myRequests.filter((r) => r.requesterId === user?.id);
   const receivedRequests = myRequests.filter((r) => r.requesterId !== user?.id);
+
+  // Highlight swap from notification
+  useEffect(() => {
+    if (highlightSwapId && myRequests.length > 0) {
+      const request = myRequests.find((r) => r.id === highlightSwapId);
+      if (request) {
+        // Switch to correct tab
+        const isSent = request.requesterId === user?.id;
+        setTabValue(isSent ? 0 : 1);
+        setHighlightedId(highlightSwapId);
+        setTimeout(() => {
+          highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+        setTimeout(() => setHighlightedId(null), 4000);
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightSwapId, myRequests, user]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -347,7 +370,24 @@ const ShiftSwapsPage = () => {
     const acceptedResponse = request.responses?.find((r) => r.response === 'ACCEPTED');
 
     return (
-      <Card key={request.id} sx={{ mb: 2 }}>
+      <Card
+        key={request.id}
+        ref={request.id === highlightedId ? highlightRef : undefined}
+        sx={{
+          mb: 2,
+          transition: 'all 0.5s ease',
+          ...(request.id === highlightedId && {
+            border: '2px solid',
+            borderColor: 'primary.main',
+            boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+            animation: 'highlightPulse 1s ease-in-out 3',
+            '@keyframes highlightPulse': {
+              '0%, 100%': { boxShadow: `0 0 8px ${alpha(theme.palette.primary.main, 0.3)}` },
+              '50%': { boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.6)}` },
+            },
+          }),
+        }}
+      >
         <CardContent>
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
             <Box sx={{ flex: 1 }}>

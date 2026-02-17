@@ -116,21 +116,21 @@ const getNotificationPath = (notification: Notification, userRole?: string): { p
 
     // Shift swap notifications
     case 'SHIFT_SWAP_REQUEST':
-      return { path: isAdmin ? '/admin/shift-swaps' : '/shift-swaps' };
+      return { path: isAdmin ? '/admin/shift-swaps' : '/shift-swaps', state: { highlightSwapId: data?.swapRequestId } };
     case 'SHIFT_SWAP_RESPONSE':
     case 'SHIFT_SWAP_ACCEPTED':
     case 'SHIFT_SWAP_REJECTED':
-      return { path: '/shift-swaps' };
+      return { path: '/shift-swaps', state: { highlightSwapId: data?.swapRequestId } };
     case 'SHIFT_SWAP_APPROVED':
       return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
 
     // Leave request notifications
     case 'LEAVE_REQUEST_CREATED':
     case 'LEAVE_OVERLAP_WARNING':
-      return { path: isAdmin ? '/admin/leave-requests' : '/leave-requests' };
+      return { path: isAdmin ? '/admin/leave-requests' : '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
     case 'LEAVE_REQUEST_APPROVED':
     case 'LEAVE_REQUEST_REJECTED':
-      return { path: '/leave-requests' };
+      return { path: '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
 
     // Parking notifications - navigate to specific item
     case 'PARKING_ISSUE_ASSIGNED':

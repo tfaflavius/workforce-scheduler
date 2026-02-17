@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -106,6 +107,10 @@ const calculateDays = (start: string, end: string): number => {
 export const AdminLeaveRequestsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
+  const highlightRequestId = (location.state as any)?.highlightRequestId as string | undefined;
+  const highlightRef = useRef<HTMLDivElement>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const [tabValue, setTabValue] = useState(0);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
@@ -119,6 +124,30 @@ export const AdminLeaveRequestsPage = () => {
   const { data: allRequests = [], isLoading } = useGetAllLeaveRequestsQuery();
   const [respond, { isLoading: responding }] = useRespondToLeaveRequestMutation();
   const [checkOverlaps] = useLazyCheckOverlapsQuery();
+
+  // Auto-switch to the correct tab and highlight the request from notification
+  useEffect(() => {
+    if (highlightRequestId && allRequests.length > 0) {
+      const request = allRequests.find((r) => r.id === highlightRequestId);
+      if (request) {
+        // Switch to the correct tab based on status
+        const tabIndex = request.status === 'PENDING' ? 0 : request.status === 'APPROVED' ? 1 : 2;
+        setTabValue(tabIndex);
+        setHighlightedId(highlightRequestId);
+
+        // Scroll to the element after a short delay (to allow tab switch + render)
+        setTimeout(() => {
+          highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+
+        // Remove highlight after 3 seconds
+        setTimeout(() => setHighlightedId(null), 4000);
+      }
+
+      // Clear the navigation state so refresh doesn't re-highlight
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightRequestId, allRequests]);
 
   const pendingRequests = useMemo(
     () => allRequests.filter((r) => r.status === 'PENDING'),
@@ -335,7 +364,23 @@ export const AdminLeaveRequestsPage = () => {
       ) : (
         <Stack spacing={2}>
           {displayedRequests.map((request) => (
-            <Card key={request.id}>
+            <Card
+              key={request.id}
+              ref={request.id === highlightedId ? highlightRef : undefined}
+              sx={{
+                transition: 'all 0.5s ease',
+                ...(request.id === highlightedId && {
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+                  animation: 'highlightPulse 1s ease-in-out 3',
+                  '@keyframes highlightPulse': {
+                    '0%, 100%': { boxShadow: `0 0 8px ${alpha(theme.palette.primary.main, 0.3)}` },
+                    '50%': { boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.6)}` },
+                  },
+                }),
+              }}
+            >
               <CardContent>
                 <Stack
                   direction={{ xs: 'column', md: 'row' }}

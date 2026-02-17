@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -104,6 +105,10 @@ const formatDate = (dateStr: string) => {
 export const LeaveRequestsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
+  const highlightRequestId = (location.state as any)?.highlightRequestId as string | undefined;
+  const highlightRef = useRef<HTMLDivElement>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const { user } = useAppSelector((state) => state.auth);
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -118,6 +123,18 @@ export const LeaveRequestsPage = () => {
   const { data: balances = [], isLoading: loadingBalance } = useGetMyLeaveBalanceQuery();
   const [createRequest, { isLoading: creating, error: createError }] = useCreateLeaveRequestMutation();
   const [cancelRequest, { isLoading: canceling }] = useCancelLeaveRequestMutation();
+
+  // Highlight request from notification
+  useEffect(() => {
+    if (highlightRequestId && requests.length > 0) {
+      setHighlightedId(highlightRequestId);
+      setTimeout(() => {
+        highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+      setTimeout(() => setHighlightedId(null), 4000);
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightRequestId, requests]);
 
   const handleOpenDialog = () => {
     setLeaveType('VACATION');
@@ -446,7 +463,23 @@ export const LeaveRequestsPage = () => {
       ) : (
         <Stack spacing={2}>
           {requests.map((request) => (
-            <Card key={request.id}>
+            <Card
+              key={request.id}
+              ref={request.id === highlightedId ? highlightRef : undefined}
+              sx={{
+                transition: 'all 0.5s ease',
+                ...(request.id === highlightedId && {
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+                  animation: 'highlightPulse 1s ease-in-out 3',
+                  '@keyframes highlightPulse': {
+                    '0%, 100%': { boxShadow: `0 0 8px ${alpha(theme.palette.primary.main, 0.3)}` },
+                    '50%': { boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.6)}` },
+                  },
+                }),
+              }}
+            >
               <CardContent>
                 <Stack
                   direction={{ xs: 'column', md: 'row' }}
