@@ -249,9 +249,9 @@ const EmployeeDashboard = () => {
     try {
       setMismatchAlert(null);
       const result = await startTimerMutation().unwrap();
-      // Capture initial location
-      await captureLocation(result.id, false);
       refetchActiveTimer();
+      // Capture initial location in background (don't block start)
+      captureLocation(result.id, false).catch(() => {});
     } catch (err: any) {
       console.error('Failed to start timer:', err);
     }
@@ -261,8 +261,15 @@ const EmployeeDashboard = () => {
   const handleStopTimer = async () => {
     if (!activeTimer) return;
     try {
-      // Capture final location
-      await captureLocation(activeTimer.id, false);
+      // Try to capture final location but don't block stop (5s timeout)
+      try {
+        await Promise.race([
+          captureLocation(activeTimer.id, false),
+          new Promise((resolve) => setTimeout(resolve, 5000)),
+        ]);
+      } catch {
+        // Location capture failed - continue with stop anyway
+      }
       // Stop timer
       const result = await stopTimerMutation(activeTimer.id).unwrap();
 
