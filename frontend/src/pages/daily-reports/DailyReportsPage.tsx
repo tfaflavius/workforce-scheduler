@@ -591,6 +591,8 @@ const DailyReportsPage: React.FC = () => {
                 <Select<number | ''>
                   value={selectedDay}
                   label="Zi"
+                  displayEmpty
+                  renderValue={(val) => (val === '' ? 'Toate zilele' : val)}
                   onChange={(e) => {
                     const val = e.target.value as number | '';
                     setSelectedDay(typeof val === 'number' ? val : '');
