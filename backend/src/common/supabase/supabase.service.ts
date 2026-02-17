@@ -68,6 +68,16 @@ export class SupabaseService {
     }
   }
 
+  async resetPasswordForEmail(email: string, redirectTo: string) {
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
+
   async updateUserPassword(userId: string, newPassword: string) {
     const { error } = await this.supabase.auth.admin.updateUserById(userId, {
       password: newPassword,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -545,7 +545,24 @@ export const LoginPage = () => {
                   </Button>
                 </form>
 
-                <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <Typography
+                    component={RouterLink}
+                    to="/forgot-password"
+                    variant="body2"
+                    color="primary"
+                    sx={{
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                  >
+                    Ai uitat parola?
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
                     Nu ai cont?{' '}
                     <Typography

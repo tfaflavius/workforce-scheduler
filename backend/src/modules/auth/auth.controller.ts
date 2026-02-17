@@ -28,4 +28,16 @@ export class AuthController {
     const token = authHeader.substring(7);
     return this.authService.getMe(token);
   }
+
+  @Public()
+  @Post('forgot-password')
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Public()
+  @Post('reset-password')
+  async resetPassword(@Body() body: { accessToken: string; newPassword: string }) {
+    return this.authService.resetPassword(body.accessToken, body.newPassword);
+  }
 }

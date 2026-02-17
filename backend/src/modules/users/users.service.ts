@@ -115,6 +115,13 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
+    // Sterge din Supabase Auth (permite re-inregistrarea cu acelasi email)
+    try {
+      await this.supabaseService.deleteUser(id);
+    } catch (error) {
+      // Log but don't block - user might not exist in Supabase (e.g. created by admin directly)
+      console.warn(`Could not delete user ${id} from Supabase Auth:`, error?.message);
+    }
     await this.userRepository.remove(user);
   }
 

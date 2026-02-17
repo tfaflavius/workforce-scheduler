@@ -1,6 +1,8 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -12,6 +14,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly supabaseService: SupabaseService,
+    private readonly configService: ConfigService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -126,6 +129,45 @@ export class AuthService {
   async getMe(token: string) {
     const user = await this.validateUser(token);
     return this.sanitizeUser(user);
+  }
+
+  async forgotPassword(email: string) {
+    // Verifica daca userul exista in DB
+    const user = await this.userRepository.findOne({ where: { email } });
+    // Nu dezvăluim dacă emailul există sau nu (securitate)
+    if (!user) {
+      return { message: 'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.' };
+    }
+
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
+    try {
+      await this.supabaseService.resetPasswordForEmail(email, `${frontendUrl}/reset-password`);
+    } catch (error) {
+      console.error('Error sending password reset email:', error?.message);
+    }
+
+    return { message: 'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.' };
+  }
+
+  async resetPassword(accessToken: string, newPassword: string) {
+    // Verificam token-ul cu Supabase
+    try {
+      const supabaseUser = await this.supabaseService.getUser(accessToken);
+
+      // Update password in Supabase
+      await this.supabaseService.updateUserPassword(supabaseUser.id, newPassword);
+
+      // Update hashed password in local DB
+      const user = await this.userRepository.findOne({ where: { id: supabaseUser.id } });
+      if (user) {
+        user.password = await bcrypt.hash(newPassword, 10);
+        await this.userRepository.save(user);
+      }
+
+      return { message: 'Parola a fost resetata cu succes!' };
+    } catch (error) {
+      throw new BadRequestException('Link-ul de resetare a expirat sau este invalid. Te rugam sa soliciti un nou link.');
+    }
   }
 
   private sanitizeUser(user: User) {
