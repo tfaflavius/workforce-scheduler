@@ -1112,12 +1112,12 @@ const SchedulesPage: React.FC = () => {
                                   let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
 
                                   if (existingAssignments && existingAssignments.length > 0) {
-                                    const firstAssignment = existingAssignments[0];
-                                    const shiftInfo = getExistingShiftInfo(firstAssignment.notes);
-                                    const workPos = firstAssignment.workPosition;
-                                    cellBgColor = shiftInfo.color;
-
                                     if (existingAssignments.length === 1) {
+                                      const firstAssignment = existingAssignments[0];
+                                      const shiftInfo = getExistingShiftInfo(firstAssignment.notes);
+                                      const workPos = firstAssignment.workPosition;
+                                      cellBgColor = shiftInfo.color;
+
                                       cellContent = (
                                         <Box>
                                           <Typography sx={{ fontSize: '0.6rem', fontWeight: 'bold', lineHeight: 1.2 }}>
@@ -1139,18 +1139,34 @@ const SchedulesPage: React.FC = () => {
                                         </Box>
                                       );
                                     } else {
-                                      // Multiple assignments on same day - show stacked
+                                      // Multiple assignments on same day - split cell in half vertically
+                                      cellBgColor = 'transparent';
                                       cellContent = (
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.1 }}>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', mx: -0.2, my: -0.2 }}>
                                           {existingAssignments.map((a, i) => {
                                             const si = getExistingShiftInfo(a.notes);
                                             return (
-                                              <Box key={i} sx={{ bgcolor: i > 0 ? si.color : undefined, borderRadius: 0.3, px: 0.1 }}>
-                                                <Typography sx={{ fontSize: '0.5rem', fontWeight: 'bold', lineHeight: 1.1 }}>
+                                              <Box
+                                                key={i}
+                                                sx={{
+                                                  bgcolor: si.color,
+                                                  color: 'white',
+                                                  py: 0.15,
+                                                  px: 0.2,
+                                                  display: 'flex',
+                                                  flexDirection: 'column',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'center',
+                                                  borderTop: i > 0 ? '1px solid rgba(255,255,255,0.5)' : 'none',
+                                                  flex: 1,
+                                                  minHeight: 16,
+                                                }}
+                                              >
+                                                <Typography sx={{ fontSize: '0.55rem', fontWeight: 'bold', lineHeight: 1, color: 'white' }}>
                                                   {si.label}
                                                 </Typography>
                                                 {a.workPosition && (
-                                                  <Typography sx={{ fontSize: '0.4rem', fontWeight: 'bold', lineHeight: 1, opacity: 0.9 }}>
+                                                  <Typography sx={{ fontSize: '0.4rem', fontWeight: 'bold', lineHeight: 1, opacity: 0.9, color: 'white' }}>
                                                     {a.workPosition.shortName || a.workPosition.name?.substring(0, 4)}
                                                   </Typography>
                                                 )}
@@ -1162,12 +1178,14 @@ const SchedulesPage: React.FC = () => {
                                     }
                                   }
 
+                                  const isMultipleAssignments = existingAssignments && existingAssignments.length > 1;
+
                                   return (
                                     <TableCell
                                       key={date}
                                       align="center"
                                       sx={{
-                                        p: 0.2,
+                                        p: isMultipleAssignments ? 0 : 0.2,
                                         bgcolor: cellBgColor,
                                         color: existingAssignments ? 'white' : 'text.secondary',
                                         fontWeight: 'bold',
