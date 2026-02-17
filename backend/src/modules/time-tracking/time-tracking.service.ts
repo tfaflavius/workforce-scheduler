@@ -292,4 +292,117 @@ export class TimeTrackingService {
       order: { recordedAt: 'ASC' },
     });
   }
+
+  // ===== ADMIN METHODS =====
+
+  async getAdminActiveTimers(): Promise<TimeEntry[]> {
+    return this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
+      .leftJoinAndSelect('entry.locationLogs', 'logs')
+      .where('entry.end_time IS NULL')
+      .andWhere('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .orderBy('entry.start_time', 'ASC')
+      .addOrderBy('logs.recorded_at', 'DESC')
+      .getMany();
+  }
+
+  async getAdminAllEntries(filters?: {
+    startDate?: Date;
+    endDate?: Date;
+    userId?: string;
+  }): Promise<TimeEntry[]> {
+    const query = this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
+      .leftJoinAndSelect('entry.locationLogs', 'logs')
+      .where('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .orderBy('entry.start_time', 'DESC');
+
+    if (filters?.startDate) {
+      query.andWhere('entry.start_time >= :startDate', { startDate: filters.startDate });
+    }
+    if (filters?.endDate) {
+      query.andWhere('entry.start_time <= :endDate', { endDate: filters.endDate });
+    }
+    if (filters?.userId) {
+      query.andWhere('entry.user_id = :userId', { userId: filters.userId });
+    }
+
+    return query.getMany();
+  }
+
+  async getAdminLocationLogs(timeEntryId: string): Promise<LocationLog[]> {
+    const entry = await this.timeEntryRepository.findOne({
+      where: { id: timeEntryId },
+    });
+    if (!entry) {
+      throw new NotFoundException('Time entry not found');
+    }
+
+    return this.locationLogRepository.find({
+      where: { timeEntryId },
+      order: { recordedAt: 'ASC' },
+    });
+  }
+
+  async getAdminDepartmentUsers(): Promise<User[]> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.department', 'department')
+      .where('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .andWhere('user.is_active = true')
+      .orderBy('user.full_name', 'ASC')
+      .getMany();
+  }
+
+  async getAdminStats(): Promise<{ activeCount: number; totalHoursToday: number; locationLogsToday: number }> {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+    // Active timers count
+    const activeCount = await this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoin('entry.user', 'user')
+      .leftJoin('user.department', 'department')
+      .where('entry.end_time IS NULL')
+      .andWhere('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .getCount();
+
+    // Total hours today (completed entries)
+    const completedToday = await this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoin('entry.user', 'user')
+      .leftJoin('user.department', 'department')
+      .where('entry.start_time >= :startOfDay', { startOfDay })
+      .andWhere('entry.start_time < :endOfDay', { endOfDay })
+      .andWhere('entry.duration_minutes IS NOT NULL')
+      .andWhere('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .select('SUM(entry.duration_minutes)', 'totalMinutes')
+      .getRawOne();
+
+    const totalHoursToday = Math.round(((completedToday?.totalMinutes || 0) / 60) * 100) / 100;
+
+    // Location logs today
+    const locationLogsToday = await this.locationLogRepository
+      .createQueryBuilder('log')
+      .where('log.recorded_at >= :startOfDay', { startOfDay })
+      .andWhere('log.recorded_at < :endOfDay', { endOfDay })
+      .getCount();
+
+    return { activeCount, totalHoursToday, locationLogsToday };
+  }
 }

@@ -61,3 +61,48 @@ export interface GetTimeEntriesFilters {
   endDate?: string;
   taskId?: string;
 }
+
+// ===== ADMIN TYPES =====
+
+export interface AdminTimeEntry extends TimeEntry {
+  user?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    fullName?: string;
+    department?: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
+export interface AdminActiveTimer extends AdminTimeEntry {
+  locationLogs?: LocationLog[];
+}
+
+export interface AdminTimeTrackingStats {
+  activeCount: number;
+  totalHoursToday: number;
+  locationLogsToday: number;
+}
+
+export interface AdminTimeEntriesFilters {
+  startDate?: string;
+  endDate?: string;
+  userId?: string;
+}
+
+export interface AdminDepartmentUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  isActive: boolean;
+  department?: {
+    id: string;
+    name: string;
+  };
+}

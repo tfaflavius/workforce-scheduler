@@ -12,11 +12,62 @@ import { TimeTrackingService } from './time-tracking.service';
 import { StartTimerDto } from './dto/start-timer.dto';
 import { RecordLocationDto } from './dto/record-location.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/entities/user.entity';
 
 @Controller('time-tracking')
 @UseGuards(JwtAuthGuard)
 export class TimeTrackingController {
   constructor(private readonly timeTrackingService: TimeTrackingService) {}
+
+  // ===== ADMIN ENDPOINTS (before parametric routes) =====
+
+  @Get('admin/active')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminActiveTimers() {
+    return this.timeTrackingService.getAdminActiveTimers();
+  }
+
+  @Get('admin/entries')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminAllEntries(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('userId') userId?: string,
+  ) {
+    const filters = {
+      ...(startDate && { startDate: new Date(startDate) }),
+      ...(endDate && { endDate: new Date(endDate) }),
+      ...(userId && { userId }),
+    };
+    return this.timeTrackingService.getAdminAllEntries(filters);
+  }
+
+  @Get('admin/users')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminDepartmentUsers() {
+    return this.timeTrackingService.getAdminDepartmentUsers();
+  }
+
+  @Get('admin/stats')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminStats() {
+    return this.timeTrackingService.getAdminStats();
+  }
+
+  @Get('admin/entries/:id/locations')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminLocationLogs(@Param('id') id: string) {
+    return this.timeTrackingService.getAdminLocationLogs(id);
+  }
+
+  // ===== USER ENDPOINTS =====
 
   @Post('start')
   startTimer(@Body() startTimerDto: StartTimerDto, @Request() req) {

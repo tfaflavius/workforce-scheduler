@@ -7,6 +7,11 @@ import type {
   StopTimerResponse,
   RecordLocationRequest,
   GetTimeEntriesFilters,
+  AdminActiveTimer,
+  AdminTimeEntry,
+  AdminTimeTrackingStats,
+  AdminTimeEntriesFilters,
+  AdminDepartmentUser,
 } from '../../types/time-tracking.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -23,7 +28,7 @@ export const timeTrackingApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['TimeEntry', 'ActiveTimer', 'LocationLog'],
+  tagTypes: ['TimeEntry', 'ActiveTimer', 'LocationLog', 'AdminActiveTimer', 'AdminTimeEntry', 'AdminStats', 'AdminUsers'],
   endpoints: (builder) => ({
     startTimer: builder.mutation<TimeEntry, StartTimerRequest | void>({
       query: (body = {}) => ({
@@ -87,6 +92,41 @@ export const timeTrackingApi = createApi({
             ]
           : [{ type: 'LocationLog', id: timeEntryId }],
     }),
+
+    // ===== ADMIN ENDPOINTS =====
+
+    getAdminActiveTimers: builder.query<AdminActiveTimer[], void>({
+      query: () => '/time-tracking/admin/active',
+      providesTags: ['AdminActiveTimer'],
+    }),
+
+    getAdminTimeEntries: builder.query<AdminTimeEntry[], AdminTimeEntriesFilters | void>({
+      query: (filters) => {
+        const params = new URLSearchParams();
+        if (filters?.startDate) params.append('startDate', filters.startDate);
+        if (filters?.endDate) params.append('endDate', filters.endDate);
+        if (filters?.userId) params.append('userId', filters.userId);
+        return `/time-tracking/admin/entries?${params.toString()}`;
+      },
+      providesTags: ['AdminTimeEntry'],
+    }),
+
+    getAdminEntryLocations: builder.query<LocationLog[], string>({
+      query: (timeEntryId) => `/time-tracking/admin/entries/${timeEntryId}/locations`,
+      providesTags: (_result, _error, timeEntryId) => [
+        { type: 'LocationLog', id: `admin-${timeEntryId}` },
+      ],
+    }),
+
+    getAdminDepartmentUsers: builder.query<AdminDepartmentUser[], void>({
+      query: () => '/time-tracking/admin/users',
+      providesTags: ['AdminUsers'],
+    }),
+
+    getAdminTimeTrackingStats: builder.query<AdminTimeTrackingStats, void>({
+      query: () => '/time-tracking/admin/stats',
+      providesTags: ['AdminStats'],
+    }),
   }),
 });
 
@@ -97,4 +137,10 @@ export const {
   useGetTimeEntriesQuery,
   useRecordLocationMutation,
   useGetLocationHistoryQuery,
+  // Admin hooks
+  useGetAdminActiveTimersQuery,
+  useGetAdminTimeEntriesQuery,
+  useGetAdminEntryLocationsQuery,
+  useGetAdminDepartmentUsersQuery,
+  useGetAdminTimeTrackingStatsQuery,
 } = timeTrackingApi;

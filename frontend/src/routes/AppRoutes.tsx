@@ -22,6 +22,7 @@ import HandicapParkingPage from '../pages/parking/HandicapParkingPage';
 import DomiciliuParkingPage from '../pages/parking/DomiciliuParkingPage';
 import DailyReportsPage from '../pages/daily-reports/DailyReportsPage';
 import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
+import AdminTimeTrackingPage from '../pages/time-tracking/AdminTimeTrackingPage';
 import ProcesVerbalePage from '../pages/departments/ProcesVerbalePage';
 import ParcometrePage from '../pages/departments/ParcometrePage';
 import AchizitiiPage from '../pages/departments/AchizitiiPage';
@@ -169,6 +170,16 @@ export const AppRoutes = () => {
 
         {/* Domiciliu Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
         <Route path="/parking/domiciliu" element={<DomiciliuParkingPage />} />
+
+        {/* Admin Time Tracking */}
+        <Route
+          path="/admin/pontaj"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AdminTimeTrackingPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin Edit Requests */}
         <Route
