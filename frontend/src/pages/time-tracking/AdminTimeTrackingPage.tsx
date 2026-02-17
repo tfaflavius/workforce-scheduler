@@ -119,9 +119,8 @@ const AdminTimeTrackingPage: React.FC = () => {
   // ===== REAL-TIME TAB DATA =====
 
   // Combine active timers + inactive users
-  const activeUserIds = new Set(activeTimers.map(t => t.userId));
-
   const realTimeRows = useMemo(() => {
+    const activeUserIds = new Set(activeTimers.map(t => t.userId));
     const rows: Array<{
       userId: string;
       name: string;
@@ -163,7 +162,7 @@ const AdminTimeTrackingPage: React.FC = () => {
     });
 
     return rows;
-  }, [activeTimers, departmentUsers, activeUserIds]);
+  }, [activeTimers, departmentUsers]);
 
   // Markers for active users on map
   const activeMarkers: EmployeeMarker[] = useMemo(() => {

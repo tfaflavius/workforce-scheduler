@@ -222,7 +222,10 @@ export class TimeTrackingService {
     }
 
     if (filters?.endDate) {
-      query.andWhere('entry.start_time <= :endDate', { endDate: filters.endDate });
+      // Ensure endDate includes the entire day (set to end of day)
+      const endOfDay = new Date(filters.endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      query.andWhere('entry.start_time <= :endDate', { endDate: endOfDay });
     }
 
     if (filters?.taskId) {
@@ -329,7 +332,10 @@ export class TimeTrackingService {
       query.andWhere('entry.start_time >= :startDate', { startDate: filters.startDate });
     }
     if (filters?.endDate) {
-      query.andWhere('entry.start_time <= :endDate', { endDate: filters.endDate });
+      // Ensure endDate includes the entire day (set to end of day)
+      const endOfDay = new Date(filters.endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      query.andWhere('entry.start_time <= :endDate', { endDate: endOfDay });
     }
     if (filters?.userId) {
       query.andWhere('entry.user_id = :userId', { userId: filters.userId });
