@@ -536,13 +536,24 @@ export class ShiftSwapsService {
     userId: string,
     date: string,
   ): Promise<ScheduleAssignment | null> {
-    return this.assignmentRepository.findOne({
+    // Un user poate avea mai multe assignment-uri pe aceeasi zi (ex: Dispecerat + Control).
+    // Swap-urile se fac pe tura de Dispecerat, deci prioritizam assignment-ul DISP.
+    const assignments = await this.assignmentRepository.find({
       where: {
         userId,
         shiftDate: new Date(date),
       },
       relations: ['shiftType', 'workPosition', 'schedule'],
     });
+
+    if (assignments.length === 0) return null;
+    if (assignments.length === 1) return assignments[0];
+
+    // Daca sunt mai multe, returneaza assignment-ul de Dispecerat (DISP)
+    const dispAssignment = assignments.find(
+      a => a.workPosition?.shortName === 'DISP',
+    );
+    return dispAssignment || assignments[0];
   }
 
   private async findAnyAssignmentForDate(date: string): Promise<ScheduleAssignment | null> {
