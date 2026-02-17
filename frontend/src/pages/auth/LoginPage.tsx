@@ -29,6 +29,8 @@ import {
   Person as PersonIcon,
   Phone as PhoneIcon,
   CheckCircle as SuccessIcon,
+  SwapHoriz as SwapHorizIcon,
+  BeachAccess as BeachAccessIcon,
 } from '@mui/icons-material';
 import { useAppDispatch } from '../../store/hooks';
 import { setCredentials } from '../../store/slices/auth.slice';
@@ -197,6 +199,7 @@ export const LoginPage = () => {
           borderRadius: '50%',
           background: 'rgba(255, 255, 255, 0.03)',
           animation: 'float 8s ease-in-out infinite reverse',
+          animationDelay: '2s',
         }}
       />
       <Box
@@ -209,6 +212,7 @@ export const LoginPage = () => {
           borderRadius: '50%',
           background: 'rgba(255, 255, 255, 0.04)',
           animation: 'float 7s ease-in-out infinite',
+          animationDelay: '4s',
           display: { xs: 'none', md: 'block' },
         }}
       />
@@ -309,47 +313,41 @@ export const LoginPage = () => {
                 </Typography>
               </Fade>
 
-              {/* Stats */}
+              {/* Feature Highlights */}
               <Grow in={true} timeout={1600}>
                 <Box sx={{ mt: { sm: 5, md: 6 }, display: { xs: 'none', sm: 'block' } }}>
                   <Stack
                     direction="row"
-                    spacing={{ sm: 2, md: 4 }}
+                    spacing={{ sm: 2, md: 3 }}
                     justifyContent="center"
                     flexWrap="wrap"
                   >
                     {[
-                      { value: '100+', label: 'Angajati' },
-                      { value: '50+', label: 'Programe/Luna' },
-                      { value: '99%', label: 'Satisfactie' },
-                    ].map((stat) => (
+                      { icon: <CalendarIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Programare' },
+                      { icon: <SwapHorizIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Schimburi' },
+                      { icon: <BeachAccessIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Concedii' },
+                    ].map((feature) => (
                       <Box
-                        key={stat.label}
+                        key={feature.label}
                         sx={{
                           textAlign: 'center',
-                          p: { sm: 2, md: 3 },
+                          p: { sm: 2, md: 2.5 },
                           borderRadius: 3,
                           bgcolor: 'rgba(255,255,255,0.1)',
                           backdropFilter: 'blur(10px)',
                           minWidth: { sm: 100, md: 120 },
-                          transition: 'transform 0.3s ease',
+                          transition: 'all 0.3s ease',
                           '&:hover': {
                             transform: 'translateY(-4px)',
+                            bgcolor: 'rgba(255,255,255,0.15)',
                           },
                         }}
                       >
-                        <Typography
-                          variant="h3"
-                          fontWeight="bold"
-                          sx={{
-                            fontSize: { sm: '1.75rem', md: '2.25rem', lg: '2.75rem' },
-                            mb: 0.5,
-                          }}
-                        >
-                          {stat.value}
-                        </Typography>
-                        <Typography variant="body2" sx={{ opacity: 0.85, fontWeight: 500 }}>
-                          {stat.label}
+                        <Box sx={{ mb: 1, opacity: 0.9 }}>
+                          {feature.icon}
+                        </Box>
+                        <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 600, fontSize: { sm: '0.85rem', md: '0.95rem' } }}>
+                          {feature.label}
                         </Typography>
                       </Box>
                     ))}

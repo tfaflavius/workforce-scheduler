@@ -432,59 +432,129 @@ export const MainLayout = () => {
           },
         }}
       >
-        {filteredMenuItems.map((item, index) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Fade in={true} key={item.path} style={{ transitionDelay: `${index * 30}ms` }}>
-              <ListItem disablePadding sx={{ py: 0.25 }}>
-                <ListItemButton
-                  onClick={() => handleNavigate(item.path)}
-                  sx={{
-                    borderRadius: 2,
-                    mx: 0.5,
-                    py: { xs: 1, sm: 1.25 },
-                    px: { xs: 1.5, sm: 2 },
-                    bgcolor: isActive
-                      ? 'primary.main'
-                      : 'transparent',
-                    color: isActive ? 'white' : 'text.primary',
-                    boxShadow: isActive ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      bgcolor: isActive
-                        ? 'primary.dark'
-                        : alpha(theme.palette.primary.main, 0.08),
-                      transform: 'translateX(4px)',
-                    },
-                    '&:active': {
-                      transform: 'translateX(2px)',
-                    },
-                  }}
-                >
-                  <ListItemIcon
-                    sx={{
-                      color: isActive ? 'white' : 'text.secondary',
-                      minWidth: { xs: 36, sm: 40 },
-                      '& .MuiSvgIcon-root': {
-                        fontSize: { xs: '1.25rem', sm: '1.4rem' },
-                      },
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{
-                      fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                      fontWeight: isActive ? 600 : 500,
-                      noWrap: true,
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            </Fade>
-          );
-        })}
+        {(() => {
+          // Define sections with labels and accent colors
+          const sections: { label: string; paths: string[]; color: string }[] = [
+            { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: '#2563eb' },
+            { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: '#06b6d4' },
+            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/reports', '/users'], color: '#7c3aed' },
+            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre'], color: '#10b981' },
+            { label: 'Departamente', paths: ['/achizitii', '/incasari-cheltuieli'], color: '#f59e0b' },
+          ];
+
+          // Group filtered menu items into sections
+          const groupedItems: { label: string; color: string; items: typeof filteredMenuItems }[] = [];
+          const usedPaths = new Set<string>();
+
+          sections.forEach((section) => {
+            const sectionItems = filteredMenuItems.filter(
+              (item) => section.paths.includes(item.path) && !usedPaths.has(item.path)
+            );
+            if (sectionItems.length > 0) {
+              sectionItems.forEach((item) => usedPaths.add(item.path));
+              groupedItems.push({ label: section.label, color: section.color, items: sectionItems });
+            }
+          });
+
+          // Any remaining items not in a section
+          const remaining = filteredMenuItems.filter((item) => !usedPaths.has(item.path));
+          if (remaining.length > 0) {
+            groupedItems.push({ label: 'Altele', color: '#64748b', items: remaining });
+          }
+
+          let globalIndex = 0;
+
+          return groupedItems.map((group, groupIdx) => (
+            <Box key={group.label}>
+              {groupIdx > 0 && <Divider sx={{ my: 1, mx: 1, opacity: 0.4 }} />}
+              <Typography
+                variant="caption"
+                sx={{
+                  px: 2,
+                  py: 0.75,
+                  display: 'block',
+                  fontWeight: 700,
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: alpha(group.color, 0.8),
+                }}
+              >
+                {group.label}
+              </Typography>
+              {group.items.map((item) => {
+                const isActive = location.pathname === item.path;
+                const idx = globalIndex++;
+                return (
+                  <Fade in={true} key={item.path} style={{ transitionDelay: `${idx * 30}ms` }}>
+                    <ListItem disablePadding sx={{ py: 0.25 }}>
+                      <ListItemButton
+                        onClick={() => handleNavigate(item.path)}
+                        sx={{
+                          borderRadius: 2,
+                          mx: 0.5,
+                          py: { xs: 1, sm: 1.25 },
+                          px: { xs: 1.5, sm: 2 },
+                          bgcolor: isActive
+                            ? alpha(group.color, 0.1)
+                            : 'transparent',
+                          color: isActive ? 'text.primary' : 'text.primary',
+                          borderLeft: isActive ? `3px solid ${group.color}` : '3px solid transparent',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            bgcolor: isActive
+                              ? alpha(group.color, 0.15)
+                              : alpha(theme.palette.primary.main, 0.06),
+                            transform: 'translateX(4px)',
+                          },
+                          '&:active': {
+                            transform: 'translateX(2px)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon
+                          sx={{
+                            color: isActive ? group.color : 'text.secondary',
+                            minWidth: { xs: 36, sm: 40 },
+                            position: 'relative',
+                            '& .MuiSvgIcon-root': {
+                              fontSize: { xs: '1.25rem', sm: '1.4rem' },
+                            },
+                          }}
+                        >
+                          {item.icon}
+                          {/* Section color dot */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: -2,
+                              right: { xs: 10, sm: 12 },
+                              width: 6,
+                              height: 6,
+                              borderRadius: '50%',
+                              bgcolor: group.color,
+                              opacity: isActive ? 1 : 0.4,
+                              transition: 'opacity 0.2s ease',
+                            }}
+                          />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={item.text}
+                          primaryTypographyProps={{
+                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                            fontWeight: isActive ? 700 : 500,
+                            noWrap: true,
+                            color: isActive ? group.color : 'text.primary',
+                          }}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  </Fade>
+                );
+              })}
+            </Box>
+          ));
+        })()}
       </List>
 
       <Divider sx={{ opacity: 0.6 }} />

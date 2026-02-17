@@ -45,121 +45,8 @@ import {
   useGetUrgentDamagesQuery,
   useGetCashCollectionTotalsQuery,
 } from '../../store/api/parking.api';
-
-interface StatCardProps {
-  title: string;
-  value: number | string;
-  subtitle?: string;
-  icon: React.ReactNode;
-  color: string;
-  bgColor: string;
-  onClick?: () => void;
-  delay?: number;
-  urgent?: boolean;
-}
-
-const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick, delay = 0, urgent }: StatCardProps) => {
-  const theme = useTheme();
-
-  return (
-    <Grow in={true} timeout={500 + delay}>
-      <Card
-        sx={{
-          cursor: onClick ? 'pointer' : 'default',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          height: '100%',
-          position: 'relative',
-          overflow: 'hidden',
-          border: urgent ? `2px solid ${color}` : 'none',
-          '&:hover': onClick ? {
-            transform: 'translateY(-6px)',
-            boxShadow: theme.palette.mode === 'light'
-              ? `0 12px 28px ${alpha(color, 0.25)}`
-              : `0 12px 28px ${alpha(color, 0.4)}`,
-          } : {},
-          '&::before': urgent ? {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 4,
-            background: color,
-          } : {},
-        }}
-        onClick={onClick}
-      >
-        {/* Background decoration */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -30,
-            right: -30,
-            width: 100,
-            height: 100,
-            borderRadius: '50%',
-            background: alpha(color, 0.08),
-          }}
-        />
-        <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, position: 'relative' }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                sx={{
-                  fontWeight: 600,
-                  fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
-                  letterSpacing: '0.5px',
-                }}
-              >
-                {title}
-              </Typography>
-              <Typography
-                variant="h3"
-                sx={{
-                  color,
-                  fontWeight: 800,
-                  my: 0.5,
-                  fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' },
-                  lineHeight: 1,
-                }}
-              >
-                {value}
-              </Typography>
-              {subtitle && (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{
-                    fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-                    mt: 0.5,
-                  }}
-                >
-                  {subtitle}
-                </Typography>
-              )}
-            </Box>
-            <Box
-              sx={{
-                p: { xs: 1.25, sm: 1.5, md: 2 },
-                borderRadius: { xs: 2, sm: 2.5, md: 3 },
-                bgcolor: bgColor,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: `0 4px 14px ${alpha(color, 0.25)}`,
-              }}
-            >
-              {icon}
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Grow>
-  );
-};
+import { GradientHeader } from '../../components/common/GradientHeader';
+import { StatCard } from '../../components/common/StatCard';
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -198,80 +85,12 @@ const ManagerDashboard = () => {
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
       {/* Header */}
-      <Fade in={true} timeout={600}>
-        <Box
-          sx={{
-            mb: { xs: 2.5, sm: 3, md: 4 },
-            p: { xs: 2.5, sm: 3, md: 4 },
-            borderRadius: { xs: 2, sm: 3 },
-            background: theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, #059669 0%, #0891b2 100%)'
-              : 'linear-gradient(135deg, #047857 0%, #0e7490 100%)',
-            color: 'white',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 8px 32px rgba(5, 150, 105, 0.3)',
-          }}
-        >
-          {/* Background decorations */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: -60,
-              right: -60,
-              width: 200,
-              height: 200,
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.1)',
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: -40,
-              left: -40,
-              width: 120,
-              height: 120,
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.05)',
-            }}
-          />
-
-          <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'relative' }}>
-            <Box
-              sx={{
-                p: { xs: 1.5, sm: 2 },
-                borderRadius: 2,
-                bgcolor: 'rgba(255,255,255,0.15)',
-                display: { xs: 'none', sm: 'flex' },
-              }}
-            >
-              <GroupsIcon sx={{ fontSize: { sm: 32, md: 40 } }} />
-            </Box>
-            <Box>
-              <Typography
-                variant="h4"
-                fontWeight="bold"
-                sx={{
-                  fontSize: { xs: '1.35rem', sm: '1.5rem', md: '1.85rem' },
-                  mb: 0.5,
-                }}
-              >
-                Dashboard Manager
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  opacity: 0.9,
-                  fontSize: { xs: '0.8rem', sm: '0.875rem', md: '1rem' }
-                }}
-              >
-                Gestioneaza programele de lucru ale echipei tale
-              </Typography>
-            </Box>
-          </Stack>
-        </Box>
-      </Fade>
+      <GradientHeader
+        title="Dashboard Manager"
+        subtitle="Gestioneaza programele de lucru ale echipei tale"
+        icon={<GroupsIcon />}
+        gradient="#059669 0%, #0891b2 100%"
+      />
 
       {/* Alert for rejected schedules */}
       {myRejected.length > 0 && (

@@ -61,6 +61,7 @@ import {
 } from '../../store/api/time-tracking.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
+import { StatCard } from '../../components/common/StatCard';
 
 // Departament cu acces la Handicap stats
 const HANDICAP_DEPARTMENT_NAME = 'Parcari Handicap';
@@ -68,107 +69,6 @@ const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
 
 // GPS tracking interval (15 minutes)
 const LOCATION_TRACKING_INTERVAL_MS = 15 * 60 * 1000;
-
-// StatCard component pentru sectiunea Handicap
-interface StatCardProps {
-  title: string;
-  value: number | string;
-  subtitle?: string;
-  icon: React.ReactNode;
-  color: string;
-  bgColor: string;
-  onClick?: () => void;
-  delay?: number;
-}
-
-const StatCard = ({ title, value, subtitle, icon, color, bgColor, onClick, delay = 0 }: StatCardProps) => {
-  const theme = useTheme();
-
-  return (
-    <Grow in={true} timeout={500 + delay}>
-      <Card
-        sx={{
-          cursor: onClick ? 'pointer' : 'default',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          height: '100%',
-          position: 'relative',
-          overflow: 'hidden',
-          '&:hover': onClick ? {
-            transform: 'translateY(-4px)',
-            boxShadow: theme.palette.mode === 'light'
-              ? `0 8px 20px ${alpha(color, 0.2)}`
-              : `0 8px 20px ${alpha(color, 0.35)}`,
-          } : {},
-        }}
-        onClick={onClick}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 70,
-            height: 70,
-            borderRadius: '50%',
-            background: alpha(color, 0.08),
-          }}
-        />
-        <CardContent sx={{ p: { xs: 1.5, sm: 2 }, position: 'relative' }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography
-                variant="overline"
-                color="text.secondary"
-                sx={{
-                  fontWeight: 600,
-                  fontSize: { xs: '0.55rem', sm: '0.65rem' },
-                  letterSpacing: '0.5px',
-                }}
-              >
-                {title}
-              </Typography>
-              <Typography
-                variant="h4"
-                sx={{
-                  color,
-                  fontWeight: 800,
-                  my: 0.25,
-                  fontSize: { xs: '1.5rem', sm: '1.75rem' },
-                  lineHeight: 1,
-                }}
-              >
-                {value}
-              </Typography>
-              {subtitle && (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
-                >
-                  {subtitle}
-                </Typography>
-              )}
-            </Box>
-            <Box
-              sx={{
-                p: { xs: 1, sm: 1.25 },
-                borderRadius: 2,
-                bgcolor: bgColor,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: `0 2px 8px ${alpha(color, 0.2)}`,
-              }}
-            >
-              {icon}
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Grow>
-  );
-};
 
 // Helper: format seconds to HH:MM:SS
 const formatElapsed = (totalSeconds: number): string => {

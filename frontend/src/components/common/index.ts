@@ -35,3 +35,7 @@ export type { FriendlyButtonProps, ButtonVariantExtended } from './FriendlyButto
 
 export { FriendlyAutocomplete } from './FriendlyAutocomplete';
 export type { FriendlyAutocompleteProps, AutocompleteOption } from './FriendlyAutocomplete';
+
+// Skeleton Components
+export { DashboardSkeleton } from './DashboardSkeleton';
+export { TableSkeleton } from './TableSkeleton';

@@ -68,8 +68,55 @@ export const ForgotPasswordPage = () => {
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%)',
         p: 2,
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Animated background shapes */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '10%',
+          left: '8%',
+          width: { xs: 80, sm: 120, md: 160 },
+          height: { xs: 80, sm: 120, md: 160 },
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.05)',
+          animation: 'float 6s ease-in-out infinite',
+          '@keyframes float': {
+            '0%, 100%': { transform: 'translateY(0)' },
+            '50%': { transform: 'translateY(-20px)' },
+          },
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: '12%',
+          right: '8%',
+          width: { xs: 60, sm: 100, md: 130 },
+          height: { xs: 60, sm: 100, md: 130 },
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.03)',
+          animation: 'float 8s ease-in-out infinite reverse',
+          animationDelay: '2s',
+        }}
+      />
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          right: '25%',
+          width: { xs: 40, sm: 60, md: 80 },
+          height: { xs: 40, sm: 60, md: 80 },
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.04)',
+          animation: 'float 7s ease-in-out infinite',
+          animationDelay: '4s',
+          display: { xs: 'none', md: 'block' },
+        }}
+      />
+
       <Grow in={true} timeout={600}>
         <Paper
           elevation={16}
@@ -79,6 +126,8 @@ export const ForgotPasswordPage = () => {
             p: { xs: 3, sm: 4 },
             borderRadius: 4,
             bgcolor: theme.palette.mode === 'light' ? 'white' : alpha('#1e293b', 0.95),
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           <Box sx={{ textAlign: 'center', mb: 3 }}>
@@ -150,6 +199,16 @@ export const ForgotPasswordPage = () => {
                   textTransform: 'none',
                   borderRadius: 2.5,
                   background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                    boxShadow: '0 6px 20px rgba(37, 99, 235, 0.5)',
+                    transform: 'translateY(-2px)',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                  },
                   mb: 2,
                 }}
               >
