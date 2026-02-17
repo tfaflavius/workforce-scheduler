@@ -141,20 +141,6 @@ const DailyReportsPage: React.FC = () => {
     return options;
   }, []);
 
-  // Generate days for selected month
-  const dayOptions = useMemo(() => {
-    const { year, month } = selectedMonth;
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date();
-    const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
-    const days: { day: number; disabled: boolean }[] = [];
-    for (let d = 1; d <= daysInMonth; d++) {
-      const isFuture = isCurrentMonth && d > today.getDate();
-      days.push({ day: d, disabled: isFuture });
-    }
-    return days;
-  }, [selectedMonth]);
-
   // Derive filterDateRange from selectedMonth + selectedDay
   const filterDateRange = useMemo(() => {
     const { year, month } = selectedMonth;
@@ -672,7 +658,7 @@ const DailyReportsPage: React.FC = () => {
                   key={idx}
                   onClick={() => {
                     if (cell.day && !cell.isFuture) {
-                      setSelectedDay(cell.day === selectedDay ? '' : cell.day);
+                      setSelectedDay(selectedDay !== '' && cell.day === selectedDay ? '' : cell.day);
                     }
                   }}
                   sx={{
@@ -684,13 +670,13 @@ const DailyReportsPage: React.FC = () => {
                     userSelect: 'none',
                     transition: 'all 0.15s',
                     bgcolor:
-                      cell.day === selectedDay && selectedDay !== ''
+                      selectedDay !== '' && cell.day === selectedDay
                         ? 'primary.main'
                         : cell.isToday
                           ? 'primary.50'
                           : 'transparent',
                     color:
-                      cell.day === selectedDay && selectedDay !== ''
+                      selectedDay !== '' && cell.day === selectedDay
                         ? 'white'
                         : cell.isFuture
                           ? 'text.disabled'
@@ -699,12 +685,12 @@ const DailyReportsPage: React.FC = () => {
                             : 'transparent',
                     border: cell.isToday ? '2px solid' : '2px solid transparent',
                     borderColor: cell.isToday ? 'primary.main' : 'transparent',
-                    fontWeight: cell.isToday || (cell.day === selectedDay && selectedDay !== '') ? 700 : 400,
+                    fontWeight: cell.isToday || (selectedDay !== '' && cell.day === selectedDay) ? 700 : 400,
                     fontSize: { xs: '0.8rem', sm: '0.9rem' },
                     '&:hover': cell.day && !cell.isFuture
                       ? {
                           bgcolor:
-                            cell.day === selectedDay && selectedDay !== ''
+                            selectedDay !== '' && cell.day === selectedDay
                               ? 'primary.dark'
                               : 'action.hover',
                         }
@@ -724,7 +710,7 @@ const DailyReportsPage: React.FC = () => {
                         height: 6,
                         borderRadius: '50%',
                         bgcolor:
-                          cell.day === selectedDay && selectedDay !== ''
+                          selectedDay !== '' && cell.day === selectedDay
                             ? 'rgba(255,255,255,0.8)'
                             : 'primary.main',
                       }}
