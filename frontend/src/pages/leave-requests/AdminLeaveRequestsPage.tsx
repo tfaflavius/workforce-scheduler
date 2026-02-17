@@ -141,6 +141,7 @@ export const AdminLeaveRequestsPage = () => {
     setSelectedRequest(request);
     setResponseType(type);
     setMessage('');
+    setDialogError(null);
     setDialogOpen(true);
 
     // Check for overlaps
@@ -158,8 +159,11 @@ export const AdminLeaveRequestsPage = () => {
     setOverlaps([]);
   };
 
+  const [dialogError, setDialogError] = useState<string | null>(null);
+
   const handleSubmit = async () => {
     if (!selectedRequest) return;
+    setDialogError(null);
 
     try {
       await respond({
@@ -180,8 +184,7 @@ export const AdminLeaveRequestsPage = () => {
       const errorMsg = err && typeof err === 'object' && 'data' in err
         ? (err.data as { message?: string })?.message || 'A aparut o eroare la procesarea cererii.'
         : 'A aparut o eroare la procesarea cererii.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
+      setDialogError(errorMsg);
     }
   };
 
@@ -496,6 +499,12 @@ export const AdminLeaveRequestsPage = () => {
                     • {overlap.user?.fullName}: {formatDate(overlap.startDate)} - {formatDate(overlap.endDate)} ({LEAVE_TYPE_LABELS[overlap.leaveType]})
                   </Typography>
                 ))}
+              </Alert>
+            )}
+
+            {dialogError && (
+              <Alert severity="error" onClose={() => setDialogError(null)}>
+                {dialogError}
               </Alert>
             )}
 

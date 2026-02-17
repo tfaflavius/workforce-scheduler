@@ -36,6 +36,15 @@ const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   EXTRA_DAYS: 'Zile Suplimentare',
 };
 
+// Helper to safely convert date fields (PostgreSQL date columns return strings)
+function toISODateString(date: Date | string): string {
+  if (date instanceof Date) {
+    return date.toISOString();
+  }
+  // Already a string (e.g. "2026-02-20"), wrap in full ISO format
+  return new Date(String(date)).toISOString();
+}
+
 @Injectable()
 export class LeaveRequestsService {
   constructor(
@@ -516,8 +525,8 @@ export class LeaveRequestsService {
         admin.fullName,
         user.fullName,
         request.leaveType,
-        request.startDate.toISOString(),
-        request.endDate.toISOString(),
+        toISODateString(request.startDate),
+        toISODateString(request.endDate),
         days,
       );
     }
@@ -535,8 +544,8 @@ export class LeaveRequestsService {
       employeeEmail: user.email,
       employeeName: user.fullName,
       leaveType: leaveTypeMap[request.leaveType] || 'OTHER',
-      startDate: request.startDate.toISOString(),
-      endDate: request.endDate.toISOString(),
+      startDate: toISODateString(request.startDate),
+      endDate: toISODateString(request.endDate),
       totalDays: days,
       status: 'submitted',
     });
@@ -599,8 +608,8 @@ export class LeaveRequestsService {
         employeeEmail: user.email,
         employeeName: user.fullName,
         leaveType: leaveTypeMap[request.leaveType] || 'OTHER',
-        startDate: request.startDate.toISOString(),
-        endDate: request.endDate.toISOString(),
+        startDate: toISODateString(request.startDate),
+        endDate: toISODateString(request.endDate),
         totalDays: days,
         status: approved ? 'approved' : 'rejected',
         rejectionReason: !approved ? request.adminMessage : undefined,
