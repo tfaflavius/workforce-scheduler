@@ -147,31 +147,25 @@ const EmployeeDashboard = () => {
 
   // Pontaj local state
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [lastLocation, setLastLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mismatchAlert, setMismatchAlert] = useState<{
     show: boolean;
     type: 'success' | 'warning';
     expectedHours: number;
     actualHours: number;
   } | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastCaptureTimeRef = useRef<number>(0);
 
-  // Capture GPS location
+  // Capture GPS location silently
   const captureLocation = useCallback(
     async (timeEntryId: string, isAutoRecorded: boolean = true) => {
-      if (!navigator.geolocation) {
-        setLocationError('GPS nu este disponibil pe acest dispozitiv');
-        return;
-      }
+      if (!navigator.geolocation) return;
 
       return new Promise<void>((resolve) => {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude, accuracy } = position.coords;
-            setLastLocation({ lat: latitude, lng: longitude });
-            setLocationError(null);
             try {
               await recordLocationMutation({
                 timeEntryId,
@@ -180,23 +174,17 @@ const EmployeeDashboard = () => {
                 accuracy: accuracy || undefined,
                 isAutoRecorded,
               }).unwrap();
+              lastCaptureTimeRef.current = Date.now();
             } catch (err) {
               console.error('Failed to record location:', err);
             }
             resolve();
           },
-          (error) => {
-            console.error('Geolocation error:', error);
-            setLocationError(
-              error.code === 1
-                ? 'Permisiune GPS refuzata. Activeaza locatia.'
-                : error.code === 2
-                  ? 'Locatia nu este disponibila'
-                  : 'Timeout la obtinerea locatiei',
-            );
+          () => {
+            // GPS failed silently - don't block anything
             resolve();
           },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
         );
       });
     },
@@ -225,16 +213,34 @@ const EmployeeDashboard = () => {
     }
   }, [activeTimer]);
 
-  // Periodic location tracking effect
+  // Periodic location tracking effect - resilient to mobile background suspension
   useEffect(() => {
     if (activeTimer && !activeTimer.endTime) {
+      // Check if we need to capture now (on page load/resume with active timer)
+      const timeSinceLastCapture = Date.now() - lastCaptureTimeRef.current;
+      if (timeSinceLastCapture >= LOCATION_TRACKING_INTERVAL_MS) {
+        captureLocation(activeTimer.id, true);
+      }
+
       // Start periodic location tracking
       locationIntervalRef.current = setInterval(() => {
         captureLocation(activeTimer.id, true);
       }, LOCATION_TRACKING_INTERVAL_MS);
 
+      // Handle mobile: when app comes back from background, check if capture is overdue
+      const handleVisibilityChange = () => {
+        if (!document.hidden && activeTimer && !activeTimer.endTime) {
+          const elapsed = Date.now() - lastCaptureTimeRef.current;
+          if (elapsed >= LOCATION_TRACKING_INTERVAL_MS) {
+            captureLocation(activeTimer.id, true);
+          }
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
       return () => {
         if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
       };
     } else {
       if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
