@@ -43,7 +43,6 @@ import {
   Security as ControlIcon,
   Assessment as ReportIcon,
   ArrowForward as ArrowIcon,
-  Schedule as ScheduleIcon,
   Notifications as NotifIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery, useGetTodayDispatchersQuery } from '../../store/api/schedulesApi';
