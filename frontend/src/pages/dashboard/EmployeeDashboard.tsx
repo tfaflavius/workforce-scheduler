@@ -23,8 +23,6 @@ import {
   alpha,
   Button,
   Alert,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
   Today as TodayIcon,
@@ -67,8 +65,8 @@ import { StatCard } from '../../components/common/StatCard';
 const HANDICAP_DEPARTMENT_NAME = 'Parcari Handicap';
 const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
 
-// GPS tracking interval (15 minutes)
-const LOCATION_TRACKING_INTERVAL_MS = 15 * 60 * 1000;
+// GPS tracking interval (30 minutes)
+const LOCATION_TRACKING_INTERVAL_MS = 30 * 60 * 1000;
 
 // Helper: format seconds to HH:MM:SS
 const formatElapsed = (totalSeconds: number): string => {
@@ -875,7 +873,7 @@ const EmployeeDashboard = () => {
                   </Button>
                 </Stack>
 
-                {/* Location info */}
+                {/* Location status - automatic tracking indicator */}
                 {activeTimer && !activeTimer.endTime && (
                   <Stack
                     direction="row"
@@ -891,18 +889,26 @@ const EmployeeDashboard = () => {
                     <MyLocationIcon sx={{ fontSize: { xs: 16, sm: 18 }, opacity: 0.9 }} />
                     <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, opacity: 0.9 }}>
                       {lastLocation
-                        ? `Locatie: ${lastLocation.lat.toFixed(5)}, ${lastLocation.lng.toFixed(5)}`
+                        ? 'Locatia se inregistreaza automat'
                         : 'Se obtine locatia...'}
                     </Typography>
-                    <Tooltip title="Actualizeaza locatia">
-                      <IconButton
-                        size="small"
-                        sx={{ color: 'white', opacity: 0.8, p: 0.5 }}
-                        onClick={() => activeTimer && captureLocation(activeTimer.id, false)}
-                      >
-                        <MyLocationIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </Tooltip>
+                    {lastLocation && (
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: '#4ade80',
+                          boxShadow: '0 0 6px rgba(74, 222, 128, 0.6)',
+                          animation: 'pulse 2s infinite',
+                          '@keyframes pulse': {
+                            '0%': { opacity: 1 },
+                            '50%': { opacity: 0.4 },
+                            '100%': { opacity: 1 },
+                          },
+                        }}
+                      />
+                    )}
                   </Stack>
                 )}
 
