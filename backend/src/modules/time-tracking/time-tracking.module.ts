@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TimeTrackingService } from './time-tracking.service';
 import { TimeTrackingController } from './time-tracking.controller';
 import { GpsTrackingScheduler } from './gps-tracking.scheduler';
+import { GeocodingService } from './geocoding.service';
 import { TimeEntry } from './entities/time-entry.entity';
 import { LocationLog } from './entities/location-log.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
@@ -22,7 +23,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     NotificationsModule,
   ],
   controllers: [TimeTrackingController],
-  providers: [TimeTrackingService, GpsTrackingScheduler],
-  exports: [TimeTrackingService],
+  providers: [TimeTrackingService, GpsTrackingScheduler, GeocodingService],
+  exports: [TimeTrackingService, GeocodingService],
 })
 export class TimeTrackingModule {}

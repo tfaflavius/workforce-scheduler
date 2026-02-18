@@ -11,6 +11,7 @@ import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
+import { GeocodingService } from './geocoding.service';
 
 @Injectable()
 export class TimeTrackingService {
@@ -29,6 +30,7 @@ export class TimeTrackingService {
     private readonly userRepository: Repository<User>,
     private readonly notificationsService: NotificationsService,
     private readonly pushNotificationService: PushNotificationService,
+    private readonly geocodingService: GeocodingService,
   ) {}
 
   async startTimer(userId: string, startTimerDto: StartTimerDto): Promise<TimeEntry> {
@@ -434,6 +436,116 @@ export class TimeTrackingService {
       .getCount();
 
     return { activeCount, totalHoursToday, locationLogsToday };
+  }
+
+  /**
+   * Returns enriched route data for a time entry with durations, distances, and street summaries.
+   */
+  async getAdminEntryRoute(timeEntryId: string) {
+    const entry = await this.timeEntryRepository.findOne({
+      where: { id: timeEntryId },
+      relations: ['user', 'user.department'],
+    });
+
+    if (!entry) {
+      throw new NotFoundException('Time entry not found');
+    }
+
+    const logs = await this.locationLogRepository.find({
+      where: { timeEntryId },
+      order: { recordedAt: 'ASC' },
+    });
+
+    const points = logs.map((log, index) => {
+      const nextLog = logs[index + 1];
+      let durationMinutes = 0;
+      let distanceFromPrev = 0;
+
+      if (nextLog) {
+        durationMinutes = Math.round(
+          (new Date(nextLog.recordedAt).getTime() - new Date(log.recordedAt).getTime()) / 60000,
+        );
+      }
+
+      if (index > 0) {
+        const prevLog = logs[index - 1];
+        distanceFromPrev = Math.round(
+          this.geocodingService.haversineDistance(
+            Number(prevLog.latitude), Number(prevLog.longitude),
+            Number(log.latitude), Number(log.longitude),
+          ),
+        );
+      }
+
+      return {
+        id: log.id,
+        latitude: Number(log.latitude),
+        longitude: Number(log.longitude),
+        address: log.address || null,
+        recordedAt: log.recordedAt,
+        durationMinutes,
+        distanceFromPrev,
+        isMoving: distanceFromPrev > 100,
+      };
+    });
+
+    // Street summary: group consecutive points with same address
+    const streetSummary: Array<{
+      streetName: string;
+      firstVisitTime: string;
+      lastVisitTime: string;
+      totalDurationMinutes: number;
+      pointCount: number;
+    }> = [];
+
+    let currentStreet: typeof streetSummary[0] | null = null;
+
+    for (const point of points) {
+      const streetName = point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+
+      if (currentStreet && currentStreet.streetName === streetName) {
+        currentStreet.lastVisitTime = point.recordedAt as any;
+        currentStreet.totalDurationMinutes += point.durationMinutes;
+        currentStreet.pointCount++;
+      } else {
+        if (currentStreet) {
+          streetSummary.push(currentStreet);
+        }
+        currentStreet = {
+          streetName,
+          firstVisitTime: point.recordedAt as any,
+          lastVisitTime: point.recordedAt as any,
+          totalDurationMinutes: point.durationMinutes,
+          pointCount: 1,
+        };
+      }
+    }
+    if (currentStreet) {
+      streetSummary.push(currentStreet);
+    }
+
+    const totalDistanceM = points.reduce((sum, p) => sum + p.distanceFromPrev, 0);
+    const ungeocodedCount = points.filter(p => !p.address).length;
+
+    const entryEndTime = entry.endTime || new Date();
+    const totalDurationMinutes = Math.round(
+      (new Date(entryEndTime).getTime() - new Date(entry.startTime).getTime()) / 60000,
+    );
+
+    return {
+      timeEntryId: entry.id,
+      employeeName: entry.user?.fullName || 'Necunoscut',
+      department: entry.user?.department?.name || '-',
+      date: new Date(entry.startTime).toISOString().split('T')[0],
+      startTime: entry.startTime,
+      endTime: entry.endTime,
+      totalDurationMinutes,
+      totalDistanceKm: Math.round((totalDistanceM / 1000) * 100) / 100,
+      points,
+      streetSummary,
+      geocodingComplete: ungeocodedCount === 0,
+      ungeocodedCount,
+    };
   }
 
   /**

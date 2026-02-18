@@ -12,6 +12,7 @@ import type {
   AdminTimeTrackingStats,
   AdminTimeEntriesFilters,
   AdminDepartmentUser,
+  RouteData,
 } from '../../types/time-tracking.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -28,7 +29,7 @@ export const timeTrackingApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['TimeEntry', 'ActiveTimer', 'LocationLog', 'AdminActiveTimer', 'AdminTimeEntry', 'AdminStats', 'AdminUsers'],
+  tagTypes: ['TimeEntry', 'ActiveTimer', 'LocationLog', 'AdminActiveTimer', 'AdminTimeEntry', 'AdminStats', 'AdminUsers', 'RouteData'],
   endpoints: (builder) => ({
     startTimer: builder.mutation<TimeEntry, StartTimerRequest | void>({
       query: (body = {}) => ({
@@ -134,6 +135,24 @@ export const timeTrackingApi = createApi({
         method: 'POST',
       }),
     }),
+
+    getAdminEntryRoute: builder.query<RouteData, string>({
+      query: (timeEntryId) => `/time-tracking/admin/entries/${timeEntryId}/route`,
+      providesTags: (_result, _error, timeEntryId) => [
+        { type: 'RouteData' as const, id: timeEntryId },
+      ],
+    }),
+
+    geocodeEntryLocations: builder.mutation<{ geocodedCount: number }, string>({
+      query: (timeEntryId) => ({
+        url: `/time-tracking/admin/entries/${timeEntryId}/geocode`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, timeEntryId) => [
+        { type: 'RouteData' as const, id: timeEntryId },
+        { type: 'LocationLog', id: `admin-${timeEntryId}` },
+      ],
+    }),
   }),
 });
 
@@ -151,4 +170,6 @@ export const {
   useGetAdminDepartmentUsersQuery,
   useGetAdminTimeTrackingStatsQuery,
   useRequestInstantLocationsMutation,
+  useGetAdminEntryRouteQuery,
+  useGeocodeEntryLocationsMutation,
 } = timeTrackingApi;

@@ -28,12 +28,14 @@ import {
   Map as MapIcon,
   Person as PersonIcon,
   Refresh as RefreshIcon,
+  Route as RouteIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard } from '../../components/common';
 import EmployeeLocationMap, {
   type EmployeeMarker,
   type LocationTrail,
 } from '../../components/maps/EmployeeLocationMap';
+import RouteTimeline from '../../components/time-tracking/RouteTimeline';
 import {
   useGetAdminActiveTimersQuery,
   useGetAdminTimeEntriesQuery,
@@ -97,6 +99,7 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
 const AdminTimeTrackingPage: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [selectedTrailEntryId, setSelectedTrailEntryId] = useState<string | null>(null);
+  const [selectedRouteEntryId, setSelectedRouteEntryId] = useState<string | null>(null);
 
   // Istoric filters
   const today = new Date();
@@ -136,7 +139,7 @@ const AdminTimeTrackingPage: React.FC = () => {
       department: string;
       isActive: boolean;
       startTime?: string;
-      lastLocation?: { latitude: number; longitude: number; recordedAt: string };
+      lastLocation?: { latitude: number; longitude: number; recordedAt: string; address?: string | null };
       entryId?: string;
     }> = [];
 
@@ -153,7 +156,7 @@ const AdminTimeTrackingPage: React.FC = () => {
         isActive: true,
         startTime: timer.startTime,
         lastLocation: lastLog
-          ? { latitude: Number(lastLog.latitude), longitude: Number(lastLog.longitude), recordedAt: lastLog.recordedAt }
+          ? { latitude: Number(lastLog.latitude), longitude: Number(lastLog.longitude), recordedAt: lastLog.recordedAt, address: lastLog.address }
           : undefined,
         entryId: timer.id,
       });
@@ -421,9 +424,16 @@ const AdminTimeTrackingPage: React.FC = () => {
                             <TableCell>
                               {row.lastLocation ? (
                                 <Tooltip title={`${row.lastLocation.latitude.toFixed(5)}, ${row.lastLocation.longitude.toFixed(5)}`}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {formatTime(row.lastLocation.recordedAt)}
-                                  </Typography>
+                                  <Box>
+                                    {row.lastLocation.address && (
+                                      <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: 200 }}>
+                                        {row.lastLocation.address}
+                                      </Typography>
+                                    )}
+                                    <Typography variant="caption" color="text.secondary">
+                                      {formatTime(row.lastLocation.recordedAt)}
+                                    </Typography>
+                                  </Box>
                                 </Tooltip>
                               ) : '-'}
                             </TableCell>
@@ -511,7 +521,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                         <TableCell sx={{ fontWeight: 600 }}>Stop</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Durata</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Locatii</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Harta</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Actiuni</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -553,19 +563,32 @@ const AdminTimeTrackingPage: React.FC = () => {
                               />
                             </TableCell>
                             <TableCell>
-                              <Tooltip title="Vezi traseu GPS">
-                                <IconButton
-                                  size="small"
-                                  color={selectedTrailEntryId === entry.id ? 'warning' : 'default'}
-                                  onClick={() =>
-                                    setSelectedTrailEntryId(
-                                      selectedTrailEntryId === entry.id ? null : entry.id
-                                    )
-                                  }
-                                >
-                                  <MapIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <Tooltip title="Vezi traseu pe harta">
+                                  <IconButton
+                                    size="small"
+                                    color={selectedTrailEntryId === entry.id ? 'warning' : 'default'}
+                                    onClick={() => {
+                                      setSelectedTrailEntryId(selectedTrailEntryId === entry.id ? null : entry.id);
+                                      setSelectedRouteEntryId(null);
+                                    }}
+                                  >
+                                    <MapIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Detalii traseu cu strazi">
+                                  <IconButton
+                                    size="small"
+                                    color={selectedRouteEntryId === entry.id ? 'warning' : 'default'}
+                                    onClick={() => {
+                                      setSelectedRouteEntryId(selectedRouteEntryId === entry.id ? null : entry.id);
+                                      setSelectedTrailEntryId(null);
+                                    }}
+                                  >
+                                    <RouteIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
                             </TableCell>
                           </TableRow>
                         ))
@@ -582,6 +605,14 @@ const AdminTimeTrackingPage: React.FC = () => {
                     </Typography>
                     <EmployeeLocationMap trails={[selectedTrail]} height={450} />
                   </Box>
+                )}
+
+                {/* Route Timeline */}
+                {selectedRouteEntryId && (
+                  <RouteTimeline
+                    timeEntryId={selectedRouteEntryId}
+                    onClose={() => setSelectedRouteEntryId(null)}
+                  />
                 )}
               </>
             )}

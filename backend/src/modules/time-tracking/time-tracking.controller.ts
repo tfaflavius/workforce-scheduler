@@ -9,6 +9,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { TimeTrackingService } from './time-tracking.service';
+import { GeocodingService } from './geocoding.service';
 import { StartTimerDto } from './dto/start-timer.dto';
 import { RecordLocationDto } from './dto/record-location.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,7 +20,10 @@ import { UserRole } from '../users/entities/user.entity';
 @Controller('time-tracking')
 @UseGuards(JwtAuthGuard)
 export class TimeTrackingController {
-  constructor(private readonly timeTrackingService: TimeTrackingService) {}
+  constructor(
+    private readonly timeTrackingService: TimeTrackingService,
+    private readonly geocodingService: GeocodingService,
+  ) {}
 
   // ===== ADMIN ENDPOINTS (before parametric routes) =====
 
@@ -65,6 +69,20 @@ export class TimeTrackingController {
   @Roles(UserRole.ADMIN)
   getAdminLocationLogs(@Param('id') id: string) {
     return this.timeTrackingService.getAdminLocationLogs(id);
+  }
+
+  @Get('admin/entries/:id/route')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminEntryRoute(@Param('id') id: string) {
+    return this.timeTrackingService.getAdminEntryRoute(id);
+  }
+
+  @Post('admin/entries/:id/geocode')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  geocodeEntryLocations(@Param('id') id: string) {
+    return this.geocodingService.geocodeTimeEntryLocations(id);
   }
 
   @Post('admin/request-locations')

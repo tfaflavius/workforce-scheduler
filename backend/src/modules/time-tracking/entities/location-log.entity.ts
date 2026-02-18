@@ -43,6 +43,9 @@ export class LocationLog {
   @Column({ type: 'boolean', default: true, name: 'is_auto_recorded' })
   isAutoRecorded: boolean;
 
+  @Column({ type: 'text', nullable: true })
+  address: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

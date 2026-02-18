@@ -31,6 +31,7 @@ export interface LocationLog {
   latitude: number;
   longitude: number;
   accuracy: number | null;
+  address: string | null;
   recordedAt: string;
   isAutoRecorded: boolean;
   createdAt: string;
@@ -105,4 +106,40 @@ export interface AdminDepartmentUser {
     id: string;
     name: string;
   };
+}
+
+// ===== ROUTE TYPES =====
+
+export interface RoutePoint {
+  id: string;
+  latitude: number;
+  longitude: number;
+  address: string | null;
+  recordedAt: string;
+  durationMinutes: number;
+  distanceFromPrev: number;
+  isMoving: boolean;
+}
+
+export interface StreetVisit {
+  streetName: string;
+  firstVisitTime: string;
+  lastVisitTime: string;
+  totalDurationMinutes: number;
+  pointCount: number;
+}
+
+export interface RouteData {
+  timeEntryId: string;
+  employeeName: string;
+  department: string;
+  date: string;
+  startTime: string;
+  endTime: string | null;
+  totalDurationMinutes: number;
+  totalDistanceKm: number;
+  points: RoutePoint[];
+  streetSummary: StreetVisit[];
+  geocodingComplete: boolean;
+  ungeocodedCount: number;
 }
