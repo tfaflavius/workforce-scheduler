@@ -244,34 +244,47 @@ const EmployeeDashboard = () => {
     }
   }, [activeTimer]);
 
-  // Periodic location tracking effect - resilient to mobile background suspension
+  // Periodic location tracking - robust for mobile browsers
+  // Mobile browsers suspend setInterval when in background/screen off.
+  // Solution: check every 60s if 30 min have passed since last capture,
+  // plus visibilitychange/focus events for when app returns from background.
   useEffect(() => {
     if (activeTimer && !activeTimer.endTime) {
-      // Check if we need to capture now (on page load/resume with active timer)
-      const timeSinceLastCapture = Date.now() - lastCaptureTimeRef.current;
-      if (timeSinceLastCapture >= LOCATION_TRACKING_INTERVAL_MS) {
-        captureLocation(activeTimer.id, true);
-      }
-
-      // Start periodic location tracking
-      locationIntervalRef.current = setInterval(() => {
-        captureLocation(activeTimer.id, true);
-      }, LOCATION_TRACKING_INTERVAL_MS);
-
-      // Handle mobile: when app comes back from background, check if capture is overdue
-      const handleVisibilityChange = () => {
-        if (!document.hidden && activeTimer && !activeTimer.endTime) {
-          const elapsed = Date.now() - lastCaptureTimeRef.current;
-          if (elapsed >= LOCATION_TRACKING_INTERVAL_MS) {
-            captureLocation(activeTimer.id, true);
-          }
+      const checkAndCapture = () => {
+        const elapsed = Date.now() - lastCaptureTimeRef.current;
+        if (elapsed >= LOCATION_TRACKING_INTERVAL_MS) {
+          console.log(`[GPS] Periodic capture triggered (${Math.round(elapsed / 60000)} min since last)`);
+          captureLocation(activeTimer.id, true);
         }
       };
+
+      // On mount/resume: capture if overdue (but only if we already had a first capture)
+      if (lastCaptureTimeRef.current > 0) {
+        checkAndCapture();
+      }
+
+      // Poll every 60 seconds - on mobile some of these will fire, enough to catch 30-min windows
+      locationIntervalRef.current = setInterval(checkAndCapture, 60_000);
+
+      // Handle mobile: when app comes back from background, immediately check
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          console.log('[GPS] App became visible, checking if capture needed');
+          checkAndCapture();
+        }
+      };
+      const handleFocus = () => {
+        console.log('[GPS] Window focused, checking if capture needed');
+        checkAndCapture();
+      };
+
       document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('focus', handleFocus);
 
       return () => {
         if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('focus', handleFocus);
       };
     } else {
       if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
@@ -284,6 +297,8 @@ const EmployeeDashboard = () => {
       setMismatchAlert(null);
       const result = await startTimerMutation().unwrap();
       refetchActiveTimer();
+      // Mark capture time NOW to prevent the periodic effect from firing a duplicate
+      lastCaptureTimeRef.current = Date.now();
       // Capture initial location in background (don't block start)
       captureLocation(result.id, false).catch(() => {});
     } catch (err: any) {
