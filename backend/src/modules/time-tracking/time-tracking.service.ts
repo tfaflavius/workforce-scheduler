@@ -477,12 +477,16 @@ export class TimeTrackingService {
         );
       }
 
+      const recordedAtStr = log.recordedAt instanceof Date
+        ? log.recordedAt.toISOString()
+        : String(log.recordedAt);
+
       return {
         id: log.id,
         latitude: Number(log.latitude),
         longitude: Number(log.longitude),
         address: log.address || null,
-        recordedAt: log.recordedAt,
+        recordedAt: recordedAtStr,
         durationMinutes,
         distanceFromPrev,
         isMoving: distanceFromPrev > 100,
@@ -504,7 +508,7 @@ export class TimeTrackingService {
       const streetName = point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
 
       if (currentStreet && currentStreet.streetName === streetName) {
-        currentStreet.lastVisitTime = point.recordedAt as any;
+        currentStreet.lastVisitTime = point.recordedAt;
         currentStreet.totalDurationMinutes += point.durationMinutes;
         currentStreet.pointCount++;
       } else {
@@ -513,8 +517,8 @@ export class TimeTrackingService {
         }
         currentStreet = {
           streetName,
-          firstVisitTime: point.recordedAt as any,
-          lastVisitTime: point.recordedAt as any,
+          firstVisitTime: point.recordedAt,
+          lastVisitTime: point.recordedAt,
           totalDurationMinutes: point.durationMinutes,
           pointCount: 1,
         };
@@ -532,18 +536,25 @@ export class TimeTrackingService {
       (new Date(entryEndTime).getTime() - new Date(entry.startTime).getTime()) / 60000,
     );
 
+    const startTimeStr = entry.startTime instanceof Date
+      ? entry.startTime.toISOString()
+      : String(entry.startTime);
+    const endTimeStr = entry.endTime
+      ? (entry.endTime instanceof Date ? entry.endTime.toISOString() : String(entry.endTime))
+      : null;
+
     return {
       timeEntryId: entry.id,
       employeeName: entry.user?.fullName || 'Necunoscut',
       department: entry.user?.department?.name || '-',
-      date: new Date(entry.startTime).toISOString().split('T')[0],
-      startTime: entry.startTime,
-      endTime: entry.endTime,
+      date: new Date(startTimeStr).toISOString().split('T')[0],
+      startTime: startTimeStr,
+      endTime: endTimeStr,
       totalDurationMinutes,
       totalDistanceKm: Math.round((totalDistanceM / 1000) * 100) / 100,
       points,
       streetSummary,
-      geocodingComplete: ungeocodedCount === 0,
+      geocodingComplete: ungeocodedCount === 0 && points.length > 0,
       ungeocodedCount,
     };
   }

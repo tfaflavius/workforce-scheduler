@@ -246,9 +246,9 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, onClose }) =
               Rezumat Strazi
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-              {route.streetSummary.map((street, i) => (
+              {route.streetSummary.map((street) => (
                 <Chip
-                  key={i}
+                  key={`${street.streetName}-${street.firstVisitTime}`}
                   label={`${street.streetName} (${formatDuration(street.totalDurationMinutes)})`}
                   size="small"
                   sx={{

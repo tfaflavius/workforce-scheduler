@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -219,6 +219,12 @@ const AdminTimeTrackingPage: React.FC = () => {
       department: entry?.user?.department?.name || '-',
     };
   }, [selectedTrailEntryId, trailLocations, historyEntries]);
+
+  // ===== CLEAR SELECTIONS ON TAB SWITCH =====
+  useEffect(() => {
+    setSelectedTrailEntryId(null);
+    setSelectedRouteEntryId(null);
+  }, [tabIndex]);
 
   // ===== LIVE DURATION TICKER =====
   const [, setTick] = useState(0);

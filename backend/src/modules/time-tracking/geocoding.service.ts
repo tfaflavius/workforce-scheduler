@@ -43,14 +43,18 @@ export class GeocodingService {
       const address = await this.reverseGeocode(centroid.lat, centroid.lon);
 
       if (address) {
-        const ids = cluster.map(log => log.id);
-        await this.locationLogRepository
-          .createQueryBuilder()
-          .update(LocationLog)
-          .set({ address })
-          .whereInIds(ids)
-          .execute();
-        geocodedCount += cluster.length;
+        try {
+          const ids = cluster.map(log => log.id);
+          await this.locationLogRepository
+            .createQueryBuilder()
+            .update(LocationLog)
+            .set({ address })
+            .whereInIds(ids)
+            .execute();
+          geocodedCount += cluster.length;
+        } catch (err) {
+          this.logger.error(`[Geocode] Failed to update ${cluster.length} logs: ${err?.message}`);
+        }
       }
 
       // Rate limit: wait between requests
@@ -65,8 +69,13 @@ export class GeocodingService {
    * Reverse geocode a single lat/lng via Nominatim.
    */
   private async reverseGeocode(lat: number, lon: number): Promise<string | null> {
+    if (!isFinite(lat) || !isFinite(lon)) {
+      this.logger.warn(`[Geocode] Invalid coordinates: ${lat},${lon}`);
+      return null;
+    }
+
     try {
-      const url = `${this.NOMINATIM_URL}?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+      const url = `${this.NOMINATIM_URL}?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1`;
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'WorkforceScheduler/1.0 (admin@workforce.lat)',
@@ -131,10 +140,19 @@ export class GeocodingService {
     for (let i = 1; i < logs.length; i++) {
       const prev = logs[i - 1];
       const curr = logs[i];
-      const distance = this.haversineDistance(
-        Number(prev.latitude), Number(prev.longitude),
-        Number(curr.latitude), Number(curr.longitude),
-      );
+      const lat1 = Number(prev.latitude), lon1 = Number(prev.longitude);
+      const lat2 = Number(curr.latitude), lon2 = Number(curr.longitude);
+
+      if (!isFinite(lat2) || !isFinite(lon2)) {
+        // Skip invalid coordinates - start new cluster
+        clusters.push(currentCluster);
+        currentCluster = [curr];
+        continue;
+      }
+
+      const distance = (!isFinite(lat1) || !isFinite(lon1))
+        ? Infinity
+        : this.haversineDistance(lat1, lon1, lat2, lon2);
 
       if (distance <= this.CLUSTER_RADIUS_M) {
         currentCluster.push(curr);
