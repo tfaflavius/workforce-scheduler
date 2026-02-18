@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Box, Typography } from '@mui/material';
-import type { LocationLog } from '../../types/time-tracking.types';
+// LocationLog import removed - using simplified TrailLocation interface instead
 
 // Fix default marker icons in Leaflet + Vite
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,8 +45,15 @@ export interface EmployeeMarker {
   isActive: boolean;
 }
 
+export interface TrailLocation {
+  latitude: number | string;
+  longitude: number | string;
+  recordedAt: string;
+  accuracy?: number | string | null;
+}
+
 export interface LocationTrail {
-  locations: LocationLog[];
+  locations: TrailLocation[];
   employeeName: string;
   department: string;
 }
