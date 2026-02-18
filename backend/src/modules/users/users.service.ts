@@ -115,6 +115,7 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
+
     // Sterge din Supabase Auth (permite re-inregistrarea cu acelasi email)
     try {
       await this.supabaseService.deleteUser(id);
@@ -122,7 +123,68 @@ export class UsersService {
       // Log but don't block - user might not exist in Supabase (e.g. created by admin directly)
       console.warn(`Could not delete user ${id} from Supabase Auth:`, error?.message);
     }
-    await this.userRepository.remove(user);
+
+    // Clean up all related records to avoid FK constraint violations
+    const queryRunner = this.userRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      // 1. Delete child records (NO ACTION / RESTRICT constraints)
+      await queryRunner.query('DELETE FROM location_logs WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM time_entries WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM schedule_assignments WHERE user_id = $1', [id]);
+
+      // 2. Comment tables (RESTRICT)
+      await queryRunner.query('DELETE FROM parking_issue_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM parking_damage_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM domiciliu_request_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM handicap_legitimation_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM handicap_request_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM revolutionar_legitimation_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM parking_history WHERE user_id = $1', [id]);
+
+      // 3. Parking/Handicap/Domiciliu tables (RESTRICT on created_by)
+      await queryRunner.query('DELETE FROM parking_issues WHERE created_by = $1', [id]);
+      await queryRunner.query('DELETE FROM parking_damages WHERE created_by = $1', [id]);
+      await queryRunner.query('DELETE FROM domiciliu_requests WHERE created_by = $1', [id]);
+      await queryRunner.query('DELETE FROM handicap_requests WHERE created_by = $1', [id]);
+      await queryRunner.query('DELETE FROM handicap_legitimations WHERE created_by = $1', [id]);
+      await queryRunner.query('DELETE FROM revolutionar_legitimations WHERE created_by = $1', [id]);
+      await queryRunner.query('DELETE FROM cash_collections WHERE collected_by = $1', [id]);
+
+      // 4. Shift swap tables (NO ACTION)
+      await queryRunner.query('DELETE FROM shift_swap_responses WHERE responder_id = $1', [id]);
+      await queryRunner.query('DELETE FROM shift_swap_requests WHERE requester_id = $1', [id]);
+
+      // 5. Tasks (NO ACTION)
+      await queryRunner.query('DELETE FROM task_history WHERE changed_by = $1', [id]);
+      await queryRunner.query('DELETE FROM tasks WHERE assigned_to = $1 OR assigned_by = $1', [id]);
+
+      // 6. Edit requests (RESTRICT)
+      await queryRunner.query('DELETE FROM edit_requests WHERE requested_by = $1', [id]);
+
+      // 7. Generated reports (NO ACTION)
+      await queryRunner.query('DELETE FROM generated_reports WHERE generated_by = $1', [id]);
+
+      // 8. NULL-ify references where user is optional (SET NULL or NO ACTION on admin fields)
+      await queryRunner.query('UPDATE daily_reports SET admin_commented_by = NULL WHERE admin_commented_by = $1', [id]);
+      await queryRunner.query('UPDATE leave_requests SET admin_id = NULL WHERE admin_id = $1', [id]);
+      await queryRunner.query('UPDATE departments SET manager_id = NULL WHERE manager_id = $1', [id]);
+      await queryRunner.query('UPDATE time_entries SET approved_by = NULL WHERE approved_by = $1', [id]);
+      await queryRunner.query('UPDATE work_schedules SET created_by = NULL WHERE created_by = $1', [id]);
+      await queryRunner.query('UPDATE work_schedules SET approved_by_admin = NULL WHERE approved_by_admin = $1', [id]);
+      await queryRunner.query('UPDATE shift_swap_requests SET admin_id = NULL WHERE admin_id = $1', [id]);
+      await queryRunner.query('UPDATE shift_swap_requests SET approved_responder_id = NULL WHERE approved_responder_id = $1', [id]);
+
+      // 9. Now delete the user (CASCADE handles: leave_requests, leave_balances, daily_reports, notifications, push_subscriptions)
+      await queryRunner.query('DELETE FROM users WHERE id = $1', [id]);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async changePassword(

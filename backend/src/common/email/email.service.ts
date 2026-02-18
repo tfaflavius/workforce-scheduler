@@ -52,7 +52,6 @@ export interface WelcomeEmailData {
 export interface PasswordResetEmailData {
   employeeEmail: string;
   employeeName: string;
-  resetToken: string;
   resetUrl: string;
 }
 

@@ -3,10 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 import { User } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { SupabaseService } from '../../common/supabase/supabase.service';
+import { EmailService } from '../../common/email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +17,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly supabaseService: SupabaseService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -140,8 +143,24 @@ export class AuthService {
     }
 
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+
+    // Generate a password reset JWT token (1 hour expiry)
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email, purpose: 'password-reset' },
+      jwtSecret,
+      { expiresIn: '1h' },
+    );
+
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    // Send password reset email via our own email service
     try {
-      await this.supabaseService.resetPasswordForEmail(email, `${frontendUrl}/reset-password`);
+      await this.emailService.sendPasswordResetEmail({
+        employeeEmail: user.email,
+        employeeName: user.fullName,
+        resetUrl,
+      });
     } catch (error) {
       console.error('Error sending password reset email:', error?.message);
     }
@@ -149,25 +168,38 @@ export class AuthService {
     return { message: 'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.' };
   }
 
-  async resetPassword(accessToken: string, newPassword: string) {
-    // Verificam token-ul cu Supabase
+  async resetPassword(resetToken: string, newPassword: string) {
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+
+    // Verify our JWT reset token
+    let payload: any;
     try {
-      const supabaseUser = await this.supabaseService.getUser(accessToken);
-
-      // Update password in Supabase
-      await this.supabaseService.updateUserPassword(supabaseUser.id, newPassword);
-
-      // Update hashed password in local DB
-      const user = await this.userRepository.findOne({ where: { id: supabaseUser.id } });
-      if (user) {
-        user.password = await bcrypt.hash(newPassword, 10);
-        await this.userRepository.save(user);
-      }
-
-      return { message: 'Parola a fost resetata cu succes!' };
+      payload = jwt.verify(resetToken, jwtSecret);
     } catch (error) {
       throw new BadRequestException('Link-ul de resetare a expirat sau este invalid. Te rugam sa soliciti un nou link.');
     }
+
+    if (payload.purpose !== 'password-reset' || !payload.userId) {
+      throw new BadRequestException('Token invalid.');
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: payload.userId } });
+    if (!user) {
+      throw new BadRequestException('Utilizatorul nu a fost gasit.');
+    }
+
+    // Update password in Supabase
+    try {
+      await this.supabaseService.updateUserPassword(user.id, newPassword);
+    } catch (error) {
+      console.error('Error updating password in Supabase:', error?.message);
+    }
+
+    // Update hashed password in local DB
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
+
+    return { message: 'Parola a fost resetata cu succes!' };
   }
 
   private sanitizeUser(user: User) {

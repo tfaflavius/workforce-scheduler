@@ -37,7 +37,11 @@ export class AuthController {
 
   @Public()
   @Post('reset-password')
-  async resetPassword(@Body() body: { accessToken: string; newPassword: string }) {
-    return this.authService.resetPassword(body.accessToken, body.newPassword);
+  async resetPassword(@Body() body: { token?: string; accessToken?: string; newPassword: string }) {
+    const resetToken = body.token || body.accessToken;
+    if (!resetToken) {
+      throw new UnauthorizedException('Token de resetare lipseste');
+    }
+    return this.authService.resetPassword(resetToken, body.newPassword);
   }
 }

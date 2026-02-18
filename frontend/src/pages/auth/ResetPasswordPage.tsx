@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -23,7 +23,6 @@ import {
   CalendarMonth as CalendarIcon,
   CheckCircle as SuccessIcon,
 } from '@mui/icons-material';
-import { supabase } from '../../lib/supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -31,6 +30,7 @@ export const ResetPasswordPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,42 +38,25 @@ export const ResetPasswordPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [checkingToken, setCheckingToken] = useState(true);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // Supabase redirects with hash fragment: #access_token=...&type=recovery
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const token = hashParams.get('access_token');
-    const type = hashParams.get('type');
-
-    if (token && type === 'recovery') {
-      setAccessToken(token);
-      setCheckingToken(false);
-      return;
-    }
-
-    // Also listen for Supabase auth state changes (PASSWORD_RECOVERY event)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' && session?.access_token) {
-        setAccessToken(session.access_token);
-        setCheckingToken(false);
-      }
-    });
-
-    // If no token found after a brief delay, show error
-    const timeout = setTimeout(() => {
-      if (!accessToken) {
-        setCheckingToken(false);
+    // Read token from query parameter: /reset-password?token=...
+    const token = searchParams.get('token');
+    if (token) {
+      setResetToken(token);
+    } else {
+      // Fallback: check for Supabase-style hash fragment (backward compat)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const hashToken = hashParams.get('access_token');
+      const type = hashParams.get('type');
+      if (hashToken && type === 'recovery') {
+        setResetToken(hashToken);
+      } else {
         setError('Link-ul de resetare a expirat sau este invalid. Te rugam sa soliciti un nou link.');
       }
-    }, 3000);
-
-    return () => {
-      subscription?.unsubscribe();
-      clearTimeout(timeout);
-    };
-  }, []);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +72,7 @@ export const ResetPasswordPage = () => {
       return;
     }
 
-    if (!accessToken) {
+    if (!resetToken) {
       setError('Token de resetare invalid. Te rugam sa soliciti un nou link.');
       return;
     }
@@ -100,7 +83,7 @@ export const ResetPasswordPage = () => {
       const response = await fetch(`${API_URL}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken, newPassword }),
+        body: JSON.stringify({ token: resetToken, newPassword }),
       });
 
       const data = await response.json();
@@ -210,16 +193,7 @@ export const ResetPasswordPage = () => {
             </Typography>
           </Box>
 
-          {checkingToken && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <CircularProgress />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                Se verifica link-ul de resetare...
-              </Typography>
-            </Box>
-          )}
-
-          {error && !checkingToken && (
+          {error && (
             <Fade in={true}>
               <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
                 {error}
@@ -235,7 +209,7 @@ export const ResetPasswordPage = () => {
             </Fade>
           )}
 
-          {!checkingToken && !success && accessToken && (
+          {!success && resetToken && (
             <form onSubmit={handleSubmit}>
               <TextField
                 fullWidth
@@ -312,7 +286,7 @@ export const ResetPasswordPage = () => {
             </form>
           )}
 
-          {!checkingToken && !accessToken && !success && (
+          {!resetToken && !success && (
             <Box sx={{ textAlign: 'center', mt: 2 }}>
               <Button
                 variant="text"

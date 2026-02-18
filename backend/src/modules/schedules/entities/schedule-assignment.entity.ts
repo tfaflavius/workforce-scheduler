@@ -17,7 +17,7 @@ export class ScheduleAssignment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', name: 'work_schedule_id' })
+  @Column({ type: 'uuid', name: 'work_schedule_id', nullable: true })
   workScheduleId: string;
 
   @ManyToOne(() => WorkSchedule, (schedule) => schedule.assignments)
@@ -31,7 +31,7 @@ export class ScheduleAssignment {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'uuid', name: 'shift_type_id' })
+  @Column({ type: 'uuid', name: 'shift_type_id', nullable: true })
   shiftTypeId: string;
 
   @ManyToOne(() => ShiftType)
