@@ -41,6 +41,8 @@ import {
   Stop as StopIcon,
   Timer as TimerIcon,
   History as HistoryIcon,
+  GpsFixed as GpsFixedIcon,
+  GpsOff as GpsOffIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery, useGetShiftColleaguesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
@@ -163,15 +165,25 @@ const EmployeeDashboard = () => {
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastCaptureTimeRef = useRef<number>(0);
 
+  // GPS status for user feedback
+  const [gpsStatus, setGpsStatus] = useState<'idle' | 'success' | 'error' | 'unavailable'>('idle');
+  const [gpsErrorMessage, setGpsErrorMessage] = useState<string>('');
+
   // Capture GPS location silently
   const captureLocation = useCallback(
     async (timeEntryId: string, isAutoRecorded: boolean = true) => {
-      if (!navigator.geolocation) return;
+      if (!navigator.geolocation) {
+        console.warn('[GPS] Geolocation not available in this browser');
+        setGpsStatus('unavailable');
+        setGpsErrorMessage('Browserul nu suporta localizarea GPS');
+        return;
+      }
 
       return new Promise<void>((resolve) => {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude, accuracy } = position.coords;
+            console.log(`[GPS] Location captured: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (accuracy: ${accuracy?.toFixed(0)}m)`);
             try {
               await recordLocationMutation({
                 timeEntryId,
@@ -181,13 +193,26 @@ const EmployeeDashboard = () => {
                 isAutoRecorded,
               }).unwrap();
               lastCaptureTimeRef.current = Date.now();
+              setGpsStatus('success');
+              setGpsErrorMessage('');
             } catch (err) {
-              console.error('Failed to record location:', err);
+              console.error('[GPS] Failed to send location to server:', err);
+              setGpsStatus('error');
+              setGpsErrorMessage('Eroare la trimiterea locatiei catre server');
             }
             resolve();
           },
-          () => {
-            // GPS failed silently - don't block anything
+          (error) => {
+            // GPS failed - log the reason for debugging
+            const reasons: Record<number, string> = {
+              1: 'Permisiune refuzata - activeaza locatia in setarile browserului',
+              2: 'Pozitia nu a putut fi determinata - activeaza GPS-ul pe telefon',
+              3: 'Timeout - GPS-ul nu a raspuns in timp util',
+            };
+            const msg = reasons[error.code] || error.message;
+            console.warn(`[GPS] Error: ${msg} (code: ${error.code})`);
+            setGpsStatus('error');
+            setGpsErrorMessage(msg);
             resolve();
           },
           { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
@@ -884,7 +909,48 @@ const EmployeeDashboard = () => {
                   </Button>
                 </Stack>
 
-                {/* Location tracking runs silently in background - no UI shown */}
+                {/* GPS Status Indicator - shown only when timer is active */}
+                {activeTimer && !activeTimer.endTime && gpsStatus !== 'idle' && (
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={0.5}
+                    sx={{
+                      mt: 1.5,
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: 1.5,
+                      bgcolor: gpsStatus === 'success'
+                        ? 'rgba(76, 175, 80, 0.15)'
+                        : gpsStatus === 'error'
+                          ? 'rgba(244, 67, 54, 0.15)'
+                          : 'rgba(255, 152, 0, 0.15)',
+                    }}
+                  >
+                    {gpsStatus === 'success' ? (
+                      <GpsFixedIcon sx={{ fontSize: 16, color: '#4caf50' }} />
+                    ) : (
+                      <GpsOffIcon sx={{ fontSize: 16, color: gpsStatus === 'error' ? '#f44336' : '#ff9800' }} />
+                    )}
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: '0.7rem',
+                        color: gpsStatus === 'success'
+                          ? '#2e7d32'
+                          : gpsStatus === 'error'
+                            ? '#c62828'
+                            : '#e65100',
+                      }}
+                    >
+                      {gpsStatus === 'success'
+                        ? 'GPS activ - locatia se inregistreaza automat'
+                        : gpsStatus === 'unavailable'
+                          ? gpsErrorMessage || 'GPS indisponibil'
+                          : gpsErrorMessage || 'Eroare GPS - locatia nu s-a putut inregistra'}
+                    </Typography>
+                  </Stack>
+                )}
               </CardContent>
             </Card>
 
