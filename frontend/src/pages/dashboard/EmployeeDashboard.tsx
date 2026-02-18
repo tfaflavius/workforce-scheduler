@@ -66,8 +66,10 @@ import { StatCard } from '../../components/common/StatCard';
 const HANDICAP_DEPARTMENT_NAME = 'Parcari Handicap';
 const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
 
-// GPS tracking interval (30 minutes)
-const LOCATION_TRACKING_INTERVAL_MS = 30 * 60 * 1000;
+// GPS tracking: capture every 10 minutes when possible
+const LOCATION_TRACKING_INTERVAL_MS = 10 * 60 * 1000;
+// Minimum time between captures (anti-spam for visibility/focus events)
+const LOCATION_MIN_INTERVAL_MS = 2 * 60 * 1000;
 
 // Helper: format seconds to HH:MM:SS
 const formatElapsed = (totalSeconds: number): string => {
@@ -164,12 +166,13 @@ const EmployeeDashboard = () => {
   const locationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastCaptureTimeRef = useRef<number>(0);
+  const isCapturingRef = useRef<boolean>(false);
 
   // GPS status for user feedback
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'success' | 'error' | 'unavailable'>('idle');
   const [gpsErrorMessage, setGpsErrorMessage] = useState<string>('');
 
-  // Capture GPS location silently
+  // Capture GPS location silently - with mutex to prevent duplicate captures
   const captureLocation = useCallback(
     async (timeEntryId: string, isAutoRecorded: boolean = true) => {
       if (!navigator.geolocation) {
@@ -179,11 +182,18 @@ const EmployeeDashboard = () => {
         return;
       }
 
+      // Prevent concurrent captures (the main source of duplicates)
+      if (isCapturingRef.current) {
+        console.log('[GPS] Capture already in progress, skipping');
+        return;
+      }
+      isCapturingRef.current = true;
+
       return new Promise<void>((resolve) => {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude, accuracy } = position.coords;
-            console.log(`[GPS] Location captured: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (accuracy: ${accuracy?.toFixed(0)}m)`);
+            console.log(`[GPS] Location captured: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (accuracy: ${accuracy?.toFixed(0)}m, auto: ${isAutoRecorded})`);
             try {
               await recordLocationMutation({
                 timeEntryId,
@@ -200,6 +210,7 @@ const EmployeeDashboard = () => {
               setGpsStatus('error');
               setGpsErrorMessage('Eroare la trimiterea locatiei catre server');
             }
+            isCapturingRef.current = false;
             resolve();
           },
           (error) => {
@@ -213,9 +224,10 @@ const EmployeeDashboard = () => {
             console.warn(`[GPS] Error: ${msg} (code: ${error.code})`);
             setGpsStatus('error');
             setGpsErrorMessage(msg);
+            isCapturingRef.current = false;
             resolve();
           },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
         );
       });
     },
@@ -245,37 +257,55 @@ const EmployeeDashboard = () => {
   }, [activeTimer]);
 
   // Periodic location tracking - robust for mobile browsers
-  // Mobile browsers suspend setInterval when in background/screen off.
-  // Solution: check every 60s if 30 min have passed since last capture,
-  // plus visibilitychange/focus events for when app returns from background.
+  // Mobile browsers KILL setInterval when screen is off or app is in background.
+  // Strategy:
+  //   1. setInterval every 60s as a best-effort timer (works when screen is on)
+  //   2. visibilitychange + focus events: capture IMMEDIATELY when user returns
+  //      (with min 2-minute gap to avoid spam)
+  //   3. Main interval: 10 minutes for better route tracking
   useEffect(() => {
     if (activeTimer && !activeTimer.endTime) {
-      const checkAndCapture = () => {
+      const shouldCapture = (minInterval: number = LOCATION_TRACKING_INTERVAL_MS) => {
         const elapsed = Date.now() - lastCaptureTimeRef.current;
-        if (elapsed >= LOCATION_TRACKING_INTERVAL_MS) {
-          console.log(`[GPS] Periodic capture triggered (${Math.round(elapsed / 60000)} min since last)`);
-          captureLocation(activeTimer.id, true);
+        return lastCaptureTimeRef.current > 0 && elapsed >= minInterval;
+      };
+
+      const doCapture = (reason: string) => {
+        console.log(`[GPS] ${reason} (${Math.round((Date.now() - lastCaptureTimeRef.current) / 60000)} min since last)`);
+        captureLocation(activeTimer.id, true);
+      };
+
+      // Regular interval check (every 60s, trigger if 10 min elapsed)
+      const checkInterval = () => {
+        if (shouldCapture(LOCATION_TRACKING_INTERVAL_MS)) {
+          doCapture('Periodic capture (interval)');
         }
       };
 
-      // On mount/resume: capture if overdue (but only if we already had a first capture)
+      // Visibility/focus: capture if at least 2 min since last (catch up after background)
+      const checkResume = () => {
+        if (shouldCapture(LOCATION_MIN_INTERVAL_MS)) {
+          doCapture('Resume capture (app visible)');
+        }
+      };
+
+      // On effect mount: check if overdue
       if (lastCaptureTimeRef.current > 0) {
-        checkAndCapture();
+        checkResume();
       }
 
-      // Poll every 60 seconds - on mobile some of these will fire, enough to catch 30-min windows
-      locationIntervalRef.current = setInterval(checkAndCapture, 60_000);
+      // Poll every 60s
+      locationIntervalRef.current = setInterval(checkInterval, 60_000);
 
-      // Handle mobile: when app comes back from background, immediately check
+      // Visibility change (mobile: user opens app again)
       const handleVisibilityChange = () => {
         if (!document.hidden) {
-          console.log('[GPS] App became visible, checking if capture needed');
-          checkAndCapture();
+          checkResume();
         }
       };
+      // Focus (desktop: user clicks window)
       const handleFocus = () => {
-        console.log('[GPS] Window focused, checking if capture needed');
-        checkAndCapture();
+        checkResume();
       };
 
       document.addEventListener('visibilitychange', handleVisibilityChange);

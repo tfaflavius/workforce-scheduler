@@ -248,6 +248,28 @@ export class TimeTrackingService {
       throw new BadRequestException('Cannot record location for stopped timer');
     }
 
+    // Deduplication: skip if last log for this user is same coords within 90 seconds
+    try {
+      const lastLog = await this.locationLogRepository.query(
+        `SELECT latitude, longitude, recorded_at FROM location_logs
+         WHERE user_id = $1 AND time_entry_id = $2
+         ORDER BY recorded_at DESC LIMIT 1`,
+        [userId, recordLocationDto.timeEntryId],
+      );
+      if (lastLog.length > 0) {
+        const last = lastLog[0];
+        const secondsAgo = (Date.now() - new Date(last.recorded_at).getTime()) / 1000;
+        const sameCoords = Math.abs(parseFloat(last.latitude) - recordLocationDto.latitude) < 0.00001
+          && Math.abs(parseFloat(last.longitude) - recordLocationDto.longitude) < 0.00001;
+        if (sameCoords && secondsAgo < 90) {
+          // Duplicate - return existing log silently
+          return last;
+        }
+      }
+    } catch {
+      // Dedup check failed - proceed with insert anyway
+    }
+
     // Try insert with PostGIS geography, fall back to simple insert
     try {
       const result = await this.locationLogRepository.query(
