@@ -770,7 +770,7 @@ const EmployeeDashboard = () => {
         </Box>
       </Fade>
 
-      {/* ===== PONTAJ - doar Intretinere Parcari ===== */}
+      {/* ===== PONTAJ - Intretinere Parcari + Control ===== */}
       {hasPontaj && (
         <Fade in={true} timeout={700}>
           <Box sx={{ mb: { xs: 2.5, sm: 3 } }}>
