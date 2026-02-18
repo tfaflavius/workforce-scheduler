@@ -141,17 +141,23 @@ export class AuthService {
     const user = await this.userRepository.findOne({ where: { email } });
     // Nu dezvăluim dacă emailul există sau nu (securitate)
     if (!user) {
+      console.log(`[ForgotPassword] Email not found in DB: ${email}`);
       return { message: successMessage };
     }
 
     try {
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce.lat';
       const jwtSecret = this.configService.get<string>('JWT_SECRET');
+      const resendKey = this.configService.get<string>('RESEND_API_KEY');
+
+      console.log(`[ForgotPassword] Config check - JWT_SECRET: ${jwtSecret ? 'SET' : 'MISSING'}, RESEND_API_KEY: ${resendKey ? 'SET' : 'MISSING'}, FRONTEND_URL: ${frontendUrl}`);
 
       if (!jwtSecret) {
-        console.error('JWT_SECRET is not configured - cannot generate password reset token');
+        console.error('[ForgotPassword] JWT_SECRET is not configured! Cannot generate reset token.');
         return { message: successMessage };
       }
+
+      console.log(`[ForgotPassword] Generating reset token for ${email} (user: ${user.fullName})`);
 
       // Generate a password reset JWT token (1 hour expiry)
       const resetToken = jwt.sign(
@@ -161,15 +167,22 @@ export class AuthService {
       );
 
       const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+      console.log(`[ForgotPassword] Reset URL: ${frontendUrl}/reset-password?token=<token>`);
 
       // Send password reset email via our own email service
-      await this.emailService.sendPasswordResetEmail({
+      const emailSent = await this.emailService.sendPasswordResetEmail({
         employeeEmail: user.email,
         employeeName: user.fullName,
         resetUrl,
       });
+
+      console.log(`[ForgotPassword] Email send result for ${email}: ${emailSent ? 'SUCCESS' : 'FAILED (check RESEND_API_KEY and Resend domain verification)'}`);
+
+      if (!emailSent) {
+        console.error(`[ForgotPassword] Email FAILED for ${email}. Possible causes: RESEND_API_KEY missing/invalid, domain not verified in Resend, or Resend service error.`);
+      }
     } catch (error) {
-      console.error('Error in forgotPassword flow:', error?.message || error);
+      console.error('[ForgotPassword] Error:', error?.message || error);
     }
 
     return { message: successMessage };
