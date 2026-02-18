@@ -208,14 +208,15 @@ export class AuthService {
       throw new BadRequestException('Utilizatorul nu a fost gasit.');
     }
 
-    // Update password in Supabase
+    // Update password in Supabase (primary auth source - must succeed)
     try {
       await this.supabaseService.updateUserPassword(user.id, newPassword);
     } catch (error) {
       console.error('Error updating password in Supabase:', error?.message);
+      throw new BadRequestException('Nu am putut reseta parola. Te rugam sa incerci din nou.');
     }
 
-    // Update hashed password in local DB
+    // Update hashed password in local DB (backup)
     user.password = await bcrypt.hash(newPassword, 10);
     await this.userRepository.save(user);
 
