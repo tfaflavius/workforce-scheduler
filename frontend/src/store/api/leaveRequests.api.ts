@@ -6,6 +6,7 @@ import type {
   CreateLeaveRequestDto,
   RespondLeaveRequestDto,
   UpdateLeaveBalanceDto,
+  AdminEditLeaveRequestDto,
   LeaveRequestStatus,
 } from '../../types/leave-request.types';
 
@@ -116,6 +117,25 @@ export const leaveRequestsApi = createApi({
       }),
       providesTags: ['LeaveRequests'],
     }),
+
+    // Admin edit cerere (inclusiv aprobate)
+    adminEditLeaveRequest: builder.mutation<LeaveRequest, { id: string; data: AdminEditLeaveRequestDto }>({
+      query: ({ id, data }) => ({
+        url: `/${id}/admin-edit`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['LeaveRequests', 'MyLeaveRequests', 'LeaveBalance'],
+    }),
+
+    // Admin delete cerere (inclusiv aprobate)
+    adminDeleteLeaveRequest: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/${id}/admin-delete`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['LeaveRequests', 'MyLeaveRequests', 'LeaveBalance'],
+    }),
   }),
 });
 
@@ -131,4 +151,6 @@ export const {
   useRespondToLeaveRequestMutation,
   useCancelLeaveRequestMutation,
   useGetApprovedLeavesByMonthQuery,
+  useAdminEditLeaveRequestMutation,
+  useAdminDeleteLeaveRequestMutation,
 } = leaveRequestsApi;

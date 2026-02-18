@@ -11,6 +11,7 @@ import { LeaveBalance } from './entities/leave-balance.entity';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { RespondLeaveRequestDto } from './dto/respond-leave-request.dto';
 import { UpdateLeaveBalanceDto } from './dto/update-leave-balance.dto';
+import { AdminEditLeaveRequestDto } from './dto/admin-edit-leave-request.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
@@ -401,6 +402,89 @@ export class LeaveRequestsService {
     return this.leaveBalanceRepository.save(balance);
   }
 
+  // ===== ADMIN EDIT / DELETE =====
+
+  async adminEdit(
+    id: string,
+    adminId: string,
+    dto: AdminEditLeaveRequestDto,
+  ): Promise<LeaveRequest> {
+    const request = await this.findOne(id);
+    const wasApproved = request.status === 'APPROVED';
+
+    const newStartDate = dto.startDate ? new Date(dto.startDate) : new Date(request.startDate);
+    const newEndDate = dto.endDate ? new Date(dto.endDate) : new Date(request.endDate);
+    const newLeaveType = dto.leaveType || request.leaveType;
+
+    if (newStartDate > newEndDate) {
+      throw new BadRequestException('Data de inceput trebuie sa fie inainte de data de sfarsit');
+    }
+
+    // If approved, reverse old balance + assignments first
+    if (wasApproved) {
+      await this.reverseApprovedLeaveRequest(request);
+    }
+
+    // Update the request fields
+    if (dto.startDate) request.startDate = newStartDate;
+    if (dto.endDate) request.endDate = newEndDate;
+    if (dto.leaveType) request.leaveType = newLeaveType;
+    if (dto.reason !== undefined) request.reason = dto.reason;
+
+    await this.leaveRequestRepository.save(request);
+
+    // If was approved, re-apply with new values
+    if (wasApproved) {
+      const newDays = this.calculateBusinessDays(newStartDate, newEndDate);
+      const newYear = newStartDate.getFullYear();
+
+      await this.getOrCreateBalance(request.userId, newLeaveType, newYear);
+
+      await this.leaveBalanceRepository
+        .createQueryBuilder()
+        .update(LeaveBalance)
+        .set({ usedDays: () => `used_days + ${newDays}` })
+        .where('userId = :userId', { userId: request.userId })
+        .andWhere('leaveType = :leaveType', { leaveType: newLeaveType })
+        .andWhere('year = :year', { year: newYear })
+        .execute();
+
+      await this.createLeaveAssignments(request);
+    }
+
+    // Notify user
+    try {
+      await this.notifyUserAboutEdit(request, adminId);
+    } catch (err) {
+      console.error('Failed to notify user about leave edit:', err?.message);
+    }
+
+    return this.findOne(id);
+  }
+
+  async adminDelete(id: string, adminId: string): Promise<void> {
+    const request = await this.findOne(id);
+
+    // If approved, reverse balance + assignments
+    if (request.status === 'APPROVED') {
+      await this.reverseApprovedLeaveRequest(request);
+    }
+
+    const userId = request.userId;
+    const leaveType = request.leaveType;
+    const startDate = request.startDate;
+    const endDate = request.endDate;
+
+    await this.leaveRequestRepository.remove(request);
+
+    // Notify user
+    try {
+      await this.notifyUserAboutDeletion(userId, leaveType, startDate, endDate, adminId);
+    } catch (err) {
+      console.error('Failed to notify user about leave deletion:', err?.message);
+    }
+  }
+
   // Private helper methods
 
   private async getOrCreateBalance(
@@ -480,6 +564,107 @@ export class LeaveRequestsService {
 
       current.setDate(current.getDate() + 1);
     }
+  }
+
+  private async reverseApprovedLeaveRequest(request: LeaveRequest): Promise<void> {
+    // 1. Calculate old business days and decrement balance
+    const oldDays = this.calculateBusinessDays(
+      new Date(request.startDate),
+      new Date(request.endDate),
+    );
+    const year = new Date(request.startDate).getFullYear();
+
+    await this.leaveBalanceRepository
+      .createQueryBuilder()
+      .update(LeaveBalance)
+      .set({ usedDays: () => `GREATEST(used_days - ${oldDays}, 0)` })
+      .where('userId = :userId', { userId: request.userId })
+      .andWhere('leaveType = :leaveType', { leaveType: request.leaveType })
+      .andWhere('year = :year', { year })
+      .execute();
+
+    // 2. Delete/reset schedule assignments for the leave period
+    const startDate = new Date(request.startDate);
+    const endDate = new Date(request.endDate);
+    const current = new Date(startDate);
+
+    while (current <= endDate) {
+      const dayOfWeek = current.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const assignment = await this.scheduleAssignmentRepository.findOne({
+          where: {
+            userId: request.userId,
+            shiftDate: current,
+            isRestDay: true,
+          },
+        });
+
+        if (assignment) {
+          if (!assignment.workScheduleId) {
+            // Created solely for leave → delete entirely
+            await this.scheduleAssignmentRepository.remove(assignment);
+          } else {
+            // Existing schedule assignment was overwritten → revert
+            assignment.isRestDay = false;
+            assignment.leaveType = null as any;
+            assignment.notes = null as any;
+            await this.scheduleAssignmentRepository.save(assignment);
+          }
+        }
+      }
+      current.setDate(current.getDate() + 1);
+    }
+  }
+
+  private async notifyUserAboutEdit(request: LeaveRequest, adminId: string): Promise<void> {
+    const startDate = new Date(request.startDate).toLocaleDateString('ro-RO');
+    const endDate = new Date(request.endDate).toLocaleDateString('ro-RO');
+
+    await this.notificationsService.create({
+      userId: request.userId,
+      type: NotificationType.LEAVE_REQUEST_APPROVED,
+      title: 'Cerere de Concediu Modificata',
+      message: `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} a fost modificata de un administrator. Noua perioada: ${startDate} - ${endDate}`,
+      data: {
+        leaveRequestId: request.id,
+        leaveType: request.leaveType,
+        startDate: request.startDate,
+        endDate: request.endDate,
+      },
+    });
+
+    await this.pushNotificationService.sendToUser(
+      request.userId,
+      '📝 Cerere de Concediu Modificata',
+      `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} a fost modificata. Noua perioada: ${startDate} - ${endDate}`,
+      { url: '/leave-requests' },
+    );
+  }
+
+  private async notifyUserAboutDeletion(
+    userId: string,
+    leaveType: LeaveType,
+    startDate: Date,
+    endDate: Date,
+    adminId: string,
+  ): Promise<void> {
+    const startStr = new Date(startDate).toLocaleDateString('ro-RO');
+    const endStr = new Date(endDate).toLocaleDateString('ro-RO');
+
+    await this.notificationsService.create({
+      userId,
+      type: NotificationType.LEAVE_REQUEST_REJECTED,
+      title: 'Cerere de Concediu Stearsa',
+      message: `Cererea ta de ${LEAVE_TYPE_LABELS[leaveType]} pentru perioada ${startStr} - ${endStr} a fost stearsa de un administrator.`,
+      data: { leaveType, startDate, endDate },
+    });
+
+    await this.pushNotificationService.sendToUser(
+      userId,
+      '🗑️ Cerere de Concediu Stearsa',
+      `Cererea ta de ${LEAVE_TYPE_LABELS[leaveType]} (${startStr} - ${endStr}) a fost stearsa.`,
+      { url: '/leave-requests' },
+    );
   }
 
   private async notifyAdminsAboutNewRequest(

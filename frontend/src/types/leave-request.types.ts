@@ -58,6 +58,13 @@ export interface UpdateLeaveBalanceDto {
   usedDays?: number;
 }
 
+export interface AdminEditLeaveRequestDto {
+  leaveType?: LeaveType;
+  startDate?: string;
+  endDate?: string;
+  reason?: string;
+}
+
 export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   VACATION: 'Concediu de Odihna',
   MEDICAL: 'Concediu Medical',

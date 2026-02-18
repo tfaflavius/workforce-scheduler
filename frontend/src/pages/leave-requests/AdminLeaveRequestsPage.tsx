@@ -24,6 +24,10 @@ import {
   IconButton,
   alpha,
   Grid,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   BeachAccess as BeachIcon,
@@ -39,12 +43,16 @@ import {
   HourglassEmpty as PendingIcon,
   AdminPanelSettings as AdminIcon,
   EventBusy as EventBusyIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard, EmptyState } from '../../components/common';
 import {
   useGetAllLeaveRequestsQuery,
   useRespondToLeaveRequestMutation,
   useLazyCheckOverlapsQuery,
+  useAdminEditLeaveRequestMutation,
+  useAdminDeleteLeaveRequestMutation,
 } from '../../store/api/leaveRequests.api';
 import type {
   LeaveRequest,
@@ -52,6 +60,14 @@ import type {
   LeaveRequestStatus,
 } from '../../types/leave-request.types';
 import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-request.types';
+
+const LEAVE_TYPE_OPTIONS: { value: LeaveType; label: string }[] = [
+  { value: 'VACATION', label: 'Concediu de Odihna' },
+  { value: 'MEDICAL', label: 'Concediu Medical' },
+  { value: 'BIRTHDAY', label: 'Concediu Zi de Nastere' },
+  { value: 'SPECIAL', label: 'Concediu Special' },
+  { value: 'EXTRA_DAYS', label: 'Zile Suplimentare' },
+];
 
 const getStatusColor = (status: LeaveRequestStatus) => {
   switch (status) {
@@ -121,9 +137,21 @@ export const AdminLeaveRequestsPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Edit / Delete state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editRequest, setEditRequest] = useState<LeaveRequest | null>(null);
+  const [deleteRequest, setDeleteRequest] = useState<LeaveRequest | null>(null);
+  const [editLeaveType, setEditLeaveType] = useState<LeaveType>('VACATION');
+  const [editStartDate, setEditStartDate] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
+  const [editReason, setEditReason] = useState('');
+
   const { data: allRequests = [], isLoading } = useGetAllLeaveRequestsQuery();
   const [respond, { isLoading: responding }] = useRespondToLeaveRequestMutation();
   const [checkOverlaps] = useLazyCheckOverlapsQuery();
+  const [adminEdit, { isLoading: editing }] = useAdminEditLeaveRequestMutation();
+  const [adminDelete, { isLoading: deleting }] = useAdminDeleteLeaveRequestMutation();
 
   // Auto-switch to the correct tab and highlight the request from notification
   useEffect(() => {
@@ -224,6 +252,62 @@ export const AdminLeaveRequestsPage = () => {
       }
 
       setDialogError(errorMsg);
+    }
+  };
+
+  // Edit handlers
+  const handleOpenEdit = (request: LeaveRequest) => {
+    setEditRequest(request);
+    setEditLeaveType(request.leaveType);
+    setEditStartDate(new Date(request.startDate).toISOString().split('T')[0]);
+    setEditEndDate(new Date(request.endDate).toISOString().split('T')[0]);
+    setEditReason(request.reason || '');
+    setEditDialogOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setEditDialogOpen(false);
+    setEditRequest(null);
+  };
+
+  const handleSubmitEdit = async () => {
+    if (!editRequest) return;
+    try {
+      await adminEdit({
+        id: editRequest.id,
+        data: {
+          leaveType: editLeaveType,
+          startDate: editStartDate,
+          endDate: editEndDate,
+          reason: editReason || undefined,
+        },
+      }).unwrap();
+      setSuccessMessage('Cererea a fost modificata cu succes!');
+      handleCloseEdit();
+    } catch (err: any) {
+      setErrorMessage(err?.data?.message || 'Eroare la modificarea cererii');
+    }
+  };
+
+  // Delete handlers
+  const handleOpenDelete = (request: LeaveRequest) => {
+    setDeleteRequest(request);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDelete = () => {
+    setDeleteDialogOpen(false);
+    setDeleteRequest(null);
+  };
+
+  const handleSubmitDelete = async () => {
+    if (!deleteRequest) return;
+    try {
+      await adminDelete(deleteRequest.id).unwrap();
+      setSuccessMessage('Cererea a fost stearsa cu succes!');
+      handleCloseDelete();
+    } catch (err: any) {
+      setErrorMessage(err?.data?.message || 'Eroare la stergerea cererii');
     }
   };
 
@@ -454,14 +538,14 @@ export const AdminLeaveRequestsPage = () => {
                     </Box>
                   </Box>
 
-                  <Stack direction="row" spacing={{ xs: 0.5, sm: 1 }} alignItems="center" flexShrink={0}>
-                    {request.status === 'PENDING' ? (
+                  <Stack direction="row" spacing={{ xs: 0.5, sm: 0.5 }} alignItems="center" flexShrink={0}>
+                    {request.status === 'PENDING' && (
                       <>
                         <Tooltip title="Aproba">
                           <IconButton
                             color="success"
                             onClick={() => handleOpenDialog(request, 'APPROVED')}
-                            sx={{ minWidth: 44, minHeight: 44 }}
+                            sx={{ minWidth: 36, minHeight: 36 }}
                           >
                             <ApproveIcon />
                           </IconButton>
@@ -470,19 +554,38 @@ export const AdminLeaveRequestsPage = () => {
                           <IconButton
                             color="error"
                             onClick={() => handleOpenDialog(request, 'REJECTED')}
-                            sx={{ minWidth: 44, minHeight: 44 }}
+                            sx={{ minWidth: 36, minHeight: 36 }}
                           >
                             <RejectIcon />
                           </IconButton>
                         </Tooltip>
                       </>
-                    ) : (
+                    )}
+                    {request.status !== 'PENDING' && (
                       <Chip
                         label={LEAVE_STATUS_LABELS[request.status]}
                         color={getStatusColor(request.status)}
                         size="small"
                       />
                     )}
+                    <Tooltip title="Editeaza">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleOpenEdit(request)}
+                        size="small"
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Sterge">
+                      <IconButton
+                        color="error"
+                        onClick={() => handleOpenDelete(request)}
+                        size="small"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </Stack>
                 </Stack>
 
@@ -602,6 +705,161 @@ export const AdminLeaveRequestsPage = () => {
             }
           >
             {responseType === 'APPROVED' ? 'Aproba' : 'Respinge'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Leave Request Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleCloseEdit}
+        maxWidth="sm"
+        fullWidth
+        fullScreen={isMobile}
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <EditIcon color="primary" />
+            <span>Editeaza Cererea de Concediu</span>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2.5} sx={{ mt: 1 }}>
+            {editRequest && (
+              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Angajat: {editRequest.user?.fullName || 'N/A'}
+                </Typography>
+                <Chip
+                  label={LEAVE_STATUS_LABELS[editRequest.status]}
+                  color={getStatusColor(editRequest.status)}
+                  size="small"
+                />
+              </Paper>
+            )}
+
+            {editRequest?.status === 'APPROVED' && (
+              <Alert severity="warning" icon={<WarningIcon />}>
+                Aceasta cerere este <strong>aprobata</strong>. Modificarea va actualiza automat programul de lucru si balanta de zile.
+              </Alert>
+            )}
+
+            <FormControl fullWidth>
+              <InputLabel>Tip Concediu</InputLabel>
+              <Select
+                value={editLeaveType}
+                label="Tip Concediu"
+                onChange={(e) => setEditLeaveType(e.target.value as LeaveType)}
+              >
+                {LEAVE_TYPE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              label="Data Inceput"
+              type="date"
+              value={editStartDate}
+              onChange={(e) => setEditStartDate(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+
+            <TextField
+              label="Data Sfarsit"
+              type="date"
+              value={editEndDate}
+              onChange={(e) => setEditEndDate(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+
+            {editStartDate && editEndDate && (
+              <Typography variant="body2" color="text.secondary">
+                Zile lucratoare: <strong>{calculateDays(editStartDate, editEndDate)}</strong>
+              </Typography>
+            )}
+
+            <TextField
+              label="Motiv (optional)"
+              value={editReason}
+              onChange={(e) => setEditReason(e.target.value)}
+              multiline
+              rows={2}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEdit}>Anuleaza</Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmitEdit}
+            disabled={editing || !editStartDate || !editEndDate}
+            startIcon={editing ? <CircularProgress size={20} /> : <EditIcon />}
+          >
+            Salveaza
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Leave Request Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDelete}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <DeleteIcon color="error" />
+            <span>Sterge Cererea de Concediu</span>
+          </Stack>
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {deleteRequest && (
+              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                <Typography variant="body2">
+                  <strong>Angajat:</strong> {deleteRequest.user?.fullName || 'N/A'}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Tip:</strong> {LEAVE_TYPE_LABELS[deleteRequest.leaveType]}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Perioada:</strong> {formatDate(deleteRequest.startDate)} - {formatDate(deleteRequest.endDate)}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Zile:</strong> {calculateDays(deleteRequest.startDate, deleteRequest.endDate)}
+                </Typography>
+              </Paper>
+            )}
+
+            {deleteRequest?.status === 'APPROVED' && (
+              <Alert severity="warning" icon={<WarningIcon />}>
+                Aceasta cerere este <strong>aprobata</strong>. Stergerea va reversa automat zilele din balanta si va elimina concediul din programul de lucru.
+              </Alert>
+            )}
+
+            <Alert severity="error">
+              Aceasta actiune este ireversibila. Esti sigur ca vrei sa stergi aceasta cerere?
+            </Alert>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDelete}>Anuleaza</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleSubmitDelete}
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            Sterge
           </Button>
         </DialogActions>
       </Dialog>

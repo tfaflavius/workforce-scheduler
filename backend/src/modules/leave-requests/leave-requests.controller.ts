@@ -14,6 +14,7 @@ import { LeaveRequestsService } from './leave-requests.service';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { RespondLeaveRequestDto } from './dto/respond-leave-request.dto';
 import { UpdateLeaveBalanceDto } from './dto/update-leave-balance.dto';
+import { AdminEditLeaveRequestDto } from './dto/admin-edit-leave-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -111,5 +112,23 @@ export class LeaveRequestsController {
   @Delete(':id')
   cancel(@Param('id') id: string, @Request() req) {
     return this.leaveRequestsService.cancel(id, req.user.id);
+  }
+
+  @Patch(':id/admin-edit')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  adminEdit(
+    @Param('id') id: string,
+    @Body() dto: AdminEditLeaveRequestDto,
+    @Request() req,
+  ) {
+    return this.leaveRequestsService.adminEdit(id, req.user.id, dto);
+  }
+
+  @Delete(':id/admin-delete')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  adminDelete(@Param('id') id: string, @Request() req) {
+    return this.leaveRequestsService.adminDelete(id, req.user.id);
   }
 }
