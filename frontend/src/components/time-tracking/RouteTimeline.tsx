@@ -10,7 +10,6 @@ import {
   Alert,
   Collapse,
   IconButton,
-  Tooltip,
   Grid,
   alpha,
 } from '@mui/material';
@@ -369,7 +368,7 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, onClose }) =
                     {hasMultiplePoints && (
                       <Collapse in={isExpanded}>
                         <Box sx={{ mt: 1, pl: '53px' }}>
-                          {group.points.map((point, pIndex) => (
+                          {group.points.map((point) => (
                             <Box key={point.id} sx={{ display: 'flex', gap: 1, alignItems: 'center', py: 0.25 }}>
                               <Typography variant="caption" color="text.secondary" sx={{ minWidth: 40 }}>
                                 {formatTime(point.recordedAt)}
