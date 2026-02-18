@@ -139,12 +139,13 @@ const EmployeeLocationMap: React.FC<EmployeeLocationMapProps> = ({
         ))}
 
         {/* Location trails (polylines) */}
-        {trails.map((trail, idx) => {
+        {trails.map((trail) => {
           const positions = trail.locations.map(l => [Number(l.latitude), Number(l.longitude)] as [number, number]);
           const color = getDepartmentColor(trail.department);
+          const trailKey = `${trail.employeeName}-${trail.department}-${trail.locations.length}`;
 
           return (
-            <React.Fragment key={idx}>
+            <React.Fragment key={trailKey}>
               <Polyline
                 positions={positions}
                 pathOptions={{ color, weight: 3, opacity: 0.7 }}

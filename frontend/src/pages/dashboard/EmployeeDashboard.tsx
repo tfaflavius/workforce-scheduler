@@ -1235,7 +1235,6 @@ const EmployeeDashboard = () => {
                 letterSpacing: '1px',
               }}
             >
-              {colleaguesData.userPosition === 'DISP' ? '' : ''}{' '}
               Colegi pe tura - {colleaguesData.userPosition === 'DISP' ? 'Dispecerat' : 'Control'}
             </Typography>
             <Card
