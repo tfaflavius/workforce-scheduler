@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -17,6 +17,8 @@ import {
   MenuItem,
   Tooltip,
   CircularProgress,
+  Snackbar,
+  Alert,
   alpha,
 } from '@mui/material';
 import {
@@ -38,6 +40,7 @@ import {
   useGetAdminEntryLocationsQuery,
   useGetAdminDepartmentUsersQuery,
   useGetAdminTimeTrackingStatsQuery,
+  useRequestInstantLocationsMutation,
 } from '../../store/api/time-tracking.api';
 import type { AdminTimeEntriesFilters } from '../../types/time-tracking.types';
 
@@ -103,6 +106,11 @@ const AdminTimeTrackingPage: React.FC = () => {
     endDate: todayStr,
   });
 
+  // Snackbar state for GPS request feedback
+  const [gpsSnackbar, setGpsSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'info' | 'warning' }>({
+    open: false, message: '', severity: 'info',
+  });
+
   // ===== QUERIES =====
   const { data: stats, isLoading: statsLoading } = useGetAdminTimeTrackingStatsQuery(undefined, {
     pollingInterval: 30000,
@@ -110,6 +118,7 @@ const AdminTimeTrackingPage: React.FC = () => {
   const { data: activeTimers = [], isLoading: activeLoading, refetch: refetchActive } = useGetAdminActiveTimersQuery(undefined, {
     pollingInterval: 30000,
   });
+  const [requestInstantLocations, { isLoading: isRequestingLocations }] = useRequestInstantLocationsMutation();
   const { data: departmentUsers = [] } = useGetAdminDepartmentUsersQuery();
   const { data: historyEntries = [], isLoading: historyLoading } = useGetAdminTimeEntriesQuery(filters);
   const { data: trailLocations = [] } = useGetAdminEntryLocationsQuery(selectedTrailEntryId!, {
@@ -216,6 +225,44 @@ const AdminTimeTrackingPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [tabIndex]);
 
+  // ===== REFRESH WITH INSTANT GPS REQUEST =====
+  const handleRefreshWithGps = useCallback(async () => {
+    try {
+      // 1. Send instant GPS capture push to all active employees
+      const result = await requestInstantLocations().unwrap();
+      if (result.notifiedCount > 0) {
+        setGpsSnackbar({
+          open: true,
+          message: `Solicitare GPS trimisa la ${result.notifiedCount} din ${result.activeCount} angajati activi. Locatiile se actualizeaza in cateva secunde...`,
+          severity: 'success',
+        });
+      } else if (result.activeCount === 0) {
+        setGpsSnackbar({
+          open: true,
+          message: 'Nu sunt angajati activi pe tura in acest moment.',
+          severity: 'info',
+        });
+      } else {
+        setGpsSnackbar({
+          open: true,
+          message: 'Nu s-au putut trimite notificari GPS. Angajatii nu au push notifications active.',
+          severity: 'warning',
+        });
+      }
+    } catch {
+      setGpsSnackbar({
+        open: true,
+        message: 'Eroare la trimiterea solicitarii GPS.',
+        severity: 'warning',
+      });
+    }
+
+    // 2. Refetch data after a short delay to allow GPS captures to arrive
+    refetchActive();
+    setTimeout(() => refetchActive(), 5000);  // refetch again after 5s for GPS data
+    setTimeout(() => refetchActive(), 15000); // and again after 15s
+  }, [requestInstantLocations, refetchActive]);
+
   return (
     <Box>
       <GradientHeader
@@ -291,9 +338,18 @@ const AdminTimeTrackingPage: React.FC = () => {
               <Typography variant="subtitle1" fontWeight={600}>
                 Angajati Intretinere Parcari & Control
               </Typography>
-              <Tooltip title="Reimprospatare">
-                <IconButton size="small" onClick={() => refetchActive()}>
-                  <RefreshIcon fontSize="small" />
+              <Tooltip title="Reimprospatare + Solicitare locatie GPS instant">
+                <IconButton
+                  size="small"
+                  onClick={handleRefreshWithGps}
+                  disabled={isRequestingLocations}
+                  color="warning"
+                >
+                  {isRequestingLocations ? (
+                    <CircularProgress size={18} color="warning" />
+                  ) : (
+                    <RefreshIcon fontSize="small" />
+                  )}
                 </IconButton>
               </Tooltip>
             </Box>
@@ -532,6 +588,23 @@ const AdminTimeTrackingPage: React.FC = () => {
           </Box>
         </TabPanel>
       </Paper>
+
+      {/* GPS Request Feedback Snackbar */}
+      <Snackbar
+        open={gpsSnackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setGpsSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setGpsSnackbar(s => ({ ...s, open: false }))}
+          severity={gpsSnackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {gpsSnackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

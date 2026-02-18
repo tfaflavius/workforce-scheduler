@@ -67,6 +67,13 @@ export class TimeTrackingController {
     return this.timeTrackingService.getAdminLocationLogs(id);
   }
 
+  @Post('admin/request-locations')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  requestInstantLocations() {
+    return this.timeTrackingService.triggerInstantGpsCapture();
+  }
+
   // ===== USER ENDPOINTS =====
 
   @Post('start')

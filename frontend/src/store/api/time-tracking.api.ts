@@ -127,6 +127,13 @@ export const timeTrackingApi = createApi({
       query: () => '/time-tracking/admin/stats',
       providesTags: ['AdminStats'],
     }),
+
+    requestInstantLocations: builder.mutation<{ notifiedCount: number; activeCount: number }, void>({
+      query: () => ({
+        url: '/time-tracking/admin/request-locations',
+        method: 'POST',
+      }),
+    }),
   }),
 });
 
@@ -143,4 +150,5 @@ export const {
   useGetAdminEntryLocationsQuery,
   useGetAdminDepartmentUsersQuery,
   useGetAdminTimeTrackingStatsQuery,
+  useRequestInstantLocationsMutation,
 } = timeTrackingApi;

@@ -9,6 +9,7 @@ import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.en
 import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
@@ -27,6 +28,7 @@ export class TimeTrackingService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly notificationsService: NotificationsService,
+    private readonly pushNotificationService: PushNotificationService,
   ) {}
 
   async startTimer(userId: string, startTimerDto: StartTimerDto): Promise<TimeEntry> {
@@ -432,5 +434,61 @@ export class TimeTrackingService {
       .getCount();
 
     return { activeCount, totalHoursToday, locationLogsToday };
+  }
+
+  /**
+   * Triggers instant GPS capture by sending push notifications to all
+   * active employees in Control + Intretinere Parcari departments.
+   * Called on-demand by admin from the Monitorizare Pontaj page.
+   */
+  async triggerInstantGpsCapture(): Promise<{ notifiedCount: number; activeCount: number }> {
+    try {
+      // Find all active time entries for tracked departments
+      const activeEntries = await this.timeEntryRepository
+        .createQueryBuilder('entry')
+        .leftJoinAndSelect('entry.user', 'user')
+        .leftJoinAndSelect('user.department', 'department')
+        .where('entry.end_time IS NULL')
+        .andWhere('department.name IN (:...deptNames)', {
+          deptNames: ['Intretinere Parcari', 'Control'],
+        })
+        .getMany();
+
+      if (activeEntries.length === 0) {
+        this.logger.log('[GPS Instant] No active employees to notify');
+        return { notifiedCount: 0, activeCount: 0 };
+      }
+
+      this.logger.log(`[GPS Instant] Sending GPS capture push to ${activeEntries.length} active employees`);
+
+      let notifiedCount = 0;
+
+      const sendPromises = activeEntries.map(async (entry) => {
+        try {
+          await this.pushNotificationService.sendToUser(
+            entry.userId,
+            'GPS',
+            'Solicitare locatie de la administrator',
+            {
+              action: 'GPS_CAPTURE',
+              timeEntryId: entry.id,
+              userId: entry.userId,
+              silent: true,
+            },
+          );
+          notifiedCount++;
+        } catch (err) {
+          this.logger.debug(`[GPS Instant] Failed to send push to ${entry.user?.fullName}: ${err.message}`);
+        }
+      });
+
+      await Promise.all(sendPromises);
+      this.logger.log(`[GPS Instant] Push notifications sent to ${notifiedCount}/${activeEntries.length} employees`);
+
+      return { notifiedCount, activeCount: activeEntries.length };
+    } catch (error) {
+      this.logger.error(`[GPS Instant] Error: ${error.message}`);
+      return { notifiedCount: 0, activeCount: 0 };
+    }
   }
 }
