@@ -78,6 +78,11 @@ export class TimeTrackingService {
 
     const savedEntry = await this.timeEntryRepository.save(timeEntry);
 
+    // Auto-geocodare async (nu blocheaza raspunsul catre angajat)
+    this.geocodingService.geocodeTimeEntryLocations(savedEntry.id).catch(err => {
+      this.logger.error(`Auto-geocoding failed for entry ${savedEntry.id}: ${err?.message}`);
+    });
+
     // Verificare conformitate cu programul
     const scheduleCheck = await this.checkScheduleCompliance(userId, durationMinutes);
 

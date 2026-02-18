@@ -29,6 +29,8 @@ import {
   Person as PersonIcon,
   Refresh as RefreshIcon,
   Route as RouteIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard } from '../../components/common';
 import EmployeeLocationMap, {
@@ -44,7 +46,7 @@ import {
   useGetAdminTimeTrackingStatsQuery,
   useRequestInstantLocationsMutation,
 } from '../../store/api/time-tracking.api';
-import type { AdminTimeEntriesFilters } from '../../types/time-tracking.types';
+import type { AdminTimeEntriesFilters, AdminTimeEntry } from '../../types/time-tracking.types';
 
 // ===== HELPERS =====
 
@@ -94,12 +96,29 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
   </div>
 );
 
+// ===== CONSOLIDATED ENTRY TYPE =====
+
+interface ConsolidatedEntry {
+  key: string;
+  userId: string;
+  userName: string;
+  department: string;
+  date: string;
+  firstStart: string;
+  lastEnd: string | null;
+  totalDurationMinutes: number;
+  totalLocationLogs: number;
+  entryCount: number;
+  entries: AdminTimeEntry[];
+}
+
 // ===== MAIN COMPONENT =====
 
 const AdminTimeTrackingPage: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [selectedTrailEntryId, setSelectedTrailEntryId] = useState<string | null>(null);
   const [selectedRouteEntryId, setSelectedRouteEntryId] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Istoric filters
   const today = new Date();
@@ -220,11 +239,70 @@ const AdminTimeTrackingPage: React.FC = () => {
     };
   }, [selectedTrailEntryId, trailLocations, historyEntries]);
 
+  // ===== CONSOLIDATED HISTORY ENTRIES =====
+  const consolidatedEntries: ConsolidatedEntry[] = useMemo(() => {
+    const map = new Map<string, ConsolidatedEntry>();
+
+    historyEntries.forEach(entry => {
+      const dateKey = formatDate(entry.startTime);
+      const userId = entry.user?.id || entry.userId;
+      const key = `${userId}-${dateKey}`;
+
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          userId,
+          userName: entry.user?.fullName || `${entry.user?.firstName || ''} ${entry.user?.lastName || ''}`.trim() || '-',
+          department: entry.user?.department?.name || '-',
+          date: dateKey,
+          firstStart: entry.startTime,
+          lastEnd: entry.endTime,
+          totalDurationMinutes: entry.durationMinutes || 0,
+          totalLocationLogs: entry.locationLogs?.length || 0,
+          entryCount: 1,
+          entries: [entry],
+        });
+      } else {
+        const group = map.get(key)!;
+        group.entries.push(entry);
+        group.entryCount++;
+        group.totalDurationMinutes += entry.durationMinutes || 0;
+        group.totalLocationLogs += entry.locationLogs?.length || 0;
+
+        // firstStart = cel mai devreme
+        if (new Date(entry.startTime) < new Date(group.firstStart)) {
+          group.firstStart = entry.startTime;
+        }
+        // lastEnd = cel mai tarziu (null daca vreo tura e inca activa)
+        if (!entry.endTime) {
+          group.lastEnd = null;
+        } else if (group.lastEnd && new Date(entry.endTime) > new Date(group.lastEnd)) {
+          group.lastEnd = entry.endTime;
+        }
+      }
+    });
+
+    // Sorteaza entries interne cronologic (ASC) in fiecare grup
+    map.forEach(group => {
+      group.entries.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    });
+
+    return Array.from(map.values());
+  }, [historyEntries]);
+
   // ===== CLEAR SELECTIONS ON TAB SWITCH =====
   useEffect(() => {
     setSelectedTrailEntryId(null);
     setSelectedRouteEntryId(null);
+    setExpandedGroups(new Set());
   }, [tabIndex]);
+
+  // Clear expanded groups on filter change
+  useEffect(() => {
+    setExpandedGroups(new Set());
+    setSelectedTrailEntryId(null);
+    setSelectedRouteEntryId(null);
+  }, [filters]);
 
   // ===== LIVE DURATION TICKER =====
   const [, setTick] = useState(0);
@@ -510,7 +588,7 @@ const AdminTimeTrackingPage: React.FC = () => {
               </Grid>
             </Grid>
 
-            {/* History Table */}
+            {/* History Table - Consolidated per employee/day */}
             {historyLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <CircularProgress />
@@ -521,83 +599,224 @@ const AdminTimeTrackingPage: React.FC = () => {
                   <Table size="small">
                     <TableHead>
                       <TableRow>
+                        <TableCell sx={{ fontWeight: 600, width: 40 }} />
                         <TableCell sx={{ fontWeight: 600 }}>Angajat</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Data</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Start</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Stop</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Durata</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Locatii</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>Ture</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Actiuni</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {historyEntries.length === 0 ? (
+                      {consolidatedEntries.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} align="center">
+                          <TableCell colSpan={9} align="center">
                             <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
                               Nu sunt inregistrari pentru filtrele selectate
                             </Typography>
                           </TableCell>
                         </TableRow>
                       ) : (
-                        historyEntries.map(entry => (
-                          <TableRow
-                            key={entry.id}
-                            hover
-                            sx={selectedTrailEntryId === entry.id ? { bgcolor: alpha('#f59e0b', 0.08) } : {}}
-                          >
-                            <TableCell>
-                              <Box>
-                                <Typography variant="body2" fontWeight={500}>
-                                  {entry.user?.fullName || `${entry.user?.firstName || ''} ${entry.user?.lastName || ''}`.trim() || '-'}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {entry.user?.department?.name || '-'}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>{formatDate(entry.startTime)}</TableCell>
-                            <TableCell>{formatTime(entry.startTime)}</TableCell>
-                            <TableCell>{entry.endTime ? formatTime(entry.endTime) : <Chip label="In curs" size="small" color="success" />}</TableCell>
-                            <TableCell>{formatDuration(entry.durationMinutes)}</TableCell>
-                            <TableCell>
-                              <Chip
-                                label={entry.locationLogs?.length ?? '?'}
-                                size="small"
-                                icon={<LocationIcon sx={{ fontSize: 14 }} />}
-                                variant="outlined"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                <Tooltip title="Vezi traseu pe harta">
-                                  <IconButton
+                        consolidatedEntries.map(group => {
+                          const isExpanded = expandedGroups.has(group.key);
+                          const isSingle = group.entryCount === 1;
+                          const singleEntry = isSingle ? group.entries[0] : null;
+
+                          return (
+                            <React.Fragment key={group.key}>
+                              {/* Consolidated row */}
+                              <TableRow
+                                hover
+                                sx={{
+                                  cursor: isSingle ? 'default' : 'pointer',
+                                  bgcolor: isExpanded ? alpha('#f59e0b', 0.04) : undefined,
+                                  '&:hover': { bgcolor: alpha('#f59e0b', 0.06) },
+                                }}
+                                onClick={() => {
+                                  if (!isSingle) {
+                                    setExpandedGroups(prev => {
+                                      const next = new Set(prev);
+                                      if (next.has(group.key)) next.delete(group.key);
+                                      else next.add(group.key);
+                                      return next;
+                                    });
+                                  }
+                                }}
+                              >
+                                <TableCell sx={{ width: 40, px: 1 }}>
+                                  {!isSingle && (
+                                    <IconButton size="small" sx={{ p: 0.25 }}>
+                                      {isExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                                    </IconButton>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <Box>
+                                    <Typography variant="body2" fontWeight={500}>
+                                      {group.userName}
+                                    </Typography>
+                                    <Chip
+                                      label={group.department}
+                                      size="small"
+                                      sx={{
+                                        height: 18,
+                                        fontSize: '0.7rem',
+                                        bgcolor: alpha(getDeptColor(group.department), 0.12),
+                                        color: getDeptColor(group.department),
+                                        fontWeight: 600,
+                                      }}
+                                    />
+                                  </Box>
+                                </TableCell>
+                                <TableCell>{group.date}</TableCell>
+                                <TableCell>{formatTime(group.firstStart)}</TableCell>
+                                <TableCell>
+                                  {group.lastEnd
+                                    ? formatTime(group.lastEnd)
+                                    : <Chip label="In curs" size="small" color="success" sx={{ height: 22 }} />
+                                  }
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2" fontWeight={600}>
+                                    {formatDuration(group.totalDurationMinutes)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Chip
+                                    label={group.totalLocationLogs}
                                     size="small"
-                                    color={selectedTrailEntryId === entry.id ? 'warning' : 'default'}
-                                    onClick={() => {
-                                      setSelectedTrailEntryId(selectedTrailEntryId === entry.id ? null : entry.id);
-                                      setSelectedRouteEntryId(null);
-                                    }}
-                                  >
-                                    <MapIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Detalii traseu cu strazi">
-                                  <IconButton
-                                    size="small"
-                                    color={selectedRouteEntryId === entry.id ? 'warning' : 'default'}
-                                    onClick={() => {
-                                      setSelectedRouteEntryId(selectedRouteEntryId === entry.id ? null : entry.id);
-                                      setSelectedTrailEntryId(null);
-                                    }}
-                                  >
-                                    <RouteIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))
+                                    icon={<LocationIcon sx={{ fontSize: 14 }} />}
+                                    variant="outlined"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  {group.entryCount > 1 ? (
+                                    <Chip
+                                      label={`${group.entryCount}x`}
+                                      size="small"
+                                      sx={{
+                                        height: 22,
+                                        fontSize: '0.75rem',
+                                        fontWeight: 700,
+                                        bgcolor: alpha('#f59e0b', 0.12),
+                                        color: '#92400e',
+                                      }}
+                                    />
+                                  ) : (
+                                    <Typography variant="body2" color="text.secondary">1</Typography>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {/* Show action buttons directly for single entries */}
+                                  {isSingle && singleEntry && (
+                                    <Box sx={{ display: 'flex', gap: 0.5 }} onClick={e => e.stopPropagation()}>
+                                      <Tooltip title="Vezi traseu pe harta">
+                                        <IconButton
+                                          size="small"
+                                          color={selectedTrailEntryId === singleEntry.id ? 'warning' : 'default'}
+                                          onClick={() => {
+                                            setSelectedTrailEntryId(selectedTrailEntryId === singleEntry.id ? null : singleEntry.id);
+                                            setSelectedRouteEntryId(null);
+                                          }}
+                                        >
+                                          <MapIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <Tooltip title="Detalii traseu cu strazi">
+                                        <IconButton
+                                          size="small"
+                                          color={selectedRouteEntryId === singleEntry.id ? 'warning' : 'default'}
+                                          onClick={() => {
+                                            setSelectedRouteEntryId(selectedRouteEntryId === singleEntry.id ? null : singleEntry.id);
+                                            setSelectedTrailEntryId(null);
+                                          }}
+                                        >
+                                          <RouteIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </Box>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+
+                              {/* Expanded sub-rows for multi-entry groups */}
+                              {!isSingle && isExpanded && group.entries.map(entry => (
+                                <TableRow
+                                  key={entry.id}
+                                  hover
+                                  sx={{
+                                    bgcolor: alpha('#f59e0b', 0.02),
+                                    ...(selectedTrailEntryId === entry.id || selectedRouteEntryId === entry.id
+                                      ? { bgcolor: alpha('#f59e0b', 0.1) }
+                                      : {}),
+                                  }}
+                                >
+                                  <TableCell sx={{ width: 40, px: 1 }}>
+                                    <Box sx={{ width: 16, height: 16, ml: 0.5, borderLeft: '2px solid', borderBottom: '2px solid', borderColor: alpha('#f59e0b', 0.3), borderBottomLeftRadius: 4 }} />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="caption" color="text.secondary">
+                                      Tura {group.entries.indexOf(entry) + 1}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell />
+                                  <TableCell>
+                                    <Typography variant="body2" fontSize="0.8rem">{formatTime(entry.startTime)}</Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="body2" fontSize="0.8rem">
+                                      {entry.endTime ? formatTime(entry.endTime) : <Chip label="In curs" size="small" color="success" sx={{ height: 20 }} />}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="body2" fontSize="0.8rem">{formatDuration(entry.durationMinutes)}</Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Chip
+                                      label={entry.locationLogs?.length ?? 0}
+                                      size="small"
+                                      icon={<LocationIcon sx={{ fontSize: 12 }} />}
+                                      variant="outlined"
+                                      sx={{ height: 22 }}
+                                    />
+                                  </TableCell>
+                                  <TableCell />
+                                  <TableCell>
+                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                      <Tooltip title="Vezi traseu pe harta">
+                                        <IconButton
+                                          size="small"
+                                          color={selectedTrailEntryId === entry.id ? 'warning' : 'default'}
+                                          onClick={() => {
+                                            setSelectedTrailEntryId(selectedTrailEntryId === entry.id ? null : entry.id);
+                                            setSelectedRouteEntryId(null);
+                                          }}
+                                        >
+                                          <MapIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <Tooltip title="Detalii traseu cu strazi">
+                                        <IconButton
+                                          size="small"
+                                          color={selectedRouteEntryId === entry.id ? 'warning' : 'default'}
+                                          onClick={() => {
+                                            setSelectedRouteEntryId(selectedRouteEntryId === entry.id ? null : entry.id);
+                                            setSelectedTrailEntryId(null);
+                                          }}
+                                        >
+                                          <RouteIcon fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </Box>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </React.Fragment>
+                          );
+                        })
                       )}
                     </TableBody>
                   </Table>
