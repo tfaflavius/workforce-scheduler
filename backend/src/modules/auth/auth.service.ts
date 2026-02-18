@@ -135,37 +135,44 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
+    const successMessage = 'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.';
+
     // Verifica daca userul exista in DB
     const user = await this.userRepository.findOne({ where: { email } });
     // Nu dezvăluim dacă emailul există sau nu (securitate)
     if (!user) {
-      return { message: 'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.' };
+      return { message: successMessage };
     }
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
-    const jwtSecret = this.configService.get<string>('JWT_SECRET');
-
-    // Generate a password reset JWT token (1 hour expiry)
-    const resetToken = jwt.sign(
-      { userId: user.id, email: user.email, purpose: 'password-reset' },
-      jwtSecret,
-      { expiresIn: '1h' },
-    );
-
-    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
-
-    // Send password reset email via our own email service
     try {
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
+      const jwtSecret = this.configService.get<string>('JWT_SECRET');
+
+      if (!jwtSecret) {
+        console.error('JWT_SECRET is not configured - cannot generate password reset token');
+        return { message: successMessage };
+      }
+
+      // Generate a password reset JWT token (1 hour expiry)
+      const resetToken = jwt.sign(
+        { userId: user.id, email: user.email, purpose: 'password-reset' },
+        jwtSecret,
+        { expiresIn: '1h' },
+      );
+
+      const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+      // Send password reset email via our own email service
       await this.emailService.sendPasswordResetEmail({
         employeeEmail: user.email,
         employeeName: user.fullName,
         resetUrl,
       });
     } catch (error) {
-      console.error('Error sending password reset email:', error?.message);
+      console.error('Error in forgotPassword flow:', error?.message || error);
     }
 
-    return { message: 'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.' };
+    return { message: successMessage };
   }
 
   async resetPassword(resetToken: string, newPassword: string) {
