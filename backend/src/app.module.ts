@@ -51,11 +51,13 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { Task } from './modules/tasks/entities/task.entity';
 import { TaskHistory } from './modules/tasks/entities/task-history.entity';
 import { AcquisitionsModule } from './modules/acquisitions/acquisitions.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { BudgetPosition } from './modules/acquisitions/entities/budget-position.entity';
 import { Acquisition } from './modules/acquisitions/entities/acquisition.entity';
 import { AcquisitionInvoice } from './modules/acquisitions/entities/acquisition-invoice.entity';
 import { RevenueCategory } from './modules/acquisitions/entities/revenue-category.entity';
 import { MonthlyRevenue } from './modules/acquisitions/entities/monthly-revenue.entity';
+import { GeneratedReport } from './modules/reports/entities/generated-report.entity';
 
 @Module({
   imports: [
@@ -72,7 +74,7 @@ import { MonthlyRevenue } from './modules/acquisitions/entities/monthly-revenue.
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
@@ -89,6 +91,7 @@ import { MonthlyRevenue } from './modules/acquisitions/entities/monthly-revenue.
     TimeTrackingModule,
     TasksModule,
     AcquisitionsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
