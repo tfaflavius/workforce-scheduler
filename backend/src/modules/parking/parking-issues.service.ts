@@ -158,19 +158,7 @@ export class ParkingIssuesService {
 
     await this.notificationsService.createMany(notifications);
 
-    // Trimite email-uri catre toti userii din echipa de intretinere
-    for (const user of maintenanceUsers) {
-      await this.emailService.sendParkingIssueNotification({
-        recipientEmail: user.email,
-        recipientName: user.fullName,
-        parkingLotName: parkingName,
-        equipment: issue.equipment,
-        description: issue.description,
-        isUrgent: issue.isUrgent || false,
-        creatorName: creatorName,
-        issueType: 'new_issue',
-      });
-    }
+    // Emailurile individuale au fost eliminate - se trimite rezumat zilnic centralizat
   }
 
   private async notifyManagersAndAdmins(
@@ -235,21 +223,7 @@ export class ParkingIssuesService {
 
     await this.notificationsService.createMany(notifications);
 
-    // Trimite emailuri catre manageri si admini pentru probleme noi
-    if (action === 'CREATED') {
-      for (const user of toNotify) {
-        await this.emailService.sendParkingIssueNotification({
-          recipientEmail: user.email,
-          recipientName: user.fullName,
-          parkingLotName: parkingName,
-          equipment: issue.equipment,
-          description: issue.description,
-          isUrgent: issue.isUrgent || false,
-          creatorName: actorName,
-          issueType: 'new_issue',
-        });
-      }
-    }
+    // Emailurile individuale au fost eliminate - se trimite rezumat zilnic centralizat
   }
 
   async findAll(status?: ParkingIssueStatus): Promise<ParkingIssue[]> {
@@ -365,21 +339,7 @@ export class ParkingIssuesService {
         },
       });
 
-      // Email catre creator
-      const creator = await this.userRepository.findOne({ where: { id: issue.createdBy } });
-      if (creator) {
-        await this.emailService.sendParkingIssueNotification({
-          recipientEmail: creator.email,
-          recipientName: creator.fullName,
-          parkingLotName: issue.parkingLot?.name || 'parcare',
-          equipment: issue.equipment,
-          description: issue.description,
-          isUrgent: false,
-          creatorName: resolverName,
-          issueType: 'issue_resolved',
-          resolutionDescription: dto.resolutionDescription,
-        });
-      }
+      // Email individual eliminat - se trimite rezumat zilnic centralizat
     }
 
     // Notifica managerii si adminii

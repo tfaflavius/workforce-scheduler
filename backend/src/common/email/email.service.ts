@@ -275,6 +275,50 @@ export interface WeeklyDailyReportSummaryData {
   totalMissing?: number;
 }
 
+export interface DailyParkingSummaryData {
+  recipientEmail: string;
+  recipientName: string;
+  date: string; // ex: '18.02.2026'
+  newIssues: Array<{
+    parkingLotName: string;
+    equipment: string;
+    description: string;
+    creatorName: string;
+    createdAt: string;
+    isUrgent: boolean;
+  }>;
+  resolvedIssues: Array<{
+    parkingLotName: string;
+    equipment: string;
+    resolverName: string;
+    resolvedAt: string;
+    resolutionDescription?: string;
+  }>;
+  newDamages: Array<{
+    parkingLotName: string;
+    damagedEquipment: string;
+    personName: string;
+    carPlate: string;
+    description: string;
+    creatorName: string;
+    createdAt: string;
+    isUrgent: boolean;
+  }>;
+  resolvedDamages: Array<{
+    parkingLotName: string;
+    damagedEquipment: string;
+    resolverName: string;
+    resolvedAt: string;
+    resolutionType?: string;
+    resolutionDescription?: string;
+  }>;
+  stillUnresolved: {
+    issuesCount: number;
+    damagesCount: number;
+    urgentCount: number;
+  };
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -2284,6 +2328,155 @@ export class EmailService {
       data.recipientEmail,
       `Centralizare Rapoarte Zilnice - ${weekRange}`,
       html,
+    );
+  }
+
+  // ============== DAILY PARKING SUMMARY EMAIL ==============
+
+  async sendDailyParkingSummary(data: DailyParkingSummaryData): Promise<boolean> {
+    const totalNew = data.newIssues.length + data.newDamages.length;
+    const totalResolved = data.resolvedIssues.length + data.resolvedDamages.length;
+
+    let content = `
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
+      <p>Acesta este rezumatul activitatii parcari pentru data de <strong>${data.date}</strong>.</p>
+    `;
+
+    // Summary stats
+    content += `
+      <div style="display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 120px; background-color: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #1565c0;">${totalNew}</div>
+          <div style="font-size: 12px; color: #666;">Noi astazi</div>
+        </div>
+        <div style="flex: 1; min-width: 120px; background-color: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #2e7d32;">${totalResolved}</div>
+          <div style="font-size: 12px; color: #666;">Rezolvate astazi</div>
+        </div>
+        <div style="flex: 1; min-width: 120px; background-color: ${data.stillUnresolved.urgentCount > 0 ? '#ffebee' : '#fff3e0'}; padding: 15px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: ${data.stillUnresolved.urgentCount > 0 ? '#c62828' : '#ef6c00'};">${data.stillUnresolved.issuesCount + data.stillUnresolved.damagesCount}</div>
+          <div style="font-size: 12px; color: #666;">Nerezolvate total${data.stillUnresolved.urgentCount > 0 ? ` (${data.stillUnresolved.urgentCount} urgente!)` : ''}</div>
+        </div>
+      </div>
+    `;
+
+    // New issues
+    if (data.newIssues.length > 0) {
+      content += `
+        <h3 style="color: #1565c0; border-bottom: 2px solid #1565c0; padding-bottom: 5px; margin-top: 25px;">
+          Probleme noi (${data.newIssues.length})
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr style="background-color: #e3f2fd;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Descriere</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Raportat de</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Ora</th>
+          </tr>
+          ${data.newIssues.map(i => `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.equipment}${i.isUrgent ? ' <span style="color: red; font-weight: bold;">URGENT</span>' : ''}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.description?.substring(0, 100) || '-'}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.creatorName}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.createdAt}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+    }
+
+    // Resolved issues
+    if (data.resolvedIssues.length > 0) {
+      content += `
+        <h3 style="color: #2e7d32; border-bottom: 2px solid #2e7d32; padding-bottom: 5px; margin-top: 25px;">
+          Probleme rezolvate (${data.resolvedIssues.length})
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr style="background-color: #e8f5e9;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Rezolutie</th>
+          </tr>
+          ${data.resolvedIssues.map(i => `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.equipment}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.resolverName}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${i.resolutionDescription?.substring(0, 100) || '-'}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+    }
+
+    // New damages
+    if (data.newDamages.length > 0) {
+      content += `
+        <h3 style="color: #e65100; border-bottom: 2px solid #e65100; padding-bottom: 5px; margin-top: 25px;">
+          Prejudicii noi (${data.newDamages.length})
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr style="background-color: #fff3e0;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Persoana</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Nr. Auto</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Raportat de</th>
+          </tr>
+          ${data.newDamages.map(d => `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.damagedEquipment}${d.isUrgent ? ' <span style="color: red; font-weight: bold;">URGENT</span>' : ''}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.personName || '-'}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.carPlate || '-'}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.creatorName}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+    }
+
+    // Resolved damages
+    if (data.resolvedDamages.length > 0) {
+      content += `
+        <h3 style="color: #2e7d32; border-bottom: 2px solid #2e7d32; padding-bottom: 5px; margin-top: 25px;">
+          Prejudicii rezolvate (${data.resolvedDamages.length})
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr style="background-color: #e8f5e9;">
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
+            <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Tip Rezolutie</th>
+          </tr>
+          ${data.resolvedDamages.map(d => `
+            <tr>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.damagedEquipment}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.resolverName}</td>
+              <td style="padding: 8px; border: 1px solid #ddd;">${d.resolutionType || '-'}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+    }
+
+    // No activity
+    if (totalNew === 0 && totalResolved === 0) {
+      content += `
+        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+          <p style="color: #666; margin: 0;">Nu au fost inregistrate activitati noi astazi.</p>
+        </div>
+      `;
+    }
+
+    return this.sendEmail(
+      data.recipientEmail,
+      `📋 Rezumat Parcari - ${data.date}`,
+      this.generateBaseTemplate('WorkSchedule', `Rezumat Parcari - ${data.date}`, content, '#1565c0 0%, #0d47a1 100%'),
     );
   }
 }

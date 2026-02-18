@@ -8,9 +8,11 @@ import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 import { EmailService } from '../../common/email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan, LessThan } from 'typeorm';
+import { Repository, MoreThan, LessThan, Between } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
+import { ParkingIssue } from './entities/parking-issue.entity';
+import { ParkingDamage } from './entities/parking-damage.entity';
 import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
@@ -32,6 +34,10 @@ export class ParkingUrgentScheduler {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
+    @InjectRepository(ParkingIssue)
+    private readonly parkingIssueRepository: Repository<ParkingIssue>,
+    @InjectRepository(ParkingDamage)
+    private readonly parkingDamageRepository: Repository<ParkingDamage>,
     @InjectRepository(HandicapRequest)
     private readonly handicapRequestRepository: Repository<HandicapRequest>,
     @InjectRepository(HandicapLegitimation)
@@ -116,6 +122,135 @@ export class ParkingUrgentScheduler {
       this.logger.log('Raport zilnic Handicap trimis cu succes');
     } catch (error) {
       this.logger.error('Eroare la trimiterea raportului Handicap:', error);
+    }
+  }
+
+  // Ruleaza zilnic la 20:00 - trimite email centralizat cu toate activitatile din ziua curenta
+  @Cron('0 20 * * *', { timeZone: 'Europe/Bucharest' })
+  async handleDailyParkingSummary() {
+    this.logger.log('Generare rezumat zilnic parcari...');
+
+    try {
+      await this.sendDailyParkingSummaryEmails();
+      this.logger.log('Rezumat zilnic parcari trimis cu succes');
+    } catch (error) {
+      this.logger.error('Eroare la trimiterea rezumatului zilnic parcari:', error);
+    }
+  }
+
+  /**
+   * Trimite email centralizat cu TOATE activitatile din ziua curenta:
+   * - Probleme noi + rezolvate
+   * - Prejudicii noi + rezolvate
+   * - Status nerezolvate
+   */
+  private async sendDailyParkingSummaryEmails(): Promise<void> {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+    const dateStr = today.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formatTime = (d: Date) => d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bucharest' });
+
+    // Fetch today's issues
+    const newIssues = await this.parkingIssueRepository.find({
+      where: { createdAt: Between(startOfDay, endOfDay) },
+      relations: ['parkingLot', 'creator'],
+      order: { createdAt: 'ASC' },
+    });
+
+    const resolvedIssues = await this.parkingIssueRepository.find({
+      where: { resolvedAt: Between(startOfDay, endOfDay) },
+      relations: ['parkingLot', 'resolver'],
+      order: { resolvedAt: 'ASC' },
+    });
+
+    // Fetch today's damages
+    const newDamages = await this.parkingDamageRepository.find({
+      where: { createdAt: Between(startOfDay, endOfDay) },
+      relations: ['parkingLot', 'creator'],
+      order: { createdAt: 'ASC' },
+    });
+
+    const resolvedDamages = await this.parkingDamageRepository.find({
+      where: { resolvedAt: Between(startOfDay, endOfDay) },
+      relations: ['parkingLot', 'resolver'],
+      order: { resolvedAt: 'ASC' },
+    });
+
+    // Count still unresolved
+    const unresolvedIssues = await this.parkingIssueRepository.count({
+      where: { status: 'ACTIVE' as any },
+    });
+    const unresolvedDamages = await this.parkingDamageRepository.count({
+      where: { status: 'ACTIVE' as any },
+    });
+    const urgentIssues = await this.parkingIssueRepository.count({
+      where: { status: 'ACTIVE' as any, isUrgent: true },
+    });
+    const urgentDamages = await this.parkingDamageRepository.count({
+      where: { status: 'ACTIVE' as any, isUrgent: true },
+    });
+
+    // Get admin and manager recipients
+    const recipients = await this.userRepository.find({
+      where: [
+        { role: UserRole.ADMIN, isActive: true },
+        { role: UserRole.MANAGER, isActive: true },
+      ],
+    });
+
+    if (recipients.length === 0) return;
+
+    // Send to each recipient
+    for (const recipient of recipients) {
+      try {
+        await this.emailService.sendDailyParkingSummary({
+          recipientEmail: recipient.email,
+          recipientName: recipient.fullName,
+          date: dateStr,
+          newIssues: newIssues.map(i => ({
+            parkingLotName: i.parkingLot?.name || 'N/A',
+            equipment: i.equipment,
+            description: i.description,
+            creatorName: i.creator?.fullName || 'N/A',
+            createdAt: formatTime(new Date(i.createdAt)),
+            isUrgent: i.isUrgent || false,
+          })),
+          resolvedIssues: resolvedIssues.map(i => ({
+            parkingLotName: i.parkingLot?.name || 'N/A',
+            equipment: i.equipment,
+            resolverName: i.resolver?.fullName || 'N/A',
+            resolvedAt: formatTime(new Date(i.resolvedAt)),
+            resolutionDescription: i.resolutionDescription,
+          })),
+          newDamages: newDamages.map(d => ({
+            parkingLotName: d.parkingLot?.name || 'N/A',
+            damagedEquipment: d.damagedEquipment,
+            personName: d.personName,
+            carPlate: d.carPlate,
+            description: d.description,
+            creatorName: d.creator?.fullName || 'N/A',
+            createdAt: formatTime(new Date(d.createdAt)),
+            isUrgent: d.isUrgent || false,
+          })),
+          resolvedDamages: resolvedDamages.map(d => ({
+            parkingLotName: d.parkingLot?.name || 'N/A',
+            damagedEquipment: d.damagedEquipment,
+            resolverName: d.resolver?.fullName || 'N/A',
+            resolvedAt: formatTime(new Date(d.resolvedAt)),
+            resolutionType: d.resolutionType,
+            resolutionDescription: d.resolutionDescription,
+          })),
+          stillUnresolved: {
+            issuesCount: unresolvedIssues,
+            damagesCount: unresolvedDamages,
+            urgentCount: urgentIssues + urgentDamages,
+          },
+        });
+      } catch (err) {
+        this.logger.error(`Eroare la trimiterea rezumatului catre ${recipient.email}: ${err.message}`);
+      }
     }
   }
 

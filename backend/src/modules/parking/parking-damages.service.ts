@@ -136,26 +136,8 @@ export class ParkingDamagesService {
 
     await this.notificationsService.createMany(notifications);
 
-    // Trimite emailuri catre TOTI managerii si adminii (inclusiv actorul)
-    // Emailurile sunt importante pentru audit si confirmare, spre deosebire de notificarile in-app
-    if (action === 'CREATED' || action === 'RESOLVED') {
-      for (const user of managersAndAdmins) {
-        await this.emailService.sendParkingDamageNotification({
-          recipientEmail: user.email,
-          recipientName: user.fullName,
-          parkingLotName: parkingName,
-          damagedEquipment: damage.damagedEquipment,
-          personName: damage.personName,
-          carPlate: damage.carPlate,
-          description: damage.description,
-          isUrgent: damage.isUrgent || false,
-          creatorName: actorName,
-          damageType: action === 'CREATED' ? 'new_damage' : 'damage_resolved',
-          resolutionType: damage.resolutionType,
-          resolutionDescription: damage.resolutionDescription,
-        });
-      }
-    }
+    // Emailurile individuale au fost eliminate - se trimite un email centralizat zilnic
+    // via ParkingUrgentScheduler.sendDailyParkingSummary()
   }
 
   async findAll(status?: ParkingDamageStatus): Promise<ParkingDamage[]> {
@@ -251,21 +233,7 @@ export class ParkingDamagesService {
           },
         });
 
-        // Email catre creator
-        await this.emailService.sendParkingDamageNotification({
-          recipientEmail: creator.email,
-          recipientName: creator.fullName,
-          parkingLotName: damage.parkingLot?.name || 'parcare',
-          damagedEquipment: damage.damagedEquipment,
-          personName: damage.personName,
-          carPlate: damage.carPlate,
-          description: damage.description,
-          isUrgent: false,
-          creatorName: resolverName,
-          damageType: 'damage_resolved',
-          resolutionType: dto.resolutionType,
-          resolutionDescription: dto.resolutionDescription,
-        });
+        // Email individual eliminat - se trimite rezumat zilnic centralizat
       }
     }
 
