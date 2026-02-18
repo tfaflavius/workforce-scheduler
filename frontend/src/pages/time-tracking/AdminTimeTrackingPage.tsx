@@ -42,6 +42,7 @@ import {
   useGetAdminActiveTimersQuery,
   useGetAdminTimeEntriesQuery,
   useGetAdminEntryLocationsQuery,
+  useGetAdminCombinedLocationsQuery,
   useGetAdminDepartmentUsersQuery,
   useGetAdminTimeTrackingStatsQuery,
   useRequestInstantLocationsMutation,
@@ -118,6 +119,8 @@ const AdminTimeTrackingPage: React.FC = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [selectedTrailEntryId, setSelectedTrailEntryId] = useState<string | null>(null);
   const [selectedRouteEntryId, setSelectedRouteEntryId] = useState<string | null>(null);
+  const [selectedCombinedTrailIds, setSelectedCombinedTrailIds] = useState<string[] | null>(null);
+  const [selectedCombinedRouteIds, setSelectedCombinedRouteIds] = useState<string[] | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
   // Istoric filters
@@ -145,6 +148,9 @@ const AdminTimeTrackingPage: React.FC = () => {
   const { data: historyEntries = [], isLoading: historyLoading } = useGetAdminTimeEntriesQuery(filters);
   const { data: trailLocations = [] } = useGetAdminEntryLocationsQuery(selectedTrailEntryId!, {
     skip: !selectedTrailEntryId,
+  });
+  const { data: combinedTrailLocations = [] } = useGetAdminCombinedLocationsQuery(selectedCombinedTrailIds!, {
+    skip: !selectedCombinedTrailIds,
   });
 
   // ===== REAL-TIME TAB DATA =====
@@ -228,7 +234,7 @@ const AdminTimeTrackingPage: React.FC = () => {
       }));
   }, [activeTimers]);
 
-  // Trail for history tab
+  // Trail for history tab (single entry)
   const selectedTrail: LocationTrail | null = useMemo(() => {
     if (!selectedTrailEntryId || trailLocations.length === 0) return null;
     const entry = historyEntries.find(e => e.id === selectedTrailEntryId);
@@ -238,6 +244,19 @@ const AdminTimeTrackingPage: React.FC = () => {
       department: entry?.user?.department?.name || '-',
     };
   }, [selectedTrailEntryId, trailLocations, historyEntries]);
+
+  // Trail for history tab (combined entries)
+  const selectedCombinedTrail: LocationTrail | null = useMemo(() => {
+    if (!selectedCombinedTrailIds || combinedTrailLocations.length === 0) return null;
+    // Find the first entry to get employee info
+    const firstEntryId = selectedCombinedTrailIds[0];
+    const entry = historyEntries.find(e => e.id === firstEntryId);
+    return {
+      locations: combinedTrailLocations,
+      employeeName: entry?.user?.fullName || `${entry?.user?.firstName || ''} ${entry?.user?.lastName || ''}`.trim() || 'Angajat',
+      department: entry?.user?.department?.name || '-',
+    };
+  }, [selectedCombinedTrailIds, combinedTrailLocations, historyEntries]);
 
   // ===== CONSOLIDATED HISTORY ENTRIES =====
   const consolidatedEntries: ConsolidatedEntry[] = useMemo(() => {
@@ -294,6 +313,8 @@ const AdminTimeTrackingPage: React.FC = () => {
   useEffect(() => {
     setSelectedTrailEntryId(null);
     setSelectedRouteEntryId(null);
+    setSelectedCombinedTrailIds(null);
+    setSelectedCombinedRouteIds(null);
     setExpandedGroups(new Set());
   }, [tabIndex]);
 
@@ -302,6 +323,8 @@ const AdminTimeTrackingPage: React.FC = () => {
     setExpandedGroups(new Set());
     setSelectedTrailEntryId(null);
     setSelectedRouteEntryId(null);
+    setSelectedCombinedTrailIds(null);
+    setSelectedCombinedRouteIds(null);
   }, [filters]);
 
   // ===== LIVE DURATION TICKER =====
@@ -710,35 +733,80 @@ const AdminTimeTrackingPage: React.FC = () => {
                                   )}
                                 </TableCell>
                                 <TableCell>
-                                  {/* Show action buttons directly for single entries */}
-                                  {isSingle && singleEntry && (
-                                    <Box sx={{ display: 'flex', gap: 0.5 }} onClick={e => e.stopPropagation()}>
-                                      <Tooltip title="Vezi traseu pe harta">
-                                        <IconButton
-                                          size="small"
-                                          color={selectedTrailEntryId === singleEntry.id ? 'warning' : 'default'}
-                                          onClick={() => {
-                                            setSelectedTrailEntryId(selectedTrailEntryId === singleEntry.id ? null : singleEntry.id);
-                                            setSelectedRouteEntryId(null);
-                                          }}
-                                        >
-                                          <MapIcon fontSize="small" />
-                                        </IconButton>
-                                      </Tooltip>
-                                      <Tooltip title="Detalii traseu cu strazi">
-                                        <IconButton
-                                          size="small"
-                                          color={selectedRouteEntryId === singleEntry.id ? 'warning' : 'default'}
-                                          onClick={() => {
-                                            setSelectedRouteEntryId(selectedRouteEntryId === singleEntry.id ? null : singleEntry.id);
-                                            setSelectedTrailEntryId(null);
-                                          }}
-                                        >
-                                          <RouteIcon fontSize="small" />
-                                        </IconButton>
-                                      </Tooltip>
-                                    </Box>
-                                  )}
+                                  <Box sx={{ display: 'flex', gap: 0.5 }} onClick={e => e.stopPropagation()}>
+                                    {isSingle && singleEntry ? (
+                                      <>
+                                        <Tooltip title="Vezi traseu pe harta">
+                                          <IconButton
+                                            size="small"
+                                            color={selectedTrailEntryId === singleEntry.id ? 'warning' : 'default'}
+                                            onClick={() => {
+                                              setSelectedTrailEntryId(selectedTrailEntryId === singleEntry.id ? null : singleEntry.id);
+                                              setSelectedRouteEntryId(null);
+                                              setSelectedCombinedTrailIds(null);
+                                              setSelectedCombinedRouteIds(null);
+                                            }}
+                                          >
+                                            <MapIcon fontSize="small" />
+                                          </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Detalii traseu cu strazi">
+                                          <IconButton
+                                            size="small"
+                                            color={selectedRouteEntryId === singleEntry.id ? 'warning' : 'default'}
+                                            onClick={() => {
+                                              setSelectedRouteEntryId(selectedRouteEntryId === singleEntry.id ? null : singleEntry.id);
+                                              setSelectedTrailEntryId(null);
+                                              setSelectedCombinedTrailIds(null);
+                                              setSelectedCombinedRouteIds(null);
+                                            }}
+                                          >
+                                            <RouteIcon fontSize="small" />
+                                          </IconButton>
+                                        </Tooltip>
+                                      </>
+                                    ) : (
+                                      <>
+                                        {(() => {
+                                          const entryIds = group.entries.map(e => e.id);
+                                          const isTrailActive = selectedCombinedTrailIds && JSON.stringify(selectedCombinedTrailIds) === JSON.stringify(entryIds);
+                                          const isRouteActive = selectedCombinedRouteIds && JSON.stringify(selectedCombinedRouteIds) === JSON.stringify(entryIds);
+                                          return (
+                                            <>
+                                              <Tooltip title="Vezi traseul complet pe harta (toate turele)">
+                                                <IconButton
+                                                  size="small"
+                                                  color={isTrailActive ? 'warning' : 'default'}
+                                                  onClick={() => {
+                                                    setSelectedCombinedTrailIds(isTrailActive ? null : entryIds);
+                                                    setSelectedCombinedRouteIds(null);
+                                                    setSelectedTrailEntryId(null);
+                                                    setSelectedRouteEntryId(null);
+                                                  }}
+                                                >
+                                                  <MapIcon fontSize="small" />
+                                                </IconButton>
+                                              </Tooltip>
+                                              <Tooltip title="Detalii traseu complet cu strazi (toate turele)">
+                                                <IconButton
+                                                  size="small"
+                                                  color={isRouteActive ? 'warning' : 'default'}
+                                                  onClick={() => {
+                                                    setSelectedCombinedRouteIds(isRouteActive ? null : entryIds);
+                                                    setSelectedCombinedTrailIds(null);
+                                                    setSelectedTrailEntryId(null);
+                                                    setSelectedRouteEntryId(null);
+                                                  }}
+                                                >
+                                                  <RouteIcon fontSize="small" />
+                                                </IconButton>
+                                              </Tooltip>
+                                            </>
+                                          );
+                                        })()}
+                                      </>
+                                    )}
+                                  </Box>
                                 </TableCell>
                               </TableRow>
 
@@ -793,6 +861,8 @@ const AdminTimeTrackingPage: React.FC = () => {
                                           onClick={() => {
                                             setSelectedTrailEntryId(selectedTrailEntryId === entry.id ? null : entry.id);
                                             setSelectedRouteEntryId(null);
+                                            setSelectedCombinedTrailIds(null);
+                                            setSelectedCombinedRouteIds(null);
                                           }}
                                         >
                                           <MapIcon fontSize="small" />
@@ -805,6 +875,8 @@ const AdminTimeTrackingPage: React.FC = () => {
                                           onClick={() => {
                                             setSelectedRouteEntryId(selectedRouteEntryId === entry.id ? null : entry.id);
                                             setSelectedTrailEntryId(null);
+                                            setSelectedCombinedTrailIds(null);
+                                            setSelectedCombinedRouteIds(null);
                                           }}
                                         >
                                           <RouteIcon fontSize="small" />
@@ -822,7 +894,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                   </Table>
                 </Box>
 
-                {/* Trail Map */}
+                {/* Trail Map - Single entry */}
                 {selectedTrail && (
                   <Box>
                     <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
@@ -832,11 +904,29 @@ const AdminTimeTrackingPage: React.FC = () => {
                   </Box>
                 )}
 
-                {/* Route Timeline */}
+                {/* Trail Map - Combined entries */}
+                {selectedCombinedTrail && (
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+                      Traseu GPS Complet - {selectedCombinedTrail.employeeName} ({combinedTrailLocations.length} puncte din toate turele)
+                    </Typography>
+                    <EmployeeLocationMap trails={[selectedCombinedTrail]} height={450} />
+                  </Box>
+                )}
+
+                {/* Route Timeline - Single entry */}
                 {selectedRouteEntryId && (
                   <RouteTimeline
                     timeEntryId={selectedRouteEntryId}
                     onClose={() => setSelectedRouteEntryId(null)}
+                  />
+                )}
+
+                {/* Route Timeline - Combined entries */}
+                {selectedCombinedRouteIds && (
+                  <RouteTimeline
+                    timeEntryIds={selectedCombinedRouteIds}
+                    onClose={() => setSelectedCombinedRouteIds(null)}
                   />
                 )}
               </>

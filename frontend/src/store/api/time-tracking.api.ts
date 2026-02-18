@@ -153,6 +153,20 @@ export const timeTrackingApi = createApi({
         { type: 'LocationLog', id: `admin-${timeEntryId}` },
       ],
     }),
+
+    getAdminCombinedRoute: builder.query<RouteData, string[]>({
+      query: (entryIds) => `/time-tracking/admin/combined-route?entryIds=${entryIds.join(',')}`,
+      providesTags: (_result, _error, entryIds) => [
+        { type: 'RouteData' as const, id: `combined-${entryIds.join(',')}` },
+      ],
+    }),
+
+    getAdminCombinedLocations: builder.query<LocationLog[], string[]>({
+      query: (entryIds) => `/time-tracking/admin/combined-locations?entryIds=${entryIds.join(',')}`,
+      providesTags: (_result, _error, entryIds) => [
+        { type: 'LocationLog', id: `combined-${entryIds.join(',')}` },
+      ],
+    }),
   }),
 });
 
@@ -172,4 +186,6 @@ export const {
   useRequestInstantLocationsMutation,
   useGetAdminEntryRouteQuery,
   useGeocodeEntryLocationsMutation,
+  useGetAdminCombinedRouteQuery,
+  useGetAdminCombinedLocationsQuery,
 } = timeTrackingApi;

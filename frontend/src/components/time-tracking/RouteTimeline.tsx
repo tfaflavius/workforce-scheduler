@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import {
   useGetAdminEntryRouteQuery,
+  useGetAdminCombinedRouteQuery,
   useGeocodeEntryLocationsMutation,
 } from '../../store/api/time-tracking.api';
 import type { RoutePoint } from '../../types/time-tracking.types';
@@ -54,7 +55,8 @@ const formatDistance = (meters: number) => {
 };
 
 interface RouteTimelineProps {
-  timeEntryId: string;
+  timeEntryId?: string;
+  timeEntryIds?: string[];
   onClose?: () => void;
 }
 
@@ -105,15 +107,26 @@ function groupPoints(points: RoutePoint[]): PointGroup[] {
   return groups;
 }
 
-const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, onClose }) => {
-  const { data: route, isLoading, error } = useGetAdminEntryRouteQuery(timeEntryId);
+const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds, onClose }) => {
+  const isCombined = !!(timeEntryIds && timeEntryIds.length > 1);
+
+  // Single entry route query
+  const singleQuery = useGetAdminEntryRouteQuery(timeEntryId!, { skip: !timeEntryId || isCombined });
+  // Combined entries route query
+  const combinedQuery = useGetAdminCombinedRouteQuery(timeEntryIds!, { skip: !isCombined });
+
+  const route = isCombined ? combinedQuery.data : singleQuery.data;
+  const isLoading = isCombined ? combinedQuery.isLoading : singleQuery.isLoading;
+  const error = isCombined ? combinedQuery.error : singleQuery.error;
+
   const [geocode, { isLoading: isGeocoding }] = useGeocodeEntryLocationsMutation();
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   const [geocodeSuccess, setGeocodeSuccess] = useState<string | null>(null);
 
   const handleGeocode = async () => {
+    if (isCombined) return; // Geocode not supported for combined view
     try {
-      const result = await geocode(timeEntryId).unwrap();
+      const result = await geocode(timeEntryId!).unwrap();
       setGeocodeSuccess(`${result.geocodedCount} adrese geocodate cu succes!`);
       setTimeout(() => setGeocodeSuccess(null), 5000);
     } catch {
@@ -165,7 +178,14 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, onClose }) =
           <Box>
             <Typography variant="h6" fontWeight={700}>
               <RouteIcon sx={{ mr: 1, verticalAlign: 'middle', fontSize: 22 }} />
-              Traseu GPS - {route.employeeName}
+              {isCombined ? 'Traseu GPS Complet' : 'Traseu GPS'} - {route.employeeName}
+              {route.entryCount && route.entryCount > 1 && (
+                <Chip
+                  label={`${route.entryCount} ture`}
+                  size="small"
+                  sx={{ ml: 1, bgcolor: 'rgba(255,255,255,0.25)', color: 'white', fontWeight: 600, height: 22, fontSize: '0.75rem' }}
+                />
+              )}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
               {formatDate(route.date)} | {route.department}

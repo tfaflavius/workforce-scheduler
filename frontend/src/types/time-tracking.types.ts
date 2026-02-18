@@ -142,4 +142,5 @@ export interface RouteData {
   streetSummary: StreetVisit[];
   geocodingComplete: boolean;
   ungeocodedCount: number;
+  entryCount?: number;
 }

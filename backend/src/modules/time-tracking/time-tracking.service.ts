@@ -565,6 +565,151 @@ export class TimeTrackingService {
   }
 
   /**
+   * Returns combined route data from multiple time entries (all entries of an employee on a day).
+   * Merges all location logs chronologically.
+   */
+  async getAdminCombinedRoute(entryIds: string[]) {
+    if (!entryIds.length) {
+      throw new BadRequestException('No entry IDs provided');
+    }
+
+    // Fetch all entries
+    const entries = await this.timeEntryRepository.find({
+      where: { id: In(entryIds) },
+      relations: ['user', 'user.department'],
+      order: { startTime: 'ASC' },
+    });
+
+    if (entries.length === 0) {
+      throw new NotFoundException('No time entries found');
+    }
+
+    // Fetch all location logs for all entries, sorted chronologically
+    const logs = await this.locationLogRepository.find({
+      where: { timeEntryId: In(entryIds) },
+      order: { recordedAt: 'ASC' },
+    });
+
+    // Build points with durations and distances
+    const points = logs.map((log, index) => {
+      const nextLog = logs[index + 1];
+      let durationMinutes = 0;
+      let distanceFromPrev = 0;
+
+      if (nextLog) {
+        durationMinutes = Math.round(
+          (new Date(nextLog.recordedAt).getTime() - new Date(log.recordedAt).getTime()) / 60000,
+        );
+      }
+
+      if (index > 0) {
+        const prevLog = logs[index - 1];
+        distanceFromPrev = Math.round(
+          this.geocodingService.haversineDistance(
+            Number(prevLog.latitude), Number(prevLog.longitude),
+            Number(log.latitude), Number(log.longitude),
+          ),
+        );
+      }
+
+      const recordedAtStr = log.recordedAt instanceof Date
+        ? log.recordedAt.toISOString()
+        : String(log.recordedAt);
+
+      return {
+        id: log.id,
+        latitude: Number(log.latitude),
+        longitude: Number(log.longitude),
+        address: log.address || null,
+        recordedAt: recordedAtStr,
+        durationMinutes,
+        distanceFromPrev,
+        isMoving: distanceFromPrev > 100,
+      };
+    });
+
+    // Street summary
+    const streetSummary: Array<{
+      streetName: string;
+      firstVisitTime: string;
+      lastVisitTime: string;
+      totalDurationMinutes: number;
+      pointCount: number;
+    }> = [];
+
+    let currentStreet: typeof streetSummary[0] | null = null;
+
+    for (const point of points) {
+      const streetName = point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+
+      if (currentStreet && currentStreet.streetName === streetName) {
+        currentStreet.lastVisitTime = point.recordedAt;
+        currentStreet.totalDurationMinutes += point.durationMinutes;
+        currentStreet.pointCount++;
+      } else {
+        if (currentStreet) {
+          streetSummary.push(currentStreet);
+        }
+        currentStreet = {
+          streetName,
+          firstVisitTime: point.recordedAt,
+          lastVisitTime: point.recordedAt,
+          totalDurationMinutes: point.durationMinutes,
+          pointCount: 1,
+        };
+      }
+    }
+    if (currentStreet) {
+      streetSummary.push(currentStreet);
+    }
+
+    const totalDistanceM = points.reduce((sum, p) => sum + p.distanceFromPrev, 0);
+    const ungeocodedCount = points.filter(p => !p.address).length;
+
+    const firstEntry = entries[0];
+    const lastEntry = entries[entries.length - 1];
+
+    const firstStartTime = firstEntry.startTime instanceof Date
+      ? firstEntry.startTime.toISOString()
+      : String(firstEntry.startTime);
+    const lastEndTime = lastEntry.endTime
+      ? (lastEntry.endTime instanceof Date ? lastEntry.endTime.toISOString() : String(lastEntry.endTime))
+      : null;
+
+    const totalDurationMinutes = entries.reduce((sum, e) => sum + (e.durationMinutes || 0), 0);
+
+    return {
+      timeEntryId: entryIds.join(','),
+      employeeName: firstEntry.user?.fullName || 'Necunoscut',
+      department: firstEntry.user?.department?.name || '-',
+      date: new Date(firstStartTime).toISOString().split('T')[0],
+      startTime: firstStartTime,
+      endTime: lastEndTime,
+      totalDurationMinutes,
+      totalDistanceKm: Math.round((totalDistanceM / 1000) * 100) / 100,
+      points,
+      streetSummary,
+      geocodingComplete: ungeocodedCount === 0 && points.length > 0,
+      ungeocodedCount,
+      entryCount: entries.length,
+    };
+  }
+
+  /**
+   * Returns combined location logs from multiple time entries (for map trail view).
+   */
+  async getAdminCombinedLocations(entryIds: string[]): Promise<LocationLog[]> {
+    if (!entryIds.length) {
+      throw new BadRequestException('No entry IDs provided');
+    }
+
+    return this.locationLogRepository.find({
+      where: { timeEntryId: In(entryIds) },
+      order: { recordedAt: 'ASC' },
+    });
+  }
+
+  /**
    * Triggers instant GPS capture by sending push notifications to all
    * active employees in Control + Intretinere Parcari departments.
    * Called on-demand by admin from the Monitorizare Pontaj page.

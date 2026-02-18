@@ -85,6 +85,22 @@ export class TimeTrackingController {
     return this.geocodingService.geocodeTimeEntryLocations(id);
   }
 
+  @Get('admin/combined-route')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminCombinedRoute(@Query('entryIds') entryIds: string) {
+    const ids = entryIds ? entryIds.split(',').filter(id => id.trim()) : [];
+    return this.timeTrackingService.getAdminCombinedRoute(ids);
+  }
+
+  @Get('admin/combined-locations')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  getAdminCombinedLocations(@Query('entryIds') entryIds: string) {
+    const ids = entryIds ? entryIds.split(',').filter(id => id.trim()) : [];
+    return this.timeTrackingService.getAdminCombinedLocations(ids);
+  }
+
   @Post('admin/request-locations')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
