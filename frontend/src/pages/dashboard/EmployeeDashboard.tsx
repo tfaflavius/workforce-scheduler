@@ -169,12 +169,13 @@ const EmployeeDashboard = () => {
   const isCapturingRef = useRef<boolean>(false);
 
   // GPS status for user feedback
-  const [gpsStatus, setGpsStatus] = useState<'idle' | 'success' | 'error' | 'unavailable'>('idle');
+  const [gpsStatus, setGpsStatus] = useState<'idle' | 'success' | 'error' | 'unavailable' | 'denied'>('idle');
   const [gpsErrorMessage, setGpsErrorMessage] = useState<string>('');
+  const [gpsPermissionBlocked, setGpsPermissionBlocked] = useState(false);
 
-  // Capture GPS location silently - with mutex to prevent duplicate captures
+  // Capture GPS location with retry logic and longer timeout
   const captureLocation = useCallback(
-    async (timeEntryId: string, isAutoRecorded: boolean = true) => {
+    async (timeEntryId: string, isAutoRecorded: boolean = true, retryCount: number = 0) => {
       if (!navigator.geolocation) {
         console.warn('[GPS] Geolocation not available in this browser');
         setGpsStatus('unavailable');
@@ -188,6 +189,8 @@ const EmployeeDashboard = () => {
         return;
       }
       isCapturingRef.current = true;
+
+      const MAX_RETRIES = 2;
 
       return new Promise<void>((resolve) => {
         navigator.geolocation.getCurrentPosition(
@@ -205,6 +208,7 @@ const EmployeeDashboard = () => {
               lastCaptureTimeRef.current = Date.now();
               setGpsStatus('success');
               setGpsErrorMessage('');
+              setGpsPermissionBlocked(false);
             } catch (err) {
               console.error('[GPS] Failed to send location to server:', err);
               setGpsStatus('error');
@@ -214,25 +218,66 @@ const EmployeeDashboard = () => {
             resolve();
           },
           (error) => {
-            // GPS failed - log the reason for debugging
+            isCapturingRef.current = false;
+
             const reasons: Record<number, string> = {
               1: 'Permisiune refuzata - activeaza locatia in setarile browserului',
               2: 'Pozitia nu a putut fi determinata - activeaza GPS-ul pe telefon',
               3: 'Timeout - GPS-ul nu a raspuns in timp util',
             };
             const msg = reasons[error.code] || error.message;
-            console.warn(`[GPS] Error: ${msg} (code: ${error.code})`);
+            console.warn(`[GPS] Error: ${msg} (code: ${error.code}, retry: ${retryCount}/${MAX_RETRIES})`);
+
+            // Permission denied - no point retrying
+            if (error.code === 1) {
+              setGpsStatus('denied');
+              setGpsErrorMessage('Locatia GPS este blocata! Te rugam sa o activezi din setarile browserului.');
+              setGpsPermissionBlocked(true);
+              resolve();
+              return;
+            }
+
+            // Retry for timeout/position unavailable errors
+            if (retryCount < MAX_RETRIES && (error.code === 2 || error.code === 3)) {
+              const delay = (retryCount + 1) * 5000; // 5s, 10s
+              console.log(`[GPS] Retrying in ${delay / 1000}s...`);
+              setTimeout(() => {
+                captureLocation(timeEntryId, isAutoRecorded, retryCount + 1).then(resolve);
+              }, delay);
+              return;
+            }
+
             setGpsStatus('error');
             setGpsErrorMessage(msg);
-            isCapturingRef.current = false;
             resolve();
           },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 },
+          { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 },
         );
       });
     },
     [recordLocationMutation],
   );
+
+  // Check GPS permission on mount for departments that need it
+  useEffect(() => {
+    if (!hasPontaj || !navigator.permissions) return;
+    navigator.permissions.query({ name: 'geolocation' }).then(result => {
+      if (result.state === 'denied') {
+        setGpsPermissionBlocked(true);
+        setGpsStatus('denied');
+        setGpsErrorMessage('Locatia GPS este blocata! Te rugam sa o activezi din setarile browserului.');
+      }
+      result.addEventListener('change', () => {
+        if (result.state === 'denied') {
+          setGpsPermissionBlocked(true);
+          setGpsStatus('denied');
+        } else {
+          setGpsPermissionBlocked(false);
+          setGpsStatus('idle');
+        }
+      });
+    }).catch(() => { /* permissions API not supported */ });
+  }, [hasPontaj]);
 
   // Timer counter effect
   useEffect(() => {
@@ -338,8 +383,58 @@ const EmployeeDashboard = () => {
     };
   }, [activeTimer, captureLocation]);
 
-  // Handle START
+  // Handle START - check GPS permission first
   const handleStartTimer = async () => {
+    // Check GPS availability before starting timer
+    if (!navigator.geolocation) {
+      setGpsStatus('unavailable');
+      setGpsErrorMessage('Browserul tau nu suporta GPS. Foloseste Chrome sau Safari.');
+      return;
+    }
+
+    // Check permission via Permissions API if available
+    if (navigator.permissions) {
+      try {
+        const perm = await navigator.permissions.query({ name: 'geolocation' });
+        if (perm.state === 'denied') {
+          setGpsPermissionBlocked(true);
+          setGpsStatus('denied');
+          setGpsErrorMessage('Locatia GPS este blocata! Mergi in setarile browserului si activeaz-o pentru acest site, apoi incearca din nou.');
+          return;
+        }
+      } catch {
+        // Permissions API not supported - proceed anyway
+      }
+    }
+
+    // Try to get GPS BEFORE starting the timer (to trigger the permission prompt)
+    try {
+      await new Promise<void>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            setGpsPermissionBlocked(false);
+            resolve();
+          },
+          (error) => {
+            if (error.code === 1) {
+              // Permission denied
+              setGpsPermissionBlocked(true);
+              setGpsStatus('denied');
+              setGpsErrorMessage('Locatia GPS este blocata! Permite accesul la locatie si incearca din nou.');
+              reject(new Error('GPS denied'));
+            } else {
+              // Timeout or unavailable - still allow start, GPS might work later
+              resolve();
+            }
+          },
+          { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+        );
+      });
+    } catch {
+      // GPS permission denied - don't start timer
+      return;
+    }
+
     try {
       setMismatchAlert(null);
       const result = await startTimerMutation().unwrap();
@@ -926,6 +1021,22 @@ const EmployeeDashboard = () => {
                     </Box>
                   </Stack>
 
+                  {/* GPS Permission Blocked Alert */}
+                  {gpsPermissionBlocked && (
+                    <Alert
+                      severity="error"
+                      sx={{ width: '100%', borderRadius: 2, fontWeight: 500 }}
+                    >
+                      <Typography variant="body2" fontWeight={600}>
+                        GPS BLOCAT - Nu poti porni tura!
+                      </Typography>
+                      <Typography variant="caption">
+                        Mergi in setarile browserului &gt; Permisiuni site &gt; Locatie &gt; Permite.
+                        Apoi reincarca pagina si incearca din nou.
+                      </Typography>
+                    </Alert>
+                  )}
+
                   {/* Start/Stop Button */}
                   <Button
                     variant="contained"
@@ -972,7 +1083,7 @@ const EmployeeDashboard = () => {
                 </Stack>
 
                 {/* GPS Status Indicator - shown only when timer is active */}
-                {activeTimer && !activeTimer.endTime && gpsStatus !== 'idle' && (
+                {activeTimer && !activeTimer.endTime && (gpsStatus !== 'idle' || gpsPermissionBlocked) && (
                   <Stack
                     direction="row"
                     alignItems="center"
@@ -1007,9 +1118,11 @@ const EmployeeDashboard = () => {
                     >
                       {gpsStatus === 'success'
                         ? 'GPS activ - locatia se inregistreaza automat'
-                        : gpsStatus === 'unavailable'
-                          ? gpsErrorMessage || 'GPS indisponibil'
-                          : gpsErrorMessage || 'Eroare GPS - locatia nu s-a putut inregistra'}
+                        : gpsStatus === 'denied'
+                          ? 'GPS BLOCAT - activeaza locatia in setarile browserului!'
+                          : gpsStatus === 'unavailable'
+                            ? gpsErrorMessage || 'GPS indisponibil'
+                            : gpsErrorMessage || 'Eroare GPS - locatia nu s-a putut inregistra'}
                     </Typography>
                   </Stack>
                 )}
