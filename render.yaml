@@ -35,5 +35,25 @@ services:
         value: 30d
       - key: CORS_ORIGIN
         sync: false
+      - key: FRONTEND_URL
+        value: https://workforce.lat
       - key: REDIS_ENABLED
         value: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: noreply@workforce.lat
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:admin@workforce-scheduler.com
+      - key: ENABLE_PUSH_NOTIFICATIONS
+        value: true
