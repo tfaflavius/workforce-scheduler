@@ -1,5 +1,44 @@
-// Custom Service Worker for Push Notifications
+// Custom Service Worker for Push Notifications + Background GPS Capture
 // This service worker handles push notifications even when the app is closed
+
+// API URL for backend communication
+const API_BASE = self.location.origin.includes('localhost')
+  ? 'http://localhost:3000/api'
+  : 'https://workforce-scheduler.onrender.com/api';
+
+// Background GPS capture - triggered by silent push from backend
+async function captureGPSInBackground(pushData) {
+  const timeEntryId = pushData.timeEntryId;
+  const userId = pushData.userId;
+
+  if (!timeEntryId || !userId) {
+    console.warn('[SW-GPS] Missing timeEntryId or userId, skipping capture');
+    return;
+  }
+
+  try {
+    // Service workers can use geolocation via clients
+    // Try to get position from an open client first
+    const allClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+
+    if (allClients.length > 0) {
+      // Send message to any open client to capture GPS
+      const client = allClients[0];
+      client.postMessage({
+        type: 'GPS_CAPTURE_REQUEST',
+        timeEntryId,
+        userId,
+      });
+      console.log('[SW-GPS] Sent GPS capture request to open client');
+    } else {
+      console.log('[SW-GPS] No open clients, cannot capture GPS in background');
+      // On most mobile browsers, service workers don't have access to geolocation API
+      // The push will at least wake the device; we show a silent notification that auto-closes
+    }
+  } catch (err) {
+    console.error('[SW-GPS] Background GPS capture failed:', err);
+  }
+}
 
 // Handle push events - this is critical for background notifications
 self.addEventListener('push', (event) => {
@@ -21,21 +60,51 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // Check if this is a silent GPS capture push
+  if (data.data && data.data.action === 'GPS_CAPTURE') {
+    console.log('[SW-GPS] GPS capture push received for timeEntry:', data.data.timeEntryId);
+    event.waitUntil(
+      captureGPSInBackground(data.data)
+        .then(() => {
+          // Show a minimal silent notification (required by browsers for push events)
+          return self.registration.showNotification('GPS', {
+            body: 'Locatia se inregistreaza...',
+            icon: '/icons/icon-192x192.png',
+            tag: 'gps-capture', // Same tag = replaces previous, no spam
+            renotify: false,
+            silent: true,
+            requireInteraction: false,
+            data: { action: 'GPS_SILENT', url: '/dashboard' },
+          });
+        })
+        .then(() => {
+          // Auto-close the notification after 2 seconds
+          return new Promise(resolve => setTimeout(resolve, 2000));
+        })
+        .then(() => {
+          return self.registration.getNotifications({ tag: 'gps-capture' });
+        })
+        .then(notifications => {
+          notifications.forEach(n => n.close());
+        })
+    );
+    return;
+  }
+
   const options = {
     body: data.body,
     icon: '/icons/icon-192x192.png',
     badge: '/icons/badge-72x72.png',
-    vibrate: [300, 100, 300, 100, 300], // Longer vibration pattern
+    vibrate: [300, 100, 300, 100, 300],
     tag: data.tag || 'workschedule-' + Date.now(),
-    renotify: true, // Always notify even if same tag
-    requireInteraction: true, // Keep notification visible until user interacts (important for seeing it!)
-    silent: false, // Make sound
+    renotify: true,
+    requireInteraction: true,
+    silent: false,
     data: data.data || { url: '/dashboard' },
     actions: [
       { action: 'view', title: 'Deschide' },
       { action: 'close', title: 'Închide' },
     ],
-    // Timestamp helps with notification ordering
     timestamp: data.timestamp || Date.now(),
   };
 

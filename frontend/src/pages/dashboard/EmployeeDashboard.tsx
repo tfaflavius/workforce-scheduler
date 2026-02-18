@@ -321,6 +321,23 @@ const EmployeeDashboard = () => {
     }
   }, [activeTimer, captureLocation]);
 
+  // Listen for GPS capture requests from Service Worker (push-triggered)
+  useEffect(() => {
+    if (!activeTimer || activeTimer.endTime) return;
+
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'GPS_CAPTURE_REQUEST') {
+        console.log('[GPS] Service Worker requested GPS capture (push-triggered)');
+        captureLocation(activeTimer.id, true);
+      }
+    };
+
+    navigator.serviceWorker?.addEventListener('message', handleSWMessage);
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleSWMessage);
+    };
+  }, [activeTimer, captureLocation]);
+
   // Handle START
   const handleStartTimer = async () => {
     try {

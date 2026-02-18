@@ -133,8 +133,9 @@ const AdminTimeTrackingPage: React.FC = () => {
 
     // Active users from timers
     activeTimers.forEach(timer => {
+      // Backend sorts logs DESC (newest first), so [0] is the latest
       const lastLog = timer.locationLogs?.length
-        ? timer.locationLogs[timer.locationLogs.length - 1]
+        ? timer.locationLogs[0]
         : undefined;
       rows.push({
         userId: timer.userId,
@@ -164,7 +165,7 @@ const AdminTimeTrackingPage: React.FC = () => {
     return rows;
   }, [activeTimers, departmentUsers]);
 
-  // Markers for active users on map
+  // Markers for active users on map (latest position)
   const activeMarkers: EmployeeMarker[] = useMemo(() => {
     return realTimeRows
       .filter(r => r.isActive && r.lastLocation)
@@ -178,6 +179,23 @@ const AdminTimeTrackingPage: React.FC = () => {
         isActive: true,
       }));
   }, [realTimeRows]);
+
+  // Trails for active users on real-time map (full route)
+  const activeTrails: LocationTrail[] = useMemo(() => {
+    return activeTimers
+      .filter(timer => timer.locationLogs && timer.locationLogs.length >= 2)
+      .map(timer => ({
+        // Backend sends DESC, reverse to ASC for trail drawing
+        locations: [...timer.locationLogs!].reverse().map(log => ({
+          latitude: Number(log.latitude),
+          longitude: Number(log.longitude),
+          recordedAt: log.recordedAt,
+          accuracy: log.accuracy ? Number(log.accuracy) : undefined,
+        })),
+        employeeName: timer.user?.fullName || 'Angajat',
+        department: timer.user?.department?.name || '-',
+      }));
+  }, [activeTimers]);
 
   // Trail for history tab
   const selectedTrail: LocationTrail | null = useMemo(() => {
@@ -360,13 +378,13 @@ const AdminTimeTrackingPage: React.FC = () => {
                   </Table>
                 </Box>
 
-                {/* Map */}
-                {activeMarkers.length > 0 && (
+                {/* Map - show if any markers OR trails exist */}
+                {(activeMarkers.length > 0 || activeTrails.length > 0) && (
                   <Box>
                     <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
-                      Harta Locatii Active
+                      Harta Locatii Active ({activeMarkers.length} angajati cu GPS, {activeTrails.length} trasee)
                     </Typography>
-                    <EmployeeLocationMap markers={activeMarkers} height={450} />
+                    <EmployeeLocationMap markers={activeMarkers} trails={activeTrails} height={450} />
                   </Box>
                 )}
               </>
