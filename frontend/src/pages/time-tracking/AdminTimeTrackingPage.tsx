@@ -112,15 +112,22 @@ const getGpsAlertInfo = (row: {
     return { label: 'GPS OK', color: '#10b981', icon: 'ok', tooltip: 'GPS-ul functioneaza normal' };
   }
 
-  // Fallback: if active >15 min and 0 locations, flag as "Fara GPS"
+  // Fallback detection when no gpsStatus reported yet (null/undefined)
   if (row.startTime) {
     const minutesActive = (Date.now() - new Date(row.startTime).getTime()) / 60000;
+
+    // If has locations, GPS is clearly working even without explicit status report
+    if (row.locationCount > 0) {
+      return { label: 'GPS OK', color: '#10b981', icon: 'ok', tooltip: `GPS functioneaza - ${row.locationCount} locatii inregistrate` };
+    }
+
+    // Active >15 min and 0 locations = problem
     if (minutesActive > 15 && row.locationCount === 0) {
-      return { label: 'Fara GPS', color: '#f59e0b', icon: 'warning', tooltip: `Pe tura de ${Math.floor(minutesActive)} min fara nicio locatie GPS` };
+      return { label: 'Fara GPS', color: '#ef4444', icon: 'off', tooltip: `Pe tura de ${Math.floor(minutesActive)} min fara nicio locatie GPS` };
     }
   }
 
-  // No status reported yet, but recently started
+  // Recently started, no locations yet - give it time
   return { label: 'Asteptare...', color: '#9e9e9e', icon: 'ok', tooltip: 'Se asteapta prima captura GPS' };
 };
 
