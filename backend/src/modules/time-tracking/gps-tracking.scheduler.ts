@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import { TimeEntry } from './entities/time-entry.entity';
 import { PushNotificationService } from '../notifications/push-notification.service';
+import { TimeTrackingService } from './time-tracking.service';
 
 /**
  * GPS Tracking Scheduler
@@ -25,6 +26,7 @@ export class GpsTrackingScheduler {
     @InjectRepository(TimeEntry)
     private timeEntryRepository: Repository<TimeEntry>,
     private pushNotificationService: PushNotificationService,
+    private timeTrackingService: TimeTrackingService,
   ) {}
 
   // Run every 10 minutes, every day
@@ -72,6 +74,23 @@ export class GpsTrackingScheduler {
       this.logger.log(`[GPS Cron] Push notifications sent to ${activeEntries.length} employees`);
     } catch (error) {
       this.logger.error(`[GPS Cron] Error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Auto-stop shifts without GPS data.
+   * Runs every 5 minutes. If an active shift has no GPS location for 30+ minutes,
+   * the system automatically stops it and notifies admin + employee.
+   */
+  @Cron('*/5 * * * *', { timeZone: 'Europe/Bucharest' })
+  async autoStopNoGpsShifts() {
+    try {
+      const stoppedCount = await this.timeTrackingService.autoStopShiftsWithoutGps(30);
+      if (stoppedCount > 0) {
+        this.logger.warn(`[GPS Auto-Stop] Stopped ${stoppedCount} shifts due to missing GPS data`);
+      }
+    } catch (error) {
+      this.logger.error(`[GPS Auto-Stop] Error: ${error.message}`);
     }
   }
 }

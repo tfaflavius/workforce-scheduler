@@ -780,6 +780,120 @@ export class TimeTrackingService {
   }
 
   /**
+   * Auto-stops active shifts that haven't received GPS locations for too long.
+   * Called by the GPS scheduler cron job every 5 minutes.
+   * Stops the shift and marks it as system-stopped with reason.
+   */
+  async autoStopShiftsWithoutGps(thresholdMinutes: number = 30): Promise<number> {
+    const activeEntries = await this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
+      .leftJoinAndSelect('entry.locationLogs', 'logs')
+      .where('entry.end_time IS NULL')
+      .andWhere('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .getMany();
+
+    if (activeEntries.length === 0) return 0;
+
+    const now = new Date();
+    let stoppedCount = 0;
+
+    for (const entry of activeEntries) {
+      const minutesActive = (now.getTime() - new Date(entry.startTime).getTime()) / 60000;
+
+      // Skip entries active less than threshold
+      if (minutesActive < thresholdMinutes) continue;
+
+      // Check last location time
+      let minutesSinceLastLocation: number | null = null;
+      if (entry.locationLogs && entry.locationLogs.length > 0) {
+        // Find the most recent location log
+        const sortedLogs = [...entry.locationLogs].sort(
+          (a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
+        );
+        const lastLog = sortedLogs[0];
+        minutesSinceLastLocation = (now.getTime() - new Date(lastLog.recordedAt).getTime()) / 60000;
+      }
+
+      // Decide if we need to auto-stop:
+      // Case 1: No locations at all and active > threshold
+      // Case 2: Has locations but last one is > threshold min old
+      const shouldStop =
+        (entry.locationLogs?.length === 0 && minutesActive >= thresholdMinutes) ||
+        (minutesSinceLastLocation !== null && minutesSinceLastLocation >= thresholdMinutes);
+
+      if (!shouldStop) continue;
+
+      // Auto-stop the shift
+      const endTime = new Date();
+      const durationMs = endTime.getTime() - new Date(entry.startTime).getTime();
+      const durationMinutes = Math.round(durationMs / 60000);
+
+      const noLocations = !entry.locationLogs || entry.locationLogs.length === 0;
+      const reason = noLocations
+        ? `Tura oprita automat - ${Math.floor(minutesActive)} min fara nicio locatie GPS`
+        : `Tura oprita automat - ultima locatie GPS acum ${Math.floor(minutesSinceLastLocation!)} min`;
+
+      entry.endTime = endTime;
+      entry.durationMinutes = durationMinutes;
+      entry.stoppedBySystem = true;
+      entry.systemStopReason = reason;
+
+      await this.timeEntryRepository.save(entry);
+      stoppedCount++;
+
+      const employeeName = entry.user?.fullName || 'Angajat necunoscut';
+      this.logger.warn(`[GPS Auto-Stop] ${employeeName}: ${reason}`);
+
+      // Notify admins
+      try {
+        const admins = await this.userRepository.find({
+          where: [
+            { role: UserRole.ADMIN, isActive: true },
+            { role: UserRole.MANAGER, isActive: true },
+          ],
+        });
+
+        if (admins.length > 0) {
+          const notifications = admins.map(admin => ({
+            userId: admin.id,
+            type: NotificationType.GPS_STATUS_ALERT,
+            title: 'Tura oprita automat - lipsa GPS',
+            message: `${employeeName}: ${reason}`,
+            data: {
+              employeeId: entry.userId,
+              employeeName,
+              timeEntryId: entry.id,
+              autoStopped: true,
+            },
+          }));
+
+          await this.notificationsService.createMany(notifications);
+        }
+      } catch (err) {
+        this.logger.error(`[GPS Auto-Stop] Failed to send notifications: ${err?.message}`);
+      }
+
+      // Also notify the employee via push
+      try {
+        await this.pushNotificationService.sendToUser(
+          entry.userId,
+          'Tura oprita automat',
+          reason,
+          { action: 'SHIFT_AUTO_STOPPED', timeEntryId: entry.id },
+        );
+      } catch {
+        // Silent fail for push
+      }
+    }
+
+    return stoppedCount;
+  }
+
+  /**
    * Triggers instant GPS capture by sending push notifications to all
    * active employees in Control + Intretinere Parcari departments.
    * Called on-demand by admin from the Monitorizare Pontaj page.

@@ -185,6 +185,7 @@ interface ConsolidatedEntry {
   totalLocationLogs: number;
   entryCount: number;
   entries: AdminTimeEntry[];
+  hasAutoStopped: boolean;
 }
 
 // ===== MAIN COMPONENT =====
@@ -362,6 +363,7 @@ const AdminTimeTrackingPage: React.FC = () => {
           totalLocationLogs: entry.locationLogs?.length || 0,
           entryCount: 1,
           entries: [entry],
+          hasAutoStopped: !!entry.stoppedBySystem,
         });
       } else {
         const group = map.get(key)!;
@@ -369,6 +371,7 @@ const AdminTimeTrackingPage: React.FC = () => {
         group.entryCount++;
         group.totalDurationMinutes += entry.durationMinutes || 0;
         group.totalLocationLogs += entry.locationLogs?.length || 0;
+        if (entry.stoppedBySystem) group.hasAutoStopped = true;
 
         // firstStart = cel mai devreme
         if (new Date(entry.startTime) < new Date(group.firstStart)) {
@@ -820,10 +823,30 @@ const AdminTimeTrackingPage: React.FC = () => {
                                 <TableCell>{group.date}</TableCell>
                                 <TableCell>{formatTime(group.firstStart)}</TableCell>
                                 <TableCell>
-                                  {group.lastEnd
-                                    ? formatTime(group.lastEnd)
-                                    : <Chip label="In curs" size="small" color="success" sx={{ height: 22 }} />
-                                  }
+                                  {group.lastEnd ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <Typography variant="body2">{formatTime(group.lastEnd)}</Typography>
+                                      {group.hasAutoStopped && (
+                                        <Tooltip title="Tura oprita automat de sistem - lipsa GPS">
+                                          <Chip
+                                            icon={<GpsOffIcon sx={{ fontSize: 12 }} />}
+                                            label="Auto"
+                                            size="small"
+                                            sx={{
+                                              height: 20,
+                                              fontSize: '0.65rem',
+                                              fontWeight: 700,
+                                              bgcolor: alpha('#ef4444', 0.12),
+                                              color: '#ef4444',
+                                              '& .MuiChip-icon': { color: '#ef4444' },
+                                            }}
+                                          />
+                                        </Tooltip>
+                                      )}
+                                    </Box>
+                                  ) : (
+                                    <Chip label="In curs" size="small" color="success" sx={{ height: 22 }} />
+                                  )}
                                 </TableCell>
                                 <TableCell>
                                   <Typography variant="body2" fontWeight={600}>
@@ -958,9 +981,30 @@ const AdminTimeTrackingPage: React.FC = () => {
                                     <Typography variant="body2" fontSize="0.8rem">{formatTime(entry.startTime)}</Typography>
                                   </TableCell>
                                   <TableCell>
-                                    <Typography variant="body2" fontSize="0.8rem">
-                                      {entry.endTime ? formatTime(entry.endTime) : <Chip label="In curs" size="small" color="success" sx={{ height: 20 }} />}
-                                    </Typography>
+                                    {entry.endTime ? (
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <Typography variant="body2" fontSize="0.8rem">{formatTime(entry.endTime)}</Typography>
+                                        {entry.stoppedBySystem && (
+                                          <Tooltip title={entry.systemStopReason || 'Oprita automat - lipsa GPS'}>
+                                            <Chip
+                                              icon={<GpsOffIcon sx={{ fontSize: 10 }} />}
+                                              label="Auto"
+                                              size="small"
+                                              sx={{
+                                                height: 18,
+                                                fontSize: '0.6rem',
+                                                fontWeight: 700,
+                                                bgcolor: alpha('#ef4444', 0.12),
+                                                color: '#ef4444',
+                                                '& .MuiChip-icon': { color: '#ef4444' },
+                                              }}
+                                            />
+                                          </Tooltip>
+                                        )}
+                                      </Box>
+                                    ) : (
+                                      <Chip label="In curs" size="small" color="success" sx={{ height: 20 }} />
+                                    )}
                                   </TableCell>
                                   <TableCell>
                                     <Typography variant="body2" fontSize="0.8rem">{formatDuration(entry.durationMinutes)}</Typography>

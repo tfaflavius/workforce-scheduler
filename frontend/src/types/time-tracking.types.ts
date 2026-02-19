@@ -24,6 +24,8 @@ export interface TimeEntry {
   gpsStatus?: 'active' | 'denied' | 'error' | 'unavailable' | null;
   lastGpsError?: string | null;
   gpsStatusUpdatedAt?: string | null;
+  stoppedBySystem?: boolean;
+  systemStopReason?: string | null;
   locationLogs?: LocationLog[];
 }
 

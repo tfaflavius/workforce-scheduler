@@ -76,6 +76,12 @@ export class TimeEntry {
   @Column({ type: 'timestamp', nullable: true, name: 'gps_status_updated_at' })
   gpsStatusUpdatedAt: Date;
 
+  @Column({ type: 'boolean', default: false, name: 'stopped_by_system' })
+  stoppedBySystem: boolean;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'system_stop_reason' })
+  systemStopReason: string;
+
   @OneToMany(() => LocationLog, (log) => log.timeEntry)
   locationLogs: LocationLog[];
 
