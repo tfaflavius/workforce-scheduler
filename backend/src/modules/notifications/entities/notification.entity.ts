@@ -39,6 +39,7 @@ export enum NotificationType {
   DAILY_REPORT_MISSING = 'DAILY_REPORT_MISSING',
   // Time tracking notifications
   TIME_ENTRY_MISMATCH = 'TIME_ENTRY_MISMATCH',
+  GPS_STATUS_ALERT = 'GPS_STATUS_ALERT',
 }
 
 @Entity('notifications')

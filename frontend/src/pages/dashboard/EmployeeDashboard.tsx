@@ -57,6 +57,7 @@ import {
   useGetActiveTimerQuery,
   useGetTimeEntriesQuery,
   useRecordLocationMutation,
+  useReportGpsStatusMutation,
 } from '../../store/api/time-tracking.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
@@ -154,6 +155,7 @@ const EmployeeDashboard = () => {
   const [startTimerMutation, { isLoading: isStarting }] = useStartTimerMutation();
   const [stopTimerMutation, { isLoading: isStopping }] = useStopTimerMutation();
   const [recordLocationMutation] = useRecordLocationMutation();
+  const [reportGpsStatusMutation] = useReportGpsStatusMutation();
 
   // Pontaj local state
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -172,6 +174,24 @@ const EmployeeDashboard = () => {
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'success' | 'error' | 'unavailable' | 'denied'>('idle');
   const [gpsErrorMessage, setGpsErrorMessage] = useState<string>('');
   const [gpsPermissionBlocked, setGpsPermissionBlocked] = useState(false);
+  const lastReportedGpsStatusRef = useRef<string | null>(null);
+
+  // Report GPS status changes to backend (throttled - only on change)
+  const reportGpsStatusToServer = useCallback(
+    (status: 'active' | 'denied' | 'error' | 'unavailable', errorMessage?: string) => {
+      if (!activeTimer || activeTimer.endTime) return;
+      if (lastReportedGpsStatusRef.current === status) return; // Skip duplicate
+      lastReportedGpsStatusRef.current = status;
+      reportGpsStatusMutation({
+        timeEntryId: activeTimer.id,
+        status,
+        errorMessage,
+      }).catch(() => {
+        // Silent fail - don't disrupt the employee experience
+      });
+    },
+    [activeTimer, reportGpsStatusMutation],
+  );
 
   // Capture GPS location with retry logic and longer timeout
   const captureLocation = useCallback(
@@ -180,6 +200,7 @@ const EmployeeDashboard = () => {
         console.warn('[GPS] Geolocation not available in this browser');
         setGpsStatus('unavailable');
         setGpsErrorMessage('Browserul nu suporta localizarea GPS');
+        reportGpsStatusToServer('unavailable', 'Browserul nu suporta localizarea GPS');
         return;
       }
 
@@ -209,10 +230,12 @@ const EmployeeDashboard = () => {
               setGpsStatus('success');
               setGpsErrorMessage('');
               setGpsPermissionBlocked(false);
+              reportGpsStatusToServer('active');
             } catch (err) {
               console.error('[GPS] Failed to send location to server:', err);
               setGpsStatus('error');
               setGpsErrorMessage('Eroare la trimiterea locatiei catre server');
+              reportGpsStatusToServer('error', 'Eroare la trimiterea locatiei catre server');
             }
             isCapturingRef.current = false;
             resolve();
@@ -233,6 +256,7 @@ const EmployeeDashboard = () => {
               setGpsStatus('denied');
               setGpsErrorMessage('Locatia GPS este blocata! Te rugam sa o activezi din setarile browserului.');
               setGpsPermissionBlocked(true);
+              reportGpsStatusToServer('denied', 'Locatia GPS este blocata');
               resolve();
               return;
             }
@@ -249,13 +273,14 @@ const EmployeeDashboard = () => {
 
             setGpsStatus('error');
             setGpsErrorMessage(msg);
+            reportGpsStatusToServer('error', msg);
             resolve();
           },
           { enableHighAccuracy: true, timeout: 30000, maximumAge: 60000 },
         );
       });
     },
-    [recordLocationMutation],
+    [recordLocationMutation, reportGpsStatusToServer],
   );
 
   // Check GPS permission on mount for departments that need it
@@ -266,18 +291,20 @@ const EmployeeDashboard = () => {
         setGpsPermissionBlocked(true);
         setGpsStatus('denied');
         setGpsErrorMessage('Locatia GPS este blocata! Te rugam sa o activezi din setarile browserului.');
+        reportGpsStatusToServer('denied', 'Locatia GPS este blocata la verificarea initiala');
       }
       result.addEventListener('change', () => {
         if (result.state === 'denied') {
           setGpsPermissionBlocked(true);
           setGpsStatus('denied');
+          reportGpsStatusToServer('denied', 'Locatia GPS a fost blocata');
         } else {
           setGpsPermissionBlocked(false);
           setGpsStatus('idle');
         }
       });
     }).catch(() => { /* permissions API not supported */ });
-  }, [hasPontaj]);
+  }, [hasPontaj, reportGpsStatusToServer]);
 
   // Timer counter effect
   useEffect(() => {

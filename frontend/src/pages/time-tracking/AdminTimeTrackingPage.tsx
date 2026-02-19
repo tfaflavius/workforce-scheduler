@@ -31,6 +31,9 @@ import {
   Route as RouteIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  GpsFixed as GpsFixedIcon,
+  GpsOff as GpsOffIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard } from '../../components/common';
 import EmployeeLocationMap, {
@@ -82,6 +85,43 @@ const getDeptColor = (deptName?: string) => {
   if (deptName.toLowerCase().includes('intretinere')) return '#4caf50';
   if (deptName.toLowerCase().includes('control')) return '#2196f3';
   return '#9e9e9e';
+};
+
+// GPS alert info based on status + fallback detection
+const getGpsAlertInfo = (row: {
+  isActive: boolean;
+  gpsStatus?: string | null;
+  startTime?: string;
+  locationCount: number;
+}): { label: string; color: string; icon: 'ok' | 'off' | 'warning'; tooltip: string } => {
+  if (!row.isActive) {
+    return { label: '-', color: '#9e9e9e', icon: 'ok', tooltip: 'Angajatul nu este pe tura' };
+  }
+
+  // Use reported GPS status if available
+  if (row.gpsStatus === 'denied') {
+    return { label: 'GPS Blocat', color: '#ef4444', icon: 'off', tooltip: 'Angajatul a blocat accesul la GPS' };
+  }
+  if (row.gpsStatus === 'error') {
+    return { label: 'Eroare GPS', color: '#f59e0b', icon: 'warning', tooltip: 'Eroare la capturarea pozitiei GPS' };
+  }
+  if (row.gpsStatus === 'unavailable') {
+    return { label: 'GPS Indisponibil', color: '#f59e0b', icon: 'warning', tooltip: 'GPS-ul nu este disponibil pe dispozitiv' };
+  }
+  if (row.gpsStatus === 'active') {
+    return { label: 'GPS OK', color: '#10b981', icon: 'ok', tooltip: 'GPS-ul functioneaza normal' };
+  }
+
+  // Fallback: if active >15 min and 0 locations, flag as "Fara GPS"
+  if (row.startTime) {
+    const minutesActive = (Date.now() - new Date(row.startTime).getTime()) / 60000;
+    if (minutesActive > 15 && row.locationCount === 0) {
+      return { label: 'Fara GPS', color: '#f59e0b', icon: 'warning', tooltip: `Pe tura de ${Math.floor(minutesActive)} min fara nicio locatie GPS` };
+    }
+  }
+
+  // No status reported yet, but recently started
+  return { label: 'Asteptare...', color: '#9e9e9e', icon: 'ok', tooltip: 'Se asteapta prima captura GPS' };
 };
 
 // ===== TAB PANEL =====
@@ -166,6 +206,8 @@ const AdminTimeTrackingPage: React.FC = () => {
       startTime?: string;
       lastLocation?: { latitude: number; longitude: number; recordedAt: string; address?: string | null };
       entryId?: string;
+      gpsStatus?: string | null;
+      locationCount: number;
     }> = [];
 
     // Active users from timers
@@ -184,6 +226,8 @@ const AdminTimeTrackingPage: React.FC = () => {
           ? { latitude: Number(lastLog.latitude), longitude: Number(lastLog.longitude), recordedAt: lastLog.recordedAt, address: lastLog.address }
           : undefined,
         entryId: timer.id,
+        gpsStatus: timer.gpsStatus,
+        locationCount: timer.locationLogs?.length || 0,
       });
     });
 
@@ -195,6 +239,7 @@ const AdminTimeTrackingPage: React.FC = () => {
           name: user.fullName || `${user.firstName} ${user.lastName}`,
           department: user.department?.name || '-',
           isActive: false,
+          locationCount: 0,
         });
       }
     });
@@ -391,7 +436,7 @@ const AdminTimeTrackingPage: React.FC = () => {
 
       {/* Stats Cards */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
             title="Ture Active"
             value={statsLoading ? '...' : (stats?.activeCount ?? 0)}
@@ -402,7 +447,7 @@ const AdminTimeTrackingPage: React.FC = () => {
             delay={0}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
             title="Ore Azi"
             value={statsLoading ? '...' : (stats?.totalHoursToday ?? 0)}
@@ -413,7 +458,7 @@ const AdminTimeTrackingPage: React.FC = () => {
             delay={100}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard
             title="Locatii GPS Azi"
             value={statsLoading ? '...' : (stats?.locationLogsToday ?? 0)}
@@ -422,6 +467,20 @@ const AdminTimeTrackingPage: React.FC = () => {
             bgColor={alpha('#10b981', 0.12)}
             subtitle="Inregistrari locatie"
             delay={200}
+          />
+        </Grid>
+        <Grid size={{ xs: 6, sm: 3 }}>
+          <StatCard
+            title="Probleme GPS"
+            value={realTimeRows.filter(r => {
+              const info = getGpsAlertInfo(r);
+              return info.icon === 'off' || info.icon === 'warning';
+            }).length}
+            icon={<GpsOffIcon sx={{ color: '#ef4444', fontSize: { xs: 24, sm: 28 } }} />}
+            color="#ef4444"
+            bgColor={alpha('#ef4444', 0.12)}
+            subtitle="Angajati cu probleme GPS"
+            delay={300}
           />
         </Grid>
       </Grid>
@@ -478,6 +537,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                         <TableCell sx={{ fontWeight: 600 }}>Nume</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Departament</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 600 }}>GPS</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Ora Start</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Durata</TableCell>
                         <TableCell sx={{ fontWeight: 600 }}>Ultima Locatie</TableCell>
@@ -486,7 +546,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                     <TableBody>
                       {realTimeRows.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} align="center">
+                          <TableCell colSpan={7} align="center">
                             <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
                               Nu sunt angajati in departamentele monitorizate
                             </Typography>
@@ -517,6 +577,32 @@ const AdminTimeTrackingPage: React.FC = () => {
                                 color={row.isActive ? 'success' : 'default'}
                                 variant={row.isActive ? 'filled' : 'outlined'}
                               />
+                            </TableCell>
+                            <TableCell>
+                              {(() => {
+                                const gpsInfo = getGpsAlertInfo(row);
+                                if (!row.isActive) return <Typography variant="body2" color="text.secondary">-</Typography>;
+                                return (
+                                  <Tooltip title={gpsInfo.tooltip}>
+                                    <Chip
+                                      icon={
+                                        gpsInfo.icon === 'ok' ? <GpsFixedIcon sx={{ fontSize: 14 }} /> :
+                                        gpsInfo.icon === 'off' ? <GpsOffIcon sx={{ fontSize: 14 }} /> :
+                                        <WarningIcon sx={{ fontSize: 14 }} />
+                                      }
+                                      label={gpsInfo.label}
+                                      size="small"
+                                      sx={{
+                                        bgcolor: alpha(gpsInfo.color, 0.12),
+                                        color: gpsInfo.color,
+                                        fontWeight: 600,
+                                        fontSize: '0.7rem',
+                                        '& .MuiChip-icon': { color: gpsInfo.color },
+                                      }}
+                                    />
+                                  </Tooltip>
+                                );
+                              })()}
                             </TableCell>
                             <TableCell>
                               {row.startTime ? formatTime(row.startTime) : '-'}

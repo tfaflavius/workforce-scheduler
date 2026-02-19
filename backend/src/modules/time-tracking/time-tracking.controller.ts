@@ -12,6 +12,7 @@ import { TimeTrackingService } from './time-tracking.service';
 import { GeocodingService } from './geocoding.service';
 import { StartTimerDto } from './dto/start-timer.dto';
 import { RecordLocationDto } from './dto/record-location.dto';
+import { ReportGpsStatusDto } from './dto/report-gps-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -144,6 +145,15 @@ export class TimeTrackingController {
   @Post('location')
   recordLocation(@Body() recordLocationDto: RecordLocationDto, @Request() req) {
     return this.timeTrackingService.recordLocation(req.user.id, recordLocationDto);
+  }
+
+  @Post(':id/gps-status')
+  reportGpsStatus(
+    @Param('id') id: string,
+    @Body() reportGpsStatusDto: ReportGpsStatusDto,
+    @Request() req,
+  ) {
+    return this.timeTrackingService.reportGpsStatus(req.user.id, id, reportGpsStatusDto);
   }
 
   @Get(':id/locations')

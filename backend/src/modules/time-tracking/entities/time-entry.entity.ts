@@ -67,6 +67,15 @@ export class TimeEntry {
   })
   approvalStatus: string;
 
+  @Column({ type: 'varchar', length: 20, nullable: true, name: 'gps_status' })
+  gpsStatus: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'last_gps_error' })
+  lastGpsError: string;
+
+  @Column({ type: 'timestamp', nullable: true, name: 'gps_status_updated_at' })
+  gpsStatusUpdatedAt: Date;
+
   @OneToMany(() => LocationLog, (log) => log.timeEntry)
   locationLogs: LocationLog[];
 

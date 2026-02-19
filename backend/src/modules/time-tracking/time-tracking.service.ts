@@ -5,6 +5,7 @@ import { TimeEntry } from './entities/time-entry.entity';
 import { LocationLog } from './entities/location-log.entity';
 import { StartTimerDto } from './dto/start-timer.dto';
 import { RecordLocationDto } from './dto/record-location.dto';
+import { ReportGpsStatusDto } from './dto/report-gps-status.dto';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
 import { User, UserRole } from '../users/entities/user.entity';
@@ -325,6 +326,75 @@ export class TimeTrackingService {
       where: { timeEntryId },
       order: { recordedAt: 'ASC' },
     });
+  }
+
+  // ===== GPS STATUS REPORTING =====
+
+  async reportGpsStatus(userId: string, timeEntryId: string, dto: ReportGpsStatusDto): Promise<{ ok: boolean }> {
+    const timeEntry = await this.timeEntryRepository.findOne({
+      where: { id: timeEntryId, userId },
+      relations: ['user'],
+    });
+
+    if (!timeEntry) {
+      throw new NotFoundException('Time entry not found');
+    }
+
+    if (timeEntry.endTime) {
+      throw new BadRequestException('Cannot report GPS status for stopped timer');
+    }
+
+    const previousStatus = timeEntry.gpsStatus;
+    const statusChanged = previousStatus !== dto.status;
+
+    // Update GPS status fields
+    timeEntry.gpsStatus = dto.status;
+    timeEntry.lastGpsError = dto.errorMessage || null;
+    timeEntry.gpsStatusUpdatedAt = new Date();
+
+    await this.timeEntryRepository.save(timeEntry);
+
+    // Notify admins only when status changes to a problem state (and wasn't already that state)
+    if (statusChanged && (dto.status === 'denied' || dto.status === 'error' || dto.status === 'unavailable')) {
+      const employeeName = timeEntry.user?.fullName || 'Angajat necunoscut';
+      const statusLabels: Record<string, string> = {
+        denied: 'GPS BLOCAT - permisiune refuzata',
+        error: 'Eroare GPS - locatia nu se poate determina',
+        unavailable: 'GPS indisponibil pe dispozitiv',
+      };
+
+      try {
+        const admins = await this.userRepository.find({
+          where: [
+            { role: UserRole.ADMIN, isActive: true },
+            { role: UserRole.MANAGER, isActive: true },
+          ],
+        });
+
+        if (admins.length > 0) {
+          const notifications = admins.map(admin => ({
+            userId: admin.id,
+            type: NotificationType.GPS_STATUS_ALERT,
+            title: 'Problema GPS angajat',
+            message: `${employeeName}: ${statusLabels[dto.status] || dto.status}${dto.errorMessage ? ` - ${dto.errorMessage}` : ''}`,
+            data: {
+              employeeId: userId,
+              employeeName,
+              gpsStatus: dto.status,
+              errorMessage: dto.errorMessage,
+              timeEntryId,
+            },
+          }));
+
+          await this.notificationsService.createMany(notifications);
+          this.logger.log(`[GPS Status] Alert sent to ${admins.length} admins: ${employeeName} - ${dto.status}`);
+        }
+      } catch (err) {
+        this.logger.error(`[GPS Status] Failed to send notifications: ${err?.message}`);
+      }
+    }
+
+    return { ok: true };
   }
 
   // ===== ADMIN METHODS =====

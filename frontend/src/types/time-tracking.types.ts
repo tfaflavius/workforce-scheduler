@@ -21,7 +21,15 @@ export interface TimeEntry {
     firstName: string;
     lastName: string;
   };
+  gpsStatus?: 'active' | 'denied' | 'error' | 'unavailable' | null;
+  lastGpsError?: string | null;
+  gpsStatusUpdatedAt?: string | null;
   locationLogs?: LocationLog[];
+}
+
+export interface ReportGpsStatusRequest {
+  status: 'active' | 'denied' | 'error' | 'unavailable';
+  errorMessage?: string;
 }
 
 export interface LocationLog {

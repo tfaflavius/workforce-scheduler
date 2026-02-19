@@ -13,6 +13,7 @@ import type {
   AdminTimeEntriesFilters,
   AdminDepartmentUser,
   RouteData,
+  ReportGpsStatusRequest,
 } from '../../types/time-tracking.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -81,6 +82,14 @@ export const timeTrackingApi = createApi({
         { type: 'LocationLog', id: arg.timeEntryId },
         'LocationLog',
       ],
+    }),
+
+    reportGpsStatus: builder.mutation<{ ok: boolean }, { timeEntryId: string } & ReportGpsStatusRequest>({
+      query: ({ timeEntryId, ...body }) => ({
+        url: `/time-tracking/${timeEntryId}/gps-status`,
+        method: 'POST',
+        body,
+      }),
     }),
 
     getLocationHistory: builder.query<LocationLog[], string>({
@@ -176,6 +185,7 @@ export const {
   useGetActiveTimerQuery,
   useGetTimeEntriesQuery,
   useRecordLocationMutation,
+  useReportGpsStatusMutation,
   useGetLocationHistoryQuery,
   // Admin hooks
   useGetAdminActiveTimersQuery,
