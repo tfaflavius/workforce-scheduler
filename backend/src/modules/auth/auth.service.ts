@@ -70,27 +70,27 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
+    // Get user from our database first
+    const user = await this.userRepository.findOne({
+      where: { email: loginDto.email },
+      relations: ['department'],
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if user is approved by admin
+    if (!user.isActive) {
+      throw new UnauthorizedException('Contul tau asteapta aprobarea unui administrator. Vei primi acces in curand.');
+    }
+
+    // Try Supabase authentication first (primary)
     try {
-      // Authenticate with Supabase
       const loginResult = await this.supabaseService.signIn(
         loginDto.email,
-        loginDto.password
+        loginDto.password,
       );
-
-      // Get user from our database
-      const user = await this.userRepository.findOne({
-        where: { email: loginDto.email },
-        relations: ['department'],
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-
-      // Check if user is approved by admin
-      if (!user.isActive) {
-        throw new UnauthorizedException('Contul tau asteapta aprobarea unui administrator. Vei primi acces in curand.');
-      }
 
       // Update last login
       user.lastLogin = new Date();
@@ -100,10 +100,44 @@ export class AuthService {
         user: this.sanitizeUser(user),
         accessToken: loginResult.session.access_token,
       };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
+    } catch (supabaseError) {
+      console.log(`[Login] Supabase auth failed for ${loginDto.email}: ${supabaseError?.message}. Trying local password...`);
+
+      // Fallback: check local password (useful after password reset if Supabase sync failed)
+      if (user.password && user.password.length > 0) {
+        const isLocalPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+        if (isLocalPasswordValid) {
+          console.log(`[Login] Local password matched for ${loginDto.email}. Syncing to Supabase...`);
+
+          // Sync password to Supabase so future logins work directly
+          try {
+            await this.supabaseService.updateUserPassword(user.id, loginDto.password);
+            console.log(`[Login] Supabase password synced for ${loginDto.email}`);
+          } catch (syncErr) {
+            console.error(`[Login] Supabase password sync failed: ${syncErr?.message}`);
+          }
+
+          // Now login with Supabase (should work after sync)
+          try {
+            const loginResult = await this.supabaseService.signIn(
+              loginDto.email,
+              loginDto.password,
+            );
+
+            user.lastLogin = new Date();
+            await this.userRepository.save(user);
+
+            return {
+              user: this.sanitizeUser(user),
+              accessToken: loginResult.session.access_token,
+            };
+          } catch (retryErr) {
+            console.error(`[Login] Supabase login retry failed after sync: ${retryErr?.message}`);
+            throw new UnauthorizedException('Invalid credentials');
+          }
+        }
       }
+
       throw new UnauthorizedException('Invalid credentials');
     }
   }
@@ -196,29 +230,39 @@ export class AuthService {
     try {
       payload = jwt.verify(resetToken, jwtSecret);
     } catch (error) {
+      console.error('[ResetPassword] JWT verify failed:', error?.message);
       throw new BadRequestException('Link-ul de resetare a expirat sau este invalid. Te rugam sa soliciti un nou link.');
     }
 
     if (payload.purpose !== 'password-reset' || !payload.userId) {
+      console.error('[ResetPassword] Invalid token payload:', JSON.stringify(payload));
       throw new BadRequestException('Token invalid.');
     }
 
+    console.log(`[ResetPassword] Token valid for userId: ${payload.userId}, email: ${payload.email}`);
+
     const user = await this.userRepository.findOne({ where: { id: payload.userId } });
     if (!user) {
+      console.error(`[ResetPassword] User not found in DB for id: ${payload.userId}`);
       throw new BadRequestException('Utilizatorul nu a fost gasit.');
     }
 
-    // Update password in Supabase (primary auth source - must succeed)
-    try {
-      await this.supabaseService.updateUserPassword(user.id, newPassword);
-    } catch (error) {
-      console.error('Error updating password in Supabase:', error?.message);
-      throw new BadRequestException('Nu am putut reseta parola. Te rugam sa incerci din nou.');
-    }
+    console.log(`[ResetPassword] User found: ${user.fullName} (${user.email}), updating password...`);
 
-    // Update hashed password in local DB (backup)
+    // 1. Update hashed password in local DB first (this always works)
     user.password = await bcrypt.hash(newPassword, 10);
     await this.userRepository.save(user);
+    console.log(`[ResetPassword] Local DB password updated for ${user.email}`);
+
+    // 2. Update password in Supabase (non-blocking - login will use Supabase)
+    try {
+      await this.supabaseService.updateUserPassword(user.id, newPassword);
+      console.log(`[ResetPassword] Supabase password updated for ${user.email}`);
+    } catch (error) {
+      // Log the error but don't fail - we'll handle Supabase sync on next login
+      console.error(`[ResetPassword] Supabase password update failed for ${user.email}: ${error?.message || error}`);
+      console.error(`[ResetPassword] Full error:`, JSON.stringify(error, null, 2));
+    }
 
     return { message: 'Parola a fost resetata cu succes!' };
   }
