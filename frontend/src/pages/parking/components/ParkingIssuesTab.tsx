@@ -90,6 +90,8 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
 
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const deptName = user?.department?.name || '';
+  const canComment = isAdminOrManager || ['Dispecerat', 'Intretinere Parcari', 'Control'].includes(deptName);
 
   const handleResolve = (issue: ParkingIssue) => {
     setSelectedIssue(issue);
@@ -674,7 +676,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
               setSelectedIssue(null);
             }}
             issue={selectedIssue}
-            canComment={isAdminOrManager}
+            canComment={canComment}
           />
           <EditIssueDialog
             open={editDialogOpen}

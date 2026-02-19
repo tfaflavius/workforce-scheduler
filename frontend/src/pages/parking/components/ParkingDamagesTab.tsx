@@ -72,6 +72,8 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
 
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const deptName = user?.department?.name || '';
+  const canComment = isAdminOrManager || ['Dispecerat', 'Intretinere Parcari', 'Control'].includes(deptName);
 
   // Handle initial open from notification
   useEffect(() => {
@@ -500,7 +502,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
               setSelectedDamage(null);
             }}
             damage={selectedDamage}
-            canComment={isAdminOrManager}
+            canComment={canComment}
           />
           <EditDamageDialog
             open={editDialogOpen}
