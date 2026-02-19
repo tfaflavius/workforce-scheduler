@@ -87,12 +87,15 @@ const getDeptColor = (deptName?: string) => {
   return '#9e9e9e';
 };
 
-// GPS alert info based on status + fallback detection
+// GPS alert: check real-time status + whether locations arrive regularly
+const GPS_STALE_THRESHOLD_MIN = 15; // daca ultima locatie e >15 min, GPS nu mai functioneaza
+
 const getGpsAlertInfo = (row: {
   isActive: boolean;
   gpsStatus?: string | null;
   startTime?: string;
   locationCount: number;
+  lastLocationTime?: string | null;
 }): { label: string; color: string; icon: 'ok' | 'off' | 'warning'; tooltip: string } => {
   if (!row.isActive) {
     return { label: '-', color: '#9e9e9e', icon: 'ok', tooltip: 'Angajatul nu este pe tura' };
@@ -108,22 +111,46 @@ const getGpsAlertInfo = (row: {
   if (row.gpsStatus === 'unavailable') {
     return { label: 'GPS Indisponibil', color: '#f59e0b', icon: 'warning', tooltip: 'GPS-ul nu este disponibil pe dispozitiv' };
   }
+
+  // Even if gpsStatus is 'active', check if locations are actually arriving
+  if (row.lastLocationTime) {
+    const minutesSinceLastLocation = (Date.now() - new Date(row.lastLocationTime).getTime()) / 60000;
+
+    if (minutesSinceLastLocation <= GPS_STALE_THRESHOLD_MIN) {
+      // Recent location = GPS works fine
+      return {
+        label: 'GPS OK',
+        color: '#10b981',
+        icon: 'ok',
+        tooltip: `Ultima locatie acum ${Math.floor(minutesSinceLastLocation)} min - ${row.locationCount} locatii total`,
+      };
+    } else {
+      // Has locations but last one is old = GPS stopped working
+      return {
+        label: 'GPS Intrerupt',
+        color: '#f59e0b',
+        icon: 'warning',
+        tooltip: `Ultima locatie acum ${Math.floor(minutesSinceLastLocation)} min - GPS-ul pare sa nu mai functioneze`,
+      };
+    }
+  }
+
+  // If gpsStatus is 'active' but no locations at all (edge case)
   if (row.gpsStatus === 'active') {
     return { label: 'GPS OK', color: '#10b981', icon: 'ok', tooltip: 'GPS-ul functioneaza normal' };
   }
 
-  // Fallback detection when no gpsStatus reported yet (null/undefined)
+  // No locations at all - check how long on shift
   if (row.startTime) {
     const minutesActive = (Date.now() - new Date(row.startTime).getTime()) / 60000;
 
-    // If has locations, GPS is clearly working even without explicit status report
-    if (row.locationCount > 0) {
-      return { label: 'GPS OK', color: '#10b981', icon: 'ok', tooltip: `GPS functioneaza - ${row.locationCount} locatii inregistrate` };
-    }
-
-    // Active >15 min and 0 locations = problem
-    if (minutesActive > 15 && row.locationCount === 0) {
-      return { label: 'Fara GPS', color: '#ef4444', icon: 'off', tooltip: `Pe tura de ${Math.floor(minutesActive)} min fara nicio locatie GPS` };
+    if (minutesActive > GPS_STALE_THRESHOLD_MIN) {
+      return {
+        label: 'Fara GPS',
+        color: '#ef4444',
+        icon: 'off',
+        tooltip: `Pe tura de ${Math.floor(minutesActive)} min fara nicio locatie GPS`,
+      };
     }
   }
 
@@ -215,6 +242,7 @@ const AdminTimeTrackingPage: React.FC = () => {
       entryId?: string;
       gpsStatus?: string | null;
       locationCount: number;
+      lastLocationTime?: string | null;
     }> = [];
 
     // Active users from timers
@@ -235,6 +263,7 @@ const AdminTimeTrackingPage: React.FC = () => {
         entryId: timer.id,
         gpsStatus: timer.gpsStatus,
         locationCount: timer.locationLogs?.length || 0,
+        lastLocationTime: lastLog?.recordedAt || null,
       });
     });
 
@@ -247,6 +276,7 @@ const AdminTimeTrackingPage: React.FC = () => {
           department: user.department?.name || '-',
           isActive: false,
           locationCount: 0,
+          lastLocationTime: null,
         });
       }
     });
