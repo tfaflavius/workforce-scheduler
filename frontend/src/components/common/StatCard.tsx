@@ -100,11 +100,9 @@ export const StatCard: React.FC<StatCardProps> = ({
                 color="text.secondary"
                 sx={{
                   fontWeight: 600,
-                  fontSize: { xs: '0.55rem', sm: '0.65rem', md: '0.75rem' },
+                  fontSize: { xs: '0.6rem', sm: '0.65rem', md: '0.75rem' },
                   letterSpacing: '0.5px',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  lineHeight: 1.3,
                   display: 'block',
                 }}
               >
@@ -116,11 +114,9 @@ export const StatCard: React.FC<StatCardProps> = ({
                   color,
                   fontWeight: 800,
                   my: 0.5,
-                  fontSize: { xs: '1.1rem', sm: '1.75rem', md: '2.5rem' },
+                  fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.5rem' },
                   lineHeight: 1.1,
                   whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
                 }}
               >
                 {value}
@@ -132,9 +128,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                   sx={{
                     fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.875rem' },
                     mt: 0.5,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    lineHeight: 1.3,
                   }}
                 >
                   {subtitle}

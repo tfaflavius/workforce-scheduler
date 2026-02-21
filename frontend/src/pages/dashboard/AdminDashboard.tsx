@@ -689,15 +689,16 @@ const AdminDashboard = () => {
                         }}
                       />
                       <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, position: 'relative' }}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={{ xs: 1, sm: 2 }}>
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography
                               variant="overline"
                               sx={{
                                 fontWeight: 600,
-                                fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.75rem' },
+                                fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.75rem' },
                                 letterSpacing: '0.5px',
                                 opacity: 0.9,
+                                lineHeight: 1.3,
                               }}
                             >
                               Total Incasari Automate
@@ -707,8 +708,9 @@ const AdminDashboard = () => {
                               sx={{
                                 fontWeight: 800,
                                 my: 0.5,
-                                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-                                lineHeight: 1,
+                                fontSize: { xs: '1.1rem', sm: '1.75rem', md: '2rem' },
+                                lineHeight: 1.1,
+                                whiteSpace: 'nowrap',
                               }}
                             >
                               {cashTotals
@@ -723,9 +725,10 @@ const AdminDashboard = () => {
                             <Typography
                               variant="body2"
                               sx={{
-                                fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                                fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.875rem' },
                                 mt: 0.5,
                                 opacity: 0.85,
+                                lineHeight: 1.3,
                               }}
                             >
                               {cashTotals ? `${cashTotals.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
@@ -733,7 +736,7 @@ const AdminDashboard = () => {
                           </Box>
                           <Box
                             sx={{
-                              p: { xs: 1.25, sm: 1.5, md: 2 },
+                              p: { xs: 1, sm: 1.5, md: 2 },
                               borderRadius: { xs: 2, sm: 2.5, md: 3 },
                               bgcolor: 'rgba(255, 255, 255, 0.2)',
                               display: 'flex',
