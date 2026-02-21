@@ -1191,13 +1191,11 @@ const HandicapParkingPage: React.FC = () => {
       }
       if (state.openLegitimationId) {
         setOpenLegitimationId(state.openLegitimationId);
-        // Switch to legitimations tab if user can see it
-        // Tab 3 is legitimations
       }
       if (state.tab !== undefined) {
         setTabValue(state.tab);
       }
-      // Clear the state after handling
+      // Clear navigation state after extracting values
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);

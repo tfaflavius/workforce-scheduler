@@ -65,7 +65,8 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
   const { user } = useAppSelector((state) => state.auth);
 
-  const [statusFilter, setStatusFilter] = useState<'ALL' | ParkingDamageStatus>('ACTIVE');
+  // When opening from notification, show ALL damages so we can find the specific one
+  const [statusFilter, setStatusFilter] = useState<'ALL' | ParkingDamageStatus>(initialOpenId ? 'ALL' : 'ACTIVE');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);

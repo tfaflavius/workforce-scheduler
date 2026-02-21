@@ -83,8 +83,8 @@ const ParkingPage: React.FC = () => {
       if (state.tab !== undefined) {
         setTabValue(state.tab);
       }
-      // Clear the state after handling
-      window.history.replaceState({}, document.title);
+      // Don't clear state here - let child components clear it via onOpenIdHandled
+      // so lazy-mounted tabs can still read the ID
     }
   }, [location.state]);
 
@@ -335,13 +335,19 @@ const ParkingPage: React.FC = () => {
       <TabPanel value={tabValue} index={0}>
         <ParkingIssuesTab
           initialOpenId={openIssueId}
-          onOpenIdHandled={() => setOpenIssueId(null)}
+          onOpenIdHandled={() => {
+            setOpenIssueId(null);
+            window.history.replaceState({}, document.title);
+          }}
         />
       </TabPanel>
       <TabPanel value={tabValue} index={1}>
         <ParkingDamagesTab
           initialOpenId={openDamageId}
-          onOpenIdHandled={() => setOpenDamageId(null)}
+          onOpenIdHandled={() => {
+            setOpenDamageId(null);
+            window.history.replaceState({}, document.title);
+          }}
         />
       </TabPanel>
       <TabPanel value={tabValue} index={2}>
