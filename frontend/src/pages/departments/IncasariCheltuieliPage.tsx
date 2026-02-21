@@ -239,8 +239,12 @@ const IncasariCheltuieliPage: React.FC = () => {
             position: 'sticky',
             left: 0,
             bgcolor: 'background.paper',
-            zIndex: 1,
+            zIndex: 2,
             pl: isChild ? 3 : undefined,
+            borderRight: '1px solid',
+            borderRightColor: 'divider',
+            minWidth: { xs: 120, sm: 180 },
+            maxWidth: { xs: 120, sm: 180 },
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
@@ -335,7 +339,7 @@ const IncasariCheltuieliPage: React.FC = () => {
             position: 'sticky',
             left: 0,
             bgcolor: alpha('#8b5cf6', 0.08),
-            zIndex: 1,
+            zIndex: 2,
             py: 1,
           }}
         >
@@ -393,10 +397,14 @@ const IncasariCheltuieliPage: React.FC = () => {
                 position: 'sticky',
                 left: 0,
                 bgcolor: alpha('#8b5cf6', 0.04),
-                zIndex: 1,
+                zIndex: 2,
                 borderBottom: '3px solid',
                 borderColor: '#8b5cf6',
                 fontSize: '0.8rem',
+                borderRight: '1px solid',
+                borderRightColor: 'divider',
+                minWidth: { xs: 120, sm: 180 },
+                maxWidth: { xs: 120, sm: 180 },
               }}
             >
               Subtotal {cat.categoryName}
@@ -484,7 +492,7 @@ const IncasariCheltuieliPage: React.FC = () => {
           <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                <TableCell sx={{ fontWeight: 700, minWidth: 180, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.06), zIndex: 1 }}>
+                <TableCell sx={{ fontWeight: 700, minWidth: { xs: 120, sm: 180 }, maxWidth: { xs: 120, sm: 180 }, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.06), zIndex: 2, borderRight: '1px solid', borderColor: 'divider' }}>
                   Categorie
                 </TableCell>
                 {MONTH_LABELS.map((label, idx) => (
@@ -508,7 +516,7 @@ const IncasariCheltuieliPage: React.FC = () => {
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
                 <TableCell
                   rowSpan={2}
-                  sx={{ fontWeight: 800, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.06), zIndex: 1 }}
+                  sx={{ fontWeight: 800, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.06), zIndex: 2, borderRight: '1px solid', borderColor: 'divider' }}
                 >
                   TOTAL GENERAL
                 </TableCell>

@@ -87,7 +87,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             background: alpha(color, 0.08),
           }}
         />
-        <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, position: 'relative' }}>
+        <CardContent sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, position: 'relative' }}>
           <Stack
             direction="row"
             alignItems="center"
@@ -116,9 +116,11 @@ export const StatCard: React.FC<StatCardProps> = ({
                   color,
                   fontWeight: 800,
                   my: 0.5,
-                  fontSize: { xs: '1.4rem', sm: '1.75rem', md: '2.5rem' },
-                  lineHeight: 1,
+                  fontSize: { xs: '1.1rem', sm: '1.75rem', md: '2.5rem' },
+                  lineHeight: 1.1,
                   whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 {value}
@@ -141,7 +143,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             </Box>
             <Box
               sx={{
-                p: { xs: 1.25, sm: 1.5, md: 2 },
+                p: { xs: 1, sm: 1.5, md: 2 },
                 borderRadius: { xs: 2, sm: 2.5, md: 3 },
                 bgcolor: bgColor,
                 display: 'flex',
