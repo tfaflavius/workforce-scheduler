@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { PvDisplaySession } from './entities/pv-display-session.entity';
 import { PvDisplayDay } from './entities/pv-display-day.entity';
 import { PvDisplaySessionComment } from './entities/pv-display-session-comment.entity';
@@ -359,7 +359,18 @@ export class PvDisplayService {
     } else if (day.controlUser2Id === userId) {
       day.controlUser2Id = null;
       day.controlUser2ClaimedAt = null;
-    } else if (!isAdmin) {
+    } else if (isAdmin) {
+      // Admin poate face unclaim ultimului user asignat
+      if (day.controlUser2Id) {
+        day.controlUser2Id = null;
+        day.controlUser2ClaimedAt = null;
+      } else if (day.controlUser1Id) {
+        day.controlUser1Id = null;
+        day.controlUser1ClaimedAt = null;
+      } else {
+        throw new BadRequestException('Nu exista utilizatori asignati pe aceasta zi');
+      }
+    } else {
       throw new ForbiddenException('Nu esti asignat pe aceasta zi');
     }
 
@@ -397,6 +408,14 @@ export class PvDisplayService {
 
     if (!targetUser) {
       throw new NotFoundException('Utilizatorul nu a fost gasit');
+    }
+
+    // Verificare: slotul nu e deja ocupat
+    if (dto.slot === '1' && day.controlUser1Id) {
+      throw new BadRequestException('Slotul 1 este deja ocupat');
+    }
+    if (dto.slot === '2' && day.controlUser2Id) {
+      throw new BadRequestException('Slotul 2 este deja ocupat');
     }
 
     const now = new Date();
