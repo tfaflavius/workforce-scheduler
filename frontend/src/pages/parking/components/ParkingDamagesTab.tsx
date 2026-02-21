@@ -265,18 +265,16 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
                   Finalizeaza
                 </Button>
               )}
-              {!damage.signatureData && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="warning"
-                  startIcon={<SignatureIcon />}
-                  onClick={() => handleSign(damage)}
-                  sx={{ borderRadius: 2 }}
-                >
-                  Semneaza
-                </Button>
-              )}
+              <Button
+                size="small"
+                variant="outlined"
+                color="warning"
+                startIcon={<SignatureIcon />}
+                onClick={() => handleSign(damage)}
+                sx={{ borderRadius: 2 }}
+              >
+                Semneaza
+              </Button>
               {isAdminOrManager && damage.status === 'ACTIVE' && (
                 <IconButton
                   size="small"
@@ -398,17 +396,15 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
                       <ResolveIcon />
                     </IconButton>
                   )}
-                  {!damage.signatureData && (
-                    <Tooltip title="Adauga semnatura">
-                      <IconButton
-                        size="small"
-                        color="warning"
-                        onClick={() => handleSign(damage)}
-                      >
-                        <SignatureIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
+                  <Tooltip title="Adauga semnatura">
+                    <IconButton
+                      size="small"
+                      color="warning"
+                      onClick={() => handleSign(damage)}
+                    >
+                      <SignatureIcon />
+                    </IconButton>
+                  </Tooltip>
                   {isAdminOrManager && damage.status === 'ACTIVE' && (
                     <Tooltip title="Editeaza">
                       <IconButton
