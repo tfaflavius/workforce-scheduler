@@ -527,7 +527,7 @@ const ShiftSwapsPage = () => {
 
       {/* Summary Cards */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 6, sm: 4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 4 }}>
           <StatCard
             title="Cererile Mele"
             value={sentRequests.length}
@@ -538,7 +538,7 @@ const ShiftSwapsPage = () => {
             delay={0}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 4 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 4 }}>
           <StatCard
             title="Cereri Primite"
             value={receivedRequests.length}

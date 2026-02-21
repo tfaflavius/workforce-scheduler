@@ -288,7 +288,7 @@ export const LeaveRequestsPage = () => {
           const isEmpty = !hasNoLimit && remaining === 0;
 
           return (
-            <Grid size={{ xs: 6, sm: 4, md: 2.4 }} key={balance.id}>
+            <Grid size={{ xs: 6, sm: 6, md: 2.4 }} key={balance.id}>
               <Grow in={true} timeout={500 + index * 100}>
                 <Paper
                   sx={{

@@ -92,7 +92,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            spacing={2}
+            spacing={{ xs: 1, sm: 1.5, md: 2 }}
           >
             <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography
@@ -100,8 +100,12 @@ export const StatCard: React.FC<StatCardProps> = ({
                 color="text.secondary"
                 sx={{
                   fontWeight: 600,
-                  fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.75rem' },
+                  fontSize: { xs: '0.55rem', sm: '0.65rem', md: '0.75rem' },
                   letterSpacing: '0.5px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'block',
                 }}
               >
                 {title}
@@ -112,8 +116,9 @@ export const StatCard: React.FC<StatCardProps> = ({
                   color,
                   fontWeight: 800,
                   my: 0.5,
-                  fontSize: { xs: '1.75rem', sm: '2rem', md: '2.5rem' },
+                  fontSize: { xs: '1.4rem', sm: '1.75rem', md: '2.5rem' },
                   lineHeight: 1,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {value}
@@ -123,8 +128,11 @@ export const StatCard: React.FC<StatCardProps> = ({
                   variant="body2"
                   color="text.secondary"
                   sx={{
-                    fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+                    fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.875rem' },
                     mt: 0.5,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}
                 >
                   {subtitle}

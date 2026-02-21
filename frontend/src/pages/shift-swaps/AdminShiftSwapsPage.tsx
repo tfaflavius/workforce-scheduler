@@ -436,7 +436,7 @@ const AdminShiftSwapsPage = () => {
 
       {/* Summary Cards with StatCard */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Asteapta Aprobare"
             value={awaitingAdminRequests.length}
@@ -448,7 +448,7 @@ const AdminShiftSwapsPage = () => {
             urgent={awaitingAdminRequests.length > 0}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="In Curs"
             value={pendingRequests.length}
@@ -459,7 +459,7 @@ const AdminShiftSwapsPage = () => {
             delay={100}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Aprobate"
             value={approvedCount}
@@ -469,7 +469,7 @@ const AdminShiftSwapsPage = () => {
             delay={200}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Respinse"
             value={rejectedCount}

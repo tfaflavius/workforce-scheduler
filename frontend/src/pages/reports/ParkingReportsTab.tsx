@@ -832,7 +832,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       {/* Report Type Selection Cards */}
       <Grid container spacing={1.5} sx={{ mb: 2 }}>
         {reportTypes.map((report, index) => (
-          <Grid key={report.id} size={{ xs: 4 }}>
+          <Grid key={report.id} size={{ xs: 6, sm: 6, md: 4 }}>
             <Grow in timeout={300 + index * 100}>
               <Card
                 onClick={() => setSelectedReport(report.id)}

@@ -476,7 +476,7 @@ const AdminTimeTrackingPage: React.FC = () => {
 
       {/* Stats Cards */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Ture Active"
             value={statsLoading ? '...' : (stats?.activeCount ?? 0)}
@@ -487,7 +487,7 @@ const AdminTimeTrackingPage: React.FC = () => {
             delay={0}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Ore Azi"
             value={statsLoading ? '...' : (stats?.totalHoursToday ?? 0)}
@@ -498,7 +498,7 @@ const AdminTimeTrackingPage: React.FC = () => {
             delay={100}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Locatii GPS Azi"
             value={statsLoading ? '...' : (stats?.locationLogsToday ?? 0)}
@@ -509,7 +509,7 @@ const AdminTimeTrackingPage: React.FC = () => {
             delay={200}
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Probleme GPS"
             value={realTimeRows.filter(r => {

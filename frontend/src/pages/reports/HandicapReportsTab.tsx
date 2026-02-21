@@ -414,7 +414,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Total"
             value={stats.total}
@@ -422,7 +422,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             color="#6366f1"
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Active"
             value={stats.active}
@@ -430,7 +430,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             color="#ef4444"
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Finalizate"
             value={stats.resolved}
@@ -438,7 +438,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             color="#10b981"
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Amplasari"
             value={stats.byType.AMPLASARE_PANOU.active + stats.byType.AMPLASARE_PANOU.resolved}

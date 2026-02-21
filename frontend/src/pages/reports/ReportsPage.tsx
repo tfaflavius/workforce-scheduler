@@ -1526,7 +1526,7 @@ const ReportsPage: React.FC = () => {
 
         {/* Summary KPI Cards */}
         <Grid container spacing={{ xs: 1.5, sm: 2 }}>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <StatCard
               title="Ore lucrate"
               value={totalHoursAll}
@@ -1537,7 +1537,7 @@ const ReportsPage: React.FC = () => {
               delay={0}
             />
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <StatCard
               title="Angajati"
               value={filteredUsers.length}
@@ -1547,7 +1547,7 @@ const ReportsPage: React.FC = () => {
               delay={100}
             />
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <StatCard
               title="Zile concediu"
               value={totalLeaveDaysAll}
@@ -1558,7 +1558,7 @@ const ReportsPage: React.FC = () => {
               delay={200}
             />
           </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
+          <Grid size={{ xs: 6, sm: 6, md: 3 }}>
             <StatCard
               title="Schimburi"
               value={totalSwapsApproved}

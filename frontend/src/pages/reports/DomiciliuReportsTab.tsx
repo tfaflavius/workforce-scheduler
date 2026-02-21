@@ -414,7 +414,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Total"
             value={stats.total}
@@ -422,7 +422,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             color="#059669"
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Active"
             value={stats.active}
@@ -430,7 +430,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             color="#ef4444"
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Finalizate"
             value={stats.resolved}
@@ -438,7 +438,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             color="#10b981"
           />
         </Grid>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <StatCard
             title="Trasari"
             value={stats.byType.TRASARE_LOCURI.active + stats.byType.TRASARE_LOCURI.resolved}
