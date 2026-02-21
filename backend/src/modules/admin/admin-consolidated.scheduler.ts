@@ -3,7 +3,6 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThan } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
-import { Department } from '../departments/entities/department.entity';
 import { ParkingIssue } from '../parking/entities/parking-issue.entity';
 import { ParkingDamage } from '../parking/entities/parking-damage.entity';
 import { HandicapRequest } from '../parking/entities/handicap-request.entity';
