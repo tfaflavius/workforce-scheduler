@@ -953,4 +953,198 @@ export class TimeTrackingService {
       return { notifiedCount: 0, activeCount: 0 };
     }
   }
+
+  /**
+   * Generates daily GPS report data for all tracked departments.
+   * Used by the daily GPS report email cron job.
+   * Returns per-employee GPS data with street summaries and GPS status.
+   */
+  async getDailyGpsReport(date: Date) {
+    const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+
+    // Find all time entries for the day in tracked departments
+    const entries = await this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
+      .leftJoinAndSelect('entry.locationLogs', 'logs')
+      .where('entry.start_time >= :startOfDay', { startOfDay })
+      .andWhere('entry.start_time < :endOfDay', { endOfDay })
+      .andWhere('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .orderBy('user.full_name', 'ASC')
+      .addOrderBy('entry.start_time', 'ASC')
+      .addOrderBy('logs.recorded_at', 'ASC')
+      .getMany();
+
+    if (entries.length === 0) {
+      return null; // No entries = no report
+    }
+
+    // Group entries by user
+    const byUser = new Map<string, typeof entries>();
+    for (const entry of entries) {
+      const userId = entry.userId;
+      if (!byUser.has(userId)) {
+        byUser.set(userId, []);
+      }
+      byUser.get(userId)!.push(entry);
+    }
+
+    const employees: Array<{
+      name: string;
+      department: string;
+      totalDurationMinutes: number;
+      totalLocations: number;
+      hasGpsProblems: boolean;
+      shifts: Array<{
+        startTime: string;
+        endTime: string;
+        durationMinutes: number;
+        locationCount: number;
+        gpsStatus: string | null;
+        stoppedBySystem: boolean;
+        systemStopReason: string | null;
+        totalDistanceKm: number;
+        streets: Array<{ streetName: string; durationMinutes: number }>;
+      }>;
+    }> = [];
+
+    let totalAutoStopped = 0;
+    let employeesWithProblems = 0;
+
+    for (const [, userEntries] of byUser) {
+      const firstEntry = userEntries[0];
+      const employeeName = firstEntry.user?.fullName || 'Necunoscut';
+      const department = firstEntry.user?.department?.name || '-';
+
+      let totalDuration = 0;
+      let totalLocs = 0;
+      let hasProblems = false;
+
+      const shifts = userEntries.map(entry => {
+        const logs = (entry.locationLogs || []).sort(
+          (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
+        );
+
+        const locationCount = logs.length;
+        totalLocs += locationCount;
+
+        const duration = entry.durationMinutes || Math.round(
+          ((entry.endTime ? new Date(entry.endTime).getTime() : Date.now()) - new Date(entry.startTime).getTime()) / 60000,
+        );
+        totalDuration += duration;
+
+        // Build street summary from logs
+        const points = logs.map((log, index) => {
+          let distanceFromPrev = 0;
+          let durationMinutes = 0;
+
+          if (index > 0) {
+            const prevLog = logs[index - 1];
+            distanceFromPrev = Math.round(
+              this.geocodingService.haversineDistance(
+                Number(prevLog.latitude), Number(prevLog.longitude),
+                Number(log.latitude), Number(log.longitude),
+              ),
+            );
+          }
+
+          const nextLog = logs[index + 1];
+          if (nextLog) {
+            durationMinutes = Math.round(
+              (new Date(nextLog.recordedAt).getTime() - new Date(log.recordedAt).getTime()) / 60000,
+            );
+          }
+
+          return {
+            address: log.address || null,
+            latitude: Number(log.latitude),
+            longitude: Number(log.longitude),
+            durationMinutes,
+            distanceFromPrev,
+          };
+        });
+
+        // Street summary: group consecutive points with same address
+        const streets: Array<{ streetName: string; durationMinutes: number }> = [];
+        let currentStreet: { streetName: string; durationMinutes: number } | null = null;
+
+        for (const point of points) {
+          const streetName = point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+
+          if (currentStreet && currentStreet.streetName === streetName) {
+            currentStreet.durationMinutes += point.durationMinutes;
+          } else {
+            if (currentStreet) {
+              streets.push(currentStreet);
+            }
+            currentStreet = { streetName, durationMinutes: point.durationMinutes };
+          }
+        }
+        if (currentStreet) {
+          streets.push(currentStreet);
+        }
+
+        const totalDistanceM = points.reduce((sum, p) => sum + p.distanceFromPrev, 0);
+
+        // Check GPS problems
+        const gpsStatus = entry.gpsStatus || null;
+        const isGpsProblem = gpsStatus === 'denied' || gpsStatus === 'error' || gpsStatus === 'unavailable'
+          || (locationCount === 0 && duration > 15);
+        if (isGpsProblem) hasProblems = true;
+        if (entry.stoppedBySystem) totalAutoStopped++;
+
+        const startTimeStr = entry.startTime instanceof Date
+          ? entry.startTime.toISOString()
+          : String(entry.startTime);
+        const endTimeStr = entry.endTime
+          ? (entry.endTime instanceof Date ? entry.endTime.toISOString() : String(entry.endTime))
+          : null;
+
+        return {
+          startTime: startTimeStr,
+          endTime: endTimeStr || 'In desfasurare',
+          durationMinutes: duration,
+          locationCount,
+          gpsStatus,
+          stoppedBySystem: entry.stoppedBySystem || false,
+          systemStopReason: entry.systemStopReason || null,
+          totalDistanceKm: Math.round((totalDistanceM / 1000) * 100) / 100,
+          streets,
+        };
+      });
+
+      if (hasProblems) employeesWithProblems++;
+
+      employees.push({
+        name: employeeName,
+        department,
+        totalDurationMinutes: totalDuration,
+        totalLocations: totalLocs,
+        hasGpsProblems: hasProblems,
+        shifts,
+      });
+    }
+
+    const dateStr = date.toLocaleDateString('ro-RO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      timeZone: 'Europe/Bucharest',
+    });
+
+    return {
+      date: dateStr,
+      employees,
+      summary: {
+        totalEmployees: employees.length,
+        totalShifts: entries.length,
+        employeesWithGpsProblems: employeesWithProblems,
+        autoStoppedShifts: totalAutoStopped,
+      },
+    };
+  }
 }

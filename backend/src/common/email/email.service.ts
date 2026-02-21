@@ -319,6 +319,36 @@ export interface DailyParkingSummaryData {
   };
 }
 
+export interface DailyGpsReportData {
+  recipientEmail: string;
+  recipientName: string;
+  reportDate: string;
+  employees: Array<{
+    name: string;
+    department: string;
+    totalDurationMinutes: number;
+    totalLocations: number;
+    hasGpsProblems: boolean;
+    shifts: Array<{
+      startTime: string;
+      endTime: string;
+      durationMinutes: number;
+      locationCount: number;
+      gpsStatus: string | null;
+      stoppedBySystem: boolean;
+      systemStopReason: string | null;
+      totalDistanceKm: number;
+      streets: Array<{ streetName: string; durationMinutes: number }>;
+    }>;
+  }>;
+  summary: {
+    totalEmployees: number;
+    totalShifts: number;
+    employeesWithGpsProblems: number;
+    autoStoppedShifts: number;
+  };
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -2477,6 +2507,157 @@ export class EmailService {
       data.recipientEmail,
       `📋 Rezumat Parcari - ${data.date}`,
       this.generateBaseTemplate('WorkSchedule', `Rezumat Parcari - ${data.date}`, content, '#1565c0 0%, #0d47a1 100%'),
+    );
+  }
+
+  // ============== DAILY GPS REPORT ==============
+
+  async sendDailyGpsReport(data: DailyGpsReportData): Promise<boolean> {
+    const formatDuration = (minutes: number): string => {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h}h ${m}m`;
+    };
+
+    const formatTime = (isoStr: string): string => {
+      if (isoStr === 'In desfasurare') return isoStr;
+      try {
+        return new Date(isoStr).toLocaleTimeString('ro-RO', {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZone: 'Europe/Bucharest',
+        });
+      } catch {
+        return isoStr;
+      }
+    };
+
+    const getGpsStatusLabel = (gpsStatus: string | null, locationCount: number, stoppedBySystem: boolean): { label: string; color: string; bgColor: string } => {
+      if (stoppedBySystem) {
+        return { label: 'Tura Oprita Automat', color: '#c62828', bgColor: '#ffebee' };
+      }
+      if (gpsStatus === 'denied') {
+        return { label: 'GPS Blocat', color: '#c62828', bgColor: '#ffebee' };
+      }
+      if (gpsStatus === 'error') {
+        return { label: 'Eroare GPS', color: '#e65100', bgColor: '#fff3e0' };
+      }
+      if (gpsStatus === 'unavailable') {
+        return { label: 'GPS Indisponibil', color: '#e65100', bgColor: '#fff3e0' };
+      }
+      if (locationCount === 0) {
+        return { label: 'Fara Locatii GPS', color: '#c62828', bgColor: '#ffebee' };
+      }
+      return { label: 'GPS OK', color: '#2e7d32', bgColor: '#e8f5e9' };
+    };
+
+    // Summary cards
+    const summaryHtml = `
+      <div style="display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 120px; background: #e3f2fd; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 28px; font-weight: bold; color: #1565c0;">${data.summary.totalEmployees}</div>
+          <div style="font-size: 12px; color: #666;">Angajati</div>
+        </div>
+        <div style="flex: 1; min-width: 120px; background: #e8f5e9; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 28px; font-weight: bold; color: #2e7d32;">${data.summary.totalShifts}</div>
+          <div style="font-size: 12px; color: #666;">Ture</div>
+        </div>
+        <div style="flex: 1; min-width: 120px; background: ${data.summary.employeesWithGpsProblems > 0 ? '#ffebee' : '#e8f5e9'}; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 28px; font-weight: bold; color: ${data.summary.employeesWithGpsProblems > 0 ? '#c62828' : '#2e7d32'};">${data.summary.employeesWithGpsProblems}</div>
+          <div style="font-size: 12px; color: #666;">Probleme GPS</div>
+        </div>
+        <div style="flex: 1; min-width: 120px; background: ${data.summary.autoStoppedShifts > 0 ? '#ffebee' : '#e8f5e9'}; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 28px; font-weight: bold; color: ${data.summary.autoStoppedShifts > 0 ? '#c62828' : '#2e7d32'};">${data.summary.autoStoppedShifts}</div>
+          <div style="font-size: 12px; color: #666;">Ture Oprite Auto</div>
+        </div>
+      </div>
+    `;
+
+    // Per-employee sections
+    const employeeSections = data.employees.map(emp => {
+      const statusIcon = emp.hasGpsProblems ? '🔴' : '🟢';
+
+      const shiftsHtml = emp.shifts.map((shift, idx) => {
+        const gpsInfo = getGpsStatusLabel(shift.gpsStatus, shift.locationCount, shift.stoppedBySystem);
+
+        const streetsHtml = shift.streets.length > 0
+          ? `<div style="margin-top: 8px; padding-left: 12px; border-left: 3px solid #e0e0e0;">
+              <div style="font-size: 12px; color: #888; margin-bottom: 4px; font-weight: bold;">Strazi vizitate:</div>
+              ${shift.streets.map(s =>
+                `<div style="font-size: 13px; color: #555; padding: 2px 0;">
+                  📍 ${s.streetName} ${s.durationMinutes > 0 ? `<span style="color: #999;">(${formatDuration(s.durationMinutes)})</span>` : ''}
+                </div>`
+              ).join('')}
+            </div>`
+          : '<div style="font-size: 12px; color: #999; margin-top: 4px; font-style: italic;">Nu sunt strazi inregistrate</div>';
+
+        const autoStopHtml = shift.stoppedBySystem && shift.systemStopReason
+          ? `<div style="margin-top: 6px; padding: 8px; background: #ffebee; border-radius: 4px; font-size: 12px; color: #c62828;">
+              ⚠️ ${shift.systemStopReason}
+            </div>`
+          : '';
+
+        return `
+          <div style="background: #fafafa; border-radius: 8px; padding: 14px; margin-bottom: 10px; border: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <strong style="font-size: 14px;">Tura ${idx + 1}</strong>
+                <span style="color: #666; font-size: 13px;"> — ${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}</span>
+              </div>
+              <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; color: ${gpsInfo.color}; background: ${gpsInfo.bgColor};">
+                ${gpsInfo.label}
+              </span>
+            </div>
+            <div style="display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap;">
+              <span style="font-size: 13px; color: #555;">⏱️ ${formatDuration(shift.durationMinutes)}</span>
+              <span style="font-size: 13px; color: #555;">📡 ${shift.locationCount} locatii</span>
+              <span style="font-size: 13px; color: #555;">📏 ${shift.totalDistanceKm} km</span>
+            </div>
+            ${autoStopHtml}
+            ${streetsHtml}
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div style="margin-bottom: 24px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+          <div style="background: ${emp.hasGpsProblems ? '#ffebee' : '#e8f5e9'}; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <strong style="font-size: 16px;">${statusIcon} ${emp.name}</strong>
+              <span style="color: #666; font-size: 13px; margin-left: 8px;">(${emp.department})</span>
+            </div>
+            <div style="font-size: 13px; color: #555;">
+              Total: ${formatDuration(emp.totalDurationMinutes)} | ${emp.totalLocations} locatii
+            </div>
+          </div>
+          <div style="padding: 14px;">
+            ${shiftsHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const content = `
+      <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
+      <p style="color: #666;">Raportul zilnic GPS pentru data <strong>${data.reportDate}</strong>:</p>
+
+      ${summaryHtml}
+
+      <h3 style="color: #333; border-bottom: 2px solid #1565c0; padding-bottom: 8px;">Detalii per Angajat</h3>
+
+      ${employeeSections}
+
+      <div style="margin-top: 24px; padding: 16px; background: #f5f5f5; border-radius: 8px; text-align: center;">
+        <a href="${this.appUrl}/time-tracking" style="color: #1565c0; text-decoration: none; font-weight: bold;">
+          Vezi Monitorizare Pontaj in Aplicatie →
+        </a>
+      </div>
+    `;
+
+    return this.sendEmail(
+      data.recipientEmail,
+      `📍 Raport GPS Zilnic - ${data.reportDate}`,
+      this.generateBaseTemplate('WorkSchedule', `Raport GPS Zilnic - ${data.reportDate}`, content, '#2e7d32 0%, #1b5e20 100%'),
     );
   }
 }

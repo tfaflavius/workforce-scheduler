@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { TimeEntry } from './entities/time-entry.entity';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { TimeTrackingService } from './time-tracking.service';
+import { EmailService } from '../../common/email/email.service';
+import { User, UserRole } from '../users/entities/user.entity';
 
 /**
  * GPS Tracking Scheduler
@@ -25,8 +27,11 @@ export class GpsTrackingScheduler {
   constructor(
     @InjectRepository(TimeEntry)
     private timeEntryRepository: Repository<TimeEntry>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private pushNotificationService: PushNotificationService,
     private timeTrackingService: TimeTrackingService,
+    private emailService: EmailService,
   ) {}
 
   // Run every 10 minutes, every day
@@ -91,6 +96,58 @@ export class GpsTrackingScheduler {
       }
     } catch (error) {
       this.logger.error(`[GPS Auto-Stop] Error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Daily GPS report email.
+   * Runs every day at 21:00 Europe/Bucharest.
+   * Sends an email to all admins with GPS tracking summary for the day:
+   * - Per employee: shifts, GPS locations, streets visited, GPS status
+   * - Summary: total employees, shifts, GPS problems, auto-stopped shifts
+   */
+  @Cron('0 21 * * *', { timeZone: 'Europe/Bucharest' })
+  async handleDailyGpsReport() {
+    this.logger.log('[GPS Daily Report] Generating daily GPS report...');
+
+    try {
+      const today = new Date();
+      const reportData = await this.timeTrackingService.getDailyGpsReport(today);
+
+      if (!reportData) {
+        this.logger.log('[GPS Daily Report] No GPS entries for today, skipping email');
+        return;
+      }
+
+      // Find all active admins
+      const admins = await this.userRepository.find({
+        where: { role: UserRole.ADMIN, isActive: true },
+      });
+
+      if (admins.length === 0) {
+        this.logger.warn('[GPS Daily Report] No active admins found');
+        return;
+      }
+
+      let sentCount = 0;
+      for (const admin of admins) {
+        try {
+          const success = await this.emailService.sendDailyGpsReport({
+            recipientEmail: admin.email,
+            recipientName: admin.fullName,
+            reportDate: reportData.date,
+            employees: reportData.employees,
+            summary: reportData.summary,
+          });
+          if (success) sentCount++;
+        } catch (err) {
+          this.logger.error(`[GPS Daily Report] Failed to send to ${admin.email}: ${err.message}`);
+        }
+      }
+
+      this.logger.log(`[GPS Daily Report] Sent to ${sentCount}/${admins.length} admins`);
+    } catch (error) {
+      this.logger.error(`[GPS Daily Report] Error: ${error.message}`);
     }
   }
 }
