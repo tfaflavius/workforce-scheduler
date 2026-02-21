@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Alert,
   alpha,
-  useTheme,
   Avatar,
   Dialog,
   DialogTitle,
@@ -25,7 +24,6 @@ import {
   Store as MarketplaceIcon,
   PersonAdd as ClaimIcon,
   CheckCircle as AssignedIcon,
-  AdminPanelSettings as AdminIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
 import {
@@ -35,10 +33,9 @@ import {
   useGetControlUsersQuery,
 } from '../../../store/api/pvDisplay.api';
 import type { PvDisplayDay, AdminAssignPvDayDto } from '../../../types/pv-display.types';
-import { PV_DAY_STATUS_LABELS, PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
+import { PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
 
 const PvMarketplaceTab: React.FC = () => {
-  const theme = useTheme();
   const { user } = useAppSelector((state) => state.auth);
   const isAdmin = user?.role === 'ADMIN';
   const isControl = user?.department?.name === 'Control';

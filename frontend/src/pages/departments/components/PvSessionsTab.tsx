@@ -11,7 +11,6 @@ import {
   CircularProgress,
   Alert,
   alpha,
-  useTheme,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -26,9 +25,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   CalendarMonth as CalendarIcon,
-  Person as PersonIcon,
   Delete as DeleteIcon,
-  Comment as CommentIcon,
   History as HistoryIcon,
   Send as SendIcon,
 } from '@mui/icons-material';
@@ -44,7 +41,6 @@ import {
 import type {
   PvDisplaySession,
   PvDisplayDay,
-  PvSessionStatus,
   CreatePvDisplaySessionDto,
   PvDisplayDayDto,
 } from '../../../types/pv-display.types';
@@ -56,7 +52,6 @@ import {
 } from '../../../types/pv-display.types';
 
 const PvSessionsTab: React.FC = () => {
-  const theme = useTheme();
   const { user } = useAppSelector((state) => state.auth);
   const isAdmin = user?.role === 'ADMIN';
   const isPvf = user?.department?.name === 'Procese Verbale/Facturare';
@@ -198,7 +193,6 @@ const PvSessionsTab: React.FC = () => {
               onDelete={isAdmin ? () => handleDelete(session.id) : undefined}
               detailsTab={detailsTab}
               setDetailsTab={setDetailsTab}
-              isAdmin={isAdmin}
             />
           ))}
         </Stack>
@@ -291,7 +285,6 @@ interface SessionCardProps {
   onDelete?: () => void;
   detailsTab: 'days' | 'comments' | 'history';
   setDetailsTab: (tab: 'days' | 'comments' | 'history') => void;
-  isAdmin: boolean;
 }
 
 const SessionCard: React.FC<SessionCardProps> = ({
@@ -301,9 +294,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
   onDelete,
   detailsTab,
   setDetailsTab,
-  isAdmin,
 }) => {
-  const theme = useTheme();
   const statusColor = PV_SESSION_STATUS_COLORS[session.status];
   const totalDays = session.days?.length || 0;
   const completedDays = session.days?.filter(d => d.status === 'COMPLETED').length || 0;

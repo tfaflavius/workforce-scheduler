@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Alert,
   alpha,
-  useTheme,
   Avatar,
   Dialog,
   DialogTitle,
@@ -34,7 +33,6 @@ import type { PvDisplayDay } from '../../../types/pv-display.types';
 import { PV_DAY_STATUS_LABELS, PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
 
 const PvMyDaysTab: React.FC = () => {
-  const theme = useTheme();
   const { user } = useAppSelector((state) => state.auth);
 
   const { data: myDays = [], isLoading, error } = useGetMyClaimedDaysQuery();

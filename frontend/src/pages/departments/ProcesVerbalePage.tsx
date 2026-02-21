@@ -7,14 +7,11 @@ import {
   Tab,
   useTheme,
   useMediaQuery,
-  alpha,
   Fade,
   Grow,
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
-  Store as MarketplaceIcon,
-  Assignment as MyDaysIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import PvSessionsTab from './components/PvSessionsTab';
@@ -56,7 +53,6 @@ const ProcesVerbalePage: React.FC = () => {
   const isControl = userDept === 'Control';
   const isPvf = userDept === 'Procese Verbale/Facturare';
   const isAdmin = user?.role === 'ADMIN';
-  const isManager = user?.role === 'MANAGER';
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -65,7 +61,7 @@ const ProcesVerbalePage: React.FC = () => {
   // Control vede: Marketplace + Zilele Mele
   // PVF vede: Sesiuni + Marketplace
   // Admin/Manager vede: Sesiuni + Marketplace
-  const tabConfig = [];
+  const tabConfig: Array<{ label: string; shortLabel: string; color: string }> = [];
 
   if (!isControl) {
     tabConfig.push({
