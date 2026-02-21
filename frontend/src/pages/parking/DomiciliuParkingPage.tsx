@@ -913,7 +913,6 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
 // ============== MAIN PAGE ==============
 const DomiciliuParkingPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isCompact = useMediaQuery(theme.breakpoints.down('md')); // < 768px
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
