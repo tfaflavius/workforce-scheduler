@@ -239,8 +239,19 @@ const DayCard: React.FC<DayCardProps> = ({ day, userId, onUnclaim, onComplete, i
               />
             </Stack>
             <Typography variant="caption" color="text.secondary">
-              Ziua {day.dayOrder} • {day.noticeCount} procese verbale • Sesiune: {day.session?.monthYear}
+              Ziua {day.dayOrder} • {day.noticeCount} procese verbale
+              {day.session?.monthYear && ` • Sesiune: ${day.session.monthYear}`}
             </Typography>
+            {(day.firstNoticeSeries || day.firstNoticeNumber || day.noticesDateFrom) && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                De la: {day.firstNoticeSeries && `Seria ${day.firstNoticeSeries}`}
+                {day.firstNoticeNumber && ` Nr. ${day.firstNoticeNumber}`}
+                {day.noticesDateFrom && ` • din ${new Date(day.noticesDateFrom).toLocaleDateString('ro-RO')}`}
+                {day.lastNoticeSeries && ` — Pana la: Seria ${day.lastNoticeSeries}`}
+                {day.lastNoticeNumber && ` Nr. ${day.lastNoticeNumber}`}
+                {day.noticesDateTo && ` • ${new Date(day.noticesDateTo).toLocaleDateString('ro-RO')}`}
+              </Typography>
+            )}
 
             {/* Partner */}
             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>

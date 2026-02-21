@@ -169,6 +169,9 @@ const PvMarketplaceTab: React.FC = () => {
                             </Stack>
                             <Typography variant="caption" color="text.secondary">
                               Ziua {day.dayOrder} • {day.noticeCount} procese verbale
+                              {day.firstNoticeSeries && ` • Seria ${day.firstNoticeSeries}`}
+                              {day.firstNoticeNumber && ` Nr. ${day.firstNoticeNumber}`}
+                              {day.noticesDateFrom && ` • din ${new Date(day.noticesDateFrom).toLocaleDateString('ro-RO')}`}
                             </Typography>
 
                             {/* Assigned users */}

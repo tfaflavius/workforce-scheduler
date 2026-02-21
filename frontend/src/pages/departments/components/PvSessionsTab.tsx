@@ -28,6 +28,8 @@ import {
   Delete as DeleteIcon,
   History as HistoryIcon,
   Send as SendIcon,
+  ArrowBack as BackIcon,
+  Description as PvIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
 import {
@@ -65,12 +67,16 @@ const PvSessionsTab: React.FC = () => {
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [detailsTab, setDetailsTab] = useState<'days' | 'comments' | 'history'>('days');
 
-  // Create form state
+  // Create form state - Step 1
   const [monthYear, setMonthYear] = useState('');
   const [description, setDescription] = useState('');
   const [daysCount, setDaysCount] = useState(5);
   const [startDate, setStartDate] = useState('');
-  const [noticeCount, setNoticeCount] = useState(30);
+  const [defaultNoticeCount, setDefaultNoticeCount] = useState(30);
+
+  // Create form state - Step 2 (per-day details)
+  const [createStep, setCreateStep] = useState<1 | 2>(1);
+  const [generatedDays, setGeneratedDays] = useState<PvDisplayDayDto[]>([]);
 
   const handleOpenCreate = () => {
     const now = new Date();
@@ -79,7 +85,9 @@ const PvSessionsTab: React.FC = () => {
     setDescription('');
     setDaysCount(5);
     setStartDate('');
-    setNoticeCount(30);
+    setDefaultNoticeCount(30);
+    setCreateStep(1);
+    setGeneratedDays([]);
     setCreateDialogOpen(true);
   };
 
@@ -90,12 +98,17 @@ const PvSessionsTab: React.FC = () => {
     let dayOrder = 1;
     while (days.length < count) {
       const dayOfWeek = date.getDay();
-      // Skip weekends
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         days.push({
           displayDate: date.toISOString().split('T')[0],
           dayOrder,
-          noticeCount,
+          noticeCount: defaultNoticeCount,
+          firstNoticeSeries: '',
+          firstNoticeNumber: '',
+          lastNoticeSeries: '',
+          lastNoticeNumber: '',
+          noticesDateFrom: '',
+          noticesDateTo: '',
         });
         dayOrder++;
       }
@@ -105,15 +118,40 @@ const PvSessionsTab: React.FC = () => {
     return days;
   };
 
+  const handleGenerateDays = () => {
+    if (!startDate) return;
+    const days = generateConsecutiveDays(startDate, daysCount);
+    setGeneratedDays(days);
+    setCreateStep(2);
+  };
+
+  const updateDay = (index: number, field: keyof PvDisplayDayDto, value: string | number) => {
+    setGeneratedDays(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
   const handleCreate = async () => {
-    if (!startDate || !monthYear) return;
+    if (!monthYear || generatedDays.length === 0) return;
 
     try {
-      const days = generateConsecutiveDays(startDate, daysCount);
+      // Clean empty strings to undefined
+      const cleanDays = generatedDays.map(day => ({
+        ...day,
+        firstNoticeSeries: day.firstNoticeSeries || undefined,
+        firstNoticeNumber: day.firstNoticeNumber || undefined,
+        lastNoticeSeries: day.lastNoticeSeries || undefined,
+        lastNoticeNumber: day.lastNoticeNumber || undefined,
+        noticesDateFrom: day.noticesDateFrom || undefined,
+        noticesDateTo: day.noticesDateTo || undefined,
+      }));
+
       const dto: CreatePvDisplaySessionDto = {
         monthYear,
         description: description || undefined,
-        days,
+        days: cleanDays,
       };
       await createSession(dto).unwrap();
       setCreateDialogOpen(false);
@@ -202,74 +240,229 @@ const PvSessionsTab: React.FC = () => {
       <Dialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle sx={{ fontWeight: 700 }}>
-          Creare Sesiune Afisare PV
+          <Stack direction="row" alignItems="center" spacing={1}>
+            {createStep === 2 && (
+              <IconButton size="small" onClick={() => setCreateStep(1)}>
+                <BackIcon />
+              </IconButton>
+            )}
+            <span>
+              {createStep === 1
+                ? 'Creare Sesiune Afisare PV'
+                : 'Detalii Procese Verbale per Zi'}
+            </span>
+          </Stack>
         </DialogTitle>
         <DialogContent>
-          <Stack spacing={2.5} sx={{ mt: 1 }}>
-            <TextField
-              label="Luna / An"
-              type="month"
-              value={monthYear}
-              onChange={(e) => setMonthYear(e.target.value)}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              label="Data inceput (prima zi de afisare)"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              helperText="Se vor genera automat zilele consecutive (fara weekend)"
-            />
-            <TextField
-              label="Numar zile"
-              type="number"
-              value={daysCount}
-              onChange={(e) => setDaysCount(Math.max(1, Math.min(5, parseInt(e.target.value) || 1)))}
-              fullWidth
-              inputProps={{ min: 1, max: 5 }}
-              helperText="Maxim 5 zile consecutive"
-            />
-            <TextField
-              label="Numar procese verbale per zi"
-              type="number"
-              value={noticeCount}
-              onChange={(e) => setNoticeCount(Math.max(1, parseInt(e.target.value) || 30))}
-              fullWidth
-              inputProps={{ min: 1 }}
-            />
-            <TextField
-              label="Descriere (optional)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              multiline
-              rows={2}
-            />
-          </Stack>
+          {createStep === 1 ? (
+            <Stack spacing={2.5} sx={{ mt: 1 }}>
+              <TextField
+                label="Luna / An"
+                type="month"
+                value={monthYear}
+                onChange={(e) => setMonthYear(e.target.value)}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="Data inceput (prima zi de afisare)"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                helperText="Se vor genera automat zilele consecutive (fara weekend)"
+              />
+              <Stack direction="row" spacing={2}>
+                <TextField
+                  label="Numar zile"
+                  type="number"
+                  value={daysCount}
+                  onChange={(e) => setDaysCount(Math.max(1, Math.min(5, parseInt(e.target.value) || 1)))}
+                  fullWidth
+                  inputProps={{ min: 1, max: 5 }}
+                  helperText="Maxim 5 zile"
+                />
+                <TextField
+                  label="Nr. PV per zi (default)"
+                  type="number"
+                  value={defaultNoticeCount}
+                  onChange={(e) => setDefaultNoticeCount(Math.max(1, parseInt(e.target.value) || 30))}
+                  fullWidth
+                  inputProps={{ min: 1 }}
+                />
+              </Stack>
+              <TextField
+                label="Descriere (optional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                fullWidth
+                multiline
+                rows={2}
+              />
+            </Stack>
+          ) : (
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                Completeaza detaliile proceselor verbale pentru fiecare zi. Seria, numarul si datele se completeaza separat per zi.
+              </Alert>
+              {generatedDays.map((day, index) => {
+                const dateObj = new Date(day.displayDate);
+                const dayLabel = dateObj.toLocaleDateString('ro-RO', {
+                  weekday: 'long',
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                });
+
+                return (
+                  <Card
+                    key={day.dayOrder}
+                    variant="outlined"
+                    sx={{
+                      borderRadius: 2.5,
+                      borderColor: alpha('#3b82f6', 0.3),
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        px: 2,
+                        py: 1,
+                        bgcolor: alpha('#3b82f6', 0.06),
+                        borderBottom: `1px solid ${alpha('#3b82f6', 0.15)}`,
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <PvIcon sx={{ fontSize: 18, color: '#3b82f6' }} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#3b82f6' }}>
+                          Ziua {day.dayOrder} — {dayLabel}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                      <Stack spacing={2}>
+                        {/* Nr PV */}
+                        <TextField
+                          label="Numar procese verbale"
+                          type="number"
+                          value={day.noticeCount}
+                          onChange={(e) => updateDay(index, 'noticeCount', Math.max(1, parseInt(e.target.value) || 30))}
+                          size="small"
+                          inputProps={{ min: 1 }}
+                          sx={{ maxWidth: 220 }}
+                        />
+
+                        {/* De la - serie + numar + data */}
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+                            De la (primul PV):
+                          </Typography>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                            <TextField
+                              label="Serie"
+                              value={day.firstNoticeSeries || ''}
+                              onChange={(e) => updateDay(index, 'firstNoticeSeries', e.target.value)}
+                              size="small"
+                              sx={{ flex: 1 }}
+                              placeholder="ex: ABC"
+                            />
+                            <TextField
+                              label="Numar"
+                              value={day.firstNoticeNumber || ''}
+                              onChange={(e) => updateDay(index, 'firstNoticeNumber', e.target.value)}
+                              size="small"
+                              sx={{ flex: 1 }}
+                              placeholder="ex: 001234"
+                            />
+                            <TextField
+                              label="Data PV de la"
+                              type="date"
+                              value={day.noticesDateFrom || ''}
+                              onChange={(e) => updateDay(index, 'noticesDateFrom', e.target.value)}
+                              size="small"
+                              InputLabelProps={{ shrink: true }}
+                              sx={{ flex: 1 }}
+                            />
+                          </Stack>
+                        </Box>
+
+                        {/* Pana la - serie + numar + data */}
+                        <Box>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+                            Pana la (ultimul PV) — optional:
+                          </Typography>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                            <TextField
+                              label="Serie"
+                              value={day.lastNoticeSeries || ''}
+                              onChange={(e) => updateDay(index, 'lastNoticeSeries', e.target.value)}
+                              size="small"
+                              sx={{ flex: 1 }}
+                              placeholder="ex: ABC"
+                            />
+                            <TextField
+                              label="Numar"
+                              value={day.lastNoticeNumber || ''}
+                              onChange={(e) => updateDay(index, 'lastNoticeNumber', e.target.value)}
+                              size="small"
+                              sx={{ flex: 1 }}
+                              placeholder="ex: 001264"
+                            />
+                            <TextField
+                              label="Data PV pana la"
+                              type="date"
+                              value={day.noticesDateTo || ''}
+                              onChange={(e) => updateDay(index, 'noticesDateTo', e.target.value)}
+                              size="small"
+                              InputLabelProps={{ shrink: true }}
+                              sx={{ flex: 1 }}
+                            />
+                          </Stack>
+                        </Box>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Stack>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setCreateDialogOpen(false)} sx={{ textTransform: 'none' }}>
             Anuleaza
           </Button>
-          <Button
-            onClick={handleCreate}
-            variant="contained"
-            disabled={!startDate || !monthYear || isCreating}
-            sx={{
-              textTransform: 'none',
-              fontWeight: 600,
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-            }}
-          >
-            {isCreating ? <CircularProgress size={20} /> : 'Creeaza'}
-          </Button>
+          {createStep === 1 ? (
+            <Button
+              onClick={handleGenerateDays}
+              variant="contained"
+              disabled={!startDate || !monthYear}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              }}
+            >
+              Genereaza Zile
+            </Button>
+          ) : (
+            <Button
+              onClick={handleCreate}
+              variant="contained"
+              disabled={isCreating}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 600,
+                background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              }}
+            >
+              {isCreating ? <CircularProgress size={20} /> : 'Creeaza Sesiunea'}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Box>
@@ -401,6 +594,12 @@ const SessionCard: React.FC<SessionCardProps> = ({
 
 // ===== Days Section =====
 
+const formatDateRo = (date: string | Date | undefined): string => {
+  if (!date) return '';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
   if (days.length === 0) {
     return <Typography variant="body2" color="text.secondary">Nicio zi adaugata.</Typography>;
@@ -411,6 +610,7 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
       {days.map((day) => {
         const statusColor = PV_DAY_STATUS_COLORS[day.status];
         const assignedCount = (day.controlUser1Id ? 1 : 0) + (day.controlUser2Id ? 1 : 0);
+        const hasPvDetails = day.firstNoticeSeries || day.firstNoticeNumber || day.noticesDateFrom;
 
         return (
           <Card
@@ -455,6 +655,35 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
                   }}
                 />
               </Stack>
+
+              {/* PV Details */}
+              {hasPvDetails && (
+                <Box sx={{ mt: 1, p: 1, bgcolor: alpha('#8b5cf6', 0.04), borderRadius: 1.5, border: `1px solid ${alpha('#8b5cf6', 0.1)}` }}>
+                  <Stack spacing={0.5}>
+                    {(day.firstNoticeSeries || day.firstNoticeNumber) && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        <strong>De la:</strong> Seria {day.firstNoticeSeries || '—'}, Nr. {day.firstNoticeNumber || '—'}
+                        {day.noticesDateFrom && ` • Data: ${formatDateRo(day.noticesDateFrom)}`}
+                      </Typography>
+                    )}
+                    {!day.firstNoticeSeries && !day.firstNoticeNumber && day.noticesDateFrom && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        <strong>Data PV de la:</strong> {formatDateRo(day.noticesDateFrom)}
+                      </Typography>
+                    )}
+                    {(day.lastNoticeSeries || day.lastNoticeNumber || day.noticesDateTo) && (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                        <strong>Pana la:</strong>{' '}
+                        {(day.lastNoticeSeries || day.lastNoticeNumber)
+                          ? `Seria ${day.lastNoticeSeries || '—'}, Nr. ${day.lastNoticeNumber || '—'}`
+                          : ''}
+                        {day.noticesDateTo && ` • Data: ${formatDateRo(day.noticesDateTo)}`}
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
+              )}
+
               {(day.controlUser1 || day.controlUser2) && (
                 <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                   {day.controlUser1 && (
