@@ -55,6 +55,9 @@ import { PvDisplayController } from './pv-display.controller';
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
 import { PvDisplayScheduler } from './pv-display.scheduler';
 
+// Guards
+import { PvDisplayAccessGuard } from './guards/pv-display-access.guard';
+
 // Other modules
 import { NotificationsModule } from '../notifications/notifications.module';
 import { EmailModule } from '../../common/email/email.module';
@@ -113,6 +116,7 @@ import { EmailModule } from '../../common/email/email.module';
     HandicapLegitimationsService,
     RevolutionarLegitimationsService,
     PvDisplayService,
+    PvDisplayAccessGuard,
     ParkingUrgentScheduler,
     PvDisplayScheduler,
   ],

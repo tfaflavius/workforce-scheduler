@@ -49,7 +49,7 @@ export class PvDisplayScheduler {
 
     try {
       const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
 
       // Gaseste zilele de azi cu status ASSIGNED
       const todayDays = await this.dayRepository.createQueryBuilder('day')
@@ -117,7 +117,7 @@ export class PvDisplayScheduler {
 
       // Gaseste utilizatorii din Dispecerat care sunt programati azi
       const todayStr = day.displayDate instanceof Date
-        ? day.displayDate.toISOString().split('T')[0]
+        ? day.displayDate.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' })
         : String(day.displayDate);
 
       const assignments = await this.scheduleAssignmentRepository.createQueryBuilder('sa')

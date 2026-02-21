@@ -480,7 +480,7 @@ export class AdminConsolidatedScheduler {
 
   private async collectMissingReportsData(today: Date) {
     try {
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
       const missingUsers = await this.dailyReportsService.getMissingReports(todayStr);
       return missingUsers.map(u => ({
         userName: u.fullName,
@@ -494,7 +494,7 @@ export class AdminConsolidatedScheduler {
 
   private async collectPvDisplayData(today: Date) {
     try {
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
 
       // Sesiuni active (nu COMPLETED)
       const activeSessions = await this.pvDisplaySessionRepository.count({

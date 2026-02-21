@@ -616,6 +616,7 @@ export class PvDisplayService {
         where: { name: CONTROL_DEPARTMENT_NAME },
       });
 
+      const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
 
       if (controlDept) {
@@ -624,7 +625,8 @@ export class PvDisplayService {
         });
 
         controlUsers.forEach(u => {
-          if (u.id !== creatorId) {
+          if (u.id !== creatorId && !notifiedUserIds.has(u.id)) {
+            notifiedUserIds.add(u.id);
             notifications.push({
               userId: u.id,
               type: NotificationType.GENERAL,
@@ -636,7 +638,7 @@ export class PvDisplayService {
         });
       }
 
-      // Notifica Admin + Manager
+      // Notifica Admin + Manager (dedup)
       const adminsManagers = await this.userRepository.find({
         where: [
           { role: UserRole.ADMIN, isActive: true },
@@ -645,7 +647,8 @@ export class PvDisplayService {
       });
 
       adminsManagers.forEach(u => {
-        if (u.id !== creatorId) {
+        if (u.id !== creatorId && !notifiedUserIds.has(u.id)) {
+          notifiedUserIds.add(u.id);
           notifications.push({
             userId: u.id,
             type: NotificationType.GENERAL,
@@ -671,6 +674,7 @@ export class PvDisplayService {
         where: { name: PROCESE_VERBALE_DEPARTMENT_NAME },
       });
 
+      const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
 
       if (pvfDept) {
@@ -679,6 +683,27 @@ export class PvDisplayService {
         });
 
         pvfUsers.forEach(u => {
+          if (!notifiedUserIds.has(u.id)) {
+            notifiedUserIds.add(u.id);
+            notifications.push({
+              userId: u.id,
+              type: NotificationType.GENERAL,
+              title: 'Zi afisare PV - complet asignata',
+              message: `Ziua ${this.formatDate(day.displayDate)} are acum 2/2 utilizatori Control asignati.`,
+              data: { pvDayId: day.id, pvSessionId: day.sessionId },
+            });
+          }
+        });
+      }
+
+      // Notifica si Admin (dedup)
+      const admins = await this.userRepository.find({
+        where: { role: UserRole.ADMIN, isActive: true },
+      });
+
+      admins.forEach(u => {
+        if (!notifiedUserIds.has(u.id)) {
+          notifiedUserIds.add(u.id);
           notifications.push({
             userId: u.id,
             type: NotificationType.GENERAL,
@@ -686,22 +711,7 @@ export class PvDisplayService {
             message: `Ziua ${this.formatDate(day.displayDate)} are acum 2/2 utilizatori Control asignati.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },
           });
-        });
-      }
-
-      // Notifica si Admin
-      const admins = await this.userRepository.find({
-        where: { role: UserRole.ADMIN, isActive: true },
-      });
-
-      admins.forEach(u => {
-        notifications.push({
-          userId: u.id,
-          type: NotificationType.GENERAL,
-          title: 'Zi afisare PV - complet asignata',
-          message: `Ziua ${this.formatDate(day.displayDate)} are acum 2/2 utilizatori Control asignati.`,
-          data: { pvDayId: day.id, pvSessionId: day.sessionId },
-        });
+        }
       });
 
       if (notifications.length > 0) {
@@ -714,6 +724,7 @@ export class PvDisplayService {
 
   private async notifyDayCompleted(day: PvDisplayDay, completedByUserId: string): Promise<void> {
     try {
+      const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
 
       // Notifica PVF
@@ -727,23 +738,27 @@ export class PvDisplayService {
         });
 
         pvfUsers.forEach(u => {
-          notifications.push({
-            userId: u.id,
-            type: NotificationType.GENERAL,
-            title: 'Zi afisare PV finalizata',
-            message: `Ziua ${this.formatDate(day.displayDate)} a fost finalizata.`,
-            data: { pvDayId: day.id, pvSessionId: day.sessionId },
-          });
+          if (!notifiedUserIds.has(u.id)) {
+            notifiedUserIds.add(u.id);
+            notifications.push({
+              userId: u.id,
+              type: NotificationType.GENERAL,
+              title: 'Zi afisare PV finalizata',
+              message: `Ziua ${this.formatDate(day.displayDate)} a fost finalizata.`,
+              data: { pvDayId: day.id, pvSessionId: day.sessionId },
+            });
+          }
         });
       }
 
-      // Notifica Admin
+      // Notifica Admin (dedup)
       const admins = await this.userRepository.find({
         where: { role: UserRole.ADMIN, isActive: true },
       });
 
       admins.forEach(u => {
-        if (u.id !== completedByUserId) {
+        if (u.id !== completedByUserId && !notifiedUserIds.has(u.id)) {
+          notifiedUserIds.add(u.id);
           notifications.push({
             userId: u.id,
             type: NotificationType.GENERAL,
