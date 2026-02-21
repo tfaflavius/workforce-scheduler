@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { ParkingIssuesService } from './parking-issues.service';
 import { ParkingDamagesService } from './parking-damages.service';
 import { CashCollectionsService } from './cash-collections.service';
@@ -8,7 +8,7 @@ import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 import { EmailService } from '../../common/email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan, LessThan, Between } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { ParkingIssue } from './entities/parking-issue.entity';
@@ -47,7 +47,7 @@ export class ParkingUrgentScheduler {
   ) {}
 
   // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 08:00 si 13:00 pentru a marca problemele urgente (dupa 48h nerezolvate)
-  @Cron('0 8,13 * * 1-5')
+  @Cron('0 8,13 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleMarkUrgent() {
     this.logger.log('Verificare probleme si prejudicii nerezolvate de 48h+...');
 
@@ -65,7 +65,7 @@ export class ParkingUrgentScheduler {
 
   // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 08:00 - notificari catre Manageri, Dispecerat + Intretinere (doar asignat)
   // Adminii primesc totul in raportul consolidat de la 20:00
-  @Cron('0 8 * * 1-5')
+  @Cron('0 8 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleNotifyUrgentMorning() {
     this.logger.log('Trimitere notificari 08:00 (fara Admini - primesc raport consolidat)...');
 
@@ -83,7 +83,7 @@ export class ParkingUrgentScheduler {
   }
 
   // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 13:00 - notificari catre Manageri, Dispecerat + Intretinere (doar asignat) - FARA Admini
-  @Cron('0 13 * * 1-5')
+  @Cron('0 13 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleNotifyUrgentAfternoon() {
     this.logger.log('Trimitere notificari 13:00 (fara Admini)...');
 
@@ -101,7 +101,7 @@ export class ParkingUrgentScheduler {
   }
 
   // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 18:00 pentru raportul de incasari
-  @Cron('0 18 * * 1-5')
+  @Cron('0 18 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleDailyCashReport() {
     this.logger.log('Generare raport zilnic incasari...');
 
@@ -114,7 +114,7 @@ export class ParkingUrgentScheduler {
   }
 
   // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 09:00 pentru raportul Handicap catre Admin si Parcari Handicap
-  @Cron('0 9 * * 1-5')
+  @Cron('0 9 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleDailyHandicapReport() {
     this.logger.log('Generare raport zilnic Handicap pentru Admin si Parcari Handicap (zile lucratoare)...');
 
@@ -486,7 +486,7 @@ export class ParkingUrgentScheduler {
       // Create azi
       this.handicapRequestRepository.find({
         where: {
-          createdAt: MoreThan(today),
+          createdAt: Between(today, tomorrow),
         },
         relations: ['creator'],
         order: { createdAt: 'DESC' },
@@ -495,7 +495,7 @@ export class ParkingUrgentScheduler {
       this.handicapRequestRepository.find({
         where: {
           status: 'FINALIZAT',
-          resolvedAt: MoreThan(today),
+          resolvedAt: Between(today, tomorrow),
         },
         relations: ['creator', 'resolver'],
         order: { resolvedAt: 'DESC' },

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThan } from 'typeorm';
+import { Repository, Between } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { ParkingIssue } from '../parking/entities/parking-issue.entity';
 import { ParkingDamage } from '../parking/entities/parking-damage.entity';
@@ -78,7 +78,7 @@ export class AdminConsolidatedScheduler {
         this.collectCashData(startOfDay, endOfDay),
         this.collectParkingData(startOfDay, endOfDay, formatTime),
         this.collectUnresolvedData(),
-        this.collectHandicapData(today, startOfDay),
+        this.collectHandicapData(today, startOfDay, endOfDay),
         this.collectGpsData(today),
         this.collectMissingReportsData(today),
       ]);
@@ -121,7 +121,7 @@ export class AdminConsolidatedScheduler {
 
   // ============== CRON 2: Raport saptamanal consolidat (Vineri) ==============
 
-  @Cron('0 20 * * 5', { timeZone: 'Europe/Bucharest' })
+  @Cron('30 20 * * 5', { timeZone: 'Europe/Bucharest' })
   async handleConsolidatedWeeklyReport() {
     this.logger.log('[Admin Consolidat] Generare raport saptamanal consolidat...');
 
@@ -345,7 +345,7 @@ export class AdminConsolidatedScheduler {
     }
   }
 
-  private async collectHandicapData(today: Date, startOfDay: Date) {
+  private async collectHandicapData(today: Date, startOfDay: Date, endOfDay: Date) {
     try {
       const now = new Date();
       const fiveDaysAgo = new Date();
@@ -359,12 +359,12 @@ export class AdminConsolidatedScheduler {
         allRevolutionarLegitimations,
       ] = await Promise.all([
         this.handicapRequestRepository.find({
-          where: { createdAt: MoreThan(startOfDay) },
+          where: { createdAt: Between(startOfDay, endOfDay) },
           relations: ['creator'],
           order: { createdAt: 'DESC' },
         }),
         this.handicapRequestRepository.find({
-          where: { status: 'FINALIZAT', resolvedAt: MoreThan(startOfDay) },
+          where: { status: 'FINALIZAT', resolvedAt: Between(startOfDay, endOfDay) },
           relations: ['creator', 'resolver'],
           order: { resolvedAt: 'DESC' },
         }),
