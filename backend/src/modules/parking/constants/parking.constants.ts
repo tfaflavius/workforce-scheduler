@@ -251,3 +251,39 @@ export const SIMPLE_DASHBOARD_DEPARTMENTS = [
   'Parcometre',
   'Achizitii',
 ] as const;
+
+// ============== PROCESE VERBALE / AFISARE ==============
+
+// Status sesiune PV Display
+export const PV_SESSION_STATUS = {
+  DRAFT: 'DRAFT',           // Sesiunea a fost creata, zilele nu sunt complet alocate
+  READY: 'READY',           // Toate zilele au 2 useri Control asignati
+  IN_PROGRESS: 'IN_PROGRESS', // Cel putin o zi a inceput (azi sau trecut)
+  COMPLETED: 'COMPLETED',   // Toate zilele au fost finalizate
+} as const;
+
+export type PvSessionStatus = typeof PV_SESSION_STATUS[keyof typeof PV_SESSION_STATUS];
+
+export const PV_SESSION_STATUS_LABELS: Record<PvSessionStatus, string> = {
+  DRAFT: 'Nefinalizat',
+  READY: 'Pregatit',
+  IN_PROGRESS: 'In Desfasurare',
+  COMPLETED: 'Finalizat',
+};
+
+// Status zi PV Display
+export const PV_DAY_STATUS = {
+  OPEN: 'OPEN',             // Locuri libere (0/2 sau 1/2)
+  ASSIGNED: 'ASSIGNED',     // 2/2 useri Control asignati
+  IN_PROGRESS: 'IN_PROGRESS', // Ziua a inceput (scheduler 07:30)
+  COMPLETED: 'COMPLETED',   // Finalizata de Control
+} as const;
+
+export type PvDayStatus = typeof PV_DAY_STATUS[keyof typeof PV_DAY_STATUS];
+
+export const PV_DAY_STATUS_LABELS: Record<PvDayStatus, string> = {
+  OPEN: 'Disponibil',
+  ASSIGNED: 'Asignat',
+  IN_PROGRESS: 'In Desfasurare',
+  COMPLETED: 'Finalizat',
+};

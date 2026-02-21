@@ -13,6 +13,7 @@ import { domiciliuApi } from './api/domiciliu.api';
 import { dailyReportsApi } from './api/dailyReports.api';
 import { timeTrackingApi } from './api/time-tracking.api';
 import { acquisitionsApi } from './api/acquisitions.api';
+import { pvDisplayApi } from './api/pvDisplay.api';
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     [dailyReportsApi.reducerPath]: dailyReportsApi.reducer,
     [timeTrackingApi.reducerPath]: timeTrackingApi.reducer,
     [acquisitionsApi.reducerPath]: acquisitionsApi.reducer,
+    [pvDisplayApi.reducerPath]: pvDisplayApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -45,7 +47,8 @@ export const store = configureStore({
       domiciliuApi.middleware,
       dailyReportsApi.middleware,
       timeTrackingApi.middleware,
-      acquisitionsApi.middleware
+      acquisitionsApi.middleware,
+      pvDisplayApi.middleware
     ),
 });
 

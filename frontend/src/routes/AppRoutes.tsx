@@ -201,11 +201,11 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Department pages - Admin only */}
+        {/* Procese Verbale - PVF, Control, Admin, Manager */}
         <Route
           path="/procese-verbale"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Procese Verbale/Facturare', 'Control']}>
               <Suspense fallback={<PageLoader />}><ProcesVerbalePage /></Suspense>
             </ProtectedRoute>
           }

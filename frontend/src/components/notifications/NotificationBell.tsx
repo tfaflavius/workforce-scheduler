@@ -174,6 +174,10 @@ const getNotificationPath = (notification: Notification, userRole?: string): { p
       return { path: '/daily-reports' };
 
     default:
+      // PV Display notifications (use GENERAL type with pvSessionId/pvDayId in data)
+      if (data?.pvSessionId || data?.pvDayId) {
+        return { path: '/procese-verbale' };
+      }
       return null;
   }
 };

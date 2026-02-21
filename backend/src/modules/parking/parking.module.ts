@@ -20,8 +20,12 @@ import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
 import { HandicapLegitimationComment } from './entities/handicap-legitimation-comment.entity';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
 import { RevolutionarLegitimationComment } from './entities/revolutionar-legitimation-comment.entity';
+import { PvDisplaySession } from './entities/pv-display-session.entity';
+import { PvDisplayDay } from './entities/pv-display-day.entity';
+import { PvDisplaySessionComment } from './entities/pv-display-session-comment.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
+import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 
 // Services
 import { ParkingLotsService } from './parking-lots.service';
@@ -33,6 +37,7 @@ import { HandicapRequestsService } from './handicap-requests.service';
 import { DomiciliuRequestsService } from './domiciliu-requests.service';
 import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
+import { PvDisplayService } from './pv-display.service';
 
 // Controllers
 import { ParkingLotsController } from './parking-lots.controller';
@@ -44,9 +49,11 @@ import { HandicapRequestsController } from './handicap-requests.controller';
 import { DomiciliuRequestsController } from './domiciliu-requests.controller';
 import { HandicapLegitimationsController } from './handicap-legitimations.controller';
 import { RevolutionarLegitimationsController } from './revolutionar-legitimations.controller';
+import { PvDisplayController } from './pv-display.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
+import { PvDisplayScheduler } from './pv-display.scheduler';
 
 // Other modules
 import { NotificationsModule } from '../notifications/notifications.module';
@@ -72,8 +79,12 @@ import { EmailModule } from '../../common/email/email.module';
       HandicapLegitimationComment,
       RevolutionarLegitimation,
       RevolutionarLegitimationComment,
+      PvDisplaySession,
+      PvDisplayDay,
+      PvDisplaySessionComment,
       User,
       Department,
+      ScheduleAssignment,
     ]),
     NotificationsModule,
     EmailModule,
@@ -89,6 +100,7 @@ import { EmailModule } from '../../common/email/email.module';
     DomiciliuRequestsController,
     HandicapLegitimationsController,
     RevolutionarLegitimationsController,
+    PvDisplayController,
   ],
   providers: [
     ParkingLotsService,
@@ -100,7 +112,9 @@ import { EmailModule } from '../../common/email/email.module';
     DomiciliuRequestsService,
     HandicapLegitimationsService,
     RevolutionarLegitimationsService,
+    PvDisplayService,
     ParkingUrgentScheduler,
+    PvDisplayScheduler,
   ],
   exports: [
     ParkingLotsService,
@@ -112,6 +126,7 @@ import { EmailModule } from '../../common/email/email.module';
     DomiciliuRequestsService,
     HandicapLegitimationsService,
     RevolutionarLegitimationsService,
+    PvDisplayService,
   ],
 })
 export class ParkingModule {}

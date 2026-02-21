@@ -381,6 +381,19 @@ export interface ConsolidatedDailyReportData {
     userName: string;
     departmentName: string;
   }>;
+  // Sectiune 7: Procese Verbale (optional)
+  pvDisplayReport?: {
+    activeSessions: number;
+    todayDays: Array<{
+      dayOrder: number;
+      displayDate: string;
+      status: string;
+      controlUser1Name?: string;
+      controlUser2Name?: string;
+    }>;
+    upcomingDays: number;
+    completedToday: number;
+  } | null;
 }
 
 export interface ConsolidatedWeeklyReportData {
@@ -3130,6 +3143,40 @@ export class EmailService {
               </thead>
               <tbody>${missingRows}</tbody>
             </table>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 7: Procese Verbale ----
+    if (data.pvDisplayReport && (data.pvDisplayReport.todayDays.length > 0 || data.pvDisplayReport.activeSessions > 0)) {
+      const pvRows = data.pvDisplayReport.todayDays.map(d => `
+        <tr>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">Ziua ${d.dayOrder} - ${d.displayDate}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${d.status}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${[d.controlUser1Name, d.controlUser2Name].filter(Boolean).join(', ') || '-'}</td>
+        </tr>
+      `).join('');
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">📋 Afisare Procese Verbale</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <p style="margin: 0 0 8px;">Sesiuni active: <strong>${data.pvDisplayReport.activeSessions}</strong> | Zile viitoare: <strong>${data.pvDisplayReport.upcomingDays}</strong> | Finalizate azi: <strong>${data.pvDisplayReport.completedToday}</strong></p>
+            ${pvRows ? `
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                  <tr style="background: #f8f9fa;">
+                    <th style="padding: 8px 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Ziua</th>
+                    <th style="padding: 8px 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Status</th>
+                    <th style="padding: 8px 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Control</th>
+                  </tr>
+                </thead>
+                <tbody>${pvRows}</tbody>
+              </table>
+            ` : ''}
           </div>
         </div>
       `);

@@ -15,7 +15,9 @@ import { ParkingDamagesService } from '../parking/parking-damages.service';
 import { TimeTrackingService } from '../time-tracking/time-tracking.service';
 import { DailyReportsService } from '../daily-reports/daily-reports.service';
 import { DailyReport } from '../daily-reports/entities/daily-report.entity';
-import { HANDICAP_REQUEST_TYPE_LABELS } from '../parking/constants/parking.constants';
+import { PvDisplaySession } from '../parking/entities/pv-display-session.entity';
+import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
+import { HANDICAP_REQUEST_TYPE_LABELS, PV_DAY_STATUS, PV_SESSION_STATUS, PV_DAY_STATUS_LABELS } from '../parking/constants/parking.constants';
 
 /**
  * Admin Consolidated Scheduler
@@ -46,6 +48,10 @@ export class AdminConsolidatedScheduler {
     private readonly handicapLegitimationRepository: Repository<HandicapLegitimation>,
     @InjectRepository(RevolutionarLegitimation)
     private readonly revolutionarLegitimationRepository: Repository<RevolutionarLegitimation>,
+    @InjectRepository(PvDisplaySession)
+    private readonly pvDisplaySessionRepository: Repository<PvDisplaySession>,
+    @InjectRepository(PvDisplayDay)
+    private readonly pvDisplayDayRepository: Repository<PvDisplayDay>,
     private readonly cashCollectionsService: CashCollectionsService,
     private readonly parkingIssuesService: ParkingIssuesService,
     private readonly parkingDamagesService: ParkingDamagesService,
@@ -74,6 +80,7 @@ export class AdminConsolidatedScheduler {
         handicapData,
         gpsData,
         missingReportsData,
+        pvDisplayData,
       ] = await Promise.all([
         this.collectCashData(startOfDay, endOfDay),
         this.collectParkingData(startOfDay, endOfDay, formatTime),
@@ -81,6 +88,7 @@ export class AdminConsolidatedScheduler {
         this.collectHandicapData(today, startOfDay, endOfDay),
         this.collectGpsData(today),
         this.collectMissingReportsData(today),
+        this.collectPvDisplayData(today),
       ]);
 
       // Get active admins
@@ -106,6 +114,7 @@ export class AdminConsolidatedScheduler {
             handicapReport: handicapData,
             gpsReport: gpsData,
             missingDailyReports: missingReportsData,
+            pvDisplayReport: pvDisplayData,
           });
           if (success) sentCount++;
         } catch (err) {
@@ -480,6 +489,58 @@ export class AdminConsolidatedScheduler {
     } catch (err) {
       this.logger.error(`[Admin Consolidat] Eroare colectare rapoarte lipsa: ${err.message}`);
       return [];
+    }
+  }
+
+  private async collectPvDisplayData(today: Date) {
+    try {
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Sesiuni active (nu COMPLETED)
+      const activeSessions = await this.pvDisplaySessionRepository.count({
+        where: [
+          { status: PV_SESSION_STATUS.DRAFT as any },
+          { status: PV_SESSION_STATUS.READY as any },
+          { status: PV_SESSION_STATUS.IN_PROGRESS as any },
+        ],
+      });
+
+      // Zile de azi
+      const todayDays = await this.pvDisplayDayRepository.createQueryBuilder('day')
+        .leftJoinAndSelect('day.controlUser1', 'cu1')
+        .leftJoinAndSelect('day.controlUser2', 'cu2')
+        .where('day.displayDate = :today', { today: todayStr })
+        .orderBy('day.dayOrder', 'ASC')
+        .getMany();
+
+      // Zile viitoare nefinalizate
+      const upcomingDays = await this.pvDisplayDayRepository.createQueryBuilder('day')
+        .where('day.displayDate > :today', { today: todayStr })
+        .andWhere('day.status != :completed', { completed: PV_DAY_STATUS.COMPLETED })
+        .getCount();
+
+      // Finalizate azi
+      const completedToday = todayDays.filter(d => d.status === PV_DAY_STATUS.COMPLETED).length;
+
+      if (activeSessions === 0 && todayDays.length === 0) {
+        return null;
+      }
+
+      return {
+        activeSessions,
+        todayDays: todayDays.map(d => ({
+          dayOrder: d.dayOrder,
+          displayDate: new Date(d.displayDate).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+          status: PV_DAY_STATUS_LABELS[d.status] || d.status,
+          controlUser1Name: d.controlUser1?.fullName,
+          controlUser2Name: d.controlUser2?.fullName,
+        })),
+        upcomingDays,
+        completedToday,
+      };
+    } catch (err) {
+      this.logger.error(`[Admin Consolidat] Eroare colectare PV display: ${err.message}`);
+      return null;
     }
   }
 

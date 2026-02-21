@@ -227,7 +227,8 @@ export const MainLayout = () => {
       text: 'PV / Facturare',
       icon: <ReceiptIcon />,
       path: '/procese-verbale',
-      roles: ['ADMIN'],
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: ['Procese Verbale/Facturare', 'Control'],
     },
     {
       text: 'Parcometre',
