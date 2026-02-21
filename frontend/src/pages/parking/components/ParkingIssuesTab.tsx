@@ -607,13 +607,14 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           onChange={(_, v) => setStatusFilter(v)}
           variant="fullWidth"
           sx={{
-            minHeight: { xs: 40, sm: 48 },
-            flex: { xs: '1', sm: 'initial' },
+            minHeight: { xs: 36, sm: 48 },
+            width: '100%',
             '& .MuiTab-root': {
-              minHeight: { xs: 40, sm: 48 },
+              minHeight: { xs: 36, sm: 48 },
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
-              fontWeight: 500,
+              fontWeight: 600,
               px: { xs: 1, sm: 2 },
+              minWidth: 0,
             },
           }}
         >

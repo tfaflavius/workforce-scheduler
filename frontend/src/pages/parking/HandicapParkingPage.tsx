@@ -1444,12 +1444,12 @@ const HandicapParkingPage: React.FC = () => {
                   : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
             },
             '& .MuiTabs-scrollButtons': {
-              width: 28,
+              width: 32,
               '&.Mui-disabled': { opacity: 0.3 },
             },
             '& .MuiTab-root': {
-              minHeight: { xs: 56, sm: 64, md: 72 },
-              fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.8rem' },
+              minHeight: { xs: 48, sm: 64, md: 72 },
+              fontSize: { xs: '0.6rem', sm: '0.75rem', md: '0.8rem' },
               fontWeight: 500,
               textTransform: 'none',
               transition: 'all 0.3s ease',
@@ -1522,7 +1522,7 @@ const HandicapParkingPage: React.FC = () => {
                   <LegitimationIcon />
                 </Box>
               }
-              label={isMobile ? 'L. Handic.' : 'Legitimatii Handicap'}
+              label={isMobile ? 'Legit. H.' : 'Legitimatii Handicap'}
               iconPosition="top"
               sx={{
                 '&.Mui-selected': {
@@ -1551,7 +1551,7 @@ const HandicapParkingPage: React.FC = () => {
                   <RevolutionarIcon />
                 </Box>
               }
-              label={isMobile ? 'L. Revolut.' : 'Legitimatii Revolutionar'}
+              label={isMobile ? 'Legit. R.' : 'Legitimatii Revolutionar'}
               iconPosition="top"
               sx={{
                 '&.Mui-selected': {

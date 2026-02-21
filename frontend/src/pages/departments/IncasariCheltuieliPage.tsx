@@ -58,6 +58,12 @@ const IncasariCheltuieliPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // Opaque backgrounds for sticky columns (alpha is semi-transparent and causes overlap issues)
+  const stickyBgHeader = theme.palette.mode === 'light' ? '#f3f0fa' : '#1e1a2e';
+  const stickyBgPaper = theme.palette.mode === 'light' ? '#ffffff' : '#121212';
+  const stickyBgSubtotal = theme.palette.mode === 'light' ? '#f7f5fc' : '#1a1728';
+  const stickyBgGroupHeader = theme.palette.mode === 'light' ? '#ede8f8' : '#221e32';
+
   // State
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -238,13 +244,14 @@ const IncasariCheltuieliPage: React.FC = () => {
             borderColor: 'divider',
             position: 'sticky',
             left: 0,
-            bgcolor: 'background.paper',
-            zIndex: 2,
+            bgcolor: stickyBgPaper,
+            zIndex: 3,
             pl: isChild ? 3 : undefined,
-            borderRight: '1px solid',
+            borderRight: '2px solid',
             borderRightColor: 'divider',
             minWidth: { xs: 120, sm: 180 },
             maxWidth: { xs: 120, sm: 180 },
+            boxShadow: '2px 0 4px rgba(0,0,0,0.08)',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
@@ -338,8 +345,8 @@ const IncasariCheltuieliPage: React.FC = () => {
             fontWeight: 800,
             position: 'sticky',
             left: 0,
-            bgcolor: alpha('#8b5cf6', 0.08),
-            zIndex: 2,
+            bgcolor: stickyBgGroupHeader,
+            zIndex: 3,
             py: 1,
           }}
         >
@@ -396,15 +403,16 @@ const IncasariCheltuieliPage: React.FC = () => {
                 fontWeight: 700,
                 position: 'sticky',
                 left: 0,
-                bgcolor: alpha('#8b5cf6', 0.04),
-                zIndex: 2,
+                bgcolor: stickyBgSubtotal,
+                zIndex: 3,
                 borderBottom: '3px solid',
                 borderColor: '#8b5cf6',
                 fontSize: '0.8rem',
-                borderRight: '1px solid',
+                borderRight: '2px solid',
                 borderRightColor: 'divider',
                 minWidth: { xs: 120, sm: 180 },
                 maxWidth: { xs: 120, sm: 180 },
+                boxShadow: '2px 0 4px rgba(0,0,0,0.08)',
               }}
             >
               Subtotal {cat.categoryName}
@@ -492,7 +500,7 @@ const IncasariCheltuieliPage: React.FC = () => {
           <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                <TableCell sx={{ fontWeight: 700, minWidth: { xs: 120, sm: 180 }, maxWidth: { xs: 120, sm: 180 }, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.06), zIndex: 2, borderRight: '1px solid', borderColor: 'divider' }}>
+                <TableCell sx={{ fontWeight: 700, minWidth: { xs: 120, sm: 180 }, maxWidth: { xs: 120, sm: 180 }, position: 'sticky', left: 0, bgcolor: stickyBgHeader, zIndex: 3, borderRight: '2px solid', borderRightColor: 'divider', boxShadow: '2px 0 4px rgba(0,0,0,0.08)' }}>
                   Categorie
                 </TableCell>
                 {MONTH_LABELS.map((label, idx) => (
@@ -516,7 +524,7 @@ const IncasariCheltuieliPage: React.FC = () => {
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
                 <TableCell
                   rowSpan={2}
-                  sx={{ fontWeight: 800, position: 'sticky', left: 0, bgcolor: alpha('#8b5cf6', 0.06), zIndex: 2, borderRight: '1px solid', borderColor: 'divider' }}
+                  sx={{ fontWeight: 800, position: 'sticky', left: 0, bgcolor: stickyBgHeader, zIndex: 3, borderRight: '2px solid', borderRightColor: 'divider', boxShadow: '2px 0 4px rgba(0,0,0,0.08)', minWidth: { xs: 120, sm: 180 }, maxWidth: { xs: 120, sm: 180 } }}
                 >
                   TOTAL GENERAL
                 </TableCell>

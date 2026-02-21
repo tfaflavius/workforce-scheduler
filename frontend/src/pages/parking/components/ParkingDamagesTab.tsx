@@ -457,26 +457,28 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
       <Grow in={true} timeout={600}>
         <Paper
           sx={{
-            p: { xs: 1.5, sm: 2 },
+            p: { xs: 1, sm: 2 },
             mb: 2,
             borderRadius: 2,
             display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 1.5,
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: { xs: 1, sm: 1.5 },
           }}
         >
           <Tabs
             value={statusFilter}
             onChange={(_, v) => setStatusFilter(v)}
-            variant={isMobile ? 'fullWidth' : 'standard'}
+            variant="fullWidth"
             sx={{
-              minWidth: isMobile ? '100%' : 'auto',
+              flex: { xs: '1', sm: 'initial' },
+              minHeight: { xs: 40, sm: 48 },
               '& .MuiTab-root': {
                 fontWeight: 600,
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 minHeight: { xs: 40, sm: 48 },
+                px: { xs: 1, sm: 2 },
               },
             }}
           >
@@ -485,7 +487,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
             <Tab label="Toate" value="ALL" />
           </Tabs>
 
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-end', sm: 'flex-start' }}>
             <IconButton
               onClick={() => refetch()}
               sx={{
@@ -493,17 +495,18 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
                 '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
               }}
             >
-              <RefreshIcon />
+              <RefreshIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
             </IconButton>
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
+              startIcon={<AddIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
               onClick={() => setCreateDialogOpen(true)}
-              size={isMobile ? 'small' : 'medium'}
               sx={{
                 borderRadius: 2,
                 fontWeight: 600,
+                py: { xs: 1, sm: 1.25 },
                 px: { xs: 2, sm: 3 },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
               }}
             >
               {isMobile ? 'Adauga' : 'Adauga Prejudiciu'}
