@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ParkingIssue, ParkingIssueStatus } from './entities/parking-issue.entity';
 import { ParkingIssueComment } from './entities/parking-issue-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
@@ -318,10 +318,6 @@ export class ParkingIssuesService {
     await this.recordHistory(id, 'RESOLVED', userId, {
       resolutionDescription: dto.resolutionDescription,
     });
-
-    // Obtine rezolvatorul
-    const resolver = await this.userRepository.findOne({ where: { id: userId } });
-    const resolverName = resolver?.fullName || 'Un utilizator';
 
     // Notifica creatorul problemei ca a fost rezolvata
     if (issue.createdBy !== userId) {

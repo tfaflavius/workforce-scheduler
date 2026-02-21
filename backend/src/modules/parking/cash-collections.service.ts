@@ -73,8 +73,10 @@ export class CashCollectionsService {
     }
 
     if (filters?.endDate) {
+      const endOfDay = new Date(filters.endDate);
+      endOfDay.setHours(23, 59, 59, 999);
       query.andWhere('collection.collectedAt <= :endDate', {
-        endDate: filters.endDate,
+        endDate: endOfDay,
       });
     }
 

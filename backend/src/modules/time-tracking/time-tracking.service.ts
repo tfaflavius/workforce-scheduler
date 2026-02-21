@@ -272,8 +272,13 @@ export class TimeTrackingService {
         const sameCoords = Math.abs(parseFloat(last.latitude) - recordLocationDto.latitude) < 0.00001
           && Math.abs(parseFloat(last.longitude) - recordLocationDto.longitude) < 0.00001;
         if (sameCoords && secondsAgo < 90) {
-          // Duplicate - return existing log silently
-          return last;
+          // Duplicate - return a properly shaped object (raw SQL uses snake_case)
+          return {
+            ...last,
+            recordedAt: last.recorded_at,
+            timeEntryId: recordLocationDto.timeEntryId,
+            userId,
+          } as LocationLog;
         }
       }
     } catch {

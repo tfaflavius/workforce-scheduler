@@ -361,8 +361,14 @@ const EmployeeDashboard = () => {
         }
       };
 
-      // On effect mount: check if overdue
-      if (lastCaptureTimeRef.current > 0) {
+      // On effect mount: if ref is 0 (page reload with active timer),
+      // capture immediately and initialize the ref
+      if (lastCaptureTimeRef.current === 0) {
+        console.log('[GPS] Page loaded with active timer - capturing initial location');
+        lastCaptureTimeRef.current = Date.now();
+        captureLocation(activeTimer.id, true);
+      } else {
+        // Already has a ref timestamp - check if overdue
         checkResume();
       }
 

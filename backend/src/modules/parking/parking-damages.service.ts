@@ -210,10 +210,6 @@ export class ParkingDamagesService {
       resolutionDescription: dto.resolutionDescription,
     });
 
-    // Obtine rezolvatorul
-    const resolver = await this.userRepository.findOne({ where: { id: userId } });
-    const resolverName = resolver?.fullName || 'Un utilizator';
-
     // Notifica creatorul prejudiciului ca a fost rezolvat (daca nu e acelasi user)
     if (damage.createdBy !== userId) {
       const creator = await this.userRepository.findOne({ where: { id: damage.createdBy } });

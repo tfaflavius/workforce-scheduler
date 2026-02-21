@@ -65,7 +65,7 @@ const formatDate = (dateStr: string) => {
 };
 
 const formatDuration = (minutes: number | null) => {
-  if (!minutes) return '-';
+  if (minutes == null) return '-';
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${h}h ${m}m`;
