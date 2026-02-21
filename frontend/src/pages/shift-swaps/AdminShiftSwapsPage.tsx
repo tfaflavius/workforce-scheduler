@@ -70,9 +70,10 @@ interface TabPanelProps {
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
+  if (value !== index) return null;
   return (
-    <div hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
+    <div {...other}>
+      <Box sx={{ pt: 2 }}>{children}</Box>
     </div>
   );
 }

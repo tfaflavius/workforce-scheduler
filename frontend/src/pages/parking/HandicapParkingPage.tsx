@@ -122,19 +122,19 @@ interface TabPanelProps {
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
+
+  if (value !== index) return null;
+
   return (
     <div
       role="tabpanel"
-      hidden={value !== index}
       id={`handicap-tabpanel-${index}`}
       aria-labelledby={`handicap-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Fade in={true} timeout={400}>
-          <Box sx={{ pt: { xs: 1.5, sm: 2 } }}>{children}</Box>
-        </Fade>
-      )}
+      <Fade in={true} timeout={400}>
+        <Box sx={{ pt: { xs: 1.5, sm: 2 } }}>{children}</Box>
+      </Fade>
     </div>
   );
 }

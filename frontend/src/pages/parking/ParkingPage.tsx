@@ -39,19 +39,19 @@ interface TabPanelProps {
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props;
 
+  // Lazy rendering - don't mount inactive tabs at all
+  if (value !== index) return null;
+
   return (
     <div
       role="tabpanel"
-      hidden={value !== index}
       id={`parking-tabpanel-${index}`}
       aria-labelledby={`parking-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Fade in={true} timeout={400}>
-          <Box sx={{ pt: { xs: 1.5, sm: 2 } }}>{children}</Box>
-        </Fade>
-      )}
+      <Fade in={true} timeout={400}>
+        <Box sx={{ pt: { xs: 1.5, sm: 2 } }}>{children}</Box>
+      </Fade>
     </div>
   );
 }
