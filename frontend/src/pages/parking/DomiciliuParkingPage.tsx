@@ -5,7 +5,6 @@ import {
   Paper,
   Tabs,
   Tab,
-  Badge,
   useTheme,
   useMediaQuery,
   alpha,
@@ -983,20 +982,6 @@ const DomiciliuParkingPage: React.FC = () => {
     });
   }, [requests, tabValue, searchQuery, tabConfig]);
 
-  // Count per type for badges
-  const countPerType = useMemo(() => {
-    const counts: Record<DomiciliuRequestType, number> = {
-      TRASARE_LOCURI: 0,
-      REVOCARE_LOCURI: 0,
-    };
-    requests.filter(r => r.status === 'ACTIVE').forEach((r) => {
-      if (counts[r.requestType] !== undefined) {
-        counts[r.requestType]++;
-      }
-    });
-    return counts;
-  }, [requests]);
-
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
@@ -1139,33 +1124,23 @@ const DomiciliuParkingPage: React.FC = () => {
               fontWeight: 500,
               textTransform: 'none',
               px: { xs: 1, md: 2 },
+              minWidth: 0,
               '&.Mui-selected': {
                 fontWeight: 700,
                 color: tabConfig[tabValue].color,
-                bgcolor: alpha(tabConfig[tabValue].color, 0.1),
               },
             },
           }}
         >
-          {tabConfig.map((tab, index) => (
+          {tabConfig.map((tab) => (
             <Tab
               key={tab.type}
-              icon={
-                isCompact ? undefined : (
-                  <Badge badgeContent={countPerType[tab.type]} color="error" max={99}>
-                    <Box sx={{ p: 0.5, borderRadius: '50%', bgcolor: tabValue === index ? alpha(tab.color, 0.15) : 'transparent', display: 'flex', '& .MuiSvgIcon-root': { fontSize: '1.5rem', color: tabValue === index ? tab.color : 'text.secondary' } }}>
-                      {tab.icon}
-                    </Box>
-                  </Badge>
-                )
-              }
-              label={
-                isCompact
-                  ? <Badge badgeContent={countPerType[tab.type]} color="error" max={99} sx={{ '& .MuiBadge-badge': { top: -2, right: -8, fontSize: '0.55rem', minWidth: 14, height: 14 } }}><span>{tab.shortLabel}</span></Badge>
-                  : tab.label
-              }
-              iconPosition="top"
-              sx={{ gap: 0.25 }}
+              label={isCompact ? tab.shortLabel : tab.label}
+              sx={{
+                '&.Mui-selected': {
+                  color: tab.color,
+                },
+              }}
             />
           ))}
         </Tabs>

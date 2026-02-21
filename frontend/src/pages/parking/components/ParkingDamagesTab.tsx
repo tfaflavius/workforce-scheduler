@@ -473,21 +473,17 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
             variant="fullWidth"
             sx={{
               width: '100%',
-              minHeight: { xs: 36, sm: 44 },
-              bgcolor: alpha(theme.palette.divider, 0.08),
-              borderRadius: 1.5,
+              minHeight: 40,
               '& .MuiTabs-indicator': {
-                height: '100%',
-                borderRadius: 1.5,
-                zIndex: 0,
+                height: 3,
+                borderRadius: '3px 3px 0 0',
               },
               '& .MuiTab-root': {
                 fontWeight: 600,
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                minHeight: { xs: 36, sm: 44 },
-                px: { xs: 1.5, sm: 2 },
+                fontSize: '0.8rem',
+                minHeight: 40,
+                px: 1,
                 minWidth: 0,
-                zIndex: 1,
                 textTransform: 'none',
               },
             }}

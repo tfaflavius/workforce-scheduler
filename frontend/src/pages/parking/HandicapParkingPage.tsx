@@ -1429,7 +1429,7 @@ const HandicapParkingPage: React.FC = () => {
           scrollButtons="auto"
           allowScrollButtonsMobile
           sx={{
-            minHeight: { xs: 40, md: 72 },
+            minHeight: 44,
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
@@ -1440,15 +1440,15 @@ const HandicapParkingPage: React.FC = () => {
                   : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
             },
             '& .MuiTabs-scrollButtons': {
-              width: 24,
+              width: 28,
               '&.Mui-disabled': { opacity: 0.3 },
             },
             '& .MuiTab-root': {
-              minHeight: { xs: 40, md: 72 },
-              fontSize: { xs: '0.7rem', md: '0.8rem' },
+              minHeight: 44,
+              fontSize: '0.75rem',
               fontWeight: 500,
               textTransform: 'none',
-              px: { xs: 1, md: 1.5 },
+              px: 1.5,
               minWidth: 'auto',
               '&.Mui-selected': {
                 fontWeight: 700,
@@ -1459,26 +1459,10 @@ const HandicapParkingPage: React.FC = () => {
           {tabConfig.map((tab, index) => (
             <Tab
               key={tab.type}
-              icon={
-                isCompact ? undefined : (
-                  <Badge badgeContent={countPerType[tab.type]} color="error" max={99}>
-                    <Box sx={{ p: 0.5, borderRadius: '50%', bgcolor: tabValue === index ? alpha(tab.color, 0.15) : 'transparent', display: 'flex', '& .MuiSvgIcon-root': { fontSize: '1.25rem', color: tabValue === index ? tab.color : 'text.secondary' } }}>
-                      {tab.icon}
-                    </Box>
-                  </Badge>
-                )
-              }
-              label={
-                isCompact
-                  ? <Badge badgeContent={countPerType[tab.type]} color="error" max={99} sx={{ '& .MuiBadge-badge': { top: -2, right: -8, fontSize: '0.55rem', minWidth: 14, height: 14 } }}><span>{tab.shortLabel}</span></Badge>
-                  : tab.label
-              }
-              iconPosition="top"
+              label={isCompact ? tab.shortLabel : tab.label}
               sx={{
-                gap: 0.25,
                 '&.Mui-selected': {
                   color: tab.color,
-                  bgcolor: alpha(tab.color, 0.08),
                 },
               }}
             />
@@ -1486,20 +1470,10 @@ const HandicapParkingPage: React.FC = () => {
           {/* Tab Legitimatii Handicap */}
           {canSeeLegitimations && (
             <Tab
-              icon={
-                isCompact ? undefined : (
-                  <Box sx={{ p: 0.5, borderRadius: '50%', bgcolor: isHandicapLegitimationsTab ? alpha(LEGITIMATION_COLOR.main, 0.15) : 'transparent', display: 'flex', '& .MuiSvgIcon-root': { fontSize: '1.25rem', color: isHandicapLegitimationsTab ? LEGITIMATION_COLOR.main : 'text.secondary' } }}>
-                    <LegitimationIcon />
-                  </Box>
-                )
-              }
               label={isCompact ? 'Legit. H.' : 'Legitimatii Handicap'}
-              iconPosition="top"
               sx={{
-                gap: 0.25,
                 '&.Mui-selected': {
                   color: LEGITIMATION_COLOR.main,
-                  bgcolor: alpha(LEGITIMATION_COLOR.main, 0.08),
                 },
               }}
             />
@@ -1507,20 +1481,10 @@ const HandicapParkingPage: React.FC = () => {
           {/* Tab Legitimatii Revolutionar/Deportat */}
           {canSeeLegitimations && (
             <Tab
-              icon={
-                isCompact ? undefined : (
-                  <Box sx={{ p: 0.5, borderRadius: '50%', bgcolor: isRevolutionarLegitimationsTab ? alpha(REVOLUTIONAR_COLOR.main, 0.15) : 'transparent', display: 'flex', '& .MuiSvgIcon-root': { fontSize: '1.25rem', color: isRevolutionarLegitimationsTab ? REVOLUTIONAR_COLOR.main : 'text.secondary' } }}>
-                    <RevolutionarIcon />
-                  </Box>
-                )
-              }
               label={isCompact ? 'Legit. R.' : 'Legitimatii Revolutionar'}
-              iconPosition="top"
               sx={{
-                gap: 0.25,
                 '&.Mui-selected': {
                   color: REVOLUTIONAR_COLOR.main,
-                  bgcolor: alpha(REVOLUTIONAR_COLOR.main, 0.08),
                 },
               }}
             />

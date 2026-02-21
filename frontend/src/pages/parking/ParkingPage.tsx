@@ -1,11 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   Paper,
   Tabs,
   Tab,
-  Badge,
   useTheme,
   useMediaQuery,
   alpha,
@@ -25,9 +24,6 @@ import ParkingDamagesTab from './components/ParkingDamagesTab';
 import CashCollectionsTab from './components/CashCollectionsTab';
 import MaintenanceIssuesTab from './components/MaintenanceIssuesTab';
 import {
-  useGetParkingIssuesQuery,
-  useGetParkingDamagesQuery,
-  useGetCashCollectionsQuery,
   useGetMyAssignedIssuesQuery,
 } from '../../store/api/parking.api';
 
@@ -95,10 +91,7 @@ const ParkingPage: React.FC = () => {
   // Check if user is from Intretinere Parcari department
   const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
 
-  // Fetch data for badge counts - skip for maintenance users
-  const { data: activeIssues = [] } = useGetParkingIssuesQuery('ACTIVE', { skip: isMaintenanceUser });
-  const { data: activeDamages = [] } = useGetParkingDamagesQuery('ACTIVE', { skip: isMaintenanceUser });
-  const { data: cashCollections = [] } = useGetCashCollectionsQuery({}, { skip: isMaintenanceUser });
+  // Fetch data for maintenance users
   const { data: myAssignedIssues = [] } = useGetMyAssignedIssuesQuery(undefined, { skip: !isMaintenanceUser });
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -107,13 +100,6 @@ const ParkingPage: React.FC = () => {
 
   // For maintenance users, show only assigned issues count
   const maintenanceActiveCount = myAssignedIssues.filter(i => i.status === 'ACTIVE').length;
-
-  // Calculate badge counts for regular view
-  const tabCounts = useMemo(() => [
-    activeIssues.length,
-    activeDamages.length,
-    cashCollections.length,
-  ], [activeIssues.length, activeDamages.length, cashCollections.length]);
 
   const tabConfig = [
     {
@@ -310,8 +296,6 @@ const ParkingPage: React.FC = () => {
           value={tabValue}
           onChange={handleTabChange}
           variant="fullWidth"
-          indicatorColor="primary"
-          textColor="primary"
           sx={{
             minHeight: { xs: 44, md: 72 },
             '& .MuiTabs-indicator': {
@@ -321,14 +305,14 @@ const ParkingPage: React.FC = () => {
             },
             '& .MuiTab-root': {
               minHeight: { xs: 44, md: 72 },
-              fontSize: { xs: '0.75rem', md: '0.875rem' },
+              fontSize: { xs: '0.8rem', md: '0.875rem' },
               fontWeight: 500,
               textTransform: 'none',
-              px: { xs: 0.5, md: 2 },
+              px: { xs: 1, md: 2 },
+              minWidth: 0,
               '&.Mui-selected': {
                 fontWeight: 700,
                 color: tabConfig[tabValue].color,
-                bgcolor: tabConfig[tabValue].bgColor,
               },
             },
           }}
@@ -336,39 +320,12 @@ const ParkingPage: React.FC = () => {
           {tabConfig.map((tab, index) => (
             <Tab
               key={index}
-              icon={
-                isCompact ? undefined : (
-                  <Badge
-                    badgeContent={tabCounts[index]}
-                    color={index === 0 ? 'error' : index === 1 ? 'warning' : 'success'}
-                    max={99}
-                  >
-                    <Box
-                      sx={{
-                        p: 0.5,
-                        borderRadius: '50%',
-                        bgcolor: tabValue === index ? tab.bgColor : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        '& .MuiSvgIcon-root': {
-                          fontSize: '1.5rem',
-                          color: tabValue === index ? tab.color : 'text.secondary',
-                        },
-                      }}
-                    >
-                      {tab.icon}
-                    </Box>
-                  </Badge>
-                )
-              }
-              label={
-                isCompact
-                  ? <Badge badgeContent={tabCounts[index]} color={index === 0 ? 'error' : index === 1 ? 'warning' : 'success'} max={99} sx={{ '& .MuiBadge-badge': { top: -2, right: -8, fontSize: '0.6rem', minWidth: 16, height: 16 } }}><span>{tab.shortLabel}</span></Badge>
-                  : tab.label
-              }
-              iconPosition="top"
-              sx={{ gap: 0.25 }}
+              label={isCompact ? tab.shortLabel : tab.label}
+              sx={{
+                '&.Mui-selected': {
+                  color: tab.color,
+                },
+              }}
             />
           ))}
         </Tabs>
