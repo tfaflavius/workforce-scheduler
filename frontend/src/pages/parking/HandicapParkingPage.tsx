@@ -5,7 +5,6 @@ import {
   Paper,
   Tabs,
   Tab,
-  Badge,
   useTheme,
   useMediaQuery,
   alpha,
@@ -87,7 +86,7 @@ import {
 } from '../../types/handicap.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import { removeDiacritics } from '../../utils/removeDiacritics';
-import { CardMembership as LegitimationIcon, MilitaryTech as RevolutionarIcon } from '@mui/icons-material';
+// LegitimationIcon and RevolutionarIcon used in sub-components
 import HandicapLegitimatiiTab from './HandicapLegitimatiiTab';
 import RevolutionarLegitimatiiTab from './RevolutionarLegitimatiiTab';
 import type { RevolutionarLegitimationStatus } from '../../types/handicap.types';
@@ -1279,19 +1278,6 @@ const HandicapParkingPage: React.FC = () => {
     });
   }, [requests, tabValue, searchQuery, tabConfig, isLegitimationsTab]);
 
-  // Count per type for badges
-  const countPerType = useMemo(() => {
-    const counts: Record<HandicapRequestType, number> = {
-      AMPLASARE_PANOU: 0,
-      REVOCARE_PANOU: 0,
-      CREARE_MARCAJ: 0,
-    };
-    requests.filter(r => r.status === 'ACTIVE').forEach((r) => {
-      counts[r.requestType]++;
-    });
-    return counts;
-  }, [requests]);
-
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
@@ -1456,7 +1442,7 @@ const HandicapParkingPage: React.FC = () => {
             },
           }}
         >
-          {tabConfig.map((tab, index) => (
+          {tabConfig.map((tab) => (
             <Tab
               key={tab.type}
               label={isCompact ? tab.shortLabel : tab.label}
