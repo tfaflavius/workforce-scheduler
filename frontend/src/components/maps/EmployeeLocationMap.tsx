@@ -86,7 +86,7 @@ const formatTime = (dateStr: string) => {
 const EmployeeLocationMap: React.FC<EmployeeLocationMapProps> = ({
   markers = [],
   trails = [],
-  height = 400,
+  height = 350,
   center = [47.06, 21.94], // Oradea
   zoom = 13,
 }) => {

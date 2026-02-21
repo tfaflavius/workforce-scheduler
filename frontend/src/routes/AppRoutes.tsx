@@ -1,35 +1,45 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
-import SchedulesPage from '../pages/schedules/SchedulesPage';
-import CreateSchedulePage from '../pages/schedules/CreateSchedulePage';
-import BulkSchedulePage from '../pages/schedules/BulkSchedulePage';
-import EditSchedulePage from '../pages/schedules/EditSchedulePage';
-import PendingSchedulesPage from '../pages/schedules/PendingSchedulesPage';
-import RejectedSchedulesPage from '../pages/schedules/RejectedSchedulesPage';
-import MySchedulePage from '../pages/schedules/MySchedulePage';
-import ShiftSwapsPage from '../pages/shift-swaps/ShiftSwapsPage';
-import AdminShiftSwapsPage from '../pages/shift-swaps/AdminShiftSwapsPage';
-import LeaveRequestsPage from '../pages/leave-requests/LeaveRequestsPage';
-import AdminLeaveRequestsPage from '../pages/leave-requests/AdminLeaveRequestsPage';
-import UsersPage from '../pages/users/UsersPage';
-import UserProfilePage from '../pages/users/UserProfilePage';
-import ReportsPage from '../pages/reports/ReportsPage';
-import ParkingPage from '../pages/parking/ParkingPage';
-import HandicapParkingPage from '../pages/parking/HandicapParkingPage';
-import DomiciliuParkingPage from '../pages/parking/DomiciliuParkingPage';
-import DailyReportsPage from '../pages/daily-reports/DailyReportsPage';
-import AdminEditRequestsPage from '../pages/parking/AdminEditRequestsPage';
-import AdminTimeTrackingPage from '../pages/time-tracking/AdminTimeTrackingPage';
-import ProcesVerbalePage from '../pages/departments/ProcesVerbalePage';
-import ParcometrePage from '../pages/departments/ParcometrePage';
-import AchizitiiPage from '../pages/departments/AchizitiiPage';
-import IncasariCheltuieliPage from '../pages/departments/IncasariCheltuieliPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { useAppSelector } from '../store/hooks';
+import { Box, CircularProgress } from '@mui/material';
+
+// Lazy loaded route components
+const SchedulesPage = lazy(() => import('../pages/schedules/SchedulesPage'));
+const CreateSchedulePage = lazy(() => import('../pages/schedules/CreateSchedulePage'));
+const BulkSchedulePage = lazy(() => import('../pages/schedules/BulkSchedulePage'));
+const EditSchedulePage = lazy(() => import('../pages/schedules/EditSchedulePage'));
+const PendingSchedulesPage = lazy(() => import('../pages/schedules/PendingSchedulesPage'));
+const RejectedSchedulesPage = lazy(() => import('../pages/schedules/RejectedSchedulesPage'));
+const MySchedulePage = lazy(() => import('../pages/schedules/MySchedulePage'));
+const ShiftSwapsPage = lazy(() => import('../pages/shift-swaps/ShiftSwapsPage'));
+const AdminShiftSwapsPage = lazy(() => import('../pages/shift-swaps/AdminShiftSwapsPage'));
+const LeaveRequestsPage = lazy(() => import('../pages/leave-requests/LeaveRequestsPage'));
+const AdminLeaveRequestsPage = lazy(() => import('../pages/leave-requests/AdminLeaveRequestsPage'));
+const UsersPage = lazy(() => import('../pages/users/UsersPage'));
+const UserProfilePage = lazy(() => import('../pages/users/UserProfilePage'));
+const ReportsPage = lazy(() => import('../pages/reports/ReportsPage'));
+const ParkingPage = lazy(() => import('../pages/parking/ParkingPage'));
+const HandicapParkingPage = lazy(() => import('../pages/parking/HandicapParkingPage'));
+const DomiciliuParkingPage = lazy(() => import('../pages/parking/DomiciliuParkingPage'));
+const DailyReportsPage = lazy(() => import('../pages/daily-reports/DailyReportsPage'));
+const AdminEditRequestsPage = lazy(() => import('../pages/parking/AdminEditRequestsPage'));
+const AdminTimeTrackingPage = lazy(() => import('../pages/time-tracking/AdminTimeTrackingPage'));
+const ProcesVerbalePage = lazy(() => import('../pages/departments/ProcesVerbalePage'));
+const ParcometrePage = lazy(() => import('../pages/departments/ParcometrePage'));
+const AchizitiiPage = lazy(() => import('../pages/departments/AchizitiiPage'));
+const IncasariCheltuieliPage = lazy(() => import('../pages/departments/IncasariCheltuieliPage'));
+
+const PageLoader = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+    <CircularProgress />
+  </Box>
+);
 
 export const AppRoutes = () => {
   const { token } = useAppSelector((state) => state.auth);
@@ -56,37 +66,37 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* Dashboard - accessible by all authenticated users */}
+        {/* Dashboard - accessible by all authenticated users (not lazy - first page users see) */}
         <Route path="/dashboard" element={<DashboardPage />} />
 
         {/* My Schedule - for employees */}
-        <Route path="/my-schedule" element={<MySchedulePage />} />
+        <Route path="/my-schedule" element={<Suspense fallback={<PageLoader />}><MySchedulePage /></Suspense>} />
 
         {/* Shift Swaps - for all users */}
-        <Route path="/shift-swaps" element={<ShiftSwapsPage />} />
+        <Route path="/shift-swaps" element={<Suspense fallback={<PageLoader />}><ShiftSwapsPage /></Suspense>} />
 
         {/* Admin Shift Swaps */}
         <Route
           path="/admin/shift-swaps"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <AdminShiftSwapsPage />
+              <Suspense fallback={<PageLoader />}><AdminShiftSwapsPage /></Suspense>
             </ProtectedRoute>
           }
         />
 
         {/* Daily Reports - for all users */}
-        <Route path="/daily-reports" element={<DailyReportsPage />} />
+        <Route path="/daily-reports" element={<Suspense fallback={<PageLoader />}><DailyReportsPage /></Suspense>} />
 
         {/* Leave Requests - for all users */}
-        <Route path="/leave-requests" element={<LeaveRequestsPage />} />
+        <Route path="/leave-requests" element={<Suspense fallback={<PageLoader />}><LeaveRequestsPage /></Suspense>} />
 
         {/* Admin Leave Requests */}
         <Route
           path="/admin/leave-requests"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <AdminLeaveRequestsPage />
+              <Suspense fallback={<PageLoader />}><AdminLeaveRequestsPage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -96,7 +106,7 @@ export const AppRoutes = () => {
           path="/schedules"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-              <SchedulesPage />
+              <Suspense fallback={<PageLoader />}><SchedulesPage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -105,7 +115,7 @@ export const AppRoutes = () => {
           path="/schedules/create"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-              <CreateSchedulePage />
+              <Suspense fallback={<PageLoader />}><CreateSchedulePage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -114,7 +124,7 @@ export const AppRoutes = () => {
           path="/schedules/bulk"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-              <BulkSchedulePage />
+              <Suspense fallback={<PageLoader />}><BulkSchedulePage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -123,7 +133,7 @@ export const AppRoutes = () => {
           path="/schedules/pending"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <PendingSchedulesPage />
+              <Suspense fallback={<PageLoader />}><PendingSchedulesPage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -132,19 +142,19 @@ export const AppRoutes = () => {
           path="/schedules/rejected"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <RejectedSchedulesPage />
+              <Suspense fallback={<PageLoader />}><RejectedSchedulesPage /></Suspense>
             </ProtectedRoute>
           }
         />
 
-        <Route path="/schedules/:id" element={<EditSchedulePage />} />
+        <Route path="/schedules/:id" element={<Suspense fallback={<PageLoader />}><EditSchedulePage /></Suspense>} />
 
         {/* Users */}
         <Route
           path="/users"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <UsersPage />
+              <Suspense fallback={<PageLoader />}><UsersPage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -154,29 +164,29 @@ export const AppRoutes = () => {
           path="/reports"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <ReportsPage />
+              <Suspense fallback={<PageLoader />}><ReportsPage /></Suspense>
             </ProtectedRoute>
           }
         />
 
         {/* Profile */}
-        <Route path="/profile" element={<UserProfilePage />} />
+        <Route path="/profile" element={<Suspense fallback={<PageLoader />}><UserProfilePage /></Suspense>} />
 
         {/* Parking - Dispecerat, Manager, Admin */}
-        <Route path="/parking" element={<ParkingPage />} />
+        <Route path="/parking" element={<Suspense fallback={<PageLoader />}><ParkingPage /></Suspense>} />
 
         {/* Handicap Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
-        <Route path="/parking/handicap" element={<HandicapParkingPage />} />
+        <Route path="/parking/handicap" element={<Suspense fallback={<PageLoader />}><HandicapParkingPage /></Suspense>} />
 
         {/* Domiciliu Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
-        <Route path="/parking/domiciliu" element={<DomiciliuParkingPage />} />
+        <Route path="/parking/domiciliu" element={<Suspense fallback={<PageLoader />}><DomiciliuParkingPage /></Suspense>} />
 
         {/* Admin Time Tracking */}
         <Route
           path="/admin/pontaj"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <AdminTimeTrackingPage />
+              <Suspense fallback={<PageLoader />}><AdminTimeTrackingPage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -186,7 +196,7 @@ export const AppRoutes = () => {
           path="/admin/edit-requests"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <AdminEditRequestsPage />
+              <Suspense fallback={<PageLoader />}><AdminEditRequestsPage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -196,7 +206,7 @@ export const AppRoutes = () => {
           path="/procese-verbale"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <ProcesVerbalePage />
+              <Suspense fallback={<PageLoader />}><ProcesVerbalePage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -204,7 +214,7 @@ export const AppRoutes = () => {
           path="/parcometre"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <ParcometrePage />
+              <Suspense fallback={<PageLoader />}><ParcometrePage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -212,7 +222,7 @@ export const AppRoutes = () => {
           path="/achizitii"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Achizitii']}>
-              <AchizitiiPage />
+              <Suspense fallback={<PageLoader />}><AchizitiiPage /></Suspense>
             </ProtectedRoute>
           }
         />
@@ -220,7 +230,7 @@ export const AppRoutes = () => {
           path="/incasari-cheltuieli"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Achizitii']}>
-              <IncasariCheltuieliPage />
+              <Suspense fallback={<PageLoader />}><IncasariCheltuieliPage /></Suspense>
             </ProtectedRoute>
           }
         />

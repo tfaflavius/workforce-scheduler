@@ -67,6 +67,20 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-mui': ['@mui/material', '@mui/icons-material'],
+          'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
+          'vendor-charts': ['chart.js', 'react-chartjs-2'],
+          'vendor-maps': ['leaflet', 'react-leaflet'],
+          'vendor-calendar': ['@fullcalendar/core', '@fullcalendar/react', '@fullcalendar/daygrid', '@fullcalendar/interaction'],
+          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

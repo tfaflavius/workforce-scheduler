@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -52,6 +52,8 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   FiberManualRecord as DotIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
@@ -59,6 +61,7 @@ import type { UserRole } from '../../types/user.types';
 import NotificationBell from '../notifications/NotificationBell';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import { useThemeMode } from '../../contexts/ThemeContext';
 
 // Responsive drawer width based on screen size
 const getDrawerWidth = (isTablet: boolean) => isTablet ? 220 : 260;
@@ -89,19 +92,22 @@ export const MainLayout = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const { mode, toggleTheme } = useThemeMode();
 
   // Departments data for sidebar (ADMIN only)
   const isAdmin = user?.role === 'ADMIN';
   const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
   const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdmin });
 
-  // Count users per department
-  const deptUserCounts = allUsers?.reduce((acc, u) => {
-    if (u.departmentId && u.isActive) {
-      acc[u.departmentId] = (acc[u.departmentId] || 0) + 1;
-    }
-    return acc;
-  }, {} as Record<string, number>) || {};
+  // Count users per department (memoized)
+  const deptUserCounts = useMemo(() =>
+    allUsers?.reduce((acc, u) => {
+      if (u.departmentId && u.isActive) {
+        acc[u.departmentId] = (acc[u.departmentId] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>) || {},
+  [allUsers]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -721,6 +727,36 @@ export const MainLayout = () => {
             </ListItemIcon>
             <ListItemText
               primary="Profil"
+              primaryTypographyProps={{
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                fontWeight: 500,
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            onClick={toggleTheme}
+            sx={{
+              borderRadius: 2,
+              mx: 0.5,
+              py: { xs: 1, sm: 1.25 },
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                bgcolor: alpha(mode === 'dark' ? '#f59e0b' : '#7c3aed', 0.08),
+                transform: 'translateX(4px)',
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 }, color: mode === 'dark' ? '#f59e0b' : '#7c3aed' }}>
+              {mode === 'dark' ? (
+                <LightModeIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem' } }} />
+              ) : (
+                <DarkModeIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem' } }} />
+              )}
+            </ListItemIcon>
+            <ListItemText
+              primary={mode === 'dark' ? 'Mod Luminos' : 'Mod Intunecat'}
               primaryTypographyProps={{
                 fontSize: { xs: '0.8rem', sm: '0.875rem' },
                 fontWeight: 500,

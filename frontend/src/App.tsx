@@ -1,24 +1,14 @@
 import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { ThemeProvider, createTheme, CssBaseline, Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { store } from './store/store';
 import { AppRoutes } from './routes/AppRoutes';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { initializeAuth, updateToken, logout } from './store/slices/auth.slice';
 import { supabase } from './lib/supabase';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function AppContent() {
   const dispatch = useAppDispatch();
@@ -70,8 +60,7 @@ function AppContent() {
 function App() {
   return (
     <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+      <ThemeProvider>
         <BrowserRouter>
           <AppContent />
           <InstallPrompt />

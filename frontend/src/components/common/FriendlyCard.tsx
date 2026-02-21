@@ -186,7 +186,7 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
                   color: headerColor ? 'inherit' : theme.palette.primary.main,
                   animation: `${float} 3s ease-in-out infinite`,
                   '& > svg': {
-                    fontSize: 24,
+                    fontSize: { xs: 20, sm: 24 },
                   },
                 }}
               >
