@@ -655,7 +655,7 @@ const AdminDashboard = () => {
                     urgent={(pendingEditRequests?.count || 0) > 0}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   {/* Cash Summary Card - Special Design */}
                   <Grow in={true} timeout={1400}>
                     <Card
@@ -688,7 +688,7 @@ const AdminDashboard = () => {
                           background: 'rgba(255, 255, 255, 0.15)',
                         }}
                       />
-                      <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 }, position: 'relative' }}>
+                      <CardContent sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, position: 'relative' }}>
                         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={{ xs: 1, sm: 2 }}>
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography
@@ -708,7 +708,7 @@ const AdminDashboard = () => {
                               sx={{
                                 fontWeight: 800,
                                 my: 0.5,
-                                fontSize: { xs: '1.1rem', sm: '1.75rem', md: '2rem' },
+                                fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2rem' },
                                 lineHeight: 1.1,
                                 whiteSpace: 'nowrap',
                               }}
