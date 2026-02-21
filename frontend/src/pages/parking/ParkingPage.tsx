@@ -313,26 +313,22 @@ const ParkingPage: React.FC = () => {
           indicatorColor="primary"
           textColor="primary"
           sx={{
-            minHeight: { xs: 48, sm: 56, md: 72 },
+            minHeight: { xs: 44, md: 72 },
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
               background: tabConfig[tabValue].color,
             },
             '& .MuiTab-root': {
-              minHeight: { xs: 48, sm: 56, md: 72 },
-              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
+              minHeight: { xs: 44, md: 72 },
+              fontSize: { xs: '0.75rem', md: '0.875rem' },
               fontWeight: 500,
               textTransform: 'none',
-              transition: 'all 0.3s ease',
-              px: { xs: 0.5, sm: 1, md: 2 },
+              px: { xs: 0.5, md: 2 },
               '&.Mui-selected': {
-                fontWeight: 600,
+                fontWeight: 700,
                 color: tabConfig[tabValue].color,
                 bgcolor: tabConfig[tabValue].bgColor,
-              },
-              '&:hover': {
-                bgcolor: alpha(tabConfig[tabValue].color, 0.05),
               },
             },
           }}
@@ -341,43 +337,38 @@ const ParkingPage: React.FC = () => {
             <Tab
               key={index}
               icon={
-                <Badge
-                  badgeContent={tabCounts[index]}
-                  color={index === 0 ? 'error' : index === 1 ? 'warning' : 'success'}
-                  max={99}
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: '0.6rem',
-                      minWidth: 14,
-                      height: 14,
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      p: 0.5,
-                      borderRadius: '50%',
-                      bgcolor: tabValue === index ? tab.bgColor : 'transparent',
-                      transition: 'all 0.3s ease',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      '& .MuiSvgIcon-root': {
-                        fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
-                        color: tabValue === index ? tab.color : 'text.secondary',
-                        transition: 'all 0.3s ease',
-                      },
-                    }}
+                isCompact ? undefined : (
+                  <Badge
+                    badgeContent={tabCounts[index]}
+                    color={index === 0 ? 'error' : index === 1 ? 'warning' : 'success'}
+                    max={99}
                   >
-                    {tab.icon}
-                  </Box>
-                </Badge>
+                    <Box
+                      sx={{
+                        p: 0.5,
+                        borderRadius: '50%',
+                        bgcolor: tabValue === index ? tab.bgColor : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        '& .MuiSvgIcon-root': {
+                          fontSize: '1.5rem',
+                          color: tabValue === index ? tab.color : 'text.secondary',
+                        },
+                      }}
+                    >
+                      {tab.icon}
+                    </Box>
+                  </Badge>
+                )
               }
-              label={isCompact ? tab.shortLabel : tab.label}
+              label={
+                isCompact
+                  ? <Badge badgeContent={tabCounts[index]} color={index === 0 ? 'error' : index === 1 ? 'warning' : 'success'} max={99} sx={{ '& .MuiBadge-badge': { top: -2, right: -8, fontSize: '0.6rem', minWidth: 16, height: 16 } }}><span>{tab.shortLabel}</span></Badge>
+                  : tab.label
+              }
               iconPosition="top"
-              sx={{
-                gap: 0.25,
-              }}
+              sx={{ gap: 0.25 }}
             />
           ))}
         </Tabs>
