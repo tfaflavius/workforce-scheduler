@@ -59,6 +59,9 @@ import { AcquisitionInvoice } from './modules/acquisitions/entities/acquisition-
 import { RevenueCategory } from './modules/acquisitions/entities/revenue-category.entity';
 import { MonthlyRevenue } from './modules/acquisitions/entities/monthly-revenue.entity';
 import { GeneratedReport } from './modules/reports/entities/generated-report.entity';
+import { PvDisplaySession } from './modules/parking/entities/pv-display-session.entity';
+import { PvDisplayDay } from './modules/parking/entities/pv-display-day.entity';
+import { PvDisplaySessionComment } from './modules/parking/entities/pv-display-session-comment.entity';
 
 @Module({
   imports: [
@@ -75,7 +78,7 @@ import { GeneratedReport } from './modules/reports/entities/generated-report.ent
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport, PvDisplaySession, PvDisplayDay, PvDisplaySessionComment],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
