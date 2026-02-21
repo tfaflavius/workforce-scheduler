@@ -457,14 +457,14 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
       <Grow in={true} timeout={600}>
         <Paper
           sx={{
-            p: { xs: 1, sm: 2 },
+            p: { xs: 1, sm: 1.5 },
             mb: 2,
             borderRadius: 2,
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
+            flexDirection: { xs: 'column', md: 'row' },
             justifyContent: 'space-between',
-            alignItems: { xs: 'stretch', sm: 'center' },
-            gap: { xs: 1, sm: 1.5 },
+            alignItems: { xs: 'stretch', md: 'center' },
+            gap: { xs: 1, md: 1.5 },
           }}
         >
           <Tabs
@@ -472,13 +472,23 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
             onChange={(_, v) => setStatusFilter(v)}
             variant="fullWidth"
             sx={{
-              flex: { xs: '1', sm: 'initial' },
-              minHeight: { xs: 40, sm: 48 },
+              width: '100%',
+              minHeight: { xs: 36, sm: 44 },
+              bgcolor: alpha(theme.palette.divider, 0.08),
+              borderRadius: 1.5,
+              '& .MuiTabs-indicator': {
+                height: '100%',
+                borderRadius: 1.5,
+                zIndex: 0,
+              },
               '& .MuiTab-root': {
                 fontWeight: 600,
-                fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                minHeight: { xs: 40, sm: 48 },
-                px: { xs: 1, sm: 2 },
+                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                minHeight: { xs: 36, sm: 44 },
+                px: { xs: 1.5, sm: 2 },
+                minWidth: 0,
+                zIndex: 1,
+                textTransform: 'none',
               },
             }}
           >
@@ -487,29 +497,32 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
             <Tab label="Toate" value="ALL" />
           </Tabs>
 
-          <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-end', sm: 'flex-start' }}>
+          <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ flexShrink: 0 }}>
             <IconButton
               onClick={() => refetch()}
+              size="small"
               sx={{
                 bgcolor: alpha(theme.palette.primary.main, 0.08),
                 '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) },
               }}
             >
-              <RefreshIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              <RefreshIcon sx={{ fontSize: 20 }} />
             </IconButton>
             <Button
               variant="contained"
-              startIcon={<AddIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+              startIcon={<AddIcon sx={{ fontSize: 18 }} />}
               onClick={() => setCreateDialogOpen(true)}
+              size="small"
               sx={{
                 borderRadius: 2,
                 fontWeight: 600,
-                py: { xs: 1, sm: 1.25 },
-                px: { xs: 2, sm: 3 },
-                fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                py: 0.75,
+                px: 2,
+                fontSize: '0.8rem',
+                whiteSpace: 'nowrap',
               }}
             >
-              {isMobile ? 'Adauga' : 'Adauga Prejudiciu'}
+              Adauga
             </Button>
           </Stack>
         </Paper>

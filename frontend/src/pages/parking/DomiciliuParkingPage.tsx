@@ -914,6 +914,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
 const DomiciliuParkingPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isCompact = useMediaQuery(theme.breakpoints.down('md')); // < 768px
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1068,15 +1069,15 @@ const DomiciliuParkingPage: React.FC = () => {
       </Grow>
 
       {/* Filters */}
-      <Paper sx={{ mb: 2, p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
+      <Paper sx={{ mb: 2, p: { xs: 1, sm: 1.5, md: 2 }, borderRadius: 2 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 2 }} alignItems={{ xs: 'stretch', md: 'center' }}>
           <TextField
-            placeholder={isMobile ? "Cauta..." : "Cauta dupa locatie, persoana, adresa sau numar auto..."}
+            placeholder={isCompact ? "Cauta..." : "Cauta dupa locatie, persoana, adresa sau numar auto..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
             fullWidth
-            sx={{ maxWidth: { sm: 400 } }}
+            sx={{ maxWidth: { md: 400 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -1086,33 +1087,37 @@ const DomiciliuParkingPage: React.FC = () => {
             }}
           />
 
-          <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 150 }, flex: { xs: 1, sm: 'none' } }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={statusFilter}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value as DomiciliuRequestStatus | '')}
-            >
-              <MenuItem value="">Toate</MenuItem>
-              <MenuItem value="ACTIVE">Active</MenuItem>
-              <MenuItem value="FINALIZAT">Finalizate</MenuItem>
-            </Select>
-          </FormControl>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 120, flex: 1 }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={statusFilter}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value as DomiciliuRequestStatus | '')}
+              >
+                <MenuItem value="">Toate</MenuItem>
+                <MenuItem value="ACTIVE">Active</MenuItem>
+                <MenuItem value="FINALIZAT">Finalizate</MenuItem>
+              </Select>
+            </FormControl>
 
-          {canCreate && (
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
-              sx={{
-                bgcolor: tabConfig[tabValue].color,
-                '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Adauga
-            </Button>
-          )}
+            {canCreate && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
+                size="small"
+                sx={{
+                  bgcolor: tabConfig[tabValue].color,
+                  '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
+                  whiteSpace: 'nowrap',
+                  py: 0.75,
+                }}
+              >
+                Adauga
+              </Button>
+            )}
+          </Stack>
         </Stack>
       </Paper>
 
@@ -1123,14 +1128,14 @@ const DomiciliuParkingPage: React.FC = () => {
           onChange={handleTabChange}
           variant="fullWidth"
           sx={{
-            minHeight: { xs: 56, sm: 64, md: 72 },
+            minHeight: { xs: 48, sm: 56, md: 72 },
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
               background: tabConfig[tabValue].color,
             },
             '& .MuiTab-root': {
-              minHeight: { xs: 56, sm: 64, md: 72 },
+              minHeight: { xs: 48, sm: 56, md: 72 },
               fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
               fontWeight: 500,
               textTransform: 'none',
@@ -1154,20 +1159,20 @@ const DomiciliuParkingPage: React.FC = () => {
                   max={99}
                   sx={{
                     '& .MuiBadge-badge': {
-                      fontSize: { xs: '0.65rem', sm: '0.7rem' },
-                      minWidth: { xs: 16, sm: 18 },
-                      height: { xs: 16, sm: 18 },
+                      fontSize: '0.6rem',
+                      minWidth: 14,
+                      height: 14,
                     },
                   }}
                 >
                   <Box
                     sx={{
-                      p: { xs: 0.75, sm: 1 },
+                      p: 0.5,
                       borderRadius: '50%',
                       bgcolor: tabValue === index ? alpha(tab.color, 0.15) : 'transparent',
                       display: 'flex',
                       '& .MuiSvgIcon-root': {
-                        fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                        fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
                         color: tabValue === index ? tab.color : 'text.secondary',
                       },
                     }}
@@ -1176,8 +1181,9 @@ const DomiciliuParkingPage: React.FC = () => {
                   </Box>
                 </Badge>
               }
-              label={isMobile ? tab.shortLabel : tab.label}
+              label={isCompact ? tab.shortLabel : tab.label}
               iconPosition="top"
+              sx={{ gap: 0.25 }}
             />
           ))}
         </Tabs>

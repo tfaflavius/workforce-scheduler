@@ -596,10 +596,10 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           mb: { xs: 1.5, sm: 2 },
           borderRadius: 2,
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
+          flexDirection: { xs: 'column', md: 'row' },
           justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          gap: { xs: 1, sm: 2 },
+          alignItems: { xs: 'stretch', md: 'center' },
+          gap: { xs: 1, md: 2 },
         }}
       >
         <Tabs
@@ -607,14 +607,23 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           onChange={(_, v) => setStatusFilter(v)}
           variant="fullWidth"
           sx={{
-            minHeight: { xs: 36, sm: 48 },
+            minHeight: { xs: 36, sm: 44 },
             width: '100%',
+            bgcolor: alpha(theme.palette.divider, 0.08),
+            borderRadius: 1.5,
+            '& .MuiTabs-indicator': {
+              height: '100%',
+              borderRadius: 1.5,
+              zIndex: 0,
+            },
             '& .MuiTab-root': {
-              minHeight: { xs: 36, sm: 48 },
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              minHeight: { xs: 36, sm: 44 },
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
               fontWeight: 600,
-              px: { xs: 1, sm: 2 },
+              px: { xs: 1.5, sm: 2 },
               minWidth: 0,
+              zIndex: 1,
+              textTransform: 'none',
             },
           }}
         >
@@ -623,9 +632,10 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           <Tab label="Toate" value="ALL" />
         </Tabs>
 
-        <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-end', sm: 'flex-start' }}>
+        <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ flexShrink: 0 }}>
           <IconButton
             onClick={() => refetch()}
+            size="small"
             sx={{
               bgcolor: alpha(theme.palette.primary.main, 0.08),
               '&:hover': {
@@ -633,25 +643,27 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
               },
             }}
           >
-            <RefreshIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
+            <RefreshIcon sx={{ fontSize: 20 }} />
           </IconButton>
           <Button
             variant="contained"
-            startIcon={<AddIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            startIcon={<AddIcon sx={{ fontSize: 18 }} />}
             onClick={() => setCreateDialogOpen(true)}
+            size="small"
             sx={{
-              py: { xs: 1, sm: 1.25 },
-              px: { xs: 2, sm: 3 },
-              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              py: 0.75,
+              px: 2,
+              fontSize: '0.8rem',
               fontWeight: 600,
               borderRadius: 2,
+              whiteSpace: 'nowrap',
               boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
               '&:hover': {
                 boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)',
               },
             }}
           >
-            {isMobile ? 'Adauga' : 'Adauga Problema'}
+            Adauga
           </Button>
         </Stack>
       </Paper>

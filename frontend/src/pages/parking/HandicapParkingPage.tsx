@@ -1172,6 +1172,7 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
 const HandicapParkingPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isCompact = useMediaQuery(theme.breakpoints.down('md')); // < 768px - for tabs
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1363,26 +1364,26 @@ const HandicapParkingPage: React.FC = () => {
       </Grow>
 
       {/* Filters */}
-      <Paper sx={{ mb: 2, p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
+      <Paper sx={{ mb: 2, p: { xs: 1, sm: 1.5, md: 2 }, borderRadius: 2 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 2 }} alignItems={{ xs: 'stretch', md: 'center' }}>
           <TextField
-            placeholder={isMobile ? "Cauta..." : "Cauta dupa locatie, persoana sau numar auto..."}
+            placeholder={isCompact ? "Cauta..." : "Cauta dupa locatie, persoana sau numar auto..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
             fullWidth
-            sx={{ maxWidth: { sm: 400 } }}
+            sx={{ maxWidth: { md: 400 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon color="action" sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                  <SearchIcon color="action" sx={{ fontSize: 18 }} />
                 </InputAdornment>
               ),
             }}
           />
 
-          <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
-            <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 130 }, flex: { xs: 1, sm: 'none' } }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <FormControl size="small" sx={{ minWidth: 120, flex: 1 }}>
               <InputLabel>Status</InputLabel>
               <Select
                 value={statusFilter}
@@ -1401,23 +1402,19 @@ const HandicapParkingPage: React.FC = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
-                size={isMobile ? 'medium' : 'medium'}
+                size="small"
                 sx={{
                   bgcolor: tabConfig[tabValue].color,
                   '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
                   whiteSpace: 'nowrap',
-                  minWidth: { xs: 'auto', sm: 100 },
-                  px: { xs: 2, sm: 3 },
+                  px: 2,
+                  py: 0.75,
                   fontWeight: 600,
                   borderRadius: 2,
                   boxShadow: `0 2px 8px ${alpha(tabConfig[tabValue].color, 0.3)}`,
-                  transition: 'all 0.2s ease',
-                  '&:active': {
-                    transform: 'scale(0.98)',
-                  },
                 }}
               >
-                {isMobile ? 'Adauga' : 'Adauga'}
+                Adauga
               </Button>
             )}
           </Stack>
@@ -1429,11 +1426,11 @@ const HandicapParkingPage: React.FC = () => {
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
-          variant={isMobile ? 'scrollable' : 'fullWidth'}
-          scrollButtons={isMobile ? 'auto' : false}
+          variant={isCompact ? 'scrollable' : 'fullWidth'}
+          scrollButtons={isCompact ? 'auto' : false}
           allowScrollButtonsMobile
           sx={{
-            minHeight: { xs: 56, sm: 64, md: 72 },
+            minHeight: { xs: 48, sm: 56, md: 72 },
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
@@ -1444,17 +1441,17 @@ const HandicapParkingPage: React.FC = () => {
                   : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
             },
             '& .MuiTabs-scrollButtons': {
-              width: 32,
+              width: 28,
               '&.Mui-disabled': { opacity: 0.3 },
             },
             '& .MuiTab-root': {
-              minHeight: { xs: 48, sm: 64, md: 72 },
-              fontSize: { xs: '0.6rem', sm: '0.75rem', md: '0.8rem' },
+              minHeight: { xs: 48, sm: 56, md: 72 },
+              fontSize: { xs: '0.65rem', sm: '0.7rem', md: '0.8rem' },
               fontWeight: 500,
               textTransform: 'none',
               transition: 'all 0.3s ease',
-              px: { xs: 0.5, sm: 1.5 },
-              minWidth: { xs: 'auto', sm: 90 },
+              px: { xs: 0.75, sm: 1, md: 1.5 },
+              minWidth: { xs: 'auto', sm: 'auto', md: 90 },
               '&.Mui-selected': {
                 fontWeight: 600,
               },
@@ -1471,20 +1468,20 @@ const HandicapParkingPage: React.FC = () => {
                   max={99}
                   sx={{
                     '& .MuiBadge-badge': {
-                      fontSize: { xs: '0.6rem', sm: '0.65rem' },
-                      minWidth: { xs: 14, sm: 16 },
-                      height: { xs: 14, sm: 16 },
+                      fontSize: '0.6rem',
+                      minWidth: 14,
+                      height: 14,
                     },
                   }}
                 >
                   <Box
                     sx={{
-                      p: { xs: 0.5, sm: 0.75 },
+                      p: 0.5,
                       borderRadius: '50%',
                       bgcolor: tabValue === index ? alpha(tab.color, 0.15) : 'transparent',
                       display: 'flex',
                       '& .MuiSvgIcon-root': {
-                        fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                        fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
                         color: tabValue === index ? tab.color : 'text.secondary',
                       },
                     }}
@@ -1493,9 +1490,10 @@ const HandicapParkingPage: React.FC = () => {
                   </Box>
                 </Badge>
               }
-              label={isMobile ? tab.shortLabel : tab.label}
+              label={isCompact ? tab.shortLabel : tab.label}
               iconPosition="top"
               sx={{
+                gap: 0.25,
                 '&.Mui-selected': {
                   color: tab.color,
                   bgcolor: alpha(tab.color, 0.1),
@@ -1503,18 +1501,18 @@ const HandicapParkingPage: React.FC = () => {
               }}
             />
           ))}
-          {/* Tab Legitimatii Handicap - vizibil doar pentru Admin si Parcari Handicap */}
+          {/* Tab Legitimatii Handicap */}
           {canSeeLegitimations && (
             <Tab
               icon={
                 <Box
                   sx={{
-                    p: { xs: 0.5, sm: 0.75 },
+                    p: 0.5,
                     borderRadius: '50%',
                     bgcolor: isHandicapLegitimationsTab ? alpha(LEGITIMATION_COLOR.main, 0.15) : 'transparent',
                     display: 'flex',
                     '& .MuiSvgIcon-root': {
-                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                      fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
                       color: isHandicapLegitimationsTab ? LEGITIMATION_COLOR.main : 'text.secondary',
                     },
                   }}
@@ -1522,9 +1520,10 @@ const HandicapParkingPage: React.FC = () => {
                   <LegitimationIcon />
                 </Box>
               }
-              label={isMobile ? 'Legit. H.' : 'Legitimatii Handicap'}
+              label={isCompact ? 'Legit. H.' : 'Legitimatii Handicap'}
               iconPosition="top"
               sx={{
+                gap: 0.25,
                 '&.Mui-selected': {
                   color: LEGITIMATION_COLOR.main,
                   bgcolor: alpha(LEGITIMATION_COLOR.main, 0.1),
@@ -1532,18 +1531,18 @@ const HandicapParkingPage: React.FC = () => {
               }}
             />
           )}
-          {/* Tab Legitimatii Revolutionar/Deportat - vizibil doar pentru Admin si Parcari Handicap */}
+          {/* Tab Legitimatii Revolutionar/Deportat */}
           {canSeeLegitimations && (
             <Tab
               icon={
                 <Box
                   sx={{
-                    p: { xs: 0.5, sm: 0.75 },
+                    p: 0.5,
                     borderRadius: '50%',
                     bgcolor: isRevolutionarLegitimationsTab ? alpha(REVOLUTIONAR_COLOR.main, 0.15) : 'transparent',
                     display: 'flex',
                     '& .MuiSvgIcon-root': {
-                      fontSize: { xs: '1.1rem', sm: '1.25rem' },
+                      fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
                       color: isRevolutionarLegitimationsTab ? REVOLUTIONAR_COLOR.main : 'text.secondary',
                     },
                   }}
@@ -1551,9 +1550,10 @@ const HandicapParkingPage: React.FC = () => {
                   <RevolutionarIcon />
                 </Box>
               }
-              label={isMobile ? 'Legit. R.' : 'Legitimatii Revolutionar'}
+              label={isCompact ? 'Legit. R.' : 'Legitimatii Revolutionar'}
               iconPosition="top"
               sx={{
+                gap: 0.25,
                 '&.Mui-selected': {
                   color: REVOLUTIONAR_COLOR.main,
                   bgcolor: alpha(REVOLUTIONAR_COLOR.main, 0.1),

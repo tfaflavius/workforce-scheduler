@@ -63,6 +63,7 @@ function TabPanel(props: TabPanelProps) {
 const ParkingPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 430px
+  const isCompact = useMediaQuery(theme.breakpoints.down('md')); // < 768px
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
 
@@ -313,19 +314,19 @@ const ParkingPage: React.FC = () => {
           indicatorColor="primary"
           textColor="primary"
           sx={{
-            minHeight: { xs: 56, sm: 64, md: 72 },
+            minHeight: { xs: 48, sm: 56, md: 72 },
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
               background: tabConfig[tabValue].color,
             },
             '& .MuiTab-root': {
-              minHeight: { xs: 56, sm: 64, md: 72 },
-              fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
+              minHeight: { xs: 48, sm: 56, md: 72 },
+              fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
               fontWeight: 500,
               textTransform: 'none',
               transition: 'all 0.3s ease',
-              px: { xs: 1, sm: 2 },
+              px: { xs: 0.5, sm: 1, md: 2 },
               '&.Mui-selected': {
                 fontWeight: 600,
                 color: tabConfig[tabValue].color,
@@ -347,17 +348,15 @@ const ParkingPage: React.FC = () => {
                   max={99}
                   sx={{
                     '& .MuiBadge-badge': {
-                      fontSize: { xs: '0.65rem', sm: '0.7rem' },
-                      minWidth: { xs: 16, sm: 18 },
-                      height: { xs: 16, sm: 18 },
-                      right: { xs: -2, sm: -4 },
-                      top: { xs: 2, sm: 0 },
+                      fontSize: '0.6rem',
+                      minWidth: 14,
+                      height: 14,
                     },
                   }}
                 >
                   <Box
                     sx={{
-                      p: { xs: 0.75, sm: 1 },
+                      p: 0.5,
                       borderRadius: '50%',
                       bgcolor: tabValue === index ? tab.bgColor : 'transparent',
                       transition: 'all 0.3s ease',
@@ -365,7 +364,7 @@ const ParkingPage: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       '& .MuiSvgIcon-root': {
-                        fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                        fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
                         color: tabValue === index ? tab.color : 'text.secondary',
                         transition: 'all 0.3s ease',
                       },
@@ -375,10 +374,10 @@ const ParkingPage: React.FC = () => {
                   </Box>
                 </Badge>
               }
-              label={isMobile ? tab.shortLabel : tab.label}
+              label={isCompact ? tab.shortLabel : tab.label}
               iconPosition="top"
               sx={{
-                gap: { xs: 0.25, sm: 0.5 },
+                gap: 0.25,
               }}
             />
           ))}
