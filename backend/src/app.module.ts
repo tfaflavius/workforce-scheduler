@@ -52,6 +52,7 @@ import { Task } from './modules/tasks/entities/task.entity';
 import { TaskHistory } from './modules/tasks/entities/task-history.entity';
 import { AcquisitionsModule } from './modules/acquisitions/acquisitions.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { BudgetPosition } from './modules/acquisitions/entities/budget-position.entity';
 import { Acquisition } from './modules/acquisitions/entities/acquisition.entity';
 import { AcquisitionInvoice } from './modules/acquisitions/entities/acquisition-invoice.entity';
@@ -92,6 +93,7 @@ import { GeneratedReport } from './modules/reports/entities/generated-report.ent
     TasksModule,
     AcquisitionsModule,
     ReportsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

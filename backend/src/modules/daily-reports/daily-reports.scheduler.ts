@@ -168,29 +168,8 @@ export class DailyReportsScheduler {
       current.setDate(current.getDate() + 1);
     }
 
-    // 1. Trimite la toti adminii cu TOATE rapoartele
-    const allReports = await this.dailyReportsService.getWeeklyReportsForAdmin(monday, friday);
-
-    const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
-    });
-
-    const adminEmailData = this.buildEmailData(allReports, mondayStr, fridayStr, missingByDate);
-
-    for (const admin of admins) {
-      try {
-        await this.emailService.sendWeeklyDailyReportSummary({
-          ...adminEmailData,
-          recipientEmail: admin.email,
-          recipientName: admin.fullName,
-        });
-        this.logger.log(`Email rezumat saptamanal trimis la admin: ${admin.email}`);
-      } catch (error) {
-        this.logger.error(`Eroare email admin ${admin.email}: ${error.message}`);
-      }
-    }
-
-    // 2. Trimite la manageri cu rapoarte filtrate
+    // Adminii primesc raport saptamanal consolidat separat (AdminConsolidatedScheduler)
+    // Trimite doar la manageri
     const managers = await this.userRepository.find({
       where: { role: UserRole.MANAGER, isActive: true },
     });

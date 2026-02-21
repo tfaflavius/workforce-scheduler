@@ -63,17 +63,18 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 08:00 - notificari catre Admini, Manageri, Dispecerat + Intretinere (doar asignat)
+  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 08:00 - notificari catre Manageri, Dispecerat + Intretinere (doar asignat)
+  // Adminii primesc totul in raportul consolidat de la 20:00
   @Cron('0 8 * * 1-5')
   async handleNotifyUrgentMorning() {
-    this.logger.log('Trimitere notificari 08:00 (inclusiv Admini)...');
+    this.logger.log('Trimitere notificari 08:00 (fara Admini - primesc raport consolidat)...');
 
     try {
       // Notificari in-app
       await this.parkingIssuesService.notifyUrgentIssues();
 
-      // Trimite emailuri cu reminder-uri - include Admini
-      await this.sendUnresolvedItemsReminderEmails(true);
+      // Trimite emailuri cu reminder-uri - FARA Admini (primesc raport consolidat la 20:00)
+      await this.sendUnresolvedItemsReminderEmails(false);
 
       this.logger.log('Notificari 08:00 trimise cu succes');
     } catch (error) {
@@ -192,12 +193,9 @@ export class ParkingUrgentScheduler {
       where: { status: 'ACTIVE' as any, isUrgent: true },
     });
 
-    // Get admin and manager recipients
+    // Get only manager recipients (admins receive consolidated report at 20:00)
     const recipients = await this.userRepository.find({
-      where: [
-        { role: UserRole.ADMIN, isActive: true },
-        { role: UserRole.MANAGER, isActive: true },
-      ],
+      where: { role: UserRole.MANAGER, isActive: true },
     });
 
     if (recipients.length === 0) return;
@@ -418,16 +416,13 @@ export class ParkingUrgentScheduler {
       return;
     }
 
-    // Obtine admini si manageri
+    // Obtine doar manageri (adminii primesc raport consolidat la 20:00)
     const recipients = await this.userRepository.find({
-      where: [
-        { role: UserRole.ADMIN, isActive: true },
-        { role: UserRole.MANAGER, isActive: true },
-      ],
+      where: { role: UserRole.MANAGER, isActive: true },
     });
 
     if (recipients.length === 0) {
-      this.logger.warn('Nu exista destinatari pentru raportul zilnic');
+      this.logger.log('Nu exista manageri pentru raportul zilnic incasari');
       return;
     }
 
@@ -544,12 +539,7 @@ export class ParkingUrgentScheduler {
       }
     }
 
-    // Obtine adminii
-    const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
-    });
-
-    // Obtine userii din departamentul Parcari Handicap
+    // Obtine userii din departamentul Parcari Handicap (adminii primesc raport consolidat la 20:00)
     const handicapDept = await this.departmentRepository.findOne({
       where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
     });
@@ -560,13 +550,7 @@ export class ParkingUrgentScheduler {
         })
       : [];
 
-    // Combina destinatarii (fara duplicate)
-    const allRecipients = [...admins];
-    for (const user of handicapDeptUsers) {
-      if (!allRecipients.find(r => r.id === user.id)) {
-        allRecipients.push(user);
-      }
-    }
+    const allRecipients = [...handicapDeptUsers];
 
     if (allRecipients.length === 0) {
       this.logger.warn('Nu exista destinatari pentru raportul Handicap');
@@ -648,7 +632,7 @@ export class ParkingUrgentScheduler {
 
     this.logger.log(
       `Raport Handicap trimis catre ${sentCount}/${allRecipients.length} destinatari ` +
-      `(${admins.length} admini, ${handicapDeptUsers.length} Parcari Handicap). ` +
+      `(${handicapDeptUsers.length} Parcari Handicap, admini primesc raport consolidat). ` +
       `Create azi: ${createdToday.length}, Finalizate azi: ${resolvedToday.length}, ` +
       `Active: ${activeNormal.length}, Expirate: ${expired.length}, ` +
       `Legitimatii Handicap: ${allHandicapLegitimations.length}, Legitimatii Revolutionar: ${allRevolutionarLegitimations.length}`

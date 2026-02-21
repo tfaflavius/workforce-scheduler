@@ -349,6 +349,51 @@ export interface DailyGpsReportData {
   };
 }
 
+export interface ConsolidatedDailyReportData {
+  recipientEmail: string;
+  recipientName: string;
+  reportDate: string;
+  // Sectiune 1: Incasari
+  cashReport: {
+    totalAmount: number;
+    collectionCount: number;
+    byParkingLot: Array<{ parkingLotName: string; totalAmount: number; count: number }>;
+  } | null;
+  // Sectiune 2: Parcari (probleme + prejudicii)
+  parkingSummary: {
+    newIssues: DailyParkingSummaryData['newIssues'];
+    resolvedIssues: DailyParkingSummaryData['resolvedIssues'];
+    newDamages: DailyParkingSummaryData['newDamages'];
+    resolvedDamages: DailyParkingSummaryData['resolvedDamages'];
+    stillUnresolved: DailyParkingSummaryData['stillUnresolved'];
+  } | null;
+  // Sectiune 3: Nerezolvate
+  unresolvedItems: {
+    issues: UnresolvedItemsReminderData['unresolvedIssues'];
+    damages: UnresolvedItemsReminderData['unresolvedDamages'];
+  } | null;
+  // Sectiune 4: Handicap
+  handicapReport: Omit<HandicapDailyReportData, 'recipientEmail' | 'recipientName' | 'reportDate'> | null;
+  // Sectiune 5: GPS
+  gpsReport: Omit<DailyGpsReportData, 'recipientEmail' | 'recipientName' | 'reportDate'> | null;
+  // Sectiune 6: Rapoarte zilnice lipsa
+  missingDailyReports: Array<{
+    userName: string;
+    departmentName: string;
+  }>;
+}
+
+export interface ConsolidatedWeeklyReportData {
+  recipientEmail: string;
+  recipientName: string;
+  weekStartDate: string;
+  weekEndDate: string;
+  reportsByDay: WeeklyDailyReportSummaryData['reportsByDay'];
+  totalReports: number;
+  totalUsers: number;
+  totalMissing: number;
+}
+
 // ============== SERVICE ==============
 
 @Injectable()
@@ -2658,6 +2703,580 @@ export class EmailService {
       data.recipientEmail,
       `📍 Raport GPS Zilnic - ${data.reportDate}`,
       this.generateBaseTemplate('WorkSchedule', `Raport GPS Zilnic - ${data.reportDate}`, content, '#2e7d32 0%, #1b5e20 100%'),
+    );
+  }
+
+  // ============== CONSOLIDATED DAILY REPORT (ADMIN) ==============
+
+  async sendConsolidatedDailyReport(data: ConsolidatedDailyReportData): Promise<boolean> {
+    const sections: string[] = [];
+
+    // ---- Section 1: Incasari ----
+    if (data.cashReport) {
+      const parkingLotRows = data.cashReport.byParkingLot.map(lot => `
+        <tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${lot.parkingLotName}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${lot.count}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">${lot.totalAmount.toFixed(2)} RON</td>
+        </tr>
+      `).join('');
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #2196F3, #1976D2); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">💰 Incasari</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 12px; text-align: center;">
+              <div style="font-size: 28px; font-weight: bold; color: #1565c0;">${data.cashReport.totalAmount.toFixed(2)} RON</div>
+              <div style="font-size: 13px; color: #666;">${data.cashReport.collectionCount} ridicari</div>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <thead>
+                <tr style="background: #f5f5f5;">
+                  <th style="padding: 8px 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Parcare</th>
+                  <th style="padding: 8px 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">Ridicari</th>
+                  <th style="padding: 8px 12px; text-align: right; border-bottom: 2px solid #e5e7eb;">Total</th>
+                </tr>
+              </thead>
+              <tbody>${parkingLotRows}</tbody>
+            </table>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 2: Parcari ----
+    if (data.parkingSummary) {
+      const ps = data.parkingSummary;
+      const totalNew = ps.newIssues.length + ps.newDamages.length;
+      const totalResolved = ps.resolvedIssues.length + ps.resolvedDamages.length;
+
+      let parkingContent = `
+        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 90px; background: #e3f2fd; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: #1565c0;">${totalNew}</div>
+            <div style="font-size: 11px; color: #666;">Noi</div>
+          </div>
+          <div style="flex: 1; min-width: 90px; background: #e8f5e9; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: #2e7d32;">${totalResolved}</div>
+            <div style="font-size: 11px; color: #666;">Rezolvate</div>
+          </div>
+          <div style="flex: 1; min-width: 90px; background: ${ps.stillUnresolved.urgentCount > 0 ? '#ffebee' : '#fff3e0'}; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: ${ps.stillUnresolved.urgentCount > 0 ? '#c62828' : '#ef6c00'};">${ps.stillUnresolved.issuesCount + ps.stillUnresolved.damagesCount}</div>
+            <div style="font-size: 11px; color: #666;">Nerezolvate${ps.stillUnresolved.urgentCount > 0 ? ` (${ps.stillUnresolved.urgentCount} urg.)` : ''}</div>
+          </div>
+        </div>
+      `;
+
+      if (ps.newIssues.length > 0) {
+        parkingContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="color: #1565c0; font-size: 13px;">Probleme noi (${ps.newIssues.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #e3f2fd;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Raportat</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Ora</th>
+              </tr>
+              ${ps.newIssues.map(i => `
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.equipment}${i.isUrgent ? ' <span style="color:red;font-weight:bold;">URGENT</span>' : ''}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.creatorName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.createdAt}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      if (ps.resolvedIssues.length > 0) {
+        parkingContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="color: #2e7d32; font-size: 13px;">Probleme rezolvate (${ps.resolvedIssues.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #e8f5e9;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
+              </tr>
+              ${ps.resolvedIssues.map(i => `
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.equipment}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.resolverName}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      if (ps.newDamages.length > 0) {
+        parkingContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="color: #e65100; font-size: 13px;">Prejudicii noi (${ps.newDamages.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #fff3e0;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Persoana</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Nr. Auto</th>
+              </tr>
+              ${ps.newDamages.map(d => `
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.damagedEquipment}${d.isUrgent ? ' <span style="color:red;font-weight:bold;">URGENT</span>' : ''}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.personName || '-'}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.carPlate || '-'}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      if (ps.resolvedDamages.length > 0) {
+        parkingContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="color: #2e7d32; font-size: 13px;">Prejudicii rezolvate (${ps.resolvedDamages.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #e8f5e9;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Tip</th>
+              </tr>
+              ${ps.resolvedDamages.map(d => `
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.damagedEquipment}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.resolverName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.resolutionType || '-'}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #1565c0, #0d47a1); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">🅿️ Parcari</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            ${parkingContent}
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 3: Nerezolvate ----
+    if (data.unresolvedItems) {
+      const ui = data.unresolvedItems;
+      const totalItems = ui.issues.length + ui.damages.length;
+      const urgentIssues = ui.issues.filter(i => i.isUrgent).length;
+      const urgentDamages = ui.damages.filter(d => d.isUrgent).length;
+      const totalUrgent = urgentIssues + urgentDamages;
+
+      let unresolvedContent = '';
+
+      if (totalUrgent > 0) {
+        unresolvedContent += `
+          <div style="background: #ffebee; padding: 10px 14px; border-radius: 6px; margin-bottom: 12px; border-left: 4px solid #f44336;">
+            <strong style="color: #c62828;">⚠️ ${totalUrgent} elemente urgente (>48h)</strong>
+          </div>
+        `;
+      }
+
+      if (ui.issues.length > 0) {
+        unresolvedContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="font-size: 13px;">Probleme (${ui.issues.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #f5f5f5;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+                <th style="padding: 6px 8px; text-align: center; border: 1px solid #ddd;">Vechime</th>
+              </tr>
+              ${ui.issues.map(i => `
+                <tr style="${i.isUrgent ? 'background:#ffebee;' : ''}">
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.equipment}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center;">${i.daysOpen} zile${i.isUrgent ? ' ⚠️' : ''}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      if (ui.damages.length > 0) {
+        unresolvedContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="font-size: 13px;">Prejudicii (${ui.damages.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #f5f5f5;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Parcare</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Persoana</th>
+                <th style="padding: 6px 8px; text-align: center; border: 1px solid #ddd;">Vechime</th>
+              </tr>
+              ${ui.damages.map(d => `
+                <tr style="${d.isUrgent ? 'background:#ffebee;' : ''}">
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.damagedEquipment}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.personName}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center;">${d.daysOpen} zile${d.isUrgent ? ' ⚠️' : ''}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #ff9800, #f57c00); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">⏰ Nerezolvate (${totalItems})</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            ${unresolvedContent}
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 4: Handicap ----
+    if (data.handicapReport) {
+      const hr = data.handicapReport;
+      const { summary } = hr;
+
+      let handicapContent = `
+        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 70px; background: #10b981; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${summary.createdTodayCount}</div>
+            <div style="font-size: 10px;">Create</div>
+          </div>
+          <div style="flex: 1; min-width: 70px; background: #3b82f6; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${summary.resolvedTodayCount}</div>
+            <div style="font-size: 10px;">Finalizate</div>
+          </div>
+          <div style="flex: 1; min-width: 70px; background: #f59e0b; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${summary.activeCount}</div>
+            <div style="font-size: 10px;">Active</div>
+          </div>
+          <div style="flex: 1; min-width: 70px; background: ${summary.expiredCount > 0 ? '#ef4444' : '#9ca3af'}; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${summary.expiredCount}</div>
+            <div style="font-size: 10px;">Expirate</div>
+          </div>
+          <div style="flex: 1; min-width: 70px; background: #059669; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${summary.legitimationsCount}</div>
+            <div style="font-size: 10px;">Leg. Hand.</div>
+          </div>
+          <div style="flex: 1; min-width: 70px; background: #7c3aed; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 20px; font-weight: bold;">${summary.revolutionarLegitimationsCount || 0}</div>
+            <div style="font-size: 10px;">Leg. Rev.</div>
+          </div>
+        </div>
+      `;
+
+      const makeReqTable = (items: typeof hr.activeRequests, title: string) => {
+        if (items.length === 0) return '';
+        return `
+          <div style="margin-bottom: 10px;">
+            <strong style="font-size: 13px;">${title} (${items.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px;">
+              <tr style="background: #f3f4f6;">
+                <th style="padding: 5px 6px; text-align: left; border: 1px solid #e5e7eb;">Tip</th>
+                <th style="padding: 5px 6px; text-align: left; border: 1px solid #e5e7eb;">Locatie</th>
+                <th style="padding: 5px 6px; text-align: left; border: 1px solid #e5e7eb;">Persoana</th>
+                <th style="padding: 5px 6px; text-align: left; border: 1px solid #e5e7eb;">Vechime</th>
+              </tr>
+              ${items.map(r => `
+                <tr>
+                  <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.type}</td>
+                  <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.location}</td>
+                  <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.personName}</td>
+                  <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.daysOpen} zile</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      };
+
+      if (hr.createdToday.length > 0) handicapContent += makeReqTable(hr.createdToday, '🆕 Create azi');
+      if (hr.resolvedToday.length > 0) handicapContent += makeReqTable(hr.resolvedToday, '✅ Finalizate azi');
+      if (hr.expiredRequests.length > 0) handicapContent += makeReqTable(hr.expiredRequests, '🚨 Expirate (>5 zile)');
+      if (hr.activeRequests.length > 0) handicapContent += makeReqTable(hr.activeRequests, '📋 Active');
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">♿ Handicap</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            ${handicapContent}
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 5: GPS ----
+    if (data.gpsReport) {
+      const gps = data.gpsReport;
+
+      const formatDuration = (minutes: number): string => {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return `${h}h ${m}m`;
+      };
+
+      const formatGpsTime = (isoStr: string): string => {
+        if (isoStr === 'In desfasurare') return isoStr;
+        try {
+          return new Date(isoStr).toLocaleTimeString('ro-RO', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Europe/Bucharest',
+          });
+        } catch {
+          return isoStr;
+        }
+      };
+
+      let gpsContent = `
+        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 90px; background: #e3f2fd; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: #1565c0;">${gps.summary.totalEmployees}</div>
+            <div style="font-size: 11px; color: #666;">Angajati</div>
+          </div>
+          <div style="flex: 1; min-width: 90px; background: #e8f5e9; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: #2e7d32;">${gps.summary.totalShifts}</div>
+            <div style="font-size: 11px; color: #666;">Ture</div>
+          </div>
+          <div style="flex: 1; min-width: 90px; background: ${gps.summary.employeesWithGpsProblems > 0 ? '#ffebee' : '#e8f5e9'}; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: ${gps.summary.employeesWithGpsProblems > 0 ? '#c62828' : '#2e7d32'};">${gps.summary.employeesWithGpsProblems}</div>
+            <div style="font-size: 11px; color: #666;">Probleme GPS</div>
+          </div>
+          <div style="flex: 1; min-width: 90px; background: ${gps.summary.autoStoppedShifts > 0 ? '#ffebee' : '#e8f5e9'}; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: ${gps.summary.autoStoppedShifts > 0 ? '#c62828' : '#2e7d32'};">${gps.summary.autoStoppedShifts}</div>
+            <div style="font-size: 11px; color: #666;">Oprite Auto</div>
+          </div>
+        </div>
+      `;
+
+      // Employee summaries (compact)
+      gpsContent += gps.employees.map(emp => {
+        const statusIcon = emp.hasGpsProblems ? '🔴' : '🟢';
+        const shiftsInfo = emp.shifts.map((s, idx) => {
+          const streets = s.streets.length > 0
+            ? s.streets.map(st => `📍 ${st.streetName}`).join(', ')
+            : 'fara strazi';
+          const autoStop = s.stoppedBySystem ? ' <span style="color:#c62828;">⚠️ Oprit automat</span>' : '';
+          return `<div style="font-size: 12px; color: #555; padding: 3px 0;">
+            Tura ${idx + 1}: ${formatGpsTime(s.startTime)}-${formatGpsTime(s.endTime)} | ${formatDuration(s.durationMinutes)} | ${s.locationCount} loc. | ${s.totalDistanceKm} km${autoStop}
+            <div style="font-size: 11px; color: #888; padding-left: 12px;">${streets}</div>
+          </div>`;
+        }).join('');
+
+        return `
+          <div style="background: ${emp.hasGpsProblems ? '#fff5f5' : '#f8fdf8'}; border: 1px solid #eee; border-radius: 6px; padding: 10px 14px; margin-bottom: 8px;">
+            <div style="font-size: 14px; font-weight: 600;">${statusIcon} ${emp.name} <span style="font-weight:normal;color:#666;font-size:12px;">(${emp.department})</span></div>
+            <div style="font-size: 12px; color: #555; margin: 4px 0;">Total: ${formatDuration(emp.totalDurationMinutes)} | ${emp.totalLocations} locatii</div>
+            ${shiftsInfo}
+          </div>
+        `;
+      }).join('');
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #2e7d32, #1b5e20); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">📍 GPS Tracking</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            ${gpsContent}
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 6: Rapoarte zilnice lipsa ----
+    if (data.missingDailyReports.length > 0) {
+      const missingRows = data.missingDailyReports.map(u => `
+        <tr>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${u.userName}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${u.departmentName}</td>
+        </tr>
+      `).join('');
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">📝 Rapoarte Zilnice Lipsa (${data.missingDailyReports.length})</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <thead>
+                <tr style="background: #fef2f2;">
+                  <th style="padding: 8px 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Utilizator</th>
+                  <th style="padding: 8px 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Departament</th>
+                </tr>
+              </thead>
+              <tbody>${missingRows}</tbody>
+            </table>
+          </div>
+        </div>
+      `);
+    }
+
+    // Build final content
+    const content = `
+      <p style="font-size: 16px;">Buna seara, <strong>${data.recipientName}</strong>!</p>
+      <p style="color: #666;">Acesta este raportul zilnic consolidat pentru <strong>${data.reportDate}</strong>.</p>
+
+      ${sections.length > 0 ? sections.join('') : `
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+          <p style="color: #666; margin: 0;">Nu au fost inregistrate activitati astazi.</p>
+        </div>
+      `}
+
+      <div style="margin-top: 20px; text-align: center;">
+        <a href="${this.appUrl}" style="display: inline-block; background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Deschide Aplicatia
+        </a>
+      </div>
+    `;
+
+    return this.sendEmail(
+      data.recipientEmail,
+      `📊 Raport Zilnic Consolidat - ${data.reportDate}`,
+      this.generateBaseTemplate('WorkSchedule', `Raport Zilnic Consolidat - ${data.reportDate}`, content, '#1565c0 0%, #0d47a1 100%'),
+    );
+  }
+
+  // ============== CONSOLIDATED WEEKLY REPORT (ADMIN) ==============
+
+  async sendConsolidatedWeeklyReport(data: ConsolidatedWeeklyReportData): Promise<boolean> {
+    const weekRange = `${this.formatDate(data.weekStartDate)} - ${this.formatDate(data.weekEndDate)}`;
+
+    const dayRows = data.reportsByDay.map(day => {
+      const missingUsers = day.missingUsers || [];
+      const hasMissing = missingUsers.length > 0;
+
+      if (day.reports.length === 0 && !hasMissing) {
+        return `
+          <tr>
+            <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+              <strong style="color: #374151;">${day.dayName} (${this.formatDate(day.date)})</strong>
+              <span style="color: #9ca3af; margin-left: 10px; font-style: italic;">— Niciun raport</span>
+            </td>
+          </tr>
+        `;
+      }
+
+      const dayHeader = `
+        <tr>
+          <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
+            <strong style="color: #1e40af; font-size: 15px;">${day.dayName} (${this.formatDate(day.date)})</strong>
+            <span style="color: #3b82f6; margin-left: 10px;">${day.reports.length} raport${day.reports.length > 1 ? 'e' : ''}</span>
+            ${hasMissing ? `<span style="color: #dc2626; margin-left: 10px;">&#9888; ${missingUsers.length} lipsa</span>` : ''}
+          </td>
+        </tr>
+      `;
+
+      const reportRows = day.reports.map(report => `
+        <tr>
+          <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top; width: 150px;">
+            <strong style="color: #374151; font-size: 13px;">${report.userName}</strong>
+            <br/>
+            <span style="color: #6b7280; font-size: 11px;">${report.departmentName}</span>
+          </td>
+          <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top;">
+            <div style="color: #374151; font-size: 13px; white-space: pre-line; max-width: 350px;">${report.content}</div>
+            ${report.adminComment ? `
+              <div style="margin-top: 8px; padding: 8px 12px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
+                <span style="color: #92400e; font-size: 11px; font-weight: 600;">Comentariu Admin${report.adminCommentedBy ? ` (${report.adminCommentedBy})` : ''}:</span>
+                <br/>
+                <span style="color: #78350f; font-size: 12px;">${report.adminComment}</span>
+              </div>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+
+      const missingSection = hasMissing ? `
+        <tr>
+          <td colspan="4" style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; background: #fef2f2;">
+            <strong style="color: #dc2626; font-size: 13px;">&#9888; Nu au trimis raportul (${missingUsers.length}):</strong>
+            <div style="color: #991b1b; font-size: 12px; margin-top: 4px;">
+              ${missingUsers.map(u => `${u.userName} (${u.departmentName})`).join(', ')}
+            </div>
+          </td>
+        </tr>
+      ` : '';
+
+      return dayHeader + reportRows + missingSection;
+    }).join('');
+
+    const content = `
+      <div style="margin-bottom: 25px;">
+        <h2 style="color: #1e40af; margin: 0 0 5px 0;">Centralizare Rapoarte Saptamanale</h2>
+        <p style="color: #6b7280; margin: 0;">Saptamana: ${weekRange}</p>
+      </div>
+
+      <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+        <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Rapoarte</div>
+          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalReports}</div>
+        </div>
+        <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Utilizatori</div>
+          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalUsers}</div>
+        </div>
+        ${data.totalMissing ? `
+        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Lipsa Rapoarte</div>
+          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalMissing}</div>
+        </div>
+        ` : ''}
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+        <thead>
+          <tr style="background: #f8fafc;">
+            <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Utilizator</th>
+            <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Raport</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${dayRows}
+        </tbody>
+      </table>
+
+      <div style="margin-top: 25px; text-align: center;">
+        <a href="${this.appUrl}/daily-reports" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 500;">
+          Deschide Rapoarte Zilnice
+        </a>
+      </div>
+    `;
+
+    const html = this.generateBaseTemplate(
+      'Centralizare Saptamanala',
+      `Rapoarte Saptamanale - ${weekRange}`,
+      content,
+      '#3b82f6 0%, #8b5cf6 100%'
+    );
+
+    return this.sendEmail(
+      data.recipientEmail,
+      `📊 Centralizare Rapoarte Saptamanale - ${weekRange}`,
+      html,
     );
   }
 }
