@@ -101,12 +101,12 @@ export class GpsTrackingScheduler {
 
   /**
    * Daily GPS report email.
-   * Runs every day at 21:00 Europe/Bucharest.
+   * Runs weekdays (Mon-Fri) at 21:00 Europe/Bucharest.
    * Sends an email to all admins with GPS tracking summary for the day:
    * - Per employee: shifts, GPS locations, streets visited, GPS status
    * - Summary: total employees, shifts, GPS problems, auto-stopped shifts
    */
-  @Cron('0 21 * * *', { timeZone: 'Europe/Bucharest' })
+  @Cron('0 21 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleDailyGpsReport() {
     this.logger.log('[GPS Daily Report] Generating daily GPS report...');
 
