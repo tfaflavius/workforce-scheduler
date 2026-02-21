@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -25,6 +25,9 @@ import {
   alpha,
   Fade,
   Grow,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -38,6 +41,8 @@ import {
   Build as EquipmentIcon,
   Business as CompanyIcon,
   Edit as EditIcon,
+  ExpandMore as ExpandMoreIcon,
+  CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
 import {
@@ -133,6 +138,26 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   };
 
   const urgentCount = issues.filter(i => i.isUrgent && i.status === 'ACTIVE').length;
+
+  // Group issues by month
+  const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
+  const issuesByMonth = useMemo(() => {
+    const groups: Record<string, { label: string; items: ParkingIssue[]; urgentCount: number }> = {};
+    issues.forEach((issue) => {
+      const date = new Date(issue.createdAt);
+      const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
+      if (!groups[key]) {
+        groups[key] = { label: `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`, items: [], urgentCount: 0 };
+      }
+      groups[key].items.push(issue);
+      if (issue.isUrgent && issue.status === 'ACTIVE') groups[key].urgentCount++;
+    });
+    return Object.entries(groups)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([key, group]) => ({ key, ...group }));
+  }, [issues]);
+
+  const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()).padStart(2, '0')}`;
 
   const renderIssueCard = (issue: ParkingIssue, index: number) => (
     <Grow in={true} key={issue.id} style={{ transformOrigin: '0 0 0', transitionDelay: `${index * 50}ms` }}>
@@ -364,7 +389,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
     </Grow>
   );
 
-  const renderIssueTable = () => (
+  const renderIssueTable = (items?: ParkingIssue[]) => (
     <Paper
       sx={{
         borderRadius: { xs: 2, sm: 3 },
@@ -374,7 +399,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           : '0 2px 12px rgba(0, 0, 0, 0.3)',
       }}
     >
-      <TableContainer sx={{ maxHeight: 'calc(100vh - 400px)', overflowX: 'auto' }}>
+      <TableContainer sx={{ overflowX: 'auto' }}>
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
@@ -390,7 +415,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
             </TableRow>
           </TableHead>
           <TableBody>
-            {issues.map((issue, index) => (
+            {(items || issues).map((issue, index) => (
               <Fade in={true} key={issue.id} style={{ transitionDelay: `${index * 30}ms` }}>
                 <TableRow
                   sx={{
@@ -645,12 +670,63 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
         >
           Nu exista probleme in aceasta categorie.
         </Alert>
-      ) : isMobile || isTablet ? (
-        <Box>
-          {issues.map((issue, index) => renderIssueCard(issue, index))}
-        </Box>
       ) : (
-        renderIssueTable()
+        issuesByMonth.map((group) => (
+          <Accordion
+            key={group.key}
+            defaultExpanded={group.key === currentMonthKey}
+            sx={{
+              mb: 1,
+              borderRadius: '12px !important',
+              overflow: 'hidden',
+              '&:before': { display: 'none' },
+              boxShadow: theme.palette.mode === 'light'
+                ? '0 1px 4px rgba(0,0,0,0.06)'
+                : '0 1px 4px rgba(0,0,0,0.2)',
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                bgcolor: alpha(theme.palette.error.main, 0.04),
+                '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08) },
+                minHeight: { xs: 48, sm: 56 },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%', pr: 1 }}>
+                <CalendarIcon sx={{ color: 'error.main', fontSize: { xs: 20, sm: 22 } }} />
+                <Typography fontWeight={600} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, flex: 1 }}>
+                  {group.label}
+                </Typography>
+                <Chip
+                  label={`${group.items.length} probleme`}
+                  size="small"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    bgcolor: alpha(theme.palette.error.main, 0.1),
+                    color: 'error.dark',
+                  }}
+                />
+                {group.urgentCount > 0 && (
+                  <Chip
+                    label={`${group.urgentCount} urgente`}
+                    size="small"
+                    color="error"
+                    sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
+                  />
+                )}
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: { xs: 1, sm: 2 } }}>
+              {isMobile || isTablet ? (
+                group.items.map((issue, index) => renderIssueCard(issue, index))
+              ) : (
+                renderIssueTable(group.items)
+              )}
+            </AccordionDetails>
+          </Accordion>
+        ))
       )}
 
       {/* Dialogs */}

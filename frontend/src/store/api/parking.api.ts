@@ -207,6 +207,15 @@ export const parkingApi = createApi({
       invalidatesTags: (_result, _error, { damageId }) => [{ type: 'DamageComments', id: damageId }],
     }),
 
+    addDamageSignature: builder.mutation<ParkingDamage, { id: string; signatureData: string }>({
+      query: ({ id, signatureData }) => ({
+        url: `/parking-damages/${id}/signature`,
+        method: 'PATCH',
+        body: { signatureData },
+      }),
+      invalidatesTags: ['ParkingDamages', 'DamageHistory'],
+    }),
+
     deleteParkingDamage: builder.mutation<void, string>({
       query: (id) => ({
         url: `/parking-damages/${id}`,
@@ -347,6 +356,7 @@ export const {
   useGetDamageCommentsQuery,
   useCreateParkingDamageMutation,
   useResolveParkingDamageMutation,
+  useAddDamageSignatureMutation,
   useAddDamageCommentMutation,
   useDeleteParkingDamageMutation,
   // Cash Collections

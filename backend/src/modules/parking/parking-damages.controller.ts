@@ -72,6 +72,15 @@ export class ParkingDamagesController {
     return this.parkingDamagesService.resolve(id, req.user.id, dto);
   }
 
+  @Patch(':id/signature')
+  async addSignature(
+    @Param('id') id: string,
+    @Request() req,
+    @Body('signatureData') signatureData: string,
+  ): Promise<ParkingDamage> {
+    return this.parkingDamagesService.addSignature(id, req.user.id, signatureData);
+  }
+
   @Post(':id/comments')
   async addComment(
     @Param('id') id: string,

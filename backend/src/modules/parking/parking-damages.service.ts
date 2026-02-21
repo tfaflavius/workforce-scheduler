@@ -306,6 +306,27 @@ export class ParkingDamagesService {
     await this.parkingDamageRepository.remove(damage);
   }
 
+  async addSignature(id: string, userId: string, signatureData: string): Promise<ParkingDamage> {
+    const damage = await this.findOne(id);
+
+    if (!signatureData) {
+      throw new ForbiddenException('Semnatura este obligatorie');
+    }
+
+    damage.signatureData = signatureData;
+    damage.lastModifiedBy = userId;
+
+    await this.parkingDamageRepository.save(damage);
+
+    // Inregistreaza in history
+    await this.recordHistory(id, 'UPDATED', userId, {
+      action: 'SIGNATURE_ADDED',
+      description: 'Semnatura a fost adaugata ulterior',
+    });
+
+    return this.findOne(id);
+  }
+
   // Metoda pentru marcarea prejudiciilor urgente (48h)
   async markUrgentDamages(): Promise<number> {
     const fortyEightHoursAgo = new Date();

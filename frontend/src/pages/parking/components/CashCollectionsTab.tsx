@@ -27,6 +27,10 @@ import {
   Fade,
   Grow,
   alpha,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Badge,
 } from '@mui/material';
 import DatePickerField from '../../../components/common/DatePickerField';
 import {
@@ -37,6 +41,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   TrendingUp as TrendingIcon,
+  CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
 import {
@@ -81,6 +86,30 @@ const CashCollectionsTab: React.FC = () => {
   const [deleteCollection] = useDeleteCashCollectionMutation();
 
   const isAdmin = user?.role === 'ADMIN';
+
+  // Group collections by month
+  const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
+  const collectionsByMonth = useMemo(() => {
+    const groups: Record<string, { label: string; items: CashCollection[]; total: number }> = {};
+    collections.forEach((c) => {
+      const date = new Date(c.collectedAt);
+      const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
+      if (!groups[key]) {
+        groups[key] = {
+          label: `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`,
+          items: [],
+          total: 0,
+        };
+      }
+      groups[key].items.push(c);
+      groups[key].total += Number(c.amount);
+    });
+    return Object.entries(groups)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([key, group]) => ({ key, ...group }));
+  }, [collections]);
+
+  const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()).padStart(2, '0')}`;
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Esti sigur ca vrei sa stergi aceasta ridicare?')) {
@@ -190,7 +219,7 @@ const CashCollectionsTab: React.FC = () => {
     </Grow>
   );
 
-  const renderCollectionTable = () => (
+  const renderCollectionTable = (items?: CashCollection[]) => (
     <TableContainer
       component={Paper}
       sx={{
@@ -216,7 +245,7 @@ const CashCollectionsTab: React.FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {collections.map((collection) => (
+          {(items || collections).map((collection) => (
             <TableRow
               key={collection.id}
               sx={{
@@ -331,7 +360,7 @@ const CashCollectionsTab: React.FC = () => {
                   Per Parcare:
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {totals.byParkingLot.map((item) => (
+                  {[...totals.byParkingLot].sort((a, b) => b.totalAmount - a.totalAmount).map((item) => (
                     <Chip
                       key={item.parkingLotId}
                       label={`${item.parkingLotName}: ${formatCurrency(item.totalAmount)}`}
@@ -544,12 +573,65 @@ const CashCollectionsTab: React.FC = () => {
             Nu exista ridicari inregistrate.
           </Alert>
         </Fade>
-      ) : isMobile || isTablet ? (
-        collections.map((collection, index) => renderCollectionCard(collection, index))
       ) : (
-        <Grow in={true} timeout={800}>
-          {renderCollectionTable()}
-        </Grow>
+        collectionsByMonth.map((group) => (
+          <Accordion
+            key={group.key}
+            defaultExpanded={group.key === currentMonthKey}
+            sx={{
+              mb: 1,
+              borderRadius: '12px !important',
+              overflow: 'hidden',
+              '&:before': { display: 'none' },
+              boxShadow: theme.palette.mode === 'light'
+                ? '0 1px 4px rgba(0,0,0,0.06)'
+                : '0 1px 4px rgba(0,0,0,0.2)',
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                bgcolor: alpha(theme.palette.success.main, 0.06),
+                '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.1) },
+                minHeight: { xs: 48, sm: 56 },
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%', pr: 1 }}>
+                <CalendarIcon sx={{ color: 'success.main', fontSize: { xs: 20, sm: 22 } }} />
+                <Typography fontWeight={600} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' }, flex: 1 }}>
+                  {group.label}
+                </Typography>
+                <Chip
+                  label={`${group.items.length} ridicări`}
+                  size="small"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    bgcolor: alpha(theme.palette.success.main, 0.1),
+                    color: 'success.dark',
+                  }}
+                />
+                <Chip
+                  label={formatCurrency(group.total)}
+                  size="small"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    bgcolor: alpha(theme.palette.success.main, 0.15),
+                    color: 'success.dark',
+                  }}
+                />
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: { xs: 1, sm: 2 } }}>
+              {isMobile || isTablet ? (
+                group.items.map((collection, index) => renderCollectionCard(collection, index))
+              ) : (
+                renderCollectionTable(group.items)
+              )}
+            </AccordionDetails>
+          </Accordion>
+        ))
       )}
 
       {/* Dialog */}
