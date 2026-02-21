@@ -5,7 +5,6 @@ import {
   Box,
   Paper,
   useTheme,
-  useMediaQuery,
   alpha,
 } from '@mui/material';
 import {
@@ -31,7 +30,6 @@ interface SignDamageDialogProps {
 
 const SignDamageDialog: React.FC<SignDamageDialogProps> = ({ open, onClose, damage }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [addSignature, { isLoading: saving }] = useAddDamageSignatureMutation();
   const [error, setError] = useState<string | null>(null);

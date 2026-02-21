@@ -30,7 +30,6 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Badge,
 } from '@mui/material';
 import DatePickerField from '../../../components/common/DatePickerField';
 import {
