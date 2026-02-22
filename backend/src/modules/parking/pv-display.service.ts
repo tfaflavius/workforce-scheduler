@@ -818,6 +818,35 @@ export class PvDisplayService {
 
   // ===== CONTROL USERS (for admin picker) =====
 
+  // ===== CAR STATUS (public for all authenticated users) =====
+
+  async getCarStatusToday(): Promise<{
+    carInUse: boolean;
+    days: { id: string; dayOrder: number; displayDate: string; controlUser1Name: string | null; controlUser2Name: string | null; estimatedReturn: string }[];
+  }> {
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
+
+    const activeDays = await this.dayRepository.createQueryBuilder('day')
+      .leftJoinAndSelect('day.controlUser1', 'cu1')
+      .leftJoinAndSelect('day.controlUser2', 'cu2')
+      .leftJoinAndSelect('day.session', 'session')
+      .where('day.displayDate = :today', { today: todayStr })
+      .andWhere('day.status IN (:...statuses)', { statuses: [PV_DAY_STATUS.ASSIGNED, PV_DAY_STATUS.IN_PROGRESS] })
+      .getMany();
+
+    return {
+      carInUse: activeDays.length > 0,
+      days: activeDays.map(d => ({
+        id: d.id,
+        dayOrder: d.dayOrder,
+        displayDate: this.formatDate(d.displayDate),
+        controlUser1Name: d.controlUser1?.fullName || null,
+        controlUser2Name: d.controlUser2?.fullName || null,
+        estimatedReturn: '~15:00',
+      })),
+    };
+  }
+
   async getControlUsers(): Promise<User[]> {
     const controlDept = await this.departmentRepository.findOne({
       where: { name: CONTROL_DEPARTMENT_NAME },

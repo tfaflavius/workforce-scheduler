@@ -459,7 +459,7 @@ const MySchedulePage = () => {
         </Stack>
 
         {/* Week Day Headers (for month view) */}
-        {viewMode === 'month' && !isMobile && (
+        {viewMode === 'month' && (
           <Grid container sx={{ mb: 1 }}>
             {dayNames.map((day, index) => (
               <Grid size={{ xs: 12 / 7 }} key={day}>
@@ -478,7 +478,7 @@ const MySchedulePage = () => {
         )}
 
         {/* Calendar Grid */}
-        {viewMode === 'month' && !isMobile ? (
+        {viewMode === 'month' ? (
           <Grid container spacing={0.5}>
             {/* Empty cells for first week alignment - week starts on Sunday (getDay() = 0) */}
             {Array.from({ length: dates[0]?.getDay() || 0 }).map((_, i) => (
@@ -570,94 +570,6 @@ const MySchedulePage = () => {
               );
             })}
           </Grid>
-        ) : viewMode === 'month' && isMobile ? (
-          // Mobile: List view for month
-          <Stack spacing={1}>
-            {dates.map((date) => {
-              const assignment = getAssignmentForDate(date);
-              const today = isToday(date);
-              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-
-              return (
-                <Card
-                  key={date.toISOString()}
-                  sx={{
-                    border: today ? '2px solid' : '1px solid',
-                    borderColor: today ? 'primary.main' : 'divider',
-                    bgcolor: today ? 'primary.lighter' : assignment ? 'white' : 'grey.50',
-                  }}
-                >
-                  <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
-                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem' }}>
-                            {dayNames[date.getDay()]}
-                          </Typography>
-                          <Typography
-                            variant="h6"
-                            fontWeight="bold"
-                            color={isWeekend && !assignment ? 'error.main' : 'text.primary'}
-                            sx={{ lineHeight: 1 }}
-                          >
-                            {date.getDate()}
-                          </Typography>
-                        </Box>
-                        {assignment ? (() => {
-                          const shiftInfo = getShiftInfoFromNotes(assignment.notes);
-                          const workPosition = assignment.workPosition;
-                          return (
-                          <Box>
-                            <Typography variant="body2" fontWeight="medium">
-                              {shiftInfo.name}
-                            </Typography>
-                            <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
-                              {shiftInfo.startTime && (
-                                <Typography variant="caption" color="text.secondary">
-                                  {shiftInfo.startTime} - {shiftInfo.endTime}
-                                </Typography>
-                              )}
-                              {workPosition && (
-                                <Chip
-                                  size="small"
-                                  label={workPosition.shortName || workPosition.name}
-                                  sx={{
-                                    bgcolor: workPosition.color || '#1976d2',
-                                    color: 'white',
-                                    fontSize: '0.6rem',
-                                    height: 18,
-                                    fontWeight: 'bold'
-                                  }}
-                                />
-                              )}
-                            </Stack>
-                          </Box>
-                          );
-                        })() : (
-                          <Typography variant="body2" color="text.disabled">
-                            Zi libera
-                          </Typography>
-                        )}
-                      </Stack>
-                      {assignment && (() => {
-                        const shiftInfo = getShiftInfoFromNotes(assignment.notes);
-                        return (
-                        <Chip
-                          size="small"
-                          label={shiftInfo.isNightShift ? 'Noapte' : 'Zi'}
-                          color={shiftInfo.isNightShift ? 'info' : 'warning'}
-                        />
-                        );
-                      })()}
-                      {today && (
-                        <Chip label="Azi" size="small" color="primary" />
-                      )}
-                    </Stack>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </Stack>
         ) : (
           // Week View - More detailed
           <Stack spacing={2}>

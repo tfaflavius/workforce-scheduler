@@ -50,6 +50,7 @@ import { DomiciliuRequestsController } from './domiciliu-requests.controller';
 import { HandicapLegitimationsController } from './handicap-legitimations.controller';
 import { RevolutionarLegitimationsController } from './revolutionar-legitimations.controller';
 import { PvDisplayController } from './pv-display.controller';
+import { PvCarStatusController } from './pv-car-status.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
@@ -104,6 +105,7 @@ import { EmailModule } from '../../common/email/email.module';
     HandicapLegitimationsController,
     RevolutionarLegitimationsController,
     PvDisplayController,
+    PvCarStatusController,
   ],
   providers: [
     ParkingLotsService,

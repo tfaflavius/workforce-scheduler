@@ -77,6 +77,8 @@ import type {
 import { DOMICILIU_REQUEST_TYPE_LABELS, DOMICILIU_REQUEST_STATUS_LABELS, PARKING_LAYOUT_LABELS } from '../../types/domiciliu.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import { removeDiacritics } from '../../utils/removeDiacritics';
+import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
+import { DirectionsCar as CarIcon } from '@mui/icons-material';
 
 // Departamente cu acces
 const ALLOWED_DEPARTMENTS = ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'];
@@ -932,6 +934,9 @@ const DomiciliuParkingPage: React.FC = () => {
     }
   }, [location.state]);
 
+  // Car status for PV display
+  const { data: carStatus } = useGetCarStatusTodayQuery();
+
   // Check if user is from Intretinere Parcari department
   const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const canCreate = !isMaintenanceUser; // Intretinere Parcari users cannot create requests
@@ -1051,6 +1056,28 @@ const DomiciliuParkingPage: React.FC = () => {
           </Box>
         </Box>
       </Grow>
+
+      {/* PV Car Status Banner */}
+      {carStatus?.carInUse && (
+        <Alert
+          severity="warning"
+          icon={<CarIcon />}
+          sx={{
+            mb: { xs: 2, sm: 3 },
+            borderRadius: 2,
+            '& .MuiAlert-message': { width: '100%' },
+          }}
+        >
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+            Masina indisponibila — Afisare Procese Verbale
+          </Typography>
+          {carStatus.days.map((day) => (
+            <Typography key={day.id} variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+              {day.displayDate} — {[day.controlUser1Name, day.controlUser2Name].filter(Boolean).join(', ')} • Estimativ pana la {day.estimatedReturn}
+            </Typography>
+          ))}
+        </Alert>
+      )}
 
       {/* Filters */}
       <Paper sx={{ mb: 2, p: { xs: 1, sm: 1.5, md: 2 }, borderRadius: 2 }}>

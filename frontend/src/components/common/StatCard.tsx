@@ -114,8 +114,10 @@ export const StatCard: React.FC<StatCardProps> = ({
                   color,
                   fontWeight: 800,
                   my: 0.5,
-                  fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2.5rem' },
+                  fontSize: { xs: '1rem', sm: '1.5rem', md: '2.5rem' },
                   lineHeight: 1.1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}
               >

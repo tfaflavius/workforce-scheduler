@@ -191,6 +191,22 @@ export const pvDisplayApi = createApi({
       query: () => '/pv-display/control-users',
       providesTags: [{ type: 'PvControlUsers', id: 'LIST' }],
     }),
+
+    // ===== CAR STATUS (all authenticated users) =====
+
+    getCarStatusToday: builder.query<{
+      carInUse: boolean;
+      days: {
+        id: string;
+        dayOrder: number;
+        displayDate: string;
+        controlUser1Name: string | null;
+        controlUser2Name: string | null;
+        estimatedReturn: string;
+      }[];
+    }, void>({
+      query: () => '/pv-car-status/today',
+    }),
   }),
 });
 
@@ -212,4 +228,5 @@ export const {
   useCompleteDayMutation,
   useAdminAssignDayMutation,
   useGetControlUsersQuery,
+  useGetCarStatusTodayQuery,
 } = pvDisplayApi;

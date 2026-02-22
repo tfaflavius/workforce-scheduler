@@ -62,10 +62,15 @@ import {
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 import { StatCard } from '../../components/common/StatCard';
+import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
+import {
+  DirectionsCar as CarIcon,
+} from '@mui/icons-material';
 
 // Departament cu acces la Handicap stats
 const HANDICAP_DEPARTMENT_NAME = 'Parcari Handicap';
 const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
+const DOMICILIU_DEPARTMENT_NAME = 'Parcari Domiciliu';
 
 // GPS tracking: capture every 10 minutes when possible
 const LOCATION_TRACKING_INTERVAL_MS = 10 * 60 * 1000;
@@ -121,6 +126,13 @@ const EmployeeDashboard = () => {
 
   // Check if user is in Control department
   const isControlDepartment = user?.department?.name === 'Control';
+
+  // Check if user is in Parcari Domiciliu department
+  const isDomiciliuDepartment = user?.department?.name === DOMICILIU_DEPARTMENT_NAME;
+
+  // Departments that need to see car status (Dispecerat, Parcari Domiciliu, Intretinere Parcari, Parcari Handicap)
+  const needsCarStatus = isDispatchDepartment || isDomiciliuDepartment || isMaintenanceDepartment || isHandicapDepartment;
+  const { data: carStatus } = useGetCarStatusTodayQuery(undefined, { skip: !needsCarStatus });
 
   // Departments with pontaj + GPS tracking
   const hasPontaj = isMaintenanceDepartment || isControlDepartment;
@@ -959,6 +971,30 @@ const EmployeeDashboard = () => {
           </Grid>
         </Box>
       </Fade>
+
+      {/* ===== PV CAR STATUS BANNER ===== */}
+      {needsCarStatus && carStatus?.carInUse && (
+        <Fade in={true} timeout={600}>
+          <Alert
+            severity="warning"
+            icon={<CarIcon />}
+            sx={{
+              mb: { xs: 2, sm: 3 },
+              borderRadius: 2,
+              '& .MuiAlert-message': { width: '100%' },
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+              Masina indisponibila — Afisare Procese Verbale
+            </Typography>
+            {carStatus.days.map((day) => (
+              <Typography key={day.id} variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                {day.displayDate} — {[day.controlUser1Name, day.controlUser2Name].filter(Boolean).join(', ')} • Estimativ pana la {day.estimatedReturn}
+              </Typography>
+            ))}
+          </Alert>
+        </Fade>
+      )}
 
       {/* ===== PONTAJ - Intretinere Parcari + Control ===== */}
       {hasPontaj && (
