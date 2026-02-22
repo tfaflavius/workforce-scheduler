@@ -47,6 +47,8 @@ import {
 } from '../../store/api/parking.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { StatCard } from '../../components/common/StatCard';
+import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
+import { DirectionsCar as CarIcon } from '@mui/icons-material';
 
 const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -67,6 +69,9 @@ const ManagerDashboard = () => {
 
   // Today's dispatchers query
   const { data: todayDispatchers = [], isLoading: dispatchersLoading } = useGetTodayDispatchersQuery();
+
+  // PV Car status
+  const { data: carStatus } = useGetCarStatusTodayQuery();
 
   // Loading state
   if (draftLoading || pendingLoading || approvedLoading || rejectedLoading || dispatchersLoading) {
@@ -118,6 +123,30 @@ const ManagerDashboard = () => {
             <Typography variant="body2" fontWeight="medium">
               ⚠️ Ai {myRejected.length} program(e) respins(e) care necesita atentie!
             </Typography>
+          </Alert>
+        </Fade>
+      )}
+
+      {/* PV Car Status Banner */}
+      {carStatus?.carInUse && (
+        <Fade in={true} timeout={500}>
+          <Alert
+            severity="warning"
+            icon={<CarIcon />}
+            sx={{
+              mb: { xs: 2, sm: 3 },
+              borderRadius: 2,
+              '& .MuiAlert-message': { width: '100%' },
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+              Masina indisponibila — Afisare Procese Verbale
+            </Typography>
+            {carStatus.days.map((day) => (
+              <Typography key={day.id} variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                {day.displayDate} — {[day.controlUser1Name, day.controlUser2Name].filter(Boolean).join(', ')} • Estimativ pana la {day.estimatedReturn}
+              </Typography>
+            ))}
           </Alert>
         </Fade>
       )}

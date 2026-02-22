@@ -19,6 +19,7 @@ import {
   ListItemAvatar,
   ListItemText,
   Button,
+  Alert,
 } from '@mui/material';
 import {
   PendingActions as PendingIcon,
@@ -65,6 +66,8 @@ import {
 import { useGetNotificationsQuery } from '../../store/api/notifications.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { StatCard } from '../../components/common/StatCard';
+import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
+import { DirectionsCar as CarIcon } from '@mui/icons-material';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -95,6 +98,9 @@ const AdminDashboard = () => {
 
   // Recent notifications for activity feed
   const { data: recentNotifications = [] } = useGetNotificationsQuery({ limit: 5 });
+
+  // PV Car status
+  const { data: carStatus } = useGetCarStatusTodayQuery();
 
   const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading || dispatchersLoading;
 
@@ -154,6 +160,30 @@ const AdminDashboard = () => {
         icon={<TrendingIcon />}
         gradient="#1e3a8a 0%, #7c3aed 100%"
       />
+
+      {/* PV Car Status Banner */}
+      {carStatus?.carInUse && (
+        <Fade in={true} timeout={500}>
+          <Alert
+            severity="warning"
+            icon={<CarIcon />}
+            sx={{
+              mb: { xs: 2, sm: 3 },
+              borderRadius: 2,
+              '& .MuiAlert-message': { width: '100%' },
+            }}
+          >
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
+              Masina indisponibila — Afisare Procese Verbale
+            </Typography>
+            {carStatus.days.map((day) => (
+              <Typography key={day.id} variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                {day.displayDate} — {[day.controlUser1Name, day.controlUser2Name].filter(Boolean).join(', ')} • Estimativ pana la {day.estimatedReturn}
+              </Typography>
+            ))}
+          </Alert>
+        </Fade>
+      )}
 
       {/* Quick Summary Strip */}
       <Fade in={true} timeout={500}>
