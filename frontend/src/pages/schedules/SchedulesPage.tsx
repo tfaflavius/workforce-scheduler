@@ -936,10 +936,10 @@ const SchedulesPage: React.FC = () => {
                                     })}
                                   </Stack>
 
-                                  {/* Mini calendar pentru tableta/mobil - toate zilele pe landscape, primele 14 pe portrait */}
+                                  {/* Mini calendar pentru tableta/mobil - toate zilele cu scroll orizontal */}
                                   <Box sx={{ mt: 1 }}>
                                     <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                                      Calendar {!isLandscape && !isMobile ? '(primele 14 zile)' : '(luna completa)'}:
+                                      Calendar (luna completa):
                                     </Typography>
                                     <Box sx={{
                                       overflowX: 'auto',
@@ -947,8 +947,8 @@ const SchedulesPage: React.FC = () => {
                                       '&::-webkit-scrollbar': { height: 6 },
                                       '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 3 },
                                     }}>
-                                      <Stack direction="row" spacing={0.25} sx={{ minWidth: isLandscape || isMobile ? 'max-content' : 'auto' }}>
-                                        {(isLandscape || isMobile ? calendarDays : calendarDays.slice(0, 14)).map(({ date, day, isWeekend }) => {
+                                      <Stack direction="row" spacing={0.25} sx={{ minWidth: 'max-content' }}>
+                                        {calendarDays.map(({ date, day, isWeekend }) => {
                                           const assignments = userAssignments[date];
                                           const firstAssignment = assignments?.[0];
                                           const shiftInfo = firstAssignment ? getExistingShiftInfo(firstAssignment.notes) : null;
