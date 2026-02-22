@@ -130,8 +130,11 @@ const EmployeeDashboard = () => {
   // Check if user is in Parcari Domiciliu department
   const isDomiciliuDepartment = user?.department?.name === DOMICILIU_DEPARTMENT_NAME;
 
-  // Departments that need to see car status (Dispecerat, Parcari Domiciliu, Intretinere Parcari, Parcari Handicap)
-  const needsCarStatus = isDispatchDepartment || isDomiciliuDepartment || isMaintenanceDepartment || isHandicapDepartment;
+  // Departments that need to see car status banner
+  // Dispecerat, Control, Procese Verbale/Facturare, Parcari Domiciliu, Achizitii
+  const isAchizitiiDepartment = user?.department?.name === 'Achizitii';
+  const isPvfDepartment = user?.department?.name === 'Procese Verbale/Facturare';
+  const needsCarStatus = isDispatchDepartment || isControlDepartment || isPvfDepartment || isDomiciliuDepartment || isAchizitiiDepartment;
   const { data: carStatus } = useGetCarStatusTodayQuery(undefined, { skip: !needsCarStatus });
 
   // Departments with pontaj + GPS tracking
