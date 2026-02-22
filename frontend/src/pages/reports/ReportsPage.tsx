@@ -51,6 +51,7 @@ import type { ShiftSwapStatus } from '../../types/shift-swap.types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME } from '../../constants/departments';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -1636,13 +1637,13 @@ const ReportsPage: React.FC = () => {
                 <Tab
                   icon={<HandicapIcon />}
                   iconPosition="start"
-                  label={isMobile ? 'Handicap' : 'Parcari Handicap'}
+                  label={isMobile ? 'Handicap' : HANDICAP_DEPARTMENT_NAME}
                   sx={{ minHeight: 48 }}
                 />
                 <Tab
                   icon={<HomeIcon />}
                   iconPosition="start"
-                  label={isMobile ? 'Domiciliu' : 'Parcari Domiciliu'}
+                  label={isMobile ? 'Domiciliu' : DOMICILIU_DEPARTMENT_NAME}
                   sx={{ minHeight: 48 }}
                 />
               </Tabs>

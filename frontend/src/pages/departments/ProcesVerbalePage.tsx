@@ -17,6 +17,7 @@ import { useAppSelector } from '../../store/hooks';
 import PvSessionsTab from './components/PvSessionsTab';
 import PvMarketplaceTab from './components/PvMarketplaceTab';
 import PvMyDaysTab from './components/PvMyDaysTab';
+import { CONTROL_DEPARTMENT_NAME, PROCESE_VERBALE_DEPARTMENT_NAME } from '../../constants/departments';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -50,8 +51,8 @@ const ProcesVerbalePage: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
 
   const userDept = user?.department?.name || '';
-  const isControl = userDept === 'Control';
-  const isPvf = userDept === 'Procese Verbale/Facturare';
+  const isControl = userDept === CONTROL_DEPARTMENT_NAME;
+  const isPvf = userDept === PROCESE_VERBALE_DEPARTMENT_NAME;
   const isAdmin = user?.role === 'ADMIN';
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {

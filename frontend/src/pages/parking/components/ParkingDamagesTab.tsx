@@ -53,6 +53,7 @@ import ResolveDamageDialog from './ResolveDamageDialog';
 import DamageDetailsDialog from './DamageDetailsDialog';
 import EditDamageDialog from './EditDamageDialog';
 import SignDamageDialog from './SignDamageDialog';
+import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
 
 interface ParkingDamagesTabProps {
   initialOpenId?: string | null;
@@ -82,7 +83,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
   const deptName = user?.department?.name || '';
-  const canComment = isAdminOrManager || ['Dispecerat', 'Intretinere Parcari', 'Control'].includes(deptName);
+  const canComment = isAdminOrManager || [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME].includes(deptName);
 
   // Handle initial open from notification
   useEffect(() => {

@@ -62,6 +62,16 @@ import NotificationBell from '../notifications/NotificationBell';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useThemeMode } from '../../contexts/ThemeContext';
+import {
+  MAINTENANCE_DEPARTMENT_NAME,
+  HANDICAP_DEPARTMENT_NAME,
+  DOMICILIU_DEPARTMENT_NAME,
+  PROCESE_VERBALE_DEPARTMENT_NAME,
+  PARCOMETRE_DEPARTMENT_NAME,
+  ACHIZITII_DEPARTMENT_NAME,
+  DISPECERAT_DEPARTMENT_NAME,
+  CONTROL_DEPARTMENT_NAME,
+} from '../../constants/departments';
 
 // Responsive drawer width based on screen size
 const getDrawerWidth = (isTablet: boolean) => isTablet ? 220 : 260;
@@ -134,9 +144,9 @@ export const MainLayout = () => {
   };
 
   // Departamente care nu au acces la Schimburi Ture si Programul Meu
-  const PARKING_ONLY_DEPARTMENTS = ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'];
+  const PARKING_ONLY_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME];
   // Departamente care nu au acces la Schimburi Ture (dar vad Programul Meu)
-  const NO_SHIFT_SWAP_DEPARTMENTS = [...PARKING_ONLY_DEPARTMENTS, 'Procese Verbale/Facturare', 'Parcometre', 'Achizitii'];
+  const NO_SHIFT_SWAP_DEPARTMENTS = [...PARKING_ONLY_DEPARTMENTS, PROCESE_VERBALE_DEPARTMENT_NAME, PARCOMETRE_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME];
 
   const menuItems: MenuItem[] = [
     {
@@ -206,29 +216,29 @@ export const MainLayout = () => {
       icon: <ParkingIcon />,
       path: '/parking',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: ['Dispecerat', 'Intretinere Parcari'],
-      excludeDepartments: ['Parcari Handicap', 'Parcari Domiciliu'],
+      requiresDepartments: [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
+      excludeDepartments: [HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME],
     },
     {
       text: 'Parcari Handicap',
       icon: <HandicapIcon />,
       path: '/parking/handicap',
       roles: ['ADMIN', 'USER'],
-      requiresDepartments: ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
+      requiresDepartments: [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME],
     },
     {
       text: 'Parcari Domiciliu',
       icon: <HomeIcon />,
       path: '/parking/domiciliu',
       roles: ['ADMIN', 'USER'],
-      requiresDepartments: ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
+      requiresDepartments: [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME],
     },
     {
       text: 'PV / Facturare',
       icon: <ReceiptIcon />,
       path: '/procese-verbale',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: ['Procese Verbale/Facturare', 'Control'],
+      requiresDepartments: [PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME],
     },
     {
       text: 'Parcometre',
@@ -241,14 +251,14 @@ export const MainLayout = () => {
       icon: <ShoppingIcon />,
       path: '/achizitii',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: ['Achizitii'],
+      requiresDepartments: [ACHIZITII_DEPARTMENT_NAME],
     },
     {
       text: 'Incasari/Cheltuieli',
       icon: <RevenueIcon />,
       path: '/incasari-cheltuieli',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: ['Achizitii'],
+      requiresDepartments: [ACHIZITII_DEPARTMENT_NAME],
     },
     {
       text: 'Monitorizare Pontaj',

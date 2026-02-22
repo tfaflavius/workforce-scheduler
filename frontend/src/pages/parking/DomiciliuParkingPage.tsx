@@ -79,10 +79,14 @@ import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import { removeDiacritics } from '../../utils/removeDiacritics';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
+import {
+  MAINTENANCE_DEPARTMENT_NAME,
+  HANDICAP_DEPARTMENT_NAME,
+  DOMICILIU_DEPARTMENT_NAME,
+} from '../../constants/departments';
 
 // Departamente cu acces
-const ALLOWED_DEPARTMENTS = ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'];
-const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
+const ALLOWED_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME];
 
 // Culori pentru tipuri de solicitari
 const REQUEST_TYPE_COLORS: Record<DomiciliuRequestType, { main: string; bg: string }> = {

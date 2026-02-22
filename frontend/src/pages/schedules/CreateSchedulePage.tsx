@@ -38,6 +38,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateScheduleMutation, useUpdateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery, useGetWorkPositionsQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
+import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useAppSelector } from '../../store/hooks';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
 
@@ -215,9 +216,9 @@ const CreateSchedulePage: React.FC = () => {
 
     // Sortare dupa departament: Dispecerat → Control → Intretinere Parcari
     const departmentOrder: Record<string, number> = {
-      'Dispecerat': 1,
-      'Control': 2,
-      'Intretinere Parcari': 3,
+      [DISPECERAT_DEPARTMENT_NAME]: 1,
+      [CONTROL_DEPARTMENT_NAME]: 2,
+      [MAINTENANCE_DEPARTMENT_NAME]: 3,
     };
 
     filtered.sort((a, b) => {

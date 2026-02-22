@@ -34,11 +34,12 @@ import {
 } from '../../../store/api/pvDisplay.api';
 import type { PvDisplayDay, AdminAssignPvDayDto } from '../../../types/pv-display.types';
 import { PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
+import { CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
 
 const PvMarketplaceTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const isAdmin = user?.role === 'ADMIN';
-  const isControl = user?.department?.name === 'Control';
+  const isControl = user?.department?.name === CONTROL_DEPARTMENT_NAME;
   const canClaim = isControl || isAdmin;
 
   const { data: days = [], isLoading, error } = useGetAvailableDaysQuery();

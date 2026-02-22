@@ -90,11 +90,15 @@ import { removeDiacritics } from '../../utils/removeDiacritics';
 import HandicapLegitimatiiTab from './HandicapLegitimatiiTab';
 import RevolutionarLegitimatiiTab from './RevolutionarLegitimatiiTab';
 import type { RevolutionarLegitimationStatus } from '../../types/handicap.types';
+import {
+  MAINTENANCE_DEPARTMENT_NAME,
+  HANDICAP_DEPARTMENT_NAME,
+  DOMICILIU_DEPARTMENT_NAME,
+} from '../../constants/departments';
 
 // Departamente cu acces
-const ALLOWED_DEPARTMENTS = ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'];
-const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
-const HANDICAP_PARKING_DEPARTMENT_NAME = 'Parcari Handicap';
+const ALLOWED_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME];
+const HANDICAP_PARKING_DEPARTMENT_NAME = HANDICAP_DEPARTMENT_NAME;
 
 // Culori pentru legitimatii
 const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };

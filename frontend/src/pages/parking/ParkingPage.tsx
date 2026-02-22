@@ -27,8 +27,7 @@ import {
   useGetMyAssignedIssuesQuery,
 } from '../../store/api/parking.api';
 
-// Nume departament pentru verificare
-const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
+import { MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 
 interface TabPanelProps {
   children?: React.ReactNode;

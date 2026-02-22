@@ -56,6 +56,7 @@ import CreateIssueDialog from './CreateIssueDialog';
 import ResolveIssueDialog from './ResolveIssueDialog';
 import IssueDetailsDialog from './IssueDetailsDialog';
 import EditIssueDialog from './EditIssueDialog';
+import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
 
 interface ParkingIssuesTabProps {
   initialOpenId?: string | null;
@@ -97,7 +98,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   const isAdmin = user?.role === 'ADMIN';
   const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
   const deptName = user?.department?.name || '';
-  const canComment = isAdminOrManager || ['Dispecerat', 'Intretinere Parcari', 'Control'].includes(deptName);
+  const canComment = isAdminOrManager || [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME].includes(deptName);
 
   const handleResolve = (issue: ParkingIssue) => {
     setSelectedIssue(issue);

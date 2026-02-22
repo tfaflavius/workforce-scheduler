@@ -66,11 +66,16 @@ import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import {
   DirectionsCar as CarIcon,
 } from '@mui/icons-material';
-
-// Departament cu acces la Handicap stats
-const HANDICAP_DEPARTMENT_NAME = 'Parcari Handicap';
-const MAINTENANCE_DEPARTMENT_NAME = 'Intretinere Parcari';
-const DOMICILIU_DEPARTMENT_NAME = 'Parcari Domiciliu';
+import {
+  HANDICAP_DEPARTMENT_NAME,
+  MAINTENANCE_DEPARTMENT_NAME,
+  DOMICILIU_DEPARTMENT_NAME,
+  DISPECERAT_DEPARTMENT_NAME,
+  CONTROL_DEPARTMENT_NAME,
+  ACHIZITII_DEPARTMENT_NAME,
+  PROCESE_VERBALE_DEPARTMENT_NAME,
+  PARCOMETRE_DEPARTMENT_NAME,
+} from '../../constants/departments';
 
 // GPS tracking: capture every 10 minutes when possible
 const LOCATION_TRACKING_INTERVAL_MS = 10 * 60 * 1000;
@@ -111,7 +116,7 @@ const EmployeeDashboard = () => {
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
 
   // Check if user is in Dispecerat or Control department
-  const isDispatchDepartment = user?.department?.name === 'Dispecerat' || user?.department?.name === 'Control';
+  const isDispatchDepartment = user?.department?.name === DISPECERAT_DEPARTMENT_NAME || user?.department?.name === CONTROL_DEPARTMENT_NAME;
 
   // Get colleagues on same position (only for Dispecerat/Control)
   const { data: colleaguesData } = useGetShiftColleaguesQuery(undefined, {
@@ -125,15 +130,15 @@ const EmployeeDashboard = () => {
   const isMaintenanceDepartment = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
 
   // Check if user is in Control department
-  const isControlDepartment = user?.department?.name === 'Control';
+  const isControlDepartment = user?.department?.name === CONTROL_DEPARTMENT_NAME;
 
   // Check if user is in Parcari Domiciliu department
   const isDomiciliuDepartment = user?.department?.name === DOMICILIU_DEPARTMENT_NAME;
 
   // Departments that need to see car status banner
   // Dispecerat, Control, Procese Verbale/Facturare, Parcari Domiciliu, Achizitii
-  const isAchizitiiDepartment = user?.department?.name === 'Achizitii';
-  const isPvfDepartment = user?.department?.name === 'Procese Verbale/Facturare';
+  const isAchizitiiDepartment = user?.department?.name === ACHIZITII_DEPARTMENT_NAME;
+  const isPvfDepartment = user?.department?.name === PROCESE_VERBALE_DEPARTMENT_NAME;
   const needsCarStatus = isDispatchDepartment || isControlDepartment || isPvfDepartment || isDomiciliuDepartment || isAchizitiiDepartment;
   const { data: carStatus } = useGetCarStatusTodayQuery(undefined, { skip: !needsCarStatus });
 
@@ -646,7 +651,7 @@ const EmployeeDashboard = () => {
   ];
 
   // Departamente cu dashboard simplu
-  const SIMPLE_DEPARTMENTS = ['Procese Verbale/Facturare', 'Parcometre', 'Achizitii'];
+  const SIMPLE_DEPARTMENTS = [PROCESE_VERBALE_DEPARTMENT_NAME, PARCOMETRE_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME];
   const isSimpleDepartment = SIMPLE_DEPARTMENTS.includes(user?.department?.name || '');
 
   if (isLoading) {

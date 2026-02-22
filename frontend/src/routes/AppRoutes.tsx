@@ -8,6 +8,11 @@ import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { useAppSelector } from '../store/hooks';
 import { Box, CircularProgress } from '@mui/material';
+import {
+  PROCESE_VERBALE_DEPARTMENT_NAME,
+  CONTROL_DEPARTMENT_NAME,
+  ACHIZITII_DEPARTMENT_NAME,
+} from '../constants/departments';
 
 // Lazy loaded route components
 const SchedulesPage = lazy(() => import('../pages/schedules/SchedulesPage'));
@@ -205,7 +210,7 @@ export const AppRoutes = () => {
         <Route
           path="/procese-verbale"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Procese Verbale/Facturare', 'Control']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME]}>
               <Suspense fallback={<PageLoader />}><ProcesVerbalePage /></Suspense>
             </ProtectedRoute>
           }
@@ -221,7 +226,7 @@ export const AppRoutes = () => {
         <Route
           path="/achizitii"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Achizitii']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[ACHIZITII_DEPARTMENT_NAME]}>
               <Suspense fallback={<PageLoader />}><AchizitiiPage /></Suspense>
             </ProtectedRoute>
           }
@@ -229,7 +234,7 @@ export const AppRoutes = () => {
         <Route
           path="/incasari-cheltuieli"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={['Achizitii']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[ACHIZITII_DEPARTMENT_NAME]}>
               <Suspense fallback={<PageLoader />}><IncasariCheltuieliPage /></Suspense>
             </ProtectedRoute>
           }

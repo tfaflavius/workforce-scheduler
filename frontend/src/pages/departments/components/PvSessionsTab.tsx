@@ -31,6 +31,7 @@ import {
   Description as PvIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
+import { PROCESE_VERBALE_DEPARTMENT_NAME } from '../../../constants/departments';
 import {
   useGetPvSessionsQuery,
   useCreatePvSessionMutation,
@@ -55,7 +56,7 @@ import {
 const PvSessionsTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const isAdmin = user?.role === 'ADMIN';
-  const isPvf = user?.department?.name === 'Procese Verbale/Facturare';
+  const isPvf = user?.department?.name === PROCESE_VERBALE_DEPARTMENT_NAME;
   const canCreate = isAdmin || isPvf;
 
   const { data: sessions = [], isLoading, error } = useGetPvSessionsQuery();
