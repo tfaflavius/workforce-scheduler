@@ -23,6 +23,9 @@ import { RevolutionarLegitimationComment } from './entities/revolutionar-legitim
 import { PvDisplaySession } from './entities/pv-display-session.entity';
 import { PvDisplayDay } from './entities/pv-display-day.entity';
 import { PvDisplaySessionComment } from './entities/pv-display-session-comment.entity';
+import { ParkingDailyTicket } from './entities/parking-daily-ticket.entity';
+import { ParkingMonthlySubscription } from './entities/parking-monthly-subscription.entity';
+import { ParkingWeeklyOccupancy } from './entities/parking-weekly-occupancy.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
@@ -38,6 +41,7 @@ import { DomiciliuRequestsService } from './domiciliu-requests.service';
 import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 import { PvDisplayService } from './pv-display.service';
+import { ParkingStatsService } from './parking-stats.service';
 
 // Controllers
 import { ParkingLotsController } from './parking-lots.controller';
@@ -51,6 +55,7 @@ import { HandicapLegitimationsController } from './handicap-legitimations.contro
 import { RevolutionarLegitimationsController } from './revolutionar-legitimations.controller';
 import { PvDisplayController } from './pv-display.controller';
 import { PvCarStatusController } from './pv-car-status.controller';
+import { ParkingStatsController } from './parking-stats.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
@@ -86,6 +91,9 @@ import { EmailModule } from '../../common/email/email.module';
       PvDisplaySession,
       PvDisplayDay,
       PvDisplaySessionComment,
+      ParkingDailyTicket,
+      ParkingMonthlySubscription,
+      ParkingWeeklyOccupancy,
       User,
       Department,
       ScheduleAssignment,
@@ -106,6 +114,7 @@ import { EmailModule } from '../../common/email/email.module';
     RevolutionarLegitimationsController,
     PvDisplayController,
     PvCarStatusController,
+    ParkingStatsController,
   ],
   providers: [
     ParkingLotsService,
@@ -118,6 +127,7 @@ import { EmailModule } from '../../common/email/email.module';
     HandicapLegitimationsService,
     RevolutionarLegitimationsService,
     PvDisplayService,
+    ParkingStatsService,
     PvDisplayAccessGuard,
     ParkingUrgentScheduler,
     PvDisplayScheduler,

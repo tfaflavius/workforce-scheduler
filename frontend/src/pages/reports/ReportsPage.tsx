@@ -36,11 +36,14 @@ import {
   LocalParking as ParkingIcon,
   Accessible as HandicapIcon,
   Home as HomeIcon,
+  BarChart as StatsIcon,
 } from '@mui/icons-material';
 import ParkingReportsTab from './ParkingReportsTab';
 import HandicapReportsTab from './HandicapReportsTab';
 import DomiciliuReportsTab from './DomiciliuReportsTab';
+import ParkingStatsReportsTab from './ParkingStatsReportsTab';
 import { GradientHeader, StatCard } from '../../components/common';
+import { useAppSelector } from '../../store/hooks';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetAllLeaveRequestsQuery } from '../../store/api/leaveRequests.api';
@@ -83,6 +86,8 @@ const SWAP_STATUS_LABELS: Record<ShiftSwapStatus, string> = {
 const ReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { user } = useAppSelector((state) => state.auth);
+  const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
   const [tabValue, setTabValue] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -1646,6 +1651,14 @@ const ReportsPage: React.FC = () => {
                   label={isMobile ? 'Domiciliu' : DOMICILIU_DEPARTMENT_NAME}
                   sx={{ minHeight: 48 }}
                 />
+                {isAdminOrManager && (
+                  <Tab
+                    icon={<StatsIcon />}
+                    iconPosition="start"
+                    label={isMobile ? 'Stat. Parcari' : 'Statistici Parcari'}
+                    sx={{ minHeight: 48 }}
+                  />
+                )}
               </Tabs>
 
               {/* Loading state */}
@@ -1683,6 +1696,9 @@ const ReportsPage: React.FC = () => {
                   onStartDateChange={(date) => date && setParkingStartDate(date)}
                   onEndDateChange={(date) => date && setParkingEndDate(date)}
                 />
+              )}
+              {isAdminOrManager && tabValue === 7 && (
+                <ParkingStatsReportsTab />
               )}
             </Stack>
           </CardContent>

@@ -14,6 +14,7 @@ import { dailyReportsApi } from './api/dailyReports.api';
 import { timeTrackingApi } from './api/time-tracking.api';
 import { acquisitionsApi } from './api/acquisitions.api';
 import { pvDisplayApi } from './api/pvDisplay.api';
+import { parkingStatsApi } from './api/parkingStats.api';
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ export const store = configureStore({
     [timeTrackingApi.reducerPath]: timeTrackingApi.reducer,
     [acquisitionsApi.reducerPath]: acquisitionsApi.reducer,
     [pvDisplayApi.reducerPath]: pvDisplayApi.reducer,
+    [parkingStatsApi.reducerPath]: parkingStatsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -48,7 +50,8 @@ export const store = configureStore({
       dailyReportsApi.middleware,
       timeTrackingApi.middleware,
       acquisitionsApi.middleware,
-      pvDisplayApi.middleware
+      pvDisplayApi.middleware,
+      parkingStatsApi.middleware
     ),
 });
 

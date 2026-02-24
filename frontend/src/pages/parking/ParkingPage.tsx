@@ -16,6 +16,7 @@ import {
   Warning as DamagesIcon,
   LocalAtm as CashIcon,
   Build as MaintenanceIcon,
+  BarChart as StatsIcon,
 } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
@@ -23,6 +24,7 @@ import ParkingIssuesTab from './components/ParkingIssuesTab';
 import ParkingDamagesTab from './components/ParkingDamagesTab';
 import CashCollectionsTab from './components/CashCollectionsTab';
 import MaintenanceIssuesTab from './components/MaintenanceIssuesTab';
+import ParkingStatsTab from './components/ParkingStatsTab';
 import {
   useGetMyAssignedIssuesQuery,
 } from '../../store/api/parking.api';
@@ -100,6 +102,8 @@ const ParkingPage: React.FC = () => {
   // For maintenance users, show only assigned issues count
   const maintenanceActiveCount = myAssignedIssues.filter(i => i.status === 'ACTIVE').length;
 
+  const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+
   const tabConfig = [
     {
       icon: <IssuesIcon />,
@@ -122,6 +126,17 @@ const ParkingPage: React.FC = () => {
       color: '#10b981',
       bgColor: alpha('#10b981', 0.1),
     },
+    ...(isAdminOrManager
+      ? [
+          {
+            icon: <StatsIcon />,
+            label: 'Statistici Parcari',
+            shortLabel: 'Statistici',
+            color: '#8b5cf6',
+            bgColor: alpha('#8b5cf6', 0.1),
+          },
+        ]
+      : []),
   ];
 
   // If user is from Intretinere Parcari, show only their assigned issues
@@ -352,6 +367,11 @@ const ParkingPage: React.FC = () => {
       <TabPanel value={tabValue} index={2}>
         <CashCollectionsTab />
       </TabPanel>
+      {isAdminOrManager && (
+        <TabPanel value={tabValue} index={3}>
+          <ParkingStatsTab />
+        </TabPanel>
+      )}
     </Box>
   );
 };
