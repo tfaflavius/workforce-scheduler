@@ -65,6 +65,7 @@ import { PvDisplaySessionComment } from './modules/parking/entities/pv-display-s
 import { ParkingDailyTicket } from './modules/parking/entities/parking-daily-ticket.entity';
 import { ParkingMonthlySubscription } from './modules/parking/entities/parking-monthly-subscription.entity';
 import { ParkingWeeklyOccupancy } from './modules/parking/entities/parking-weekly-occupancy.entity';
+import { ParkingMeter } from './modules/parking/entities/parking-meter.entity';
 
 @Module({
   imports: [
@@ -81,7 +82,7 @@ import { ParkingWeeklyOccupancy } from './modules/parking/entities/parking-weekl
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport, PvDisplaySession, PvDisplayDay, PvDisplaySessionComment, ParkingDailyTicket, ParkingMonthlySubscription, ParkingWeeklyOccupancy],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport, PvDisplaySession, PvDisplayDay, PvDisplaySessionComment, ParkingDailyTicket, ParkingMonthlySubscription, ParkingWeeklyOccupancy, ParkingMeter],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
