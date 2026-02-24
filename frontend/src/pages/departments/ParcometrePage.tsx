@@ -363,7 +363,12 @@ const ParcometrePage: React.FC = () => {
         fullScreen={isMobile}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: isMobile ? 0 : 3 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: isMobile ? 0 : 3,
+            overflow: 'hidden',
+          },
+        }}
       >
         <DialogTitle
           sx={{
@@ -373,6 +378,8 @@ const ParcometrePage: React.FC = () => {
             background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
             color: 'white',
             py: 1.5,
+            px: { xs: 2, sm: 3 },
+            minHeight: 56,
           }}
         >
           <PlaceIcon />
@@ -384,9 +391,18 @@ const ParcometrePage: React.FC = () => {
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 3, pb: 1 }}>
+        <DialogContent
+          sx={{
+            pt: '28px !important',
+            pb: 2,
+            px: { xs: 2, sm: 3 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2.5,
+          }}
+        >
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError('')}>
+            <Alert severity="error" sx={{ borderRadius: 2 }} onClose={() => setError('')}>
               {error}
             </Alert>
           )}
@@ -398,8 +414,8 @@ const ParcometrePage: React.FC = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
-            sx={{ mb: 2.5 }}
             autoFocus
+            variant="outlined"
           />
 
           <TextField
@@ -408,17 +424,21 @@ const ParcometrePage: React.FC = () => {
             placeholder="ex: Str. Republicii nr. 14"
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            sx={{ mb: 2.5 }}
+            variant="outlined"
           />
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
             <TextField
               fullWidth
               label="Latitudine"
               value={formData.latitude.toFixed(6)}
               slotProps={{ input: { readOnly: true } }}
               size="small"
-              sx={{ '& .MuiInputBase-root': { bgcolor: 'grey.50' } }}
+              variant="outlined"
+              sx={{
+                '& .MuiInputBase-root': { bgcolor: 'grey.50' },
+                '& .MuiInputBase-input': { fontFamily: 'monospace', fontSize: '0.875rem' },
+              }}
             />
             <TextField
               fullWidth
@@ -426,13 +446,30 @@ const ParcometrePage: React.FC = () => {
               value={formData.longitude.toFixed(6)}
               slotProps={{ input: { readOnly: true } }}
               size="small"
-              sx={{ '& .MuiInputBase-root': { bgcolor: 'grey.50' } }}
+              variant="outlined"
+              sx={{
+                '& .MuiInputBase-root': { bgcolor: 'grey.50' },
+                '& .MuiInputBase-input': { fontFamily: 'monospace', fontSize: '0.875rem' },
+              }}
             />
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2.5, pt: 1.5, gap: 1 }}>
-          <Button onClick={handleCloseDialog} variant="outlined" sx={{ borderRadius: 2 }}>
+        <DialogActions
+          sx={{
+            px: { xs: 2, sm: 3 },
+            pb: { xs: 2, sm: 2.5 },
+            pt: 1,
+            gap: 1,
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
+            '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+          }}
+        >
+          <Button
+            onClick={handleCloseDialog}
+            variant="outlined"
+            sx={{ borderRadius: 2, py: { xs: 1.2, sm: 1 } }}
+          >
             Anuleaza
           </Button>
           <Button
@@ -441,6 +478,7 @@ const ParcometrePage: React.FC = () => {
             disabled={creating || updating || !formData.name.trim()}
             sx={{
               borderRadius: 2,
+              py: { xs: 1.2, sm: 1 },
               background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
               '&:hover': { background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' },
             }}
