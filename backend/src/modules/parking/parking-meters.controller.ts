@@ -22,19 +22,19 @@ export class ParkingMetersController {
   constructor(private readonly parkingMetersService: ParkingMetersService) {}
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
   async findAll(): Promise<ParkingMeter[]> {
     return this.parkingMetersService.findAll();
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
   async create(@Body() dto: CreateParkingMeterDto): Promise<ParkingMeter> {
     return this.parkingMetersService.create(dto);
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateParkingMeterDto,
@@ -43,7 +43,7 @@ export class ParkingMetersController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
   async remove(@Param('id') id: string): Promise<void> {
     return this.parkingMetersService.remove(id);
   }

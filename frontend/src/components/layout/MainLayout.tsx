@@ -255,7 +255,8 @@ export const MainLayout = () => {
       text: 'Parcometre',
       icon: <MeterIcon />,
       path: '/parcometre',
-      roles: ['ADMIN'],
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: [PARCOMETRE_DEPARTMENT_NAME],
     },
     {
       text: 'Achizitii',

@@ -12,6 +12,7 @@ import {
   PROCESE_VERBALE_DEPARTMENT_NAME,
   CONTROL_DEPARTMENT_NAME,
   ACHIZITII_DEPARTMENT_NAME,
+  PARCOMETRE_DEPARTMENT_NAME,
 } from '../constants/departments';
 
 // Lazy loaded route components
@@ -218,7 +219,7 @@ export const AppRoutes = () => {
         <Route
           path="/parcometre"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PARCOMETRE_DEPARTMENT_NAME]}>
               <Suspense fallback={<PageLoader />}><ParcometrePage /></Suspense>
             </ProtectedRoute>
           }
