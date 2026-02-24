@@ -132,8 +132,8 @@ const ParcometrePage: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', address: '', latitude: 0, longitude: 0 });
   const [error, setError] = useState('');
 
-  // Delete confirm state
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  // Delete confirm dialog state
+  const [deletingMeter, setDeletingMeter] = useState<ParkingMeter | null>(null);
 
   // New marker position (before saving)
   const [newMarkerPos, setNewMarkerPos] = useState<[number, number] | null>(null);
@@ -200,11 +200,12 @@ const ParcometrePage: React.FC = () => {
     }
   };
 
-  // Handle delete
-  const handleDelete = async (id: string) => {
+  // Handle delete confirm
+  const handleDeleteConfirm = async () => {
+    if (!deletingMeter) return;
     try {
-      await deleteMeter(id).unwrap();
-      setDeleteConfirmId(null);
+      await deleteMeter(deletingMeter.id).unwrap();
+      setDeletingMeter(null);
     } catch {
       // silent
     }
@@ -326,35 +327,15 @@ const ParcometrePage: React.FC = () => {
                       >
                         Editeaza
                       </Button>
-                      {deleteConfirmId === meter.id ? (
-                        <>
-                          <Button
-                            size="small"
-                            color="error"
-                            onClick={() => handleDelete(meter.id)}
-                            sx={{ fontSize: '0.7rem', textTransform: 'none', minWidth: 'auto', px: 1 }}
-                          >
-                            Confirma
-                          </Button>
-                          <Button
-                            size="small"
-                            onClick={() => setDeleteConfirmId(null)}
-                            sx={{ fontSize: '0.7rem', textTransform: 'none', minWidth: 'auto', px: 1 }}
-                          >
-                            Anuleaza
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          size="small"
-                          color="error"
-                          startIcon={<DeleteIcon sx={{ fontSize: 14 }} />}
-                          onClick={() => setDeleteConfirmId(meter.id)}
-                          sx={{ fontSize: '0.7rem', textTransform: 'none', minWidth: 'auto', px: 1 }}
-                        >
-                          Sterge
-                        </Button>
-                      )}
+                      <Button
+                        size="small"
+                        color="error"
+                        startIcon={<DeleteIcon sx={{ fontSize: 14 }} />}
+                        onClick={() => setDeletingMeter(meter)}
+                        sx={{ fontSize: '0.7rem', textTransform: 'none', minWidth: 'auto', px: 1 }}
+                      >
+                        Sterge
+                      </Button>
                     </Box>
                   </Box>
                 </Popup>
@@ -465,6 +446,40 @@ const ParcometrePage: React.FC = () => {
             }}
           >
             {creating || updating ? <CircularProgress size={20} color="inherit" /> : editingMeter ? 'Salveaza' : 'Adauga'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={!!deletingMeter}
+        onClose={() => setDeletingMeter(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
+          <DeleteIcon color="error" />
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.05rem' }}>
+            Sterge Parcometru
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Esti sigur ca vrei sa stergi parcometrul <strong>{deletingMeter?.name}</strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button onClick={() => setDeletingMeter(null)} variant="outlined" sx={{ borderRadius: 2 }}>
+            Anuleaza
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            variant="contained"
+            color="error"
+            sx={{ borderRadius: 2 }}
+          >
+            Sterge
           </Button>
         </DialogActions>
       </Dialog>
