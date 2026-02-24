@@ -97,6 +97,17 @@ export const MainLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [deptOpen, setDeptOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    Principal: true,
+    Operatiuni: true,
+    Administrare: true,
+    Parcari: true,
+    Altele: true,
+  });
+
+  const toggleSection = (label: string) => {
+    setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -509,96 +520,137 @@ export const MainLayout = () => {
 
           let globalIndex = 0;
 
-          return groupedItems.map((group, groupIdx) => (
-            <Box key={group.label}>
-              {groupIdx > 0 && <Divider sx={{ my: 1, mx: 1, opacity: 0.4 }} />}
-              <Typography
-                variant="caption"
-                sx={{
-                  px: 2,
-                  py: 0.75,
-                  display: 'block',
-                  fontWeight: 700,
-                  fontSize: '0.65rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  color: alpha(group.color, 0.8),
-                }}
-              >
-                {group.label}
-              </Typography>
-              {group.items.map((item) => {
-                const isActive = location.pathname === item.path;
-                const idx = globalIndex++;
-                return (
-                  <Fade in={true} key={item.path} style={{ transitionDelay: `${idx * 30}ms` }}>
-                    <ListItem disablePadding sx={{ py: 0.25 }}>
-                      <ListItemButton
-                        onClick={() => handleNavigate(item.path)}
+          return groupedItems.map((group, groupIdx) => {
+            const isSectionOpen = openSections[group.label] !== false;
+            // Check if any item in this group is active
+            const hasActiveItem = group.items.some((item) => location.pathname === item.path);
+
+            return (
+              <Box key={group.label}>
+                {groupIdx > 0 && <Divider sx={{ my: 1, mx: 1, opacity: 0.4 }} />}
+                {/* Collapsible section header */}
+                <ListItem disablePadding sx={{ py: 0.25 }}>
+                  <ListItemButton
+                    onClick={() => toggleSection(group.label)}
+                    sx={{
+                      borderRadius: 2,
+                      mx: 0.5,
+                      py: { xs: 0.75, sm: 1 },
+                      px: { xs: 1.5, sm: 2 },
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        bgcolor: alpha(group.color, 0.06),
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={group.label}
+                      primaryTypographyProps={{
+                        fontWeight: 700,
+                        color: alpha(group.color, 0.8),
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        fontSize: '0.65rem',
+                      }}
+                    />
+                    {hasActiveItem && !isSectionOpen && (
+                      <Box
                         sx={{
-                          borderRadius: 2,
-                          mx: 0.5,
-                          py: { xs: 1, sm: 1.25 },
-                          px: { xs: 1.5, sm: 2 },
-                          bgcolor: isActive
-                            ? alpha(group.color, 0.1)
-                            : 'transparent',
-                          color: isActive ? 'text.primary' : 'text.primary',
-                          borderLeft: isActive ? `3px solid ${group.color}` : '3px solid transparent',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            bgcolor: isActive
-                              ? alpha(group.color, 0.15)
-                              : alpha(theme.palette.primary.main, 0.06),
-                            transform: 'translateX(4px)',
-                          },
-                          '&:active': {
-                            transform: 'translateX(2px)',
-                          },
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: group.color,
+                          mr: 1,
                         }}
-                      >
-                        <ListItemIcon
-                          sx={{
-                            color: isActive ? group.color : 'text.secondary',
-                            minWidth: { xs: 36, sm: 40 },
-                            position: 'relative',
-                            '& .MuiSvgIcon-root': {
-                              fontSize: { xs: '1.25rem', sm: '1.4rem' },
-                            },
-                          }}
-                        >
-                          {item.icon}
-                          {/* Section color dot */}
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: -2,
-                              right: { xs: 10, sm: 12 },
-                              width: 6,
-                              height: 6,
-                              borderRadius: '50%',
-                              bgcolor: group.color,
-                              opacity: isActive ? 1 : 0.4,
-                              transition: 'opacity 0.2s ease',
-                            }}
-                          />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={item.text}
-                          primaryTypographyProps={{
-                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                            fontWeight: isActive ? 700 : 500,
-                            noWrap: true,
-                            color: isActive ? group.color : 'text.primary',
-                          }}
-                        />
-                      </ListItemButton>
-                    </ListItem>
+                      />
+                    )}
+                    {isSectionOpen ? (
+                      <ExpandLessIcon sx={{ fontSize: '1.2rem', color: alpha(group.color, 0.6) }} />
+                    ) : (
+                      <ExpandMoreIcon sx={{ fontSize: '1.2rem', color: alpha(group.color, 0.6) }} />
+                    )}
+                  </ListItemButton>
+                </ListItem>
+                {/* Collapsible items */}
+                {isSectionOpen && (
+                  <Fade in={isSectionOpen}>
+                    <Box>
+                      {group.items.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        const idx = globalIndex++;
+                        return (
+                          <Fade in={true} key={item.path} style={{ transitionDelay: `${idx * 30}ms` }}>
+                            <ListItem disablePadding sx={{ py: 0.25 }}>
+                              <ListItemButton
+                                onClick={() => handleNavigate(item.path)}
+                                sx={{
+                                  borderRadius: 2,
+                                  mx: 0.5,
+                                  py: { xs: 1, sm: 1.25 },
+                                  px: { xs: 1.5, sm: 2 },
+                                  bgcolor: isActive
+                                    ? alpha(group.color, 0.1)
+                                    : 'transparent',
+                                  color: isActive ? 'text.primary' : 'text.primary',
+                                  borderLeft: isActive ? `3px solid ${group.color}` : '3px solid transparent',
+                                  transition: 'all 0.2s ease-in-out',
+                                  '&:hover': {
+                                    bgcolor: isActive
+                                      ? alpha(group.color, 0.15)
+                                      : alpha(theme.palette.primary.main, 0.06),
+                                    transform: 'translateX(4px)',
+                                  },
+                                  '&:active': {
+                                    transform: 'translateX(2px)',
+                                  },
+                                }}
+                              >
+                                <ListItemIcon
+                                  sx={{
+                                    color: isActive ? group.color : 'text.secondary',
+                                    minWidth: { xs: 36, sm: 40 },
+                                    position: 'relative',
+                                    '& .MuiSvgIcon-root': {
+                                      fontSize: { xs: '1.25rem', sm: '1.4rem' },
+                                    },
+                                  }}
+                                >
+                                  {item.icon}
+                                  {/* Section color dot */}
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      top: -2,
+                                      right: { xs: 10, sm: 12 },
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: '50%',
+                                      bgcolor: group.color,
+                                      opacity: isActive ? 1 : 0.4,
+                                      transition: 'opacity 0.2s ease',
+                                    }}
+                                  />
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={item.text}
+                                  primaryTypographyProps={{
+                                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                                    fontWeight: isActive ? 700 : 500,
+                                    noWrap: true,
+                                    color: isActive ? group.color : 'text.primary',
+                                  }}
+                                />
+                              </ListItemButton>
+                            </ListItem>
+                          </Fade>
+                        );
+                      })}
+                    </Box>
                   </Fade>
-                );
-              })}
-            </Box>
-          ));
+                )}
+              </Box>
+            );
+          });
         })()}
 
         {/* Departamente Section - Only for ADMIN */}
