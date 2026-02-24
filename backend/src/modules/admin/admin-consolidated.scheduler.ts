@@ -20,13 +20,12 @@ import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
 import { HANDICAP_REQUEST_TYPE_LABELS, PV_DAY_STATUS, PV_SESSION_STATUS, PV_DAY_STATUS_LABELS } from '../parking/constants/parking.constants';
 
 /**
- * Admin Consolidated Scheduler
+ * Admin & Manager Consolidated Scheduler
  *
- * Sends consolidated email reports to admins:
- * 1. Daily consolidated report (Mon-Fri 20:00) — combines all individual reports
- * 2. Weekly consolidated report (Friday 20:00) — weekly summary of daily reports
- *
- * Individual emails to managers, department users, etc. remain unchanged.
+ * Sends consolidated email reports:
+ * 1. Manager morning report (Mon-Fri 08:00) — consolidated to managers only
+ * 2. Daily consolidated report (Mon-Fri 20:00) — consolidated to admins + managers
+ * 3. Weekly consolidated report (Friday 20:30) — weekly summary to admins + managers
  */
 @Injectable()
 export class AdminConsolidatedScheduler {
@@ -59,80 +58,111 @@ export class AdminConsolidatedScheduler {
     private readonly dailyReportsService: DailyReportsService,
   ) {}
 
-  // ============== CRON 1: Raport zilnic consolidat ==============
+  // ============== CRON 1: Raport zilnic consolidat DIMINEATA — doar Manageri (08:00) ==============
 
-  @Cron('0 20 * * 1-5', { timeZone: 'Europe/Bucharest' })
-  async handleConsolidatedDailyReport() {
-    this.logger.log('[Admin Consolidat] Generare raport zilnic consolidat...');
+  @Cron('0 8 * * 1-5', { timeZone: 'Europe/Bucharest' })
+  async handleManagerMorningReport() {
+    this.logger.log('[Consolidat] Generare raport dimineata pentru manageri...');
 
     try {
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-      const dateStr = today.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const formatTime = (d: Date) => d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bucharest' });
-
-      // Collect all data in parallel
-      const [
-        cashData,
-        parkingData,
-        unresolvedData,
-        handicapData,
-        gpsData,
-        missingReportsData,
-        pvDisplayData,
-      ] = await Promise.all([
-        this.collectCashData(startOfDay, endOfDay),
-        this.collectParkingData(startOfDay, endOfDay, formatTime),
-        this.collectUnresolvedData(),
-        this.collectHandicapData(today, startOfDay, endOfDay),
-        this.collectGpsData(today),
-        this.collectMissingReportsData(today),
-        this.collectPvDisplayData(today),
-      ]);
-
-      // Get active admins
-      const admins = await this.userRepository.find({
-        where: { role: UserRole.ADMIN, isActive: true },
+      const managers = await this.userRepository.find({
+        where: { role: UserRole.MANAGER, isActive: true },
       });
 
-      if (admins.length === 0) {
-        this.logger.warn('[Admin Consolidat] Nu exista admini activi');
+      if (managers.length === 0) {
+        this.logger.warn('[Consolidat] Nu exista manageri activi');
         return;
       }
 
-      let sentCount = 0;
-      for (const admin of admins) {
-        try {
-          const success = await this.emailService.sendConsolidatedDailyReport({
-            recipientEmail: admin.email,
-            recipientName: admin.fullName,
-            reportDate: dateStr,
-            cashReport: cashData,
-            parkingSummary: parkingData,
-            unresolvedItems: unresolvedData,
-            handicapReport: handicapData,
-            gpsReport: gpsData,
-            missingDailyReports: missingReportsData,
-            pvDisplayReport: pvDisplayData,
-          });
-          if (success) sentCount++;
-        } catch (err) {
-          this.logger.error(`[Admin Consolidat] Eroare trimitere catre ${admin.email}: ${err.message}`);
-        }
-      }
-
-      this.logger.log(`[Admin Consolidat] Raport zilnic trimis la ${sentCount}/${admins.length} admini`);
+      const sentCount = await this.sendConsolidatedDaily(managers);
+      this.logger.log(`[Consolidat] Raport dimineata trimis la ${sentCount}/${managers.length} manageri`);
     } catch (error) {
-      this.logger.error(`[Admin Consolidat] Eroare raport zilnic: ${error.message}`);
+      this.logger.error(`[Consolidat] Eroare raport dimineata manageri: ${error.message}`);
     }
   }
 
-  // ============== CRON 2: Raport saptamanal consolidat (Vineri) ==============
+  // ============== CRON 2: Raport zilnic consolidat SEARA — Admini + Manageri (20:00) ==============
+
+  @Cron('0 20 * * 1-5', { timeZone: 'Europe/Bucharest' })
+  async handleConsolidatedDailyReport() {
+    this.logger.log('[Consolidat] Generare raport seara pentru admini + manageri...');
+
+    try {
+      const [admins, managers] = await Promise.all([
+        this.userRepository.find({ where: { role: UserRole.ADMIN, isActive: true } }),
+        this.userRepository.find({ where: { role: UserRole.MANAGER, isActive: true } }),
+      ]);
+
+      const recipients = [...admins, ...managers];
+      if (recipients.length === 0) {
+        this.logger.warn('[Consolidat] Nu exista admini sau manageri activi');
+        return;
+      }
+
+      const sentCount = await this.sendConsolidatedDaily(recipients);
+      this.logger.log(`[Consolidat] Raport seara trimis la ${sentCount}/${recipients.length} (${admins.length} admini, ${managers.length} manageri)`);
+    } catch (error) {
+      this.logger.error(`[Consolidat] Eroare raport seara: ${error.message}`);
+    }
+  }
+
+  // ============== HELPER: Trimite raport zilnic consolidat ==============
+
+  private async sendConsolidatedDaily(recipients: User[]): Promise<number> {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    const dateStr = today.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const formatTime = (d: Date) => d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bucharest' });
+
+    // Collect all data in parallel
+    const [
+      cashData,
+      parkingData,
+      unresolvedData,
+      handicapData,
+      gpsData,
+      missingReportsData,
+      pvDisplayData,
+    ] = await Promise.all([
+      this.collectCashData(startOfDay, endOfDay),
+      this.collectParkingData(startOfDay, endOfDay, formatTime),
+      this.collectUnresolvedData(),
+      this.collectHandicapData(today, startOfDay, endOfDay),
+      this.collectGpsData(today),
+      this.collectMissingReportsData(today),
+      this.collectPvDisplayData(today),
+    ]);
+
+    let sentCount = 0;
+    for (const recipient of recipients) {
+      try {
+        const success = await this.emailService.sendConsolidatedDailyReport({
+          recipientEmail: recipient.email,
+          recipientName: recipient.fullName,
+          reportDate: dateStr,
+          cashReport: cashData,
+          parkingSummary: parkingData,
+          unresolvedItems: unresolvedData,
+          handicapReport: handicapData,
+          gpsReport: gpsData,
+          missingDailyReports: missingReportsData,
+          pvDisplayReport: pvDisplayData,
+        });
+        if (success) sentCount++;
+      } catch (err) {
+        this.logger.error(`[Consolidat] Eroare trimitere catre ${recipient.email}: ${err.message}`);
+      }
+    }
+
+    return sentCount;
+  }
+
+  // ============== CRON 3: Raport saptamanal consolidat (Vineri 20:30) — Admini + Manageri ==============
 
   @Cron('30 20 * * 5', { timeZone: 'Europe/Bucharest' })
   async handleConsolidatedWeeklyReport() {
-    this.logger.log('[Admin Consolidat] Generare raport saptamanal consolidat...');
+    this.logger.log('[Consolidat] Generare raport saptamanal pentru admini + manageri...');
 
     try {
       // Calculate week range: Monday → Friday
@@ -169,7 +199,7 @@ export class AdminConsolidatedScheduler {
               );
             }
           } catch (error) {
-            this.logger.error(`[Admin Consolidat] Eroare rapoarte lipsa ${dateStr}: ${error.message}`);
+            this.logger.error(`[Consolidat] Eroare rapoarte lipsa ${dateStr}: ${error.message}`);
           }
         }
         current.setDate(current.getDate() + 1);
@@ -177,33 +207,35 @@ export class AdminConsolidatedScheduler {
 
       const emailData = this.buildWeeklyEmailData(allReports, mondayStr, fridayStr, missingByDate);
 
-      // Get active admins
-      const admins = await this.userRepository.find({
-        where: { role: UserRole.ADMIN, isActive: true },
-      });
+      // Get active admins + managers
+      const [admins, managers] = await Promise.all([
+        this.userRepository.find({ where: { role: UserRole.ADMIN, isActive: true } }),
+        this.userRepository.find({ where: { role: UserRole.MANAGER, isActive: true } }),
+      ]);
 
-      if (admins.length === 0) {
-        this.logger.warn('[Admin Consolidat] Nu exista admini activi pentru raport saptamanal');
+      const recipients = [...admins, ...managers];
+      if (recipients.length === 0) {
+        this.logger.warn('[Consolidat] Nu exista admini sau manageri activi pentru raport saptamanal');
         return;
       }
 
       let sentCount = 0;
-      for (const admin of admins) {
+      for (const recipient of recipients) {
         try {
           const success = await this.emailService.sendConsolidatedWeeklyReport({
             ...emailData,
-            recipientEmail: admin.email,
-            recipientName: admin.fullName,
+            recipientEmail: recipient.email,
+            recipientName: recipient.fullName,
           });
           if (success) sentCount++;
         } catch (err) {
-          this.logger.error(`[Admin Consolidat] Eroare weekly catre ${admin.email}: ${err.message}`);
+          this.logger.error(`[Consolidat] Eroare weekly catre ${recipient.email}: ${err.message}`);
         }
       }
 
-      this.logger.log(`[Admin Consolidat] Raport saptamanal trimis la ${sentCount}/${admins.length} admini`);
+      this.logger.log(`[Consolidat] Raport saptamanal trimis la ${sentCount}/${recipients.length} (${admins.length} admini, ${managers.length} manageri)`);
     } catch (error) {
-      this.logger.error(`[Admin Consolidat] Eroare raport saptamanal: ${error.message}`);
+      this.logger.error(`[Consolidat] Eroare raport saptamanal: ${error.message}`);
     }
   }
 

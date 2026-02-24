@@ -2,17 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { ParkingIssuesService } from './parking-issues.service';
 import { ParkingDamagesService } from './parking-damages.service';
-import { CashCollectionsService } from './cash-collections.service';
 import { HandicapRequestsService } from './handicap-requests.service';
 import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 import { EmailService } from '../../common/email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { User, UserRole } from '../users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
-import { ParkingIssue } from './entities/parking-issue.entity';
-import { ParkingDamage } from './entities/parking-damage.entity';
 import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
@@ -25,7 +22,6 @@ export class ParkingUrgentScheduler {
   constructor(
     private readonly parkingIssuesService: ParkingIssuesService,
     private readonly parkingDamagesService: ParkingDamagesService,
-    private readonly cashCollectionsService: CashCollectionsService,
     private readonly handicapRequestsService: HandicapRequestsService,
     private readonly handicapLegitimationsService: HandicapLegitimationsService,
     private readonly revolutionarLegitimationsService: RevolutionarLegitimationsService,
@@ -34,10 +30,6 @@ export class ParkingUrgentScheduler {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
-    @InjectRepository(ParkingIssue)
-    private readonly parkingIssueRepository: Repository<ParkingIssue>,
-    @InjectRepository(ParkingDamage)
-    private readonly parkingDamageRepository: Repository<ParkingDamage>,
     @InjectRepository(HandicapRequest)
     private readonly handicapRequestRepository: Repository<HandicapRequest>,
     @InjectRepository(HandicapLegitimation)
@@ -63,18 +55,18 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 08:00 - notificari catre Manageri, Dispecerat + Intretinere (doar asignat)
-  // Adminii primesc totul in raportul consolidat de la 20:00
+  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 08:00 - notificari catre Dispecerat + Intretinere (doar asignat)
+  // Adminii si Managerii primesc raport consolidat separat
   @Cron('0 8 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleNotifyUrgentMorning() {
-    this.logger.log('Trimitere notificari 08:00 (fara Admini - primesc raport consolidat)...');
+    this.logger.log('Trimitere notificari 08:00 (Dispecerat + Intretinere)...');
 
     try {
       // Notificari in-app
       await this.parkingIssuesService.notifyUrgentIssues();
 
-      // Trimite emailuri cu reminder-uri - FARA Admini (primesc raport consolidat la 20:00)
-      await this.sendUnresolvedItemsReminderEmails(false);
+      // Trimite emailuri cu reminder-uri - doar Dispecerat + Intretinere
+      await this.sendUnresolvedItemsReminderEmails();
 
       this.logger.log('Notificari 08:00 trimise cu succes');
     } catch (error) {
@@ -82,17 +74,17 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 13:00 - notificari catre Manageri, Dispecerat + Intretinere (doar asignat) - FARA Admini
+  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 13:00 - notificari catre Dispecerat + Intretinere (doar asignat)
   @Cron('0 13 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleNotifyUrgentAfternoon() {
-    this.logger.log('Trimitere notificari 13:00 (fara Admini)...');
+    this.logger.log('Trimitere notificari 13:00 (Dispecerat + Intretinere)...');
 
     try {
       // Notificari in-app
       await this.parkingIssuesService.notifyUrgentIssues();
 
-      // Trimite emailuri cu reminder-uri - FARA Admini
-      await this.sendUnresolvedItemsReminderEmails(false);
+      // Trimite emailuri cu reminder-uri - doar Dispecerat + Intretinere
+      await this.sendUnresolvedItemsReminderEmails();
 
       this.logger.log('Notificari 13:00 trimise cu succes');
     } catch (error) {
@@ -100,23 +92,11 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 18:00 pentru raportul de incasari
-  @Cron('0 18 * * 1-5', { timeZone: 'Europe/Bucharest' })
-  async handleDailyCashReport() {
-    this.logger.log('Generare raport zilnic incasari...');
-
-    try {
-      await this.sendDailyCashReportEmails();
-      this.logger.log('Raport zilnic incasari trimis cu succes');
-    } catch (error) {
-      this.logger.error('Eroare la trimiterea raportului zilnic:', error);
-    }
-  }
-
-  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 09:00 pentru raportul Handicap catre Admin si Parcari Handicap
+  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 09:00 pentru raportul Handicap catre Parcari Handicap
+  // Adminii si Managerii primesc datele handicap in raportul consolidat
   @Cron('0 9 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async handleDailyHandicapReport() {
-    this.logger.log('Generare raport zilnic Handicap pentru Admin si Parcari Handicap (zile lucratoare)...');
+    this.logger.log('Generare raport zilnic Handicap pentru Parcari Handicap (zile lucratoare)...');
 
     try {
       await this.sendDailyHandicapReportToAdminAndHandicapDept();
@@ -126,141 +106,12 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Ruleaza zilnic la 20:00 - trimite email centralizat cu toate activitatile din ziua curenta
-  @Cron('0 20 * * *', { timeZone: 'Europe/Bucharest' })
-  async handleDailyParkingSummary() {
-    this.logger.log('Generare rezumat zilnic parcari...');
-
-    try {
-      await this.sendDailyParkingSummaryEmails();
-      this.logger.log('Rezumat zilnic parcari trimis cu succes');
-    } catch (error) {
-      this.logger.error('Eroare la trimiterea rezumatului zilnic parcari:', error);
-    }
-  }
-
-  /**
-   * Trimite email centralizat cu TOATE activitatile din ziua curenta:
-   * - Probleme noi + rezolvate
-   * - Prejudicii noi + rezolvate
-   * - Status nerezolvate
-   */
-  private async sendDailyParkingSummaryEmails(): Promise<void> {
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-
-    const dateStr = today.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const formatTime = (d: Date) => d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bucharest' });
-
-    // Fetch today's issues
-    const newIssues = await this.parkingIssueRepository.find({
-      where: { createdAt: Between(startOfDay, endOfDay) },
-      relations: ['parkingLot', 'creator'],
-      order: { createdAt: 'ASC' },
-    });
-
-    const resolvedIssues = await this.parkingIssueRepository.find({
-      where: { resolvedAt: Between(startOfDay, endOfDay) },
-      relations: ['parkingLot', 'resolver'],
-      order: { resolvedAt: 'ASC' },
-    });
-
-    // Fetch today's damages
-    const newDamages = await this.parkingDamageRepository.find({
-      where: { createdAt: Between(startOfDay, endOfDay) },
-      relations: ['parkingLot', 'creator'],
-      order: { createdAt: 'ASC' },
-    });
-
-    const resolvedDamages = await this.parkingDamageRepository.find({
-      where: { resolvedAt: Between(startOfDay, endOfDay) },
-      relations: ['parkingLot', 'resolver'],
-      order: { resolvedAt: 'ASC' },
-    });
-
-    // Count still unresolved
-    const unresolvedIssues = await this.parkingIssueRepository.count({
-      where: { status: 'ACTIVE' as any },
-    });
-    const unresolvedDamages = await this.parkingDamageRepository.count({
-      where: { status: 'ACTIVE' as any },
-    });
-    const urgentIssues = await this.parkingIssueRepository.count({
-      where: { status: 'ACTIVE' as any, isUrgent: true },
-    });
-    const urgentDamages = await this.parkingDamageRepository.count({
-      where: { status: 'ACTIVE' as any, isUrgent: true },
-    });
-
-    // Get only manager recipients (admins receive consolidated report at 20:00)
-    const recipients = await this.userRepository.find({
-      where: { role: UserRole.MANAGER, isActive: true },
-    });
-
-    if (recipients.length === 0) return;
-
-    // Send to each recipient
-    for (const recipient of recipients) {
-      try {
-        await this.emailService.sendDailyParkingSummary({
-          recipientEmail: recipient.email,
-          recipientName: recipient.fullName,
-          date: dateStr,
-          newIssues: newIssues.map(i => ({
-            parkingLotName: i.parkingLot?.name || 'N/A',
-            equipment: i.equipment,
-            description: i.description,
-            creatorName: i.creator?.fullName || 'N/A',
-            createdAt: formatTime(new Date(i.createdAt)),
-            isUrgent: i.isUrgent || false,
-          })),
-          resolvedIssues: resolvedIssues.map(i => ({
-            parkingLotName: i.parkingLot?.name || 'N/A',
-            equipment: i.equipment,
-            resolverName: i.resolver?.fullName || 'N/A',
-            resolvedAt: formatTime(new Date(i.resolvedAt)),
-            resolutionDescription: i.resolutionDescription,
-          })),
-          newDamages: newDamages.map(d => ({
-            parkingLotName: d.parkingLot?.name || 'N/A',
-            damagedEquipment: d.damagedEquipment,
-            personName: d.personName,
-            carPlate: d.carPlate,
-            description: d.description,
-            creatorName: d.creator?.fullName || 'N/A',
-            createdAt: formatTime(new Date(d.createdAt)),
-            isUrgent: d.isUrgent || false,
-          })),
-          resolvedDamages: resolvedDamages.map(d => ({
-            parkingLotName: d.parkingLot?.name || 'N/A',
-            damagedEquipment: d.damagedEquipment,
-            resolverName: d.resolver?.fullName || 'N/A',
-            resolvedAt: formatTime(new Date(d.resolvedAt)),
-            resolutionType: d.resolutionType,
-            resolutionDescription: d.resolutionDescription,
-          })),
-          stillUnresolved: {
-            issuesCount: unresolvedIssues,
-            damagesCount: unresolvedDamages,
-            urgentCount: urgentIssues + urgentDamages,
-          },
-        });
-      } catch (err) {
-        this.logger.error(`Eroare la trimiterea rezumatului catre ${recipient.email}: ${err.message}`);
-      }
-    }
-  }
-
   /**
    * Trimite emailuri cu reminder-uri pentru probleme si prejudicii nerezolvate
-   * - Dispecerat: primeste TOATE problemele si prejudiciile
-   * - Intretinere Parcari: primeste DOAR problemele asignate lor
-   * - Manageri: primesc TOATE
-   * - Admini: primesc TOATE (doar la 08:00)
-   * @param includeAdmins - daca sa includa adminii (true la 08:00, false la 13:00)
+   * Doar catre Dispecerat si Intretinere Parcari (doar asignat)
+   * Adminii si Managerii primesc datele in raportul consolidat
    */
-  private async sendUnresolvedItemsReminderEmails(includeAdmins: boolean): Promise<void> {
+  private async sendUnresolvedItemsReminderEmails(): Promise<void> {
     // Obtine toate problemele si prejudiciile active
     const activeIssues = await this.parkingIssuesService.findAll('ACTIVE');
     const activeDamages = await this.parkingDamagesService.findAllActive();
@@ -283,7 +134,7 @@ export class ParkingUrgentScheduler {
         createdAt: createdAt.toLocaleDateString('ro-RO'),
         daysOpen,
         isUrgent: issue.isUrgent,
-        assignedTo: issue.assignedTo, // pentru filtrare
+        assignedTo: issue.assignedTo,
       };
     });
 
@@ -310,17 +161,6 @@ export class ParkingUrgentScheduler {
     const maintenanceDept = await this.departmentRepository.findOne({
       where: { name: MAINTENANCE_DEPARTMENT_NAME },
     });
-
-    // Obtine userii pe categorii
-    const managers = await this.userRepository.find({
-      where: { role: UserRole.MANAGER, isActive: true },
-    });
-
-    const admins = includeAdmins
-      ? await this.userRepository.find({
-          where: { role: UserRole.ADMIN, isActive: true },
-        })
-      : [];
 
     const dispeceratUsers = dispeceratDept
       ? await this.userRepository.find({
@@ -360,104 +200,24 @@ export class ParkingUrgentScheduler {
       if (success) sentCount++;
     };
 
-    // 1. Admini - primesc TOATE (doar daca includeAdmins=true)
-    for (const admin of admins) {
-      await sendEmailToUser(admin, allUnresolvedIssues, allUnresolvedDamages);
-    }
-
-    // 2. Manageri - primesc TOATE
-    for (const manager of managers) {
-      await sendEmailToUser(manager, allUnresolvedIssues, allUnresolvedDamages);
-    }
-
-    // 3. Dispecerat - primesc TOATE
+    // 1. Dispecerat - primesc TOATE
     for (const user of dispeceratUsers) {
       await sendEmailToUser(user, allUnresolvedIssues, allUnresolvedDamages);
     }
 
-    // 4. Intretinere Parcari - primesc DOAR problemele asignate lor (prejudiciile nu au assignedTo)
+    // 2. Intretinere Parcari - primesc DOAR problemele asignate lor
     for (const user of maintenanceUsers) {
-      // Filtreaza doar problemele asignate acestui user
       const userAssignedIssues = allUnresolvedIssues.filter(
         issue => issue.assignedTo === user.id,
       );
-
-      // Intretinere nu primeste prejudicii (nu au assignedTo)
       await sendEmailToUser(user, userAssignedIssues, []);
     }
 
     const totalRecipients = processedUserIds.size;
     this.logger.log(
       `Reminder-uri trimise catre ${sentCount}/${totalRecipients} utilizatori ` +
-        `(Admini: ${admins.length}, Manageri: ${managers.length}, ` +
-        `Dispecerat: ${dispeceratUsers.length}, Intretinere: ${maintenanceUsers.length})`,
+        `(Dispecerat: ${dispeceratUsers.length}, Intretinere: ${maintenanceUsers.length})`,
     );
-  }
-
-  /**
-   * Trimite raportul zilnic de incasari catre admini si manageri
-   */
-  private async sendDailyCashReportEmails(): Promise<void> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    // Obtine totalurile pentru ziua curenta
-    const totals = await this.cashCollectionsService.getTotals({
-      startDate: today,
-      endDate: tomorrow,
-    });
-
-    // Nu trimite raport daca nu sunt incasari
-    if (totals.count === 0) {
-      this.logger.log('Nu exista incasari pentru ziua curenta, nu se trimite raport');
-      return;
-    }
-
-    // Obtine doar manageri (adminii primesc raport consolidat la 20:00)
-    const recipients = await this.userRepository.find({
-      where: { role: UserRole.MANAGER, isActive: true },
-    });
-
-    if (recipients.length === 0) {
-      this.logger.log('Nu exista manageri pentru raportul zilnic incasari');
-      return;
-    }
-
-    const reportDate = today.toLocaleDateString('ro-RO', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-
-    // Trimite emailuri
-    let sentCount = 0;
-    for (const recipient of recipients) {
-      const success = await this.emailService.sendDailyCashReport({
-        recipientEmail: recipient.email,
-        recipientName: recipient.fullName,
-        reportDate,
-        totalAmount: totals.totalAmount,
-        collectionCount: totals.count,
-        byParkingLot: totals.byParkingLot.map(lot => ({
-          parkingLotName: lot.parkingLotName,
-          totalAmount: lot.totalAmount,
-          count: lot.count,
-        })),
-        byMachine: totals.byMachine.map(machine => ({
-          machineNumber: machine.machineNumber,
-          parkingLotName: machine.parkingLotName,
-          totalAmount: machine.totalAmount,
-          count: machine.count,
-        })),
-      });
-      if (success) sentCount++;
-    }
-
-    this.logger.log(`Raport zilnic trimis catre ${sentCount}/${recipients.length} destinatari. Total incasari: ${totals.totalAmount.toFixed(2)} RON`);
   }
 
   /**
