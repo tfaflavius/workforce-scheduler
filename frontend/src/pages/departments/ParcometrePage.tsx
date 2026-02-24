@@ -94,6 +94,11 @@ interface MapClickHandlerProps {
 const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onMapClick }) => {
   useMapEvents({
     click(e) {
+      // Ignore clicks originating from popups or markers
+      const target = e.originalEvent?.target as HTMLElement;
+      if (target?.closest('.leaflet-popup') || target?.closest('.leaflet-marker-icon')) {
+        return;
+      }
       onMapClick(e.latlng.lat, e.latlng.lng);
     },
   });
