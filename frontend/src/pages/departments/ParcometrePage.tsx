@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -12,6 +12,7 @@ import {
   CircularProgress,
   Alert,
   IconButton,
+  InputAdornment,
   alpha,
   useTheme,
   useMediaQuery,
@@ -27,6 +28,8 @@ import {
   ElectricBolt as ElectricIcon,
   FiberNew as NewIcon,
   History as OldIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -244,6 +247,27 @@ const ParcometrePage: React.FC = () => {
   // Ref to track if a popup is currently open (prevents map click while interacting with popups)
   const popupOpenRef = useRef(false);
 
+  // Filter state
+  const [filterZone, setFilterZone] = useState<ParkingZone | 'ALL'>('ALL');
+  const [filterPower, setFilterPower] = useState<PowerSource | 'ALL'>('ALL');
+  const [filterCondition, setFilterCondition] = useState<MeterCondition | 'ALL'>('ALL');
+  const [filterName, setFilterName] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filtered meters
+  const filteredMeters = useMemo(() => {
+    if (!meters) return [];
+    return meters.filter((m) => {
+      if (filterZone !== 'ALL' && m.zone !== filterZone) return false;
+      if (filterPower !== 'ALL' && m.powerSource !== filterPower) return false;
+      if (filterCondition !== 'ALL' && m.condition !== filterCondition) return false;
+      if (filterName && !m.name.toLowerCase().includes(filterName.toLowerCase())) return false;
+      return true;
+    });
+  }, [meters, filterZone, filterPower, filterCondition, filterName]);
+
+  const hasActiveFilters = filterZone !== 'ALL' || filterPower !== 'ALL' || filterCondition !== 'ALL' || filterName !== '';
+
   // Handle map click -> open create dialog
   const handleMapClick = useCallback((lat: number, lng: number) => {
     // Guard: don't open create dialog if already open
@@ -357,12 +381,12 @@ const ParcometrePage: React.FC = () => {
         {meters && (
           <Chip
             icon={<MyLocationIcon sx={{ fontSize: 16 }} />}
-            label={`${meters.length} parcometr${meters.length !== 1 ? 'e' : 'u'}`}
+            label={hasActiveFilters ? `${filteredMeters.length} din ${meters.length}` : `${meters.length} parcometr${meters.length !== 1 ? 'e' : 'u'}`}
             sx={{
               fontWeight: 600,
-              bgcolor: alpha('#8b5cf6', 0.1),
-              color: '#8b5cf6',
-              '& .MuiChip-icon': { color: '#8b5cf6' },
+              bgcolor: hasActiveFilters ? alpha('#f59e0b', 0.15) : alpha('#8b5cf6', 0.1),
+              color: hasActiveFilters ? '#d97706' : '#8b5cf6',
+              '& .MuiChip-icon': { color: hasActiveFilters ? '#d97706' : '#8b5cf6' },
             }}
           />
         )}
@@ -381,6 +405,195 @@ const ParcometrePage: React.FC = () => {
         >
           Click pe harta pentru a adauga un parcometru nou.
         </Alert>
+      </Box>
+
+      {/* Filter bar */}
+      <Box sx={{ px: { xs: 2, sm: 3 }, pb: 1.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            mb: showFilters ? 1.5 : 0,
+          }}
+        >
+          <TextField
+            size="small"
+            placeholder="Cauta dupa nume..."
+            value={filterName}
+            onChange={(e) => setFilterName(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ fontSize: 20, color: 'text.disabled' }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{
+              flex: 1,
+              maxWidth: { sm: 300 },
+              '& .MuiOutlinedInput-root': { borderRadius: 2, bgcolor: 'grey.50' },
+            }}
+          />
+          <Button
+            size="small"
+            variant={showFilters ? 'contained' : 'outlined'}
+            startIcon={<FilterIcon />}
+            onClick={() => setShowFilters(!showFilters)}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 600,
+              minWidth: 'auto',
+              ...(showFilters
+                ? {
+                    bgcolor: '#8b5cf6',
+                    '&:hover': { bgcolor: '#7c3aed' },
+                  }
+                : {}),
+            }}
+          >
+            Filtre
+            {hasActiveFilters && !showFilters && (
+              <Box
+                component="span"
+                sx={{
+                  ml: 0.5,
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: '#f59e0b',
+                  display: 'inline-block',
+                }}
+              />
+            )}
+          </Button>
+          {hasActiveFilters && (
+            <Button
+              size="small"
+              onClick={() => {
+                setFilterZone('ALL');
+                setFilterPower('ALL');
+                setFilterCondition('ALL');
+                setFilterName('');
+              }}
+              sx={{ textTransform: 'none', fontSize: '0.75rem', color: 'text.secondary', minWidth: 'auto' }}
+            >
+              Reseteaza
+            </Button>
+          )}
+        </Box>
+
+        {showFilters && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 1.5, sm: 3 },
+              p: 2,
+              bgcolor: 'grey.50',
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            {/* Zone filter */}
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+                Zona
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                {[
+                  { value: 'ALL' as const, label: 'Toate', color: '#6b7280' },
+                  { value: 'ROSU' as const, label: 'Rosu', color: '#ef4444' },
+                  { value: 'GALBEN' as const, label: 'Galben', color: '#f59e0b' },
+                  { value: 'ALB' as const, label: 'Alb', color: '#6b7280' },
+                ].map((opt) => (
+                  <Chip
+                    key={opt.value}
+                    label={opt.label}
+                    size="small"
+                    onClick={() => setFilterZone(opt.value)}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      bgcolor: filterZone === opt.value ? opt.color : 'white',
+                      color: filterZone === opt.value ? 'white' : 'text.secondary',
+                      border: '1px solid',
+                      borderColor: filterZone === opt.value ? opt.color : 'divider',
+                      '&:hover': { bgcolor: filterZone === opt.value ? opt.color : alpha(opt.color, 0.1) },
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            {/* Power filter */}
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+                Alimentare
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                {[
+                  { value: 'ALL' as const, label: 'Toate', color: '#6b7280' },
+                  { value: 'CURENT' as const, label: 'Curent', color: '#3b82f6' },
+                  { value: 'SOLAR' as const, label: 'Solar', color: '#f97316' },
+                ].map((opt) => (
+                  <Chip
+                    key={opt.value}
+                    label={opt.label}
+                    size="small"
+                    onClick={() => setFilterPower(opt.value)}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      bgcolor: filterPower === opt.value ? opt.color : 'white',
+                      color: filterPower === opt.value ? 'white' : 'text.secondary',
+                      border: '1px solid',
+                      borderColor: filterPower === opt.value ? opt.color : 'divider',
+                      '&:hover': { bgcolor: filterPower === opt.value ? opt.color : alpha(opt.color, 0.1) },
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            {/* Condition filter */}
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', mb: 0.5, display: 'block' }}>
+                Stare
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                {[
+                  { value: 'ALL' as const, label: 'Toate', color: '#6b7280' },
+                  { value: 'NOU' as const, label: 'Nou', color: '#10b981' },
+                  { value: 'VECHI' as const, label: 'Vechi', color: '#8b5cf6' },
+                ].map((opt) => (
+                  <Chip
+                    key={opt.value}
+                    label={opt.label}
+                    size="small"
+                    onClick={() => setFilterCondition(opt.value)}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      bgcolor: filterCondition === opt.value ? opt.color : 'white',
+                      color: filterCondition === opt.value ? 'white' : 'text.secondary',
+                      border: '1px solid',
+                      borderColor: filterCondition === opt.value ? opt.color : 'divider',
+                      '&:hover': { bgcolor: filterCondition === opt.value ? opt.color : alpha(opt.color, 0.1) },
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        )}
       </Box>
 
       {/* Map */}
@@ -414,8 +627,8 @@ const ParcometrePage: React.FC = () => {
 
             <MapClickHandler onMapClick={handleMapClick} popupOpenRef={popupOpenRef} />
 
-            {/* Existing parking meter markers */}
-            {meters?.map((meter) => (
+            {/* Existing parking meter markers (filtered) */}
+            {filteredMeters.map((meter) => (
               <Marker
                 key={meter.id}
                 position={[Number(meter.latitude), Number(meter.longitude)]}
