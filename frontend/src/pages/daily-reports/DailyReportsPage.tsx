@@ -883,7 +883,7 @@ const DailyReportsPage: React.FC = () => {
                     gap: 1,
                   }}
                 >
-                  {missingReportsData[0].users
+                  {[...missingReportsData[0].users]
                     .sort((a, b) => a.fullName.localeCompare(b.fullName))
                     .map((u) => (
                       <Chip
