@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -89,17 +89,26 @@ const ORADEA_CENTER: [number, number] = [47.06, 21.94];
 
 interface MapClickHandlerProps {
   onMapClick: (lat: number, lng: number) => void;
+  popupOpenRef: React.MutableRefObject<boolean>;
 }
 
-const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onMapClick }) => {
+const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onMapClick, popupOpenRef }) => {
   useMapEvents({
     click(e) {
-      // Ignore clicks originating from popups or markers
-      const target = e.originalEvent?.target as HTMLElement;
-      if (target?.closest('.leaflet-popup') || target?.closest('.leaflet-marker-icon')) {
+      // Ignore clicks when a popup is open (prevents creating new markers when interacting with popups)
+      if (popupOpenRef.current) {
         return;
       }
       onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+    popupopen() {
+      popupOpenRef.current = true;
+    },
+    popupclose() {
+      // Small delay to prevent the close-click from also triggering a map click
+      setTimeout(() => {
+        popupOpenRef.current = false;
+      }, 100);
     },
   });
   return null;
@@ -128,6 +137,9 @@ const ParcometrePage: React.FC = () => {
 
   // New marker position (before saving)
   const [newMarkerPos, setNewMarkerPos] = useState<[number, number] | null>(null);
+
+  // Ref to track if a popup is currently open (prevents map click while interacting with popups)
+  const popupOpenRef = useRef(false);
 
   // Handle map click -> open create dialog
   const handleMapClick = useCallback((lat: number, lng: number) => {
@@ -278,7 +290,7 @@ const ParcometrePage: React.FC = () => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            <MapClickHandler onMapClick={handleMapClick} />
+            <MapClickHandler onMapClick={handleMapClick} popupOpenRef={popupOpenRef} />
 
             {/* Existing parking meter markers */}
             {meters?.map((meter) => (
