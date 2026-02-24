@@ -20,6 +20,9 @@ import {
   Select,
   FormControl,
   InputLabel,
+  alpha,
+  Collapse,
+  IconButton,
 } from '@mui/material';
 import {
   Description as ReportIcon,
@@ -30,6 +33,7 @@ import {
   CalendarToday as CalendarIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  WarningAmber as WarningIcon,
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
@@ -38,6 +42,7 @@ import {
   useGetTodayReportQuery,
   useGetMyDailyReportsQuery,
   useGetAllDailyReportsQuery,
+  useGetMissingReportsQuery,
   useUpdateDailyReportMutation,
   useAddAdminCommentMutation,
 } from '../../store/api/dailyReports.api';
@@ -205,6 +210,15 @@ const DailyReportsPage: React.FC = () => {
   );
   const { data: allUsers } = useGetUsersQuery(undefined, { skip: !canViewAll });
   const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
+
+  // Missing reports query (for selected day)
+  const { data: missingReportsData } = useGetMissingReportsQuery(
+    canViewAll && selectedDay !== ''
+      ? { startDate: filterDateRange.startDate, endDate: filterDateRange.endDate }
+      : { startDate: '', endDate: '' },
+    { skip: !canViewAll || selectedDay === '' },
+  );
+  const [missingExpanded, setMissingExpanded] = useState(true);
 
   const [createReport, { isLoading: creating }] = useCreateDailyReportMutation();
   const [updateReport, { isLoading: updating }] = useUpdateDailyReportMutation();
@@ -799,6 +813,130 @@ const DailyReportsPage: React.FC = () => {
               />
             )}
           </Box>
+        )}
+
+        {/* Missing reports section */}
+        {selectedDay !== '' && missingReportsData && missingReportsData.length > 0 && missingReportsData[0]?.users?.length > 0 && (
+          <Card
+            sx={{
+              mb: 2,
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: alpha('#ef4444', 0.3),
+              bgcolor: alpha('#ef4444', 0.04),
+              overflow: 'hidden',
+            }}
+          >
+            {/* Header - clickable to expand/collapse */}
+            <Box
+              onClick={() => setMissingExpanded(!missingExpanded)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                px: { xs: 2, sm: 2.5 },
+                py: 1.5,
+                cursor: 'pointer',
+                '&:hover': { bgcolor: alpha('#ef4444', 0.08) },
+                transition: 'background 0.2s',
+              }}
+            >
+              <WarningIcon sx={{ color: '#ef4444', fontSize: { xs: 20, sm: 22 } }} />
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  fontWeight: 700,
+                  color: '#dc2626',
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  flex: 1,
+                }}
+              >
+                Nu au trimis raportul
+              </Typography>
+              <Chip
+                label={missingReportsData[0].users.length}
+                size="small"
+                sx={{
+                  height: 22,
+                  fontWeight: 700,
+                  bgcolor: alpha('#ef4444', 0.15),
+                  color: '#dc2626',
+                  '& .MuiChip-label': { px: 1 },
+                }}
+              />
+              <IconButton size="small" sx={{ color: '#dc2626' }}>
+                {missingExpanded ? (
+                  <ChevronLeftIcon sx={{ fontSize: 20, transform: 'rotate(90deg)' }} />
+                ) : (
+                  <ChevronRightIcon sx={{ fontSize: 20, transform: 'rotate(90deg)' }} />
+                )}
+              </IconButton>
+            </Box>
+
+            {/* User list - collapsible */}
+            <Collapse in={missingExpanded}>
+              <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: 1.5 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 1,
+                  }}
+                >
+                  {missingReportsData[0].users
+                    .sort((a, b) => a.fullName.localeCompare(b.fullName))
+                    .map((u) => (
+                      <Chip
+                        key={u.id}
+                        avatar={
+                          <Avatar
+                            sx={{
+                              bgcolor: alpha('#ef4444', 0.2),
+                              color: '#dc2626 !important',
+                              fontSize: '0.65rem !important',
+                              width: 24,
+                              height: 24,
+                            }}
+                          >
+                            {u.fullName
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </Avatar>
+                        }
+                        label={
+                          <Box>
+                            <Typography
+                              component="span"
+                              sx={{ fontSize: '0.75rem', fontWeight: 600, display: 'block', lineHeight: 1.3 }}
+                            >
+                              {u.fullName}
+                            </Typography>
+                            {u.department?.name && (
+                              <Typography
+                                component="span"
+                                sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.2 }}
+                              >
+                                {u.department.name}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                        variant="outlined"
+                        sx={{
+                          height: 'auto',
+                          py: 0.5,
+                          borderColor: alpha('#ef4444', 0.3),
+                          '& .MuiChip-label': { py: 0.25 },
+                        }}
+                      />
+                    ))}
+                </Box>
+              </Box>
+            </Collapse>
+          </Card>
         )}
 
         {/* Prompt to select a day when none selected */}
