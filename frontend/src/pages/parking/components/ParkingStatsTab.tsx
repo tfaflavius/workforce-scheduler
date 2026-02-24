@@ -33,7 +33,7 @@ import {
   TrendingUp as OccupancyIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
-import { PARKING_STAT_LOCATIONS } from '../../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS, isFirstInGroup, getGroupKeys } from '../../../constants/parkingStats';
 import {
   useGetDailyTicketsQuery,
   useGetWeeklyTicketsSummaryQuery,
@@ -221,28 +221,42 @@ const TicketsSection: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {PARKING_STAT_LOCATIONS.map(loc => (
-                  <TableRow key={loc.key} hover>
-                    <TableCell>{loc.name}</TableCell>
-                    <TableCell align="right">
-                      {isEditable ? (
-                        <TextField
-                          type="number"
-                          size="small"
-                          value={ticketValues[loc.key] || ''}
-                          onChange={(e) => setTicketValues(prev => ({
-                            ...prev,
-                            [loc.key]: Number(e.target.value) || 0,
-                          }))}
-                          sx={{ width: 100 }}
-                          inputProps={{ min: 0 }}
-                        />
-                      ) : (
-                        <Typography variant="body2" fontWeight="bold">{getTicketValue(loc.key)}</Typography>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {PARKING_STAT_LOCATIONS.map((loc, idx) => {
+                  const rows: React.ReactNode[] = [];
+                  // Randul de header pentru grupul Doja
+                  if (isFirstInGroup(idx) && loc.group) {
+                    const groupTotal = getGroupKeys(loc.group).reduce((sum, k) => sum + getTicketValue(k), 0);
+                    rows.push(
+                      <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{loc.group}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'text.secondary' }}>{groupTotal}</TableCell>
+                      </TableRow>
+                    );
+                  }
+                  rows.push(
+                    <TableRow key={loc.key} hover>
+                      <TableCell sx={loc.group ? { pl: 4 } : undefined}>{loc.group ? `└ ${loc.name}` : loc.name}</TableCell>
+                      <TableCell align="right">
+                        {isEditable ? (
+                          <TextField
+                            type="number"
+                            size="small"
+                            value={ticketValues[loc.key] || ''}
+                            onChange={(e) => setTicketValues(prev => ({
+                              ...prev,
+                              [loc.key]: Number(e.target.value) || 0,
+                            }))}
+                            sx={{ width: 100 }}
+                            inputProps={{ min: 0 }}
+                          />
+                        ) : (
+                          <Typography variant="body2" fontWeight="bold">{getTicketValue(loc.key)}</Typography>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                  return rows;
+                })}
                 <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.05) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>TOTAL</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{total}</TableCell>
@@ -332,24 +346,37 @@ const SubscriptionsSection: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {PARKING_STAT_LOCATIONS.map(loc => (
-                  <TableRow key={loc.key} hover>
-                    <TableCell>{loc.name}</TableCell>
-                    <TableCell align="right">
-                      <TextField
-                        type="number"
-                        size="small"
-                        value={subValues[loc.key] || ''}
-                        onChange={(e) => setSubValues(prev => ({
-                          ...prev,
-                          [loc.key]: Number(e.target.value) || 0,
-                        }))}
-                        sx={{ width: 100 }}
-                        inputProps={{ min: 0 }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {PARKING_STAT_LOCATIONS.map((loc, idx) => {
+                  const rows: React.ReactNode[] = [];
+                  if (isFirstInGroup(idx) && loc.group) {
+                    const groupTotal = getGroupKeys(loc.group).reduce((sum, k) => sum + (subValues[k] || 0), 0);
+                    rows.push(
+                      <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#10b981', 0.06) }}>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{loc.group}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'text.secondary' }}>{groupTotal}</TableCell>
+                      </TableRow>
+                    );
+                  }
+                  rows.push(
+                    <TableRow key={loc.key} hover>
+                      <TableCell sx={loc.group ? { pl: 4 } : undefined}>{loc.group ? `└ ${loc.name}` : loc.name}</TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          type="number"
+                          size="small"
+                          value={subValues[loc.key] || ''}
+                          onChange={(e) => setSubValues(prev => ({
+                            ...prev,
+                            [loc.key]: Number(e.target.value) || 0,
+                          }))}
+                          sx={{ width: 100 }}
+                          inputProps={{ min: 0 }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                  return rows;
+                })}
                 <TableRow sx={{ bgcolor: alpha('#10b981', 0.05) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>TOTAL</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{total}</TableCell>
@@ -478,11 +505,19 @@ const OccupancySection: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {PARKING_STAT_LOCATIONS.map(loc => {
+                {PARKING_STAT_LOCATIONS.map((loc, idx) => {
                   const val = getOccValue(loc.key);
-                  return (
+                  const rows: React.ReactNode[] = [];
+                  if (isFirstInGroup(idx) && loc.group) {
+                    rows.push(
+                      <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#f59e0b', 0.06) }}>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem' }} colSpan={5}>{loc.group}</TableCell>
+                      </TableRow>
+                    );
+                  }
+                  rows.push(
                     <TableRow key={loc.key} hover>
-                      <TableCell>{loc.name}</TableCell>
+                      <TableCell sx={loc.group ? { pl: 4 } : undefined}>{loc.group ? `└ ${loc.name}` : loc.name}</TableCell>
                       <TableCell align="right">
                         {isEditable ? (
                           <TextField
@@ -541,6 +576,7 @@ const OccupancySection: React.FC = () => {
                       </TableCell>
                     </TableRow>
                   );
+                  return rows;
                 })}
               </TableBody>
             </Table>

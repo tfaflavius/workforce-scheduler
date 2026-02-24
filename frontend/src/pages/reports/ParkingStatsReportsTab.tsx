@@ -30,7 +30,7 @@ import {
   CardMembership as SubscriptionIcon,
   TrendingUp as OccupancyIcon,
 } from '@mui/icons-material';
-import { PARKING_STAT_LOCATIONS } from '../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS, getLocationFullName, isFirstInGroup } from '../../constants/parkingStats';
 import {
   useGetMonthlyTicketsSummaryQuery,
   useGetWeeklyTicketsSummaryQuery,
@@ -152,6 +152,8 @@ const ParkingStatsReportsTab: React.FC = () => {
     return PARKING_STAT_LOCATIONS.map(loc => ({
       locationKey: loc.key,
       name: loc.name,
+      fullName: getLocationFullName(loc.key),
+      group: loc.group,
       value: dataMap.get(loc.key) || 0,
     }));
   }, [periodType, monthlyTickets, weeklyTickets]);
@@ -161,6 +163,8 @@ const ParkingStatsReportsTab: React.FC = () => {
     return PARKING_STAT_LOCATIONS.map(loc => ({
       locationKey: loc.key,
       name: loc.name,
+      fullName: getLocationFullName(loc.key),
+      group: loc.group,
       value: dataMap.get(loc.key) || 0,
     }));
   }, [monthlySubscriptions]);
@@ -173,6 +177,8 @@ const ParkingStatsReportsTab: React.FC = () => {
         return {
           locationKey: loc.key,
           name: loc.name,
+          fullName: getLocationFullName(loc.key),
+          group: loc.group,
           min: d ? Number(d.avgMin) : 0,
           max: d ? Number(d.avgMax) : 0,
           avg: d ? Number(d.avgAvg) : 0,
@@ -186,6 +192,8 @@ const ParkingStatsReportsTab: React.FC = () => {
         return {
           locationKey: loc.key,
           name: loc.name,
+          fullName: getLocationFullName(loc.key),
+          group: loc.group,
           min: d ? Number(d.minOccupancy) : 0,
           max: d ? Number(d.maxOccupancy) : 0,
           avg: d ? Number(d.avgOccupancy) : 0,
@@ -244,7 +252,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       doc.text(`Total tichete: ${total}`, 14, 27);
 
       const headers = ['Parcare', 'Numar Tichete'];
-      const rows = ticketsData.map(d => [d.name, d.value.toString()]);
+      const rows = ticketsData.map(d => [d.fullName, d.value.toString()]);
       rows.push(['TOTAL', total.toString()]);
 
       autoTable(doc, {
@@ -266,7 +274,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       doc.text(`Total abonamente: ${total}`, 14, 27);
 
       const headers = ['Parcare', 'Numar Abonamente'];
-      const rows = subscriptionsData.map(d => [d.name, d.value.toString()]);
+      const rows = subscriptionsData.map(d => [d.fullName, d.value.toString()]);
       rows.push(['TOTAL', total.toString()]);
 
       autoTable(doc, {
@@ -290,7 +298,7 @@ const ParkingStatsReportsTab: React.FC = () => {
 
       const headers = ['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Ora'];
       const rows = occupancyData.map(d => [
-        d.name,
+        d.fullName,
         d.min.toFixed(0),
         d.max.toFixed(0),
         d.avg.toFixed(2),
@@ -350,7 +358,7 @@ const ParkingStatsReportsTab: React.FC = () => {
         [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
         [],
         ['Parcare', 'Numar Tichete'],
-        ...ticketsData.map(d => [d.name, d.value]),
+        ...ticketsData.map(d => [d.fullName, d.value]),
         [],
         ['TOTAL', total],
       ];
@@ -364,7 +372,7 @@ const ParkingStatsReportsTab: React.FC = () => {
         [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
         [],
         ['Parcare', 'Numar Abonamente'],
-        ...subscriptionsData.map(d => [d.name, d.value]),
+        ...subscriptionsData.map(d => [d.fullName, d.value]),
         [],
         ['TOTAL', total],
       ];
@@ -377,7 +385,7 @@ const ParkingStatsReportsTab: React.FC = () => {
         [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
         [],
         ['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Ora'],
-        ...occupancyData.map(d => [d.name, d.min, d.max, Number(d.avg.toFixed(2)), Number(d.hourlyRate.toFixed(4))]),
+        ...occupancyData.map(d => [d.fullName, d.min, d.max, Number(d.avg.toFixed(2)), Number(d.hourlyRate.toFixed(4))]),
         [],
         [
           'TOTAL / MEDIE',
@@ -420,12 +428,24 @@ const ParkingStatsReportsTab: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {ticketsData.map(d => (
-                <TableRow key={d.locationKey} hover>
-                  <TableCell>{d.name}</TableCell>
-                  <TableCell align="right">{d.value}</TableCell>
-                </TableRow>
-              ))}
+              {ticketsData.map((d, idx) => {
+                const rows: React.ReactNode[] = [];
+                if (isFirstInGroup(idx) && d.group) {
+                  rows.push(
+                    <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>{d.group}</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  );
+                }
+                rows.push(
+                  <TableRow key={d.locationKey} hover>
+                    <TableCell sx={d.group ? { pl: 4 } : undefined}>{d.group ? `└ ${d.name}` : d.name}</TableCell>
+                    <TableCell align="right">{d.value}</TableCell>
+                  </TableRow>
+                );
+                return rows;
+              })}
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
                 <TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700 }}>{total}</TableCell>
@@ -448,12 +468,24 @@ const ParkingStatsReportsTab: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {subscriptionsData.map(d => (
-                <TableRow key={d.locationKey} hover>
-                  <TableCell>{d.name}</TableCell>
-                  <TableCell align="right">{d.value}</TableCell>
-                </TableRow>
-              ))}
+              {subscriptionsData.map((d, idx) => {
+                const rows: React.ReactNode[] = [];
+                if (isFirstInGroup(idx) && d.group) {
+                  rows.push(
+                    <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>{d.group}</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  );
+                }
+                rows.push(
+                  <TableRow key={d.locationKey} hover>
+                    <TableCell sx={d.group ? { pl: 4 } : undefined}>{d.group ? `└ ${d.name}` : d.name}</TableCell>
+                    <TableCell align="right">{d.value}</TableCell>
+                  </TableRow>
+                );
+                return rows;
+              })}
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
                 <TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700 }}>{total}</TableCell>
@@ -480,15 +512,26 @@ const ParkingStatsReportsTab: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {occupancyData.map(d => (
-              <TableRow key={d.locationKey} hover>
-                <TableCell>{d.name}</TableCell>
-                <TableCell align="right">{d.min.toFixed(0)}</TableCell>
-                <TableCell align="right">{d.max.toFixed(0)}</TableCell>
-                <TableCell align="right">{d.avg.toFixed(2)}</TableCell>
-                <TableCell align="right">{d.hourlyRate.toFixed(4)}</TableCell>
-              </TableRow>
-            ))}
+            {occupancyData.map((d, idx) => {
+              const rows: React.ReactNode[] = [];
+              if (isFirstInGroup(idx) && d.group) {
+                rows.push(
+                  <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                    <TableCell sx={{ fontWeight: 'bold' }} colSpan={5}>{d.group}</TableCell>
+                  </TableRow>
+                );
+              }
+              rows.push(
+                <TableRow key={d.locationKey} hover>
+                  <TableCell sx={d.group ? { pl: 4 } : undefined}>{d.group ? `└ ${d.name}` : d.name}</TableCell>
+                  <TableCell align="right">{d.min.toFixed(0)}</TableCell>
+                  <TableCell align="right">{d.max.toFixed(0)}</TableCell>
+                  <TableCell align="right">{d.avg.toFixed(2)}</TableCell>
+                  <TableCell align="right">{d.hourlyRate.toFixed(4)}</TableCell>
+                </TableRow>
+              );
+              return rows;
+            })}
             <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
               <TableCell sx={{ fontWeight: 700 }}>TOTAL / MEDIE</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
