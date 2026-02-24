@@ -120,18 +120,28 @@ const IncasariCheltuieliPage: React.FC = () => {
     return parkingLots.filter((lot) => lot.isActive);
   }, [parkingLots]);
 
-  // Helper: check if a category has a parking lot link
-  const categoryHasParkingLot = (categoryId: string): boolean => {
-    if (!revenueSummary) return false;
+  // Memoized months array (avoids re-creating on every render)
+  const months = useMemo(() => Array.from({ length: 12 }, (_, i) => i + 1), []);
+
+  // Memoized category lookup map for O(1) access instead of O(n) per cell
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, RevenueSummaryCategory>();
+    if (!revenueSummary) return map;
     for (const cat of revenueSummary.categories) {
-      if (cat.categoryId === categoryId) return !!cat.parkingLotId;
+      map.set(cat.categoryId, cat);
       if (cat.children) {
         for (const child of cat.children) {
-          if (child.categoryId === categoryId) return !!child.parkingLotId;
+          map.set(child.categoryId, child);
         }
       }
     }
-    return false;
+    return map;
+  }, [revenueSummary]);
+
+  // Helper: check if a category has a parking lot link
+  const categoryHasParkingLot = (categoryId: string): boolean => {
+    const cat = categoryMap.get(categoryId);
+    return !!(cat?.parkingLotId);
   };
 
   // Handlers
@@ -191,32 +201,15 @@ const IncasariCheltuieliPage: React.FC = () => {
     }
   };
 
-  // Find cell data - search in children too for groups
+  // Find cell data - O(1) lookup via categoryMap
   const findCellData = (categoryId: string, month: number) => {
-    if (!revenueSummary) return undefined;
-    for (const cat of revenueSummary.categories) {
-      if (cat.categoryId === categoryId) return cat.months[month];
-      if (cat.children) {
-        for (const child of cat.children) {
-          if (child.categoryId === categoryId) return child.months[month];
-        }
-      }
-    }
-    return undefined;
+    const cat = categoryMap.get(categoryId);
+    return cat?.months[month];
   };
 
-  // Find category name - search in children too
+  // Find category name - O(1) lookup via categoryMap
   const findCategoryName = (categoryId: string) => {
-    if (!revenueSummary) return '';
-    for (const cat of revenueSummary.categories) {
-      if (cat.categoryId === categoryId) return cat.categoryName;
-      if (cat.children) {
-        for (const child of cat.children) {
-          if (child.categoryId === categoryId) return child.categoryName;
-        }
-      }
-    }
-    return '';
+    return categoryMap.get(categoryId)?.categoryName || '';
   };
 
   const handleOpenCellDialog = (categoryId: string, month: number) => {
@@ -347,7 +340,7 @@ const IncasariCheltuieliPage: React.FC = () => {
             </Box>
           </Box>
         </TableCell>
-        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+        {months.map((month) => {
           const data = cat.months[month];
           const hasParkingLot = !!cat.parkingLotId;
           return (
@@ -388,7 +381,7 @@ const IncasariCheltuieliPage: React.FC = () => {
       </TableRow>
       {/* Cheltuieli row */}
       <TableRow>
-        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+        {months.map((month) => {
           const data = cat.months[month];
           return (
             <TableCell
@@ -503,7 +496,7 @@ const IncasariCheltuieliPage: React.FC = () => {
             >
               Subtotal {cat.categoryName}
             </TableCell>
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+            {months.map((month) => (
               <TableCell key={month} align="center" sx={{ borderBottom: 'none', py: 0.5, px: 0.5, bgcolor: alpha('#8b5cf6', 0.04) }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.7rem' }}>
                   {cat.months[month]?.incasari ? formatCurrency(cat.months[month].incasari) : '0,00 lei'}
@@ -517,7 +510,7 @@ const IncasariCheltuieliPage: React.FC = () => {
             </TableCell>
           </TableRow>
           <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.04) }}>
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+            {months.map((month) => (
               <TableCell key={month} align="center" sx={{ py: 0.5, px: 0.5, borderBottom: '3px solid', borderColor: '#8b5cf6', bgcolor: alpha('#8b5cf6', 0.04) }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, color: '#ef4444', fontSize: '0.7rem' }}>
                   {cat.months[month]?.cheltuieli ? formatCurrency(cat.months[month].cheltuieli) : '0,00 lei'}
@@ -614,7 +607,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                 >
                   TOTAL GENERAL
                 </TableCell>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                {months.map((month) => (
                   <TableCell key={month} align="center" sx={{ borderBottom: 'none', py: 0.5, px: 0.5 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.7rem' }}>
                       {formatCurrency(revenueSummary.monthTotals[month]?.incasari || 0)}
@@ -628,7 +621,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                 </TableCell>
               </TableRow>
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                {months.map((month) => (
                   <TableCell key={month} align="center" sx={{ py: 0.5, px: 0.5 }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#ef4444', fontSize: '0.7rem' }}>
                       {formatCurrency(revenueSummary.monthTotals[month]?.cheltuieli || 0)}
@@ -747,7 +740,7 @@ const IncasariCheltuieliPage: React.FC = () => {
           <Button
             variant="contained"
             onClick={handleSaveRevCat}
-            disabled={!revCatForm.name}
+            disabled={!revCatForm.name.trim()}
             sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
           >
             {editingRevCat ? 'Salveaza' : 'Creeaza'}
@@ -761,6 +754,7 @@ const IncasariCheltuieliPage: React.FC = () => {
         onClose={() => setCellDialogOpen(false)}
         maxWidth="xs"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {editingCell

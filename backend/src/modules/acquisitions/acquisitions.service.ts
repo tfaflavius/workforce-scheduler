@@ -513,7 +513,7 @@ export class AcquisitionsService {
       if (entry) {
         const parkingLotId = catParkingLotMap.get(mr.revenueCategoryId);
         const incasariCard = Number(mr.incasariCard) || 0;
-        const cheltuieli = Number(mr.cheltuieli);
+        const cheltuieli = Number(mr.cheltuieli) || 0;
 
         if (parkingLotId) {
           // Parking-linked category: cash is from CashCollections, card from DB
@@ -523,19 +523,19 @@ export class AcquisitionsService {
             incasari: Math.round(totalIncasari * 100) / 100,
             incasariCash: Math.round(cashForMonth * 100) / 100,
             incasariCard: Math.round(incasariCard * 100) / 100,
-            cheltuieli,
+            cheltuieli: Math.round(cheltuieli * 100) / 100,
             notes: mr.notes,
             id: mr.id,
           };
           entry.totalIncasari += totalIncasari;
         } else {
-          // Regular category: incasari from DB as-is
-          const incasari = Number(mr.incasari);
+          // Regular category: incasari from DB
+          const incasari = Number(mr.incasari) || 0;
           entry.months[mr.month] = {
-            incasari,
+            incasari: Math.round(incasari * 100) / 100,
             incasariCash: 0,
             incasariCard: 0,
-            cheltuieli,
+            cheltuieli: Math.round(cheltuieli * 100) / 100,
             notes: mr.notes,
             id: mr.id,
           };
