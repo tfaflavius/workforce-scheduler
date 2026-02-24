@@ -12,6 +12,7 @@ import { UpsertMonthlyRevenueDto, UpdateMonthlyRevenueDto } from './dto/create-m
 import { RevenueCategory } from './entities/revenue-category.entity';
 import { MonthlyRevenue } from './entities/monthly-revenue.entity';
 import { UserRole } from '../users/entities/user.entity';
+import { CashCollectionsService } from '../parking/cash-collections.service';
 
 // Numele departamentului Achizitii - userii din acest departament au acces complet
 const ACHIZITII_DEPARTMENT_NAME = 'Achizitii';
@@ -29,6 +30,7 @@ export class AcquisitionsService {
     private revenueCategoryRepository: Repository<RevenueCategory>,
     @InjectRepository(MonthlyRevenue)
     private monthlyRevenueRepository: Repository<MonthlyRevenue>,
+    private readonly cashCollectionsService: CashCollectionsService,
   ) {}
 
   /**
@@ -380,6 +382,7 @@ export class AcquisitionsService {
       name: dto.name,
       description: dto.description || null,
       parentId: dto.parentId || null,
+      parkingLotId: dto.parkingLotId || null,
       sortOrder: dto.sortOrder,
     });
     return this.revenueCategoryRepository.save(cat);
@@ -389,6 +392,7 @@ export class AcquisitionsService {
     const cat = await this.findOneRevenueCategory(id);
     if (dto.name !== undefined) cat.name = dto.name;
     if (dto.description !== undefined) cat.description = dto.description;
+    if (dto.parkingLotId !== undefined) cat.parkingLotId = dto.parkingLotId || null;
     if (dto.sortOrder !== undefined) cat.sortOrder = dto.sortOrder;
     if (dto.isActive !== undefined) cat.isActive = dto.isActive;
     return this.revenueCategoryRepository.save(cat);
@@ -431,6 +435,7 @@ export class AcquisitionsService {
 
     if (existing) {
       existing.incasari = dto.incasari;
+      if (dto.incasariCard !== undefined) existing.incasariCard = dto.incasariCard;
       existing.cheltuieli = dto.cheltuieli;
       if (dto.notes !== undefined) existing.notes = dto.notes;
       return this.monthlyRevenueRepository.save(existing);
@@ -440,6 +445,7 @@ export class AcquisitionsService {
         year: dto.year,
         month: dto.month,
         incasari: dto.incasari,
+        incasariCard: dto.incasariCard || 0,
         cheltuieli: dto.cheltuieli,
         notes: dto.notes || null,
       });
@@ -465,11 +471,33 @@ export class AcquisitionsService {
     const topLevelCategories = await this.findAllRevenueCategories();
     const monthlyData = await this.findMonthlyRevenues(year);
 
+    // --- Cash from CashCollections for parking-linked categories ---
+    // Collect all parkingLotIds from categories that have one
+    const parkingLotIds = allCategories
+      .filter((c) => c.parkingLotId)
+      .map((c) => c.parkingLotId!);
+    const uniqueParkingLotIds = [...new Set(parkingLotIds)];
+
+    // Fetch monthly cash totals in a single optimized query
+    let cashTotalsMap: Record<string, Record<number, number>> = {};
+    if (uniqueParkingLotIds.length > 0) {
+      cashTotalsMap = await this.cashCollectionsService.getCashTotalsByLotAndMonth(
+        uniqueParkingLotIds,
+        year,
+      );
+    }
+
+    // Build a map from categoryId -> parkingLotId for quick lookup
+    const catParkingLotMap = new Map<string, string | null>();
+    for (const cat of allCategories) {
+      catParkingLotMap.set(cat.id, cat.parkingLotId || null);
+    }
+
     // Build a map of category data (for ALL categories)
     const categoryDataMap = new Map<
       string,
       {
-        months: Record<number, { incasari: number; cheltuieli: number; notes: string | null; id: string }>;
+        months: Record<number, { incasari: number; incasariCash: number; incasariCard: number; cheltuieli: number; notes: string | null; id: string }>;
         totalIncasari: number;
         totalCheltuieli: number;
       }
@@ -479,15 +507,64 @@ export class AcquisitionsService {
       categoryDataMap.set(cat.id, { months: {}, totalIncasari: 0, totalCheltuieli: 0 });
     }
 
-    // Fill monthly data
+    // Fill monthly data from DB
     for (const mr of monthlyData) {
       const entry = categoryDataMap.get(mr.revenueCategoryId);
       if (entry) {
-        const incasari = Number(mr.incasari);
+        const parkingLotId = catParkingLotMap.get(mr.revenueCategoryId);
+        const incasariCard = Number(mr.incasariCard) || 0;
         const cheltuieli = Number(mr.cheltuieli);
-        entry.months[mr.month] = { incasari, cheltuieli, notes: mr.notes, id: mr.id };
-        entry.totalIncasari += incasari;
+
+        if (parkingLotId) {
+          // Parking-linked category: cash is from CashCollections, card from DB
+          const cashForMonth = cashTotalsMap[parkingLotId]?.[mr.month] || 0;
+          const totalIncasari = cashForMonth + incasariCard;
+          entry.months[mr.month] = {
+            incasari: Math.round(totalIncasari * 100) / 100,
+            incasariCash: Math.round(cashForMonth * 100) / 100,
+            incasariCard: Math.round(incasariCard * 100) / 100,
+            cheltuieli,
+            notes: mr.notes,
+            id: mr.id,
+          };
+          entry.totalIncasari += totalIncasari;
+        } else {
+          // Regular category: incasari from DB as-is
+          const incasari = Number(mr.incasari);
+          entry.months[mr.month] = {
+            incasari,
+            incasariCash: 0,
+            incasariCard: 0,
+            cheltuieli,
+            notes: mr.notes,
+            id: mr.id,
+          };
+          entry.totalIncasari += incasari;
+        }
         entry.totalCheltuieli += cheltuieli;
+      }
+    }
+
+    // For parking-linked categories, also fill months that have cash but no DB record yet
+    for (const cat of allCategories) {
+      if (!cat.parkingLotId) continue;
+      const entry = categoryDataMap.get(cat.id);
+      if (!entry) continue;
+      const cashForLot = cashTotalsMap[cat.parkingLotId] || {};
+      for (let m = 1; m <= 12; m++) {
+        if (!entry.months[m] && cashForLot[m]) {
+          // Cash exists but no MonthlyRevenue record yet — show cash-only
+          const cashAmount = Math.round(cashForLot[m] * 100) / 100;
+          entry.months[m] = {
+            incasari: cashAmount,
+            incasariCash: cashAmount,
+            incasariCard: 0,
+            cheltuieli: 0,
+            notes: null,
+            id: '',
+          };
+          entry.totalIncasari += cashAmount;
+        }
       }
     }
 
@@ -507,6 +584,7 @@ export class AcquisitionsService {
         categoryName: cat.name,
         sortOrder: cat.sortOrder,
         parentId: cat.parentId || null,
+        parkingLotId: cat.parkingLotId || null,
         isGroup: false,
         months: data.months,
         totalIncasari: Math.round(data.totalIncasari * 100) / 100,
@@ -560,6 +638,7 @@ export class AcquisitionsService {
           categoryName: topCat.name,
           sortOrder: topCat.sortOrder,
           parentId: null,
+          parkingLotId: topCat.parkingLotId || null,
           isGroup: true,
           months: groupMonths,
           totalIncasari: Math.round(groupTotalIncasari * 100) / 100,

@@ -34,6 +34,9 @@ export class MonthlyRevenue {
   @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
   incasari: number;
 
+  @Column({ name: 'incasari_card', type: 'decimal', precision: 15, scale: 2, default: 0 })
+  incasariCard: number;
+
   @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
   cheltuieli: number;
 

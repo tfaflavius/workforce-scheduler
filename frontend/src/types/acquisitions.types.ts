@@ -165,6 +165,7 @@ export interface RevenueCategory {
   name: string;
   description: string | null;
   parentId: string | null;
+  parkingLotId: string | null;
   children?: RevenueCategory[];
   sortOrder: number;
   isActive: boolean;
@@ -174,6 +175,8 @@ export interface RevenueCategory {
 
 export interface MonthlyRevenueData {
   incasari: number;
+  incasariCash: number;
+  incasariCard: number;
   cheltuieli: number;
   notes: string | null;
   id: string;
@@ -184,6 +187,7 @@ export interface RevenueSummaryCategory {
   categoryName: string;
   sortOrder: number;
   parentId: string | null;
+  parkingLotId: string | null;
   isGroup: boolean;
   months: Record<number, MonthlyRevenueData>;
   totalIncasari: number;
@@ -203,12 +207,14 @@ export interface CreateRevenueCategoryDto {
   name: string;
   description?: string;
   parentId?: string;
+  parkingLotId?: string;
   sortOrder?: number;
 }
 
 export interface UpdateRevenueCategoryDto {
   name?: string;
   description?: string;
+  parkingLotId?: string;
   sortOrder?: number;
   isActive?: boolean;
 }
@@ -218,6 +224,7 @@ export interface UpsertMonthlyRevenueDto {
   year: number;
   month: number;
   incasari: number;
+  incasariCard?: number;
   cheltuieli: number;
   notes?: string;
 }

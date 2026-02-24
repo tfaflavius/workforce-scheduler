@@ -7,6 +7,7 @@ import { Acquisition } from './entities/acquisition.entity';
 import { AcquisitionInvoice } from './entities/acquisition-invoice.entity';
 import { RevenueCategory } from './entities/revenue-category.entity';
 import { MonthlyRevenue } from './entities/monthly-revenue.entity';
+import { ParkingModule } from '../parking/parking.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MonthlyRevenue } from './entities/monthly-revenue.entity';
       RevenueCategory,
       MonthlyRevenue,
     ]),
+    ParkingModule,
   ],
   controllers: [AcquisitionsController],
   providers: [AcquisitionsService],

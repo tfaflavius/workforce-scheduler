@@ -34,6 +34,9 @@ export class RevenueCategory {
   @Column({ name: 'sort_order', type: 'int', default: 0 })
   sortOrder: number;
 
+  @Column({ name: 'parking_lot_id', type: 'uuid', nullable: true })
+  parkingLotId: string | null;
+
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 

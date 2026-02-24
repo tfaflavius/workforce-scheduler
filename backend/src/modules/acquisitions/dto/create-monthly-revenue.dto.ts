@@ -29,6 +29,11 @@ export class UpsertMonthlyRevenueDto {
   @Min(0)
   incasari: number;
 
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  incasariCard?: number;
+
   @IsNumber()
   @Min(0)
   cheltuieli: number;

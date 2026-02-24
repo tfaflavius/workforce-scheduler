@@ -25,6 +25,7 @@ import {
   alpha,
   useTheme,
   useMediaQuery,
+  Chip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -33,6 +34,7 @@ import {
   Close as CloseIcon,
   BarChart as RevenueIcon,
   Category as CategoryIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { GradientHeader } from '../../components/common';
 import {
@@ -42,6 +44,7 @@ import {
   useDeleteRevenueCategoryMutation,
   useUpsertMonthlyRevenueMutation,
 } from '../../store/api/acquisitions.api';
+import { useGetParkingLotsQuery } from '../../store/api/parking.api';
 import type { RevenueCategory, RevenueSummaryCategory } from '../../types/acquisitions.types';
 
 const formatCurrency = (amount: number) => {
@@ -70,13 +73,16 @@ const IncasariCheltuieliPage: React.FC = () => {
   // Revenue section states
   const [revCatDialogOpen, setRevCatDialogOpen] = useState(false);
   const [editingRevCat, setEditingRevCat] = useState<RevenueCategory | null>(null);
-  const [revCatForm, setRevCatForm] = useState({ name: '', description: '', parentId: '' });
+  const [revCatForm, setRevCatForm] = useState({ name: '', description: '', parentId: '', parkingLotId: '' });
   const [editingCell, setEditingCell] = useState<{
     categoryId: string;
     month: number;
     incasari: string;
+    incasariCash: string;
+    incasariCard: string;
     cheltuieli: string;
     notes: string;
+    hasParkingLot: boolean;
   } | null>(null);
   const [cellDialogOpen, setCellDialogOpen] = useState(false);
 
@@ -96,6 +102,7 @@ const IncasariCheltuieliPage: React.FC = () => {
 
   // API hooks
   const { data: revenueSummary, isLoading: loadingRevenue } = useGetRevenueSummaryQuery({ year: selectedYear });
+  const { data: parkingLots } = useGetParkingLotsQuery();
   const [createRevCat] = useCreateRevenueCategoryMutation();
   const [updateRevCat] = useUpdateRevenueCategoryMutation();
   const [deleteRevCat] = useDeleteRevenueCategoryMutation();
@@ -106,6 +113,26 @@ const IncasariCheltuieliPage: React.FC = () => {
     if (!revenueSummary) return [];
     return revenueSummary.categories.filter((c) => c.isGroup);
   }, [revenueSummary]);
+
+  // Active parking lots for dropdown
+  const activeParkingLots = useMemo(() => {
+    if (!parkingLots) return [];
+    return parkingLots.filter((lot) => lot.isActive);
+  }, [parkingLots]);
+
+  // Helper: check if a category has a parking lot link
+  const categoryHasParkingLot = (categoryId: string): boolean => {
+    if (!revenueSummary) return false;
+    for (const cat of revenueSummary.categories) {
+      if (cat.categoryId === categoryId) return !!cat.parkingLotId;
+      if (cat.children) {
+        for (const child of cat.children) {
+          if (child.categoryId === categoryId) return !!child.parkingLotId;
+        }
+      }
+    }
+    return false;
+  };
 
   // Handlers
   const showSuccess = (msg: string) => {
@@ -124,10 +151,15 @@ const IncasariCheltuieliPage: React.FC = () => {
   const handleOpenRevCatDialog = (cat?: RevenueCategory, parentId?: string) => {
     if (cat) {
       setEditingRevCat(cat);
-      setRevCatForm({ name: cat.name, description: cat.description || '', parentId: cat.parentId || '' });
+      setRevCatForm({
+        name: cat.name,
+        description: cat.description || '',
+        parentId: cat.parentId || '',
+        parkingLotId: cat.parkingLotId || '',
+      });
     } else {
       setEditingRevCat(null);
-      setRevCatForm({ name: '', description: '', parentId: parentId || '' });
+      setRevCatForm({ name: '', description: '', parentId: parentId || '', parkingLotId: '' });
     }
     setRevCatDialogOpen(true);
   };
@@ -137,7 +169,11 @@ const IncasariCheltuieliPage: React.FC = () => {
       if (editingRevCat) {
         await updateRevCat({
           id: editingRevCat.id,
-          data: { name: revCatForm.name, description: revCatForm.description || undefined },
+          data: {
+            name: revCatForm.name,
+            description: revCatForm.description || undefined,
+            parkingLotId: revCatForm.parkingLotId || undefined,
+          },
         }).unwrap();
         showSuccess('Categoria a fost actualizata');
       } else {
@@ -145,6 +181,7 @@ const IncasariCheltuieliPage: React.FC = () => {
           name: revCatForm.name,
           description: revCatForm.description || undefined,
           parentId: revCatForm.parentId || undefined,
+          parkingLotId: revCatForm.parkingLotId || undefined,
         }).unwrap();
         showSuccess('Categoria a fost creata');
       }
@@ -184,12 +221,16 @@ const IncasariCheltuieliPage: React.FC = () => {
 
   const handleOpenCellDialog = (categoryId: string, month: number) => {
     const existing = findCellData(categoryId, month);
+    const hasParkingLot = categoryHasParkingLot(categoryId);
     setEditingCell({
       categoryId,
       month,
       incasari: existing ? String(existing.incasari) : '0',
+      incasariCash: existing ? String(existing.incasariCash || 0) : '0',
+      incasariCard: existing ? String(existing.incasariCard || 0) : '0',
       cheltuieli: existing ? String(existing.cheltuieli) : '0',
       notes: existing?.notes || '',
+      hasParkingLot,
     });
     setCellDialogOpen(true);
   };
@@ -197,14 +238,28 @@ const IncasariCheltuieliPage: React.FC = () => {
   const handleSaveCell = async () => {
     if (!editingCell) return;
     try {
-      await upsertMonthlyRevenue({
-        revenueCategoryId: editingCell.categoryId,
-        year: selectedYear,
-        month: editingCell.month,
-        incasari: Number(editingCell.incasari) || 0,
-        cheltuieli: Number(editingCell.cheltuieli) || 0,
-        notes: editingCell.notes || undefined,
-      }).unwrap();
+      if (editingCell.hasParkingLot) {
+        // Parking category: send incasariCard, backend computes cash
+        await upsertMonthlyRevenue({
+          revenueCategoryId: editingCell.categoryId,
+          year: selectedYear,
+          month: editingCell.month,
+          incasari: 0, // ignored for parking categories — backend recalculates
+          incasariCard: Number(editingCell.incasariCard) || 0,
+          cheltuieli: Number(editingCell.cheltuieli) || 0,
+          notes: editingCell.notes || undefined,
+        }).unwrap();
+      } else {
+        // Regular category: send incasari as before
+        await upsertMonthlyRevenue({
+          revenueCategoryId: editingCell.categoryId,
+          year: selectedYear,
+          month: editingCell.month,
+          incasari: Number(editingCell.incasari) || 0,
+          cheltuieli: Number(editingCell.cheltuieli) || 0,
+          notes: editingCell.notes || undefined,
+        }).unwrap();
+      }
       showSuccess('Datele au fost salvate');
       setCellDialogOpen(false);
     } catch (error) {
@@ -255,15 +310,33 @@ const IncasariCheltuieliPage: React.FC = () => {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: isChild ? 600 : 700, fontSize: isChild ? '0.8rem' : undefined }}>
-              {cat.categoryName}
-            </Typography>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: isChild ? 600 : 700, fontSize: isChild ? '0.8rem' : undefined }}>
+                {cat.categoryName}
+              </Typography>
+              {cat.parkingLotId && (
+                <Chip
+                  icon={<LockIcon sx={{ fontSize: '12px !important' }} />}
+                  label="Cash auto"
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: '0.6rem',
+                    bgcolor: alpha('#10b981', 0.12),
+                    color: '#059669',
+                    mt: 0.25,
+                    '& .MuiChip-icon': { color: '#059669' },
+                  }}
+                />
+              )}
+            </Box>
             <Box sx={{ display: 'flex', gap: 0.25 }}>
               <IconButton
                 size="small"
                 onClick={() => handleOpenRevCatDialog({
                   id: cat.categoryId, name: cat.categoryName, description: null,
-                  parentId: cat.parentId, sortOrder: cat.sortOrder, isActive: true, createdAt: '', updatedAt: '',
+                  parentId: cat.parentId, parkingLotId: cat.parkingLotId,
+                  sortOrder: cat.sortOrder, isActive: true, createdAt: '', updatedAt: '',
                 })}
               >
                 <EditIcon sx={{ fontSize: 16 }} />
@@ -276,6 +349,7 @@ const IncasariCheltuieliPage: React.FC = () => {
         </TableCell>
         {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
           const data = cat.months[month];
+          const hasParkingLot = !!cat.parkingLotId;
           return (
             <TableCell
               key={month}
@@ -289,9 +363,20 @@ const IncasariCheltuieliPage: React.FC = () => {
               }}
               onClick={() => handleOpenCellDialog(cat.categoryId, month)}
             >
-              <Typography variant="caption" sx={{ fontWeight: 600, color: '#10b981', fontSize: '0.7rem' }}>
-                {data && data.incasari > 0 ? formatCurrency(data.incasari) : '-'}
-              </Typography>
+              {hasParkingLot && data && (data.incasariCash > 0 || data.incasariCard > 0) ? (
+                <Box>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#059669', fontSize: '0.6rem', display: 'block', lineHeight: 1.3 }}>
+                    C: {formatCurrency(data.incasariCash)}
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#2563eb', fontSize: '0.6rem', display: 'block', lineHeight: 1.3 }}>
+                    K: {formatCurrency(data.incasariCard)}
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#10b981', fontSize: '0.7rem' }}>
+                  {data && data.incasari > 0 ? formatCurrency(data.incasari) : '-'}
+                </Typography>
+              )}
             </TableCell>
           );
         })}
@@ -366,7 +451,8 @@ const IncasariCheltuieliPage: React.FC = () => {
                 size="small"
                 onClick={() => handleOpenRevCatDialog({
                   id: cat.categoryId, name: cat.categoryName, description: null,
-                  parentId: null, sortOrder: cat.sortOrder, isActive: true, createdAt: '', updatedAt: '',
+                  parentId: null, parkingLotId: cat.parkingLotId,
+                  sortOrder: cat.sortOrder, isActive: true, createdAt: '', updatedAt: '',
                 })}
               >
                 <EditIcon sx={{ fontSize: 16 }} />
@@ -636,6 +722,24 @@ const IncasariCheltuieliPage: React.FC = () => {
                   ))}
               </TextField>
             )}
+            {/* Parking lot link for cash auto-population */}
+            <TextField
+              select
+              fullWidth
+              label="Parcare asociata (optional)"
+              value={revCatForm.parkingLotId}
+              onChange={(e) => setRevCatForm({ ...revCatForm, parkingLotId: e.target.value })}
+              helperText="Daca selectezi o parcare, incasarile cash vor fi preluate automat din Automate de Plata"
+            >
+              <MenuItem value="">
+                <em>Nicio parcare (incasari manuale)</em>
+              </MenuItem>
+              {activeParkingLots.map((lot) => (
+                <MenuItem key={lot.id} value={lot.id}>
+                  {lot.name}
+                </MenuItem>
+              ))}
+            </TextField>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 0 }}>
@@ -666,15 +770,55 @@ const IncasariCheltuieliPage: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              label="Incasari (lei)"
-              type="number"
-              value={editingCell?.incasari || '0'}
-              onChange={(e) => setEditingCell(editingCell ? { ...editingCell, incasari: e.target.value } : null)}
-              inputProps={{ min: 0, step: 0.01 }}
-              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#10b981' } } }}
-            />
+            {editingCell?.hasParkingLot ? (
+              <>
+                {/* Cash — auto from CashCollections (read-only) */}
+                <TextField
+                  fullWidth
+                  label="Incasari Cash (Auto din Automate de Plata)"
+                  type="number"
+                  value={editingCell.incasariCash}
+                  disabled
+                  InputProps={{
+                    startAdornment: <LockIcon sx={{ fontSize: 16, mr: 1, color: '#059669' }} />,
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: alpha('#10b981', 0.06),
+                      '& fieldset': { borderColor: '#059669' },
+                    },
+                  }}
+                />
+                {/* Card — manual input */}
+                <TextField
+                  fullWidth
+                  label="Incasari Card (lei)"
+                  type="number"
+                  value={editingCell.incasariCard}
+                  onChange={(e) => setEditingCell(editingCell ? { ...editingCell, incasariCard: e.target.value } : null)}
+                  inputProps={{ min: 0, step: 0.01 }}
+                  sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#2563eb' } } }}
+                />
+                {/* Total info */}
+                <Alert severity="info" sx={{ py: 0.5 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                    Total Incasari: {formatCurrency(
+                      (Number(editingCell.incasariCash) || 0) + (Number(editingCell.incasariCard) || 0)
+                    )}
+                  </Typography>
+                </Alert>
+              </>
+            ) : (
+              <TextField
+                fullWidth
+                label="Incasari (lei)"
+                type="number"
+                value={editingCell?.incasari || '0'}
+                onChange={(e) => setEditingCell(editingCell ? { ...editingCell, incasari: e.target.value } : null)}
+                inputProps={{ min: 0, step: 0.01 }}
+                sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#10b981' } } }}
+              />
+            )}
             <TextField
               fullWidth
               label="Cheltuieli (lei)"

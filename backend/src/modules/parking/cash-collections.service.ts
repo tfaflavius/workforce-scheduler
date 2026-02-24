@@ -154,6 +154,39 @@ export class CashCollectionsService {
     };
   }
 
+  /**
+   * Returneaza totalurile cash agregate per parkingLot si per luna pentru un an intreg.
+   * Rezultat: { [parkingLotId]: { [month]: totalAmount } }
+   * Un singur query SQL optimizat.
+   */
+  async getCashTotalsByLotAndMonth(
+    parkingLotIds: string[],
+    year: number,
+  ): Promise<Record<string, Record<number, number>>> {
+    if (!parkingLotIds.length) return {};
+
+    const rows = await this.cashCollectionRepository
+      .createQueryBuilder('c')
+      .select('c.parking_lot_id', 'parkingLotId')
+      .addSelect('EXTRACT(MONTH FROM c.collected_at)::int', 'month')
+      .addSelect('SUM(c.amount)', 'total')
+      .where('c.parking_lot_id IN (:...ids)', { ids: parkingLotIds })
+      .andWhere('EXTRACT(YEAR FROM c.collected_at) = :year', { year })
+      .groupBy('c.parking_lot_id')
+      .addGroupBy('EXTRACT(MONTH FROM c.collected_at)')
+      .getRawMany();
+
+    const result: Record<string, Record<number, number>> = {};
+    for (const row of rows) {
+      const lotId = row.parkingLotId;
+      const month = Number(row.month);
+      const total = parseFloat(row.total) || 0;
+      if (!result[lotId]) result[lotId] = {};
+      result[lotId][month] = total;
+    }
+    return result;
+  }
+
   async delete(id: string, user: User): Promise<void> {
     if (user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Doar administratorii pot sterge ridicarile');

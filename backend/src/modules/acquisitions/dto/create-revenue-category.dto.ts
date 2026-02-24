@@ -24,6 +24,10 @@ export class CreateRevenueCategoryDto {
   parentId?: string;
 
   @IsOptional()
+  @IsUUID()
+  parkingLotId?: string;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   sortOrder?: number;
@@ -42,6 +46,10 @@ export class UpdateRevenueCategoryDto {
   @IsOptional()
   @IsUUID()
   parentId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  parkingLotId?: string;
 
   @IsOptional()
   @IsInt()
