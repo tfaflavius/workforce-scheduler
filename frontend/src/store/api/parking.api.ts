@@ -22,6 +22,9 @@ import type {
   EditRequestStatus,
   CreateEditRequestDto,
   ReviewEditRequestDto,
+  ParkingMeter,
+  CreateParkingMeterDto,
+  UpdateParkingMeterDto,
 } from '../../types/parking.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -38,7 +41,7 @@ export const parkingApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['ParkingLots', 'PaymentMachines', 'ParkingIssues', 'ParkingDamages', 'CashCollections', 'IssueComments', 'DamageComments', 'IssueHistory', 'DamageHistory', 'EditRequests'],
+  tagTypes: ['ParkingLots', 'PaymentMachines', 'ParkingIssues', 'ParkingDamages', 'CashCollections', 'IssueComments', 'DamageComments', 'IssueHistory', 'DamageHistory', 'EditRequests', 'ParkingMeters'],
   endpoints: (builder) => ({
     // Parking Lots
     getParkingLots: builder.query<ParkingLot[], void>({
@@ -324,6 +327,38 @@ export const parkingApi = createApi({
       }),
       invalidatesTags: ['EditRequests', 'ParkingIssues', 'ParkingDamages', 'CashCollections'],
     }),
+
+    // Parking Meters
+    getParkingMeters: builder.query<ParkingMeter[], void>({
+      query: () => '/parking-meters',
+      providesTags: ['ParkingMeters'],
+    }),
+
+    createParkingMeter: builder.mutation<ParkingMeter, CreateParkingMeterDto>({
+      query: (body) => ({
+        url: '/parking-meters',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['ParkingMeters'],
+    }),
+
+    updateParkingMeter: builder.mutation<ParkingMeter, { id: string; data: UpdateParkingMeterDto }>({
+      query: ({ id, data }) => ({
+        url: `/parking-meters/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['ParkingMeters'],
+    }),
+
+    deleteParkingMeter: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/parking-meters/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ParkingMeters'],
+    }),
   }),
 });
 
@@ -372,4 +407,9 @@ export const {
   useGetEditRequestQuery,
   useCreateEditRequestMutation,
   useReviewEditRequestMutation,
+  // Parking Meters
+  useGetParkingMetersQuery,
+  useCreateParkingMeterMutation,
+  useUpdateParkingMeterMutation,
+  useDeleteParkingMeterMutation,
 } = parkingApi;

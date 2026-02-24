@@ -26,6 +26,7 @@ import { PvDisplaySessionComment } from './entities/pv-display-session-comment.e
 import { ParkingDailyTicket } from './entities/parking-daily-ticket.entity';
 import { ParkingMonthlySubscription } from './entities/parking-monthly-subscription.entity';
 import { ParkingWeeklyOccupancy } from './entities/parking-weekly-occupancy.entity';
+import { ParkingMeter } from './entities/parking-meter.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
@@ -42,6 +43,7 @@ import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 import { PvDisplayService } from './pv-display.service';
 import { ParkingStatsService } from './parking-stats.service';
+import { ParkingMetersService } from './parking-meters.service';
 
 // Controllers
 import { ParkingLotsController } from './parking-lots.controller';
@@ -56,6 +58,7 @@ import { RevolutionarLegitimationsController } from './revolutionar-legitimation
 import { PvDisplayController } from './pv-display.controller';
 import { PvCarStatusController } from './pv-car-status.controller';
 import { ParkingStatsController } from './parking-stats.controller';
+import { ParkingMetersController } from './parking-meters.controller';
 
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
@@ -94,6 +97,7 @@ import { EmailModule } from '../../common/email/email.module';
       ParkingDailyTicket,
       ParkingMonthlySubscription,
       ParkingWeeklyOccupancy,
+      ParkingMeter,
       User,
       Department,
       ScheduleAssignment,
@@ -115,6 +119,7 @@ import { EmailModule } from '../../common/email/email.module';
     PvDisplayController,
     PvCarStatusController,
     ParkingStatsController,
+    ParkingMetersController,
   ],
   providers: [
     ParkingLotsService,
@@ -128,6 +133,7 @@ import { EmailModule } from '../../common/email/email.module';
     RevolutionarLegitimationsService,
     PvDisplayService,
     ParkingStatsService,
+    ParkingMetersService,
     PvDisplayAccessGuard,
     ParkingUrgentScheduler,
     PvDisplayScheduler,
@@ -143,6 +149,7 @@ import { EmailModule } from '../../common/email/email.module';
     HandicapLegitimationsService,
     RevolutionarLegitimationsService,
     PvDisplayService,
+    ParkingMetersService,
   ],
 })
 export class ParkingModule {}

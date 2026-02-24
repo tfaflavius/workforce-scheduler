@@ -1,3 +1,30 @@
+// Parking Meter Types
+export interface ParkingMeter {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateParkingMeterDto {
+  name: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+}
+
+export interface UpdateParkingMeterDto {
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  isActive?: boolean;
+}
+
 // Parking Lot Types
 export interface ParkingLot {
   id: string;
