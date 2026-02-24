@@ -30,7 +30,7 @@ import {
   CardMembership as SubscriptionIcon,
   TrendingUp as OccupancyIcon,
 } from '@mui/icons-material';
-import { PARKING_STAT_LOCATIONS, getLocationName } from '../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS } from '../../constants/parkingStats';
 import {
   useGetMonthlyTicketsSummaryQuery,
   useGetWeeklyTicketsSummaryQuery,

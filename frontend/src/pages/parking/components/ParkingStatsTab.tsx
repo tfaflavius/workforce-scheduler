@@ -24,7 +24,6 @@ import {
   Alert,
   CircularProgress,
   Snackbar,
-  useTheme,
   alpha,
 } from '@mui/material';
 import {
@@ -34,7 +33,7 @@ import {
   TrendingUp as OccupancyIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
-import { PARKING_STAT_LOCATIONS, getLocationName } from '../../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS } from '../../../constants/parkingStats';
 import {
   useGetDailyTicketsQuery,
   useGetWeeklyTicketsSummaryQuery,
@@ -119,7 +118,6 @@ const monthOptions = generateMonthOptions();
 // ==================== TICKET SECTION ====================
 
 const TicketsSection: React.FC = () => {
-  const theme = useTheme();
   const [viewMode, setViewMode] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [selectedDay, setSelectedDay] = useState(getTodayStr());
   const [selectedWeek, setSelectedWeek] = useState(getCurrentWeekStart());
@@ -572,7 +570,6 @@ const OccupancySection: React.FC = () => {
 // ==================== MAIN COMPONENT ====================
 
 const ParkingStatsTab: React.FC = () => {
-  const theme = useTheme();
   const [expanded, setExpanded] = useState<string | false>('tickets');
 
   const handleAccordionChange = (panel: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
