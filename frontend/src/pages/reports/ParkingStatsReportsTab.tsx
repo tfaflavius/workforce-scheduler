@@ -30,7 +30,7 @@ import {
   CardMembership as SubscriptionIcon,
   TrendingUp as OccupancyIcon,
 } from '@mui/icons-material';
-import { PARKING_STAT_LOCATIONS, getLocationFullName, isFirstInGroup } from '../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName, isFirstInGroup } from '../../constants/parkingStats';
 import {
   useGetMonthlyTicketsSummaryQuery,
   useGetWeeklyTicketsSummaryQuery,
@@ -160,11 +160,9 @@ const ParkingStatsReportsTab: React.FC = () => {
 
   const subscriptionsData = useMemo(() => {
     const dataMap = new Map(monthlySubscriptions.map(s => [s.locationKey, s.subscriptionCount]));
-    return PARKING_STAT_LOCATIONS.map(loc => ({
+    return PARKING_SUBSCRIPTION_LOCATIONS.map(loc => ({
       locationKey: loc.key,
       name: loc.name,
-      fullName: getLocationFullName(loc.key),
-      group: loc.group,
       value: dataMap.get(loc.key) || 0,
     }));
   }, [monthlySubscriptions]);
@@ -274,7 +272,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       doc.text(`Total abonamente: ${total}`, 14, 27);
 
       const headers = ['Parcare', 'Numar Abonamente'];
-      const rows = subscriptionsData.map(d => [d.fullName, d.value.toString()]);
+      const rows = subscriptionsData.map(d => [d.name, d.value.toString()]);
       rows.push(['TOTAL', total.toString()]);
 
       autoTable(doc, {
@@ -372,7 +370,7 @@ const ParkingStatsReportsTab: React.FC = () => {
         [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
         [],
         ['Parcare', 'Numar Abonamente'],
-        ...subscriptionsData.map(d => [d.fullName, d.value]),
+        ...subscriptionsData.map(d => [d.name, d.value]),
         [],
         ['TOTAL', total],
       ];
@@ -468,24 +466,12 @@ const ParkingStatsReportsTab: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {subscriptionsData.map((d, idx) => {
-                const rows: React.ReactNode[] = [];
-                if (isFirstInGroup(idx) && d.group) {
-                  rows.push(
-                    <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{d.group}</TableCell>
-                      <TableCell />
-                    </TableRow>
-                  );
-                }
-                rows.push(
-                  <TableRow key={d.locationKey} hover>
-                    <TableCell sx={d.group ? { pl: 4 } : undefined}>{d.group ? `└ ${d.name}` : d.name}</TableCell>
-                    <TableCell align="right">{d.value}</TableCell>
-                  </TableRow>
-                );
-                return rows;
-              })}
+              {subscriptionsData.map((d) => (
+                <TableRow key={d.locationKey} hover>
+                  <TableCell>{d.name}</TableCell>
+                  <TableCell align="right">{d.value}</TableCell>
+                </TableRow>
+              ))}
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
                 <TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700 }}>{total}</TableCell>
@@ -632,7 +618,7 @@ const ParkingStatsReportsTab: React.FC = () => {
           )}
           {reportType === 'subscriptions' && (
             <>
-              <strong>Abonamente lunare</strong> — {getPeriodLabel()} pentru cele 12 parcari etajate.
+              <strong>Abonamente lunare</strong> — {getPeriodLabel()} pentru cele 9 parcari etajate.
             </>
           )}
           {reportType === 'occupancy' && (

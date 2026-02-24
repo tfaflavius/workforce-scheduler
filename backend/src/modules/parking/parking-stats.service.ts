@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { ParkingDailyTicket } from './entities/parking-daily-ticket.entity';
 import { ParkingMonthlySubscription } from './entities/parking-monthly-subscription.entity';
 import { ParkingWeeklyOccupancy } from './entities/parking-weekly-occupancy.entity';
-import { PARKING_STAT_LOCATIONS } from './constants/parking.constants';
+import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS } from './constants/parking.constants';
 
 interface TicketEntry {
   locationKey: string;
@@ -119,7 +119,7 @@ export class ParkingStatsService {
     const results: ParkingMonthlySubscription[] = [];
 
     for (const entry of entries) {
-      if (!PARKING_STAT_LOCATIONS.find(l => l.key === entry.locationKey)) continue;
+      if (!PARKING_SUBSCRIPTION_LOCATIONS.find(l => l.key === entry.locationKey)) continue;
 
       const existing = await this.subscriptionRepository.findOne({
         where: { monthYear, locationKey: entry.locationKey },

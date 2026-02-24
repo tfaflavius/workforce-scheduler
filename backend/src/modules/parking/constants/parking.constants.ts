@@ -289,7 +289,7 @@ export const PV_DAY_STATUS_LABELS: Record<PvDayStatus, string> = {
 };
 
 // ================ PARKING STAT LOCATIONS ================
-// Locatii pentru statistici parcari etajate (tichete, abonamente, ocupare)
+// Locatii pentru statistici parcari etajate (tichete, ocupare) — Doja cu sub-niveluri
 export const PARKING_STAT_LOCATIONS = [
   { key: 'BARITIU', name: 'Parcare Baritiu', group: null },
   { key: 'DOJA_P0', name: 'P0', group: 'Parcarea Doja' },
@@ -306,3 +306,18 @@ export const PARKING_STAT_LOCATIONS = [
 ] as const;
 
 export type ParkingStatLocationKey = typeof PARKING_STAT_LOCATIONS[number]['key'];
+
+// Locatii pentru abonamente lunare — Doja ca o singura parcare (fara sub-niveluri)
+export const PARKING_SUBSCRIPTION_LOCATIONS = [
+  { key: 'BARITIU', name: 'Parcare Baritiu' },
+  { key: 'DOJA', name: 'Parcarea Doja' },
+  { key: 'BRASOVULUI', name: 'Parcarea Brașovului' },
+  { key: 'INDEPENDENTEI', name: 'Parcarea Independenței' },
+  { key: 'IOSIF_VULCAN', name: 'Parcarea Iosif Vulcan' },
+  { key: 'TRIBUNALULUI', name: 'Parcarea Tribunalului' },
+  { key: 'SPITAL_MUNICIPAL', name: 'Parcarea Spital Municipal' },
+  { key: 'CETATE', name: 'Parcarea Cetate' },
+  { key: 'PRIMARIE', name: 'Parcarea Primărie' },
+] as const;
+
+export type ParkingSubscriptionLocationKey = typeof PARKING_SUBSCRIPTION_LOCATIONS[number]['key'];

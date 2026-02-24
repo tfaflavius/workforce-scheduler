@@ -1,4 +1,4 @@
-// Locatii pentru statistici parcari etajate
+// Locatii pentru statistici parcari etajate (tichete, ocupare) — Doja cu sub-niveluri
 // Mirrors backend: backend/src/modules/parking/constants/parking.constants.ts
 
 export const PARKING_STAT_LOCATIONS = [
@@ -17,6 +17,21 @@ export const PARKING_STAT_LOCATIONS = [
 ] as const;
 
 export type ParkingStatLocationKey = typeof PARKING_STAT_LOCATIONS[number]['key'];
+
+// Locatii pentru abonamente lunare — Doja ca o singura parcare (fara sub-niveluri)
+export const PARKING_SUBSCRIPTION_LOCATIONS = [
+  { key: 'BARITIU', name: 'Parcare Baritiu' },
+  { key: 'DOJA', name: 'Parcarea Doja' },
+  { key: 'BRASOVULUI', name: 'Parcarea Brașovului' },
+  { key: 'INDEPENDENTEI', name: 'Parcarea Independenței' },
+  { key: 'IOSIF_VULCAN', name: 'Parcarea Iosif Vulcan' },
+  { key: 'TRIBUNALULUI', name: 'Parcarea Tribunalului' },
+  { key: 'SPITAL_MUNICIPAL', name: 'Parcarea Spital Municipal' },
+  { key: 'CETATE', name: 'Parcarea Cetate' },
+  { key: 'PRIMARIE', name: 'Parcarea Primărie' },
+] as const;
+
+export type ParkingSubscriptionLocationKey = typeof PARKING_SUBSCRIPTION_LOCATIONS[number]['key'];
 
 // Helper: returneaza numele complet (cu grup) pentru export PDF/Excel
 export const getLocationFullName = (key: string): string => {
