@@ -143,12 +143,14 @@ const ParcometrePage: React.FC = () => {
 
   // Handle map click -> open create dialog
   const handleMapClick = useCallback((lat: number, lng: number) => {
+    // Guard: don't open create dialog if already open
+    if (dialogOpen) return;
     setEditingMeter(null);
     setFormData({ name: '', address: '', latitude: lat, longitude: lng });
     setNewMarkerPos([lat, lng]);
     setError('');
     setDialogOpen(true);
-  }, []);
+  }, [dialogOpen]);
 
   // Handle edit existing meter
   const handleEdit = useCallback((meter: ParkingMeter) => {
@@ -300,7 +302,7 @@ const ParcometrePage: React.FC = () => {
                 icon={meterIcon}
               >
                 <Popup minWidth={200} maxWidth={280}>
-                  <Box sx={{ p: 0.5 }}>
+                  <Box sx={{ p: 0.5 }} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: '#8b5cf6' }}>
                       {meter.name}
                     </Typography>
