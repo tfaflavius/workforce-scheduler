@@ -1,3 +1,8 @@
+// Parking Meter Enums
+export type ParkingZone = 'ROSU' | 'GALBEN' | 'ALB';
+export type PowerSource = 'CURENT' | 'SOLAR';
+export type MeterCondition = 'NOU' | 'VECHI';
+
 // Parking Meter Types
 export interface ParkingMeter {
   id: string;
@@ -5,6 +10,9 @@ export interface ParkingMeter {
   latitude: number;
   longitude: number;
   address?: string;
+  zone: ParkingZone;
+  powerSource: PowerSource;
+  condition: MeterCondition;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -15,6 +23,9 @@ export interface CreateParkingMeterDto {
   latitude: number;
   longitude: number;
   address?: string;
+  zone: ParkingZone;
+  powerSource: PowerSource;
+  condition: MeterCondition;
 }
 
 export interface UpdateParkingMeterDto {
@@ -22,6 +33,9 @@ export interface UpdateParkingMeterDto {
   latitude?: number;
   longitude?: number;
   address?: string;
+  zone?: ParkingZone;
+  powerSource?: PowerSource;
+  condition?: MeterCondition;
   isActive?: boolean;
 }
 

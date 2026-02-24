@@ -4,7 +4,9 @@ import {
   IsNumber,
   IsOptional,
   IsBoolean,
+  IsEnum,
 } from 'class-validator';
+import { ParkingZone, PowerSource, MeterCondition } from '../entities/parking-meter.entity';
 
 export class CreateParkingMeterDto {
   @IsString()
@@ -20,6 +22,15 @@ export class CreateParkingMeterDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsEnum(ParkingZone)
+  zone: ParkingZone;
+
+  @IsEnum(PowerSource)
+  powerSource: PowerSource;
+
+  @IsEnum(MeterCondition)
+  condition: MeterCondition;
 }
 
 export class UpdateParkingMeterDto {
@@ -38,6 +49,18 @@ export class UpdateParkingMeterDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @IsOptional()
+  @IsEnum(ParkingZone)
+  zone?: ParkingZone;
+
+  @IsOptional()
+  @IsEnum(PowerSource)
+  powerSource?: PowerSource;
+
+  @IsOptional()
+  @IsEnum(MeterCondition)
+  condition?: MeterCondition;
 
   @IsOptional()
   @IsBoolean()

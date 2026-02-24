@@ -23,6 +23,10 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
   MyLocation as MyLocationIcon,
+  WbSunny as SolarIcon,
+  ElectricBolt as ElectricIcon,
+  FiberNew as NewIcon,
+  History as OldIcon,
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -33,7 +37,7 @@ import {
   useUpdateParkingMeterMutation,
   useDeleteParkingMeterMutation,
 } from '../../store/api/parking.api';
-import type { ParkingMeter } from '../../types/parking.types';
+import type { ParkingMeter, ParkingZone, PowerSource, MeterCondition } from '../../types/parking.types';
 
 // Fix default marker icons in Leaflet + Vite
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,24 +48,45 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Custom violet marker icon for parking meters
-const meterIcon = L.divIcon({
-  className: 'parking-meter-marker',
-  html: `<div style="
-    background-color: #8b5cf6;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  "><span style="color: white; font-size: 14px; font-weight: 700;">P</span></div>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 14],
-  popupAnchor: [0, -16],
-});
+// Zone color mapping
+const ZONE_COLORS: Record<ParkingZone, { bg: string; border: string; shadow: string }> = {
+  ROSU: { bg: '#ef4444', border: '#ffffff', shadow: 'rgba(239,68,68,0.5)' },
+  GALBEN: { bg: '#f59e0b', border: '#ffffff', shadow: 'rgba(245,158,11,0.5)' },
+  ALB: { bg: '#9ca3af', border: '#ffffff', shadow: 'rgba(156,163,175,0.5)' },
+};
+
+const ZONE_LABELS: Record<ParkingZone, string> = { ROSU: 'Rosu', GALBEN: 'Galben', ALB: 'Alb' };
+const POWER_LABELS: Record<PowerSource, string> = { CURENT: 'Curent', SOLAR: 'Solar' };
+const CONDITION_LABELS: Record<MeterCondition, string> = { NOU: 'Nou', VECHI: 'Vechi' };
+
+// Create zone-colored marker icon
+const createZoneIcon = (zone: ParkingZone) => {
+  const colors = ZONE_COLORS[zone];
+  return L.divIcon({
+    className: 'parking-meter-marker',
+    html: `<div style="
+      background-color: ${colors.bg};
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 3px solid ${colors.border};
+      box-shadow: 0 2px 8px ${colors.shadow};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    "><span style="color: white; font-size: 14px; font-weight: 700;">P</span></div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16],
+  });
+};
+
+// Pre-create icons for each zone
+const zoneIcons: Record<ParkingZone, L.DivIcon> = {
+  ROSU: createZoneIcon('ROSU'),
+  GALBEN: createZoneIcon('GALBEN'),
+  ALB: createZoneIcon('ALB'),
+};
 
 // New meter marker (green)
 const newMeterIcon = L.divIcon({
@@ -114,7 +139,85 @@ const MapClickHandler: React.FC<MapClickHandlerProps> = ({ onMapClick, popupOpen
   return null;
 };
 
+// ============== Chip Selector Component ==============
+
+interface ChipOption<T extends string> {
+  value: T;
+  label: string;
+  color: string;
+  textColor?: string;
+  icon?: React.ReactElement;
+}
+
+interface ChipSelectorProps<T extends string> {
+  label: string;
+  options: ChipOption<T>[];
+  value: T;
+  onChange: (value: T) => void;
+}
+
+function ChipSelector<T extends string>({ label, options, value, onChange }: ChipSelectorProps<T>) {
+  return (
+    <Box>
+      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', mb: 0.75, display: 'block' }}>
+        {label}
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        {options.map((opt) => {
+          const isSelected = value === opt.value;
+          return (
+            <Chip
+              key={opt.value}
+              label={opt.label}
+              icon={opt.icon}
+              onClick={() => onChange(opt.value)}
+              sx={{
+                fontWeight: 600,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+                bgcolor: isSelected ? opt.color : 'grey.100',
+                color: isSelected ? (opt.textColor || 'white') : 'text.secondary',
+                border: '2px solid',
+                borderColor: isSelected ? opt.color : 'transparent',
+                '& .MuiChip-icon': {
+                  color: isSelected ? (opt.textColor || 'white') : 'text.secondary',
+                },
+                '&:hover': {
+                  bgcolor: isSelected ? opt.color : alpha(opt.color, 0.15),
+                  borderColor: opt.color,
+                },
+                boxShadow: isSelected ? `0 2px 8px ${alpha(opt.color, 0.4)}` : 'none',
+              }}
+            />
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
 // ============== Main Component ==============
+
+interface FormData {
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  zone: ParkingZone;
+  powerSource: PowerSource;
+  condition: MeterCondition;
+}
+
+const DEFAULT_FORM: FormData = {
+  name: '',
+  address: '',
+  latitude: 0,
+  longitude: 0,
+  zone: 'ROSU',
+  powerSource: 'CURENT',
+  condition: 'NOU',
+};
 
 const ParcometrePage: React.FC = () => {
   const theme = useTheme();
@@ -129,7 +232,7 @@ const ParcometrePage: React.FC = () => {
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMeter, setEditingMeter] = useState<ParkingMeter | null>(null);
-  const [formData, setFormData] = useState({ name: '', address: '', latitude: 0, longitude: 0 });
+  const [formData, setFormData] = useState<FormData>(DEFAULT_FORM);
   const [error, setError] = useState('');
 
   // Delete confirm dialog state
@@ -146,7 +249,7 @@ const ParcometrePage: React.FC = () => {
     // Guard: don't open create dialog if already open
     if (dialogOpen) return;
     setEditingMeter(null);
-    setFormData({ name: '', address: '', latitude: lat, longitude: lng });
+    setFormData({ ...DEFAULT_FORM, latitude: lat, longitude: lng });
     setNewMarkerPos([lat, lng]);
     setError('');
     setDialogOpen(true);
@@ -160,6 +263,9 @@ const ParcometrePage: React.FC = () => {
       address: meter.address || '',
       latitude: Number(meter.latitude),
       longitude: Number(meter.longitude),
+      zone: meter.zone || 'ALB',
+      powerSource: meter.powerSource || 'CURENT',
+      condition: meter.condition || 'NOU',
     });
     setNewMarkerPos(null);
     setError('');
@@ -174,23 +280,19 @@ const ParcometrePage: React.FC = () => {
     }
     try {
       setError('');
+      const payload = {
+        name: formData.name.trim(),
+        address: formData.address.trim() || undefined,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        zone: formData.zone,
+        powerSource: formData.powerSource,
+        condition: formData.condition,
+      };
       if (editingMeter) {
-        await updateMeter({
-          id: editingMeter.id,
-          data: {
-            name: formData.name.trim(),
-            address: formData.address.trim() || undefined,
-            latitude: formData.latitude,
-            longitude: formData.longitude,
-          },
-        }).unwrap();
+        await updateMeter({ id: editingMeter.id, data: payload }).unwrap();
       } else {
-        await createMeter({
-          name: formData.name.trim(),
-          address: formData.address.trim() || undefined,
-          latitude: formData.latitude,
-          longitude: formData.longitude,
-        }).unwrap();
+        await createMeter(payload).unwrap();
       }
       setDialogOpen(false);
       setNewMarkerPos(null);
@@ -217,6 +319,23 @@ const ParcometrePage: React.FC = () => {
     setNewMarkerPos(null);
     setEditingMeter(null);
   };
+
+  // Chip selector options
+  const zoneOptions: ChipOption<ParkingZone>[] = [
+    { value: 'ROSU', label: 'Rosu', color: '#ef4444' },
+    { value: 'GALBEN', label: 'Galben', color: '#f59e0b' },
+    { value: 'ALB', label: 'Alb', color: '#6b7280', textColor: 'white' },
+  ];
+
+  const powerOptions: ChipOption<PowerSource>[] = [
+    { value: 'CURENT', label: 'Curent', color: '#3b82f6', icon: <ElectricIcon sx={{ fontSize: 16 }} /> },
+    { value: 'SOLAR', label: 'Solar', color: '#f97316', icon: <SolarIcon sx={{ fontSize: 16 }} /> },
+  ];
+
+  const conditionOptions: ChipOption<MeterCondition>[] = [
+    { value: 'NOU', label: 'Nou', color: '#10b981', icon: <NewIcon sx={{ fontSize: 16 }} /> },
+    { value: 'VECHI', label: 'Vechi', color: '#8b5cf6', icon: <OldIcon sx={{ fontSize: 16 }} /> },
+  ];
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -300,11 +419,11 @@ const ParcometrePage: React.FC = () => {
               <Marker
                 key={meter.id}
                 position={[Number(meter.latitude), Number(meter.longitude)]}
-                icon={meterIcon}
+                icon={zoneIcons[meter.zone] || zoneIcons.ALB}
               >
-                <Popup minWidth={200} maxWidth={280}>
+                <Popup minWidth={220} maxWidth={300}>
                   <Box sx={{ p: 0.5 }} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: '#8b5cf6' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: ZONE_COLORS[meter.zone]?.bg || '#8b5cf6' }}>
                       {meter.name}
                     </Typography>
                     {meter.address && (
@@ -312,6 +431,44 @@ const ParcometrePage: React.FC = () => {
                         {meter.address}
                       </Typography>
                     )}
+                    {/* Zone / Power / Condition chips */}
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 0.75 }}>
+                      <Chip
+                        label={ZONE_LABELS[meter.zone] || meter.zone}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          bgcolor: ZONE_COLORS[meter.zone]?.bg || '#9ca3af',
+                          color: 'white',
+                        }}
+                      />
+                      <Chip
+                        icon={meter.powerSource === 'SOLAR' ? <SolarIcon sx={{ fontSize: '12px !important' }} /> : <ElectricIcon sx={{ fontSize: '12px !important' }} />}
+                        label={POWER_LABELS[meter.powerSource] || meter.powerSource}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: '0.65rem',
+                          fontWeight: 600,
+                          bgcolor: meter.powerSource === 'SOLAR' ? '#fff7ed' : '#eff6ff',
+                          color: meter.powerSource === 'SOLAR' ? '#ea580c' : '#2563eb',
+                          '& .MuiChip-icon': { color: meter.powerSource === 'SOLAR' ? '#ea580c' : '#2563eb' },
+                        }}
+                      />
+                      <Chip
+                        label={CONDITION_LABELS[meter.condition] || meter.condition}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: '0.65rem',
+                          fontWeight: 600,
+                          bgcolor: meter.condition === 'NOU' ? '#ecfdf5' : '#f5f3ff',
+                          color: meter.condition === 'NOU' ? '#059669' : '#7c3aed',
+                        }}
+                      />
+                    </Box>
                     <Typography
                       variant="caption"
                       sx={{ display: 'block', mb: 1, color: 'text.disabled', fontSize: '0.65rem' }}
@@ -416,6 +573,30 @@ const ParcometrePage: React.FC = () => {
             required
             autoFocus
             variant="outlined"
+          />
+
+          {/* Zone selector */}
+          <ChipSelector<ParkingZone>
+            label="Zona"
+            options={zoneOptions}
+            value={formData.zone}
+            onChange={(zone) => setFormData({ ...formData, zone })}
+          />
+
+          {/* Power source selector */}
+          <ChipSelector<PowerSource>
+            label="Alimentare"
+            options={powerOptions}
+            value={formData.powerSource}
+            onChange={(powerSource) => setFormData({ ...formData, powerSource })}
+          />
+
+          {/* Condition selector */}
+          <ChipSelector<MeterCondition>
+            label="Stare"
+            options={conditionOptions}
+            value={formData.condition}
+            onChange={(condition) => setFormData({ ...formData, condition })}
           />
 
           <TextField

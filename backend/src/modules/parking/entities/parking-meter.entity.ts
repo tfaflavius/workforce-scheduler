@@ -6,6 +6,22 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum ParkingZone {
+  ROSU = 'ROSU',
+  GALBEN = 'GALBEN',
+  ALB = 'ALB',
+}
+
+export enum PowerSource {
+  CURENT = 'CURENT',
+  SOLAR = 'SOLAR',
+}
+
+export enum MeterCondition {
+  NOU = 'NOU',
+  VECHI = 'VECHI',
+}
+
 @Entity('parking_meters')
 export class ParkingMeter {
   @PrimaryGeneratedColumn('uuid')
@@ -22,6 +38,15 @@ export class ParkingMeter {
 
   @Column({ length: 500, nullable: true })
   address: string;
+
+  @Column({ type: 'enum', enum: ParkingZone, default: ParkingZone.ALB })
+  zone: ParkingZone;
+
+  @Column({ type: 'enum', enum: PowerSource, name: 'power_source', default: PowerSource.CURENT })
+  powerSource: PowerSource;
+
+  @Column({ type: 'enum', enum: MeterCondition, default: MeterCondition.NOU })
+  condition: MeterCondition;
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
