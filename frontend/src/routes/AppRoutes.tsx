@@ -13,6 +13,7 @@ import {
   CONTROL_DEPARTMENT_NAME,
   ACHIZITII_DEPARTMENT_NAME,
   PARCOMETRE_DEPARTMENT_NAME,
+  MAINTENANCE_DEPARTMENT_NAME,
 } from '../constants/departments';
 
 // Lazy loaded route components
@@ -40,6 +41,7 @@ const ProcesVerbalePage = lazy(() => import('../pages/departments/ProcesVerbaleP
 const ParcometrePage = lazy(() => import('../pages/departments/ParcometrePage'));
 const AchizitiiPage = lazy(() => import('../pages/departments/AchizitiiPage'));
 const IncasariCheltuieliPage = lazy(() => import('../pages/departments/IncasariCheltuieliPage'));
+const ControlSesizariPage = lazy(() => import('../pages/parking/ControlSesizariPage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -237,6 +239,14 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[ACHIZITII_DEPARTMENT_NAME]}>
               <Suspense fallback={<PageLoader />}><IncasariCheltuieliPage /></Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/control-sesizari"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME]}>
+              <Suspense fallback={<PageLoader />}><ControlSesizariPage /></Suspense>
             </ProtectedRoute>
           }
         />

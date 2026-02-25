@@ -8,6 +8,7 @@ import { HandicapLegitimation } from '../parking/entities/handicap-legitimation.
 import { RevolutionarLegitimation } from '../parking/entities/revolutionar-legitimation.entity';
 import { PvDisplaySession } from '../parking/entities/pv-display-session.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
+import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
 import { ParkingModule } from '../parking/parking.module';
 import { TimeTrackingModule } from '../time-tracking/time-tracking.module';
 import { DailyReportsModule } from '../daily-reports/daily-reports.module';
@@ -24,6 +25,7 @@ import { AdminConsolidatedScheduler } from './admin-consolidated.scheduler';
       RevolutionarLegitimation,
       PvDisplaySession,
       PvDisplayDay,
+      ControlSesizare,
     ]),
     ParkingModule,
     TimeTrackingModule,

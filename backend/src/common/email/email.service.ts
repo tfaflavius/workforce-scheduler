@@ -394,6 +394,29 @@ export interface ConsolidatedDailyReportData {
     upcomingDays: number;
     completedToday: number;
   } | null;
+  // Sectiune 8: Control Sesizari (optional)
+  controlSesizariReport?: {
+    createdToday: Array<{
+      type: string;
+      zone: string;
+      location: string;
+      createdBy: string;
+    }>;
+    resolvedToday: Array<{
+      type: string;
+      zone: string;
+      location: string;
+      resolvedBy: string;
+      resolutionDescription: string;
+    }>;
+    summary: {
+      createdTodayCount: number;
+      resolvedTodayCount: number;
+      activeTotalCount: number;
+      activeMarcaje: number;
+      activePanouri: number;
+    };
+  } | null;
 }
 
 export interface ConsolidatedWeeklyReportData {
@@ -3177,6 +3200,90 @@ export class EmailService {
                 <tbody>${pvRows}</tbody>
               </table>
             ` : ''}
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 8: Control Sesizari ----
+    if (data.controlSesizariReport) {
+      const cs = data.controlSesizariReport;
+      const zoneColor = (zone: string) => zone === 'ROSU' ? '#ef4444' : zone === 'GALBEN' ? '#f59e0b' : '#64748b';
+      const zoneLabel = (zone: string) => zone === 'ROSU' ? 'Rosu' : zone === 'GALBEN' ? 'Galben' : 'Alb';
+
+      let csContent = `
+        <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 90px; background: #fff7ed; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: #ea580c;">${cs.summary.createdTodayCount}</div>
+            <div style="font-size: 11px; color: #666;">Noi azi</div>
+          </div>
+          <div style="flex: 1; min-width: 90px; background: #e8f5e9; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: #2e7d32;">${cs.summary.resolvedTodayCount}</div>
+            <div style="font-size: 11px; color: #666;">Finalizate azi</div>
+          </div>
+          <div style="flex: 1; min-width: 90px; background: #fff3e0; padding: 12px; border-radius: 6px; text-align: center;">
+            <div style="font-size: 22px; font-weight: bold; color: #ef6c00;">${cs.summary.activeTotalCount}</div>
+            <div style="font-size: 11px; color: #666;">Active total</div>
+          </div>
+        </div>
+        <p style="font-size: 13px; color: #666; margin: 0 0 10px;">Active: <strong>${cs.summary.activeMarcaje}</strong> marcaje, <strong>${cs.summary.activePanouri}</strong> panouri</p>
+      `;
+
+      if (cs.createdToday.length > 0) {
+        csContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="color: #ea580c; font-size: 13px;">Sesizari noi (${cs.createdToday.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #fff7ed;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Tip</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Zona</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Locatie</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Creat de</th>
+              </tr>
+              ${cs.createdToday.map(s => `
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.type}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;"><span style="color: ${zoneColor(s.zone)}; font-weight: bold;">${zoneLabel(s.zone)}</span></td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.location}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.createdBy}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      if (cs.resolvedToday.length > 0) {
+        csContent += `
+          <div style="margin-bottom: 10px;">
+            <strong style="color: #2e7d32; font-size: 13px;">Finalizate azi (${cs.resolvedToday.length}):</strong>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px;">
+              <tr style="background: #e8f5e9;">
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Tip</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Zona</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Locatie</th>
+                <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Finalizat de</th>
+              </tr>
+              ${cs.resolvedToday.map(s => `
+                <tr>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.type}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;"><span style="color: ${zoneColor(s.zone)}; font-weight: bold;">${zoneLabel(s.zone)}</span></td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.location}</td>
+                  <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.resolvedBy}</td>
+                </tr>
+              `).join('')}
+            </table>
+          </div>
+        `;
+      }
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">⚠️ Control Sesizari</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            ${csContent}
           </div>
         </div>
       `);

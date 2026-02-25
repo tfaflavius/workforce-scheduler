@@ -40,6 +40,9 @@ export enum NotificationType {
   // Time tracking notifications
   TIME_ENTRY_MISMATCH = 'TIME_ENTRY_MISMATCH',
   GPS_STATUS_ALERT = 'GPS_STATUS_ALERT',
+  // Control sesizari notifications
+  CONTROL_SESIZARE_ASSIGNED = 'CONTROL_SESIZARE_ASSIGNED',
+  CONTROL_SESIZARE_RESOLVED = 'CONTROL_SESIZARE_RESOLVED',
 }
 
 @Entity('notifications')

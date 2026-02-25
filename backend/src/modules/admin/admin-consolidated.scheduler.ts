@@ -17,7 +17,8 @@ import { DailyReportsService } from '../daily-reports/daily-reports.service';
 import { DailyReport } from '../daily-reports/entities/daily-report.entity';
 import { PvDisplaySession } from '../parking/entities/pv-display-session.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
-import { HANDICAP_REQUEST_TYPE_LABELS, PV_DAY_STATUS, PV_SESSION_STATUS, PV_DAY_STATUS_LABELS } from '../parking/constants/parking.constants';
+import { HANDICAP_REQUEST_TYPE_LABELS, PV_DAY_STATUS, PV_SESSION_STATUS, PV_DAY_STATUS_LABELS, CONTROL_SESIZARE_TYPE_LABELS } from '../parking/constants/parking.constants';
+import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
 
 /**
  * Admin & Manager Consolidated Scheduler
@@ -51,6 +52,8 @@ export class AdminConsolidatedScheduler {
     private readonly pvDisplaySessionRepository: Repository<PvDisplaySession>,
     @InjectRepository(PvDisplayDay)
     private readonly pvDisplayDayRepository: Repository<PvDisplayDay>,
+    @InjectRepository(ControlSesizare)
+    private readonly controlSesizareRepository: Repository<ControlSesizare>,
     private readonly cashCollectionsService: CashCollectionsService,
     private readonly parkingIssuesService: ParkingIssuesService,
     private readonly parkingDamagesService: ParkingDamagesService,
@@ -124,6 +127,7 @@ export class AdminConsolidatedScheduler {
       gpsData,
       missingReportsData,
       pvDisplayData,
+      controlSesizariData,
     ] = await Promise.all([
       this.collectCashData(startOfDay, endOfDay),
       this.collectParkingData(startOfDay, endOfDay, formatTime),
@@ -132,6 +136,7 @@ export class AdminConsolidatedScheduler {
       this.collectGpsData(today),
       this.collectMissingReportsData(today),
       this.collectPvDisplayData(today),
+      this.collectControlSesizariData(startOfDay, endOfDay),
     ]);
 
     let sentCount = 0;
@@ -148,6 +153,7 @@ export class AdminConsolidatedScheduler {
           gpsReport: gpsData,
           missingDailyReports: missingReportsData,
           pvDisplayReport: pvDisplayData,
+          controlSesizariReport: controlSesizariData,
         });
         if (success) sentCount++;
       } catch (err) {
@@ -572,6 +578,61 @@ export class AdminConsolidatedScheduler {
       };
     } catch (err) {
       this.logger.error(`[Admin Consolidat] Eroare colectare PV display: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectControlSesizariData(startOfDay: Date, endOfDay: Date) {
+    try {
+      const [createdToday, resolvedToday, activeTotal] = await Promise.all([
+        this.controlSesizareRepository.find({
+          where: { createdAt: Between(startOfDay, endOfDay) },
+          relations: ['creator'],
+          order: { createdAt: 'DESC' },
+        }),
+        this.controlSesizareRepository.find({
+          where: { status: 'ACTIVE', resolvedAt: Between(startOfDay, endOfDay) },
+          relations: ['creator', 'resolver'],
+          order: { resolvedAt: 'DESC' },
+        }),
+        this.controlSesizareRepository.find({
+          where: { status: 'ACTIVE' },
+          relations: ['creator'],
+          order: { createdAt: 'ASC' },
+        }),
+      ]);
+
+      if (createdToday.length === 0 && resolvedToday.length === 0 && activeTotal.length === 0) {
+        return null;
+      }
+
+      const activeMarcaje = activeTotal.filter(s => s.type === 'MARCAJ').length;
+      const activePanouri = activeTotal.filter(s => s.type === 'PANOU').length;
+
+      return {
+        createdToday: createdToday.map(s => ({
+          type: CONTROL_SESIZARE_TYPE_LABELS[s.type] || s.type,
+          zone: s.zone,
+          location: s.location,
+          createdBy: s.creator?.fullName || 'N/A',
+        })),
+        resolvedToday: resolvedToday.map(s => ({
+          type: CONTROL_SESIZARE_TYPE_LABELS[s.type] || s.type,
+          zone: s.zone,
+          location: s.location,
+          resolvedBy: s.resolver?.fullName || 'N/A',
+          resolutionDescription: s.resolutionDescription || '-',
+        })),
+        summary: {
+          createdTodayCount: createdToday.length,
+          resolvedTodayCount: resolvedToday.length,
+          activeTotalCount: activeTotal.length,
+          activeMarcaje,
+          activePanouri,
+        },
+      };
+    } catch (err) {
+      this.logger.error(`[Admin Consolidat] Eroare colectare control sesizari: ${err.message}`);
       return null;
     }
   }

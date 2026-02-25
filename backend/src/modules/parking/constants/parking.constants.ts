@@ -288,6 +288,45 @@ export const PV_DAY_STATUS_LABELS: Record<PvDayStatus, string> = {
   COMPLETED: 'Finalizat',
 };
 
+// ============== CONTROL SESIZARI ==============
+
+// Tipuri de sesizari control
+export const CONTROL_SESIZARE_TYPES = {
+  MARCAJ: 'MARCAJ',
+  PANOU: 'PANOU',
+} as const;
+
+export type ControlSesizareType = typeof CONTROL_SESIZARE_TYPES[keyof typeof CONTROL_SESIZARE_TYPES];
+
+// Status pentru sesizari control
+export const CONTROL_SESIZARE_STATUS = {
+  ACTIVE: 'ACTIVE',
+  FINALIZAT: 'FINALIZAT',
+} as const;
+
+export type ControlSesizareStatus = typeof CONTROL_SESIZARE_STATUS[keyof typeof CONTROL_SESIZARE_STATUS];
+
+// Labels in limba romana pentru tipurile de sesizari
+export const CONTROL_SESIZARE_TYPE_LABELS: Record<ControlSesizareType, string> = {
+  MARCAJ: 'Marcaj',
+  PANOU: 'Panou',
+};
+
+// Zone pentru sesizari control (rosu, galben, alb)
+export const CONTROL_SESIZARE_ZONES = {
+  ROSU: 'ROSU',
+  GALBEN: 'GALBEN',
+  ALB: 'ALB',
+} as const;
+
+export type ControlSesizareZone = typeof CONTROL_SESIZARE_ZONES[keyof typeof CONTROL_SESIZARE_ZONES];
+
+export const CONTROL_SESIZARE_ZONE_LABELS: Record<ControlSesizareZone, string> = {
+  ROSU: 'Rosu',
+  GALBEN: 'Galben',
+  ALB: 'Alb',
+};
+
 // ================ PARKING STAT LOCATIONS ================
 // Locatii pentru statistici parcari etajate (tichete, ocupare) — Doja cu sub-niveluri
 export const PARKING_STAT_LOCATIONS = [

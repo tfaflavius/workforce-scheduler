@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-export type ParkingHistoryEntityType = 'ISSUE' | 'DAMAGE' | 'COLLECTION' | 'HANDICAP_REQUEST' | 'DOMICILIU_REQUEST' | 'HANDICAP_LEGITIMATION' | 'REVOLUTIONAR_LEGITIMATION' | 'PV_DISPLAY_SESSION' | 'PV_DISPLAY_DAY';
+export type ParkingHistoryEntityType = 'ISSUE' | 'DAMAGE' | 'COLLECTION' | 'HANDICAP_REQUEST' | 'DOMICILIU_REQUEST' | 'HANDICAP_LEGITIMATION' | 'REVOLUTIONAR_LEGITIMATION' | 'PV_DISPLAY_SESSION' | 'PV_DISPLAY_DAY' | 'CONTROL_SESIZARE';
 export type ParkingHistoryAction = 'CREATED' | 'UPDATED' | 'RESOLVED' | 'DELETED' | 'CLAIMED' | 'UNCLAIMED' | 'FINALIZED' | 'ADMIN_ASSIGNED';
 
 @Entity('parking_history')

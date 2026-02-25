@@ -46,6 +46,7 @@ import {
   ShoppingCart as ShoppingIcon,
   BarChart as RevenueIcon,
   Timer as TimerIcon,
+  ReportProblem as ReportProblemIcon,
 } from '@mui/icons-material';
 import {
   Groups as GroupsIcon,
@@ -273,6 +274,13 @@ export const MainLayout = () => {
       requiresDepartments: [ACHIZITII_DEPARTMENT_NAME],
     },
     {
+      text: 'Control Sesizari',
+      icon: <ReportProblemIcon />,
+      path: '/control-sesizari',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: [CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
+    },
+    {
       text: 'Monitorizare Pontaj',
       icon: <TimerIcon />,
       path: '/admin/pontaj',
@@ -496,7 +504,7 @@ export const MainLayout = () => {
             { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: '#2563eb' },
             { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: '#06b6d4' },
             { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/reports', '/users', '/incasari-cheltuieli'], color: '#7c3aed' },
-            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii'], color: '#10b981' },
+            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari'], color: '#10b981' },
           ];
 
           // Group filtered menu items into sections
