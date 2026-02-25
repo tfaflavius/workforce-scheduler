@@ -82,7 +82,8 @@ export class ControlSesizariService {
     const query = this.sesizareRepository.createQueryBuilder('sesizare')
       .leftJoinAndSelect('sesizare.creator', 'creator')
       .leftJoinAndSelect('sesizare.resolver', 'resolver')
-      .leftJoinAndSelect('sesizare.lastModifier', 'lastModifier');
+      .leftJoinAndSelect('sesizare.lastModifier', 'lastModifier')
+      .leftJoinAndSelect('sesizare.comments', 'comments');
 
     if (status) {
       query.andWhere('sesizare.status = :status', { status });

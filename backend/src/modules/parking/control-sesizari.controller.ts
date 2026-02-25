@@ -46,6 +46,22 @@ export class ControlSesizariController {
     return this.controlSesizariService.findAll(status, type);
   }
 
+  // IMPORTANT: Ruta statica 'reports/export' trebuie sa fie INAINTE de ':id' parametric
+  @Get('reports/export')
+  async findForReports(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('status') status?: ControlSesizareStatus,
+    @Query('type') type?: ControlSesizareType,
+  ): Promise<ControlSesizare[]> {
+    return this.controlSesizariService.findForReports({
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      status,
+      type,
+    });
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<ControlSesizare> {
     return this.controlSesizariService.findOne(id);
@@ -93,21 +109,5 @@ export class ControlSesizariController {
   @Roles(UserRole.ADMIN)
   async delete(@Param('id') id: string, @Request() req): Promise<void> {
     return this.controlSesizariService.delete(id, req.user);
-  }
-
-  // Endpoint pentru rapoarte
-  @Get('reports/export')
-  async findForReports(
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('status') status?: ControlSesizareStatus,
-    @Query('type') type?: ControlSesizareType,
-  ): Promise<ControlSesizare[]> {
-    return this.controlSesizariService.findForReports({
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      status,
-      type,
-    });
   }
 }
