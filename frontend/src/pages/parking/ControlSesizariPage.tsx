@@ -791,7 +791,6 @@ const ControlSesizariPage: React.FC = () => {
     user?.role === 'MANAGER' ||
     (user?.department?.name && ALLOWED_DEPARTMENTS.includes(user.department.name));
 
-  const isAdmin = user?.role === 'ADMIN';
   const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const canCreate = !isMaintenanceUser; // Intretinere Parcari users cannot create sesizari
 
