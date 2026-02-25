@@ -493,6 +493,17 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
   const canResolve = isAdmin || isMaintenanceUser;
   const canEdit = isAdmin;
 
+  // Reset local state when dialog opens with a new sesizare
+  useEffect(() => {
+    if (sesizareId) {
+      setShowHistory(false);
+      setNewComment('');
+      setShowResolveDialog(false);
+      setResolutionDescription('');
+      setIsEditing(false);
+    }
+  }, [sesizareId]);
+
   useEffect(() => {
     if (sesizare && !isEditing) {
       setEditData({

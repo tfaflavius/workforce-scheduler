@@ -591,7 +591,7 @@ export class AdminConsolidatedScheduler {
           order: { createdAt: 'DESC' },
         }),
         this.controlSesizareRepository.find({
-          where: { status: 'ACTIVE', resolvedAt: Between(startOfDay, endOfDay) },
+          where: { status: 'FINALIZAT' as any, resolvedAt: Between(startOfDay, endOfDay) },
           relations: ['creator', 'resolver'],
           order: { resolvedAt: 'DESC' },
         }),
