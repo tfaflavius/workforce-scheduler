@@ -3,8 +3,7 @@ import {
   Box,
   Typography,
   Paper,
-  Tabs,
-  Tab,
+  Pagination,
   useTheme,
   useMediaQuery,
   alpha,
@@ -118,30 +117,7 @@ const REQUEST_TYPE_ICONS: Record<HandicapRequestType, React.ReactNode> = {
   CREARE_MARCAJ: <MarkingIcon />,
 };
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  if (value !== index) return null;
-
-  return (
-    <div
-      role="tabpanel"
-      id={`handicap-tabpanel-${index}`}
-      aria-labelledby={`handicap-tab-${index}`}
-      {...other}
-    >
-      <Fade in={true} timeout={400}>
-        <Box sx={{ pt: { xs: 1.5, sm: 2 } }}>{children}</Box>
-      </Fade>
-    </div>
-  );
-}
+const ITEMS_PER_PAGE = 10;
 
 // ============== CREATE DIALOG ==============
 interface CreateDialogProps {
@@ -1183,6 +1159,7 @@ const HandicapParkingPage: React.FC = () => {
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [openLegitimationId, setOpenLegitimationId] = useState<string | null>(null);
   const [openRevolutionarLegitimationId, setOpenRevolutionarLegitimationId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const { user } = useAppSelector((state) => state.auth);
 
@@ -1280,9 +1257,50 @@ const HandicapParkingPage: React.FC = () => {
     });
   }, [requests, tabValue, searchQuery, tabConfig, isLegitimationsTab]);
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  // Pagination
+  const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
+  const paginatedRequests = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filteredRequests.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredRequests, page]);
+
+  // Reset page when tab/search/filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [tabValue, searchQuery, statusFilter]);
+
+  const handleSectionChange = (newValue: number) => {
     setTabValue(newValue);
+    setPage(1);
   };
+
+  // Dropdown options - combina tab-urile de solicitari cu legitimatii
+  const sectionOptions = useMemo(() => {
+    const options: { value: number; label: string; shortLabel: string; color: string }[] = tabConfig.map((tab, index) => ({
+      value: index,
+      label: tab.label,
+      shortLabel: tab.shortLabel,
+      color: tab.color,
+    }));
+    if (canSeeLegitimations) {
+      options.push({
+        value: handicapLegitimationsTabIndex,
+        label: 'Legitimatii Handicap',
+        shortLabel: 'Legit. H.',
+        color: LEGITIMATION_COLOR.main,
+      });
+      options.push({
+        value: revolutionarLegitimationsTabIndex,
+        label: 'Legitimatii Revolutionar',
+        shortLabel: 'Legit. R.',
+        color: REVOLUTIONAR_COLOR.main,
+      });
+    }
+    return options;
+  }, [tabConfig, canSeeLegitimations, handicapLegitimationsTabIndex, revolutionarLegitimationsTabIndex]);
+
+  // Current section color
+  const currentSectionColor = sectionOptions.find(o => o.value === tabValue)?.color || tabConfig[0]?.color || '#6366f1';
 
   return (
     <Box sx={{ p: { xs: 0, sm: 1 }, maxWidth: '100%', overflow: 'hidden' }}>
@@ -1408,161 +1426,169 @@ const HandicapParkingPage: React.FC = () => {
         </Stack>
       </Paper>
 
-      {/* Tabs */}
-      <Paper sx={{ mb: { xs: 1.5, sm: 2 }, borderRadius: { xs: 2, sm: 3 }, overflow: 'hidden' }}>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
-          sx={{
-            minHeight: 44,
-            '& .MuiTabs-indicator': {
-              height: 3,
-              borderRadius: '3px 3px 0 0',
-              background: isHandicapLegitimationsTab
-                ? LEGITIMATION_COLOR.main
-                : isRevolutionarLegitimationsTab
-                  ? REVOLUTIONAR_COLOR.main
-                  : (tabConfig[tabValue]?.color || LEGITIMATION_COLOR.main),
-            },
-            '& .MuiTabs-scrollButtons': {
-              width: 28,
-              '&.Mui-disabled': { opacity: 0.3 },
-            },
-            '& .MuiTab-root': {
-              minHeight: 44,
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              textTransform: 'none',
-              px: 1.5,
-              minWidth: 'auto',
-              '&.Mui-selected': {
-                fontWeight: 700,
+      {/* Section Dropdown */}
+      <Paper sx={{ mb: { xs: 1.5, sm: 2 }, p: { xs: 1.5, sm: 2 }, borderRadius: { xs: 2, sm: 3 } }}>
+        <FormControl fullWidth size="small">
+          <InputLabel>Sectiune</InputLabel>
+          <Select
+            value={tabValue}
+            label="Sectiune"
+            onChange={(e) => handleSectionChange(e.target.value as number)}
+            sx={{
+              fontWeight: 600,
+              '& .MuiSelect-select': {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
               },
-            },
-          }}
-        >
-          {tabConfig.map((tab) => (
-            <Tab
-              key={tab.type}
-              label={isCompact ? tab.shortLabel : tab.label}
-              sx={{
-                '&.Mui-selected': {
-                  color: tab.color,
-                },
-              }}
-            />
-          ))}
-          {/* Tab Legitimatii Handicap */}
-          {canSeeLegitimations && (
-            <Tab
-              label={isCompact ? 'Legit. H.' : 'Legitimatii Handicap'}
-              sx={{
-                '&.Mui-selected': {
-                  color: LEGITIMATION_COLOR.main,
-                },
-              }}
-            />
-          )}
-          {/* Tab Legitimatii Revolutionar/Deportat */}
-          {canSeeLegitimations && (
-            <Tab
-              label={isCompact ? 'Legit. R.' : 'Legitimatii Revolutionar'}
-              sx={{
-                '&.Mui-selected': {
-                  color: REVOLUTIONAR_COLOR.main,
-                },
-              }}
-            />
-          )}
-        </Tabs>
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: alpha(currentSectionColor, 0.4),
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: currentSectionColor,
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: currentSectionColor,
+              },
+            }}
+          >
+            {sectionOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      bgcolor: option.color,
+                      flexShrink: 0,
+                    }}
+                  />
+                  {isCompact ? option.shortLabel : option.label}
+                </Box>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Paper>
 
-      {/* Content - Tab-uri solicitari */}
-      {tabConfig.map((tab, index) => (
-        <TabPanel key={tab.type} value={tabValue} index={index}>
-          {isLoading ? (
-            <Stack spacing={2}>
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} variant="rounded" height={120} sx={{ borderRadius: 2 }} />
-              ))}
-            </Stack>
-          ) : filteredRequests.length === 0 ? (
-            <Paper
-              sx={{
-                p: 4,
-                textAlign: 'center',
-                borderRadius: 3,
-                bgcolor: alpha(tab.color, 0.05),
-              }}
-            >
-              <HandicapIcon sx={{ fontSize: 64, color: alpha(tab.color, 0.3), mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Nu exista solicitari
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {searchQuery
-                  ? 'Nu s-au gasit rezultate pentru cautarea ta'
-                  : isMaintenanceUser
-                    ? 'Nu exista solicitari alocate de acest tip'
-                    : 'Nu exista solicitari de acest tip inca'}
-              </Typography>
-              {canCreate && (
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setCreateDialogType(tab.type)}
-                  sx={{
-                    bgcolor: tab.color,
-                    '&:hover': { bgcolor: alpha(tab.color, 0.9) },
-                  }}
+      {/* Content - Solicitari (primele 3 sectiuni) */}
+      {!isLegitimationsTab && tabValue < tabConfig.length && (
+        <Fade in={true} timeout={400} key={tabValue}>
+          <Box>
+            {isLoading ? (
+              <Stack spacing={2}>
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} variant="rounded" height={120} sx={{ borderRadius: 2 }} />
+                ))}
+              </Stack>
+            ) : filteredRequests.length === 0 ? (
+              <Paper
+                sx={{
+                  p: 4,
+                  textAlign: 'center',
+                  borderRadius: 3,
+                  bgcolor: alpha(tabConfig[tabValue].color, 0.05),
+                }}
+              >
+                <HandicapIcon sx={{ fontSize: 64, color: alpha(tabConfig[tabValue].color, 0.3), mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Nu exista solicitari
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {searchQuery
+                    ? 'Nu s-au gasit rezultate pentru cautarea ta'
+                    : isMaintenanceUser
+                      ? 'Nu exista solicitari alocate de acest tip'
+                      : 'Nu exista solicitari de acest tip inca'}
+                </Typography>
+                {canCreate && (
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setCreateDialogType(tabConfig[tabValue].type)}
+                    sx={{
+                      bgcolor: tabConfig[tabValue].color,
+                      '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.9) },
+                    }}
+                  >
+                    Creeaza prima solicitare
+                  </Button>
+                )}
+              </Paper>
+            ) : (
+              <>
+                <Stack spacing={1.5}>
+                  {paginatedRequests.map((request) => (
+                    <HandicapRequestCard
+                      key={request.id}
+                      request={request}
+                      onClick={() => setSelectedRequestId(request.id)}
+                    />
+                  ))}
+                </Stack>
+                {totalPages > 1 && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                    <Pagination
+                      count={totalPages}
+                      page={page}
+                      onChange={(_e, value) => setPage(value)}
+                      color="primary"
+                      size={isCompact ? 'small' : 'medium'}
+                      sx={{
+                        '& .MuiPaginationItem-root': {
+                          '&.Mui-selected': {
+                            bgcolor: tabConfig[tabValue].color,
+                            '&:hover': { bgcolor: alpha(tabConfig[tabValue].color, 0.85) },
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+                )}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', textAlign: 'center', mt: 1 }}
                 >
-                  Creeaza prima solicitare
-                </Button>
-              )}
-            </Paper>
-          ) : (
-            <Stack spacing={1.5}>
-              {filteredRequests.map((request) => (
-                <HandicapRequestCard
-                  key={request.id}
-                  request={request}
-                  onClick={() => setSelectedRequestId(request.id)}
-                />
-              ))}
-            </Stack>
-          )}
-        </TabPanel>
-      ))}
-
-      {/* Content - Tab Legitimatii Handicap */}
-      {canSeeLegitimations && (
-        <TabPanel value={tabValue} index={handicapLegitimationsTabIndex}>
-          <HandicapLegitimatiiTab
-            isAdmin={isAdmin}
-            canEdit={canEditHandicap}
-            searchQuery={searchQuery}
-            statusFilter={statusFilter as HandicapLegitimationStatus | ''}
-            initialOpenId={openLegitimationId}
-            onOpenIdHandled={() => setOpenLegitimationId(null)}
-          />
-        </TabPanel>
+                  {filteredRequests.length} solicitari total
+                </Typography>
+              </>
+            )}
+          </Box>
+        </Fade>
       )}
 
-      {/* Content - Tab Legitimatii Revolutionar/Deportat */}
-      {canSeeLegitimations && (
-        <TabPanel value={tabValue} index={revolutionarLegitimationsTabIndex}>
-          <RevolutionarLegitimatiiTab
-            isAdmin={isAdmin}
-            canEdit={canEditHandicap}
-            searchQuery={searchQuery}
-            statusFilter={statusFilter as RevolutionarLegitimationStatus | ''}
-            initialOpenId={openRevolutionarLegitimationId}
-            onOpenIdHandled={() => setOpenRevolutionarLegitimationId(null)}
-          />
-        </TabPanel>
+      {/* Content - Legitimatii Handicap */}
+      {canSeeLegitimations && isHandicapLegitimationsTab && (
+        <Fade in={true} timeout={400} key="legit-handicap">
+          <Box>
+            <HandicapLegitimatiiTab
+              isAdmin={isAdmin}
+              canEdit={canEditHandicap}
+              searchQuery={searchQuery}
+              statusFilter={statusFilter as HandicapLegitimationStatus | ''}
+              initialOpenId={openLegitimationId}
+              onOpenIdHandled={() => setOpenLegitimationId(null)}
+            />
+          </Box>
+        </Fade>
+      )}
+
+      {/* Content - Legitimatii Revolutionar/Deportat */}
+      {canSeeLegitimations && isRevolutionarLegitimationsTab && (
+        <Fade in={true} timeout={400} key="legit-revolutionar">
+          <Box>
+            <RevolutionarLegitimatiiTab
+              isAdmin={isAdmin}
+              canEdit={canEditHandicap}
+              searchQuery={searchQuery}
+              statusFilter={statusFilter as RevolutionarLegitimationStatus | ''}
+              initialOpenId={openRevolutionarLegitimationId}
+              onOpenIdHandled={() => setOpenRevolutionarLegitimationId(null)}
+            />
+          </Box>
+        </Fade>
       )}
 
       {/* Dialogs */}
