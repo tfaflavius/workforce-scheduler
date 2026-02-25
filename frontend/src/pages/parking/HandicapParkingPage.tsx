@@ -57,6 +57,9 @@ import {
   Edit as EditIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
+  PictureAsPdf as PdfIcon,
+  TableChart as ExcelIcon,
+  Summarize as AllSectionsIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -71,7 +74,12 @@ import {
   useDeleteHandicapRequestMutation,
   useAddHandicapCommentMutation,
   useGetHandicapHistoryQuery,
+  useGetHandicapLegitimationsQuery,
+  useGetRevolutionarLegitimationsQuery,
 } from '../../store/api/handicap.api';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import type {
   HandicapRequest,
   HandicapRequestType,
@@ -82,6 +90,8 @@ import type {
 import {
   HANDICAP_REQUEST_TYPE_LABELS,
   HANDICAP_REQUEST_STATUS_LABELS,
+  HANDICAP_LEGITIMATION_STATUS_LABELS,
+  REVOLUTIONAR_LEGITIMATION_STATUS_LABELS,
 } from '../../types/handicap.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import { removeDiacritics } from '../../utils/removeDiacritics';
@@ -1222,6 +1232,14 @@ const HandicapParkingPage: React.FC = () => {
     statusFilter ? { status: statusFilter } : undefined
   );
 
+  // Legitimation queries (pentru export)
+  const { data: handicapLegitimations = [] } = useGetHandicapLegitimationsQuery(
+    statusFilter ? { status: statusFilter as HandicapLegitimationStatus } : undefined
+  );
+  const { data: revolutionarLegitimations = [] } = useGetRevolutionarLegitimationsQuery(
+    statusFilter ? { status: statusFilter as RevolutionarLegitimationStatus } : undefined
+  );
+
   // Tab config pentru solicitari (panouri si marcaje)
   const requestTabConfig: { type: HandicapRequestType; label: string; shortLabel: string; icon: React.ReactNode; color: string }[] = [
     {
@@ -1322,6 +1340,373 @@ const HandicapParkingPage: React.FC = () => {
 
   // Current section color
   const currentSectionColor = sectionOptions.find(o => o.value === tabValue)?.color || tabConfig[0]?.color || '#6366f1';
+
+  // Filtered legitimations by month (pentru export)
+  const getMonthBounds = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    return { monthStart: startOfMonth(new Date(year, month - 1)), monthEnd: endOfMonth(new Date(year, month - 1)) };
+  };
+
+  const filteredHandicapLegitimations = useMemo(() => {
+    const { monthStart, monthEnd } = getMonthBounds();
+    return handicapLegitimations.filter((l) => {
+      const d = new Date(l.createdAt);
+      return d >= monthStart && d <= monthEnd;
+    });
+  }, [handicapLegitimations, selectedMonth]);
+
+  const filteredRevolutionarLegitimations = useMemo(() => {
+    const { monthStart, monthEnd } = getMonthBounds();
+    return revolutionarLegitimations.filter((l) => {
+      const d = new Date(l.createdAt);
+      return d >= monthStart && d <= monthEnd;
+    });
+  }, [revolutionarLegitimations, selectedMonth]);
+
+  // Helper: requests filtrate pe tip + luna
+  const getRequestsByType = (type: HandicapRequestType) => {
+    const { monthStart, monthEnd } = getMonthBounds();
+    return requests.filter((r) => {
+      const d = new Date(r.createdAt);
+      return r.requestType === type && d >= monthStart && d <= monthEnd;
+    });
+  };
+
+  // Selected month label
+  const monthLabel = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const label = format(new Date(year, month - 1), 'MMMM yyyy', { locale: ro });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }, [selectedMonth]);
+
+  // ============== EXPORT FUNCTIONS ==============
+
+  const addSectionToPDF = (doc: jsPDF, title: string, headers: string[][], data: string[][], startY: number, color: number[]): number => {
+    doc.setFontSize(14);
+    doc.setTextColor(color[0], color[1], color[2]);
+    doc.text(title, 14, startY);
+
+    const activeCount = data.filter(row => row[row.length - 3] === 'Activ').length;
+    const resolvedCount = data.filter(row => row[row.length - 3] === 'Finalizat').length;
+
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`Total: ${data.length} | Active: ${activeCount} | Finalizate: ${resolvedCount}`, 14, startY + 7);
+
+    if (data.length === 0) {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text('Nu exista inregistrari pentru aceasta luna.', 14, startY + 16);
+      return startY + 24;
+    }
+
+    autoTable(doc, {
+      startY: startY + 12,
+      head: headers,
+      body: data,
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: color as [number, number, number], fontSize: 7 },
+      margin: { left: 14, right: 14 },
+    });
+
+    return (doc as any).lastAutoTable.finalY + 8;
+  };
+
+  const buildRequestsTableData = (reqs: typeof requests) => {
+    return reqs.map(r => [
+      r.location,
+      r.personName || '-',
+      r.carPlate || '-',
+      r.handicapCertificateNumber || '-',
+      HANDICAP_REQUEST_STATUS_LABELS[r.status],
+      format(new Date(r.createdAt), 'dd.MM.yyyy'),
+      r.resolver?.fullName || '-',
+    ]);
+  };
+
+  const buildHandicapLegitTableData = (legits: typeof handicapLegitimations) => {
+    return legits.map(l => [
+      l.personName,
+      l.handicapCertificateNumber,
+      l.carPlate,
+      l.phone || '-',
+      HANDICAP_LEGITIMATION_STATUS_LABELS[l.status],
+      format(new Date(l.createdAt), 'dd.MM.yyyy'),
+      l.resolver?.fullName || '-',
+    ]);
+  };
+
+  const buildRevolutionarLegitTableData = (legits: typeof revolutionarLegitimations) => {
+    return legits.map(l => [
+      l.personName,
+      l.lawNumber,
+      l.carPlate,
+      l.phone || '-',
+      REVOLUTIONAR_LEGITIMATION_STATUS_LABELS[l.status],
+      format(new Date(l.createdAt), 'dd.MM.yyyy'),
+      l.resolver?.fullName || '-',
+    ]);
+  };
+
+  const REQUEST_HEADERS = [['Locatie', 'Persoana', 'Nr Auto', 'Nr Certificat', 'Status', 'Data', 'Rezolvat de']];
+  const HANDICAP_LEGIT_HEADERS = [['Persoana', 'Nr Certificat', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
+  const REVOLUTIONAR_LEGIT_HEADERS = [['Persoana', 'Nr Lege', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
+
+  const exportCurrentSectionPDF = () => {
+    const doc = new jsPDF();
+    let sectionTitle = '';
+    let headers: string[][] = [];
+    let data: string[][] = [];
+    let color = [99, 102, 241];
+    let fileName = '';
+
+    if (tabValue < tabConfig.length) {
+      const tab = tabConfig[tabValue];
+      sectionTitle = tab.label;
+      headers = REQUEST_HEADERS;
+      data = buildRequestsTableData(getRequestsByType(tab.type));
+      const hexColor = tab.color;
+      color = [parseInt(hexColor.slice(1, 3), 16), parseInt(hexColor.slice(3, 5), 16), parseInt(hexColor.slice(5, 7), 16)];
+      fileName = `raport-${tab.type.toLowerCase().replace('_', '-')}-${selectedMonth}`;
+    } else if (isHandicapLegitimationsTab) {
+      sectionTitle = 'Legitimatii Handicap';
+      headers = HANDICAP_LEGIT_HEADERS;
+      data = buildHandicapLegitTableData(filteredHandicapLegitimations);
+      color = [5, 150, 105];
+      fileName = `raport-legitimatii-handicap-${selectedMonth}`;
+    } else if (isRevolutionarLegitimationsTab) {
+      sectionTitle = 'Legitimatii Revolutionar';
+      headers = REVOLUTIONAR_LEGIT_HEADERS;
+      data = buildRevolutionarLegitTableData(filteredRevolutionarLegitimations);
+      color = [124, 58, 237];
+      fileName = `raport-legitimatii-revolutionar-${selectedMonth}`;
+    }
+
+    doc.setFontSize(18);
+    doc.setTextColor(color[0], color[1], color[2]);
+    doc.text(`Raport ${sectionTitle}`, 14, 22);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Luna: ${monthLabel}`, 14, 30);
+    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+
+    const active = data.filter(row => row[row.length - 3] === 'Activ').length;
+    const resolved = data.filter(row => row[row.length - 3] === 'Finalizat').length;
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.text(`Total: ${data.length} | Active: ${active} | Finalizate: ${resolved}`, 14, 46);
+
+    if (data.length > 0) {
+      autoTable(doc, {
+        startY: 54,
+        head: headers,
+        body: data,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: color as [number, number, number] },
+      });
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text('Nu exista inregistrari pentru aceasta luna.', 14, 54);
+    }
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  const exportCurrentSectionExcel = () => {
+    let sheetName = '';
+    let excelData: Record<string, string>[] = [];
+    let fileName = '';
+
+    if (tabValue < tabConfig.length) {
+      const tab = tabConfig[tabValue];
+      sheetName = tab.shortLabel;
+      const reqs = getRequestsByType(tab.type);
+      excelData = reqs.map(r => ({
+        'Locatie': r.location,
+        'Link Google Maps': r.googleMapsLink || '',
+        'Persoana': r.personName || '',
+        'Nr Certificat': r.handicapCertificateNumber || '',
+        'Nr Auto': r.carPlate || '',
+        'Nr Legitimatie Auto': r.autoNumber || '',
+        'Telefon': r.phone || '',
+        'Descriere': r.description,
+        'Status': HANDICAP_REQUEST_STATUS_LABELS[r.status],
+        'Data Creare': format(new Date(r.createdAt), 'dd.MM.yyyy HH:mm'),
+        'Creat de': r.creator?.fullName || '',
+        'Rezolvat de': r.resolver?.fullName || '',
+        'Data Rezolvare': r.resolvedAt ? format(new Date(r.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
+        'Descriere Rezolutie': r.resolutionDescription || '',
+      }));
+      fileName = `raport-${tab.type.toLowerCase().replace('_', '-')}-${selectedMonth}`;
+    } else if (isHandicapLegitimationsTab) {
+      sheetName = 'Legit Handicap';
+      excelData = filteredHandicapLegitimations.map(l => ({
+        'Persoana': l.personName,
+        'Nr Certificat': l.handicapCertificateNumber,
+        'Nr Auto': l.carPlate,
+        'Nr Legitimatie Auto': l.autoNumber || '',
+        'Telefon': l.phone || '',
+        'Descriere': l.description || '',
+        'Status': HANDICAP_LEGITIMATION_STATUS_LABELS[l.status],
+        'Data Creare': format(new Date(l.createdAt), 'dd.MM.yyyy HH:mm'),
+        'Creat de': l.creator?.fullName || '',
+        'Rezolvat de': l.resolver?.fullName || '',
+        'Data Rezolvare': l.resolvedAt ? format(new Date(l.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
+        'Descriere Rezolutie': l.resolutionDescription || '',
+      }));
+      fileName = `raport-legitimatii-handicap-${selectedMonth}`;
+    } else if (isRevolutionarLegitimationsTab) {
+      sheetName = 'Legit Revolutionar';
+      excelData = filteredRevolutionarLegitimations.map(l => ({
+        'Persoana': l.personName,
+        'Nr Lege/Hotarare': l.lawNumber,
+        'Nr Auto': l.carPlate,
+        'Nr Legitimatie Auto': l.autoNumber || '',
+        'Telefon': l.phone || '',
+        'Descriere': l.description || '',
+        'Status': REVOLUTIONAR_LEGITIMATION_STATUS_LABELS[l.status],
+        'Data Creare': format(new Date(l.createdAt), 'dd.MM.yyyy HH:mm'),
+        'Creat de': l.creator?.fullName || '',
+        'Rezolvat de': l.resolver?.fullName || '',
+        'Data Rezolvare': l.resolvedAt ? format(new Date(l.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
+        'Descriere Rezolutie': l.resolutionDescription || '',
+      }));
+      fileName = `raport-legitimatii-revolutionar-${selectedMonth}`;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    if (excelData.length > 0) {
+      ws['!cols'] = Object.keys(excelData[0]).map(key => ({
+        wch: Math.min(40, Math.max(key.length + 2, ...excelData.map(row => String(row[key] || '').length)))
+      }));
+    }
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
+
+  const exportAllSectionsPDF = () => {
+    const doc = new jsPDF();
+
+    // Cover header
+    doc.setFontSize(20);
+    doc.setTextColor(99, 102, 241);
+    doc.text('Raport Complet Parcari Handicap', 14, 22);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Luna: ${monthLabel}`, 14, 30);
+    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+
+    // Summary
+    const amplasare = getRequestsByType('AMPLASARE_PANOU');
+    const revocare = getRequestsByType('REVOCARE_PANOU');
+    const marcaje = getRequestsByType('CREARE_MARCAJ');
+
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text('Sumar:', 14, 48);
+    doc.setFontSize(10);
+    doc.text(`Amplasare Panouri: ${amplasare.length}`, 14, 56);
+    doc.text(`Revocare Panouri: ${revocare.length}`, 14, 62);
+    doc.text(`Creare Marcaje: ${marcaje.length}`, 14, 68);
+    doc.text(`Legitimatii Handicap: ${filteredHandicapLegitimations.length}`, 14, 74);
+    doc.text(`Legitimatii Revolutionar: ${filteredRevolutionarLegitimations.length}`, 14, 80);
+
+    let y = 94;
+
+    // Section 1: Amplasare
+    y = addSectionToPDF(doc, 'Amplasare Panouri', REQUEST_HEADERS, buildRequestsTableData(amplasare), y, [37, 99, 235]);
+    if (y > 240) { doc.addPage(); y = 20; }
+
+    // Section 2: Revocare
+    y = addSectionToPDF(doc, 'Revocare Panouri', REQUEST_HEADERS, buildRequestsTableData(revocare), y, [245, 158, 11]);
+    if (y > 240) { doc.addPage(); y = 20; }
+
+    // Section 3: Marcaje
+    y = addSectionToPDF(doc, 'Creare Marcaje', REQUEST_HEADERS, buildRequestsTableData(marcaje), y, [139, 92, 246]);
+    if (y > 240) { doc.addPage(); y = 20; }
+
+    // Section 4: Legitimatii Handicap
+    y = addSectionToPDF(doc, 'Legitimatii Handicap', HANDICAP_LEGIT_HEADERS, buildHandicapLegitTableData(filteredHandicapLegitimations), y, [5, 150, 105]);
+    if (y > 240) { doc.addPage(); y = 20; }
+
+    // Section 5: Legitimatii Revolutionar
+    addSectionToPDF(doc, 'Legitimatii Revolutionar', REVOLUTIONAR_LEGIT_HEADERS, buildRevolutionarLegitTableData(filteredRevolutionarLegitimations), y, [124, 58, 237]);
+
+    doc.save(`raport-complet-handicap-${selectedMonth}.pdf`);
+  };
+
+  const exportAllSectionsExcel = () => {
+    const wb = XLSX.utils.book_new();
+
+    const addSheet = (name: string, data: Record<string, string>[]) => {
+      const ws = XLSX.utils.json_to_sheet(data.length > 0 ? data : [{ 'Info': 'Nu exista inregistrari' }]);
+      if (data.length > 0) {
+        ws['!cols'] = Object.keys(data[0]).map(key => ({
+          wch: Math.min(40, Math.max(key.length + 2, ...data.map(row => String(row[key] || '').length)))
+        }));
+      }
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    };
+
+    // Request sections
+    const requestTypes: { type: HandicapRequestType; sheet: string }[] = [
+      { type: 'AMPLASARE_PANOU', sheet: 'Amplasare' },
+      { type: 'REVOCARE_PANOU', sheet: 'Revocare' },
+      { type: 'CREARE_MARCAJ', sheet: 'Marcaje' },
+    ];
+
+    requestTypes.forEach(({ type, sheet }) => {
+      const reqs = getRequestsByType(type);
+      addSheet(sheet, reqs.map(r => ({
+        'Locatie': r.location,
+        'Persoana': r.personName || '',
+        'Nr Certificat': r.handicapCertificateNumber || '',
+        'Nr Auto': r.carPlate || '',
+        'Telefon': r.phone || '',
+        'Descriere': r.description,
+        'Status': HANDICAP_REQUEST_STATUS_LABELS[r.status],
+        'Data Creare': format(new Date(r.createdAt), 'dd.MM.yyyy HH:mm'),
+        'Creat de': r.creator?.fullName || '',
+        'Rezolvat de': r.resolver?.fullName || '',
+        'Data Rezolvare': r.resolvedAt ? format(new Date(r.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
+      })));
+    });
+
+    // Legitimatii Handicap
+    addSheet('Legit Handicap', filteredHandicapLegitimations.map(l => ({
+      'Persoana': l.personName,
+      'Nr Certificat': l.handicapCertificateNumber,
+      'Nr Auto': l.carPlate,
+      'Telefon': l.phone || '',
+      'Descriere': l.description || '',
+      'Status': HANDICAP_LEGITIMATION_STATUS_LABELS[l.status],
+      'Data Creare': format(new Date(l.createdAt), 'dd.MM.yyyy HH:mm'),
+      'Creat de': l.creator?.fullName || '',
+      'Rezolvat de': l.resolver?.fullName || '',
+      'Data Rezolvare': l.resolvedAt ? format(new Date(l.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
+    })));
+
+    // Legitimatii Revolutionar
+    addSheet('Legit Revolutionar', filteredRevolutionarLegitimations.map(l => ({
+      'Persoana': l.personName,
+      'Nr Lege/Hotarare': l.lawNumber,
+      'Nr Auto': l.carPlate,
+      'Telefon': l.phone || '',
+      'Descriere': l.description || '',
+      'Status': REVOLUTIONAR_LEGITIMATION_STATUS_LABELS[l.status],
+      'Data Creare': format(new Date(l.createdAt), 'dd.MM.yyyy HH:mm'),
+      'Creat de': l.creator?.fullName || '',
+      'Rezolvat de': l.resolver?.fullName || '',
+      'Data Rezolvare': l.resolvedAt ? format(new Date(l.resolvedAt), 'dd.MM.yyyy HH:mm') : '',
+    })));
+
+    XLSX.writeFile(wb, `raport-complet-handicap-${selectedMonth}.xlsx`);
+  };
+
+  // State for export all dialog
+  const [exportAllOpen, setExportAllOpen] = useState(false);
 
   return (
     <Box sx={{ p: { xs: 0, sm: 1 }, maxWidth: '100%', overflow: 'hidden' }}>
@@ -1507,6 +1892,91 @@ const HandicapParkingPage: React.FC = () => {
           </Select>
         </FormControl>
       </Paper>
+
+      {/* Export Buttons */}
+      <Paper sx={{ mb: { xs: 1.5, sm: 2 }, p: { xs: 1, sm: 1.5 }, borderRadius: { xs: 2, sm: 3 } }}>
+        <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<PdfIcon />}
+            onClick={exportCurrentSectionPDF}
+            sx={{
+              bgcolor: '#ef4444',
+              '&:hover': { bgcolor: '#dc2626' },
+              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+              px: { xs: 1.5, sm: 2 },
+            }}
+          >
+            {isCompact ? 'PDF' : 'Exporta PDF'}
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<ExcelIcon />}
+            onClick={exportCurrentSectionExcel}
+            sx={{
+              bgcolor: '#10b981',
+              '&:hover': { bgcolor: '#059669' },
+              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+              px: { xs: 1.5, sm: 2 },
+            }}
+          >
+            {isCompact ? 'Excel' : 'Exporta Excel'}
+          </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<AllSectionsIcon />}
+            onClick={() => setExportAllOpen(true)}
+            sx={{
+              borderColor: '#6366f1',
+              color: '#6366f1',
+              '&:hover': { borderColor: '#4f46e5', bgcolor: alpha('#6366f1', 0.05) },
+              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+              px: { xs: 1.5, sm: 2 },
+            }}
+          >
+            {isCompact ? 'Tot' : 'Raport Complet'}
+          </Button>
+        </Stack>
+      </Paper>
+
+      {/* Export All Dialog */}
+      <Dialog open={exportAllOpen} onClose={() => setExportAllOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AllSectionsIcon color="primary" />
+          Raport Complet — {monthLabel}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Exporta toate cele 5 sectiuni intr-un singur fisier.
+          </Typography>
+          <Stack spacing={2}>
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<PdfIcon />}
+              onClick={() => { exportAllSectionsPDF(); setExportAllOpen(false); }}
+              sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' }, py: 1.5 }}
+            >
+              Exporta PDF Complet
+            </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              startIcon={<ExcelIcon />}
+              onClick={() => { exportAllSectionsExcel(); setExportAllOpen(false); }}
+              sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' }, py: 1.5 }}
+            >
+              Exporta Excel Complet
+            </Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setExportAllOpen(false)}>Inchide</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Content - Solicitari (primele 3 sectiuni) */}
       {!isLegitimationsTab && tabValue < tabConfig.length && (
