@@ -60,7 +60,7 @@ import {
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import { Navigate, useLocation } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
   useGetHandicapRequestsQuery,
@@ -118,6 +118,21 @@ const REQUEST_TYPE_ICONS: Record<HandicapRequestType, React.ReactNode> = {
 };
 
 const ITEMS_PER_PAGE = 10;
+
+// Genereaza optiunile de luna (ultimele 12 luni)
+const generateMonthOptions = () => {
+  const options: { value: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const date = subMonths(now, i);
+    const value = format(date, 'yyyy-MM');
+    const label = format(date, 'MMMM yyyy', { locale: ro });
+    options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+  }
+  return options;
+};
+
+const MONTH_OPTIONS = generateMonthOptions();
 
 // ============== CREATE DIALOG ==============
 interface CreateDialogProps {
@@ -1160,6 +1175,7 @@ const HandicapParkingPage: React.FC = () => {
   const [openLegitimationId, setOpenLegitimationId] = useState<string | null>(null);
   const [openRevolutionarLegitimationId, setOpenRevolutionarLegitimationId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
 
   const { user } = useAppSelector((state) => state.auth);
 
@@ -1241,11 +1257,14 @@ const HandicapParkingPage: React.FC = () => {
   // tabConfig pentru render - folosit doar pentru primele 3 tab-uri
   const tabConfig = requestTabConfig;
 
-  // Filter requests by tab type and search (doar pentru tab-urile de solicitari, nu legitimatii)
+  // Filter requests by tab type, search and month
   const filteredRequests = useMemo(() => {
     if (isLegitimationsTab) return [];
     if (tabValue >= tabConfig.length) return [];
     const currentType = tabConfig[tabValue].type;
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const monthStart = startOfMonth(new Date(year, month - 1));
+    const monthEnd = endOfMonth(new Date(year, month - 1));
     return requests.filter((r) => {
       const matchesType = r.requestType === currentType;
       const matchesSearch = searchQuery
@@ -1253,9 +1272,11 @@ const HandicapParkingPage: React.FC = () => {
           r.personName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           r.carPlate?.toLowerCase().includes(searchQuery.toLowerCase())
         : true;
-      return matchesType && matchesSearch;
+      const createdAt = new Date(r.createdAt);
+      const matchesMonth = createdAt >= monthStart && createdAt <= monthEnd;
+      return matchesType && matchesSearch && matchesMonth;
     });
-  }, [requests, tabValue, searchQuery, tabConfig, isLegitimationsTab]);
+  }, [requests, tabValue, searchQuery, tabConfig, isLegitimationsTab, selectedMonth]);
 
   // Pagination
   const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
@@ -1264,10 +1285,10 @@ const HandicapParkingPage: React.FC = () => {
     return filteredRequests.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredRequests, page]);
 
-  // Reset page when tab/search/filter changes
+  // Reset page when tab/search/filter/month changes
   useEffect(() => {
     setPage(1);
-  }, [tabValue, searchQuery, statusFilter]);
+  }, [tabValue, searchQuery, statusFilter, selectedMonth]);
 
   const handleSectionChange = (newValue: number) => {
     setTabValue(newValue);
@@ -1387,7 +1408,22 @@ const HandicapParkingPage: React.FC = () => {
             }}
           />
 
-          <Stack direction="row" spacing={1} alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+            <FormControl size="small" sx={{ minWidth: 160, flex: 1 }}>
+              <InputLabel>Luna</InputLabel>
+              <Select
+                value={selectedMonth}
+                label="Luna"
+                onChange={(e) => setSelectedMonth(e.target.value)}
+              >
+                {MONTH_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
             <FormControl size="small" sx={{ minWidth: 120, flex: 1 }}>
               <InputLabel>Status</InputLabel>
               <Select
@@ -1568,6 +1604,7 @@ const HandicapParkingPage: React.FC = () => {
               canEdit={canEditHandicap}
               searchQuery={searchQuery}
               statusFilter={statusFilter as HandicapLegitimationStatus | ''}
+              selectedMonth={selectedMonth}
               initialOpenId={openLegitimationId}
               onOpenIdHandled={() => setOpenLegitimationId(null)}
             />
@@ -1584,6 +1621,7 @@ const HandicapParkingPage: React.FC = () => {
               canEdit={canEditHandicap}
               searchQuery={searchQuery}
               statusFilter={statusFilter as RevolutionarLegitimationStatus | ''}
+              selectedMonth={selectedMonth}
               initialOpenId={openRevolutionarLegitimationId}
               onOpenIdHandled={() => setOpenRevolutionarLegitimationId(null)}
             />

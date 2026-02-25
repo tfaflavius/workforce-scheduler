@@ -23,6 +23,7 @@ import {
   ListItemAvatar,
   Avatar,
   CircularProgress,
+  Pagination,
   alpha,
   useTheme,
   useMediaQuery,
@@ -44,7 +45,7 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
 } from '@mui/icons-material';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
   useGetHandicapLegitimationsQuery,
@@ -66,11 +67,14 @@ import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 // Culori
 const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
 
+const ITEMS_PER_PAGE = 10;
+
 interface HandicapLegitimatiiTabProps {
   isAdmin: boolean;
   canEdit: boolean;
   searchQuery: string;
   statusFilter: HandicapLegitimationStatus | '';
+  selectedMonth: string;
   initialOpenId?: string | null;
   onOpenIdHandled?: () => void;
 }
@@ -931,11 +935,14 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   canEdit,
   searchQuery,
   statusFilter,
+  selectedMonth,
   initialOpenId,
   onOpenIdHandled,
 }) => {
+  const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'));
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedLegitimationId, setSelectedLegitimationId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: legitimations = [], isLoading } = useGetHandicapLegitimationsQuery(
     statusFilter ? { status: statusFilter as HandicapLegitimationStatus } : undefined
@@ -952,18 +959,44 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
     }
   }, [initialOpenId, legitimations, onOpenIdHandled]);
 
-  // Filter by search
+  // Filter by search and month
   const filteredLegitimations = useMemo(() => {
-    if (!searchQuery) return legitimations;
-    return legitimations.filter(
-      (l) =>
-        l.personName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        l.carPlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        l.handicapCertificateNumber.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [legitimations, searchQuery]);
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const monthStart = startOfMonth(new Date(year, month - 1));
+    const monthEnd = endOfMonth(new Date(year, month - 1));
+    return legitimations.filter((l) => {
+      const matchesSearch = searchQuery
+        ? l.personName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          l.carPlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          l.handicapCertificateNumber.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+      const createdAt = new Date(l.createdAt);
+      const matchesMonth = createdAt >= monthStart && createdAt <= monthEnd;
+      return matchesSearch && matchesMonth;
+    });
+  }, [legitimations, searchQuery, selectedMonth]);
 
-  const activeCount = useMemo(() => legitimations.filter((l) => l.status === 'ACTIVE').length, [legitimations]);
+  // Pagination
+  const totalPages = Math.ceil(filteredLegitimations.length / ITEMS_PER_PAGE);
+  const paginatedLegitimations = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filteredLegitimations.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredLegitimations, page]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, statusFilter, selectedMonth]);
+
+  const activeCount = useMemo(() => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const monthStart = startOfMonth(new Date(year, month - 1));
+    const monthEnd = endOfMonth(new Date(year, month - 1));
+    return legitimations.filter((l) => {
+      const createdAt = new Date(l.createdAt);
+      return l.status === 'ACTIVE' && createdAt >= monthStart && createdAt <= monthEnd;
+    }).length;
+  }, [legitimations, selectedMonth]);
 
   return (
     <Box>
@@ -1022,15 +1055,43 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
           </Button>
         </Paper>
       ) : (
-        <Stack spacing={1.5}>
-          {filteredLegitimations.map((legitimation) => (
-            <LegitimationCard
-              key={legitimation.id}
-              legitimation={legitimation}
-              onClick={() => setSelectedLegitimationId(legitimation.id)}
-            />
-          ))}
-        </Stack>
+        <>
+          <Stack spacing={1.5}>
+            {paginatedLegitimations.map((legitimation) => (
+              <LegitimationCard
+                key={legitimation.id}
+                legitimation={legitimation}
+                onClick={() => setSelectedLegitimationId(legitimation.id)}
+              />
+            ))}
+          </Stack>
+          {totalPages > 1 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={(_e, value) => setPage(value)}
+                color="primary"
+                size={isMobile ? 'small' : 'medium'}
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    '&.Mui-selected': {
+                      bgcolor: LEGITIMATION_COLOR.main,
+                      '&:hover': { bgcolor: alpha(LEGITIMATION_COLOR.main, 0.85) },
+                    },
+                  },
+                }}
+              />
+            </Box>
+          )}
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: 'block', textAlign: 'center', mt: 1 }}
+          >
+            {filteredLegitimations.length} legitimatii total
+          </Typography>
+        </>
       )}
 
       {/* Dialogs */}
