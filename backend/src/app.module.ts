@@ -69,6 +69,7 @@ import { ParkingWeeklyOccupancy } from './modules/parking/entities/parking-weekl
 import { ParkingMeter } from './modules/parking/entities/parking-meter.entity';
 import { ControlSesizare } from './modules/parking/entities/control-sesizare.entity';
 import { ControlSesizareComment } from './modules/parking/entities/control-sesizare-comment.entity';
+import { KeepAliveModule } from './common/keep-alive/keep-alive.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { ControlSesizareComment } from './modules/parking/entities/control-sesiz
       envFilePath: '.env',
     }),
     ScheduleModule.forRoot(),
+    KeepAliveModule,
     SupabaseModule,
     EmailModule,
     TypeOrmModule.forRoot({
