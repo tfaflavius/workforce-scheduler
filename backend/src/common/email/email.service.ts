@@ -448,7 +448,6 @@ export class EmailService {
     '@test.com',                // Conturi de test generice
     '@example.com',             // Conturi de exemplu
     'test@',                    // Orice email care incepe cu test@
-    'tartaflavius22@gmail.com', // Cont personal de test
   ];
 
   constructor(private configService: ConfigService) {

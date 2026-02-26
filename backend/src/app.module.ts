@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SupabaseModule } from './common/supabase/supabase.module';
@@ -75,6 +76,7 @@ import { ControlSesizareComment } from './modules/parking/entities/control-sesiz
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
     SupabaseModule,
     EmailModule,
     TypeOrmModule.forRoot({

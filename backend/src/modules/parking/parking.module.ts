@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
 
 // Entities
 import { ParkingLot } from './entities/parking-lot.entity';
@@ -111,7 +110,6 @@ import { EmailModule } from '../../common/email/email.module';
     ]),
     NotificationsModule,
     EmailModule,
-    ScheduleModule.forRoot(),
   ],
   controllers: [
     ParkingLotsController,
