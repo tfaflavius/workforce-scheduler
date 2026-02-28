@@ -223,31 +223,33 @@ export class SchedulesService {
 
     // If assignments are updated, recreate them
     if (updateScheduleDto.assignments) {
-      // Delete old assignments for this schedule
-      await this.assignmentRepository.delete({ workScheduleId: id });
+      // Get the unique user IDs being updated
+      const affectedUserIds = [...new Set(updateScheduleDto.assignments.map(a => a.userId))];
 
-      // Also remove any conflicting assignments from OTHER schedules (UNIQUE: user_id + shift_date)
-      const conflictPairs = updateScheduleDto.assignments.map(a => ({
-        userId: a.userId,
-        shiftDate: new Date(a.shiftDate).toISOString().split('T')[0],
-      }));
+      // Delete ONLY the affected users' assignments (not all assignments in the schedule!)
+      // This prevents wiping other users' data when bulk-saving user by user
+      for (const affectedUserId of affectedUserIds) {
+        // Delete from THIS schedule
+        await this.assignmentRepository
+          .createQueryBuilder()
+          .delete()
+          .from('schedule_assignments')
+          .where('work_schedule_id = :scheduleId', { scheduleId: id })
+          .andWhere('user_id = :userId', { userId: affectedUserId })
+          .execute();
 
-      const userDates = new Map<string, string[]>();
-      for (const pair of conflictPairs) {
-        if (!userDates.has(pair.userId)) {
-          userDates.set(pair.userId, []);
-        }
-        userDates.get(pair.userId)!.push(pair.shiftDate);
-      }
+        // Also delete from ANY other schedule for the same dates (UNIQUE: user_id + shift_date)
+        const userDates = updateScheduleDto.assignments
+          .filter(a => a.userId === affectedUserId)
+          .map(a => new Date(a.shiftDate).toISOString().split('T')[0]);
 
-      for (const [uId, dates] of userDates) {
-        if (dates.length > 0) {
+        if (userDates.length > 0) {
           await this.assignmentRepository
             .createQueryBuilder()
             .delete()
             .from('schedule_assignments')
-            .where('user_id = :userId', { userId: uId })
-            .andWhere('shift_date IN (:...dates)', { dates })
+            .where('user_id = :userId', { userId: affectedUserId })
+            .andWhere('shift_date IN (:...dates)', { dates: userDates })
             .execute();
         }
       }
@@ -259,7 +261,8 @@ export class SchedulesService {
         });
 
         if (!shiftType) {
-          throw new NotFoundException(`Shift type ${assignmentDto.shiftTypeId} not found`);
+          this.logger.warn(`Shift type ${assignmentDto.shiftTypeId} not found, skipping assignment`);
+          continue;
         }
 
         await this.assignmentRepository
@@ -273,7 +276,7 @@ export class SchedulesService {
             shiftDate: new Date(assignmentDto.shiftDate),
             isRestDay: false,
             notes: assignmentDto.notes || null,
-            workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
+            workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001',
           })
           .execute();
       }

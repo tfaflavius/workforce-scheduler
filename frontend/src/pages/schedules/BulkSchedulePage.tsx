@@ -450,9 +450,12 @@ const BulkSchedulePage: React.FC = () => {
             }).unwrap();
           }
           savedCount++;
-        } catch (err) {
-          console.error(`Failed to save schedule for user ${userId}:`, err);
+        } catch (err: any) {
+          const userName = eligibleUsers.find(u => u.id === userId)?.fullName || userId;
+          const errorMsg = err?.data?.message || err?.message || JSON.stringify(err);
+          console.error(`Failed to save schedule for ${userName}:`, errorMsg, err);
           failedCount++;
+          setErrorMessage(`Eroare la ${userName}: ${errorMsg}`);
         }
 
         setSavingProgress(prev => prev ? { ...prev, current: prev.current + 1 } : null);
