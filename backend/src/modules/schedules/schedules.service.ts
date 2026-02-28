@@ -64,6 +64,34 @@ export class SchedulesService {
 
     // Create assignments
     if (createScheduleDto.assignments && createScheduleDto.assignments.length > 0) {
+      // Remove any existing conflicting assignments (UNIQUE constraint: user_id + shift_date)
+      const conflictPairs = createScheduleDto.assignments.map(a => ({
+        userId: a.userId,
+        shiftDate: new Date(a.shiftDate).toISOString().split('T')[0],
+      }));
+
+      // Group by userId for efficient deletion
+      const userDates = new Map<string, string[]>();
+      for (const pair of conflictPairs) {
+        if (!userDates.has(pair.userId)) {
+          userDates.set(pair.userId, []);
+        }
+        userDates.get(pair.userId)!.push(pair.shiftDate);
+      }
+
+      // Delete conflicting assignments from ANY schedule
+      for (const [uId, dates] of userDates) {
+        if (dates.length > 0) {
+          await this.assignmentRepository
+            .createQueryBuilder()
+            .delete()
+            .from('schedule_assignments')
+            .where('user_id = :userId', { userId: uId })
+            .andWhere('shift_date IN (:...dates)', { dates })
+            .execute();
+        }
+      }
+
       const assignments = await Promise.all(
         createScheduleDto.assignments.map(async (assignmentDto) => {
           const shiftType = await this.shiftTypeRepository.findOne({
@@ -195,8 +223,34 @@ export class SchedulesService {
 
     // If assignments are updated, recreate them
     if (updateScheduleDto.assignments) {
-      // Delete old assignments
+      // Delete old assignments for this schedule
       await this.assignmentRepository.delete({ workScheduleId: id });
+
+      // Also remove any conflicting assignments from OTHER schedules (UNIQUE: user_id + shift_date)
+      const conflictPairs = updateScheduleDto.assignments.map(a => ({
+        userId: a.userId,
+        shiftDate: new Date(a.shiftDate).toISOString().split('T')[0],
+      }));
+
+      const userDates = new Map<string, string[]>();
+      for (const pair of conflictPairs) {
+        if (!userDates.has(pair.userId)) {
+          userDates.set(pair.userId, []);
+        }
+        userDates.get(pair.userId)!.push(pair.shiftDate);
+      }
+
+      for (const [uId, dates] of userDates) {
+        if (dates.length > 0) {
+          await this.assignmentRepository
+            .createQueryBuilder()
+            .delete()
+            .from('schedule_assignments')
+            .where('user_id = :userId', { userId: uId })
+            .andWhere('shift_date IN (:...dates)', { dates })
+            .execute();
+        }
+      }
 
       // Create new assignments - use query builder to ensure workScheduleId is set
       for (const assignmentDto of updateScheduleDto.assignments) {
