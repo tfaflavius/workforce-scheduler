@@ -181,7 +181,7 @@ const TicketsSection: React.FC = () => {
         </ToggleButtonGroup>
 
         {viewMode === 'daily' && (
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
             <InputLabel>Ziua</InputLabel>
             <Select value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)} label="Ziua">
               {dayOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -189,7 +189,7 @@ const TicketsSection: React.FC = () => {
           </FormControl>
         )}
         {viewMode === 'weekly' && (
-          <FormControl size="small" sx={{ minWidth: 280 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 280 } }}>
             <InputLabel>Saptamana</InputLabel>
             <Select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} label="Saptamana">
               {weekOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -197,7 +197,7 @@ const TicketsSection: React.FC = () => {
           </FormControl>
         )}
         {viewMode === 'monthly' && (
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
             <InputLabel>Luna</InputLabel>
             <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} label="Luna">
               {monthOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -210,12 +210,12 @@ const TicketsSection: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
         <>
-          <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
-            <Table size="small">
+          <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: 320 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Parcare</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     {viewMode === 'daily' ? 'Tichete' : 'Total Tichete'}
                   </TableCell>
                 </TableRow>
@@ -223,19 +223,20 @@ const TicketsSection: React.FC = () => {
               <TableBody>
                 {PARKING_STAT_LOCATIONS.map((loc, idx) => {
                   const rows: React.ReactNode[] = [];
-                  // Randul de header pentru grupul Doja
                   if (isFirstInGroup(idx) && loc.group) {
                     const groupTotal = getGroupKeys(loc.group).reduce((sum, k) => sum + getTicketValue(k), 0);
                     rows.push(
                       <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{loc.group}</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.85rem', color: 'text.secondary' }}>{groupTotal}</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>{loc.group}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>{groupTotal}</TableCell>
                       </TableRow>
                     );
                   }
                   rows.push(
                     <TableRow key={loc.key} hover>
-                      <TableCell sx={loc.group ? { pl: 4 } : undefined}>{loc.group ? `└ ${loc.name}` : loc.name}</TableCell>
+                      <TableCell sx={{ ...(loc.group ? { pl: { xs: 2, sm: 4 } } : {}), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                        {loc.group ? `└ ${loc.name}` : loc.name}
+                      </TableCell>
                       <TableCell align="right">
                         {isEditable ? (
                           <TextField
@@ -246,8 +247,8 @@ const TicketsSection: React.FC = () => {
                               ...prev,
                               [loc.key]: Number(e.target.value) || 0,
                             }))}
-                            sx={{ width: 100 }}
-                            inputProps={{ min: 0 }}
+                            sx={{ width: { xs: 70, sm: 100 } }}
+                            inputProps={{ min: 0, style: { fontSize: '0.85rem' } }}
                           />
                         ) : (
                           <Typography variant="body2" fontWeight="bold">{getTicketValue(loc.key)}</Typography>
@@ -258,8 +259,8 @@ const TicketsSection: React.FC = () => {
                   return rows;
                 })}
                 <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.05) }}>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>TOTAL</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{total}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>TOTAL</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>{total}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -337,18 +338,18 @@ const SubscriptionsSection: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
         <>
-          <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
-            <Table size="small">
+          <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: 320 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#10b981', 0.08) }}>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Parcare</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Abonamente</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Abonamente</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {PARKING_SUBSCRIPTION_LOCATIONS.map((loc) => (
                   <TableRow key={loc.key} hover>
-                    <TableCell>{loc.name}</TableCell>
+                    <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{loc.name}</TableCell>
                     <TableCell align="right">
                       <TextField
                         type="number"
@@ -358,15 +359,15 @@ const SubscriptionsSection: React.FC = () => {
                           ...prev,
                           [loc.key]: Number(e.target.value) || 0,
                         }))}
-                        sx={{ width: 100 }}
-                        inputProps={{ min: 0 }}
+                        sx={{ width: { xs: 70, sm: 100 } }}
+                        inputProps={{ min: 0, style: { fontSize: '0.85rem' } }}
                       />
                     </TableCell>
                   </TableRow>
                 ))}
                 <TableRow sx={{ bgcolor: alpha('#10b981', 0.05) }}>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>TOTAL</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{total}</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>TOTAL</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>{total}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -459,7 +460,7 @@ const OccupancySection: React.FC = () => {
         </ToggleButtonGroup>
 
         {viewMode === 'weekly' && (
-          <FormControl size="small" sx={{ minWidth: 280 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 280 } }}>
             <InputLabel>Saptamana</InputLabel>
             <Select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} label="Saptamana">
               {weekOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -467,7 +468,7 @@ const OccupancySection: React.FC = () => {
           </FormControl>
         )}
         {viewMode === 'monthly' && (
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
             <InputLabel>Luna</InputLabel>
             <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} label="Luna">
               {monthOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -480,15 +481,15 @@ const OccupancySection: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
         <>
-          <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
-            <Table size="small">
+          <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
+            <Table size="small" sx={{ minWidth: { xs: 480, sm: 600 } }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#f59e0b', 0.08) }}>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Parcare</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Minim</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Maxim</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Medie</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Grad/Zi</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 100, sm: 150 } }}>Parcare</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Maxim</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Medie</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Grad/Zi</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -498,14 +499,16 @@ const OccupancySection: React.FC = () => {
                   if (isFirstInGroup(idx) && loc.group) {
                     rows.push(
                       <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#f59e0b', 0.06) }}>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.9rem' }} colSpan={5}>{loc.group}</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.9rem' } }} colSpan={5}>{loc.group}</TableCell>
                       </TableRow>
                     );
                   }
                   rows.push(
                     <TableRow key={loc.key} hover>
-                      <TableCell sx={loc.group ? { pl: 4 } : undefined}>{loc.group ? `└ ${loc.name}` : loc.name}</TableCell>
-                      <TableCell align="right">
+                      <TableCell sx={{ ...(loc.group ? { pl: { xs: 2, sm: 4 } } : {}), fontSize: { xs: '0.7rem', sm: '0.875rem' }, whiteSpace: 'nowrap' }}>
+                        {loc.group ? `└ ${loc.name}` : loc.name}
+                      </TableCell>
+                      <TableCell align="right" sx={{ px: { xs: 0.5, sm: 2 } }}>
                         {isEditable ? (
                           <TextField
                             type="number"
@@ -515,14 +518,14 @@ const OccupancySection: React.FC = () => {
                               ...prev,
                               [loc.key]: { ...prev[loc.key] || { min: 0, max: 0, avg: 0 }, min: Number(e.target.value) || 0 },
                             }))}
-                            sx={{ width: 80 }}
-                            inputProps={{ min: 0 }}
+                            sx={{ width: { xs: 55, sm: 80 } }}
+                            inputProps={{ min: 0, style: { fontSize: '0.8rem', padding: '6px 4px' } }}
                           />
                         ) : (
-                          <Typography variant="body2">{val.min}</Typography>
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{val.min}</Typography>
                         )}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ px: { xs: 0.5, sm: 2 } }}>
                         {isEditable ? (
                           <TextField
                             type="number"
@@ -532,14 +535,14 @@ const OccupancySection: React.FC = () => {
                               ...prev,
                               [loc.key]: { ...prev[loc.key] || { min: 0, max: 0, avg: 0 }, max: Number(e.target.value) || 0 },
                             }))}
-                            sx={{ width: 80 }}
-                            inputProps={{ min: 0 }}
+                            sx={{ width: { xs: 55, sm: 80 } }}
+                            inputProps={{ min: 0, style: { fontSize: '0.8rem', padding: '6px 4px' } }}
                           />
                         ) : (
-                          <Typography variant="body2">{val.max}</Typography>
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{val.max}</Typography>
                         )}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ px: { xs: 0.5, sm: 2 } }}>
                         {isEditable ? (
                           <TextField
                             type="number"
@@ -549,15 +552,15 @@ const OccupancySection: React.FC = () => {
                               ...prev,
                               [loc.key]: { ...prev[loc.key] || { min: 0, max: 0, avg: 0 }, avg: Number(e.target.value) || 0 },
                             }))}
-                            sx={{ width: 90 }}
-                            inputProps={{ min: 0, step: 0.01 }}
+                            sx={{ width: { xs: 60, sm: 90 } }}
+                            inputProps={{ min: 0, step: 0.01, style: { fontSize: '0.8rem', padding: '6px 4px' } }}
                           />
                         ) : (
-                          <Typography variant="body2">{val.avg}</Typography>
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{val.avg}</Typography>
                         )}
                       </TableCell>
                       <TableCell align="right">
-                        <Typography variant="body2" fontWeight="bold" color="primary">
+                        <Typography variant="body2" fontWeight="bold" color="primary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                           {getDailyRate(val.avg)}
                         </Typography>
                       </TableCell>
@@ -616,8 +619,8 @@ const ParkingStatsTab: React.FC = () => {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <TicketIcon sx={{ color: '#8b5cf6' }} />
-            <Typography variant="subtitle1" fontWeight="bold">Numar Tichete Zilnice</Typography>
+            <TicketIcon sx={{ color: '#8b5cf6', fontSize: { xs: 20, sm: 24 } }} />
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>Numar Tichete Zilnice</Typography>
           </Stack>
         </AccordionSummary>
         <AccordionDetails>
@@ -632,8 +635,8 @@ const ParkingStatsTab: React.FC = () => {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <SubscriptionIcon sx={{ color: '#10b981' }} />
-            <Typography variant="subtitle1" fontWeight="bold">Numar Abonamente Lunare</Typography>
+            <SubscriptionIcon sx={{ color: '#10b981', fontSize: { xs: 20, sm: 24 } }} />
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>Numar Abonamente Lunare</Typography>
           </Stack>
         </AccordionSummary>
         <AccordionDetails>
@@ -648,8 +651,8 @@ const ParkingStatsTab: React.FC = () => {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <OccupancyIcon sx={{ color: '#f59e0b' }} />
-            <Typography variant="subtitle1" fontWeight="bold">Grad de Ocupare Saptamanal</Typography>
+            <OccupancyIcon sx={{ color: '#f59e0b', fontSize: { xs: 20, sm: 24 } }} />
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>Grad de Ocupare Saptamanal</Typography>
           </Stack>
         </AccordionSummary>
         <AccordionDetails>

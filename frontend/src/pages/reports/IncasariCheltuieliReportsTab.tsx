@@ -460,19 +460,19 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
           Nu exista date de incasari/cheltuieli pentru anul selectat.
         </Alert>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-          <Table size="small">
+        <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
+          <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#059669', 0.08) }}>
-                <TableCell sx={{ fontWeight: 600, minWidth: 150, position: 'sticky', left: 0, bgcolor: alpha('#059669', 0.08), zIndex: 1 }}>
+                <TableCell sx={{ fontWeight: 600, minWidth: { xs: 120, sm: 150 }, position: 'sticky', left: 0, bgcolor: alpha('#059669', 0.08), zIndex: 1, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                   Categorie
                 </TableCell>
                 {MONTH_LABELS.map((label) => (
-                  <TableCell key={label} sx={{ fontWeight: 600, minWidth: 70 }} align="right">
+                  <TableCell key={label} sx={{ fontWeight: 600, minWidth: { xs: 55, sm: 70 }, fontSize: { xs: '0.65rem', sm: '0.75rem' } }} align="right">
                     {label}
                   </TableCell>
                 ))}
-                <TableCell sx={{ fontWeight: 600, minWidth: 90 }} align="right">
+                <TableCell sx={{ fontWeight: 600, minWidth: { xs: 70, sm: 90 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }} align="right">
                   Total
                 </TableCell>
               </TableRow>
@@ -494,8 +494,9 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
                       variant="body2"
                       noWrap
                       sx={{
-                        maxWidth: { xs: 120, sm: 200 },
+                        maxWidth: { xs: 100, sm: 200 },
                         fontWeight: cat.isGroup ? 700 : 400,
+                        fontSize: { xs: '0.65rem', sm: '0.8rem' },
                       }}
                     >
                       {cat.categoryName}
@@ -510,7 +511,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
                           sx={{
                             color: val > 0 ? 'text.primary' : 'text.disabled',
                             fontWeight: cat.isGroup ? 600 : 400,
-                            fontSize: '0.75rem',
+                            fontSize: { xs: '0.6rem', sm: '0.75rem' },
                           }}
                         >
                           {val > 0 ? formatCurrencyShort(val) : '-'}

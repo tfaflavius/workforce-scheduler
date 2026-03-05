@@ -417,12 +417,12 @@ const ParkingStatsReportsTab: React.FC = () => {
     if (reportType === 'tickets') {
       const total = ticketsData.reduce((sum, d) => sum + d.value, 0);
       return (
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500 }}>
-          <Table size="small" stickyHeader>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
+          <Table size="small" stickyHeader sx={{ minWidth: 300 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Parcare</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Numar Tichete</TableCell>
+                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Numar Tichete</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -431,22 +431,22 @@ const ParkingStatsReportsTab: React.FC = () => {
                 if (isFirstInGroup(idx) && d.group) {
                   rows.push(
                     <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                      <TableCell sx={{ fontWeight: 'bold' }}>{d.group}</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.group}</TableCell>
                       <TableCell />
                     </TableRow>
                   );
                 }
                 rows.push(
                   <TableRow key={d.locationKey} hover>
-                    <TableCell sx={d.group ? { pl: 4 } : undefined}>{d.group ? `└ ${d.name}` : d.name}</TableCell>
-                    <TableCell align="right">{d.value}</TableCell>
+                    <TableCell sx={{ ...(d.group ? { pl: { xs: 2, sm: 4 } } : {}), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.group ? `└ ${d.name}` : d.name}</TableCell>
+                    <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.value}</TableCell>
                   </TableRow>
                 );
                 return rows;
               })}
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
-                <TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>{total}</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>TOTAL</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>{total}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -457,24 +457,24 @@ const ParkingStatsReportsTab: React.FC = () => {
     if (reportType === 'subscriptions') {
       const total = subscriptionsData.reduce((sum, d) => sum + d.value, 0);
       return (
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500 }}>
-          <Table size="small" stickyHeader>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
+          <Table size="small" stickyHeader sx={{ minWidth: 300 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Parcare</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Numar Abonamente</TableCell>
+                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Numar Abonamente</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {subscriptionsData.map((d) => (
                 <TableRow key={d.locationKey} hover>
-                  <TableCell>{d.name}</TableCell>
-                  <TableCell align="right">{d.value}</TableCell>
+                  <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.name}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.value}</TableCell>
                 </TableRow>
               ))}
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
-                <TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>{total}</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>TOTAL</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>{total}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -487,14 +487,14 @@ const ParkingStatsReportsTab: React.FC = () => {
     const totalDaily = occupancyData.reduce((s, d) => s + d.dailyRate, 0);
     return (
       <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
-        <Table size="small" stickyHeader sx={{ minWidth: 500 }}>
+        <Table size="small" stickyHeader sx={{ minWidth: 480 }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Parcare</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Minim</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Maxim</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Medie</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1) }}>Grad/Zi</TableCell>
+              <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 90, sm: 140 } }}>Parcare</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Maxim</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Medie</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Grad/Zi</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -503,31 +503,33 @@ const ParkingStatsReportsTab: React.FC = () => {
               if (isFirstInGroup(idx) && d.group) {
                 rows.push(
                   <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                    <TableCell sx={{ fontWeight: 'bold' }} colSpan={5}>{d.group}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }} colSpan={5}>{d.group}</TableCell>
                   </TableRow>
                 );
               }
               rows.push(
                 <TableRow key={d.locationKey} hover>
-                  <TableCell sx={d.group ? { pl: 4 } : undefined}>{d.group ? `└ ${d.name}` : d.name}</TableCell>
-                  <TableCell align="right">{d.min.toFixed(0)}</TableCell>
-                  <TableCell align="right">{d.max.toFixed(0)}</TableCell>
-                  <TableCell align="right">{d.avg.toFixed(2)}</TableCell>
-                  <TableCell align="right">{d.dailyRate.toFixed(2)}</TableCell>
+                  <TableCell sx={{ ...(d.group ? { pl: { xs: 2, sm: 4 } } : {}), fontSize: { xs: '0.7rem', sm: '0.875rem' }, whiteSpace: 'nowrap' }}>
+                    {d.group ? `└ ${d.name}` : d.name}
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.min.toFixed(0)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.max.toFixed(0)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.avg.toFixed(2)}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}>{d.dailyRate.toFixed(2)}</TableCell>
                 </TableRow>
               );
               return rows;
             })}
             <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
-              <TableCell sx={{ fontWeight: 700 }}>TOTAL / MEDIE</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>TOTAL / MEDIE</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                 {occupancyData.reduce((s, d) => s + d.min, 0).toFixed(0)}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                 {occupancyData.reduce((s, d) => s + d.max, 0).toFixed(0)}
               </TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>{totalAvg.toFixed(2)}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700 }}>{totalDaily.toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{totalAvg.toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{totalDaily.toFixed(2)}</TableCell>
             </TableRow>
           </TableBody>
         </Table>

@@ -2410,9 +2410,20 @@ const ReportsPage: React.FC = () => {
               <Tabs
                 value={tabValue}
                 onChange={(_, newValue) => setTabValue(newValue)}
-                variant={isMobile ? 'scrollable' : 'standard'}
+                variant="scrollable"
                 scrollButtons="auto"
                 allowScrollButtonsMobile
+                sx={{
+                  '& .MuiTabs-scrollButtons': {
+                    '&.Mui-disabled': { opacity: 0.3 },
+                  },
+                  '& .MuiTab-root': {
+                    minWidth: { xs: 'auto', sm: 'auto' },
+                    px: { xs: 1, sm: 1.5, md: 2 },
+                    fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
+                    whiteSpace: 'nowrap',
+                  },
+                }}
               >
                 <Tab
                   icon={<ReportIcon />}
