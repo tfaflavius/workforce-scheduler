@@ -157,7 +157,7 @@ export class ParkingStatsService {
     for (const entry of entries) {
       if (!PARKING_STAT_LOCATIONS.find(l => l.key === entry.locationKey)) continue;
 
-      const hourlyRate = Number((entry.avgOccupancy / 168).toFixed(4));
+      const dailyRate = Number((entry.avgOccupancy / 7).toFixed(4));
 
       const existing = await this.occupancyRepository.findOne({
         where: { weekStart, locationKey: entry.locationKey },
@@ -167,7 +167,7 @@ export class ParkingStatsService {
         existing.minOccupancy = entry.minOccupancy;
         existing.maxOccupancy = entry.maxOccupancy;
         existing.avgOccupancy = entry.avgOccupancy;
-        existing.hourlyRate = hourlyRate;
+        existing.dailyRate = dailyRate;
         results.push(await this.occupancyRepository.save(existing));
       } else {
         const occ = this.occupancyRepository.create({
@@ -176,7 +176,7 @@ export class ParkingStatsService {
           minOccupancy: entry.minOccupancy,
           maxOccupancy: entry.maxOccupancy,
           avgOccupancy: entry.avgOccupancy,
-          hourlyRate,
+          dailyRate,
           createdBy: userId,
         });
         results.push(await this.occupancyRepository.save(occ));
@@ -193,7 +193,7 @@ export class ParkingStatsService {
     });
   }
 
-  async getMonthlyOccupancySummary(monthYear: string): Promise<{ locationKey: string; avgMin: number; avgMax: number; avgAvg: number; avgHourlyRate: number }[]> {
+  async getMonthlyOccupancySummary(monthYear: string): Promise<{ locationKey: string; avgMin: number; avgMax: number; avgAvg: number; avgDailyRate: number }[]> {
     const [year, month] = monthYear.split('-');
     // Get all Mondays in this month
     const firstDay = new Date(Number(year), Number(month) - 1, 1);
@@ -207,7 +207,7 @@ export class ParkingStatsService {
       .addSelect('COALESCE(AVG(o.min_occupancy), 0)', 'avgMin')
       .addSelect('COALESCE(AVG(o.max_occupancy), 0)', 'avgMax')
       .addSelect('COALESCE(AVG(o.avg_occupancy), 0)', 'avgAvg')
-      .addSelect('COALESCE(AVG(o.hourly_rate), 0)', 'avgHourlyRate')
+      .addSelect('COALESCE(AVG(o.hourly_rate), 0)', 'avgDailyRate')
       .where('o.week_start >= :firstMonday AND o.week_start <= :lastMonday', {
         firstMonday: firstMonday.toISOString().split('T')[0],
         lastMonday: lastMonday.toISOString().split('T')[0],
@@ -221,7 +221,7 @@ export class ParkingStatsService {
       avgMin: Number(Number(r.avgMin).toFixed(0)),
       avgMax: Number(Number(r.avgMax).toFixed(0)),
       avgAvg: Number(Number(r.avgAvg).toFixed(2)),
-      avgHourlyRate: Number(Number(r.avgHourlyRate).toFixed(4)),
+      avgDailyRate: Number(Number(r.avgDailyRate).toFixed(4)),
     }));
   }
 

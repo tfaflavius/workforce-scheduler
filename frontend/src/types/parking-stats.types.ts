@@ -25,7 +25,7 @@ export interface ParkingWeeklyOccupancy {
   minOccupancy: number;
   maxOccupancy: number;
   avgOccupancy: number;
-  hourlyRate: number;
+  dailyRate: number;
   createdBy?: string;
   createdAt: string;
   updatedAt: string;
@@ -41,7 +41,7 @@ export interface OccupancySummary {
   avgMin: number;
   avgMax: number;
   avgAvg: number;
-  avgHourlyRate: number;
+  avgDailyRate: number;
 }
 
 export interface UpsertTicketsDto {

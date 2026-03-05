@@ -32,7 +32,7 @@ export class ParkingWeeklyOccupancy {
   avgOccupancy: number;
 
   @Column({ name: 'hourly_rate', type: 'decimal', precision: 10, scale: 4, default: 0 })
-  hourlyRate: number; // Calculated: avgOccupancy / 168
+  dailyRate: number; // Calculated: avgOccupancy / 7 (grad de ocupare pe zi)
 
   @Column({ name: 'created_by', nullable: true })
   createdBy: string;
