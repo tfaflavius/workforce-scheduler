@@ -422,7 +422,7 @@ const OccupancySection: React.FC = () => {
     return m ? { min: m.avgMin, max: m.avgMax, avg: m.avgAvg } : { min: 0, max: 0, avg: 0 };
   }, [viewMode, occValues, monthlyData]);
 
-  const getHourlyRate = (avg: number) => (avg / 168).toFixed(2);
+  const getDailyRate = (avg: number) => (avg / 7).toFixed(2);
 
   const handleSave = async () => {
     try {
@@ -488,7 +488,7 @@ const OccupancySection: React.FC = () => {
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Minim</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Maxim</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Medie</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Grad/Ora</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Grad/Zi</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -558,7 +558,7 @@ const OccupancySection: React.FC = () => {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight="bold" color="primary">
-                          {getHourlyRate(val.avg)}
+                          {getDailyRate(val.avg)}
                         </Typography>
                       </TableCell>
                     </TableRow>

@@ -2486,19 +2486,17 @@ const ReportsPage: React.FC = () => {
                   label={isMobile ? 'Incasari' : 'Incasari/Cheltuieli'}
                   sx={{ minHeight: 48 }}
                 />
+                <Tab
+                  icon={<StatsIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Stat. Parcari' : 'Statistici Parcari'}
+                  sx={{ minHeight: 48 }}
+                />
                 {isAdminOrManager && (
                   <Tab
                     icon={<PontajIcon />}
                     iconPosition="start"
                     label="Pontaj"
-                    sx={{ minHeight: 48 }}
-                  />
-                )}
-                {isAdminOrManager && (
-                  <Tab
-                    icon={<StatsIcon />}
-                    iconPosition="start"
-                    label={isMobile ? 'Stat. Parcari' : 'Statistici Parcari'}
                     sx={{ minHeight: 48 }}
                   />
                 )}
@@ -2580,16 +2578,16 @@ const ReportsPage: React.FC = () => {
                   onEndDateChange={(date) => date && setParkingEndDate(date)}
                 />
               )}
-              {isAdminOrManager && tabValue === 12 && (
+              {tabValue === 12 && (
+                <ParkingStatsReportsTab />
+              )}
+              {isAdminOrManager && tabValue === 13 && (
                 <PontajReportsTab
                   startDate={parkingStartDate}
                   endDate={parkingEndDate}
                   onStartDateChange={(date) => date && setParkingStartDate(date)}
                   onEndDateChange={(date) => date && setParkingEndDate(date)}
                 />
-              )}
-              {isAdminOrManager && tabValue === (isAdminOrManager ? 13 : 12) && (
-                <ParkingStatsReportsTab />
               )}
             </Stack>
           </CardContent>
