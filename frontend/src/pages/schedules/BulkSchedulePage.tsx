@@ -627,7 +627,7 @@ const BulkSchedulePage: React.FC = () => {
         <Card>
           <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-              <FormControl size="small" sx={{ minWidth: 200 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: 120, sm: 200 } }}>
                 <InputLabel>Luna</InputLabel>
                 <Select
                   value={monthYear}
@@ -640,7 +640,7 @@ const BulkSchedulePage: React.FC = () => {
                 </Select>
               </FormControl>
 
-              <FormControl size="small" sx={{ minWidth: 150 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: 100, sm: 150 } }}>
                 <InputLabel>Tip Tura</InputLabel>
                 <Select
                   value={shiftPattern}
@@ -836,7 +836,7 @@ const BulkSchedulePage: React.FC = () => {
         {selectedUserIds.length > 0 ? (
           <Card sx={{ overflow: 'hidden' }}>
             <CardContent sx={{ p: 0 }}>
-              <TableContainer sx={{ maxHeight: { xs: 'calc(100vh - 500px)', sm: 'calc(100vh - 450px)' }, minHeight: { xs: 250, sm: 300 } }}>
+              <TableContainer sx={{ overflowX: 'auto', maxHeight: { xs: 'calc(100vh - 500px)', sm: 'calc(100vh - 450px)' }, minHeight: { xs: 250, sm: 300 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     {/* Rand cu statistici pe zi */}
@@ -847,7 +847,7 @@ const BulkSchedulePage: React.FC = () => {
                           left: 0,
                           bgcolor: 'grey.200',
                           zIndex: 4,
-                          minWidth: 150,
+                          minWidth: { xs: 100, sm: 150 },
                           fontWeight: 'bold',
                           fontSize: '0.7rem',
                         }}
@@ -908,7 +908,7 @@ const BulkSchedulePage: React.FC = () => {
                           left: 0,
                           bgcolor: 'background.paper',
                           zIndex: 4,
-                          minWidth: 150,
+                          minWidth: { xs: 100, sm: 150 },
                           fontWeight: 'bold',
                           fontSize: '0.75rem',
                         }}
@@ -960,17 +960,18 @@ const BulkSchedulePage: React.FC = () => {
                               bgcolor: 'background.paper',
                               zIndex: 1,
                               p: 0.5,
+                              maxWidth: { xs: 100, sm: 150 },
                             }}
                           >
-                            <Stack direction="row" alignItems="center" spacing={0.5}>
-                              <Avatar sx={{ width: 24, height: 24, fontSize: '0.7rem' }}>
+                            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ overflow: 'hidden' }}>
+                              <Avatar sx={{ width: 24, height: 24, fontSize: '0.7rem', flexShrink: 0 }}>
                                 {user.fullName.charAt(0)}
                               </Avatar>
-                              <Box>
-                                <Typography variant="caption" fontWeight="bold" sx={{ fontSize: '0.7rem' }}>
+                              <Box sx={{ overflow: 'hidden' }}>
+                                <Typography variant="caption" fontWeight="bold" sx={{ fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
                                   {user.fullName}
                                 </Typography>
-                                <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
+                                <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {user.department?.name || '-'}
                                 </Typography>
                               </Box>

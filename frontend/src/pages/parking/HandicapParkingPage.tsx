@@ -785,7 +785,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                             <PlaceIcon color="primary" sx={{ mt: 0.3 }} />
                             <Box>
                               <Typography variant="body2" color="text.secondary">Locatie</Typography>
-                              <Typography variant="body1" fontWeight={500}>{request.location}</Typography>
+                              <Typography variant="body1" fontWeight={500} sx={{ wordBreak: 'break-word' }}>{request.location}</Typography>
                               {request.googleMapsLink && (
                                 <Button
                                   size="small"
@@ -806,7 +806,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                                 <Box sx={{ flex: 1 }}>
                                   <Typography variant="body2" color="text.secondary">Persoana</Typography>
-                                  <Typography variant="body1" fontWeight={500}>{request.personName}</Typography>
+                                  <Typography variant="body1" fontWeight={500} sx={{ wordBreak: 'break-word' }}>{request.personName}</Typography>
                                 </Box>
                                 <Box sx={{ flex: 1 }}>
                                   <Typography variant="body2" color="text.secondary">Nr. Certificat</Typography>
@@ -816,7 +816,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                                 <Box sx={{ flex: 1 }}>
                                   <Typography variant="body2" color="text.secondary">Numar Auto</Typography>
-                                  <Typography variant="body1" fontWeight={600}>{request.carPlate}</Typography>
+                                  <Typography variant="body1" fontWeight={600} sx={{ wordBreak: 'break-word' }}>{request.carPlate}</Typography>
                                 </Box>
                                 <Box sx={{ flex: 1 }}>
                                   <Typography variant="body2" color="text.secondary">Telefon</Typography>
@@ -829,7 +829,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                           <Divider />
                           <Box>
                             <Typography variant="body2" color="text.secondary">Descriere</Typography>
-                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>{request.description}</Typography>
+                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{request.description}</Typography>
                           </Box>
                         </>
                       )}
@@ -841,7 +841,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                             <Typography variant="body2" color="success.main" fontWeight={600}>
                               Rezolvat de {request.resolver?.fullName} la {format(new Date(request.resolvedAt!), 'dd MMM yyyy, HH:mm', { locale: ro })}
                             </Typography>
-                            <Typography variant="body1" sx={{ mt: 1 }}>{request.resolutionDescription}</Typography>
+                            <Typography variant="body1" sx={{ mt: 1, wordBreak: 'break-word' }}>{request.resolutionDescription}</Typography>
                           </Box>
                         </>
                       )}
@@ -1794,7 +1794,7 @@ const HandicapParkingPage: React.FC = () => {
           />
 
           <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-            <FormControl size="small" sx={{ minWidth: 160, flex: 1 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 160 }, flex: 1 }}>
               <InputLabel>Luna</InputLabel>
               <Select
                 value={selectedMonth}
@@ -1809,7 +1809,7 @@ const HandicapParkingPage: React.FC = () => {
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 120, flex: 1 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 120 }, flex: 1 }}>
               <InputLabel>Status</InputLabel>
               <Select
                 value={statusFilter}

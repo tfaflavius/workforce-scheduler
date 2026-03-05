@@ -666,7 +666,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                             <PlaceIcon color="primary" sx={{ mt: 0.3 }} />
                             <Box>
                               <Typography variant="body2" color="text.secondary">Locatie</Typography>
-                              <Typography variant="body1" fontWeight={500}>{sesizare.location}</Typography>
+                              <Typography variant="body1" fontWeight={500} sx={{ wordBreak: 'break-word' }}>{sesizare.location}</Typography>
                               {sesizare.googleMapsLink && (
                                 <Button size="small" startIcon={<MapIcon />}
                                   href={sesizare.googleMapsLink} target="_blank"
@@ -847,7 +847,7 @@ const ControlSesizareCard: React.FC<SesizareCardProps> = ({ sesizare, onClick })
         '&:hover': { transform: { xs: 'none', sm: 'translateY(-2px)' }, boxShadow: theme.shadows[4] },
         '&:active': { transform: 'scale(0.98)' },
       }}>
-      <CardContent sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+      <CardContent sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } }, overflow: 'hidden' }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
           <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
             <Chip label={`Zona ${CONTROL_SESIZARE_ZONE_LABELS[sesizare.zone]}`} size="small"
@@ -868,12 +868,12 @@ const ControlSesizareCard: React.FC<SesizareCardProps> = ({ sesizare, onClick })
           />
         </Box>
 
-        <Typography variant="body2" sx={{
+        <Typography variant="body2" component="div" sx={{
           mb: 0.5, display: 'flex', alignItems: 'flex-start', gap: 0.5,
-          fontSize: { xs: '0.8rem', sm: '0.875rem' }, lineHeight: 1.4, wordBreak: 'break-word',
+          fontSize: { xs: '0.8rem', sm: '0.875rem' }, lineHeight: 1.4, overflow: 'hidden', minWidth: 0,
         }}>
           <PlaceIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary', flexShrink: 0, mt: 0.2 }} />
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{sesizare.location}</span>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', minWidth: 0 }}>{sesizare.location}</span>
         </Typography>
 
         <Typography variant="body2" color="text.secondary" sx={{
@@ -991,7 +991,7 @@ const ControlSesizariPage: React.FC = () => {
             }}
           />
           <Stack direction="row" spacing={1} alignItems="center">
-            <FormControl size="small" sx={{ minWidth: 120, flex: 1 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 120 }, flex: 1 }}>
               <InputLabel>Status</InputLabel>
               <Select value={statusFilter} label="Status"
                 onChange={(e) => setStatusFilter(e.target.value as ControlSesizareStatus | '')}>

@@ -111,8 +111,8 @@ const LegitimationCard: React.FC<LegitimationCardProps> = ({ legitimation, onCli
       <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
         <Stack spacing={1}>
           {/* Header */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', overflow: 'hidden' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden', minWidth: 0 }}>
               <Box
                 sx={{
                   width: 32,
@@ -127,7 +127,7 @@ const LegitimationCard: React.FC<LegitimationCardProps> = ({ legitimation, onCli
               >
                 <RevolutionarIcon sx={{ fontSize: 18 }} />
               </Box>
-              <Typography variant="subtitle2" fontWeight={600}>
+              <Typography variant="subtitle2" fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {legitimation.personName}
               </Typography>
             </Box>
@@ -139,12 +139,13 @@ const LegitimationCard: React.FC<LegitimationCardProps> = ({ legitimation, onCli
                 color: isFinalizat ? 'success.dark' : 'error.dark',
                 fontWeight: 500,
                 fontSize: '0.7rem',
+                flexShrink: 0,
               }}
             />
           </Box>
 
           {/* Details */}
-          <Stack direction="row" spacing={2} flexWrap="wrap">
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.5, sm: 2 }} flexWrap="wrap">
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <CarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
               <Typography variant="body2" color="text.secondary">
@@ -1002,9 +1003,9 @@ const RevolutionarLegitimatiiTab: React.FC<RevolutionarLegitimatiiTabProps> = ({
   return (
     <Box>
       {/* Header with create button */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <RevolutionarIcon sx={{ color: REVOLUTIONAR_COLOR.main }} />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 1 }}>
+        <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', minWidth: 0 }}>
+          <RevolutionarIcon sx={{ color: REVOLUTIONAR_COLOR.main, flexShrink: 0 }} />
           Legitimatii Revolutionar/Deportat ({activeCount} active)
         </Typography>
         <Button
@@ -1014,6 +1015,7 @@ const RevolutionarLegitimatiiTab: React.FC<RevolutionarLegitimatiiTabProps> = ({
           sx={{
             bgcolor: REVOLUTIONAR_COLOR.main,
             '&:hover': { bgcolor: alpha(REVOLUTIONAR_COLOR.main, 0.9) },
+            flexShrink: 0,
           }}
         >
           Adauga
