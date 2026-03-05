@@ -37,11 +37,23 @@ import {
   Accessible as HandicapIcon,
   Home as HomeIcon,
   BarChart as StatsIcon,
+  Receipt as PvIcon,
+  Speed as ParcometreIcon,
+  ShoppingCart as AchizitiiIcon,
+  ReportProblem as SesizariIcon,
+  AccountBalance as IncasariIcon,
+  Fingerprint as PontajIcon,
 } from '@mui/icons-material';
 import ParkingReportsTab from './ParkingReportsTab';
 import HandicapReportsTab from './HandicapReportsTab';
 import DomiciliuReportsTab from './DomiciliuReportsTab';
 import ParkingStatsReportsTab from './ParkingStatsReportsTab';
+import PvReportsTab from './PvReportsTab';
+import ParcometreReportsTab from './ParcometreReportsTab';
+import AchizitiiReportsTab from './AchizitiiReportsTab';
+import ControlSesizariReportsTab from './ControlSesizariReportsTab';
+import IncasariCheltuieliReportsTab from './IncasariCheltuieliReportsTab';
+import PontajReportsTab from './PontajReportsTab';
 import { GradientHeader, StatCard } from '../../components/common';
 import { useAppSelector } from '../../store/hooks';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
@@ -55,6 +67,13 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME } from '../../constants/departments';
+import { useGetPvSessionsQuery } from '../../store/api/pvDisplay.api';
+import { useGetParkingMetersQuery, useGetParkingIssuesQuery, useGetParkingDamagesQuery } from '../../store/api/parking.api';
+import { useGetControlSesizariQuery } from '../../store/api/control.api';
+import { useGetHandicapRequestsQuery } from '../../store/api/handicap.api';
+import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
+import { useGetBudgetPositionsQuery, useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
+import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -122,6 +141,22 @@ const ReportsPage: React.FC = () => {
   const { data: swapRequests = [], isLoading: swapsLoading } = useGetAllSwapRequestsQuery({});
 
   const isLoading = schedulesLoading || leavesLoading || swapsLoading;
+
+  // Lazy-loaded data for Raport Total (tab 3) - only fetch when needed
+  const shouldFetchTotalData = tabValue === 3;
+  const { data: totalPvSessions = [] } = useGetPvSessionsQuery(undefined, { skip: !shouldFetchTotalData });
+  const { data: totalParkingMeters = [] } = useGetParkingMetersQuery(undefined, { skip: !shouldFetchTotalData });
+  const { data: totalControlSesizari = [] } = useGetControlSesizariQuery(undefined, { skip: !shouldFetchTotalData });
+  const { data: totalHandicapRequests = [] } = useGetHandicapRequestsQuery(undefined, { skip: !shouldFetchTotalData });
+  const { data: totalDomiciliuRequests = [] } = useGetDomiciliuRequestsQuery(undefined, { skip: !shouldFetchTotalData });
+  const { data: totalParkingIssues = [] } = useGetParkingIssuesQuery(undefined, { skip: !shouldFetchTotalData });
+  const { data: totalParkingDamages = [] } = useGetParkingDamagesQuery(undefined, { skip: !shouldFetchTotalData });
+  const { data: totalBudgetPositions = [] } = useGetBudgetPositionsQuery({ year: 2026 }, { skip: !shouldFetchTotalData });
+  const { data: totalRevenueSummary } = useGetRevenueSummaryQuery({ year: 2026 }, { skip: !shouldFetchTotalData });
+  const { data: totalTimeEntries = [] } = useGetAdminTimeEntriesQuery(
+    { startDate: parkingStartDate, endDate: parkingEndDate },
+    { skip: !shouldFetchTotalData || !isAdminOrManager }
+  );
 
   // Filtram doar angajatii si managerii
   const eligibleUsers = useMemo(() => {
@@ -892,19 +927,30 @@ const ReportsPage: React.FC = () => {
     });
 
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
+    const pageHeight = doc.internal.pageSize.getHeight();
 
+    const checkPageBreak = (yPosition: number, needed: number = 40) => {
+      if (yPosition + needed > pageHeight - 20) {
+        doc.addPage();
+        return 20;
+      }
+      return yPosition;
+    };
+
+    // Title page
     doc.setFontSize(20);
     doc.text(`Raport total - ${monthLabel}`, 14, 20);
 
     doc.setFontSize(10);
     doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 28);
+    doc.text('Acest raport include date din toate cele 12 sectiuni ale aplicatiei.', 14, 34);
 
-    let yPos = 40;
+    let yPos = 48;
 
     // Section 1: Work Statistics
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('1. Statistici program de lucru', 14, yPos);
+    doc.text('1. Program de lucru', 14, yPos);
     doc.setFont('helvetica', 'normal');
     yPos += 10;
 
@@ -918,12 +964,13 @@ const ReportsPage: React.FC = () => {
     doc.text(`Total ore lucrate: ${totalHours}`, 20, yPos); yPos += 6;
     doc.text(`Total ture de zi: ${totalDayShifts}`, 20, yPos); yPos += 6;
     doc.text(`Total ture de noapte: ${totalNightShifts}`, 20, yPos); yPos += 6;
-    doc.text(`Total zile concediu (din program): ${totalVacationDays}`, 20, yPos); yPos += 15;
+    doc.text(`Total zile concediu (din program): ${totalVacationDays}`, 20, yPos); yPos += 12;
 
     // Section 2: Leave Statistics
+    yPos = checkPageBreak(yPos, 50);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('2. Statistici concedii', 14, yPos);
+    doc.text('2. Concedii', 14, yPos);
     doc.setFont('helvetica', 'normal');
     yPos += 10;
 
@@ -932,28 +979,27 @@ const ReportsPage: React.FC = () => {
     const rejectedLeaves = filteredLeaveRequests.filter(r => r.status === 'REJECTED');
     const totalLeaveDays = approvedLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
 
-    // Stats by leave type
     const leavesByType = approvedLeaves.reduce((acc, req) => {
       acc[req.leaveType] = (acc[req.leaveType] || 0) + calculateWorkingDays(req.startDate, req.endDate);
       return acc;
     }, {} as Record<LeaveType, number>);
 
     doc.setFontSize(10);
-    doc.text(`Total cereri concediu: ${filteredLeaveRequests.length}`, 20, yPos); yPos += 6;
+    doc.text(`Total cereri: ${filteredLeaveRequests.length}`, 20, yPos); yPos += 6;
     doc.text(`Aprobate: ${approvedLeaves.length} | In asteptare: ${pendingLeaves.length} | Respinse: ${rejectedLeaves.length}`, 20, yPos); yPos += 6;
     doc.text(`Total zile concediu aprobate: ${totalLeaveDays}`, 20, yPos); yPos += 8;
 
-    doc.text('Defalcare pe tipuri de concediu:', 20, yPos); yPos += 6;
     Object.entries(leavesByType).forEach(([type, days]) => {
-      doc.text(`  • ${LEAVE_TYPE_LABELS[type as LeaveType]}: ${days} zile`, 25, yPos);
+      doc.text(`  - ${LEAVE_TYPE_LABELS[type as LeaveType]}: ${days} zile`, 25, yPos);
       yPos += 5;
     });
     yPos += 10;
 
     // Section 3: Shift Swap Statistics
+    yPos = checkPageBreak(yPos, 40);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('3. Statistici schimburi de tura', 14, yPos);
+    doc.text('3. Schimburi de tura', 14, yPos);
     doc.setFont('helvetica', 'normal');
     yPos += 10;
 
@@ -963,16 +1009,156 @@ const ReportsPage: React.FC = () => {
 
     doc.setFontSize(10);
     doc.text(`Total cereri schimb: ${filteredSwapRequests.length}`, 20, yPos); yPos += 6;
-    doc.text(`Aprobate: ${approvedSwaps.length} | In asteptare: ${pendingSwaps.length} | Respinse: ${rejectedSwaps.length}`, 20, yPos); yPos += 15;
+    doc.text(`Aprobate: ${approvedSwaps.length} | In asteptare: ${pendingSwaps.length} | Respinse: ${rejectedSwaps.length}`, 20, yPos); yPos += 12;
 
-    // Section 4: Summary Table
+    // Section 4: Parcari Etajate
+    yPos = checkPageBreak(yPos, 40);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('4. Tabel sumar pe angajati', 14, yPos);
+    doc.text('4. Parcari Etajate', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    doc.setFontSize(10);
+    doc.text(`Probleme active: ${totalParkingIssues.filter((i: any) => i.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
+    doc.text(`Probleme finalizate: ${totalParkingIssues.filter((i: any) => i.status === 'FINALIZAT').length}`, 20, yPos); yPos += 6;
+    doc.text(`Total prejudicii: ${totalParkingDamages.length}`, 20, yPos); yPos += 12;
+
+    // Section 5: Parcari Handicap
+    yPos = checkPageBreak(yPos, 40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('5. Parcari Handicap', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    doc.setFontSize(10);
+    doc.text(`Total solicitari: ${totalHandicapRequests.length}`, 20, yPos); yPos += 6;
+    doc.text(`Active: ${totalHandicapRequests.filter((r: any) => r.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
+    doc.text(`Finalizate: ${totalHandicapRequests.filter((r: any) => r.status === 'FINALIZAT').length}`, 20, yPos); yPos += 12;
+
+    // Section 6: Parcari Domiciliu
+    yPos = checkPageBreak(yPos, 40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('6. Parcari Domiciliu', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    doc.setFontSize(10);
+    doc.text(`Total solicitari: ${totalDomiciliuRequests.length}`, 20, yPos); yPos += 6;
+    doc.text(`Active: ${totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
+    doc.text(`Finalizate: ${totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length}`, 20, yPos); yPos += 12;
+
+    // Section 7: Procese Verbale
+    yPos = checkPageBreak(yPos, 40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('7. Procese Verbale / Facturare', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const completedPv = totalPvSessions.filter((s: any) => s.status === 'COMPLETED').length;
+    const inProgressPv = totalPvSessions.filter((s: any) => s.status === 'IN_PROGRESS').length;
+
+    doc.setFontSize(10);
+    doc.text(`Total sesiuni: ${totalPvSessions.length}`, 20, yPos); yPos += 6;
+    doc.text(`Finalizate: ${completedPv}`, 20, yPos); yPos += 6;
+    doc.text(`In desfasurare: ${inProgressPv}`, 20, yPos); yPos += 12;
+
+    // Section 8: Parcometre
+    yPos = checkPageBreak(yPos, 40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('8. Parcometre', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const activeMeters = totalParkingMeters.filter((m: any) => m.isActive).length;
+    const rosuMeters = totalParkingMeters.filter((m: any) => m.zone === 'ROSU').length;
+    const galbenMeters = totalParkingMeters.filter((m: any) => m.zone === 'GALBEN').length;
+
+    doc.setFontSize(10);
+    doc.text(`Total parcometre: ${totalParkingMeters.length}`, 20, yPos); yPos += 6;
+    doc.text(`Active: ${activeMeters}`, 20, yPos); yPos += 6;
+    doc.text(`Zona Rosu: ${rosuMeters} | Zona Galben: ${galbenMeters}`, 20, yPos); yPos += 12;
+
+    // Section 9: Control Sesizari
+    yPos = checkPageBreak(yPos, 40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('9. Control Sesizari', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const activeSesizari = totalControlSesizari.filter((s: any) => s.status === 'ACTIVE').length;
+    const finalizatSesizari = totalControlSesizari.filter((s: any) => s.status === 'FINALIZAT').length;
+
+    doc.setFontSize(10);
+    doc.text(`Total sesizari: ${totalControlSesizari.length}`, 20, yPos); yPos += 6;
+    doc.text(`Active: ${activeSesizari}`, 20, yPos); yPos += 6;
+    doc.text(`Finalizate: ${finalizatSesizari}`, 20, yPos); yPos += 12;
+
+    // Section 10: Achizitii
+    yPos = checkPageBreak(yPos, 40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('10. Achizitii', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const totalBuget = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.totalAmount || 0), 0);
+    const totalCheltuit = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.spentAmount || 0), 0);
+
+    doc.setFontSize(10);
+    doc.text(`Pozitii bugetare: ${totalBudgetPositions.length}`, 20, yPos); yPos += 6;
+    doc.text(`Total buget: ${totalBuget.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
+    doc.text(`Total cheltuit: ${totalCheltuit.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
+    doc.text(`Ramas: ${(totalBuget - totalCheltuit).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 12;
+
+    // Section 11: Incasari / Cheltuieli
+    yPos = checkPageBreak(yPos, 40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('11. Incasari / Cheltuieli', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const grandIncasari = totalRevenueSummary?.grandTotalIncasari || 0;
+    const grandCheltuieli = totalRevenueSummary?.grandTotalCheltuieli || 0;
+
+    doc.setFontSize(10);
+    doc.text(`Total incasari: ${grandIncasari.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
+    doc.text(`Total cheltuieli: ${grandCheltuieli.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
+    doc.text(`Diferenta: ${(grandIncasari - grandCheltuieli).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 12;
+
+    // Section 12: Pontaj (admin only)
+    if (isAdminOrManager && totalTimeEntries.length > 0) {
+      yPos = checkPageBreak(yPos, 40);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('12. Monitorizare Pontaj', 14, yPos);
+      doc.setFont('helvetica', 'normal');
+      yPos += 10;
+
+      const totalOre = (totalTimeEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0) / 60).toFixed(1);
+      const angajatiUnici = new Set(totalTimeEntries.map((e: any) => e.userId)).size;
+
+      doc.setFontSize(10);
+      doc.text(`Total intrari pontaj: ${totalTimeEntries.length}`, 20, yPos); yPos += 6;
+      doc.text(`Total ore: ${totalOre}h`, 20, yPos); yPos += 6;
+      doc.text(`Angajati unici: ${angajatiUnici}`, 20, yPos); yPos += 12;
+    }
+
+    // Summary Table per Employee
+    yPos = checkPageBreak(yPos, 50);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Tabel sumar pe angajati', 14, yPos);
     yPos += 8;
 
-    const summaryHeaders = ['Angajat', 'Ore lucrate', 'Zile CO', 'Schimburi'];
-    const summaryRows = filteredUsers.slice(0, 20).map(user => {
+    const summaryHeaders = ['Angajat', 'Ore', 'Ture zi', 'Ture noapte', 'Zile CO', 'Schimburi'];
+    const summaryRows = filteredUsers.map(user => {
       const stats = getUserStats(user.id);
       const userLeaves = approvedLeaves.filter(r => r.userId === user.id);
       const userSwaps = approvedSwaps.filter(r => r.requesterId === user.id);
@@ -981,6 +1167,8 @@ const ReportsPage: React.FC = () => {
       return [
         user.fullName,
         stats.totalHours.toString(),
+        stats.dayShifts.toString(),
+        stats.nightShifts.toString(),
         userLeaveDays.toString(),
         userSwaps.length.toString(),
       ];
@@ -1010,34 +1198,94 @@ const ReportsPage: React.FC = () => {
 
     const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED');
 
+    const totalBuget = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.totalAmount || 0), 0);
+    const totalCheltuitBuget = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.spentAmount || 0), 0);
+    const grandIncasari = totalRevenueSummary?.grandTotalIncasari || 0;
+    const grandCheltuieli = totalRevenueSummary?.grandTotalCheltuieli || 0;
+
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: Summary
-    const summaryData = [
+    // Sheet 1: Sumar General (all 12 sections)
+    const summaryData: (string | number)[][] = [
       [`Raport total - ${monthLabel}`],
       [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
       [],
-      ['=== STATISTICI PROGRAM DE LUCRU ==='],
+      ['=== 1. PROGRAM DE LUCRU ==='],
       [`Total angajati: ${filteredUsers.length}`],
       [`Total ore lucrate: ${totalHours}`],
       [`Total ture de zi: ${totalDayShifts}`],
       [`Total ture de noapte: ${totalNightShifts}`],
       [],
-      ['=== STATISTICI CONCEDII ==='],
+      ['=== 2. CONCEDII ==='],
       [`Total cereri: ${filteredLeaveRequests.length}`],
       [`Aprobate: ${approvedLeaves.length}`],
       [`Total zile aprobate: ${totalLeaveDays}`],
       [],
-      ['=== STATISTICI SCHIMBURI ==='],
+      ['=== 3. SCHIMBURI DE TURA ==='],
       [`Total cereri: ${filteredSwapRequests.length}`],
       [`Aprobate: ${approvedSwaps.length}`],
+      [],
+      ['=== 4. PARCARI ETAJATE ==='],
+      [`Probleme active: ${totalParkingIssues.filter((i: any) => i.status === 'ACTIVE').length}`],
+      [`Probleme finalizate: ${totalParkingIssues.filter((i: any) => i.status === 'FINALIZAT').length}`],
+      [`Total prejudicii: ${totalParkingDamages.length}`],
+      [],
+      ['=== 5. PARCARI HANDICAP ==='],
+      [`Total solicitari: ${totalHandicapRequests.length}`],
+      [`Active: ${totalHandicapRequests.filter((r: any) => r.status === 'ACTIVE').length}`],
+      [`Finalizate: ${totalHandicapRequests.filter((r: any) => r.status === 'FINALIZAT').length}`],
+      [],
+      ['=== 6. PARCARI DOMICILIU ==='],
+      [`Total solicitari: ${totalDomiciliuRequests.length}`],
+      [`Active: ${totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length}`],
+      [`Finalizate: ${totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length}`],
+      [],
+      ['=== 7. PROCESE VERBALE / FACTURARE ==='],
+      [`Total sesiuni: ${totalPvSessions.length}`],
+      [`Finalizate: ${totalPvSessions.filter((s: any) => s.status === 'COMPLETED').length}`],
+      [`In desfasurare: ${totalPvSessions.filter((s: any) => s.status === 'IN_PROGRESS').length}`],
+      [],
+      ['=== 8. PARCOMETRE ==='],
+      [`Total parcometre: ${totalParkingMeters.length}`],
+      [`Active: ${totalParkingMeters.filter((m: any) => m.isActive).length}`],
+      [`Zona Rosu: ${totalParkingMeters.filter((m: any) => m.zone === 'ROSU').length}`],
+      [`Zona Galben: ${totalParkingMeters.filter((m: any) => m.zone === 'GALBEN').length}`],
+      [],
+      ['=== 9. CONTROL SESIZARI ==='],
+      [`Total sesizari: ${totalControlSesizari.length}`],
+      [`Active: ${totalControlSesizari.filter((s: any) => s.status === 'ACTIVE').length}`],
+      [`Finalizate: ${totalControlSesizari.filter((s: any) => s.status === 'FINALIZAT').length}`],
+      [],
+      ['=== 10. ACHIZITII ==='],
+      [`Pozitii bugetare: ${totalBudgetPositions.length}`],
+      [`Total buget: ${totalBuget.toLocaleString('ro-RO')} lei`],
+      [`Total cheltuit: ${totalCheltuitBuget.toLocaleString('ro-RO')} lei`],
+      [`Ramas: ${(totalBuget - totalCheltuitBuget).toLocaleString('ro-RO')} lei`],
+      [],
+      ['=== 11. INCASARI / CHELTUIELI ==='],
+      [`Total incasari: ${grandIncasari.toLocaleString('ro-RO')} lei`],
+      [`Total cheltuieli: ${grandCheltuieli.toLocaleString('ro-RO')} lei`],
+      [`Diferenta: ${(grandIncasari - grandCheltuieli).toLocaleString('ro-RO')} lei`],
     ];
 
+    if (isAdminOrManager && totalTimeEntries.length > 0) {
+      const totalOre = (totalTimeEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0) / 60).toFixed(1);
+      const angajatiUnici = new Set(totalTimeEntries.map((e: any) => e.userId)).size;
+      summaryData.push(
+        [],
+        ['=== 12. MONITORIZARE PONTAJ ==='],
+        [`Total intrari: ${totalTimeEntries.length}`],
+        [`Total ore: ${totalOre}h`],
+        [`Angajati unici: ${angajatiUnici}`],
+      );
+    }
+
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    wsSummary['!cols'] = [{ wch: 50 }];
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Sumar');
 
     // Sheet 2: Per Employee
-    const employeeHeaders = ['Angajat', 'Departament', 'Ore lucrate', 'Ture zi', 'Ture noapte', 'Zile concediu (program)', 'Zile concediu (cereri)', 'Schimburi aprobate'];
+    const employeeHeaders = ['Angajat', 'Departament', 'Ore lucrate', 'Ture zi', 'Ture noapte', 'Zile CO (program)', 'Zile CO (cereri)', 'Schimburi'];
     const employeeRows = filteredUsers.map(user => {
       const stats = getUserStats(user.id);
       const userLeaves = approvedLeaves.filter(r => r.userId === user.id);
@@ -1064,9 +1312,190 @@ const ReportsPage: React.FC = () => {
     ]);
     wsEmployees['!cols'] = [
       { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 },
-      { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 18 },
+      { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
     ];
-    XLSX.utils.book_append_sheet(wb, wsEmployees, 'Pe Angajati');
+    XLSX.utils.book_append_sheet(wb, wsEmployees, 'Angajati');
+
+    // Sheet 3: Parcari Etajate
+    if (totalParkingIssues.length > 0 || totalParkingDamages.length > 0) {
+      const parkingData = totalParkingIssues.map((issue: any) => [
+        issue.parkingLot?.name || 'N/A',
+        issue.title || 'N/A',
+        issue.status || 'N/A',
+        issue.priority || 'N/A',
+        new Date(issue.createdAt).toLocaleDateString('ro-RO'),
+      ]);
+      const wsParcari = XLSX.utils.aoa_to_sheet([
+        ['Parcari Etajate - Probleme'],
+        [],
+        ['Parcare', 'Titlu', 'Status', 'Prioritate', 'Data'],
+        ...parkingData,
+      ]);
+      wsParcari['!cols'] = [{ wch: 20 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsParcari, 'Parcari Etajate');
+    }
+
+    // Sheet 4: Parcari Handicap
+    if (totalHandicapRequests.length > 0) {
+      const handicapData = totalHandicapRequests.map((r: any) => [
+        r.applicantName || 'N/A',
+        r.vehicleNumber || 'N/A',
+        r.status || 'N/A',
+        r.parkingLot?.name || 'N/A',
+        new Date(r.createdAt).toLocaleDateString('ro-RO'),
+      ]);
+      const wsHandicap = XLSX.utils.aoa_to_sheet([
+        ['Parcari Handicap - Solicitari'],
+        [],
+        ['Solicitant', 'Nr. vehicul', 'Status', 'Parcare', 'Data'],
+        ...handicapData,
+      ]);
+      wsHandicap['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsHandicap, 'Handicap');
+    }
+
+    // Sheet 5: Parcari Domiciliu
+    if (totalDomiciliuRequests.length > 0) {
+      const domiciliuData = totalDomiciliuRequests.map((r: any) => [
+        r.applicantName || 'N/A',
+        r.vehicleNumber || 'N/A',
+        r.status || 'N/A',
+        r.address || 'N/A',
+        new Date(r.createdAt).toLocaleDateString('ro-RO'),
+      ]);
+      const wsDomiciliu = XLSX.utils.aoa_to_sheet([
+        ['Parcari Domiciliu - Solicitari'],
+        [],
+        ['Solicitant', 'Nr. vehicul', 'Status', 'Adresa', 'Data'],
+        ...domiciliuData,
+      ]);
+      wsDomiciliu['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 30 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsDomiciliu, 'Domiciliu');
+    }
+
+    // Sheet 6: Procese Verbale
+    if (totalPvSessions.length > 0) {
+      const pvData = totalPvSessions.map((s: any) => [
+        s.month && s.year ? `${s.month}/${s.year}` : 'N/A',
+        s.status || 'N/A',
+        s.days?.length || 0,
+        s.days?.filter((d: any) => d.isCompleted).length || 0,
+        new Date(s.createdAt).toLocaleDateString('ro-RO'),
+      ]);
+      const wsPv = XLSX.utils.aoa_to_sheet([
+        ['Procese Verbale - Sesiuni'],
+        [],
+        ['Luna/An', 'Status', 'Nr Zile', 'Zile finalizate', 'Data creare'],
+        ...pvData,
+      ]);
+      wsPv['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsPv, 'PV Facturare');
+    }
+
+    // Sheet 7: Parcometre
+    if (totalParkingMeters.length > 0) {
+      const parcometreData = totalParkingMeters.map((m: any) => [
+        m.name || 'N/A',
+        m.zone || 'N/A',
+        m.powerSource || 'N/A',
+        m.condition || 'N/A',
+        m.isActive ? 'Da' : 'Nu',
+        m.address || 'N/A',
+      ]);
+      const wsParcometru = XLSX.utils.aoa_to_sheet([
+        ['Parcometre'],
+        [],
+        ['Nume', 'Zona', 'Sursa energie', 'Stare', 'Activ', 'Adresa'],
+        ...parcometreData,
+      ]);
+      wsParcometru['!cols'] = [{ wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 8 }, { wch: 30 }];
+      XLSX.utils.book_append_sheet(wb, wsParcometru, 'Parcometre');
+    }
+
+    // Sheet 8: Control Sesizari
+    if (totalControlSesizari.length > 0) {
+      const sesizariData = totalControlSesizari.map((s: any) => [
+        s.type || 'N/A',
+        s.zone || 'N/A',
+        s.location || 'N/A',
+        s.status || 'N/A',
+        s.createdByUser?.fullName || 'N/A',
+        new Date(s.createdAt).toLocaleDateString('ro-RO'),
+      ]);
+      const wsSesizari = XLSX.utils.aoa_to_sheet([
+        ['Control Sesizari'],
+        [],
+        ['Tip', 'Zona', 'Locatie', 'Status', 'Creat de', 'Data'],
+        ...sesizariData,
+      ]);
+      wsSesizari['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsSesizari, 'Control Sesizari');
+    }
+
+    // Sheet 9: Achizitii
+    if (totalBudgetPositions.length > 0) {
+      const achizitiiData = totalBudgetPositions.map((bp: any) => [
+        bp.name || 'N/A',
+        bp.category === 'INVESTMENTS' ? 'Investitii' : 'Cheltuieli curente',
+        bp.totalAmount || 0,
+        bp.spentAmount || 0,
+        (bp.totalAmount || 0) - (bp.spentAmount || 0),
+        bp.acquisitions?.length || 0,
+      ]);
+      const wsAchizitii = XLSX.utils.aoa_to_sheet([
+        ['Achizitii - Pozitii Bugetare 2026'],
+        [],
+        ['Pozitie', 'Categorie', 'Buget (lei)', 'Cheltuit (lei)', 'Ramas (lei)', 'Nr achizitii'],
+        ...achizitiiData,
+      ]);
+      wsAchizitii['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsAchizitii, 'Achizitii');
+    }
+
+    // Sheet 10: Incasari / Cheltuieli
+    if (totalRevenueSummary?.categories && totalRevenueSummary.categories.length > 0) {
+      const months = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const incasariHeaders = ['Categorie', ...months, 'Total Incasari', 'Total Cheltuieli'];
+      const incasariData = totalRevenueSummary.categories.map((cat: any) => [
+        cat.name || 'N/A',
+        ...(cat.months || Array(12).fill(0)).map((m: any) => m?.incasari || 0),
+        cat.totalIncasari || 0,
+        cat.totalCheltuieli || 0,
+      ]);
+      const wsIncasari = XLSX.utils.aoa_to_sheet([
+        ['Incasari / Cheltuieli 2026'],
+        [],
+        incasariHeaders,
+        ...incasariData,
+      ]);
+      wsIncasari['!cols'] = [
+        { wch: 25 }, ...months.map(() => ({ wch: 10 })), { wch: 15 }, { wch: 15 },
+      ];
+      XLSX.utils.book_append_sheet(wb, wsIncasari, 'Incasari-Cheltuieli');
+    }
+
+    // Sheet 11: Pontaj (admin only)
+    if (isAdminOrManager && totalTimeEntries.length > 0) {
+      const pontajData = totalTimeEntries.map((e: any) => [
+        e.user?.fullName || 'N/A',
+        e.user?.department?.name || 'N/A',
+        new Date(e.startTime).toLocaleDateString('ro-RO'),
+        new Date(e.startTime).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
+        e.endTime ? new Date(e.endTime).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }) : '-',
+        e.durationMinutes ? `${Math.floor(e.durationMinutes / 60)}h ${e.durationMinutes % 60}m` : '-',
+        e.gpsLatitude ? 'Da' : 'Nu',
+      ]);
+      const wsPontaj = XLSX.utils.aoa_to_sheet([
+        ['Monitorizare Pontaj'],
+        [],
+        ['Angajat', 'Departament', 'Data', 'Ora start', 'Ora sfarsit', 'Durata', 'GPS'],
+        ...pontajData,
+      ]);
+      wsPontaj['!cols'] = [
+        { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
+      ];
+      XLSX.utils.book_append_sheet(wb, wsPontaj, 'Pontaj');
+    }
 
     XLSX.writeFile(wb, `raport-total-${selectedMonth}.xlsx`);
   };
@@ -1426,7 +1855,7 @@ const ReportsPage: React.FC = () => {
           </Box>
         </Paper>
 
-        {/* Detalii pe sectiuni */}
+        {/* Detalii pe sectiuni - Rand 1 */}
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -1456,9 +1885,101 @@ const ReportsPage: React.FC = () => {
           </Paper>
         </Stack>
 
+        {/* Detalii pe sectiuni - Rand 2 */}
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              🅿️ Parcari Etajate
+            </Typography>
+            <Typography variant="body2">Probleme active: {totalParkingIssues.filter((i: any) => i.status === 'ACTIVE').length}</Typography>
+            <Typography variant="body2">Probleme finalizate: {totalParkingIssues.filter((i: any) => i.status === 'FINALIZAT').length}</Typography>
+            <Typography variant="body2">Prejudicii: {totalParkingDamages.length}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              ♿ Parcari Handicap
+            </Typography>
+            <Typography variant="body2">Total solicitari: {totalHandicapRequests.length}</Typography>
+            <Typography variant="body2">Active: {totalHandicapRequests.filter((r: any) => r.status === 'ACTIVE').length}</Typography>
+            <Typography variant="body2">Finalizate: {totalHandicapRequests.filter((r: any) => r.status === 'FINALIZAT').length}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              🏠 Parcari Domiciliu
+            </Typography>
+            <Typography variant="body2">Total solicitari: {totalDomiciliuRequests.length}</Typography>
+            <Typography variant="body2">Active: {totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length}</Typography>
+            <Typography variant="body2">Finalizate: {totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length}</Typography>
+          </Paper>
+        </Stack>
+
+        {/* Detalii pe sectiuni - Rand 3 */}
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              📋 Procese Verbale
+            </Typography>
+            <Typography variant="body2">Total sesiuni: {totalPvSessions.length}</Typography>
+            <Typography variant="body2">Finalizate: {totalPvSessions.filter((s: any) => s.status === 'COMPLETED').length}</Typography>
+            <Typography variant="body2">In desfasurare: {totalPvSessions.filter((s: any) => s.status === 'IN_PROGRESS').length}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              ⏱️ Parcometre
+            </Typography>
+            <Typography variant="body2">Total parcometre: {totalParkingMeters.length}</Typography>
+            <Typography variant="body2">Active: {totalParkingMeters.filter((m: any) => m.isActive).length}</Typography>
+            <Typography variant="body2">Zona Rosu: {totalParkingMeters.filter((m: any) => m.zone === 'ROSU').length}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              ⚠️ Control Sesizari
+            </Typography>
+            <Typography variant="body2">Total sesizari: {totalControlSesizari.length}</Typography>
+            <Typography variant="body2">Active: {totalControlSesizari.filter((s: any) => s.status === 'ACTIVE').length}</Typography>
+            <Typography variant="body2">Finalizate: {totalControlSesizari.filter((s: any) => s.status === 'FINALIZAT').length}</Typography>
+          </Paper>
+        </Stack>
+
+        {/* Detalii pe sectiuni - Rand 4 */}
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              🛒 Achizitii
+            </Typography>
+            <Typography variant="body2">Pozitii bugetare: {totalBudgetPositions.length}</Typography>
+            <Typography variant="body2">Total buget: {totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.totalAmount || 0), 0).toLocaleString('ro-RO')} lei</Typography>
+            <Typography variant="body2">Total cheltuit: {totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.spentAmount || 0), 0).toLocaleString('ro-RO')} lei</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              💰 Incasari / Cheltuieli
+            </Typography>
+            <Typography variant="body2">Total incasari: {(totalRevenueSummary?.grandTotalIncasari || 0).toLocaleString('ro-RO')} lei</Typography>
+            <Typography variant="body2">Total cheltuieli: {(totalRevenueSummary?.grandTotalCheltuieli || 0).toLocaleString('ro-RO')} lei</Typography>
+            <Typography variant="body2">Diferenta: {((totalRevenueSummary?.grandTotalIncasari || 0) - (totalRevenueSummary?.grandTotalCheltuieli || 0)).toLocaleString('ro-RO')} lei</Typography>
+          </Paper>
+
+          {isAdminOrManager && (
+            <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                🕐 Pontaj
+              </Typography>
+              <Typography variant="body2">Total intrari: {totalTimeEntries.length}</Typography>
+              <Typography variant="body2">Total ore: {(totalTimeEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0) / 60).toFixed(1)}h</Typography>
+              <Typography variant="body2">Angajati unici: {new Set(totalTimeEntries.map((e: any) => e.userId)).size}</Typography>
+            </Paper>
+          )}
+        </Stack>
+
         <Alert severity="success" icon={false}>
           <Typography variant="body2">
-            Raportul total include date din toate cele 3 sectiuni: program de lucru, concedii si schimburi de tura.
+            Raportul total include date din toate cele 12 sectiuni ale aplicatiei.
           </Typography>
         </Alert>
 
@@ -1651,6 +2172,44 @@ const ReportsPage: React.FC = () => {
                   label={isMobile ? 'Domiciliu' : DOMICILIU_DEPARTMENT_NAME}
                   sx={{ minHeight: 48 }}
                 />
+                <Tab
+                  icon={<PvIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'PV' : 'PV / Facturare'}
+                  sx={{ minHeight: 48 }}
+                />
+                <Tab
+                  icon={<ParcometreIcon />}
+                  iconPosition="start"
+                  label="Parcometre"
+                  sx={{ minHeight: 48 }}
+                />
+                <Tab
+                  icon={<AchizitiiIcon />}
+                  iconPosition="start"
+                  label="Achizitii"
+                  sx={{ minHeight: 48 }}
+                />
+                <Tab
+                  icon={<SesizariIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Sesizari' : 'Control Sesizari'}
+                  sx={{ minHeight: 48 }}
+                />
+                <Tab
+                  icon={<IncasariIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Incasari' : 'Incasari/Cheltuieli'}
+                  sx={{ minHeight: 48 }}
+                />
+                {isAdminOrManager && (
+                  <Tab
+                    icon={<PontajIcon />}
+                    iconPosition="start"
+                    label="Pontaj"
+                    sx={{ minHeight: 48 }}
+                  />
+                )}
                 {isAdminOrManager && (
                   <Tab
                     icon={<StatsIcon />}
@@ -1697,7 +2256,55 @@ const ReportsPage: React.FC = () => {
                   onEndDateChange={(date) => date && setParkingEndDate(date)}
                 />
               )}
-              {isAdminOrManager && tabValue === 7 && (
+              {tabValue === 7 && (
+                <PvReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
+                />
+              )}
+              {tabValue === 8 && (
+                <ParcometreReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
+                />
+              )}
+              {tabValue === 9 && (
+                <AchizitiiReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
+                />
+              )}
+              {tabValue === 10 && (
+                <ControlSesizariReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
+                />
+              )}
+              {tabValue === 11 && (
+                <IncasariCheltuieliReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
+                />
+              )}
+              {isAdminOrManager && tabValue === 12 && (
+                <PontajReportsTab
+                  startDate={parkingStartDate}
+                  endDate={parkingEndDate}
+                  onStartDateChange={(date) => date && setParkingStartDate(date)}
+                  onEndDateChange={(date) => date && setParkingEndDate(date)}
+                />
+              )}
+              {isAdminOrManager && tabValue === (isAdminOrManager ? 13 : 12) && (
                 <ParkingStatsReportsTab />
               )}
             </Stack>
