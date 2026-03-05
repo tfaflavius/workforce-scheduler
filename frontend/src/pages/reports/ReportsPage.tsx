@@ -75,6 +75,7 @@ import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
 import { useGetBudgetPositionsQuery, useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
 import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import { useGetMonthlyTicketsSummaryQuery, useGetMonthlySubscriptionsQuery, useGetMonthlyOccupancySummaryQuery } from '../../store/api/parkingStats.api';
+import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName } from '../../constants/parkingStats';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -1134,7 +1135,49 @@ const ReportsPage: React.FC = () => {
     doc.setFontSize(10);
     doc.text(`Total incasari: ${grandIncasari.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
     doc.text(`Total cheltuieli: ${grandCheltuieli.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-    doc.text(`Diferenta: ${(grandIncasari - grandCheltuieli).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 12;
+    doc.text(`Diferenta: ${(grandIncasari - grandCheltuieli).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 8;
+
+    // Detailed Incasari/Cheltuieli table
+    if (totalRevenueSummary?.categories && totalRevenueSummary.categories.length > 0) {
+      yPos = checkPageBreak(yPos, 40);
+      const incHeaders = ['Categorie', 'Incasari (lei)', 'Cheltuieli (lei)'];
+      const flatCats: any[] = [];
+      const flattenCats = (cats: any[]) => {
+        cats.forEach((cat: any) => {
+          flatCats.push(cat);
+          if (cat.children?.length > 0) flattenCats(cat.children);
+        });
+      };
+      flattenCats(totalRevenueSummary.categories);
+      const incRows = flatCats.map((cat: any) => [
+        cat.categoryName || 'N/A',
+        (cat.totalIncasari || 0).toLocaleString('ro-RO'),
+        (cat.totalCheltuieli || 0).toLocaleString('ro-RO'),
+      ]);
+      incRows.push([
+        'TOTAL',
+        grandIncasari.toLocaleString('ro-RO'),
+        grandCheltuieli.toLocaleString('ro-RO'),
+      ]);
+
+      autoTable(doc, {
+        head: [incHeaders],
+        body: incRows,
+        startY: yPos,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [5, 150, 105], textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
+        didParseCell: (data) => {
+          if (data.section === 'body' && data.row.index === incRows.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [232, 245, 233];
+          }
+        },
+      });
+      yPos = (doc as any).lastAutoTable?.finalY + 8 || yPos + 20;
+    } else {
+      yPos += 4;
+    }
 
     // Section 12: Pontaj (admin only)
     if (isAdminOrManager && totalTimeEntries.length > 0) {
@@ -1164,14 +1207,131 @@ const ReportsPage: React.FC = () => {
 
     const totalTichete = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
     const totalAbonamente = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
-    const totalOcupare = totalMonthlyOccupancy.length > 0
-      ? totalMonthlyOccupancy.reduce((sum: number, o: any) => sum + Number(o.avgAvg || 0), 0).toFixed(0)
-      : '0';
 
     doc.setFontSize(10);
-    doc.text(`Tichete zilnice (luna): ${totalTichete}`, 20, yPos); yPos += 6;
-    doc.text(`Abonamente lunare: ${totalAbonamente}`, 20, yPos); yPos += 6;
-    doc.text(`Medie ocupare: ${totalOcupare}`, 20, yPos); yPos += 12;
+    doc.text(`Total tichete zilnice: ${totalTichete} | Abonamente: ${totalAbonamente} | Parcari raportate ocupare: ${totalMonthlyOccupancy.length}`, 20, yPos);
+    yPos += 8;
+
+    // Tichete table
+    if (totalMonthlyTickets.length > 0) {
+      yPos = checkPageBreak(yPos, 40);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tichete zilnice per parcare:', 20, yPos);
+      doc.setFont('helvetica', 'normal');
+      yPos += 6;
+
+      const ticketMap = new Map(totalMonthlyTickets.map((t: any) => [t.locationKey, t.totalTickets || 0]));
+      const ticketRows = PARKING_STAT_LOCATIONS.map(loc => [
+        getLocationFullName(loc.key),
+        (ticketMap.get(loc.key) || 0).toString(),
+      ]);
+      ticketRows.push(['TOTAL', totalTichete.toString()]);
+
+      autoTable(doc, {
+        head: [['Parcare', 'Nr. Tichete']],
+        body: ticketRows,
+        startY: yPos,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 1: { halign: 'right', cellWidth: 30 } },
+        didParseCell: (data) => {
+          if (data.section === 'body' && data.row.index === ticketRows.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [245, 243, 255];
+          }
+        },
+      });
+      yPos = (doc as any).lastAutoTable?.finalY + 6 || yPos + 20;
+    }
+
+    // Abonamente table
+    if (totalMonthlySubscriptions.length > 0) {
+      yPos = checkPageBreak(yPos, 40);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Abonamente lunare per parcare:', 20, yPos);
+      doc.setFont('helvetica', 'normal');
+      yPos += 6;
+
+      const subMap = new Map(totalMonthlySubscriptions.map((s: any) => [s.locationKey, s.subscriptionCount || 0]));
+      const subRows = PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [
+        loc.name,
+        (subMap.get(loc.key) || 0).toString(),
+      ]);
+      subRows.push(['TOTAL', totalAbonamente.toString()]);
+
+      autoTable(doc, {
+        head: [['Parcare', 'Nr. Abonamente']],
+        body: subRows,
+        startY: yPos,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 1: { halign: 'right', cellWidth: 30 } },
+        didParseCell: (data) => {
+          if (data.section === 'body' && data.row.index === subRows.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [245, 243, 255];
+          }
+        },
+      });
+      yPos = (doc as any).lastAutoTable?.finalY + 6 || yPos + 20;
+    }
+
+    // Occupancy table
+    if (totalMonthlyOccupancy.length > 0) {
+      yPos = checkPageBreak(yPos, 40);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Grad de ocupare (medie lunara):', 20, yPos);
+      doc.setFont('helvetica', 'normal');
+      yPos += 6;
+
+      const occMap = new Map(totalMonthlyOccupancy.map((o: any) => [o.locationKey, o]));
+      const occRows = PARKING_STAT_LOCATIONS.map(loc => {
+        const o = occMap.get(loc.key);
+        return [
+          getLocationFullName(loc.key),
+          o ? Number(o.avgMin || 0).toFixed(0) : '0',
+          o ? Number(o.avgMax || 0).toFixed(0) : '0',
+          o ? Number(o.avgAvg || 0).toFixed(2) : '0',
+          o ? Number(o.avgDailyRate || 0).toFixed(2) : '0',
+        ];
+      });
+      const totalOccAvg = totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgAvg || 0), 0);
+      const totalOccDaily = totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgDailyRate || 0), 0);
+      occRows.push([
+        'TOTAL / MEDIE',
+        totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMin || 0), 0).toFixed(0),
+        totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMax || 0), 0).toFixed(0),
+        totalOccAvg.toFixed(2),
+        totalOccDaily.toFixed(2),
+      ]);
+
+      autoTable(doc, {
+        head: [['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Zi']],
+        body: occRows,
+        startY: yPos,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
+        columnStyles: {
+          0: { cellWidth: 55 },
+          1: { halign: 'right', cellWidth: 20 },
+          2: { halign: 'right', cellWidth: 20 },
+          3: { halign: 'right', cellWidth: 20 },
+          4: { halign: 'right', cellWidth: 22 },
+        },
+        didParseCell: (data) => {
+          if (data.section === 'body' && data.row.index === occRows.length - 1) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [245, 243, 255];
+          }
+        },
+      });
+      yPos = (doc as any).lastAutoTable?.finalY + 8 || yPos + 20;
+    } else {
+      yPos += 4;
+    }
 
     // Summary Table per Employee
     yPos = checkPageBreak(yPos, 50);
@@ -1490,12 +1650,36 @@ const ReportsPage: React.FC = () => {
     if (totalRevenueSummary?.categories && totalRevenueSummary.categories.length > 0) {
       const months = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const incasariHeaders = ['Categorie', ...months, 'Total Incasari', 'Total Cheltuieli'];
-      const incasariData = totalRevenueSummary.categories.map((cat: any) => [
-        cat.name || 'N/A',
-        ...(cat.months || Array(12).fill(0)).map((m: any) => m?.incasari || 0),
-        cat.totalIncasari || 0,
-        cat.totalCheltuieli || 0,
-      ]);
+
+      // Flatten categories (including children)
+      const allCats: any[] = [];
+      const flattenRevCats = (cats: any[]) => {
+        cats.forEach((cat: any) => {
+          allCats.push(cat);
+          if (cat.children?.length > 0) flattenRevCats(cat.children);
+        });
+      };
+      flattenRevCats(totalRevenueSummary.categories);
+
+      const incasariData = allCats.map((cat: any) => {
+        const row: (string | number)[] = [cat.categoryName || 'N/A'];
+        for (let m = 1; m <= 12; m++) {
+          row.push(cat.months?.[m]?.incasari || 0);
+        }
+        row.push(cat.totalIncasari || 0);
+        row.push(cat.totalCheltuieli || 0);
+        return row;
+      });
+
+      // Add totals row
+      const totalsRow: (string | number)[] = ['TOTAL'];
+      for (let m = 1; m <= 12; m++) {
+        totalsRow.push(totalRevenueSummary.monthTotals?.[m]?.incasari || 0);
+      }
+      totalsRow.push(grandIncasari);
+      totalsRow.push(grandCheltuieli);
+      incasariData.push(totalsRow);
+
       const wsIncasari = XLSX.utils.aoa_to_sheet([
         ['Incasari / Cheltuieli 2026'],
         [],
@@ -1503,7 +1687,7 @@ const ReportsPage: React.FC = () => {
         ...incasariData,
       ]);
       wsIncasari['!cols'] = [
-        { wch: 25 }, ...months.map(() => ({ wch: 10 })), { wch: 15 }, { wch: 15 },
+        { wch: 30 }, ...months.map(() => ({ wch: 10 })), { wch: 15 }, { wch: 15 },
       ];
       XLSX.utils.book_append_sheet(wb, wsIncasari, 'Incasari-Cheltuieli');
     }
@@ -1535,25 +1719,38 @@ const ReportsPage: React.FC = () => {
     const ticketTotal = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
     const subTotal = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
     if (ticketTotal > 0 || subTotal > 0 || totalMonthlyOccupancy.length > 0) {
+      const ticketMap = new Map(totalMonthlyTickets.map((t: any) => [t.locationKey, t.totalTickets || 0]));
+      const subMap = new Map(totalMonthlySubscriptions.map((s: any) => [s.locationKey, s.subscriptionCount || 0]));
+      const occMap = new Map(totalMonthlyOccupancy.map((o: any) => [o.locationKey, o]));
+
       const statsData: (string | number)[][] = [
         [`Statistici Parcari - ${monthLabel}`],
         [],
         ['=== TICHETE ZILNICE ==='],
         ['Parcare', 'Numar Tichete'],
-        ...totalMonthlyTickets.map((t: any) => [t.locationKey || 'N/A', t.totalTickets || 0]),
+        ...PARKING_STAT_LOCATIONS.map(loc => [getLocationFullName(loc.key), ticketMap.get(loc.key) || 0]),
         ['TOTAL', ticketTotal],
         [],
         ['=== ABONAMENTE LUNARE ==='],
         ['Parcare', 'Numar Abonamente'],
-        ...totalMonthlySubscriptions.map((s: any) => [s.locationKey || 'N/A', s.subscriptionCount || 0]),
+        ...PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, subMap.get(loc.key) || 0]),
         ['TOTAL', subTotal],
         [],
         ['=== GRAD DE OCUPARE ==='],
-        ['Parcare', 'Minim', 'Maxim', 'Medie'],
-        ...totalMonthlyOccupancy.map((o: any) => [o.locationKey || 'N/A', Number(o.avgMin || 0), Number(o.avgMax || 0), Number(Number(o.avgAvg || 0).toFixed(2))]),
+        ['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'],
+        ...PARKING_STAT_LOCATIONS.map(loc => {
+          const o = occMap.get(loc.key);
+          return [
+            getLocationFullName(loc.key),
+            o ? Number(o.avgMin || 0) : 0,
+            o ? Number(o.avgMax || 0) : 0,
+            o ? Number(Number(o.avgAvg || 0).toFixed(2)) : 0,
+            o ? Number(Number(o.avgDailyRate || 0).toFixed(2)) : 0,
+          ];
+        }),
       ];
       const wsStats = XLSX.utils.aoa_to_sheet(statsData);
-      wsStats['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 12 }];
+      wsStats['!cols'] = [{ wch: 35 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
       XLSX.utils.book_append_sheet(wb, wsStats, 'Statistici Parcari');
     }
 
