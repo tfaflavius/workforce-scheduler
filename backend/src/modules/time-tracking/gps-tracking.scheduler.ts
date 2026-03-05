@@ -81,16 +81,33 @@ export class GpsTrackingScheduler {
   }
 
   /**
+   * GPS Alert - notify admins/managers when GPS verification fails.
+   * Runs every 30 minutes. If an active shift has no GPS location for 30+ minutes,
+   * the system sends a notification to admins and managers WITHOUT stopping the shift.
+   */
+  @Cron('*/30 * * * *', { timeZone: 'Europe/Bucharest' })
+  async checkGpsAlerts() {
+    try {
+      const alertCount = await this.timeTrackingService.alertShiftsWithoutGps(30);
+      if (alertCount > 0) {
+        this.logger.warn(`[GPS Alert] Sent ${alertCount} GPS failure alerts to admins/managers`);
+      }
+    } catch (error) {
+      this.logger.error(`[GPS Alert] Error: ${error.message}`);
+    }
+  }
+
+  /**
    * Auto-stop shifts without GPS data.
-   * Runs every 5 minutes. If an active shift has no GPS location for 30+ minutes,
+   * Runs every 5 minutes. If an active shift has no GPS location for 3 hours (180 min),
    * the system automatically stops it and notifies admin + employee.
    */
   @Cron('*/5 * * * *', { timeZone: 'Europe/Bucharest' })
   async autoStopNoGpsShifts() {
     try {
-      const stoppedCount = await this.timeTrackingService.autoStopShiftsWithoutGps(30);
+      const stoppedCount = await this.timeTrackingService.autoStopShiftsWithoutGps(180);
       if (stoppedCount > 0) {
-        this.logger.warn(`[GPS Auto-Stop] Stopped ${stoppedCount} shifts due to missing GPS data`);
+        this.logger.warn(`[GPS Auto-Stop] Stopped ${stoppedCount} shifts due to 3h+ missing GPS data`);
       }
     } catch (error) {
       this.logger.error(`[GPS Auto-Stop] Error: ${error.message}`);

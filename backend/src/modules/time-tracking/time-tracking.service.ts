@@ -899,6 +899,97 @@ export class TimeTrackingService {
   }
 
   /**
+   * Sends GPS alert notifications to admins and managers when active shifts
+   * haven't received GPS data for a period of time.
+   * Does NOT stop the shift - only creates notifications so admins can see
+   * that GPS verification was attempted but failed.
+   * Called by the GPS scheduler cron job every 30 minutes.
+   */
+  async alertShiftsWithoutGps(thresholdMinutes: number = 30): Promise<number> {
+    const activeEntries = await this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
+      .leftJoinAndSelect('entry.locationLogs', 'logs')
+      .where('entry.end_time IS NULL')
+      .andWhere('department.name IN (:...deptNames)', {
+        deptNames: ['Intretinere Parcari', 'Control'],
+      })
+      .getMany();
+
+    if (activeEntries.length === 0) return 0;
+
+    const now = new Date();
+    let alertCount = 0;
+
+    for (const entry of activeEntries) {
+      const minutesActive = (now.getTime() - new Date(entry.startTime).getTime()) / 60000;
+
+      // Skip entries active less than threshold
+      if (minutesActive < thresholdMinutes) continue;
+
+      // Check last location time
+      let minutesSinceLastLocation: number | null = null;
+      if (entry.locationLogs && entry.locationLogs.length > 0) {
+        const sortedLogs = [...entry.locationLogs].sort(
+          (a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
+        );
+        const lastLog = sortedLogs[0];
+        minutesSinceLastLocation = (now.getTime() - new Date(lastLog.recordedAt).getTime()) / 60000;
+      }
+
+      // Check if GPS data is missing for the threshold period
+      const shouldAlert =
+        (entry.locationLogs?.length === 0 && minutesActive >= thresholdMinutes) ||
+        (minutesSinceLastLocation !== null && minutesSinceLastLocation >= thresholdMinutes);
+
+      if (!shouldAlert) continue;
+
+      const employeeName = entry.user?.fullName || 'Angajat necunoscut';
+      const noLocations = !entry.locationLogs || entry.locationLogs.length === 0;
+      const minutesWithout = noLocations ? Math.floor(minutesActive) : Math.floor(minutesSinceLastLocation!);
+      const alertMessage = noLocations
+        ? `${employeeName}: Nu s-a putut verifica locatia GPS de ${minutesWithout} min (nicio locatie inregistrata)`
+        : `${employeeName}: Nu s-a putut verifica locatia GPS de ${minutesWithout} min`;
+
+      this.logger.warn(`[GPS Alert] ${alertMessage}`);
+
+      // Notify admins and managers (without stopping the shift)
+      try {
+        const admins = await this.userRepository.find({
+          where: [
+            { role: UserRole.ADMIN, isActive: true },
+            { role: UserRole.MANAGER, isActive: true },
+          ],
+        });
+
+        if (admins.length > 0) {
+          const notifications = admins.map(admin => ({
+            userId: admin.id,
+            type: NotificationType.GPS_STATUS_ALERT,
+            title: 'Verificare GPS esuata',
+            message: alertMessage,
+            data: {
+              employeeId: entry.userId,
+              employeeName,
+              timeEntryId: entry.id,
+              autoStopped: false,
+              minutesWithoutGps: minutesWithout,
+            },
+          }));
+
+          await this.notificationsService.createMany(notifications);
+          alertCount++;
+        }
+      } catch (err) {
+        this.logger.error(`[GPS Alert] Failed to send alert notifications: ${err?.message}`);
+      }
+    }
+
+    return alertCount;
+  }
+
+  /**
    * Triggers instant GPS capture by sending push notifications to all
    * active employees in Control + Intretinere Parcari departments.
    * Called on-demand by admin from the Monitorizare Pontaj page.
