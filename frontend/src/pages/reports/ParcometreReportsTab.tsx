@@ -74,12 +74,7 @@ const CONDITION_LABELS: Record<MeterCondition, string> = {
   VECHI: 'Vechi',
 };
 
-const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = ({
-  startDate,
-  endDate,
-  onStartDateChange,
-  onEndDateChange,
-}) => {
+const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 

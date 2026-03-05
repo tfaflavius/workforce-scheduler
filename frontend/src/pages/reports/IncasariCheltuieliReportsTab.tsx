@@ -5,7 +5,6 @@ import {
   Paper,
   Button,
   Stack,
-  Chip,
   FormControl,
   InputLabel,
   Select,
@@ -46,7 +45,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
-import type { RevenueSummary, RevenueSummaryCategory } from '../../types/acquisitions.types';
+import type { RevenueSummaryCategory } from '../../types/acquisitions.types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
