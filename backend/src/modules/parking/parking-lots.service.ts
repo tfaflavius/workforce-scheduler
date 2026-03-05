@@ -1,17 +1,28 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ParkingLot } from './entities/parking-lot.entity';
 import { PaymentMachine } from './entities/payment-machine.entity';
 
 @Injectable()
-export class ParkingLotsService {
+export class ParkingLotsService implements OnModuleInit {
+  private readonly logger = new Logger(ParkingLotsService.name);
+
   constructor(
     @InjectRepository(ParkingLot)
     private readonly parkingLotRepository: Repository<ParkingLot>,
     @InjectRepository(PaymentMachine)
     private readonly paymentMachineRepository: Repository<PaymentMachine>,
   ) {}
+
+  async onModuleInit() {
+    try {
+      const result = await this.seedData();
+      this.logger.log(`Parking lots seed: ${result.message} (${result.parkingLots} lots, ${result.paymentMachines} machines)`);
+    } catch (error) {
+      this.logger.warn(`Parking lots seed failed: ${error.message}`);
+    }
+  }
 
   async findAll(): Promise<ParkingLot[]> {
     return this.parkingLotRepository.find({
@@ -62,12 +73,6 @@ export class ParkingLotsService {
   }
 
   async seedData(): Promise<{ message: string; parkingLots: number; paymentMachines: number }> {
-    // Check if data already exists
-    const existingLots = await this.parkingLotRepository.count();
-    if (existingLots > 0) {
-      return { message: 'Data already exists', parkingLots: existingLots, paymentMachines: await this.paymentMachineRepository.count() };
-    }
-
     // Seed parking lots and payment machines
     const parkingLotsData = [
       { name: 'Parcare Baritiu', code: 'BARITIU', machines: ['631', '632'] },
@@ -79,11 +84,19 @@ export class ParkingLotsService {
       { name: 'Parcarea Spital Municipal', code: 'SPITAL_MUNICIPAL', machines: ['641'] },
       { name: 'Parcarea Cetate', code: 'CETATE', machines: ['671', '672', '673'] },
       { name: 'Parcarea Primarie', code: 'PRIMARIE', machines: ['621'] },
+      { name: 'Dispecerat Parcari', code: 'DISPECERAT_PARCARI', machines: [] },
     ];
 
     let totalMachines = 0;
+    let lotsCreated = 0;
 
     for (const lotData of parkingLotsData) {
+      // Check if this lot already exists by code
+      const existing = await this.parkingLotRepository.findOne({ where: { code: lotData.code } });
+      if (existing) {
+        continue; // Skip already existing lots
+      }
+
       const parkingLot = this.parkingLotRepository.create({
         name: lotData.name,
         code: lotData.code,
@@ -91,6 +104,7 @@ export class ParkingLotsService {
       });
 
       const savedLot = await this.parkingLotRepository.save(parkingLot);
+      lotsCreated++;
 
       for (const machineNumber of lotData.machines) {
         const machine = this.paymentMachineRepository.create({
@@ -103,10 +117,13 @@ export class ParkingLotsService {
       }
     }
 
+    const totalLots = await this.parkingLotRepository.count();
+    const totalMachinesCount = await this.paymentMachineRepository.count();
+
     return {
-      message: 'Data seeded successfully',
-      parkingLots: parkingLotsData.length,
-      paymentMachines: totalMachines
+      message: lotsCreated > 0 ? `Seeded ${lotsCreated} new parking lots` : 'All parking lots already exist',
+      parkingLots: totalLots,
+      paymentMachines: totalMachinesCount
     };
   }
 }
