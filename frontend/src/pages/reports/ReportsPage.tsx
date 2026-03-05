@@ -74,6 +74,7 @@ import { useGetHandicapRequestsQuery } from '../../store/api/handicap.api';
 import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
 import { useGetBudgetPositionsQuery, useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
 import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
+import { useGetMonthlyTicketsSummaryQuery, useGetMonthlySubscriptionsQuery, useGetMonthlyOccupancySummaryQuery } from '../../store/api/parkingStats.api';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -157,6 +158,9 @@ const ReportsPage: React.FC = () => {
     { startDate: parkingStartDate, endDate: parkingEndDate },
     { skip: !shouldFetchTotalData || !isAdminOrManager }
   );
+  const { data: totalMonthlyTickets = [] } = useGetMonthlyTicketsSummaryQuery(selectedMonth, { skip: !shouldFetchTotalData });
+  const { data: totalMonthlySubscriptions = [] } = useGetMonthlySubscriptionsQuery(selectedMonth, { skip: !shouldFetchTotalData });
+  const { data: totalMonthlyOccupancy = [] } = useGetMonthlyOccupancySummaryQuery(selectedMonth, { skip: !shouldFetchTotalData });
 
   // Filtram doar angajatii si managerii
   const eligibleUsers = useMemo(() => {
@@ -1150,6 +1154,25 @@ const ReportsPage: React.FC = () => {
       doc.text(`Angajati unici: ${angajatiUnici}`, 20, yPos); yPos += 12;
     }
 
+    // Section 13: Statistici Parcari
+    yPos = checkPageBreak(yPos, 50);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('13. Statistici Parcari', 14, yPos);
+    doc.setFont('helvetica', 'normal');
+    yPos += 10;
+
+    const totalTichete = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
+    const totalAbonamente = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
+    const totalOcupare = totalMonthlyOccupancy.length > 0
+      ? totalMonthlyOccupancy.reduce((sum: number, o: any) => sum + Number(o.avgAvg || 0), 0).toFixed(0)
+      : '0';
+
+    doc.setFontSize(10);
+    doc.text(`Tichete zilnice (luna): ${totalTichete}`, 20, yPos); yPos += 6;
+    doc.text(`Abonamente lunare: ${totalAbonamente}`, 20, yPos); yPos += 6;
+    doc.text(`Medie ocupare: ${totalOcupare}`, 20, yPos); yPos += 12;
+
     // Summary Table per Employee
     yPos = checkPageBreak(yPos, 50);
     doc.setFontSize(14);
@@ -1279,6 +1302,17 @@ const ReportsPage: React.FC = () => {
         [`Angajati unici: ${angajatiUnici}`],
       );
     }
+
+    // Statistici Parcari in sumar
+    const sumTichete = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
+    const sumAbonamente = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
+    summaryData.push(
+      [],
+      ['=== 13. STATISTICI PARCARI ==='],
+      [`Tichete zilnice (luna): ${sumTichete}`],
+      [`Abonamente lunare: ${sumAbonamente}`],
+      [`Parcari raportate ocupare: ${totalMonthlyOccupancy.length}`],
+    );
 
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
     wsSummary['!cols'] = [{ wch: 50 }];
@@ -1495,6 +1529,32 @@ const ReportsPage: React.FC = () => {
         { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
       ];
       XLSX.utils.book_append_sheet(wb, wsPontaj, 'Pontaj');
+    }
+
+    // Sheet 12: Statistici Parcari
+    const ticketTotal = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
+    const subTotal = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
+    if (ticketTotal > 0 || subTotal > 0 || totalMonthlyOccupancy.length > 0) {
+      const statsData: (string | number)[][] = [
+        [`Statistici Parcari - ${monthLabel}`],
+        [],
+        ['=== TICHETE ZILNICE ==='],
+        ['Parcare', 'Numar Tichete'],
+        ...totalMonthlyTickets.map((t: any) => [t.locationKey || 'N/A', t.totalTickets || 0]),
+        ['TOTAL', ticketTotal],
+        [],
+        ['=== ABONAMENTE LUNARE ==='],
+        ['Parcare', 'Numar Abonamente'],
+        ...totalMonthlySubscriptions.map((s: any) => [s.locationKey || 'N/A', s.subscriptionCount || 0]),
+        ['TOTAL', subTotal],
+        [],
+        ['=== GRAD DE OCUPARE ==='],
+        ['Parcare', 'Minim', 'Maxim', 'Medie'],
+        ...totalMonthlyOccupancy.map((o: any) => [o.locationKey || 'N/A', Number(o.avgMin || 0), Number(o.avgMax || 0), Number(Number(o.avgAvg || 0).toFixed(2))]),
+      ];
+      const wsStats = XLSX.utils.aoa_to_sheet(statsData);
+      wsStats['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, wsStats, 'Statistici Parcari');
     }
 
     XLSX.writeFile(wb, `raport-total-${selectedMonth}.xlsx`);
@@ -1977,9 +2037,36 @@ const ReportsPage: React.FC = () => {
           )}
         </Stack>
 
+        {/* Detalii pe sectiuni - Rand 5: Statistici Parcari */}
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              🎫 Tichete Zilnice
+            </Typography>
+            <Typography variant="body2">Total tichete: {totalMonthlyTickets.reduce((sum: any, t: any) => sum + (t.totalTickets || 0), 0)}</Typography>
+            <Typography variant="body2">Parcari raportate: {totalMonthlyTickets.length}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              💳 Abonamente
+            </Typography>
+            <Typography variant="body2">Total abonamente: {totalMonthlySubscriptions.reduce((sum: any, s: any) => sum + (s.subscriptionCount || 0), 0)}</Typography>
+            <Typography variant="body2">Parcari raportate: {totalMonthlySubscriptions.length}</Typography>
+          </Paper>
+
+          <Paper sx={{ p: 2, flex: 1, bgcolor: 'grey.50' }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              📈 Grad Ocupare
+            </Typography>
+            <Typography variant="body2">Medie ocupare: {totalMonthlyOccupancy.length > 0 ? (totalMonthlyOccupancy.reduce((sum: any, o: any) => sum + Number(o.avgAvg || 0), 0)).toFixed(0) : '0'}</Typography>
+            <Typography variant="body2">Parcari raportate: {totalMonthlyOccupancy.length}</Typography>
+          </Paper>
+        </Stack>
+
         <Alert severity="success" icon={false}>
           <Typography variant="body2">
-            Raportul total include date din toate cele 12 sectiuni ale aplicatiei.
+            Raportul total include date din toate cele 13 sectiuni ale aplicatiei (inclusiv Statistici Parcari).
           </Typography>
         </Alert>
 
