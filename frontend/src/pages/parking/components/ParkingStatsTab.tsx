@@ -423,10 +423,10 @@ const OccupancySection: React.FC = () => {
     return m ? { min: m.avgMin, max: m.avgMax, avg: m.avgAvg } : { min: 0, max: 0, avg: 0 };
   }, [viewMode, occValues, monthlyData]);
 
-  // Coeficient grad ocupare/zi = (Medie / 7 zile) / Nr. Locuri
-  const getDailyRate = (avg: number, spots: number) => {
+  // Coeficient grad ocupare/saptamana = Medie / Nr. Locuri
+  const getWeeklyRate = (avg: number, spots: number) => {
     if (spots === 0) return '0.00';
-    return ((avg / 7) / spots).toFixed(2);
+    return (avg / spots).toFixed(2);
   };
 
   const handleSave = async () => {
@@ -494,7 +494,7 @@ const OccupancySection: React.FC = () => {
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Maxim</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Medie</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Grad/Zi</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Grad/Săpt.</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -572,7 +572,7 @@ const OccupancySection: React.FC = () => {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight="bold" color="primary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                          {getDailyRate(val.avg, loc.spots)}
+                          {getWeeklyRate(val.avg, loc.spots)}
                         </Typography>
                       </TableCell>
                     </TableRow>

@@ -1292,7 +1292,7 @@ const ReportsPage: React.FC = () => {
         const o = occMap.get(loc.key);
         const avg = o ? Number(o.avgAvg || 0) : 0;
         const spots = loc.spots;
-        const coefficient = spots > 0 ? ((avg / 7) / spots) : 0;
+        const coefficient = spots > 0 ? (avg / spots) : 0;
         return [
           getLocationFullName(loc.key),
           String(spots),
@@ -1303,7 +1303,7 @@ const ReportsPage: React.FC = () => {
         ];
       });
       const totalOccAvg = totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgAvg || 0), 0);
-      const totalCoefficient = TOTAL_PARKING_SPOTS > 0 ? ((totalOccAvg / 7) / TOTAL_PARKING_SPOTS) : 0;
+      const totalCoefficient = TOTAL_PARKING_SPOTS > 0 ? (totalOccAvg / TOTAL_PARKING_SPOTS) : 0;
       occRows.push([
         'TOTAL / MEDIE',
         String(TOTAL_PARKING_SPOTS),
@@ -1314,7 +1314,7 @@ const ReportsPage: React.FC = () => {
       ]);
 
       autoTable(doc, {
-        head: [['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Zi']],
+        head: [['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt.']],
         body: occRows,
         startY: yPos,
         styles: { fontSize: 8, cellPadding: 2 },
@@ -1742,13 +1742,13 @@ const ReportsPage: React.FC = () => {
         ...PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, subMap.get(loc.key) || 0]),
         ['TOTAL', subTotal],
         [],
-        ['=== GRAD DE OCUPARE (Grad/Zi = (Medie / 7) / Nr. Locuri) ==='],
-        ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'],
+        ['=== GRAD DE OCUPARE (Grad/Săpt. = Medie / Nr. Locuri) ==='],
+        ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt.'],
         ...PARKING_STAT_LOCATIONS.map(loc => {
           const o = occMap.get(loc.key);
           const avg = o ? Number(o.avgAvg || 0) : 0;
           const spots = loc.spots;
-          const coefficient = spots > 0 ? Number(((avg / 7) / spots).toFixed(2)) : 0;
+          const coefficient = spots > 0 ? Number((avg / spots).toFixed(2)) : 0;
           return [
             getLocationFullName(loc.key),
             spots,
