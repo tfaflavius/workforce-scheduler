@@ -1292,29 +1292,29 @@ const ReportsPage: React.FC = () => {
         const o = occMap.get(loc.key);
         const avg = o ? Number(o.avgAvg || 0) : 0;
         const spots = loc.spots;
-        const coefficient = spots > 0 ? (avg / spots) : 0;
+        const coefficient = spots > 0 ? ((avg / spots) * 100) : 0;
         return [
           getLocationFullName(loc.key),
           String(spots),
           o ? Number(o.avgMin || 0).toFixed(0) : '0',
           o ? Number(o.avgMax || 0).toFixed(0) : '0',
           avg.toFixed(2),
-          coefficient.toFixed(2),
+          coefficient.toFixed(2) + '%',
         ];
       });
       const totalOccAvg = totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgAvg || 0), 0);
-      const totalCoefficient = TOTAL_PARKING_SPOTS > 0 ? (totalOccAvg / TOTAL_PARKING_SPOTS) : 0;
+      const totalCoefficient = TOTAL_PARKING_SPOTS > 0 ? ((totalOccAvg / TOTAL_PARKING_SPOTS) * 100) : 0;
       occRows.push([
         'TOTAL / MEDIE',
         String(TOTAL_PARKING_SPOTS),
         totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMin || 0), 0).toFixed(0),
         totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMax || 0), 0).toFixed(0),
         totalOccAvg.toFixed(2),
-        totalCoefficient.toFixed(2),
+        totalCoefficient.toFixed(2) + '%',
       ]);
 
       autoTable(doc, {
-        head: [['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt.']],
+        head: [['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt. (%)']],
         body: occRows,
         startY: yPos,
         styles: { fontSize: 8, cellPadding: 2 },
@@ -1742,20 +1742,20 @@ const ReportsPage: React.FC = () => {
         ...PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, subMap.get(loc.key) || 0]),
         ['TOTAL', subTotal],
         [],
-        ['=== GRAD DE OCUPARE (Grad/Săpt. = Medie / Nr. Locuri) ==='],
-        ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt.'],
+        ['=== GRAD DE OCUPARE (Grad/Săpt. = (Medie / Nr. Locuri) × 100%) ==='],
+        ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt. (%)'],
         ...PARKING_STAT_LOCATIONS.map(loc => {
           const o = occMap.get(loc.key);
           const avg = o ? Number(o.avgAvg || 0) : 0;
           const spots = loc.spots;
-          const coefficient = spots > 0 ? Number((avg / spots).toFixed(2)) : 0;
+          const coefficient = spots > 0 ? Number(((avg / spots) * 100).toFixed(2)) : 0;
           return [
             getLocationFullName(loc.key),
             spots,
             o ? Number(o.avgMin || 0) : 0,
             o ? Number(o.avgMax || 0) : 0,
             Number(avg.toFixed(2)),
-            coefficient,
+            coefficient + '%',
           ];
         }),
       ];

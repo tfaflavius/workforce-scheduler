@@ -33,7 +33,11 @@ import {
   TrendingUp as OccupancyIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, isFirstInGroup, getGroupKeys, getGroupTotalSpots } from '../../../constants/parkingStats';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 import {
   useGetDailyTicketsQuery,
   useGetWeeklyTicketsSummaryQuery,
@@ -423,10 +427,10 @@ const OccupancySection: React.FC = () => {
     return m ? { min: m.avgMin, max: m.avgMax, avg: m.avgAvg } : { min: 0, max: 0, avg: 0 };
   }, [viewMode, occValues, monthlyData]);
 
-  // Coeficient grad ocupare/saptamana = Medie / Nr. Locuri
+  // Coeficient grad ocupare/saptamana = (Medie / Nr. Locuri) * 100 (procent)
   const getWeeklyRate = (avg: number, spots: number) => {
-    if (spots === 0) return '0.00';
-    return (avg / spots).toFixed(2);
+    if (spots === 0) return '0.00%';
+    return ((avg / spots) * 100).toFixed(2) + '%';
   };
 
   const handleSave = async () => {
@@ -596,6 +600,71 @@ const OccupancySection: React.FC = () => {
           )}
         </>
       )}
+
+      {/* Grafic Grad de Ocupare */}
+      {!isLoading && (() => {
+        const chartLabels = PARKING_STAT_LOCATIONS.map(loc =>
+          loc.group ? `${loc.group} - ${loc.name}` : loc.name.replace('Parcarea ', '')
+        );
+        const chartValues = PARKING_STAT_LOCATIONS.map(loc => {
+          const val = getOccValue(loc.key);
+          return loc.spots > 0 ? Number(((val.avg / loc.spots) * 100).toFixed(2)) : 0;
+        });
+        const barColors = chartValues.map(v =>
+          v >= 80 ? 'rgba(239, 68, 68, 0.7)' : v >= 50 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(34, 197, 94, 0.7)'
+        );
+        const borderColors = chartValues.map(v =>
+          v >= 80 ? 'rgb(239, 68, 68)' : v >= 50 ? 'rgb(245, 158, 11)' : 'rgb(34, 197, 94)'
+        );
+        return (
+          <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+              Grafic Grad de Ocupare (%)
+            </Typography>
+            <Box sx={{ height: { xs: 250, sm: 300 }, width: '100%' }}>
+              <Bar
+                data={{
+                  labels: chartLabels,
+                  datasets: [{
+                    label: 'Grad Ocupare (%)',
+                    data: chartValues,
+                    backgroundColor: barColors,
+                    borderColor: borderColors,
+                    borderWidth: 1,
+                  }],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (ctx) => `${(ctx.parsed.y ?? 0).toFixed(2)}%`,
+                      },
+                    },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      max: 100,
+                      ticks: { callback: (v) => `${v}%` },
+                      title: { display: true, text: 'Grad Ocupare (%)' },
+                    },
+                    x: {
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 30,
+                        font: { size: 10 },
+                      },
+                    },
+                  },
+                }}
+              />
+            </Box>
+          </Paper>
+        );
+      })()}
 
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
         <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>{snackbar.message}</Alert>
