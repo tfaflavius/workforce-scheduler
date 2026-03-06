@@ -437,6 +437,7 @@ const ParkingStatsReportsTab: React.FC = () => {
     if (reportType === 'tickets') {
       const total = ticketsData.reduce((sum, d) => sum + d.value, 0);
       return (
+        <>
         <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
           <Table size="small" stickyHeader sx={{ minWidth: 300 }}>
             <TableHead>
@@ -471,6 +472,43 @@ const ParkingStatsReportsTab: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        {/* Grafic Tichete per Parcare */}
+        <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+            Tichete {periodType === 'monthly' ? 'Lunare' : 'Saptamanale'} per Parcare
+          </Typography>
+          <Box sx={{ height: { xs: 250, sm: 300 }, width: '100%' }}>
+            <Bar
+              data={{
+                labels: ticketsData.map(d => d.group ? `${d.group} - ${d.name}` : d.name.replace('Parcarea ', '')),
+                datasets: [{
+                  label: 'Tichete',
+                  data: ticketsData.map(d => d.value),
+                  backgroundColor: 'rgba(124, 58, 237, 0.7)',
+                  borderColor: 'rgb(124, 58, 237)',
+                  borderWidth: 1,
+                }],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y ?? 0} tichete` } },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 },
+                    title: { display: true, text: 'Numar Tichete' },
+                  },
+                  x: { ticks: { maxRotation: 45, minRotation: 30, font: { size: 10 } } },
+                },
+              }}
+            />
+          </Box>
+        </Paper>
+        </>
       );
     }
 
@@ -478,6 +516,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       const total = subscriptionsData.reduce((sum, d) => sum + d.value, 0);
       const totalSpots = subscriptionsData.reduce((sum, d) => sum + d.spots, 0);
       return (
+        <>
         <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
           <Table size="small" stickyHeader sx={{ minWidth: 400 }}>
             <TableHead>
@@ -503,6 +542,43 @@ const ParkingStatsReportsTab: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        {/* Grafic Abonamente per Parcare */}
+        <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+            Abonamente per Parcare
+          </Typography>
+          <Box sx={{ height: { xs: 250, sm: 300 }, width: '100%' }}>
+            <Bar
+              data={{
+                labels: subscriptionsData.map(d => d.name.replace('Parcarea ', '')),
+                datasets: [{
+                  label: 'Abonamente',
+                  data: subscriptionsData.map(d => d.value),
+                  backgroundColor: 'rgba(13, 148, 136, 0.7)',
+                  borderColor: 'rgb(13, 148, 136)',
+                  borderWidth: 1,
+                }],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y ?? 0} abonamente` } },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 },
+                    title: { display: true, text: 'Numar Abonamente' },
+                  },
+                  x: { ticks: { maxRotation: 45, minRotation: 30, font: { size: 10 } } },
+                },
+              }}
+            />
+          </Box>
+        </Paper>
+        </>
       );
     }
 

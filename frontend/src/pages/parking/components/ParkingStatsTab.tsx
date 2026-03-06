@@ -284,6 +284,61 @@ const TicketsSection: React.FC = () => {
         </>
       )}
 
+      {/* Grafic Tichete per Parcare */}
+      {!isLoading && (() => {
+        const chartLabels = PARKING_STAT_LOCATIONS.map(loc =>
+          loc.group ? `${loc.group} - ${loc.name}` : loc.name.replace('Parcarea ', '')
+        );
+        const chartValues = PARKING_STAT_LOCATIONS.map(loc => getTicketValue(loc.key));
+        return (
+          <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+              Tichete per Parcare
+            </Typography>
+            <Box sx={{ height: { xs: 250, sm: 300 }, width: '100%' }}>
+              <Bar
+                data={{
+                  labels: chartLabels,
+                  datasets: [{
+                    label: 'Tichete',
+                    data: chartValues,
+                    backgroundColor: 'rgba(124, 58, 237, 0.7)',
+                    borderColor: 'rgb(124, 58, 237)',
+                    borderWidth: 1,
+                  }],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (ctx) => `${ctx.parsed.y ?? 0} tichete`,
+                      },
+                    },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: { precision: 0 },
+                      title: { display: true, text: 'Numar Tichete' },
+                    },
+                    x: {
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 30,
+                        font: { size: 10 },
+                      },
+                    },
+                  },
+                }}
+              />
+            </Box>
+          </Paper>
+        );
+      })()}
+
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
         <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>{snackbar.message}</Alert>
       </Snackbar>
@@ -393,6 +448,59 @@ const SubscriptionsSection: React.FC = () => {
           </Button>
         </>
       )}
+
+      {/* Grafic Abonamente per Parcare */}
+      {!isLoading && (() => {
+        const chartLabels = PARKING_SUBSCRIPTION_LOCATIONS.map(loc => loc.name.replace('Parcarea ', ''));
+        const chartValues = PARKING_SUBSCRIPTION_LOCATIONS.map(loc => subValues[loc.key] || 0);
+        return (
+          <Paper variant="outlined" sx={{ mt: 2, p: 2 }}>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+              Abonamente per Parcare
+            </Typography>
+            <Box sx={{ height: { xs: 250, sm: 300 }, width: '100%' }}>
+              <Bar
+                data={{
+                  labels: chartLabels,
+                  datasets: [{
+                    label: 'Abonamente',
+                    data: chartValues,
+                    backgroundColor: 'rgba(13, 148, 136, 0.7)',
+                    borderColor: 'rgb(13, 148, 136)',
+                    borderWidth: 1,
+                  }],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (ctx) => `${ctx.parsed.y ?? 0} abonamente`,
+                      },
+                    },
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: { precision: 0 },
+                      title: { display: true, text: 'Numar Abonamente' },
+                    },
+                    x: {
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 30,
+                        font: { size: 10 },
+                      },
+                    },
+                  },
+                }}
+              />
+            </Box>
+          </Paper>
+        );
+      })()}
 
       <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
         <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>{snackbar.message}</Alert>
