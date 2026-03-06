@@ -33,7 +33,7 @@ import {
   TrendingUp as OccupancyIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
-import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, isFirstInGroup, getGroupKeys } from '../../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, isFirstInGroup, getGroupKeys, getGroupTotalSpots } from '../../../constants/parkingStats';
 import {
   useGetDailyTicketsQuery,
   useGetWeeklyTicketsSummaryQuery,
@@ -423,7 +423,11 @@ const OccupancySection: React.FC = () => {
     return m ? { min: m.avgMin, max: m.avgMax, avg: m.avgAvg } : { min: 0, max: 0, avg: 0 };
   }, [viewMode, occValues, monthlyData]);
 
-  const getDailyRate = (avg: number) => (avg / 7).toFixed(2);
+  // Coeficient grad ocupare/zi = (Medie / 7 zile) / Nr. Locuri
+  const getDailyRate = (avg: number, spots: number) => {
+    if (spots === 0) return '0.00';
+    return ((avg / 7) / spots).toFixed(2);
+  };
 
   const handleSave = async () => {
     try {
@@ -482,10 +486,11 @@ const OccupancySection: React.FC = () => {
       ) : (
         <>
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: { xs: 480, sm: 600 } }}>
+            <Table size="small" sx={{ minWidth: { xs: 540, sm: 700 } }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#f59e0b', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 100, sm: 150 } }}>Parcare</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Maxim</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Medie</TableCell>
@@ -497,9 +502,12 @@ const OccupancySection: React.FC = () => {
                   const val = getOccValue(loc.key);
                   const rows: React.ReactNode[] = [];
                   if (isFirstInGroup(idx) && loc.group) {
+                    const groupSpots = getGroupTotalSpots(loc.group);
                     rows.push(
                       <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#f59e0b', 0.06) }}>
-                        <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.9rem' } }} colSpan={5}>{loc.group}</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>{loc.group}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>{groupSpots}</TableCell>
+                        <TableCell colSpan={4} />
                       </TableRow>
                     );
                   }
@@ -507,6 +515,9 @@ const OccupancySection: React.FC = () => {
                     <TableRow key={loc.key} hover>
                       <TableCell sx={{ ...(loc.group ? { pl: { xs: 2, sm: 4 } } : {}), fontSize: { xs: '0.7rem', sm: '0.875rem' }, whiteSpace: 'nowrap' }}>
                         {loc.group ? `└ ${loc.name}` : loc.name}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>
+                        {loc.spots}
                       </TableCell>
                       <TableCell align="right" sx={{ px: { xs: 0.5, sm: 2 } }}>
                         {isEditable ? (
@@ -561,7 +572,7 @@ const OccupancySection: React.FC = () => {
                       </TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" fontWeight="bold" color="primary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                          {getDailyRate(val.avg)}
+                          {getDailyRate(val.avg, loc.spots)}
                         </Typography>
                       </TableCell>
                     </TableRow>

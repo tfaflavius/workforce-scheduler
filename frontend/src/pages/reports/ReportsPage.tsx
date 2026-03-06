@@ -75,7 +75,7 @@ import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
 import { useGetBudgetPositionsQuery, useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
 import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import { useGetMonthlyTicketsSummaryQuery, useGetMonthlySubscriptionsQuery, useGetMonthlyOccupancySummaryQuery } from '../../store/api/parkingStats.api';
-import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName } from '../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName, TOTAL_PARKING_SPOTS } from '../../constants/parkingStats';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -1290,36 +1290,42 @@ const ReportsPage: React.FC = () => {
       const occMap = new Map(totalMonthlyOccupancy.map((o: any) => [o.locationKey, o]));
       const occRows = PARKING_STAT_LOCATIONS.map(loc => {
         const o = occMap.get(loc.key);
+        const avg = o ? Number(o.avgAvg || 0) : 0;
+        const spots = loc.spots;
+        const coefficient = spots > 0 ? ((avg / 7) / spots) : 0;
         return [
           getLocationFullName(loc.key),
+          String(spots),
           o ? Number(o.avgMin || 0).toFixed(0) : '0',
           o ? Number(o.avgMax || 0).toFixed(0) : '0',
-          o ? Number(o.avgAvg || 0).toFixed(2) : '0',
-          o ? Number(o.avgDailyRate || 0).toFixed(2) : '0',
+          avg.toFixed(2),
+          coefficient.toFixed(2),
         ];
       });
       const totalOccAvg = totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgAvg || 0), 0);
-      const totalOccDaily = totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgDailyRate || 0), 0);
+      const totalCoefficient = TOTAL_PARKING_SPOTS > 0 ? ((totalOccAvg / 7) / TOTAL_PARKING_SPOTS) : 0;
       occRows.push([
         'TOTAL / MEDIE',
+        String(TOTAL_PARKING_SPOTS),
         totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMin || 0), 0).toFixed(0),
         totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMax || 0), 0).toFixed(0),
         totalOccAvg.toFixed(2),
-        totalOccDaily.toFixed(2),
+        totalCoefficient.toFixed(2),
       ]);
 
       autoTable(doc, {
-        head: [['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Zi']],
+        head: [['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Zi']],
         body: occRows,
         startY: yPos,
         styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
         columnStyles: {
-          0: { cellWidth: 55 },
-          1: { halign: 'right', cellWidth: 20 },
-          2: { halign: 'right', cellWidth: 20 },
-          3: { halign: 'right', cellWidth: 20 },
-          4: { halign: 'right', cellWidth: 22 },
+          0: { cellWidth: 50 },
+          1: { halign: 'right', cellWidth: 18 },
+          2: { halign: 'right', cellWidth: 18 },
+          3: { halign: 'right', cellWidth: 18 },
+          4: { halign: 'right', cellWidth: 18 },
+          5: { halign: 'right', cellWidth: 20 },
         },
         didParseCell: (data) => {
           if (data.section === 'body' && data.row.index === occRows.length - 1) {
@@ -1736,21 +1742,25 @@ const ReportsPage: React.FC = () => {
         ...PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, subMap.get(loc.key) || 0]),
         ['TOTAL', subTotal],
         [],
-        ['=== GRAD DE OCUPARE ==='],
-        ['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'],
+        ['=== GRAD DE OCUPARE (Grad/Zi = (Medie / 7) / Nr. Locuri) ==='],
+        ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'],
         ...PARKING_STAT_LOCATIONS.map(loc => {
           const o = occMap.get(loc.key);
+          const avg = o ? Number(o.avgAvg || 0) : 0;
+          const spots = loc.spots;
+          const coefficient = spots > 0 ? Number(((avg / 7) / spots).toFixed(2)) : 0;
           return [
             getLocationFullName(loc.key),
+            spots,
             o ? Number(o.avgMin || 0) : 0,
             o ? Number(o.avgMax || 0) : 0,
-            o ? Number(Number(o.avgAvg || 0).toFixed(2)) : 0,
-            o ? Number(Number(o.avgDailyRate || 0).toFixed(2)) : 0,
+            Number(avg.toFixed(2)),
+            coefficient,
           ];
         }),
       ];
       const wsStats = XLSX.utils.aoa_to_sheet(statsData);
-      wsStats['!cols'] = [{ wch: 35 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+      wsStats['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 14 }];
       XLSX.utils.book_append_sheet(wb, wsStats, 'Statistici Parcari');
     }
 

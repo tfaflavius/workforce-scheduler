@@ -30,7 +30,7 @@ import {
   CardMembership as SubscriptionIcon,
   TrendingUp as OccupancyIcon,
 } from '@mui/icons-material';
-import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName, isFirstInGroup } from '../../constants/parkingStats';
+import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName, isFirstInGroup, getGroupTotalSpots, TOTAL_PARKING_SPOTS } from '../../constants/parkingStats';
 import {
   useGetMonthlyTicketsSummaryQuery,
   useGetWeeklyTicketsSummaryQuery,
@@ -172,30 +172,38 @@ const ParkingStatsReportsTab: React.FC = () => {
       const dataMap = new Map(monthlyOccupancy.map(s => [s.locationKey, s]));
       return PARKING_STAT_LOCATIONS.map(loc => {
         const d = dataMap.get(loc.key);
+        const avg = d ? Number(d.avgAvg) : 0;
+        // Coeficient grad ocupare/zi = (Medie / 7) / Nr. Locuri
+        const dailyRate = loc.spots > 0 ? Number(((avg / 7) / loc.spots).toFixed(2)) : 0;
         return {
           locationKey: loc.key,
           name: loc.name,
           fullName: getLocationFullName(loc.key),
           group: loc.group,
+          spots: loc.spots,
           min: d ? Number(d.avgMin) : 0,
           max: d ? Number(d.avgMax) : 0,
-          avg: d ? Number(d.avgAvg) : 0,
-          dailyRate: d ? Number(d.avgDailyRate) : 0,
+          avg,
+          dailyRate,
         };
       });
     } else {
       const dataMap = new Map(weeklyOccupancy.map(s => [s.locationKey, s]));
       return PARKING_STAT_LOCATIONS.map(loc => {
         const d = dataMap.get(loc.key);
+        const avg = d ? Number(d.avgOccupancy) : 0;
+        // Coeficient grad ocupare/zi = (Medie / 7) / Nr. Locuri
+        const dailyRate = loc.spots > 0 ? Number(((avg / 7) / loc.spots).toFixed(2)) : 0;
         return {
           locationKey: loc.key,
           name: loc.name,
           fullName: getLocationFullName(loc.key),
           group: loc.group,
+          spots: loc.spots,
           min: d ? Number(d.minOccupancy) : 0,
           max: d ? Number(d.maxOccupancy) : 0,
-          avg: d ? Number(d.avgOccupancy) : 0,
-          dailyRate: d ? Number(d.dailyRate) : 0,
+          avg,
+          dailyRate,
         };
       });
     }
@@ -291,12 +299,13 @@ const ParkingStatsReportsTab: React.FC = () => {
       });
     } else {
       const avgTotal = occupancyData.reduce((sum, d) => sum + d.avg, 0);
-      const avgDaily = occupancyData.reduce((sum, d) => sum + d.dailyRate, 0);
-      doc.text(`Medie ocupare totala: ${avgTotal.toFixed(0)} | Grad mediu/zi: ${avgDaily.toFixed(2)}`, 14, 27);
+      const totalCoeff = TOTAL_PARKING_SPOTS > 0 ? ((avgTotal / 7) / TOTAL_PARKING_SPOTS).toFixed(2) : '0';
+      doc.text(`Total locuri: ${TOTAL_PARKING_SPOTS} | Medie ocupare: ${avgTotal.toFixed(0)} | Coeficient mediu/zi: ${totalCoeff}`, 14, 27);
 
-      const headers = ['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'];
+      const headers = ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'];
       const rows = occupancyData.map(d => [
         d.fullName,
+        String(d.spots),
         d.min.toFixed(0),
         d.max.toFixed(0),
         d.avg.toFixed(2),
@@ -304,24 +313,26 @@ const ParkingStatsReportsTab: React.FC = () => {
       ]);
       rows.push([
         'TOTAL / MEDIE',
+        String(TOTAL_PARKING_SPOTS),
         occupancyData.reduce((s, d) => s + d.min, 0).toFixed(0),
         occupancyData.reduce((s, d) => s + d.max, 0).toFixed(0),
         avgTotal.toFixed(2),
-        avgDaily.toFixed(2),
+        totalCoeff,
       ]);
 
       autoTable(doc, {
         head: [headers],
         body: rows,
         startY: 33,
-        styles: { fontSize: 9, cellPadding: 3 },
+        styles: { fontSize: 8, cellPadding: 3 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
         columnStyles: {
-          0: { cellWidth: 70 },
-          1: { halign: 'right', cellWidth: 25 },
-          2: { halign: 'right', cellWidth: 25 },
-          3: { halign: 'right', cellWidth: 25 },
-          4: { halign: 'right', cellWidth: 30 },
+          0: { cellWidth: 55 },
+          1: { halign: 'right', cellWidth: 22 },
+          2: { halign: 'right', cellWidth: 22 },
+          3: { halign: 'right', cellWidth: 22 },
+          4: { halign: 'right', cellWidth: 22 },
+          5: { halign: 'right', cellWidth: 25 },
         },
         didParseCell: (data) => {
           if (data.section === 'body' && data.row.index === rows.length - 1) {
@@ -381,12 +392,14 @@ const ParkingStatsReportsTab: React.FC = () => {
       const wsData = [
         [`Raport Grad de Ocupare - ${periodLabel}`],
         [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
+        [`(Grad/Zi = (Medie / 7) / Nr. Locuri)`],
         [],
-        ['Parcare', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'],
-        ...occupancyData.map(d => [d.fullName, d.min, d.max, Number(d.avg.toFixed(2)), Number(d.dailyRate.toFixed(2))]),
+        ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Zi'],
+        ...occupancyData.map(d => [d.fullName, d.spots, d.min, d.max, Number(d.avg.toFixed(2)), Number(d.dailyRate.toFixed(2))]),
         [],
         [
           'TOTAL / MEDIE',
+          TOTAL_PARKING_SPOTS,
           occupancyData.reduce((s, d) => s + d.min, 0),
           occupancyData.reduce((s, d) => s + d.max, 0),
           Number(occupancyData.reduce((s, d) => s + d.avg, 0).toFixed(2)),
@@ -394,7 +407,7 @@ const ParkingStatsReportsTab: React.FC = () => {
         ],
       ];
       const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }];
+      ws['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }];
       XLSX.utils.book_append_sheet(wb, ws, 'Ocupare');
     }
 
@@ -484,13 +497,15 @@ const ParkingStatsReportsTab: React.FC = () => {
 
     // Occupancy
     const totalAvg = occupancyData.reduce((s, d) => s + d.avg, 0);
-    const totalDaily = occupancyData.reduce((s, d) => s + d.dailyRate, 0);
+    // Coeficient mediu total: (totalAvg / 7) / TOTAL_PARKING_SPOTS
+    const totalDailyCoeff = TOTAL_PARKING_SPOTS > 0 ? Number(((totalAvg / 7) / TOTAL_PARKING_SPOTS).toFixed(2)) : 0;
     return (
       <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
-        <Table size="small" stickyHeader sx={{ minWidth: 480 }}>
+        <Table size="small" stickyHeader sx={{ minWidth: 560 }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 90, sm: 140 } }}>Parcare</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Maxim</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Medie</TableCell>
@@ -501,9 +516,12 @@ const ParkingStatsReportsTab: React.FC = () => {
             {occupancyData.map((d, idx) => {
               const rows: React.ReactNode[] = [];
               if (isFirstInGroup(idx) && d.group) {
+                const groupSpots = getGroupTotalSpots(d.group);
                 rows.push(
                   <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
-                    <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }} colSpan={5}>{d.group}</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.group}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>{groupSpots}</TableCell>
+                    <TableCell colSpan={4} />
                   </TableRow>
                 );
               }
@@ -512,6 +530,7 @@ const ParkingStatsReportsTab: React.FC = () => {
                   <TableCell sx={{ ...(d.group ? { pl: { xs: 2, sm: 4 } } : {}), fontSize: { xs: '0.7rem', sm: '0.875rem' }, whiteSpace: 'nowrap' }}>
                     {d.group ? `└ ${d.name}` : d.name}
                   </TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>{d.spots}</TableCell>
                   <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.min.toFixed(0)}</TableCell>
                   <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.max.toFixed(0)}</TableCell>
                   <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.avg.toFixed(2)}</TableCell>
@@ -522,6 +541,7 @@ const ParkingStatsReportsTab: React.FC = () => {
             })}
             <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
               <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>TOTAL / MEDIE</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>{TOTAL_PARKING_SPOTS}</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                 {occupancyData.reduce((s, d) => s + d.min, 0).toFixed(0)}
               </TableCell>
@@ -529,7 +549,7 @@ const ParkingStatsReportsTab: React.FC = () => {
                 {occupancyData.reduce((s, d) => s + d.max, 0).toFixed(0)}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{totalAvg.toFixed(2)}</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{totalDaily.toFixed(2)}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{totalDailyCoeff.toFixed(2)}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -626,7 +646,7 @@ const ParkingStatsReportsTab: React.FC = () => {
           {reportType === 'occupancy' && (
             <>
               <strong>Grad de ocupare</strong> — {periodType === 'monthly' ? `medie pe luna ${getPeriodLabel()}` : `saptamana ${getPeriodLabel()}`}
-              {' '} (Grad/Zi = Medie / 7 zile).
+              {' '} (Grad/Zi = (Medie / 7) / Nr. Locuri).
             </>
           )}
         </Typography>
