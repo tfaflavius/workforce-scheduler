@@ -20,16 +20,18 @@ export type ParkingStatLocationKey = typeof PARKING_STAT_LOCATIONS[number]['key'
 
 // Locatii pentru abonamente lunare — Doja ca o singura parcare (fara sub-niveluri)
 export const PARKING_SUBSCRIPTION_LOCATIONS = [
-  { key: 'INDEPENDENTEI', name: 'Parcarea Independentei' },
-  { key: 'BRASOVULUI', name: 'Parcarea Brasovului' },
-  { key: 'PRIMARIE', name: 'Parcarea Primarie' },
-  { key: 'BARITIU', name: 'Parcarea Baritiu' },
-  { key: 'SPITAL_MUNICIPAL', name: 'Parcarea Spital Municipal' },
-  { key: 'TRIBUNALULUI', name: 'Parcarea Tribunalului' },
-  { key: 'IOSIF_VULCAN', name: 'Parcarea Iosif Vulcan' },
-  { key: 'CETATE', name: 'Parcarea Cetate' },
-  { key: 'DOJA', name: 'Parcarea Doja' },
+  { key: 'INDEPENDENTEI', name: 'Parcarea Independentei', spots: 454 },
+  { key: 'BRASOVULUI', name: 'Parcarea Brasovului', spots: 395 },
+  { key: 'PRIMARIE', name: 'Parcarea Primarie', spots: 42 },
+  { key: 'BARITIU', name: 'Parcarea Baritiu', spots: 330 },
+  { key: 'SPITAL_MUNICIPAL', name: 'Parcarea Spital Municipal', spots: 198 },
+  { key: 'TRIBUNALULUI', name: 'Parcarea Tribunalului', spots: 450 },
+  { key: 'IOSIF_VULCAN', name: 'Parcarea Iosif Vulcan', spots: 121 },
+  { key: 'CETATE', name: 'Parcarea Cetate', spots: 225 },
+  { key: 'DOJA', name: 'Parcarea Doja', spots: 516 },
 ] as const;
+
+export const TOTAL_SUBSCRIPTION_SPOTS = PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, l) => sum + l.spots, 0);
 
 export type ParkingSubscriptionLocationKey = typeof PARKING_SUBSCRIPTION_LOCATIONS[number]['key'];
 

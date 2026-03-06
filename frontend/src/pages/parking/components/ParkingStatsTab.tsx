@@ -343,10 +343,11 @@ const SubscriptionsSection: React.FC = () => {
       ) : (
         <>
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: 320 }}>
+            <Table size="small" sx={{ minWidth: 400 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#10b981', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Abonamente</TableCell>
                 </TableRow>
               </TableHead>
@@ -354,6 +355,7 @@ const SubscriptionsSection: React.FC = () => {
                 {PARKING_SUBSCRIPTION_LOCATIONS.map((loc) => (
                   <TableRow key={loc.key} hover>
                     <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{loc.name}</TableCell>
+                    <TableCell align="right" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>{loc.spots}</TableCell>
                     <TableCell align="right">
                       <TextField
                         type="number"
@@ -371,6 +373,9 @@ const SubscriptionsSection: React.FC = () => {
                 ))}
                 <TableRow sx={{ bgcolor: alpha('#10b981', 0.05) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>TOTAL</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>
+                    {PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, loc) => sum + loc.spots, 0)}
+                  </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>{total}</TableCell>
                 </TableRow>
               </TableBody>

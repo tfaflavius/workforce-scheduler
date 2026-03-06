@@ -1257,17 +1257,19 @@ const ReportsPage: React.FC = () => {
       const subMap = new Map(totalMonthlySubscriptions.map((s: any) => [s.locationKey, s.subscriptionCount || 0]));
       const subRows = PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [
         loc.name,
+        String(loc.spots),
         (subMap.get(loc.key) || 0).toString(),
       ]);
-      subRows.push(['TOTAL', totalAbonamente.toString()]);
+      const totalSubSpots = PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, loc) => sum + loc.spots, 0);
+      subRows.push(['TOTAL', String(totalSubSpots), totalAbonamente.toString()]);
 
       autoTable(doc, {
-        head: [['Parcare', 'Nr. Abonamente']],
+        head: [['Parcare', 'Nr. Locuri', 'Nr. Abonamente']],
         body: subRows,
         startY: yPos,
         styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-        columnStyles: { 1: { halign: 'right', cellWidth: 30 } },
+        columnStyles: { 1: { halign: 'right', cellWidth: 22 }, 2: { halign: 'right', cellWidth: 30 } },
         didParseCell: (data) => {
           if (data.section === 'body' && data.row.index === subRows.length - 1) {
             data.cell.styles.fontStyle = 'bold';
@@ -1738,9 +1740,9 @@ const ReportsPage: React.FC = () => {
         ['TOTAL', ticketTotal],
         [],
         ['=== ABONAMENTE LUNARE ==='],
-        ['Parcare', 'Numar Abonamente'],
-        ...PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, subMap.get(loc.key) || 0]),
-        ['TOTAL', subTotal],
+        ['Parcare', 'Nr. Locuri', 'Numar Abonamente'],
+        ...PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, loc.spots, subMap.get(loc.key) || 0]),
+        ['TOTAL', PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, loc) => sum + loc.spots, 0), subTotal],
         [],
         ['=== GRAD DE OCUPARE (Grad/Săpt. = (Medie / Nr. Locuri) × 100%) ==='],
         ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt. (%)'],

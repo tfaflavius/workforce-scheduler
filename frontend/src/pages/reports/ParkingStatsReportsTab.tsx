@@ -167,6 +167,7 @@ const ParkingStatsReportsTab: React.FC = () => {
     return PARKING_SUBSCRIPTION_LOCATIONS.map(loc => ({
       locationKey: loc.key,
       name: loc.name,
+      spots: loc.spots,
       value: dataMap.get(loc.key) || 0,
     }));
   }, [monthlySubscriptions]);
@@ -281,11 +282,12 @@ const ParkingStatsReportsTab: React.FC = () => {
       });
     } else if (reportType === 'subscriptions') {
       const total = subscriptionsData.reduce((sum, d) => sum + d.value, 0);
-      doc.text(`Total abonamente: ${total}`, 14, 27);
+      const totalSpots = subscriptionsData.reduce((sum, d) => sum + d.spots, 0);
+      doc.text(`Total abonamente: ${total} | Total locuri: ${totalSpots}`, 14, 27);
 
-      const headers = ['Parcare', 'Numar Abonamente'];
-      const rows = subscriptionsData.map(d => [d.name, d.value.toString()]);
-      rows.push(['TOTAL', total.toString()]);
+      const headers = ['Parcare', 'Nr. Locuri', 'Numar Abonamente'];
+      const rows = subscriptionsData.map(d => [d.name, String(d.spots), d.value.toString()]);
+      rows.push(['TOTAL', String(totalSpots), total.toString()]);
 
       autoTable(doc, {
         head: [headers],
@@ -293,7 +295,7 @@ const ParkingStatsReportsTab: React.FC = () => {
         startY: 33,
         styles: { fontSize: 9, cellPadding: 3 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-        columnStyles: { 0: { cellWidth: 100 }, 1: { halign: 'right', cellWidth: 40 } },
+        columnStyles: { 0: { cellWidth: 80 }, 1: { halign: 'right', cellWidth: 25 }, 2: { halign: 'right', cellWidth: 40 } },
         didParseCell: (data) => {
           if (data.section === 'body' && data.row.index === rows.length - 1) {
             data.cell.styles.fontStyle = 'bold';
@@ -380,17 +382,18 @@ const ParkingStatsReportsTab: React.FC = () => {
       XLSX.utils.book_append_sheet(wb, ws, 'Tichete');
     } else if (reportType === 'subscriptions') {
       const total = subscriptionsData.reduce((sum, d) => sum + d.value, 0);
+      const totalSpots = subscriptionsData.reduce((sum, d) => sum + d.spots, 0);
       const wsData = [
         [`Raport Abonamente Lunare - ${periodLabel}`],
         [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
         [],
-        ['Parcare', 'Numar Abonamente'],
-        ...subscriptionsData.map(d => [d.name, d.value]),
+        ['Parcare', 'Nr. Locuri', 'Numar Abonamente'],
+        ...subscriptionsData.map(d => [d.name, d.spots, d.value]),
         [],
-        ['TOTAL', total],
+        ['TOTAL', totalSpots, total],
       ];
       const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [{ wch: 35 }, { wch: 20 }];
+      ws['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 20 }];
       XLSX.utils.book_append_sheet(wb, ws, 'Abonamente');
     } else {
       const wsData = [
@@ -473,12 +476,14 @@ const ParkingStatsReportsTab: React.FC = () => {
 
     if (reportType === 'subscriptions') {
       const total = subscriptionsData.reduce((sum, d) => sum + d.value, 0);
+      const totalSpots = subscriptionsData.reduce((sum, d) => sum + d.spots, 0);
       return (
         <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
-          <Table size="small" stickyHeader sx={{ minWidth: 300 }}>
+          <Table size="small" stickyHeader sx={{ minWidth: 400 }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Numar Abonamente</TableCell>
               </TableRow>
             </TableHead>
@@ -486,11 +491,13 @@ const ParkingStatsReportsTab: React.FC = () => {
               {subscriptionsData.map((d) => (
                 <TableRow key={d.locationKey} hover>
                   <TableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.name}</TableCell>
+                  <TableCell align="right" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>{d.spots}</TableCell>
                   <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.value}</TableCell>
                 </TableRow>
               ))}
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
                 <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>TOTAL</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>{totalSpots}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>{total}</TableCell>
               </TableRow>
             </TableBody>
