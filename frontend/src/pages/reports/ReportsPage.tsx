@@ -956,459 +956,6 @@ const ReportsPage: React.FC = () => {
     XLSX.writeFile(wb, `raport-schimburi-${selectedMonth}.xlsx`);
   };
 
-  // Export Total Report to PDF
-  const handleExportTotalPDF = () => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-
-    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
-    const pageHeight = doc.internal.pageSize.getHeight();
-
-    const checkPageBreak = (yPosition: number, needed: number = 40) => {
-      if (yPosition + needed > pageHeight - 20) {
-        doc.addPage();
-        return 20;
-      }
-      return yPosition;
-    };
-
-    // Title page
-    doc.setFontSize(20);
-    doc.text(`Raport total - ${monthLabel}`, 14, 20);
-
-    doc.setFontSize(10);
-    doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 28);
-    doc.text('Acest raport include date din toate cele 12 sectiuni ale aplicatiei.', 14, 34);
-
-    let yPos = 48;
-
-    // Section 1: Work Statistics
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('1. Program de lucru', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const totalHours = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
-    const totalDayShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).dayShifts, 0);
-    const totalNightShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).nightShifts, 0);
-    const totalVacationDays = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).vacationDays, 0);
-
-    doc.setFontSize(10);
-    doc.text(`Total angajati: ${filteredUsers.length}`, 20, yPos); yPos += 6;
-    doc.text(`Total ore lucrate: ${totalHours}`, 20, yPos); yPos += 6;
-    doc.text(`Total ture de zi: ${totalDayShifts}`, 20, yPos); yPos += 6;
-    doc.text(`Total ture de noapte: ${totalNightShifts}`, 20, yPos); yPos += 6;
-    doc.text(`Total zile concediu (din program): ${totalVacationDays}`, 20, yPos); yPos += 12;
-
-    // Section 2: Leave Statistics
-    yPos = checkPageBreak(yPos, 50);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('2. Concedii', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const approvedLeaves = filteredLeaveRequests.filter(r => r.status === 'APPROVED');
-    const pendingLeaves = filteredLeaveRequests.filter(r => r.status === 'PENDING');
-    const rejectedLeaves = filteredLeaveRequests.filter(r => r.status === 'REJECTED');
-    const totalLeaveDays = approvedLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
-
-    const leavesByType = approvedLeaves.reduce((acc, req) => {
-      acc[req.leaveType] = (acc[req.leaveType] || 0) + calculateWorkingDays(req.startDate, req.endDate);
-      return acc;
-    }, {} as Record<LeaveType, number>);
-
-    doc.setFontSize(10);
-    doc.text(`Total cereri: ${filteredLeaveRequests.length}`, 20, yPos); yPos += 6;
-    doc.text(`Aprobate: ${approvedLeaves.length} | In asteptare: ${pendingLeaves.length} | Respinse: ${rejectedLeaves.length}`, 20, yPos); yPos += 6;
-    doc.text(`Total zile concediu aprobate: ${totalLeaveDays}`, 20, yPos); yPos += 8;
-
-    Object.entries(leavesByType).forEach(([type, days]) => {
-      doc.text(`  - ${LEAVE_TYPE_LABELS[type as LeaveType]}: ${days} zile`, 25, yPos);
-      yPos += 5;
-    });
-    yPos += 10;
-
-    // Section 3: Shift Swap Statistics
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('3. Schimburi de tura', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED');
-    const pendingSwaps = filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN');
-    const rejectedSwaps = filteredSwapRequests.filter(r => r.status === 'REJECTED');
-
-    doc.setFontSize(10);
-    doc.text(`Total cereri schimb: ${filteredSwapRequests.length}`, 20, yPos); yPos += 6;
-    doc.text(`Aprobate: ${approvedSwaps.length} | In asteptare: ${pendingSwaps.length} | Respinse: ${rejectedSwaps.length}`, 20, yPos); yPos += 12;
-
-    // Section 4: Parcari Etajate
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('4. Parcari Etajate', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    doc.setFontSize(10);
-    doc.text(`Probleme active: ${totalParkingIssues.filter((i: any) => i.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
-    doc.text(`Probleme finalizate: ${totalParkingIssues.filter((i: any) => i.status === 'FINALIZAT').length}`, 20, yPos); yPos += 6;
-    doc.text(`Total prejudicii: ${totalParkingDamages.length}`, 20, yPos); yPos += 12;
-
-    // Section 5: Parcari Handicap
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('5. Parcari Handicap', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    doc.setFontSize(10);
-    doc.text(`Total solicitari: ${totalHandicapRequests.length}`, 20, yPos); yPos += 6;
-    doc.text(`Active: ${totalHandicapRequests.filter((r: any) => r.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
-    doc.text(`Finalizate: ${totalHandicapRequests.filter((r: any) => r.status === 'FINALIZAT').length}`, 20, yPos); yPos += 12;
-
-    // Section 6: Parcari Domiciliu
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('6. Parcari Domiciliu', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    doc.setFontSize(10);
-    doc.text(`Total solicitari: ${totalDomiciliuRequests.length}`, 20, yPos); yPos += 6;
-    doc.text(`Active: ${totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
-    doc.text(`Finalizate: ${totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length}`, 20, yPos); yPos += 12;
-
-    // Section 7: Procese Verbale
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('7. Procese Verbale / Facturare', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const completedPv = totalPvSessions.filter((s: any) => s.status === 'COMPLETED').length;
-    const inProgressPv = totalPvSessions.filter((s: any) => s.status === 'IN_PROGRESS').length;
-
-    doc.setFontSize(10);
-    doc.text(`Total sesiuni: ${totalPvSessions.length}`, 20, yPos); yPos += 6;
-    doc.text(`Finalizate: ${completedPv}`, 20, yPos); yPos += 6;
-    doc.text(`In desfasurare: ${inProgressPv}`, 20, yPos); yPos += 12;
-
-    // Section 8: Parcometre
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('8. Parcometre', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const activeMeters = totalParkingMeters.filter((m: any) => m.isActive).length;
-    const rosuMeters = totalParkingMeters.filter((m: any) => m.zone === 'ROSU').length;
-    const galbenMeters = totalParkingMeters.filter((m: any) => m.zone === 'GALBEN').length;
-
-    doc.setFontSize(10);
-    doc.text(`Total parcometre: ${totalParkingMeters.length}`, 20, yPos); yPos += 6;
-    doc.text(`Active: ${activeMeters}`, 20, yPos); yPos += 6;
-    doc.text(`Zona Rosu: ${rosuMeters} | Zona Galben: ${galbenMeters}`, 20, yPos); yPos += 12;
-
-    // Section 9: Control Sesizari
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('9. Control Sesizari', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const activeSesizari = totalControlSesizari.filter((s: any) => s.status === 'ACTIVE').length;
-    const finalizatSesizari = totalControlSesizari.filter((s: any) => s.status === 'FINALIZAT').length;
-
-    doc.setFontSize(10);
-    doc.text(`Total sesizari: ${totalControlSesizari.length}`, 20, yPos); yPos += 6;
-    doc.text(`Active: ${activeSesizari}`, 20, yPos); yPos += 6;
-    doc.text(`Finalizate: ${finalizatSesizari}`, 20, yPos); yPos += 12;
-
-    // Section 10: Achizitii
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('10. Achizitii', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const totalBuget = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.totalAmount || 0), 0);
-    const totalCheltuit = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.spentAmount || 0), 0);
-
-    doc.setFontSize(10);
-    doc.text(`Pozitii bugetare: ${totalBudgetPositions.length}`, 20, yPos); yPos += 6;
-    doc.text(`Total buget: ${totalBuget.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-    doc.text(`Total cheltuit: ${totalCheltuit.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-    doc.text(`Ramas: ${(totalBuget - totalCheltuit).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 12;
-
-    // Section 11: Incasari / Cheltuieli
-    yPos = checkPageBreak(yPos, 40);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('11. Incasari / Cheltuieli', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const grandIncasari = totalRevenueSummary?.grandTotalIncasari || 0;
-    const grandCheltuieli = totalRevenueSummary?.grandTotalCheltuieli || 0;
-
-    doc.setFontSize(10);
-    doc.text(`Total incasari: ${grandIncasari.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-    doc.text(`Total cheltuieli: ${grandCheltuieli.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-    doc.text(`Diferenta: ${(grandIncasari - grandCheltuieli).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 8;
-
-    // Detailed Incasari/Cheltuieli table
-    if (totalRevenueSummary?.categories && totalRevenueSummary.categories.length > 0) {
-      yPos = checkPageBreak(yPos, 40);
-      const incHeaders = ['Categorie', 'Incasari (lei)', 'Cheltuieli (lei)'];
-      const flatCats: any[] = [];
-      const flattenCats = (cats: any[]) => {
-        cats.forEach((cat: any) => {
-          flatCats.push(cat);
-          if (cat.children?.length > 0) flattenCats(cat.children);
-        });
-      };
-      flattenCats(totalRevenueSummary.categories);
-      const incRows = flatCats.map((cat: any) => [
-        cat.categoryName || 'N/A',
-        (cat.totalIncasari || 0).toLocaleString('ro-RO'),
-        (cat.totalCheltuieli || 0).toLocaleString('ro-RO'),
-      ]);
-      incRows.push([
-        'TOTAL',
-        grandIncasari.toLocaleString('ro-RO'),
-        grandCheltuieli.toLocaleString('ro-RO'),
-      ]);
-
-      autoTable(doc, {
-        head: [incHeaders],
-        body: incRows,
-        startY: yPos,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [5, 150, 105], textColor: 255, fontStyle: 'bold' },
-        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
-        didParseCell: (data) => {
-          if (data.section === 'body' && data.row.index === incRows.length - 1) {
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fillColor = [232, 245, 233];
-          }
-        },
-      });
-      yPos = (doc as any).lastAutoTable?.finalY + 8 || yPos + 20;
-    } else {
-      yPos += 4;
-    }
-
-    // Section 12: Pontaj (admin only)
-    if (isAdminOrManager && totalTimeEntries.length > 0) {
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('12. Monitorizare Pontaj', 14, yPos);
-      doc.setFont('helvetica', 'normal');
-      yPos += 10;
-
-      const totalOre = (totalTimeEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0) / 60).toFixed(1);
-      const angajatiUnici = new Set(totalTimeEntries.map((e: any) => e.userId)).size;
-
-      doc.setFontSize(10);
-      doc.text(`Total intrari pontaj: ${totalTimeEntries.length}`, 20, yPos); yPos += 6;
-      doc.text(`Total ore: ${totalOre}h`, 20, yPos); yPos += 6;
-      doc.text(`Angajati unici: ${angajatiUnici}`, 20, yPos); yPos += 12;
-    }
-
-    // Section 13: Statistici Parcari
-    yPos = checkPageBreak(yPos, 50);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('13. Statistici Parcari', 14, yPos);
-    doc.setFont('helvetica', 'normal');
-    yPos += 10;
-
-    const totalTichete = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
-    const totalAbonamente = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
-
-    doc.setFontSize(10);
-    doc.text(`Total tichete zilnice: ${totalTichete} | Abonamente: ${totalAbonamente} | Parcari raportate ocupare: ${totalMonthlyOccupancy.length}`, 20, yPos);
-    yPos += 8;
-
-    // Tichete table
-    if (totalMonthlyTickets.length > 0) {
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Tichete zilnice per parcare:', 20, yPos);
-      doc.setFont('helvetica', 'normal');
-      yPos += 6;
-
-      const ticketMap = new Map(totalMonthlyTickets.map((t: any) => [t.locationKey, t.totalTickets || 0]));
-      const ticketRows = PARKING_STAT_LOCATIONS.map(loc => [
-        getLocationFullName(loc.key),
-        (ticketMap.get(loc.key) || 0).toString(),
-      ]);
-      ticketRows.push(['TOTAL', totalTichete.toString()]);
-
-      autoTable(doc, {
-        head: [['Parcare', 'Nr. Tichete']],
-        body: ticketRows,
-        startY: yPos,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-        columnStyles: { 1: { halign: 'right', cellWidth: 30 } },
-        didParseCell: (data) => {
-          if (data.section === 'body' && data.row.index === ticketRows.length - 1) {
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fillColor = [245, 243, 255];
-          }
-        },
-      });
-      yPos = (doc as any).lastAutoTable?.finalY + 6 || yPos + 20;
-    }
-
-    // Abonamente table
-    if (totalMonthlySubscriptions.length > 0) {
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Abonamente lunare per parcare:', 20, yPos);
-      doc.setFont('helvetica', 'normal');
-      yPos += 6;
-
-      const subMap = new Map(totalMonthlySubscriptions.map((s: any) => [s.locationKey, s.subscriptionCount || 0]));
-      const subRows = PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [
-        loc.name,
-        String(loc.spots),
-        (subMap.get(loc.key) || 0).toString(),
-      ]);
-      const totalSubSpots = PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, loc) => sum + loc.spots, 0);
-      subRows.push(['TOTAL', String(totalSubSpots), totalAbonamente.toString()]);
-
-      autoTable(doc, {
-        head: [['Parcare', 'Nr. Locuri', 'Nr. Abonamente']],
-        body: subRows,
-        startY: yPos,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-        columnStyles: { 1: { halign: 'right', cellWidth: 22 }, 2: { halign: 'right', cellWidth: 30 } },
-        didParseCell: (data) => {
-          if (data.section === 'body' && data.row.index === subRows.length - 1) {
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fillColor = [245, 243, 255];
-          }
-        },
-      });
-      yPos = (doc as any).lastAutoTable?.finalY + 6 || yPos + 20;
-    }
-
-    // Occupancy table
-    if (totalMonthlyOccupancy.length > 0) {
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Grad de ocupare (medie lunara):', 20, yPos);
-      doc.setFont('helvetica', 'normal');
-      yPos += 6;
-
-      const occMap = new Map(totalMonthlyOccupancy.map((o: any) => [o.locationKey, o]));
-      const occRows = PARKING_STAT_LOCATIONS.map(loc => {
-        const o = occMap.get(loc.key);
-        const avg = o ? Number(o.avgAvg || 0) : 0;
-        const spots = loc.spots;
-        const coefficient = spots > 0 ? ((avg / spots) * 100) : 0;
-        return [
-          getLocationFullName(loc.key),
-          String(spots),
-          o ? Number(o.avgMin || 0).toFixed(0) : '0',
-          o ? Number(o.avgMax || 0).toFixed(0) : '0',
-          avg.toFixed(2),
-          coefficient.toFixed(2) + '%',
-        ];
-      });
-      const totalOccAvg = totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgAvg || 0), 0);
-      const totalCoefficient = TOTAL_PARKING_SPOTS > 0 ? ((totalOccAvg / TOTAL_PARKING_SPOTS) * 100) : 0;
-      occRows.push([
-        'TOTAL / MEDIE',
-        String(TOTAL_PARKING_SPOTS),
-        totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMin || 0), 0).toFixed(0),
-        totalMonthlyOccupancy.reduce((s: number, o: any) => s + Number(o.avgMax || 0), 0).toFixed(0),
-        totalOccAvg.toFixed(2),
-        totalCoefficient.toFixed(2) + '%',
-      ]);
-
-      autoTable(doc, {
-        head: [['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt. (%)']],
-        body: occRows,
-        startY: yPos,
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-        columnStyles: {
-          0: { cellWidth: 50 },
-          1: { halign: 'right', cellWidth: 18 },
-          2: { halign: 'right', cellWidth: 18 },
-          3: { halign: 'right', cellWidth: 18 },
-          4: { halign: 'right', cellWidth: 18 },
-          5: { halign: 'right', cellWidth: 20 },
-        },
-        didParseCell: (data) => {
-          if (data.section === 'body' && data.row.index === occRows.length - 1) {
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fillColor = [245, 243, 255];
-          }
-        },
-      });
-      yPos = (doc as any).lastAutoTable?.finalY + 8 || yPos + 20;
-    } else {
-      yPos += 4;
-    }
-
-    // Summary Table per Employee
-    yPos = checkPageBreak(yPos, 50);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Tabel sumar pe angajati', 14, yPos);
-    yPos += 8;
-
-    const summaryHeaders = ['Angajat', 'Ore', 'Ture zi', 'Ture noapte', 'Zile CO', 'Schimburi'];
-    const summaryRows = filteredUsers.map(user => {
-      const stats = getUserStats(user.id);
-      const userLeaves = approvedLeaves.filter(r => r.userId === user.id);
-      const userSwaps = approvedSwaps.filter(r => r.requesterId === user.id);
-      const userLeaveDays = userLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
-
-      return [
-        user.fullName,
-        stats.totalHours.toString(),
-        stats.dayShifts.toString(),
-        stats.nightShifts.toString(),
-        userLeaveDays.toString(),
-        userSwaps.length.toString(),
-      ];
-    });
-
-    autoTable(doc, {
-      head: [summaryHeaders],
-      body: summaryRows,
-      startY: yPos,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [25, 118, 210], textColor: 255 },
-    });
-
-    doc.save(`raport-total-${selectedMonth}.pdf`);
-  };
-
   const handleExportCustomPDF = () => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
@@ -1753,399 +1300,6 @@ const ReportsPage: React.FC = () => {
 
     doc.save(`raport-personalizat-${selectedMonth}.pdf`);
     setCustomReportOpen(false);
-  };
-
-  // Export Total Report to Excel
-  const handleExportTotalExcel = () => {
-    const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
-
-    const totalHours = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
-    const totalDayShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).dayShifts, 0);
-    const totalNightShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).nightShifts, 0);
-
-    const approvedLeaves = filteredLeaveRequests.filter(r => r.status === 'APPROVED');
-    const totalLeaveDays = approvedLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
-
-    const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED');
-
-    const totalBuget = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.totalAmount || 0), 0);
-    const totalCheltuitBuget = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.spentAmount || 0), 0);
-    const grandIncasari = totalRevenueSummary?.grandTotalIncasari || 0;
-    const grandCheltuieli = totalRevenueSummary?.grandTotalCheltuieli || 0;
-
-    const wb = XLSX.utils.book_new();
-
-    // Sheet 1: Sumar General (all 12 sections)
-    const summaryData: (string | number)[][] = [
-      [`Raport total - ${monthLabel}`],
-      [`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`],
-      [],
-      ['=== 1. PROGRAM DE LUCRU ==='],
-      [`Total angajati: ${filteredUsers.length}`],
-      [`Total ore lucrate: ${totalHours}`],
-      [`Total ture de zi: ${totalDayShifts}`],
-      [`Total ture de noapte: ${totalNightShifts}`],
-      [],
-      ['=== 2. CONCEDII ==='],
-      [`Total cereri: ${filteredLeaveRequests.length}`],
-      [`Aprobate: ${approvedLeaves.length}`],
-      [`Total zile aprobate: ${totalLeaveDays}`],
-      [],
-      ['=== 3. SCHIMBURI DE TURA ==='],
-      [`Total cereri: ${filteredSwapRequests.length}`],
-      [`Aprobate: ${approvedSwaps.length}`],
-      [],
-      ['=== 4. PARCARI ETAJATE ==='],
-      [`Probleme active: ${totalParkingIssues.filter((i: any) => i.status === 'ACTIVE').length}`],
-      [`Probleme finalizate: ${totalParkingIssues.filter((i: any) => i.status === 'FINALIZAT').length}`],
-      [`Total prejudicii: ${totalParkingDamages.length}`],
-      [],
-      ['=== 5. PARCARI HANDICAP ==='],
-      [`Total solicitari: ${totalHandicapRequests.length}`],
-      [`Active: ${totalHandicapRequests.filter((r: any) => r.status === 'ACTIVE').length}`],
-      [`Finalizate: ${totalHandicapRequests.filter((r: any) => r.status === 'FINALIZAT').length}`],
-      [],
-      ['=== 6. PARCARI DOMICILIU ==='],
-      [`Total solicitari: ${totalDomiciliuRequests.length}`],
-      [`Active: ${totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length}`],
-      [`Finalizate: ${totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length}`],
-      [],
-      ['=== 7. PROCESE VERBALE / FACTURARE ==='],
-      [`Total sesiuni: ${totalPvSessions.length}`],
-      [`Finalizate: ${totalPvSessions.filter((s: any) => s.status === 'COMPLETED').length}`],
-      [`In desfasurare: ${totalPvSessions.filter((s: any) => s.status === 'IN_PROGRESS').length}`],
-      [],
-      ['=== 8. PARCOMETRE ==='],
-      [`Total parcometre: ${totalParkingMeters.length}`],
-      [`Active: ${totalParkingMeters.filter((m: any) => m.isActive).length}`],
-      [`Zona Rosu: ${totalParkingMeters.filter((m: any) => m.zone === 'ROSU').length}`],
-      [`Zona Galben: ${totalParkingMeters.filter((m: any) => m.zone === 'GALBEN').length}`],
-      [],
-      ['=== 9. CONTROL SESIZARI ==='],
-      [`Total sesizari: ${totalControlSesizari.length}`],
-      [`Active: ${totalControlSesizari.filter((s: any) => s.status === 'ACTIVE').length}`],
-      [`Finalizate: ${totalControlSesizari.filter((s: any) => s.status === 'FINALIZAT').length}`],
-      [],
-      ['=== 10. ACHIZITII ==='],
-      [`Pozitii bugetare: ${totalBudgetPositions.length}`],
-      [`Total buget: ${totalBuget.toLocaleString('ro-RO')} lei`],
-      [`Total cheltuit: ${totalCheltuitBuget.toLocaleString('ro-RO')} lei`],
-      [`Ramas: ${(totalBuget - totalCheltuitBuget).toLocaleString('ro-RO')} lei`],
-      [],
-      ['=== 11. INCASARI / CHELTUIELI ==='],
-      [`Total incasari: ${grandIncasari.toLocaleString('ro-RO')} lei`],
-      [`Total cheltuieli: ${grandCheltuieli.toLocaleString('ro-RO')} lei`],
-      [`Diferenta: ${(grandIncasari - grandCheltuieli).toLocaleString('ro-RO')} lei`],
-    ];
-
-    if (isAdminOrManager && totalTimeEntries.length > 0) {
-      const totalOre = (totalTimeEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0) / 60).toFixed(1);
-      const angajatiUnici = new Set(totalTimeEntries.map((e: any) => e.userId)).size;
-      summaryData.push(
-        [],
-        ['=== 12. MONITORIZARE PONTAJ ==='],
-        [`Total intrari: ${totalTimeEntries.length}`],
-        [`Total ore: ${totalOre}h`],
-        [`Angajati unici: ${angajatiUnici}`],
-      );
-    }
-
-    // Statistici Parcari in sumar
-    const sumTichete = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
-    const sumAbonamente = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
-    summaryData.push(
-      [],
-      ['=== 13. STATISTICI PARCARI ==='],
-      [`Tichete zilnice (luna): ${sumTichete}`],
-      [`Abonamente lunare: ${sumAbonamente}`],
-      [`Parcari raportate ocupare: ${totalMonthlyOccupancy.length}`],
-    );
-
-    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-    wsSummary['!cols'] = [{ wch: 50 }];
-    XLSX.utils.book_append_sheet(wb, wsSummary, 'Sumar');
-
-    // Sheet 2: Per Employee
-    const employeeHeaders = ['Angajat', 'Departament', 'Ore lucrate', 'Ture zi', 'Ture noapte', 'Zile CO (program)', 'Zile CO (cereri)', 'Schimburi'];
-    const employeeRows = filteredUsers.map(user => {
-      const stats = getUserStats(user.id);
-      const userLeaves = approvedLeaves.filter(r => r.userId === user.id);
-      const userSwaps = approvedSwaps.filter(r => r.requesterId === user.id);
-      const userLeaveDays = userLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
-
-      return [
-        user.fullName,
-        user.department?.name || 'N/A',
-        stats.totalHours,
-        stats.dayShifts,
-        stats.nightShifts,
-        stats.vacationDays,
-        userLeaveDays,
-        userSwaps.length,
-      ];
-    });
-
-    const wsEmployees = XLSX.utils.aoa_to_sheet([
-      [`Detalii pe angajati - ${monthLabel}`],
-      [],
-      employeeHeaders,
-      ...employeeRows,
-    ]);
-    wsEmployees['!cols'] = [
-      { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 },
-      { wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 12 },
-    ];
-    XLSX.utils.book_append_sheet(wb, wsEmployees, 'Angajati');
-
-    // Sheet 3: Parcari Etajate
-    if (totalParkingIssues.length > 0 || totalParkingDamages.length > 0) {
-      const parkingData = totalParkingIssues.map((issue: any) => [
-        issue.parkingLot?.name || 'N/A',
-        issue.title || 'N/A',
-        issue.status || 'N/A',
-        issue.priority || 'N/A',
-        new Date(issue.createdAt).toLocaleDateString('ro-RO'),
-      ]);
-      const wsParcari = XLSX.utils.aoa_to_sheet([
-        ['Parcari Etajate - Probleme'],
-        [],
-        ['Parcare', 'Titlu', 'Status', 'Prioritate', 'Data'],
-        ...parkingData,
-      ]);
-      wsParcari['!cols'] = [{ wch: 20 }, { wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, wsParcari, 'Parcari Etajate');
-    }
-
-    // Sheet 4: Parcari Handicap
-    if (totalHandicapRequests.length > 0) {
-      const handicapData = totalHandicapRequests.map((r: any) => [
-        r.applicantName || 'N/A',
-        r.vehicleNumber || 'N/A',
-        r.status || 'N/A',
-        r.parkingLot?.name || 'N/A',
-        new Date(r.createdAt).toLocaleDateString('ro-RO'),
-      ]);
-      const wsHandicap = XLSX.utils.aoa_to_sheet([
-        ['Parcari Handicap - Solicitari'],
-        [],
-        ['Solicitant', 'Nr. vehicul', 'Status', 'Parcare', 'Data'],
-        ...handicapData,
-      ]);
-      wsHandicap['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, wsHandicap, 'Handicap');
-    }
-
-    // Sheet 5: Parcari Domiciliu
-    if (totalDomiciliuRequests.length > 0) {
-      const domiciliuData = totalDomiciliuRequests.map((r: any) => [
-        r.applicantName || 'N/A',
-        r.vehicleNumber || 'N/A',
-        r.status || 'N/A',
-        r.address || 'N/A',
-        new Date(r.createdAt).toLocaleDateString('ro-RO'),
-      ]);
-      const wsDomiciliu = XLSX.utils.aoa_to_sheet([
-        ['Parcari Domiciliu - Solicitari'],
-        [],
-        ['Solicitant', 'Nr. vehicul', 'Status', 'Adresa', 'Data'],
-        ...domiciliuData,
-      ]);
-      wsDomiciliu['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 30 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, wsDomiciliu, 'Domiciliu');
-    }
-
-    // Sheet 6: Procese Verbale
-    if (totalPvSessions.length > 0) {
-      const pvData = totalPvSessions.map((s: any) => [
-        s.month && s.year ? `${s.month}/${s.year}` : 'N/A',
-        s.status || 'N/A',
-        s.days?.length || 0,
-        s.days?.filter((d: any) => d.isCompleted).length || 0,
-        new Date(s.createdAt).toLocaleDateString('ro-RO'),
-      ]);
-      const wsPv = XLSX.utils.aoa_to_sheet([
-        ['Procese Verbale - Sesiuni'],
-        [],
-        ['Luna/An', 'Status', 'Nr Zile', 'Zile finalizate', 'Data creare'],
-        ...pvData,
-      ]);
-      wsPv['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, wsPv, 'PV Facturare');
-    }
-
-    // Sheet 7: Parcometre
-    if (totalParkingMeters.length > 0) {
-      const parcometreData = totalParkingMeters.map((m: any) => [
-        m.name || 'N/A',
-        m.zone || 'N/A',
-        m.powerSource || 'N/A',
-        m.condition || 'N/A',
-        m.isActive ? 'Da' : 'Nu',
-        m.address || 'N/A',
-      ]);
-      const wsParcometru = XLSX.utils.aoa_to_sheet([
-        ['Parcometre'],
-        [],
-        ['Nume', 'Zona', 'Sursa energie', 'Stare', 'Activ', 'Adresa'],
-        ...parcometreData,
-      ]);
-      wsParcometru['!cols'] = [{ wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 8 }, { wch: 30 }];
-      XLSX.utils.book_append_sheet(wb, wsParcometru, 'Parcometre');
-    }
-
-    // Sheet 8: Control Sesizari
-    if (totalControlSesizari.length > 0) {
-      const sesizariData = totalControlSesizari.map((s: any) => [
-        s.type || 'N/A',
-        s.zone || 'N/A',
-        s.location || 'N/A',
-        s.status || 'N/A',
-        s.createdByUser?.fullName || 'N/A',
-        new Date(s.createdAt).toLocaleDateString('ro-RO'),
-      ]);
-      const wsSesizari = XLSX.utils.aoa_to_sheet([
-        ['Control Sesizari'],
-        [],
-        ['Tip', 'Zona', 'Locatie', 'Status', 'Creat de', 'Data'],
-        ...sesizariData,
-      ]);
-      wsSesizari['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, wsSesizari, 'Control Sesizari');
-    }
-
-    // Sheet 9: Achizitii
-    if (totalBudgetPositions.length > 0) {
-      const achizitiiData = totalBudgetPositions.map((bp: any) => [
-        bp.name || 'N/A',
-        bp.category === 'INVESTMENTS' ? 'Investitii' : 'Cheltuieli curente',
-        bp.totalAmount || 0,
-        bp.spentAmount || 0,
-        (bp.totalAmount || 0) - (bp.spentAmount || 0),
-        bp.acquisitions?.length || 0,
-      ]);
-      const wsAchizitii = XLSX.utils.aoa_to_sheet([
-        ['Achizitii - Pozitii Bugetare 2026'],
-        [],
-        ['Pozitie', 'Categorie', 'Buget (lei)', 'Cheltuit (lei)', 'Ramas (lei)', 'Nr achizitii'],
-        ...achizitiiData,
-      ]);
-      wsAchizitii['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
-      XLSX.utils.book_append_sheet(wb, wsAchizitii, 'Achizitii');
-    }
-
-    // Sheet 10: Incasari / Cheltuieli
-    if (totalRevenueSummary?.categories && totalRevenueSummary.categories.length > 0) {
-      const months = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const incasariHeaders = ['Categorie', ...months, 'Total Incasari', 'Total Cheltuieli'];
-
-      // Flatten categories (including children)
-      const allCats: any[] = [];
-      const flattenRevCats = (cats: any[]) => {
-        cats.forEach((cat: any) => {
-          allCats.push(cat);
-          if (cat.children?.length > 0) flattenRevCats(cat.children);
-        });
-      };
-      flattenRevCats(totalRevenueSummary.categories);
-
-      const incasariData = allCats.map((cat: any) => {
-        const row: (string | number)[] = [cat.categoryName || 'N/A'];
-        for (let m = 1; m <= 12; m++) {
-          row.push(cat.months?.[m]?.incasari || 0);
-        }
-        row.push(cat.totalIncasari || 0);
-        row.push(cat.totalCheltuieli || 0);
-        return row;
-      });
-
-      // Add totals row
-      const totalsRow: (string | number)[] = ['TOTAL'];
-      for (let m = 1; m <= 12; m++) {
-        totalsRow.push(totalRevenueSummary.monthTotals?.[m]?.incasari || 0);
-      }
-      totalsRow.push(grandIncasari);
-      totalsRow.push(grandCheltuieli);
-      incasariData.push(totalsRow);
-
-      const wsIncasari = XLSX.utils.aoa_to_sheet([
-        ['Incasari / Cheltuieli 2026'],
-        [],
-        incasariHeaders,
-        ...incasariData,
-      ]);
-      wsIncasari['!cols'] = [
-        { wch: 30 }, ...months.map(() => ({ wch: 10 })), { wch: 15 }, { wch: 15 },
-      ];
-      XLSX.utils.book_append_sheet(wb, wsIncasari, 'Incasari-Cheltuieli');
-    }
-
-    // Sheet 11: Pontaj (admin only)
-    if (isAdminOrManager && totalTimeEntries.length > 0) {
-      const pontajData = totalTimeEntries.map((e: any) => [
-        e.user?.fullName || 'N/A',
-        e.user?.department?.name || 'N/A',
-        new Date(e.startTime).toLocaleDateString('ro-RO'),
-        new Date(e.startTime).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }),
-        e.endTime ? new Date(e.endTime).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }) : '-',
-        e.durationMinutes ? `${Math.floor(e.durationMinutes / 60)}h ${e.durationMinutes % 60}m` : '-',
-        e.gpsLatitude ? 'Da' : 'Nu',
-      ]);
-      const wsPontaj = XLSX.utils.aoa_to_sheet([
-        ['Monitorizare Pontaj'],
-        [],
-        ['Angajat', 'Departament', 'Data', 'Ora start', 'Ora sfarsit', 'Durata', 'GPS'],
-        ...pontajData,
-      ]);
-      wsPontaj['!cols'] = [
-        { wch: 25 }, { wch: 20 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 8 },
-      ];
-      XLSX.utils.book_append_sheet(wb, wsPontaj, 'Pontaj');
-    }
-
-    // Sheet 12: Statistici Parcari
-    const ticketTotal = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
-    const subTotal = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
-    if (ticketTotal > 0 || subTotal > 0 || totalMonthlyOccupancy.length > 0) {
-      const ticketMap = new Map(totalMonthlyTickets.map((t: any) => [t.locationKey, t.totalTickets || 0]));
-      const subMap = new Map(totalMonthlySubscriptions.map((s: any) => [s.locationKey, s.subscriptionCount || 0]));
-      const occMap = new Map(totalMonthlyOccupancy.map((o: any) => [o.locationKey, o]));
-
-      const statsData: (string | number)[][] = [
-        [`Statistici Parcari - ${monthLabel}`],
-        [],
-        ['=== TICHETE ZILNICE ==='],
-        ['Parcare', 'Numar Tichete'],
-        ...PARKING_STAT_LOCATIONS.map(loc => [getLocationFullName(loc.key), ticketMap.get(loc.key) || 0]),
-        ['TOTAL', ticketTotal],
-        [],
-        ['=== ABONAMENTE LUNARE ==='],
-        ['Parcare', 'Nr. Locuri', 'Numar Abonamente'],
-        ...PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, loc.spots, subMap.get(loc.key) || 0]),
-        ['TOTAL', PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, loc) => sum + loc.spots, 0), subTotal],
-        [],
-        ['=== GRAD DE OCUPARE (Grad/Săpt. = (Medie / Nr. Locuri) × 100%) ==='],
-        ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt. (%)'],
-        ...PARKING_STAT_LOCATIONS.map(loc => {
-          const o = occMap.get(loc.key);
-          const avg = o ? Number(o.avgAvg || 0) : 0;
-          const spots = loc.spots;
-          const coefficient = spots > 0 ? Number(((avg / spots) * 100).toFixed(2)) : 0;
-          return [
-            getLocationFullName(loc.key),
-            spots,
-            o ? Number(o.avgMin || 0) : 0,
-            o ? Number(o.avgMax || 0) : 0,
-            Number(avg.toFixed(2)),
-            coefficient + '%',
-          ];
-        }),
-      ];
-      const wsStats = XLSX.utils.aoa_to_sheet(statsData);
-      wsStats['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 14 }];
-      XLSX.utils.book_append_sheet(wb, wsStats, 'Statistici Parcari');
-    }
-
-    XLSX.writeFile(wb, `raport-total-${selectedMonth}.xlsx`);
   };
 
   const handleExportCustomExcel = () => {
@@ -2805,6 +1959,75 @@ const ReportsPage: React.FC = () => {
 
     return (
       <Stack spacing={3}>
+        {/* Selecteaza sectiuni pentru raport */}
+        <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.04), border: '1px solid', borderColor: 'primary.light', borderRadius: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <TuneIcon color="primary" />
+              <Typography variant="subtitle1" fontWeight="bold" color="primary.dark">
+                Selecteaza sectiunile pentru raport
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button size="small" variant="text" onClick={() => setSelectedSections(Object.fromEntries(REPORT_SECTIONS.map(s => [s.key, true])))}>
+                Selecteaza Toate
+              </Button>
+              <Button size="small" variant="text" onClick={() => setSelectedSections(Object.fromEntries(REPORT_SECTIONS.map(s => [s.key, false])))}>
+                Deselecteaza Toate
+              </Button>
+            </Box>
+          </Box>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+            gap: 0,
+          }}>
+            {REPORT_SECTIONS.map((section) => (
+              <FormControlLabel
+                key={section.key}
+                control={
+                  <Checkbox
+                    checked={!!selectedSections[section.key]}
+                    onChange={(e) => setSelectedSections(prev => ({ ...prev, [section.key]: e.target.checked }))}
+                    size="small"
+                  />
+                }
+                label={<Typography variant="body2">{section.label}</Typography>}
+                sx={{ ml: 0, mr: 0 }}
+              />
+            ))}
+          </Box>
+          <Divider sx={{ my: 1.5 }} />
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="center">
+            <Chip
+              label={`${Object.values(selectedSections).filter(Boolean).length} din ${REPORT_SECTIONS.length} sectiuni selectate`}
+              color="primary"
+              variant="outlined"
+              size="small"
+            />
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<PdfIcon />}
+              onClick={handleExportCustomPDF}
+              disabled={isLoading || Object.values(selectedSections).filter(Boolean).length === 0}
+              sx={{ minWidth: 160 }}
+            >
+              Descarca PDF
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<ExcelIcon />}
+              onClick={handleExportCustomExcel}
+              disabled={isLoading || Object.values(selectedSections).filter(Boolean).length === 0}
+              sx={{ minWidth: 160 }}
+            >
+              Descarca Excel
+            </Button>
+          </Stack>
+        </Paper>
+
         {/* Sumar general */}
         <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'primary.lighter' }}>
           <Typography variant="h6" gutterBottom fontWeight="bold" color="primary.dark" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
@@ -2991,50 +2214,11 @@ const ReportsPage: React.FC = () => {
           </Paper>
         </Stack>
 
-        <Alert severity="success" icon={false}>
+        <Alert severity="info" icon={false}>
           <Typography variant="body2">
-            Raportul total include date din toate cele 13 sectiuni ale aplicatiei (inclusiv Statistici Parcari).
+            Selecteaza sectiunile dorite din partea de sus si apasa Descarca PDF sau Excel pentru a genera raportul personalizat.
           </Typography>
         </Alert>
-
-        {/* Butoane Export */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center">
-          <Button
-            variant="contained"
-            color="error"
-            size="large"
-            startIcon={<PdfIcon />}
-            onClick={handleExportTotalPDF}
-            fullWidth={isMobile}
-            disabled={isLoading}
-            sx={{ minWidth: 200 }}
-          >
-            Descarca PDF
-          </Button>
-          <Button
-            variant="contained"
-            color="success"
-            size="large"
-            startIcon={<ExcelIcon />}
-            onClick={handleExportTotalExcel}
-            fullWidth={isMobile}
-            disabled={isLoading}
-            sx={{ minWidth: 200 }}
-          >
-            Descarca Excel
-          </Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            size="large"
-            startIcon={<TuneIcon />}
-            onClick={() => setCustomReportOpen(true)}
-            fullWidth={isMobile}
-            sx={{ minWidth: 200 }}
-          >
-            Raport Personalizat
-          </Button>
-        </Stack>
       </Stack>
     );
   };
