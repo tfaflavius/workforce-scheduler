@@ -8,6 +8,7 @@ export const DashboardPage = () => {
 
   // Render dashboard based on user role
   switch (user?.role) {
+    case 'MASTER_ADMIN':
     case 'ADMIN':
       return <AdminDashboard />;
     case 'MANAGER':
