@@ -19,8 +19,8 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Grid,
 } from '@mui/material';
-import { Grid } from '@mui/material';
 import {
   People as PeopleIcon,
   Person as PersonIcon,
@@ -100,7 +100,7 @@ const UsersDepartmentsTab = () => {
     <Box>
       {/* Summary Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={6} sm={3}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <Card variant="outlined">
             <CardContent sx={{ textAlign: 'center', py: 2, '&:last-child': { pb: 2 } }}>
               <PeopleIcon sx={{ fontSize: 32, color: 'primary.main', mb: 0.5 }} />
@@ -109,7 +109,7 @@ const UsersDepartmentsTab = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={6} sm={3}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <Card variant="outlined" sx={{ borderColor: 'error.light' }}>
             <CardContent sx={{ textAlign: 'center', py: 2, '&:last-child': { pb: 2 } }}>
               <AdminIcon sx={{ fontSize: 32, color: 'error.main', mb: 0.5 }} />
@@ -118,7 +118,7 @@ const UsersDepartmentsTab = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={6} sm={3}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <Card variant="outlined" sx={{ borderColor: 'warning.light' }}>
             <CardContent sx={{ textAlign: 'center', py: 2, '&:last-child': { pb: 2 } }}>
               <ManagerIcon sx={{ fontSize: 32, color: 'warning.main', mb: 0.5 }} />
@@ -127,7 +127,7 @@ const UsersDepartmentsTab = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={6} sm={3}>
+        <Grid size={{ xs: 6, sm: 3 }}>
           <Card variant="outlined" sx={{ borderColor: 'info.light' }}>
             <CardContent sx={{ textAlign: 'center', py: 2, '&:last-child': { pb: 2 } }}>
               <PersonIcon sx={{ fontSize: 32, color: 'info.main', mb: 0.5 }} />
@@ -146,7 +146,7 @@ const UsersDepartmentsTab = () => {
           </Typography>
           <Grid container spacing={2}>
             {Object.entries(summary).map(([role, data]) => (
-              <Grid item xs={12} sm={4} key={role}>
+              <Grid size={{ xs: 12, sm: 4 }} key={role}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Chip label={getRoleLabel(role)} size="small" color={getRoleColor(role) as any} />
                   <Typography variant="body2">
@@ -165,7 +165,7 @@ const UsersDepartmentsTab = () => {
       </Typography>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {deptData.map((dept) => (
-          <Grid item xs={12} sm={6} md={4} key={dept.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={dept.id}>
             <Card variant="outlined" sx={{ height: '100%' }}>
               <CardContent sx={{ pb: 1, '&:last-child': { pb: 2 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>

@@ -23,8 +23,8 @@ import {
   Divider,
   Tooltip,
   Checkbox,
+  Grid,
 } from '@mui/material';
-import { Grid } from '@mui/material';
 import {
   ArrowForward as ArrowIcon,
   Edit as EditIcon,
@@ -222,7 +222,7 @@ const TaskFlowsTab = () => {
       {/* Flow Cards */}
       <Grid container spacing={2}>
         {flows?.map((flow) => (
-          <Grid item xs={12} md={6} key={flow.id}>
+          <Grid size={{ xs: 12, md: 6 }} key={flow.id}>
             <Card
               variant="outlined"
               sx={{
