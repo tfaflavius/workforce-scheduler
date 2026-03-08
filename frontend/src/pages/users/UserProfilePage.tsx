@@ -66,6 +66,8 @@ const UserProfilePage: React.FC = () => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case 'MASTER_ADMIN':
+        return 'secondary';
       case 'ADMIN':
         return 'error';
       case 'MANAGER':

@@ -517,7 +517,7 @@ export const MainLayout = () => {
           const sections: { label: string; paths: string[]; color: string }[] = [
             { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: '#2563eb' },
             { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: '#06b6d4' },
-            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/reports', '/users', '/incasari-cheltuieli'], color: '#7c3aed' },
+            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: '#7c3aed' },
             { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari'], color: '#10b981' },
           ];
 
