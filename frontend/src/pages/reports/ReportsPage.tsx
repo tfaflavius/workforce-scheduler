@@ -95,10 +95,10 @@ import {
   type RGB,
 } from '../../utils/pdfCharts';
 
-// Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
+// Genereaza lista de luni pentru anul curent (toate cele 12 luni)
 const generateMonthOptions = () => {
   const options = [];
-  const year = 2026;
+  const year = new Date().getFullYear();
 
   for (let month = 0; month < 12; month++) {
     const date = new Date(year, month, 1);
@@ -195,8 +195,9 @@ const ReportsPage: React.FC = () => {
   const { data: totalDomiciliuRequests = [] } = useGetDomiciliuRequestsQuery(undefined, { skip: !shouldFetchTotalData });
   const { data: totalParkingIssues = [] } = useGetParkingIssuesQuery(undefined, { skip: !shouldFetchTotalData });
   const { data: totalParkingDamages = [] } = useGetParkingDamagesQuery(undefined, { skip: !shouldFetchTotalData });
-  const { data: totalBudgetPositions = [] } = useGetBudgetPositionsQuery({ year: 2026 }, { skip: !shouldFetchTotalData });
-  const { data: totalRevenueSummary } = useGetRevenueSummaryQuery({ year: 2026 }, { skip: !shouldFetchTotalData });
+  const selectedYear = parseInt(selectedMonth.split('-')[0], 10) || new Date().getFullYear();
+  const { data: totalBudgetPositions = [] } = useGetBudgetPositionsQuery({ year: selectedYear }, { skip: !shouldFetchTotalData });
+  const { data: totalRevenueSummary } = useGetRevenueSummaryQuery({ year: selectedYear }, { skip: !shouldFetchTotalData });
   const { data: totalTimeEntries = [] } = useGetAdminTimeEntriesQuery(
     { startDate: parkingStartDate, endDate: parkingEndDate },
     { skip: !shouldFetchTotalData || !isAdminOrManager }
@@ -602,7 +603,7 @@ const ReportsPage: React.FC = () => {
     });
 
     // Add legend
-    const finalY = (doc as any).lastAutoTable.finalY || 200;
+    const finalY = (doc as any).lastAutoTable?.finalY || 200;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.text('Legenda:', 14, finalY + 8);
@@ -966,6 +967,7 @@ const ReportsPage: React.FC = () => {
   };
 
   const handleExportCustomPDF = () => {
+    try {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -1402,9 +1404,14 @@ const ReportsPage: React.FC = () => {
 
     doc.save(`raport-personalizat-${selectedMonth}.pdf`);
     setCustomReportOpen(false);
+    } catch (error) {
+      console.error('Eroare la generarea raportului PDF:', error);
+      alert('A apărut o eroare la generarea raportului PDF. Verificați consola pentru detalii.');
+    }
   };
 
   const handleExportCustomExcel = () => {
+    try {
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
     const selectedCount = Object.values(selectedSections).filter(Boolean).length;
     if (selectedCount === 0) return;
@@ -1741,6 +1748,10 @@ const ReportsPage: React.FC = () => {
 
     XLSX.writeFile(wb, `raport-personalizat-${selectedMonth}.xlsx`);
     setCustomReportOpen(false);
+    } catch (error) {
+      console.error('Eroare la generarea raportului Excel:', error);
+      alert('A apărut o eroare la generarea raportului Excel. Verificați consola pentru detalii.');
+    }
   };
 
   // Tab content renderers

@@ -257,7 +257,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     const tableData = filteredIssues.map(issue => [
       issue.parkingLot?.name || '-',
       issue.equipment || '-',
-      issue.description?.substring(0, 50) + (issue.description?.length > 50 ? '...' : '') || '-',
+      issue.description ? (issue.description.substring(0, 50) + (issue.description.length > 50 ? '...' : '')) : '-',
       issue.contactedCompany || '-',
       issue.status === 'ACTIVE' ? 'Activ' : 'Finalizat',
       issue.isUrgent ? 'Da' : 'Nu',

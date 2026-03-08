@@ -124,6 +124,8 @@ export function drawStatCards(
   pageWidth: number,
   checkPageBreak?: CheckPageBreakFn,
 ): number {
+  if (cards.length === 0) return y;
+
   const cardHeight = 22;
   const totalNeeded = cardHeight + 4;
 
@@ -247,8 +249,11 @@ export function drawHorizontalBarChart(
     doc.setFontSize(8);
     doc.setTextColor(60, 60, 60);
     let label = item.label;
-    while (doc.getTextWidth(label) > maxLabelWidth && label.length > 3) {
-      label = label.slice(0, -1);
+    if (doc.getTextWidth(label) > maxLabelWidth) {
+      while (doc.getTextWidth(label + '…') > maxLabelWidth && label.length > 3) {
+        label = label.slice(0, -1);
+      }
+      label += '…';
     }
     doc.text(label, x, barY + barHeight - 1.5);
 
@@ -336,8 +341,11 @@ export function drawVerticalBarChart(
     doc.setFontSize(6);
     doc.setTextColor(80, 80, 80);
     let label = item.label;
-    while (doc.getTextWidth(label) > colWidth + 2 && label.length > 3) {
-      label = label.slice(0, -1);
+    if (doc.getTextWidth(label) > colWidth + 2) {
+      while (doc.getTextWidth(label + '…') > colWidth + 2 && label.length > 3) {
+        label = label.slice(0, -1);
+      }
+      label += '…';
     }
     doc.text(label, colX + colWidth / 2, baseline + 5, { align: 'center' });
   });
@@ -594,8 +602,11 @@ export function drawComparisonBars(
     doc.setFontSize(7);
     doc.setTextColor(60, 60, 60);
     let label = pair.label;
-    while (doc.getTextWidth(label) > labelWidth && label.length > 3) {
-      label = label.slice(0, -1);
+    if (doc.getTextWidth(label) > labelWidth) {
+      while (doc.getTextWidth(label + '…') > labelWidth && label.length > 3) {
+        label = label.slice(0, -1);
+      }
+      label += '…';
     }
     doc.text(label, x, pairY + barHeight);
 
