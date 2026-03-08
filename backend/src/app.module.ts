@@ -70,6 +70,10 @@ import { ParkingMeter } from './modules/parking/entities/parking-meter.entity';
 import { ControlSesizare } from './modules/parking/entities/control-sesizare.entity';
 import { ControlSesizareComment } from './modules/parking/entities/control-sesizare-comment.entity';
 import { KeepAliveModule } from './common/keep-alive/keep-alive.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { Permission } from './modules/permissions/entities/permission.entity';
+import { UserPermissionOverride } from './modules/permissions/entities/user-permission-override.entity';
+import { TaskFlowRule } from './modules/permissions/entities/task-flow-rule.entity';
 
 @Module({
   imports: [
@@ -88,7 +92,7 @@ import { KeepAliveModule } from './common/keep-alive/keep-alive.module';
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport, PvDisplaySession, PvDisplayDay, PvDisplaySessionComment, ParkingDailyTicket, ParkingMonthlySubscription, ParkingWeeklyOccupancy, ParkingMeter, ControlSesizare, ControlSesizareComment],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport, PvDisplaySession, PvDisplayDay, PvDisplaySessionComment, ParkingDailyTicket, ParkingMonthlySubscription, ParkingWeeklyOccupancy, ParkingMeter, ControlSesizare, ControlSesizareComment, Permission, UserPermissionOverride, TaskFlowRule],
       synchronize: true,
       logging: process.env.NODE_ENV === 'development',
       ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
@@ -107,6 +111,7 @@ import { KeepAliveModule } from './common/keep-alive/keep-alive.module';
     AcquisitionsModule,
     ReportsModule,
     AdminModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -42,6 +42,7 @@ const ParcometrePage = lazy(() => import('../pages/departments/ParcometrePage'))
 const AchizitiiPage = lazy(() => import('../pages/departments/AchizitiiPage'));
 const IncasariCheltuieliPage = lazy(() => import('../pages/departments/IncasariCheltuieliPage'));
 const ControlSesizariPage = lazy(() => import('../pages/parking/ControlSesizariPage'));
+const PermissionsPage = lazy(() => import('../pages/permissions/PermissionsPage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -242,6 +243,16 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        {/* Admin Permissions */}
+        <Route
+          path="/admin/permissions"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <Suspense fallback={<PageLoader />}><PermissionsPage /></Suspense>
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/control-sesizari"
           element={

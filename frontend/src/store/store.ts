@@ -16,6 +16,7 @@ import { acquisitionsApi } from './api/acquisitions.api';
 import { pvDisplayApi } from './api/pvDisplay.api';
 import { parkingStatsApi } from './api/parkingStats.api';
 import { controlApi } from './api/control.api';
+import { permissionsApi } from './api/permissions.api';
 
 export const store = configureStore({
   reducer: {
@@ -36,6 +37,7 @@ export const store = configureStore({
     [pvDisplayApi.reducerPath]: pvDisplayApi.reducer,
     [parkingStatsApi.reducerPath]: parkingStatsApi.reducer,
     [controlApi.reducerPath]: controlApi.reducer,
+    [permissionsApi.reducerPath]: permissionsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -54,7 +56,8 @@ export const store = configureStore({
       acquisitionsApi.middleware,
       pvDisplayApi.middleware,
       parkingStatsApi.middleware,
-      controlApi.middleware
+      controlApi.middleware,
+      permissionsApi.middleware
     ),
 });
 

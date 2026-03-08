@@ -47,6 +47,7 @@ import {
   BarChart as RevenueIcon,
   Timer as TimerIcon,
   ReportProblem as ReportProblemIcon,
+  Security as SecurityIcon,
 } from '@mui/icons-material';
 import {
   Groups as GroupsIcon,
@@ -284,6 +285,12 @@ export const MainLayout = () => {
       text: 'Monitorizare Pontaj',
       icon: <TimerIcon />,
       path: '/admin/pontaj',
+      roles: ['ADMIN'],
+    },
+    {
+      text: 'Permisiuni',
+      icon: <SecurityIcon />,
+      path: '/admin/permissions',
       roles: ['ADMIN'],
     },
   ];
