@@ -75,3 +75,24 @@ export const TASK_TYPE_DEFINITIONS = [
 export const TASK_TYPE_LABELS: Record<string, string> = Object.fromEntries(
   TASK_TYPE_DEFINITIONS.map(t => [t.key, t.label]),
 );
+
+// Maps task types to their associated resource keys for quick-grant
+export const TASK_TYPE_RESOURCE_MAP: Record<string, string[]> = {
+  parking_issue: ['parking.issues'],
+  parking_damage: ['parking.damages'],
+  handicap_request: ['parking.handicap'],
+  domiciliu_request: ['parking.domiciliu'],
+  leave_request: ['leave-requests'],
+  shift_swap: ['shift-swaps'],
+  control_sesizare: ['control-sesizari'],
+};
+
+// Romanian labels for flow steps
+export const FLOW_STEP_LABELS = {
+  creator: { label: 'Creaza', description: 'Creaza si trimite' },
+  receiver: { label: 'Primeste', description: 'Primeste si lucreaza' },
+  resolver: { label: 'Rezolva', description: 'Rezolva si finalizeaza' },
+} as const;
+
+// Status progression for task flows
+export const FLOW_STATUS_STEPS = ['ACTIV', 'IN LUCRU', 'FINALIZAT'] as const;

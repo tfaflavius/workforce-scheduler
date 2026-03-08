@@ -19,6 +19,15 @@ import {
   CircularProgress,
   Tooltip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -36,8 +45,11 @@ import {
   RESOURCE_DEFINITIONS,
   ACTION_LABELS,
   SECTIONS,
+  TASK_TYPE_DEFINITIONS,
+  TASK_TYPE_RESOURCE_MAP,
 } from '../../../constants/permissions';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
+import UserFlowParticipation from './UserFlowParticipation';
 import type { OverrideItem } from '../../../types/permission.types';
 
 interface UserOption {
@@ -176,6 +188,62 @@ const UserOverridesTab = () => {
 
   const isDataLoading = effectiveLoading || overridesLoading;
 
+  // Quick grant dialog state
+  const [grantDialog, setGrantDialog] = useState(false);
+  const [grantTaskType, setGrantTaskType] = useState('');
+  const [grantActions, setGrantActions] = useState<Record<string, boolean>>({
+    view: true,
+    create: false,
+    edit: false,
+    resolve: false,
+  });
+
+  const availableActionsForGrant = useMemo(() => {
+    if (!grantTaskType) return [];
+    const resourceKeys = TASK_TYPE_RESOURCE_MAP[grantTaskType] || [];
+    const actionsSet = new Set<string>();
+    for (const rk of resourceKeys) {
+      const resDef = RESOURCE_DEFINITIONS.find((r) => r.key === rk);
+      if (resDef) resDef.actions.forEach((a) => actionsSet.add(a));
+    }
+    return Array.from(actionsSet);
+  }, [grantTaskType]);
+
+  const handleGrantAccess = async () => {
+    if (!selectedUser || !grantTaskType) return;
+    const resourceKeys = TASK_TYPE_RESOURCE_MAP[grantTaskType] || [];
+    const newOverrides: Record<string, boolean> = {};
+
+    for (const rk of resourceKeys) {
+      const resDef = RESOURCE_DEFINITIONS.find((r) => r.key === rk);
+      if (!resDef) continue;
+      for (const action of resDef.actions) {
+        if (grantActions[action]) {
+          newOverrides[`${rk}:${action}`] = true;
+        }
+      }
+    }
+
+    // Merge with existing overrides + local overrides
+    const mergedOverrides: Record<string, boolean> = { ...overrideMap, ...localOverrides, ...newOverrides };
+
+    const overrideItems: OverrideItem[] = Object.entries(mergedOverrides).map(([key, allowed]) => {
+      const [resourceKey, action] = key.split(':');
+      return { resourceKey, action, allowed };
+    });
+
+    try {
+      await setUserOverrides({ userId: selectedUser.id, overrides: overrideItems }).unwrap();
+      setLocalOverrides({});
+      setGrantDialog(false);
+      setGrantTaskType('');
+      setGrantActions({ view: true, create: false, edit: false, resolve: false });
+      setSnackbar({ open: true, message: 'Accesul a fost acordat cu succes!', severity: 'success' });
+    } catch {
+      setSnackbar({ open: true, message: 'Eroare la acordarea accesului.', severity: 'error' });
+    }
+  };
+
   return (
     <Box>
       {/* User selector */}
@@ -257,6 +325,19 @@ const UserOverridesTab = () => {
             )}
           </Box>
         </Paper>
+      )}
+
+      {/* Flow Participation */}
+      {selectedUser && (
+        <UserFlowParticipation
+          user={{
+            id: selectedUser.id,
+            fullName: selectedUser.fullName,
+            role: selectedUser.role,
+            department: selectedUser.department,
+          }}
+          onGrantAccess={() => setGrantDialog(true)}
+        />
       )}
 
       {/* Loading */}
@@ -407,6 +488,69 @@ const UserOverridesTab = () => {
           </Box>
         </Box>
       )}
+
+      {/* Grant Access Dialog */}
+      <Dialog open={grantDialog} onClose={() => setGrantDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Adauga Acces la Flux</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Tip Task</InputLabel>
+              <Select
+                value={grantTaskType}
+                label="Tip Task"
+                onChange={(e) => {
+                  setGrantTaskType(e.target.value);
+                  setGrantActions({ view: true, create: false, edit: false, resolve: false });
+                }}
+              >
+                {TASK_TYPE_DEFINITIONS.map((t) => (
+                  <MenuItem key={t.key} value={t.key}>{t.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {grantTaskType && (
+              <Box>
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+                  Actiuni:
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                  Resurse asociate: {(TASK_TYPE_RESOURCE_MAP[grantTaskType] || []).map((rk) => {
+                    const rd = RESOURCE_DEFINITIONS.find((r) => r.key === rk);
+                    return rd?.label || rk;
+                  }).join(', ')}
+                </Typography>
+                {availableActionsForGrant.map((action) => (
+                  <FormControlLabel
+                    key={action}
+                    control={
+                      <Checkbox
+                        checked={grantActions[action] || false}
+                        onChange={(e) =>
+                          setGrantActions((prev) => ({ ...prev, [action]: e.target.checked }))
+                        }
+                        size="small"
+                      />
+                    }
+                    label={ACTION_LABELS[action] || action}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGrantDialog(false)}>Anuleaza</Button>
+          <Button
+            variant="contained"
+            onClick={handleGrantAccess}
+            disabled={!grantTaskType || !Object.values(grantActions).some(Boolean)}
+          >
+            Acorda Acces
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbar.open}

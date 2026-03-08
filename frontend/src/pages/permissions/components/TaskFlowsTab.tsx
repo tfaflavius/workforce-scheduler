@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -23,7 +23,11 @@ import {
   Divider,
   Tooltip,
   Checkbox,
-  Grid,
+  ToggleButtonGroup,
+  ToggleButton,
+  Autocomplete,
+  TextField,
+  Paper,
 } from '@mui/material';
 import {
   ArrowForward as ArrowIcon,
@@ -32,6 +36,8 @@ import {
   Add as AddIcon,
   Person as PersonIcon,
   Business as BusinessIcon,
+  ViewList as ListViewIcon,
+  AccountTree as TreeViewIcon,
 } from '@mui/icons-material';
 import {
   useGetTaskFlowsQuery,
@@ -40,8 +46,9 @@ import {
   useDeleteTaskFlowMutation,
 } from '../../../store/api/permissions.api';
 import { useGetDepartmentsQuery } from '../../../store/api/departmentsApi';
-import { TASK_TYPE_LABELS, TASK_TYPE_DEFINITIONS } from '../../../constants/permissions';
+import { TASK_TYPE_LABELS, TASK_TYPE_DEFINITIONS, FLOW_STEP_LABELS, FLOW_STATUS_STEPS } from '../../../constants/permissions';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
+import DepartmentFlowCard from './DepartmentFlowCard';
 import type { TaskFlowRule, CreateTaskFlowRequest } from '../../../types/permission.types';
 
 const ROLES = [
@@ -59,13 +66,17 @@ const getRoleColor = (role: string | null) => {
   }
 };
 
+const getRoleLabel = (role: string | null) =>
+  ROLES.find((r) => r.key === role)?.label || 'Oricine';
+
 interface FlowStepProps {
   label: string;
+  description: string;
   role: string | null;
   department?: { id: string; name: string } | null;
 }
 
-const FlowStep = ({ label, role, department }: FlowStepProps) => (
+const FlowStep = ({ label, description, role, department }: FlowStepProps) => (
   <Box
     sx={{
       textAlign: 'center',
@@ -78,13 +89,13 @@ const FlowStep = ({ label, role, department }: FlowStepProps) => (
       flex: 1,
     }}
   >
-    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+    <Typography variant="caption" fontWeight="bold" color="text.primary" display="block" sx={{ mb: 0.5 }}>
       {label}
     </Typography>
     {role ? (
       <Chip
         icon={<PersonIcon sx={{ fontSize: 16 }} />}
-        label={ROLES.find((r) => r.key === role)?.label || role}
+        label={getRoleLabel(role)}
         size="small"
         color={getRoleColor(role) as any}
         sx={{ mb: 0.5 }}
@@ -100,8 +111,23 @@ const FlowStep = ({ label, role, department }: FlowStepProps) => (
         </Typography>
       </Box>
     )}
+    <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 0.5, fontSize: '0.65rem' }}>
+      {description}
+    </Typography>
   </Box>
 );
+
+const buildFlowDescription = (flow: TaskFlowRule): string => {
+  const creatorName = flow.creatorDepartment ? removeDiacritics(flow.creatorDepartment.name) : 'Oricine';
+  const receiverName = flow.receiverDepartment ? removeDiacritics(flow.receiverDepartment.name) : 'Oricine';
+  const resolverName = flow.resolverDepartment ? removeDiacritics(flow.resolverDepartment.name) : receiverName;
+
+  const creatorRole = getRoleLabel(flow.creatorRole);
+  const receiverRole = getRoleLabel(flow.receiverRole);
+  const resolverRole = getRoleLabel(flow.resolverRole);
+
+  return `${creatorName} (${creatorRole}) creaza \u2192 ${receiverName} (${receiverRole}) primeste \u2192 ${resolverName} (${resolverRole}) rezolva si finalizeaza`;
+};
 
 const emptyForm: CreateTaskFlowRequest = {
   taskType: '',
@@ -115,6 +141,11 @@ const emptyForm: CreateTaskFlowRequest = {
   isActive: true,
 };
 
+interface DeptOption {
+  id: string;
+  name: string;
+}
+
 const TaskFlowsTab = () => {
   const { data: flows, isLoading } = useGetTaskFlowsQuery();
   const { data: departments } = useGetDepartmentsQuery();
@@ -122,6 +153,8 @@ const TaskFlowsTab = () => {
   const [createFlow] = useCreateTaskFlowMutation();
   const [deleteFlow] = useDeleteTaskFlowMutation();
 
+  const [viewMode, setViewMode] = useState<'per-task-type' | 'per-department'>('per-task-type');
+  const [selectedDepartment, setSelectedDepartment] = useState<DeptOption | null>(null);
   const [editDialog, setEditDialog] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateTaskFlowRequest>(emptyForm);
@@ -130,6 +163,22 @@ const TaskFlowsTab = () => {
     message: '',
     severity: 'success',
   });
+
+  // Group flows by task type
+  const flowsByTaskType = useMemo(() => {
+    if (!flows) return {};
+    const grouped: Record<string, TaskFlowRule[]> = {};
+    for (const flow of flows) {
+      if (!grouped[flow.taskType]) grouped[flow.taskType] = [];
+      grouped[flow.taskType].push(flow);
+    }
+    return grouped;
+  }, [flows]);
+
+  const deptOptions: DeptOption[] = useMemo(
+    () => (departments || []).map((d) => ({ id: d.id, name: removeDiacritics(d.name) })),
+    [departments],
+  );
 
   const handleEdit = (flow: TaskFlowRule) => {
     setEditingId(flow.id);
@@ -201,13 +250,132 @@ const TaskFlowsTab = () => {
     );
   }
 
+  const renderFlowCard = (flow: TaskFlowRule) => (
+    <Card
+      key={flow.id}
+      variant="outlined"
+      sx={{
+        opacity: flow.isActive ? 1 : 0.6,
+        borderColor: flow.isActive ? 'divider' : 'grey.300',
+        mb: 2,
+      }}
+    >
+      <CardContent sx={{ pb: 1, '&:last-child': { pb: 2 } }}>
+        {/* Title row */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              {TASK_TYPE_LABELS[flow.taskType] || flow.taskType}
+            </Typography>
+            {!flow.isActive && <Chip label="Inactiv" size="small" color="default" variant="outlined" />}
+            {flow.autoAssign && <Chip label="Auto-assign" size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: '0.65rem' }} />}
+          </Box>
+          <Box>
+            <Tooltip title="Editeaza">
+              <IconButton size="small" onClick={() => handleEdit(flow)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Sterge">
+              <IconButton size="small" color="error" onClick={() => handleDelete(flow.id)}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        {/* Natural language description */}
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, fontStyle: 'italic', lineHeight: 1.6 }}>
+          {buildFlowDescription(flow)}
+        </Typography>
+
+        {/* Flow visualization */}
+        <Box sx={{ display: 'flex', alignItems: 'stretch', gap: 1, mb: 1.5 }}>
+          <FlowStep
+            label={FLOW_STEP_LABELS.creator.label}
+            description={FLOW_STEP_LABELS.creator.description}
+            role={flow.creatorRole}
+            department={flow.creatorDepartment}
+          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <ArrowIcon sx={{ color: 'text.secondary' }} />
+          </Box>
+          <FlowStep
+            label={FLOW_STEP_LABELS.receiver.label}
+            description={FLOW_STEP_LABELS.receiver.description}
+            role={flow.receiverRole}
+            department={flow.receiverDepartment}
+          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <ArrowIcon sx={{ color: 'text.secondary' }} />
+          </Box>
+          <FlowStep
+            label={FLOW_STEP_LABELS.resolver.label}
+            description={FLOW_STEP_LABELS.resolver.description}
+            role={flow.resolverRole}
+            department={flow.resolverDepartment}
+          />
+        </Box>
+
+        {/* Status flow */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
+          {FLOW_STATUS_STEPS.map((status, idx) => (
+            <Box key={status} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {idx > 0 && <ArrowIcon sx={{ fontSize: 14, color: 'text.disabled' }} />}
+              <Chip
+                label={status}
+                size="small"
+                variant={idx === FLOW_STATUS_STEPS.length - 1 ? 'filled' : 'outlined'}
+                color={idx === FLOW_STATUS_STEPS.length - 1 ? 'success' : 'default'}
+                sx={{ fontSize: '0.65rem', height: 20 }}
+              />
+            </Box>
+          ))}
+        </Box>
+
+        <Divider sx={{ my: 1 }} />
+
+        {/* Toggles */}
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControlLabel
+            control={<Switch checked={flow.autoAssign} onChange={() => handleToggleAutoAssign(flow)} size="small" />}
+            label={<Typography variant="caption">Auto-assign</Typography>}
+          />
+          <FormControlLabel
+            control={<Switch checked={flow.isActive} onChange={() => handleToggleActive(flow)} size="small" color="success" />}
+            label={<Typography variant="caption">Activ</Typography>}
+          />
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <Box>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" fontWeight="bold">
-          Fluxuri Task-uri
-        </Typography>
+      {/* Header with view toggle */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Typography variant="h6" fontWeight="bold">
+            Fluxuri Task-uri
+          </Typography>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_e, val) => val && setViewMode(val)}
+            size="small"
+          >
+            <ToggleButton value="per-task-type">
+              <Tooltip title="Per Tip Task">
+                <ListViewIcon fontSize="small" />
+              </Tooltip>
+            </ToggleButton>
+            <ToggleButton value="per-department">
+              <Tooltip title="Per Departament">
+                <TreeViewIcon fontSize="small" />
+              </Tooltip>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} size="small">
           Adauga Regula
         </Button>
@@ -219,82 +387,83 @@ const TaskFlowsTab = () => {
         </Alert>
       )}
 
-      {/* Flow Cards */}
-      <Grid container spacing={2}>
-        {flows?.map((flow) => (
-          <Grid size={{ xs: 12, md: 6 }} key={flow.id}>
-            <Card
-              variant="outlined"
-              sx={{
-                opacity: flow.isActive ? 1 : 0.6,
-                borderColor: flow.isActive ? 'divider' : 'grey.300',
-              }}
-            >
-              <CardContent sx={{ pb: 1, '&:last-child': { pb: 2 } }}>
-                {/* Title row */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {TASK_TYPE_LABELS[flow.taskType] || flow.taskType}
-                    </Typography>
-                    {!flow.isActive && (
-                      <Chip label="Inactiv" size="small" color="default" variant="outlined" />
-                    )}
-                  </Box>
-                  <Box>
-                    <Tooltip title="Editeaza">
-                      <IconButton size="small" onClick={() => handleEdit(flow)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Sterge">
-                      <IconButton size="small" color="error" onClick={() => handleDelete(flow.id)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Box>
+      {/* Per Task Type View */}
+      {viewMode === 'per-task-type' && flows && flows.length > 0 && (
+        <Box>
+          {Object.entries(flowsByTaskType).map(([taskType, typeFlows]) => (
+            <Box key={taskType} sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                  {TASK_TYPE_LABELS[taskType] || taskType}
+                </Typography>
+                <Chip
+                  label={`${typeFlows.filter((f) => f.isActive).length} activ${typeFlows.filter((f) => f.isActive).length !== 1 ? 'e' : ''}`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ height: 20, fontSize: '0.65rem' }}
+                />
+              </Box>
+              {typeFlows.map((flow) => renderFlowCard(flow))}
+            </Box>
+          ))}
+        </Box>
+      )}
 
-                {/* Flow visualization */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <FlowStep label="Creaza" role={flow.creatorRole} department={flow.creatorDepartment} />
-                  <ArrowIcon sx={{ color: 'text.secondary', flexShrink: 0 }} />
-                  <FlowStep label="Primeste" role={flow.receiverRole} department={flow.receiverDepartment} />
-                  <ArrowIcon sx={{ color: 'text.secondary', flexShrink: 0 }} />
-                  <FlowStep label="Rezolva" role={flow.resolverRole} department={flow.resolverDepartment} />
-                </Box>
+      {/* Per Department View */}
+      {viewMode === 'per-department' && flows && flows.length > 0 && (
+        <Box>
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Autocomplete
+              options={deptOptions}
+              getOptionLabel={(opt) => opt.name}
+              value={selectedDepartment}
+              onChange={(_e, value) => setSelectedDepartment(value)}
+              renderInput={(params) => (
+                <TextField {...params} placeholder="Selecteaza departament..." size="small" label="Departament" />
+              )}
+              isOptionEqualToValue={(opt, val) => opt.id === val.id}
+            />
+          </Paper>
 
-                <Divider sx={{ my: 1 }} />
+          {!selectedDepartment && (
+            <Alert severity="info">
+              Selecteaza un departament pentru a vedea fluxurile in care este implicat.
+            </Alert>
+          )}
 
-                {/* Toggles */}
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={flow.autoAssign}
-                        onChange={() => handleToggleAutoAssign(flow)}
-                        size="small"
-                      />
-                    }
-                    label={<Typography variant="caption">Auto-assign</Typography>}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={flow.isActive}
-                        onChange={() => handleToggleActive(flow)}
-                        size="small"
-                        color="success"
-                      />
-                    }
-                    label={<Typography variant="caption">Activ</Typography>}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+          {selectedDepartment && (
+            <Box>
+              <DepartmentFlowCard
+                department={selectedDepartment}
+                flows={flows}
+              />
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+                Detalii fluxuri:
+              </Typography>
+              {flows
+                .filter(
+                  (f) =>
+                    f.creatorDepartmentId === selectedDepartment.id ||
+                    f.receiverDepartmentId === selectedDepartment.id ||
+                    f.resolverDepartmentId === selectedDepartment.id,
+                )
+                .map((flow) => renderFlowCard(flow))}
+              {flows.filter(
+                (f) =>
+                  f.creatorDepartmentId === selectedDepartment.id ||
+                  f.receiverDepartmentId === selectedDepartment.id ||
+                  f.resolverDepartmentId === selectedDepartment.id,
+              ).length === 0 && (
+                <Alert severity="info">
+                  Acest departament nu este implicat in niciun flux de task-uri.
+                </Alert>
+              )}
+            </Box>
+          )}
+        </Box>
+      )}
 
       {/* Edit/Create Dialog */}
       <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="sm" fullWidth>
@@ -406,23 +575,11 @@ const TaskFlowsTab = () => {
 
             <Box sx={{ display: 'flex', gap: 2 }}>
               <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.autoAssign || false}
-                    onChange={(e) => setForm((f) => ({ ...f, autoAssign: e.target.checked }))}
-                    size="small"
-                  />
-                }
+                control={<Checkbox checked={form.autoAssign || false} onChange={(e) => setForm((f) => ({ ...f, autoAssign: e.target.checked }))} size="small" />}
                 label="Auto-assign"
               />
               <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.isActive !== false}
-                    onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
-                    size="small"
-                  />
-                }
+                control={<Checkbox checked={form.isActive !== false} onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))} size="small" />}
                 label="Activ"
               />
             </Box>

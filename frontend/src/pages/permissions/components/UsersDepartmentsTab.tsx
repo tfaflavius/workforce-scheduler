@@ -30,7 +30,8 @@ import {
 } from '@mui/icons-material';
 import { useGetUsersQuery } from '../../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../../store/api/departmentsApi';
-import { useGetSummaryQuery } from '../../../store/api/permissions.api';
+import { useGetSummaryQuery, useGetTaskFlowsQuery } from '../../../store/api/permissions.api';
+import DepartmentFlowOverview from './DepartmentFlowOverview';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 
 const getRoleColor = (role: string) => {
@@ -55,6 +56,7 @@ const UsersDepartmentsTab = () => {
   const { data: users, isLoading: usersLoading } = useGetUsersQuery();
   const { data: departments, isLoading: deptsLoading } = useGetDepartmentsQuery();
   const { data: summary } = useGetSummaryQuery();
+  const { data: taskFlows } = useGetTaskFlowsQuery();
 
   const activeUsers = useMemo(() => users?.filter((u) => u.isActive) || [], [users]);
 
@@ -218,6 +220,11 @@ const UsersDepartmentsTab = () => {
           </Grid>
         ))}
       </Grid>
+
+      {/* Department Flows */}
+      {departments && taskFlows && taskFlows.length > 0 && (
+        <DepartmentFlowOverview departments={departments} flows={taskFlows} />
+      )}
 
       {/* Users without department */}
       {noDeptUsers.length > 0 && (
