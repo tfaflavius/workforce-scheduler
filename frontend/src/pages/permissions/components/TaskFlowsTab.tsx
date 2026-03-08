@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   Card,
   CardContent,
@@ -25,7 +24,7 @@ import {
   Tooltip,
   Checkbox,
 } from '@mui/material';
-import Grid from '@mui/material/Grid2';
+import { Grid } from '@mui/material';
 import {
   ArrowForward as ArrowIcon,
   Edit as EditIcon,
@@ -223,7 +222,7 @@ const TaskFlowsTab = () => {
       {/* Flow Cards */}
       <Grid container spacing={2}>
         {flows?.map((flow) => (
-          <Grid size={{ xs: 12, md: 6 }} key={flow.id}>
+          <Grid item xs={12} md={6} key={flow.id}>
             <Card
               variant="outlined"
               sx={{
