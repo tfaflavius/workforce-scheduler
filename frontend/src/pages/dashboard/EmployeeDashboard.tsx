@@ -306,15 +306,10 @@ const EmployeeDashboard = () => {
   // Check GPS permission on mount for departments that need it
   useEffect(() => {
     if (!hasPontaj || !navigator.permissions) return;
-    navigator.permissions.query({ name: 'geolocation' }).then(result => {
-      if (result.state === 'denied') {
-        setGpsPermissionBlocked(true);
-        setGpsStatus('denied');
-        setGpsErrorMessage('Locatia GPS este blocata! Te rugam sa o activezi din setarile browserului.');
-        reportGpsStatusToServer('denied', 'Locatia GPS este blocata la verificarea initiala');
-      }
-      result.addEventListener('change', () => {
-        if (result.state === 'denied') {
+    let permissionStatus: PermissionStatus | null = null;
+    const handlePermissionChange = () => {
+      if (permissionStatus) {
+        if (permissionStatus.state === 'denied') {
           setGpsPermissionBlocked(true);
           setGpsStatus('denied');
           reportGpsStatusToServer('denied', 'Locatia GPS a fost blocata');
@@ -322,8 +317,23 @@ const EmployeeDashboard = () => {
           setGpsPermissionBlocked(false);
           setGpsStatus('idle');
         }
-      });
+      }
+    };
+    navigator.permissions.query({ name: 'geolocation' }).then(result => {
+      permissionStatus = result;
+      if (result.state === 'denied') {
+        setGpsPermissionBlocked(true);
+        setGpsStatus('denied');
+        setGpsErrorMessage('Locatia GPS este blocata! Te rugam sa o activezi din setarile browserului.');
+        reportGpsStatusToServer('denied', 'Locatia GPS este blocata la verificarea initiala');
+      }
+      result.addEventListener('change', handlePermissionChange);
     }).catch(() => { /* permissions API not supported */ });
+    return () => {
+      if (permissionStatus) {
+        permissionStatus.removeEventListener('change', handlePermissionChange);
+      }
+    };
   }, [hasPontaj, reportGpsStatusToServer]);
 
   // Timer counter effect

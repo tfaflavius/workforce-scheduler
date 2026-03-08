@@ -156,7 +156,11 @@ export const AppRoutes = () => {
           }
         />
 
-        <Route path="/schedules/:id" element={<Suspense fallback={<PageLoader />}><EditSchedulePage /></Suspense>} />
+        <Route path="/schedules/:id" element={
+          <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'MASTER_ADMIN']}>
+            <Suspense fallback={<PageLoader />}><EditSchedulePage /></Suspense>
+          </ProtectedRoute>
+        } />
 
         {/* Users */}
         <Route

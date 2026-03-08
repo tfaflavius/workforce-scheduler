@@ -45,6 +45,7 @@ export class ReportsController {
   }
 
   @Get(':id/download')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MASTER_ADMIN)
   async downloadReport(@Param('id') reportId: string, @Res() res: Response) {
     const report = await this.reportsService.getReport(reportId);
 

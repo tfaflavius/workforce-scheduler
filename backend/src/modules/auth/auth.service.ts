@@ -21,9 +21,10 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    // Prevent registration as MASTER_ADMIN
-    if ((registerDto as any).role === UserRole.MASTER_ADMIN) {
-      throw new ForbiddenException('Cannot register with MASTER_ADMIN role');
+    // Prevent self-assignment of privileged roles during registration
+    // Only USER role is allowed for self-registration
+    if (registerDto.role && registerDto.role !== UserRole.USER) {
+      throw new ForbiddenException('Cannot register with elevated role. Contact an administrator.');
     }
 
     // Check if user already exists in our DB

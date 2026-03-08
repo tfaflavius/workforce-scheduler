@@ -28,13 +28,13 @@ export class ParkingMetersController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MASTER_ADMIN)
   async create(@Body() dto: CreateParkingMeterDto): Promise<ParkingMeter> {
     return this.parkingMetersService.create(dto);
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MASTER_ADMIN)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateParkingMeterDto,
@@ -43,7 +43,7 @@ export class ParkingMetersController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MASTER_ADMIN)
   async remove(@Param('id') id: string): Promise<void> {
     return this.parkingMetersService.remove(id);
   }

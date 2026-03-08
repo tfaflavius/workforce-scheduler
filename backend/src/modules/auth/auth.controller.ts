@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Headers, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Post, Get, Headers, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -41,6 +41,9 @@ export class AuthController {
     const resetToken = body.token || body.accessToken;
     if (!resetToken) {
       throw new UnauthorizedException('Token de resetare lipseste');
+    }
+    if (!body.newPassword || body.newPassword.length < 6) {
+      throw new BadRequestException('Parola trebuie sa aiba cel putin 6 caractere');
     }
     return this.authService.resetPassword(resetToken, body.newPassword);
   }

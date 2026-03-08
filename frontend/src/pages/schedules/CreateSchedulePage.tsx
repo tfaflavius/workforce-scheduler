@@ -76,10 +76,10 @@ const SHIFT_OPTIONS_8H: ShiftOption[] = [
   { id: 'vacation_8', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
 ];
 
-// Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
+// Genereaza lista de luni pentru anul curent (toate cele 12 luni)
 const generateMonthOptions = () => {
   const options = [];
-  const year = 2026;
+  const year = new Date().getFullYear();
 
   for (let month = 0; month < 12; month++) {
     const date = new Date(year, month, 1);

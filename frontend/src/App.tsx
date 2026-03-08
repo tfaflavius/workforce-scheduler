@@ -12,7 +12,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { isLoading, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(initializeAuth());
@@ -27,8 +27,8 @@ function AppContent() {
         } else if (event === 'TOKEN_REFRESHED' && session) {
           // Update the token in Redux when Supabase refreshes it
           dispatch(updateToken(session.access_token));
-        } else if (event === 'SIGNED_IN' && session && !isAuthenticated) {
-          // Re-initialize auth if signed in but not authenticated in Redux
+        } else if (event === 'SIGNED_IN' && session) {
+          // Re-initialize auth if signed in
           dispatch(initializeAuth());
         }
       }
@@ -37,7 +37,7 @@ function AppContent() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch]);
 
   if (isLoading) {
     return (

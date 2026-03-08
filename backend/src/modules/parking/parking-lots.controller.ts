@@ -1,5 +1,8 @@
 import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/entities/user.entity';
 import { ParkingAccessGuard } from './guards/parking-access.guard';
 import { ParkingLotsService } from './parking-lots.service';
 import { ParkingLot } from './entities/parking-lot.entity';
@@ -7,11 +10,12 @@ import { PaymentMachine } from './entities/payment-machine.entity';
 import { EQUIPMENT_LIST, DAMAGE_EQUIPMENT_LIST, COMPANY_LIST } from './constants/parking.constants';
 
 @Controller('parking-lots')
-@UseGuards(JwtAuthGuard, ParkingAccessGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ParkingAccessGuard)
 export class ParkingLotsController {
   constructor(private readonly parkingLotsService: ParkingLotsService) {}
 
   @Post('seed')
+  @Roles(UserRole.ADMIN, UserRole.MASTER_ADMIN)
   async seedData(): Promise<{ message: string; parkingLots: number; paymentMachines: number }> {
     return this.parkingLotsService.seedData();
   }
