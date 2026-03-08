@@ -49,6 +49,7 @@ import { useGetBudgetPositionsQuery } from '../../store/api/acquisitions.api';
 import { BUDGET_CATEGORY_LABELS } from '../../types/acquisitions.types';
 import type { BudgetCategory, BudgetPosition } from '../../types/acquisitions.types';
 import jsPDF from 'jspdf';
+import { drawStatCards, drawProgressBar, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
@@ -101,26 +102,38 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = 210;
+    const ORANGE: RGB = [234, 88, 12];
+    const GREEN: RGB = [76, 175, 80];
+    const RED: RGB = [244, 67, 54];
+    const BLUE: RGB = [25, 118, 210];
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(234, 88, 12);
-    doc.text('Raport Achizitii', 14, 22);
+    // Header band
+    doc.setFillColor(ORANGE[0], ORANGE[1], ORANGE[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Achizitii', pageWidth / 2, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Anul: ${selectedYear}  |  Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, pageWidth / 2, 30, { align: 'center' });
 
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Anul: ${selectedYear}`, 14, 30);
-    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+    let yPos = 36;
 
-    // Statistics
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Statistici:', 14, 48);
-    doc.setFontSize(10);
-    doc.text(`Buget total: ${formatCurrency(stats.totalBudget)}`, 14, 56);
-    doc.text(`Total cheltuit: ${formatCurrency(stats.totalSpent)}`, 14, 62);
-    doc.text(`Total ramas: ${formatCurrency(stats.totalRemaining)}`, 14, 68);
-    doc.text(`Numar pozitii: ${stats.numberOfPositions}`, 14, 74);
+    // Stat cards
+    yPos = drawStatCards(doc, [
+      { label: 'Pozitii Bugetare', value: stats.numberOfPositions, color: BLUE },
+      { label: 'Buget Total', value: formatCurrency(stats.totalBudget), color: ORANGE },
+      { label: 'Cheltuit', value: formatCurrency(stats.totalSpent), color: RED },
+      { label: 'Ramas', value: formatCurrency(stats.totalRemaining), color: GREEN },
+    ], 14, yPos, pageWidth);
+
+    // Progress bar
+    if (stats.totalBudget > 0) {
+      yPos = drawProgressBar(doc, 'Executie bugetara', stats.totalSpent, stats.totalBudget, 14, yPos, pageWidth - 28, ORANGE);
+    }
 
     // Table
     const tableData = filteredPositions.map((p: BudgetPosition) => [
@@ -133,7 +146,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
     ]);
 
     autoTable(doc, {
-      startY: 84,
+      startY: yPos + 2,
       head: [['Pozitie Bugetara', 'Categorie', 'Buget Total', 'Cheltuit', 'Ramas', 'Nr Achizitii']],
       body: tableData,
       styles: { fontSize: 8 },

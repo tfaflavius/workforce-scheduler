@@ -49,6 +49,7 @@ import DatePickerField from '../../components/common/DatePickerField';
 import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import type { AdminTimeEntry } from '../../types/time-tracking.types';
 import jsPDF from 'jspdf';
+import { drawStatCards, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
@@ -127,29 +128,36 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = 210;
+    const TEAL: RGB = [8, 145, 178];
+    const BLUE: RGB = [25, 118, 210];
+    const GREEN: RGB = [76, 175, 80];
+    const INDIGO: RGB = [99, 102, 241];
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(8, 145, 178);
-    doc.text('Raport Monitorizare Pontaj', 14, 22);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(TEAL[0], TEAL[1], TEAL[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Monitorizare Pontaj', pageWidth / 2, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     const periodText = startDate && endDate
       ? `Perioada: ${format(new Date(startDate), 'dd.MM.yyyy')} - ${format(new Date(endDate), 'dd.MM.yyyy')}`
       : 'Toate inregistrarile';
-    doc.text(periodText, 14, 30);
-    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+    doc.text(`${periodText}  |  Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, pageWidth / 2, 30, { align: 'center' });
 
-    // Statistics
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Statistici:', 14, 48);
-    doc.setFontSize(10);
-    doc.text(`Total inregistrari: ${stats.totalEntries}`, 14, 56);
-    doc.text(`Total ore: ${stats.totalHours.toFixed(1)}`, 14, 62);
-    doc.text(`Angajati unici: ${stats.uniqueUsers}`, 14, 68);
-    doc.text(`GPS activ: ${stats.gpsActiveCount}`, 14, 74);
+    let yPos = 36;
+
+    // Stat cards
+    yPos = drawStatCards(doc, [
+      { label: 'Total Inregistrari', value: stats.totalEntries, color: BLUE },
+      { label: 'Total Ore', value: stats.totalHours.toFixed(1), color: GREEN },
+      { label: 'Angajati Unici', value: stats.uniqueUsers, color: INDIGO },
+      { label: 'GPS Activ', value: stats.gpsActiveCount, color: TEAL },
+    ], 14, yPos, pageWidth);
 
     // Table
     const tableData = filteredEntries.map((e: AdminTimeEntry) => [
@@ -164,7 +172,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
     ]);
 
     autoTable(doc, {
-      startY: 84,
+      startY: yPos + 2,
       head: [['Angajat', 'Departament', 'Data', 'Ora Start', 'Ora Sfarsit', 'Durata (ore)', 'GPS', 'Observatii']],
       body: tableData,
       styles: { fontSize: 7 },

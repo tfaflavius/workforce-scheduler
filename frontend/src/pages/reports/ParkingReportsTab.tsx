@@ -53,6 +53,7 @@ import {
   useGetParkingLotsQuery,
 } from '../../store/api/parking.api';
 import jsPDF from 'jspdf';
+import { drawStatCards, drawHorizontalBarChart, drawStatusDistributionBar, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
@@ -223,18 +224,35 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   const handleExportIssuesPDF = () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
+    const RED: RGB = [239, 68, 68];
+    const GREEN: RGB = [76, 175, 80];
+    const ORANGE: RGB = [255, 152, 0];
+    const BLUE: RGB = [25, 118, 210];
 
-    doc.setFontSize(18);
-    doc.setTextColor(239, 68, 68);
-    doc.text('Raport Probleme Parcari', pageWidth / 2, 20, { align: 'center' });
-
-    doc.setFontSize(11);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(RED[0], RED[1], RED[2]);
+    doc.roundedRect(14, 8, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Probleme Parcari', pageWidth / 2, 17, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     doc.text(`Perioada: ${formatDate(startDate)} - ${formatDate(endDate)}`, pageWidth / 2, 28, { align: 'center' });
 
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-    doc.text(`Total: ${issueStats.total} | Active: ${issueStats.active} | Finalizate: ${issueStats.resolved} | Urgente: ${issueStats.urgent}`, pageWidth / 2, 36, { align: 'center' });
+    let yPos = 32;
+    yPos = drawStatCards(doc, [
+      { label: 'Total Probleme', value: issueStats.total, color: BLUE },
+      { label: 'Active', value: issueStats.active, color: ORANGE },
+      { label: 'Finalizate', value: issueStats.resolved, color: GREEN },
+      { label: 'Urgente', value: issueStats.urgent, color: RED },
+    ], 14, yPos, pageWidth);
+
+    yPos = drawStatusDistributionBar(doc, [
+      { label: 'Active', value: issueStats.active, color: ORANGE },
+      { label: 'Finalizate', value: issueStats.resolved, color: GREEN },
+    ], 14, yPos, pageWidth - 28, { title: 'Status probleme' });
 
     const tableData = filteredIssues.map(issue => [
       issue.parkingLot?.name || '-',
@@ -251,7 +269,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     autoTable(doc, {
       head: [['Parcare', 'Echipament', 'Descriere', 'Companie', 'Status', 'Urgent', 'Creat de', 'Data crearii', 'Data rezolvarii']],
       body: tableData,
-      startY: 42,
+      startY: yPos + 2,
       styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [239, 68, 68], textColor: 255 },
       alternateRowStyles: { fillColor: [254, 242, 242] },
@@ -300,18 +318,30 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   const handleExportDamagesPDF = () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
+    const DAMAGE_ORANGE: RGB = [249, 115, 22];
+    const DAMAGE_GREEN: RGB = [76, 175, 80];
+    const DAMAGE_RED: RGB = [244, 67, 54];
+    const DAMAGE_BLUE: RGB = [25, 118, 210];
 
-    doc.setFontSize(18);
-    doc.setTextColor(249, 115, 22);
-    doc.text('Raport Prejudicii Parcari', pageWidth / 2, 20, { align: 'center' });
-
-    doc.setFontSize(11);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(DAMAGE_ORANGE[0], DAMAGE_ORANGE[1], DAMAGE_ORANGE[2]);
+    doc.roundedRect(14, 8, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Prejudicii Parcari', pageWidth / 2, 17, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     doc.text(`Perioada: ${formatDate(startDate)} - ${formatDate(endDate)}`, pageWidth / 2, 28, { align: 'center' });
 
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-    doc.text(`Total: ${damageStats.total} | Active: ${damageStats.active} | Finalizate: ${damageStats.resolved} | Recuperate: ${damageStats.recuperat} | Trimise la juridic: ${damageStats.juridic}`, pageWidth / 2, 36, { align: 'center' });
+    let yPos = 32;
+    yPos = drawStatCards(doc, [
+      { label: 'Total Prejudicii', value: damageStats.total, color: DAMAGE_BLUE },
+      { label: 'Active', value: damageStats.active, color: DAMAGE_ORANGE },
+      { label: 'Recuperate', value: damageStats.recuperat, color: DAMAGE_GREEN },
+      { label: 'Trimise Juridic', value: damageStats.juridic, color: DAMAGE_RED },
+    ], 14, yPos, pageWidth);
 
     const tableData = filteredDamages.map(damage => [
       damage.parkingLot?.name || '-',
@@ -327,7 +357,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     autoTable(doc, {
       head: [['Parcare', 'Echipament avariat', 'Persoana', 'Nr. inmatriculare', 'Telefon', 'Status', 'Tip rezolutie', 'Data']],
       body: tableData,
-      startY: 42,
+      startY: yPos + 2,
       styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [249, 115, 22], textColor: 255 },
       alternateRowStyles: { fillColor: [255, 247, 237] },
@@ -379,18 +409,36 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   const handleExportCollectionsPDF = () => {
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
+    const COLL_GREEN: RGB = [16, 185, 129];
+    const COLL_BLUE: RGB = [25, 118, 210];
 
-    doc.setFontSize(18);
-    doc.setTextColor(16, 185, 129);
-    doc.text('Raport ridicari numerar automate', pageWidth / 2, 20, { align: 'center' });
-
-    doc.setFontSize(11);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(COLL_GREEN[0], COLL_GREEN[1], COLL_GREEN[2]);
+    doc.roundedRect(14, 8, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport ridicari numerar automate', pageWidth / 2, 17, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     doc.text(`Perioada: ${formatDate(startDate)} - ${formatDate(endDate)}`, pageWidth / 2, 28, { align: 'center' });
 
-    doc.setFontSize(12);
-    doc.setTextColor(16, 185, 129);
-    doc.text(`TOTAL: ${formatCurrency(collectionTotals?.totalAmount || 0)} din ${collectionTotals?.count || 0} ridicari`, pageWidth / 2, 36, { align: 'center' });
+    let yPos = 32;
+    yPos = drawStatCards(doc, [
+      { label: 'Total Suma', value: formatCurrency(collectionTotals?.totalAmount || 0), color: COLL_GREEN },
+      { label: 'Nr. Ridicari', value: collectionTotals?.count || 0, color: COLL_BLUE },
+    ], 14, yPos, pageWidth);
+
+    // Collections by parking lot bar chart
+    if (collectionTotals?.byParkingLot && collectionTotals.byParkingLot.length > 0) {
+      const barItems = collectionTotals.byParkingLot.map((item: any) => ({
+        label: item.parkingLotName,
+        value: item.totalAmount,
+        color: COLL_GREEN as RGB,
+      }));
+      yPos = drawHorizontalBarChart(doc, barItems, 14, yPos, pageWidth - 28, { title: 'Totaluri pe parcari (lei)' });
+    }
 
     const tableData = allCollections.map(collection => [
       collection.parkingLot?.name || '-',
@@ -404,23 +452,12 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     autoTable(doc, {
       head: [['Parcare', 'Automat', 'Suma', 'Ridicat de', 'Data', 'Note']],
       body: tableData,
-      startY: 44,
+      startY: yPos + 2,
       styles: { fontSize: 9, cellPadding: 3 },
       headStyles: { fillColor: [16, 185, 129], textColor: 255 },
       alternateRowStyles: { fillColor: [236, 253, 245] },
       columnStyles: { 2: { halign: 'right', fontStyle: 'bold' } },
     });
-
-    if (collectionTotals?.byParkingLot && collectionTotals.byParkingLot.length > 0) {
-      const finalY = (doc as any).lastAutoTable.finalY || 100;
-      doc.setFontSize(11);
-      doc.setTextColor(0);
-      doc.text('Totaluri pe parcari:', 14, finalY + 10);
-      collectionTotals.byParkingLot.forEach((item, index) => {
-        doc.setFontSize(10);
-        doc.text(`${item.parkingLotName}: ${formatCurrency(item.totalAmount)} din ${item.count} ridicari`, 20, finalY + 18 + (index * 6));
-      });
-    }
 
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {

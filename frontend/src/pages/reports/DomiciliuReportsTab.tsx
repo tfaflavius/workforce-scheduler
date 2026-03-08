@@ -50,6 +50,7 @@ import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
 import { DOMICILIU_REQUEST_TYPE_LABELS, DOMICILIU_REQUEST_STATUS_LABELS } from '../../types/domiciliu.types';
 import type { DomiciliuRequestType, DomiciliuRequestStatus } from '../../types/domiciliu.types';
 import jsPDF from 'jspdf';
+import { drawStatCards, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
@@ -135,28 +136,34 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = 210;
+    const EMERALD: RGB = [5, 150, 105];
+    const ORANGE: RGB = [255, 152, 0];
+    const GREEN: RGB = [76, 175, 80];
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(5, 150, 105);
-    doc.text('Raport Solicitari Parcari Domiciliu', 14, 22);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(EMERALD[0], EMERALD[1], EMERALD[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Solicitari Parcari Domiciliu', pageWidth / 2, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     const periodText = startDate && endDate
       ? `Perioada: ${format(new Date(startDate), 'dd.MM.yyyy')} - ${format(new Date(endDate), 'dd.MM.yyyy')}`
       : 'Toate inregistrarile';
-    doc.text(periodText, 14, 30);
-    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+    doc.text(`${periodText}  |  Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, pageWidth / 2, 30, { align: 'center' });
 
-    // Statistics
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Statistici:', 14, 48);
-    doc.setFontSize(10);
-    doc.text(`Total solicitari: ${stats.total}`, 14, 56);
-    doc.text(`Active: ${stats.active}`, 14, 62);
-    doc.text(`Finalizate: ${stats.resolved}`, 14, 68);
+    let yPos = 36;
+
+    // Stat cards
+    yPos = drawStatCards(doc, [
+      { label: 'Total Solicitari', value: stats.total, color: EMERALD },
+      { label: 'Active', value: stats.active, color: ORANGE },
+      { label: 'Finalizate', value: stats.resolved, color: GREEN },
+    ], 14, yPos, pageWidth);
 
     // Table
     const tableData = filteredRequests.map(r => [
@@ -170,7 +177,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
     ]);
 
     autoTable(doc, {
-      startY: 78,
+      startY: yPos + 2,
       head: [['Tip', 'Locatie', 'Nr. Locuri', 'Persoana', 'Nr. Auto', 'Status', 'Data']],
       body: tableData,
       styles: { fontSize: 8 },

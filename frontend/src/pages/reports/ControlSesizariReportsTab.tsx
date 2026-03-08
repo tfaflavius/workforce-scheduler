@@ -48,6 +48,7 @@ import DatePickerField from '../../components/common/DatePickerField';
 import { useGetControlSesizariQuery } from '../../store/api/control.api';
 import type { ControlSesizare, ControlSesizareType, ControlSesizareStatus, ControlSesizareZone } from '../../types/control.types';
 import jsPDF from 'jspdf';
+import { drawStatCards, drawStatusDistributionBar, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
@@ -129,29 +130,42 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = 210;
+    const INDIGO: RGB = [99, 102, 241];
+    const ORANGE: RGB = [255, 152, 0];
+    const GREEN: RGB = [76, 175, 80];
+    const BLUE: RGB = [25, 118, 210];
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(99, 102, 241);
-    doc.text('Raport Control Sesizari', 14, 22);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(INDIGO[0], INDIGO[1], INDIGO[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Control Sesizari', pageWidth / 2, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     const periodText = startDate && endDate
       ? `Perioada: ${format(new Date(startDate), 'dd.MM.yyyy')} - ${format(new Date(endDate), 'dd.MM.yyyy')}`
       : 'Toate inregistrarile';
-    doc.text(periodText, 14, 30);
-    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+    doc.text(`${periodText}  |  Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, pageWidth / 2, 30, { align: 'center' });
 
-    // Statistics
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Statistici:', 14, 48);
-    doc.setFontSize(10);
-    doc.text(`Total sesizari: ${stats.total}`, 14, 56);
-    doc.text(`Active: ${stats.active}`, 14, 62);
-    doc.text(`Finalizate: ${stats.finalizate}`, 14, 68);
-    doc.text(`Marcaje: ${stats.marcaje}`, 14, 74);
+    let yPos = 36;
+
+    // Stat cards
+    yPos = drawStatCards(doc, [
+      { label: 'Total Sesizari', value: stats.total, color: INDIGO },
+      { label: 'Active', value: stats.active, color: ORANGE },
+      { label: 'Finalizate', value: stats.finalizate, color: GREEN },
+      { label: 'Marcaje', value: stats.marcaje, color: BLUE },
+    ], 14, yPos, pageWidth);
+
+    // Distribution bar
+    yPos = drawStatusDistributionBar(doc, [
+      { label: 'Active', value: stats.active, color: ORANGE },
+      { label: 'Finalizate', value: stats.finalizate, color: GREEN },
+    ], 14, yPos, pageWidth - 28, { title: 'Status sesizari' });
 
     // Table
     const tableData = filteredSesizari.map((s: ControlSesizare) => [
@@ -165,7 +179,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
     ]);
 
     autoTable(doc, {
-      startY: 84,
+      startY: yPos + 2,
       head: [['Tip', 'Zona', 'Locatie', 'Status', 'Creat de', 'Data', 'Rezolvat de']],
       body: tableData,
       styles: { fontSize: 8 },

@@ -47,6 +47,7 @@ import {
 import { useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
 import type { RevenueSummaryCategory } from '../../types/acquisitions.types';
 import jsPDF from 'jspdf';
+import { drawStatCards, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
@@ -120,26 +121,32 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
   // Export to PDF - LANDSCAPE due to 12 month columns
   const exportToPDF = () => {
     const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const EMERALD: RGB = [5, 150, 105];
+    const GREEN: RGB = [76, 175, 80];
+    const RED: RGB = [244, 67, 54];
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(5, 150, 105);
-    doc.text('Raport Incasari si Cheltuieli', 14, 22);
+    // Header band
+    doc.setFillColor(EMERALD[0], EMERALD[1], EMERALD[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Incasari si Cheltuieli', pageWidth / 2, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Anul: ${selectedYear}  |  Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, pageWidth / 2, 30, { align: 'center' });
 
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Anul: ${selectedYear}`, 14, 30);
-    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+    let yPos = 36;
 
-    // Statistics
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Statistici:', 14, 48);
-    doc.setFontSize(10);
-    doc.text(`Total incasari: ${formatCurrency(stats.totalIncasari)}`, 14, 56);
-    doc.text(`Total cheltuieli: ${formatCurrency(stats.totalCheltuieli)}`, 14, 62);
-    doc.text(`Diferenta: ${formatCurrency(stats.diferenta)}`, 14, 68);
-    doc.text(`Nr. categorii: ${stats.nrCategorii}`, 14, 74);
+    // Stat cards
+    const diferenta = stats.diferenta;
+    yPos = drawStatCards(doc, [
+      { label: 'Total Incasari', value: formatCurrency(stats.totalIncasari), color: GREEN },
+      { label: 'Total Cheltuieli', value: formatCurrency(stats.totalCheltuieli), color: RED },
+      { label: 'Diferenta', value: formatCurrency(diferenta), color: diferenta >= 0 ? EMERALD : RED },
+    ], 14, yPos, pageWidth);
 
     // Table
     const tableData = flatCategories.map((cat: RevenueSummaryCategory) => {
@@ -164,7 +171,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
     }
 
     autoTable(doc, {
-      startY: 84,
+      startY: yPos + 2,
       head: [['Categorie', ...MONTH_LABELS, 'Total']],
       body: tableData,
       styles: { fontSize: 6, cellPadding: 2 },

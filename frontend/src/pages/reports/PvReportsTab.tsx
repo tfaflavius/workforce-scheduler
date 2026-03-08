@@ -48,6 +48,7 @@ import DatePickerField from '../../components/common/DatePickerField';
 import { useGetPvSessionsQuery } from '../../store/api/pvDisplay.api';
 import type { PvDisplaySession, PvSessionStatus } from '../../types/pv-display.types';
 import jsPDF from 'jspdf';
+import { drawStatCards, drawProgressBar, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
@@ -132,29 +133,41 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = 210;
+    const VIOLET: RGB = [139, 92, 246];
+    const GREEN: RGB = [76, 175, 80];
+    const ORANGE: RGB = [255, 152, 0];
+    const BLUE: RGB = [25, 118, 210];
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(139, 92, 246);
-    doc.text('Raport Procese Verbale', 14, 22);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(VIOLET[0], VIOLET[1], VIOLET[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Procese Verbale', pageWidth / 2, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     const periodText = startDate && endDate
       ? `Perioada: ${format(new Date(startDate), 'dd.MM.yyyy')} - ${format(new Date(endDate), 'dd.MM.yyyy')}`
       : 'Toate inregistrarile';
-    doc.text(periodText, 14, 30);
-    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+    doc.text(`${periodText}  |  Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, pageWidth / 2, 30, { align: 'center' });
 
-    // Statistics
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Statistici:', 14, 48);
-    doc.setFontSize(10);
-    doc.text(`Total sesiuni: ${stats.total}`, 14, 56);
-    doc.text(`Finalizate: ${stats.completed}`, 14, 62);
-    doc.text(`In desfasurare: ${stats.inProgress}`, 14, 68);
-    doc.text(`Total zile: ${stats.totalDays}`, 14, 74);
+    let yPos = 36;
+
+    // Stat cards
+    yPos = drawStatCards(doc, [
+      { label: 'Total Sesiuni', value: stats.total, color: VIOLET },
+      { label: 'Finalizate', value: stats.completed, color: GREEN },
+      { label: 'In Desfasurare', value: stats.inProgress, color: ORANGE },
+      { label: 'Total Zile', value: stats.totalDays, color: BLUE },
+    ], 14, yPos, pageWidth);
+
+    // Progress bar
+    if (stats.total > 0) {
+      yPos = drawProgressBar(doc, 'Progres finalizare sesiuni', stats.completed, stats.total, 14, yPos, pageWidth - 28, VIOLET);
+    }
 
     // Table
     const tableData = filteredSessions.map((s: PvDisplaySession) => {
@@ -171,7 +184,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
     });
 
     autoTable(doc, {
-      startY: 84,
+      startY: yPos + 2,
       head: [['Luna/An', 'Status', 'Nr Zile', 'Zile Finalizate', 'Zile Deschise', 'Creator', 'Data Creare']],
       body: tableData,
       styles: { fontSize: 8 },

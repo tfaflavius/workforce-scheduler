@@ -51,6 +51,7 @@ import { useGetHandicapRequestsQuery } from '../../store/api/handicap.api';
 import { HANDICAP_REQUEST_TYPE_LABELS, HANDICAP_REQUEST_STATUS_LABELS } from '../../types/handicap.types';
 import type { HandicapRequestType, HandicapRequestStatus } from '../../types/handicap.types';
 import jsPDF from 'jspdf';
+import { drawStatCards, drawStatusDistributionBar, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
@@ -139,28 +140,40 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
   // Export to PDF
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = 210;
+    const INDIGO: RGB = [99, 102, 241];
+    const ORANGE: RGB = [255, 152, 0];
+    const GREEN: RGB = [76, 175, 80];
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(99, 102, 241);
-    doc.text('Raport Solicitari Parcari Handicap', 14, 22);
-
-    doc.setFontSize(10);
-    doc.setTextColor(100);
+    // Header band
+    doc.setFillColor(INDIGO[0], INDIGO[1], INDIGO[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Raport Solicitari Parcari Handicap', pageWidth / 2, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     const periodText = startDate && endDate
       ? `Perioada: ${format(new Date(startDate), 'dd.MM.yyyy')} - ${format(new Date(endDate), 'dd.MM.yyyy')}`
       : 'Toate inregistrarile';
-    doc.text(periodText, 14, 30);
-    doc.text(`Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, 14, 36);
+    doc.text(`${periodText}  |  Generat la: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, pageWidth / 2, 30, { align: 'center' });
 
-    // Statistics
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text('Statistici:', 14, 48);
-    doc.setFontSize(10);
-    doc.text(`Total solicitari: ${stats.total}`, 14, 56);
-    doc.text(`Active: ${stats.active}`, 14, 62);
-    doc.text(`Finalizate: ${stats.resolved}`, 14, 68);
+    let yPos = 36;
+
+    // Stat cards
+    yPos = drawStatCards(doc, [
+      { label: 'Total Solicitari', value: stats.total, color: INDIGO },
+      { label: 'Active', value: stats.active, color: ORANGE },
+      { label: 'Finalizate', value: stats.resolved, color: GREEN },
+    ], 14, yPos, pageWidth);
+
+    // Distribution bar
+    yPos = drawStatusDistributionBar(doc, [
+      { label: 'Active', value: stats.active, color: ORANGE },
+      { label: 'Finalizate', value: stats.resolved, color: GREEN },
+    ], 14, yPos, pageWidth - 28, { title: 'Status solicitari' });
 
     // Table
     const tableData = filteredRequests.map(r => [
@@ -174,7 +187,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
     ]);
 
     autoTable(doc, {
-      startY: 78,
+      startY: yPos + 2,
       head: [['Tip', 'Locatie', 'Persoana', 'Nr. Auto', 'Status', 'Data', 'Rezolvat de']],
       body: tableData,
       styles: { fontSize: 8 },

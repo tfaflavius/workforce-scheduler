@@ -43,6 +43,7 @@ import {
   useGetWeeklyOccupancyQuery,
 } from '../../store/api/parkingStats.api';
 import jsPDF from 'jspdf';
+import { drawStatCards, drawHorizontalBarChart, type RGB } from '../../utils/pdfCharts';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
@@ -234,6 +235,10 @@ const ParkingStatsReportsTab: React.FC = () => {
       unit: 'mm',
       format: 'a4',
     });
+    const pageWidth = 210;
+    const VIOLET: RGB = [139, 92, 246];
+    const INDIGO: RGB = [99, 102, 241];
+    const BLUE: RGB = [25, 118, 210];
 
     const periodLabel = getPeriodLabel();
     let title = '';
@@ -246,21 +251,41 @@ const ParkingStatsReportsTab: React.FC = () => {
       title = `Raport Grad de Ocupare - ${periodLabel}`;
     }
 
-    // Header
-    doc.setFontSize(16);
+    // Header band
+    doc.setFillColor(VIOLET[0], VIOLET[1], VIOLET[2]);
+    doc.roundedRect(14, 10, pageWidth - 28, 14, 3, 3, 'F');
     doc.setFont('helvetica', 'bold');
-    doc.text(title, 14, 15);
-
-    doc.setFontSize(9);
+    doc.setFontSize(13);
+    doc.setTextColor(255, 255, 255);
+    doc.text(title, pageWidth / 2, 19, { align: 'center' });
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
     doc.text(
       `Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`,
-      14, 22
+      pageWidth / 2, 30, { align: 'center' }
     );
+
+    let yPos = 36;
 
     if (reportType === 'tickets') {
       const total = ticketsData.reduce((sum, d) => sum + d.value, 0);
-      doc.text(`Total tichete: ${total}`, 14, 27);
+
+      // Stat cards
+      yPos = drawStatCards(doc, [
+        { label: 'Total Tichete', value: total, color: VIOLET },
+        { label: 'Parcari Raportate', value: ticketsData.length, color: BLUE },
+      ], 14, yPos, pageWidth);
+
+      // Bar chart
+      const barItems = ticketsData.filter(d => d.value > 0).map(d => ({
+        label: d.fullName,
+        value: d.value,
+        color: VIOLET as RGB,
+      }));
+      if (barItems.length > 0) {
+        yPos = drawHorizontalBarChart(doc, barItems, 14, yPos, pageWidth - 28, { title: 'Tichete per parcare' });
+      }
 
       const headers = ['Parcare', 'Numar Tichete'];
       const rows = ticketsData.map(d => [d.fullName, d.value.toString()]);
@@ -269,7 +294,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       autoTable(doc, {
         head: [headers],
         body: rows,
-        startY: 33,
+        startY: yPos + 2,
         styles: { fontSize: 9, cellPadding: 3 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
         columnStyles: { 0: { cellWidth: 100 }, 1: { halign: 'right', cellWidth: 40 } },
@@ -283,7 +308,12 @@ const ParkingStatsReportsTab: React.FC = () => {
     } else if (reportType === 'subscriptions') {
       const total = subscriptionsData.reduce((sum, d) => sum + d.value, 0);
       const totalSpots = subscriptionsData.reduce((sum, d) => sum + d.spots, 0);
-      doc.text(`Total abonamente: ${total} | Total locuri: ${totalSpots}`, 14, 27);
+
+      // Stat cards
+      yPos = drawStatCards(doc, [
+        { label: 'Total Abonamente', value: total, color: VIOLET },
+        { label: 'Total Locuri', value: totalSpots, color: INDIGO },
+      ], 14, yPos, pageWidth);
 
       const headers = ['Parcare', 'Nr. Locuri', 'Numar Abonamente'];
       const rows = subscriptionsData.map(d => [d.name, String(d.spots), d.value.toString()]);
@@ -292,7 +322,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       autoTable(doc, {
         head: [headers],
         body: rows,
-        startY: 33,
+        startY: yPos + 2,
         styles: { fontSize: 9, cellPadding: 3 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
         columnStyles: { 0: { cellWidth: 80 }, 1: { halign: 'right', cellWidth: 25 }, 2: { halign: 'right', cellWidth: 40 } },
@@ -306,7 +336,13 @@ const ParkingStatsReportsTab: React.FC = () => {
     } else {
       const avgTotal = occupancyData.reduce((sum, d) => sum + d.avg, 0);
       const totalCoeff = TOTAL_PARKING_SPOTS > 0 ? ((avgTotal / TOTAL_PARKING_SPOTS) * 100).toFixed(2) : '0';
-      doc.text(`Total locuri: ${TOTAL_PARKING_SPOTS} | Medie ocupare: ${avgTotal.toFixed(0)} | Grad mediu/sapt: ${totalCoeff}%`, 14, 27);
+
+      // Stat cards
+      yPos = drawStatCards(doc, [
+        { label: 'Total Locuri', value: TOTAL_PARKING_SPOTS, color: VIOLET },
+        { label: 'Medie Ocupare', value: avgTotal.toFixed(0), color: INDIGO },
+        { label: 'Grad Mediu/Sapt', value: `${totalCoeff}%`, color: BLUE },
+      ], 14, yPos, pageWidth);
 
       const headers = ['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt. (%)'];
       const rows = occupancyData.map(d => [
@@ -329,7 +365,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       autoTable(doc, {
         head: [headers],
         body: rows,
-        startY: 33,
+        startY: yPos + 2,
         styles: { fontSize: 8, cellPadding: 3 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
         columnStyles: {

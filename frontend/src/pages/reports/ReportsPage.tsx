@@ -85,6 +85,15 @@ import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import { useGetMonthlyTicketsSummaryQuery, useGetMonthlySubscriptionsQuery, useGetMonthlyOccupancySummaryQuery } from '../../store/api/parkingStats.api';
 import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName, TOTAL_PARKING_SPOTS } from '../../constants/parkingStats';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
+import {
+  drawSectionHeader,
+  drawStatCards,
+  drawHorizontalBarChart,
+  drawProgressBar,
+  drawStatusDistributionBar,
+  drawColoredDivider,
+  type RGB,
+} from '../../utils/pdfCharts';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -960,6 +969,7 @@ const ReportsPage: React.FC = () => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
     const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = 210; // A4 width in mm
     const selectedCount = Object.values(selectedSections).filter(Boolean).length;
     if (selectedCount === 0) return;
 
@@ -968,38 +978,59 @@ const ReportsPage: React.FC = () => {
       return yPosition;
     };
 
-    doc.setFontSize(20);
-    doc.text(`Raport personalizat - ${monthLabel}`, 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}`, 14, 28);
-    doc.text(`Sectiuni selectate: ${selectedCount} din ${REPORT_SECTIONS.length}`, 14, 34);
+    // Color palette
+    const BLUE: RGB = [25, 118, 210];
+    const GREEN: RGB = [76, 175, 80];
+    const RED: RGB = [244, 67, 54];
+    const ORANGE: RGB = [255, 152, 0];
+    const INDIGO: RGB = [99, 102, 241];
+    const VIOLET: RGB = [139, 92, 246];
+    const TEAL: RGB = [0, 150, 136];
+    const EMERALD: RGB = [5, 150, 105];
 
-    let yPos = 48;
+    // Title header
+    doc.setFillColor(25, 118, 210);
+    doc.roundedRect(14, 10, pageWidth - 28, 16, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Raport personalizat - ${monthLabel}`, pageWidth / 2, 20, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Generat la: ${new Date().toLocaleDateString('ro-RO')} ${new Date().toLocaleTimeString('ro-RO')}  |  Sectiuni: ${selectedCount} din ${REPORT_SECTIONS.length}`, pageWidth / 2, 32, { align: 'center' });
+
+    let yPos = 40;
     let sn = 0;
 
+    // ─── 1. Program de lucru ───
     if (selectedSections.workStats) {
       sn++;
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Program de lucru`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 60);
+      yPos = drawSectionHeader(doc, 'Program de lucru', 14, yPos, pageWidth, BLUE, sn);
       const totalHours = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
       const totalDayShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).dayShifts, 0);
       const totalNightShifts = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).nightShifts, 0);
       const totalVacationDays = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).vacationDays, 0);
-      doc.setFontSize(10);
-      doc.text(`Total angajati: ${filteredUsers.length}`, 20, yPos); yPos += 6;
-      doc.text(`Total ore lucrate: ${totalHours}`, 20, yPos); yPos += 6;
-      doc.text(`Total ture de zi: ${totalDayShifts}`, 20, yPos); yPos += 6;
-      doc.text(`Total ture de noapte: ${totalNightShifts}`, 20, yPos); yPos += 6;
-      doc.text(`Total zile concediu (din program): ${totalVacationDays}`, 20, yPos); yPos += 12;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Angajati', value: filteredUsers.length, color: BLUE },
+        { label: 'Ore Lucrate', value: totalHours, color: GREEN },
+        { label: 'Ture de Zi', value: totalDayShifts, color: ORANGE },
+        { label: 'Ture de Noapte', value: totalNightShifts, color: INDIGO },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawHorizontalBarChart(doc, [
+        { label: 'Ture de zi', value: totalDayShifts, color: ORANGE },
+        { label: 'Ture de noapte', value: totalNightShifts, color: INDIGO },
+        { label: 'Zile concediu', value: totalVacationDays, color: GREEN },
+      ], 14, yPos, pageWidth - 28, { title: 'Distributie ture si concedii' }, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, BLUE);
     }
 
+    // ─── 2. Concedii ───
     if (selectedSections.leaves) {
       sn++;
-      yPos = checkPageBreak(yPos, 50);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Concedii`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 70);
+      yPos = drawSectionHeader(doc, 'Concedii', 14, yPos, pageWidth, GREEN, sn);
       const approvedLeaves = filteredLeaveRequests.filter(r => r.status === 'APPROVED');
       const pendingLeaves = filteredLeaveRequests.filter(r => r.status === 'PENDING');
       const rejectedLeaves = filteredLeaveRequests.filter(r => r.status === 'REJECTED');
@@ -1008,136 +1039,189 @@ const ReportsPage: React.FC = () => {
         acc[req.leaveType] = (acc[req.leaveType] || 0) + calculateWorkingDays(req.startDate, req.endDate);
         return acc;
       }, {} as Record<LeaveType, number>);
-      doc.setFontSize(10);
-      doc.text(`Total cereri: ${filteredLeaveRequests.length}`, 20, yPos); yPos += 6;
-      doc.text(`Aprobate: ${approvedLeaves.length} | In asteptare: ${pendingLeaves.length} | Respinse: ${rejectedLeaves.length}`, 20, yPos); yPos += 6;
-      doc.text(`Total zile concediu aprobate: ${totalLeaveDays}`, 20, yPos); yPos += 8;
-      Object.entries(leavesByType).forEach(([type, days]) => {
-        doc.text(`  - ${LEAVE_TYPE_LABELS[type as LeaveType]}: ${days} zile`, 25, yPos); yPos += 5;
-      });
-      yPos += 10;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Cereri', value: filteredLeaveRequests.length, color: BLUE },
+        { label: 'Zile Aprobate', value: totalLeaveDays, color: GREEN },
+        { label: 'In Asteptare', value: pendingLeaves.length, color: ORANGE },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawStatusDistributionBar(doc, [
+        { label: 'Aprobate', value: approvedLeaves.length, color: GREEN },
+        { label: 'In asteptare', value: pendingLeaves.length, color: ORANGE },
+        { label: 'Respinse', value: rejectedLeaves.length, color: RED },
+      ], 14, yPos, pageWidth - 28, { title: 'Status cereri concediu' }, checkPageBreak);
+      const leaveBarItems = Object.entries(leavesByType).map(([type, days]) => ({
+        label: LEAVE_TYPE_LABELS[type as LeaveType] || type,
+        value: days as number,
+        color: GREEN as RGB,
+      }));
+      if (leaveBarItems.length > 0) {
+        yPos = drawHorizontalBarChart(doc, leaveBarItems, 14, yPos, pageWidth - 28, { title: 'Zile concediu per tip' }, checkPageBreak);
+      }
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, GREEN);
     }
 
+    // ─── 3. Schimburi de tura ───
     if (selectedSections.swaps) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Schimburi de tura`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 50);
+      yPos = drawSectionHeader(doc, 'Schimburi de tura', 14, yPos, pageWidth, TEAL, sn);
       const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED');
       const pendingSwaps = filteredSwapRequests.filter(r => r.status === 'PENDING' || r.status === 'AWAITING_ADMIN');
       const rejectedSwaps = filteredSwapRequests.filter(r => r.status === 'REJECTED');
-      doc.setFontSize(10);
-      doc.text(`Total cereri schimb: ${filteredSwapRequests.length}`, 20, yPos); yPos += 6;
-      doc.text(`Aprobate: ${approvedSwaps.length} | In asteptare: ${pendingSwaps.length} | Respinse: ${rejectedSwaps.length}`, 20, yPos); yPos += 12;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Cereri', value: filteredSwapRequests.length, color: TEAL },
+        { label: 'Aprobate', value: approvedSwaps.length, color: GREEN },
+        { label: 'Respinse', value: rejectedSwaps.length, color: RED },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawStatusDistributionBar(doc, [
+        { label: 'Aprobate', value: approvedSwaps.length, color: GREEN },
+        { label: 'In asteptare', value: pendingSwaps.length, color: ORANGE },
+        { label: 'Respinse', value: rejectedSwaps.length, color: RED },
+      ], 14, yPos, pageWidth - 28, { title: 'Status cereri schimb' }, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, TEAL);
     }
 
+    // ─── 4. Parcari Etajate ───
     if (selectedSections.parkingEtajate) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Parcari Etajate`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
-      doc.setFontSize(10);
-      doc.text(`Probleme active: ${totalParkingIssues.filter((i: any) => i.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
-      doc.text(`Probleme finalizate: ${totalParkingIssues.filter((i: any) => i.status === 'FINALIZAT').length}`, 20, yPos); yPos += 6;
-      doc.text(`Total prejudicii: ${totalParkingDamages.length}`, 20, yPos); yPos += 12;
+      yPos = checkPageBreak(yPos, 50);
+      yPos = drawSectionHeader(doc, 'Parcari Etajate', 14, yPos, pageWidth, BLUE, sn);
+      const activeIssues = totalParkingIssues.filter((i: any) => i.status === 'ACTIVE').length;
+      const finishedIssues = totalParkingIssues.filter((i: any) => i.status === 'FINALIZAT').length;
+      yPos = drawStatCards(doc, [
+        { label: 'Probleme Active', value: activeIssues, color: ORANGE },
+        { label: 'Finalizate', value: finishedIssues, color: GREEN },
+        { label: 'Prejudicii', value: totalParkingDamages.length, color: RED },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawStatusDistributionBar(doc, [
+        { label: 'Active', value: activeIssues, color: ORANGE },
+        { label: 'Finalizate', value: finishedIssues, color: GREEN },
+      ], 14, yPos, pageWidth - 28, { title: 'Status probleme parcari' }, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, BLUE);
     }
 
+    // ─── 5. Parcari Handicap ───
     if (selectedSections.parkingHandicap) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Parcari Handicap`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
-      doc.setFontSize(10);
-      doc.text(`Total solicitari: ${totalHandicapRequests.length}`, 20, yPos); yPos += 6;
-      doc.text(`Active: ${totalHandicapRequests.filter((r: any) => r.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
-      doc.text(`Finalizate: ${totalHandicapRequests.filter((r: any) => r.status === 'FINALIZAT').length}`, 20, yPos); yPos += 12;
+      yPos = checkPageBreak(yPos, 50);
+      yPos = drawSectionHeader(doc, 'Parcari Handicap', 14, yPos, pageWidth, INDIGO, sn);
+      const activeHand = totalHandicapRequests.filter((r: any) => r.status === 'ACTIVE').length;
+      const finalizatHand = totalHandicapRequests.filter((r: any) => r.status === 'FINALIZAT').length;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Solicitari', value: totalHandicapRequests.length, color: INDIGO },
+        { label: 'Active', value: activeHand, color: ORANGE },
+        { label: 'Finalizate', value: finalizatHand, color: GREEN },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawStatusDistributionBar(doc, [
+        { label: 'Active', value: activeHand, color: ORANGE },
+        { label: 'Finalizate', value: finalizatHand, color: GREEN },
+      ], 14, yPos, pageWidth - 28, { title: 'Status solicitari handicap' }, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, INDIGO);
     }
 
+    // ─── 6. Parcari Domiciliu ───
     if (selectedSections.parkingDomiciliu) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Parcari Domiciliu`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
-      doc.setFontSize(10);
-      doc.text(`Total solicitari: ${totalDomiciliuRequests.length}`, 20, yPos); yPos += 6;
-      doc.text(`Active: ${totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length}`, 20, yPos); yPos += 6;
-      doc.text(`Finalizate: ${totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length}`, 20, yPos); yPos += 12;
+      yPos = checkPageBreak(yPos, 50);
+      yPos = drawSectionHeader(doc, 'Parcari Domiciliu', 14, yPos, pageWidth, EMERALD, sn);
+      const activeDom = totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length;
+      const finalizatDom = totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Solicitari', value: totalDomiciliuRequests.length, color: EMERALD },
+        { label: 'Active', value: activeDom, color: ORANGE },
+        { label: 'Finalizate', value: finalizatDom, color: GREEN },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, EMERALD);
     }
 
+    // ─── 7. Procese Verbale / Facturare ───
     if (selectedSections.pvSessions) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Procese Verbale / Facturare`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 55);
+      yPos = drawSectionHeader(doc, 'Procese Verbale / Facturare', 14, yPos, pageWidth, VIOLET, sn);
       const completedPv = totalPvSessions.filter((s: any) => s.status === 'COMPLETED').length;
       const inProgressPv = totalPvSessions.filter((s: any) => s.status === 'IN_PROGRESS').length;
-      doc.setFontSize(10);
-      doc.text(`Total sesiuni: ${totalPvSessions.length}`, 20, yPos); yPos += 6;
-      doc.text(`Finalizate: ${completedPv}`, 20, yPos); yPos += 6;
-      doc.text(`In desfasurare: ${inProgressPv}`, 20, yPos); yPos += 12;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Sesiuni', value: totalPvSessions.length, color: VIOLET },
+        { label: 'Finalizate', value: completedPv, color: GREEN },
+        { label: 'In Desfasurare', value: inProgressPv, color: ORANGE },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      if (totalPvSessions.length > 0) {
+        yPos = drawProgressBar(doc, 'Progres finalizare', completedPv, totalPvSessions.length, 14, yPos, pageWidth - 28, VIOLET, undefined, checkPageBreak);
+      }
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, VIOLET);
     }
 
+    // ─── 8. Parcometre ───
     if (selectedSections.parcometre) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Parcometre`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 55);
+      yPos = drawSectionHeader(doc, 'Parcometre', 14, yPos, pageWidth, RED, sn);
       const activeMeters = totalParkingMeters.filter((m: any) => m.isActive).length;
       const rosuMeters = totalParkingMeters.filter((m: any) => m.zone === 'ROSU').length;
       const galbenMeters = totalParkingMeters.filter((m: any) => m.zone === 'GALBEN').length;
-      doc.setFontSize(10);
-      doc.text(`Total parcometre: ${totalParkingMeters.length}`, 20, yPos); yPos += 6;
-      doc.text(`Active: ${activeMeters}`, 20, yPos); yPos += 6;
-      doc.text(`Zona Rosu: ${rosuMeters} | Zona Galben: ${galbenMeters}`, 20, yPos); yPos += 12;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Parcometre', value: totalParkingMeters.length, color: BLUE },
+        { label: 'Active', value: activeMeters, color: GREEN },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawHorizontalBarChart(doc, [
+        { label: 'Zona Rosu', value: rosuMeters, color: RED },
+        { label: 'Zona Galben', value: galbenMeters, color: ORANGE },
+      ], 14, yPos, pageWidth - 28, { title: 'Distributie pe zone' }, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, RED);
     }
 
+    // ─── 9. Control Sesizari ───
     if (selectedSections.controlSesizari) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Control Sesizari`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 50);
+      yPos = drawSectionHeader(doc, 'Control Sesizari', 14, yPos, pageWidth, INDIGO, sn);
       const activeSesizari = totalControlSesizari.filter((s: any) => s.status === 'ACTIVE').length;
       const finalizatSesizari = totalControlSesizari.filter((s: any) => s.status === 'FINALIZAT').length;
-      doc.setFontSize(10);
-      doc.text(`Total sesizari: ${totalControlSesizari.length}`, 20, yPos); yPos += 6;
-      doc.text(`Active: ${activeSesizari}`, 20, yPos); yPos += 6;
-      doc.text(`Finalizate: ${finalizatSesizari}`, 20, yPos); yPos += 12;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Sesizari', value: totalControlSesizari.length, color: INDIGO },
+        { label: 'Active', value: activeSesizari, color: ORANGE },
+        { label: 'Finalizate', value: finalizatSesizari, color: GREEN },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawStatusDistributionBar(doc, [
+        { label: 'Active', value: activeSesizari, color: ORANGE },
+        { label: 'Finalizate', value: finalizatSesizari, color: GREEN },
+      ], 14, yPos, pageWidth - 28, { title: 'Status sesizari' }, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, INDIGO);
     }
 
+    // ─── 10. Achizitii ───
     if (selectedSections.achizitii) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Achizitii`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 60);
+      yPos = drawSectionHeader(doc, 'Achizitii', 14, yPos, pageWidth, ORANGE, sn);
       const totalBuget = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.totalAmount || 0), 0);
       const totalCheltuit = totalBudgetPositions.reduce((sum: number, bp: any) => sum + (bp.spentAmount || 0), 0);
-      doc.setFontSize(10);
-      doc.text(`Pozitii bugetare: ${totalBudgetPositions.length}`, 20, yPos); yPos += 6;
-      doc.text(`Total buget: ${totalBuget.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-      doc.text(`Total cheltuit: ${totalCheltuit.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-      doc.text(`Ramas: ${(totalBuget - totalCheltuit).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 12;
+      yPos = drawStatCards(doc, [
+        { label: 'Pozitii Bugetare', value: totalBudgetPositions.length, color: BLUE },
+        { label: 'Total Buget', value: `${totalBuget.toLocaleString('ro-RO')} lei`, color: ORANGE },
+        { label: 'Cheltuit', value: `${totalCheltuit.toLocaleString('ro-RO')} lei`, color: RED },
+        { label: 'Ramas', value: `${(totalBuget - totalCheltuit).toLocaleString('ro-RO')} lei`, color: GREEN },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      if (totalBuget > 0) {
+        yPos = drawProgressBar(doc, 'Executie bugetara', totalCheltuit, totalBuget, 14, yPos, pageWidth - 28, ORANGE, undefined, checkPageBreak);
+      }
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, ORANGE);
     }
 
+    // ─── 11. Incasari / Cheltuieli ───
     if (selectedSections.incasariCheltuieli) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Incasari / Cheltuieli`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 50);
+      yPos = drawSectionHeader(doc, 'Incasari / Cheltuieli', 14, yPos, pageWidth, EMERALD, sn);
       const grandIncasari = totalRevenueSummary?.grandTotalIncasari || 0;
       const grandCheltuieli = totalRevenueSummary?.grandTotalCheltuieli || 0;
-      doc.setFontSize(10);
-      doc.text(`Total incasari: ${grandIncasari.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-      doc.text(`Total cheltuieli: ${grandCheltuieli.toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 6;
-      doc.text(`Diferenta: ${(grandIncasari - grandCheltuieli).toLocaleString('ro-RO')} lei`, 20, yPos); yPos += 8;
+      const diferenta = grandIncasari - grandCheltuieli;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Incasari', value: `${grandIncasari.toLocaleString('ro-RO')} lei`, color: GREEN },
+        { label: 'Total Cheltuieli', value: `${grandCheltuieli.toLocaleString('ro-RO')} lei`, color: RED },
+        { label: 'Diferenta', value: `${diferenta.toLocaleString('ro-RO')} lei`, color: diferenta >= 0 ? EMERALD : RED },
+      ], 14, yPos, pageWidth, checkPageBreak);
       if (totalRevenueSummary?.categories && totalRevenueSummary.categories.length > 0) {
         yPos = checkPageBreak(yPos, 40);
         const incHeaders = ['Categorie', 'Incasari (lei)', 'Cheltuieli (lei)'];
@@ -1167,39 +1251,53 @@ const ReportsPage: React.FC = () => {
       } else {
         yPos += 4;
       }
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, EMERALD);
     }
 
+    // ─── 12. Monitorizare Pontaj ───
     if (selectedSections.pontaj && isAdminOrManager && totalTimeEntries.length > 0) {
       sn++;
-      yPos = checkPageBreak(yPos, 40);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Monitorizare Pontaj`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 55);
+      yPos = drawSectionHeader(doc, 'Monitorizare Pontaj', 14, yPos, pageWidth, BLUE, sn);
       const totalOre = (totalTimeEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0) / 60).toFixed(1);
       const angajatiUnici = new Set(totalTimeEntries.map((e: any) => e.userId)).size;
-      doc.setFontSize(10);
-      doc.text(`Total intrari pontaj: ${totalTimeEntries.length}`, 20, yPos); yPos += 6;
-      doc.text(`Total ore: ${totalOre}h`, 20, yPos); yPos += 6;
-      doc.text(`Angajati unici: ${angajatiUnici}`, 20, yPos); yPos += 12;
+      yPos = drawStatCards(doc, [
+        { label: 'Total Intrari', value: totalTimeEntries.length, color: BLUE },
+        { label: 'Total Ore', value: `${totalOre}h`, color: GREEN },
+        { label: 'Angajati Unici', value: angajatiUnici, color: INDIGO },
+      ], 14, yPos, pageWidth, checkPageBreak);
+      yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, BLUE);
     }
 
+    // ─── 13. Statistici Parcari ───
     if (selectedSections.parkingStats) {
       sn++;
-      yPos = checkPageBreak(yPos, 50);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text(`${sn}. Statistici Parcari`, 14, yPos);
-      doc.setFont('helvetica', 'normal'); yPos += 10;
+      yPos = checkPageBreak(yPos, 60);
+      yPos = drawSectionHeader(doc, 'Statistici Parcari', 14, yPos, pageWidth, VIOLET, sn);
       const totalTichete = totalMonthlyTickets.reduce((sum: number, t: any) => sum + (t.totalTickets || 0), 0);
       const totalAbonamente = totalMonthlySubscriptions.reduce((sum: number, s: any) => sum + (s.subscriptionCount || 0), 0);
-      doc.setFontSize(10);
-      doc.text(`Total tichete zilnice: ${totalTichete} | Abonamente: ${totalAbonamente} | Parcari raportate ocupare: ${totalMonthlyOccupancy.length}`, 20, yPos);
-      yPos += 8;
+      yPos = drawStatCards(doc, [
+        { label: 'Tichete Zilnice', value: totalTichete, color: VIOLET },
+        { label: 'Abonamente', value: totalAbonamente, color: INDIGO },
+        { label: 'Parcari Ocupare', value: totalMonthlyOccupancy.length, color: BLUE },
+      ], 14, yPos, pageWidth, checkPageBreak);
 
+      // Bar chart for tickets per location
+      if (totalMonthlyTickets.length > 0) {
+        const ticketMap = new Map(totalMonthlyTickets.map((t: any) => [t.locationKey, t.totalTickets || 0]));
+        const ticketBarItems = PARKING_STAT_LOCATIONS.map(loc => ({
+          label: getLocationFullName(loc.key),
+          value: ticketMap.get(loc.key) || 0,
+          color: VIOLET as RGB,
+        })).filter(item => item.value > 0);
+        if (ticketBarItems.length > 0) {
+          yPos = drawHorizontalBarChart(doc, ticketBarItems, 14, yPos, pageWidth - 28, { title: 'Tichete zilnice per parcare' }, checkPageBreak);
+        }
+      }
+
+      // Tables (keep existing autoTable for detailed data)
       if (totalMonthlyTickets.length > 0) {
         yPos = checkPageBreak(yPos, 40);
-        doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-        doc.text('Tichete zilnice per parcare:', 20, yPos);
-        doc.setFont('helvetica', 'normal'); yPos += 6;
         const ticketMap = new Map(totalMonthlyTickets.map((t: any) => [t.locationKey, t.totalTickets || 0]));
         const ticketRows = PARKING_STAT_LOCATIONS.map(loc => [getLocationFullName(loc.key), (ticketMap.get(loc.key) || 0).toString()]);
         ticketRows.push(['TOTAL', totalTichete.toString()]);
@@ -1219,9 +1317,6 @@ const ReportsPage: React.FC = () => {
 
       if (totalMonthlySubscriptions.length > 0) {
         yPos = checkPageBreak(yPos, 40);
-        doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-        doc.text('Abonamente lunare per parcare:', 20, yPos);
-        doc.setFont('helvetica', 'normal'); yPos += 6;
         const subMap = new Map(totalMonthlySubscriptions.map((s: any) => [s.locationKey, s.subscriptionCount || 0]));
         const subRows = PARKING_SUBSCRIPTION_LOCATIONS.map(loc => [loc.name, String(loc.spots), (subMap.get(loc.key) || 0).toString()]);
         const totalSubSpots = PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, loc) => sum + loc.spots, 0);
@@ -1242,9 +1337,6 @@ const ReportsPage: React.FC = () => {
 
       if (totalMonthlyOccupancy.length > 0) {
         yPos = checkPageBreak(yPos, 40);
-        doc.setFontSize(11); doc.setFont('helvetica', 'bold');
-        doc.text('Grad de ocupare (medie lunara):', 20, yPos);
-        doc.setFont('helvetica', 'normal'); yPos += 6;
         const occMap = new Map(totalMonthlyOccupancy.map((o: any) => [o.locationKey, o]));
         const occRows = PARKING_STAT_LOCATIONS.map(loc => {
           const o = occMap.get(loc.key);
@@ -1276,11 +1368,10 @@ const ReportsPage: React.FC = () => {
       }
     }
 
-    // Employee summary table
+    // ─── Employee summary table ───
     if (selectedSections.workStats || selectedSections.leaves || selectedSections.swaps) {
       yPos = checkPageBreak(yPos, 50);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text('Tabel sumar pe angajati', 14, yPos); yPos += 8;
+      yPos = drawSectionHeader(doc, 'Tabel sumar pe angajati', 14, yPos, pageWidth, BLUE);
       const approvedLeaves = filteredLeaveRequests.filter(r => r.status === 'APPROVED');
       const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED');
       const summaryHeaders = ['Angajat', 'Ore', 'Ture zi', 'Ture noapte', 'Zile CO', 'Schimburi'];
