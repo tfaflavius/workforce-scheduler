@@ -188,10 +188,12 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
       head: [['Tip', 'Locatie', 'Persoana', 'Nr. Auto', 'Status', 'Data', 'Rezolvat de']],
       body: tableData,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [99, 102, 241] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
     });
 
     doc.save(`raport-parcari-handicap-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

@@ -295,9 +295,11 @@ const ParkingStatsReportsTab: React.FC = () => {
         head: [headers],
         body: rows,
         startY: yPos + 2,
+        margin: { left: 14, right: 14, top: 20, bottom: 20 },
+        tableWidth: pageWidth - 28,
         styles: { fontSize: 9, cellPadding: 3 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-        columnStyles: { 0: { cellWidth: 100 }, 1: { halign: 'right', cellWidth: 40 } },
+        columnStyles: { 0: { cellWidth: 'auto' }, 1: { halign: 'right', cellWidth: 40 } },
         didParseCell: (data) => {
           if (data.section === 'body' && data.row.index === rows.length - 1) {
             data.cell.styles.fontStyle = 'bold';
@@ -323,9 +325,11 @@ const ParkingStatsReportsTab: React.FC = () => {
         head: [headers],
         body: rows,
         startY: yPos + 2,
+        margin: { left: 14, right: 14, top: 20, bottom: 20 },
+        tableWidth: pageWidth - 28,
         styles: { fontSize: 9, cellPadding: 3 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-        columnStyles: { 0: { cellWidth: 80 }, 1: { halign: 'right', cellWidth: 25 }, 2: { halign: 'right', cellWidth: 40 } },
+        columnStyles: { 0: { cellWidth: 'auto' }, 1: { halign: 'right', cellWidth: 25 }, 2: { halign: 'right', cellWidth: 40 } },
         didParseCell: (data) => {
           if (data.section === 'body' && data.row.index === rows.length - 1) {
             data.cell.styles.fontStyle = 'bold';
@@ -366,15 +370,17 @@ const ParkingStatsReportsTab: React.FC = () => {
         head: [headers],
         body: rows,
         startY: yPos + 2,
-        styles: { fontSize: 8, cellPadding: 3 },
+        margin: { left: 14, right: 14, top: 20, bottom: 20 },
+        tableWidth: pageWidth - 28,
+        styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
         columnStyles: {
-          0: { cellWidth: 55 },
-          1: { halign: 'right', cellWidth: 22 },
-          2: { halign: 'right', cellWidth: 22 },
-          3: { halign: 'right', cellWidth: 22 },
-          4: { halign: 'right', cellWidth: 22 },
-          5: { halign: 'right', cellWidth: 25 },
+          0: { cellWidth: 'auto' },
+          1: { halign: 'right', cellWidth: 18 },
+          2: { halign: 'right', cellWidth: 16 },
+          3: { halign: 'right', cellWidth: 16 },
+          4: { halign: 'right', cellWidth: 16 },
+          5: { halign: 'right', cellWidth: 22 },
         },
         didParseCell: (data) => {
           if (data.section === 'body' && data.row.index === rows.length - 1) {

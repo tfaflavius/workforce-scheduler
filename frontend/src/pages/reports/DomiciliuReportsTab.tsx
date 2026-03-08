@@ -178,10 +178,12 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
       head: [['Tip', 'Locatie', 'Nr. Locuri', 'Persoana', 'Nr. Auto', 'Status', 'Data']],
       body: tableData,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [5, 150, 105] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [5, 150, 105], textColor: 255, fontStyle: 'bold' },
     });
 
     doc.save(`raport-parcari-domiciliu-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

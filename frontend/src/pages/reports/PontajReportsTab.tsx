@@ -173,10 +173,12 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
       head: [['Angajat', 'Departament', 'Data', 'Ora Start', 'Ora Sfarsit', 'Durata (ore)', 'GPS', 'Observatii']],
       body: tableData,
-      styles: { fontSize: 7 },
-      headStyles: { fillColor: [8, 145, 178] },
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [8, 145, 178], textColor: 255, fontStyle: 'bold' },
     });
 
     doc.save(`raport-pontaj-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

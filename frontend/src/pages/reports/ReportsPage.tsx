@@ -1238,6 +1238,8 @@ const ReportsPage: React.FC = () => {
         incRows.push(['TOTAL', grandIncasari.toLocaleString('ro-RO'), grandCheltuieli.toLocaleString('ro-RO')]);
         autoTable(doc, {
           head: [incHeaders], body: incRows, startY: yPos,
+          margin: { left: 14, right: 14, top: 20, bottom: 20 },
+          tableWidth: pageWidth - 28,
           styles: { fontSize: 8, cellPadding: 2 },
           headStyles: { fillColor: [5, 150, 105], textColor: 255, fontStyle: 'bold' },
           columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
@@ -1303,6 +1305,8 @@ const ReportsPage: React.FC = () => {
         ticketRows.push(['TOTAL', totalTichete.toString()]);
         autoTable(doc, {
           head: [['Parcare', 'Nr. Tichete']], body: ticketRows, startY: yPos,
+          margin: { left: 14, right: 14, top: 20, bottom: 20 },
+          tableWidth: pageWidth - 28,
           styles: { fontSize: 8, cellPadding: 2 },
           headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
           columnStyles: { 1: { halign: 'right', cellWidth: 30 } },
@@ -1323,6 +1327,8 @@ const ReportsPage: React.FC = () => {
         subRows.push(['TOTAL', String(totalSubSpots), totalAbonamente.toString()]);
         autoTable(doc, {
           head: [['Parcare', 'Nr. Locuri', 'Nr. Abonamente']], body: subRows, startY: yPos,
+          margin: { left: 14, right: 14, top: 20, bottom: 20 },
+          tableWidth: pageWidth - 28,
           styles: { fontSize: 8, cellPadding: 2 },
           headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
           columnStyles: { 1: { halign: 'right', cellWidth: 22 }, 2: { halign: 'right', cellWidth: 30 } },
@@ -1355,9 +1361,11 @@ const ReportsPage: React.FC = () => {
         ]);
         autoTable(doc, {
           head: [['Parcare', 'Nr. Locuri', 'Minim', 'Maxim', 'Medie', 'Grad/Săpt. (%)']], body: occRows, startY: yPos,
-          styles: { fontSize: 8, cellPadding: 2 },
+          margin: { left: 14, right: 14, top: 20, bottom: 20 },
+          tableWidth: pageWidth - 28,
+          styles: { fontSize: 7, cellPadding: 2 },
           headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
-          columnStyles: { 0: { cellWidth: 50 }, 1: { halign: 'right', cellWidth: 18 }, 2: { halign: 'right', cellWidth: 18 }, 3: { halign: 'right', cellWidth: 18 }, 4: { halign: 'right', cellWidth: 18 }, 5: { halign: 'right', cellWidth: 20 } },
+          columnStyles: { 0: { cellWidth: 'auto' }, 1: { halign: 'right', cellWidth: 18 }, 2: { halign: 'right', cellWidth: 16 }, 3: { halign: 'right', cellWidth: 16 }, 4: { halign: 'right', cellWidth: 16 }, 5: { halign: 'right', cellWidth: 22 } },
           didParseCell: (data) => {
             if (data.section === 'body' && data.row.index === occRows.length - 1) {
               data.cell.styles.fontStyle = 'bold'; data.cell.styles.fillColor = [245, 243, 255];
@@ -1384,8 +1392,11 @@ const ReportsPage: React.FC = () => {
       });
       autoTable(doc, {
         head: [summaryHeaders], body: summaryRows, startY: yPos,
+        margin: { left: 14, right: 14, top: 20, bottom: 20 },
+        tableWidth: pageWidth - 28,
         styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [25, 118, 210], textColor: 255 },
+        headStyles: { fillColor: [25, 118, 210], textColor: 255, fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 'auto' }, 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
       });
     }
 

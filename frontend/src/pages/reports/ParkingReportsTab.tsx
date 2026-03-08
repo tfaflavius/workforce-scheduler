@@ -270,8 +270,10 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       head: [['Parcare', 'Echipament', 'Descriere', 'Companie', 'Status', 'Urgent', 'Creat de', 'Data crearii', 'Data rezolvarii']],
       body: tableData,
       startY: yPos + 2,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [239, 68, 68], textColor: 255 },
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [239, 68, 68], textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [254, 242, 242] },
     });
 
@@ -358,8 +360,10 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       head: [['Parcare', 'Echipament avariat', 'Persoana', 'Nr. inmatriculare', 'Telefon', 'Status', 'Tip rezolutie', 'Data']],
       body: tableData,
       startY: yPos + 2,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [249, 115, 22], textColor: 255 },
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [249, 115, 22], textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [255, 247, 237] },
     });
 
@@ -453,8 +457,10 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       head: [['Parcare', 'Automat', 'Suma', 'Ridicat de', 'Data', 'Note']],
       body: tableData,
       startY: yPos + 2,
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [236, 253, 245] },
       columnStyles: { 2: { halign: 'right', fontStyle: 'bold' } },
     });

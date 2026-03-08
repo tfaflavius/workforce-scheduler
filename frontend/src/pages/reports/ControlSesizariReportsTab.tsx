@@ -180,10 +180,12 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
       head: [['Tip', 'Zona', 'Locatie', 'Status', 'Creat de', 'Data', 'Rezolvat de']],
       body: tableData,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [99, 102, 241] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
     });
 
     doc.save(`raport-control-sesizari-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

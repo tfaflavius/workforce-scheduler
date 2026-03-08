@@ -185,10 +185,12 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
       head: [['Luna/An', 'Status', 'Nr Zile', 'Zile Finalizate', 'Zile Deschise', 'Creator', 'Data Creare']],
       body: tableData,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [139, 92, 246] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [139, 92, 246], textColor: 255, fontStyle: 'bold' },
     });
 
     doc.save(`raport-procese-verbale-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

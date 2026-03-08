@@ -55,6 +55,18 @@ export function lightenColor(color: RGB, factor: number): RGB {
   ];
 }
 
+/**
+ * Darken an RGB color by mixing with black.
+ * factor 0 = original, factor 1 = black
+ */
+export function darkenColor(color: RGB, factor: number): RGB {
+  return [
+    Math.max(0, Math.round(color[0] * (1 - factor))),
+    Math.max(0, Math.round(color[1] * (1 - factor))),
+    Math.max(0, Math.round(color[2] * (1 - factor))),
+  ];
+}
+
 // ─── Reset Helper (internal) ─────────────────────────────────────────
 
 function resetDocStyle(doc: jsPDF) {
@@ -102,6 +114,7 @@ export function drawSectionHeader(
 /**
  * Draws a row of colored KPI cards with large values and small labels.
  * Supports 1-4 cards per row. Returns Y position after cards.
+ * Auto-sizes value font to fit card width. Uses dark text for readability.
  */
 export function drawStatCards(
   doc: jsPDF,
@@ -111,7 +124,7 @@ export function drawStatCards(
   pageWidth: number,
   checkPageBreak?: CheckPageBreakFn,
 ): number {
-  const cardHeight = 20;
+  const cardHeight = 22;
   const totalNeeded = cardHeight + 4;
 
   if (checkPageBreak) {
@@ -125,7 +138,7 @@ export function drawStatCards(
 
   cards.slice(0, 4).forEach((card, i) => {
     const cx = x + i * (cardWidth + gap);
-    const bg = lightenColor(card.color, 0.88);
+    const bg = lightenColor(card.color, 0.9);
 
     // Card background
     doc.setFillColor(bg[0], bg[1], bg[2]);
@@ -133,28 +146,48 @@ export function drawStatCards(
 
     // Left accent stripe
     doc.setFillColor(card.color[0], card.color[1], card.color[2]);
-    doc.roundedRect(cx, y, 2.5, cardHeight, 2.5, 2.5, 'F');
+    doc.roundedRect(cx, y, 3, cardHeight, 2.5, 2.5, 'F');
     // Cover right side of the accent's rounded corners
-    doc.rect(cx + 1.5, y, 1.5, cardHeight, 'F');
+    doc.rect(cx + 1.5, y, 2, cardHeight, 'F');
 
-    // Value (large bold)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.setTextColor(card.color[0], card.color[1], card.color[2]);
+    // Value (large bold) — auto-size to fit card
     const valueStr = String(card.value);
-    doc.text(valueStr, cx + cardWidth / 2, y + 9, { align: 'center' });
+    const maxValueWidth = cardWidth - 8; // padding on both sides
+    let valueFontSize = 13;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(valueFontSize);
+    // Reduce font size until text fits or minimum reached
+    while (doc.getTextWidth(valueStr) > maxValueWidth && valueFontSize > 8) {
+      valueFontSize -= 1;
+      doc.setFontSize(valueFontSize);
+    }
+    // Truncate with ellipsis if still too wide at minimum font
+    let displayValue = valueStr;
+    if (doc.getTextWidth(displayValue) > maxValueWidth) {
+      while (doc.getTextWidth(displayValue + '…') > maxValueWidth && displayValue.length > 3) {
+        displayValue = displayValue.slice(0, -1);
+      }
+      displayValue += '…';
+    }
+    // Use dark text color for readability (darken the accent color)
+    const darkValue = darkenColor(card.color, 0.3);
+    doc.setTextColor(darkValue[0], darkValue[1], darkValue[2]);
+    doc.text(displayValue, cx + cardWidth / 2, y + 10, { align: 'center' });
 
-    // Label (small)
+    // Label
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
     // Truncate label if too long
     let labelText = card.label;
-    const maxLabelWidth = cardWidth - 6;
-    while (doc.getTextWidth(labelText) > maxLabelWidth && labelText.length > 3) {
-      labelText = labelText.slice(0, -1);
+    const maxLabelWidth = cardWidth - 8;
+    if (doc.getTextWidth(labelText) > maxLabelWidth) {
+      while (doc.getTextWidth(labelText + '…') > maxLabelWidth && labelText.length > 3) {
+        labelText = labelText.slice(0, -1);
+      }
+      labelText += '…';
     }
-    doc.text(labelText, cx + cardWidth / 2, y + 15, { align: 'center' });
+    doc.text(labelText, cx + cardWidth / 2, y + 16.5, { align: 'center' });
   });
 
   resetDocStyle(doc);
@@ -381,14 +414,14 @@ export function drawProgressBar(
   // Percentage text on bar
   if (showPercentage) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     const pctText = `${percentage.toFixed(1)}%`;
-    if (fillWidth > 20) {
+    if (fillWidth > 22) {
       doc.setTextColor(255, 255, 255);
-      doc.text(pctText, x + fillWidth / 2, barY + barHeight - 2.2, { align: 'center' });
+      doc.text(pctText, x + fillWidth / 2, barY + barHeight - 2, { align: 'center' });
     } else {
       doc.setTextColor(fillColor[0], fillColor[1], fillColor[2]);
-      doc.text(pctText, x + fillWidth + 3, barY + barHeight - 2.2);
+      doc.text(pctText, x + fillWidth + 3, barY + barHeight - 2);
     }
   }
 
@@ -462,9 +495,9 @@ export function drawStatusDistributionBar(
       // Count text on segment (if wide enough)
       if (segWidth > 15 && showCounts) {
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7);
+        doc.setFontSize(8);
         doc.setTextColor(255, 255, 255);
-        doc.text(String(seg.value), segX + segWidth / 2, y + barHeight - 2.5, { align: 'center' });
+        doc.text(String(seg.value), segX + segWidth / 2, y + barHeight - 2.2, { align: 'center' });
       }
 
       segX += segWidth;
@@ -476,7 +509,7 @@ export function drawStatusDistributionBar(
   // Legend row
   if (showLegend) {
     let legendX = x;
-    doc.setFontSize(7);
+    doc.setFontSize(8);
     segments.forEach((seg) => {
       // Color box
       doc.setFillColor(seg.color[0], seg.color[1], seg.color[2]);

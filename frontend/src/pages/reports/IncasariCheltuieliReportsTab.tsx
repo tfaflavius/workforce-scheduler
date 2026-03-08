@@ -172,10 +172,11 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
       head: [['Categorie', ...MONTH_LABELS, 'Total']],
       body: tableData,
       styles: { fontSize: 6, cellPadding: 2 },
-      headStyles: { fillColor: [5, 150, 105] },
+      headStyles: { fillColor: [5, 150, 105], textColor: 255, fontStyle: 'bold' },
       columnStyles: {
         0: { cellWidth: 50 },
       },

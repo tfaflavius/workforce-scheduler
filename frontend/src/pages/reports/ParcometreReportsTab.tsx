@@ -159,10 +159,12 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
       head: [['Nume', 'Zona', 'Sursa Energie', 'Stare', 'Adresa', 'Activ', 'Data adaugare']],
       body: tableData,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [37, 99, 235] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: 'bold' },
     });
 
     doc.save(`raport-parcometre-${format(new Date(), 'yyyy-MM-dd')}.pdf`);

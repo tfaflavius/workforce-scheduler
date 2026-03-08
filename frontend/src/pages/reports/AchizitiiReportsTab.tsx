@@ -147,10 +147,12 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
 
     autoTable(doc, {
       startY: yPos + 2,
+      margin: { left: 14, right: 14, top: 20, bottom: 20 },
+      tableWidth: pageWidth - 28,
       head: [['Pozitie Bugetara', 'Categorie', 'Buget Total', 'Cheltuit', 'Ramas', 'Nr Achizitii']],
       body: tableData,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [234, 88, 12] },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [234, 88, 12], textColor: 255, fontStyle: 'bold' },
     });
 
     doc.save(`raport-achizitii-${selectedYear}.pdf`);
