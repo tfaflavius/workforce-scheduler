@@ -260,6 +260,19 @@ export class PermissionsService {
 
     const permissionsToCreate: Partial<Permission>[] = [];
 
+    // ── MASTER_ADMIN: all resources, all actions, allowed ──
+    for (const resource of RESOURCE_DEFINITIONS) {
+      for (const action of resource.actions) {
+        permissionsToCreate.push({
+          resourceKey: resource.key,
+          action,
+          role: UserRole.MASTER_ADMIN,
+          departmentId: null,
+          allowed: true,
+        });
+      }
+    }
+
     // ── ADMIN: all resources, all actions, allowed ──
     for (const resource of RESOURCE_DEFINITIONS) {
       for (const action of resource.actions) {
@@ -369,7 +382,27 @@ export class PermissionsService {
       }
     }
 
-    // ── USER: department-specific parking resources ──
+    // ── USER: parking resources with departmentId=null (so they appear in matrix) ──
+    const parkingResourceKeys = RESOURCE_DEFINITIONS
+      .filter((r) => !departmentIndependentResources.includes(r.key))
+      .map((r) => r.key);
+
+    for (const resourceKey of parkingResourceKeys) {
+      const resource = RESOURCE_DEFINITIONS.find((r) => r.key === resourceKey);
+      if (!resource) continue;
+
+      for (const action of resource.actions) {
+        permissionsToCreate.push({
+          resourceKey: resource.key,
+          action,
+          role: UserRole.USER,
+          departmentId: null,
+          allowed: true,
+        });
+      }
+    }
+
+    // ── USER: department-specific parking resources (overrides per department) ──
     const departments = await this.departmentRepo.find();
     const deptByName = new Map(departments.map((d) => [d.name, d]));
 
