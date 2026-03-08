@@ -11,6 +11,7 @@ import { Department } from '../../departments/entities/department.entity';
 import { Exclude } from 'class-transformer';
 
 export enum UserRole {
+  MASTER_ADMIN = 'MASTER_ADMIN',
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',
   USER = 'USER',

@@ -56,6 +56,7 @@ import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -117,7 +118,7 @@ const SchedulesPage: React.FC = () => {
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(selectedMonth);
 
   // Verifica daca utilizatorul curent este admin
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
   const isManager = user?.role === 'MANAGER';
 
   // Filtram doar angajatii si managerii

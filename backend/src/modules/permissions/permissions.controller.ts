@@ -17,7 +17,7 @@ import { UserRole } from '../users/entities/user.entity';
 
 @Controller('permissions')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.MASTER_ADMIN)
 export class PermissionsController {
   constructor(private readonly permissionsService: PermissionsService) {}
 

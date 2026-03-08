@@ -43,6 +43,7 @@ import {
   CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
+import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
   useGetCashCollectionsQuery,
   useGetCashCollectionTotalsQuery,
@@ -84,7 +85,7 @@ const CashCollectionsTab: React.FC = () => {
   );
   const [deleteCollection] = useDeleteCashCollectionMutation();
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
 
   // Group collections by month
   const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];

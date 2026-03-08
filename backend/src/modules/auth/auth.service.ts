@@ -1,10 +1,10 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { SupabaseService } from '../../common/supabase/supabase.service';
@@ -21,6 +21,11 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
+    // Prevent registration as MASTER_ADMIN
+    if ((registerDto as any).role === UserRole.MASTER_ADMIN) {
+      throw new ForbiddenException('Cannot register with MASTER_ADMIN role');
+    }
+
     // Check if user already exists in our DB
     const existingUser = await this.userRepository.findOne({
       where: { email: registerDto.email },

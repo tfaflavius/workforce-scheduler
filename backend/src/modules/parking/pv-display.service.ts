@@ -6,12 +6,13 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { PvDisplaySession } from './entities/pv-display-session.entity';
 import { PvDisplayDay } from './entities/pv-display-day.entity';
 import { PvDisplaySessionComment } from './entities/pv-display-session-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
@@ -55,7 +56,7 @@ export class PvDisplayService {
   async createSession(userId: string, dto: CreatePvDisplaySessionDto, user: any): Promise<PvDisplaySession> {
     // Doar PVF si Admin pot crea sesiuni
     const userDeptName = removeDiacritics(user.department?.name || '');
-    const canCreate = user.role === UserRole.ADMIN || userDeptName === PROCESE_VERBALE_DEPARTMENT_NAME;
+    const canCreate = isAdminOrAbove(user.role) || userDeptName === PROCESE_VERBALE_DEPARTMENT_NAME;
 
     if (!canCreate) {
       throw new ForbiddenException('Doar departamentul Procese Verbale/Facturare si administratorii pot crea sesiuni');
@@ -159,7 +160,7 @@ export class PvDisplayService {
 
   async updateSession(id: string, userId: string, dto: UpdatePvDisplaySessionDto, user: any): Promise<PvDisplaySession> {
     // Doar Admin poate edita sesiuni
-    if (user.role !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot modifica sesiunile');
     }
 
@@ -217,7 +218,7 @@ export class PvDisplayService {
   }
 
   async deleteSession(id: string, userId: string, user: any): Promise<void> {
-    if (user.role !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot sterge sesiunile');
     }
 
@@ -270,7 +271,7 @@ export class PvDisplayService {
     // Doar Control si Admin pot revendica
     const userDeptName = removeDiacritics(user.department?.name || '');
     const isControl = userDeptName === CONTROL_DEPARTMENT_NAME;
-    const isAdmin = user.role === UserRole.ADMIN;
+    const isAdmin = isAdminOrAbove(user.role);
 
     if (!isControl && !isAdmin) {
       throw new ForbiddenException('Doar departamentul Control si administratorii pot revendica zile');
@@ -350,7 +351,7 @@ export class PvDisplayService {
       throw new BadRequestException('Nu se poate renunta la o zi care este in desfasurare sau finalizata');
     }
 
-    const isAdmin = user.role === UserRole.ADMIN;
+    const isAdmin = isAdminOrAbove(user.role);
 
     // Doar userul asignat sau admin pot face unclaim
     if (day.controlUser1Id === userId) {
@@ -474,7 +475,7 @@ export class PvDisplayService {
       throw new NotFoundException(`Ziua cu ID ${dayId} nu a fost gasita`);
     }
 
-    const isAdmin = user.role === UserRole.ADMIN;
+    const isAdmin = isAdminOrAbove(user.role);
     const isAssigned = day.controlUser1Id === userId || day.controlUser2Id === userId;
 
     if (!isAdmin && !isAssigned) {
@@ -642,6 +643,7 @@ export class PvDisplayService {
       const adminsManagers = await this.userRepository.find({
         where: [
           { role: UserRole.ADMIN, isActive: true },
+          { role: UserRole.MASTER_ADMIN, isActive: true },
           { role: UserRole.MANAGER, isActive: true },
         ],
       });
@@ -698,7 +700,7 @@ export class PvDisplayService {
 
       // Notifica si Admin (dedup)
       const admins = await this.userRepository.find({
-        where: { role: UserRole.ADMIN, isActive: true },
+        where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
       });
 
       admins.forEach(u => {
@@ -753,7 +755,7 @@ export class PvDisplayService {
 
       // Notifica Admin (dedup)
       const admins = await this.userRepository.find({
-        where: { role: UserRole.ADMIN, isActive: true },
+        where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
       });
 
       admins.forEach(u => {

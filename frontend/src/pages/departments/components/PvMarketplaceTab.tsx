@@ -26,6 +26,7 @@ import {
   CheckCircle as AssignedIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
+import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
   useGetAvailableDaysQuery,
   useClaimDayMutation,
@@ -38,7 +39,7 @@ import { CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
 
 const PvMarketplaceTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
   const isControl = user?.department?.name === CONTROL_DEPARTMENT_NAME;
   const canClaim = isControl || isAdmin;
 

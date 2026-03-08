@@ -40,6 +40,7 @@ import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
 
 // Tipuri de ture
@@ -101,7 +102,7 @@ const CreateSchedulePage: React.FC = () => {
   const { user: currentUser } = useAppSelector((state) => state.auth);
 
   // Verifica rolul utilizatorului
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(currentUser?.role);
   const isManager = currentUser?.role === 'MANAGER';
 
   // Obtine parametrii din URL

@@ -8,6 +8,7 @@ import {
   CONTROL_DEPARTMENT_NAME,
 } from '../constants/parking.constants';
 import { removeDiacritics } from '../../../common/utils/remove-diacritics';
+import { isAdminOrAbove } from '../../../common/utils/role-hierarchy';
 
 @Injectable()
 export class PvDisplayAccessGuard implements CanActivate {
@@ -27,7 +28,7 @@ export class PvDisplayAccessGuard implements CanActivate {
     }
 
     // ADMIN si MANAGER au acces direct
-    if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
+    if (isAdminOrAbove(user.role) || user.role === UserRole.MANAGER) {
       return true;
     }
 

@@ -48,6 +48,7 @@ import {
 } from '../../store/api/dailyReports.api';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 
 // ============== HELPERS ==============
 
@@ -104,7 +105,7 @@ const DailyReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const user = useSelector((state: RootState) => state.auth.user);
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
   const isManager = user?.role === 'MANAGER';
   const canViewAll = isAdmin || isManager;
 

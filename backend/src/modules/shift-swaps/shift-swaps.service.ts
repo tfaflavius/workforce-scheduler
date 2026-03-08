@@ -758,7 +758,7 @@ export class ShiftSwapsService {
 
     // Notifica admin-ii
     const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
 
     for (const admin of admins) {
@@ -871,7 +871,7 @@ export class ShiftSwapsService {
     // Notifica admin-ii daca cineva a acceptat
     if (responseType === SwapResponseType.ACCEPTED) {
       const admins = await this.userRepository.find({
-        where: { role: UserRole.ADMIN, isActive: true },
+        where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
       });
 
       for (const admin of admins) {

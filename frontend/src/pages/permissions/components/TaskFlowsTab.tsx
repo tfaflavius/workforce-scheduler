@@ -52,6 +52,7 @@ import DepartmentFlowCard from './DepartmentFlowCard';
 import type { TaskFlowRule, CreateTaskFlowRequest } from '../../../types/permission.types';
 
 const ROLES = [
+  { key: 'MASTER_ADMIN', label: 'Master Admin' },
   { key: 'ADMIN', label: 'Admin' },
   { key: 'MANAGER', label: 'Manager' },
   { key: 'USER', label: 'Utilizator' },
@@ -59,6 +60,7 @@ const ROLES = [
 
 const getRoleColor = (role: string | null) => {
   switch (role) {
+    case 'MASTER_ADMIN': return 'secondary';
     case 'ADMIN': return 'error';
     case 'MANAGER': return 'warning';
     case 'USER': return 'info';
@@ -83,8 +85,8 @@ const FlowStep = ({ label, description, role, department }: FlowStepProps) => (
       p: 1.5,
       borderRadius: 2,
       border: '2px solid',
-      borderColor: role === 'ADMIN' ? 'error.main' : role === 'MANAGER' ? 'warning.main' : role === 'USER' ? 'info.main' : 'grey.400',
-      backgroundColor: role === 'ADMIN' ? 'error.50' : role === 'MANAGER' ? 'warning.50' : role === 'USER' ? 'info.50' : 'grey.50',
+      borderColor: role === 'MASTER_ADMIN' ? 'secondary.main' : role === 'ADMIN' ? 'error.main' : role === 'MANAGER' ? 'warning.main' : role === 'USER' ? 'info.main' : 'grey.400',
+      backgroundColor: role === 'MASTER_ADMIN' ? 'secondary.50' : role === 'ADMIN' ? 'error.50' : role === 'MANAGER' ? 'warning.50' : role === 'USER' ? 'info.50' : 'grey.50',
       minWidth: 120,
       flex: 1,
     }}

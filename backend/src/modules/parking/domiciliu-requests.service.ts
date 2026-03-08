@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { DomiciliuRequest } from './entities/domiciliu-request.entity';
 import { DomiciliuRequestComment } from './entities/domiciliu-request-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
@@ -11,6 +11,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import {
   MAINTENANCE_DEPARTMENT_NAME,
@@ -84,7 +85,7 @@ export class DomiciliuRequestsService {
 
   async update(id: string, userId: string, dto: UpdateDomiciliuRequestDto, userRole: UserRole): Promise<DomiciliuRequest> {
     // Doar Admin poate modifica
-    if (userRole !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(userRole)) {
       throw new ForbiddenException('Doar administratorii pot modifica solicitarile');
     }
 
@@ -250,7 +251,7 @@ export class DomiciliuRequestsService {
 
     // 4. Toti adminii
     const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
     usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
 
@@ -421,7 +422,7 @@ export class DomiciliuRequestsService {
   }
 
   async delete(id: string, user: User): Promise<void> {
-    if (user.role !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot sterge solicitarile');
     }
 

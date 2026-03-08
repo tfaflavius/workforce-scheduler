@@ -6,6 +6,7 @@ import { CreateDailyReportDto } from './dto/create-daily-report.dto';
 import { UpdateDailyReportDto } from './dto/update-daily-report.dto';
 import { AdminCommentDto } from './dto/admin-comment.dto';
 import { User, UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { WorkPosition } from '../schedules/entities/work-position.entity';
@@ -348,7 +349,7 @@ export class DailyReportsService {
       where: { isActive: true },
       relations: ['department'],
     });
-    const nonAdminUsers = allUsers.filter(u => u.role !== UserRole.ADMIN);
+    const nonAdminUsers = allUsers.filter(u => u.role !== UserRole.ADMIN && u.role !== UserRole.MASTER_ADMIN);
 
     // Userii in concediu aprobat pe aceasta data
     const usersOnLeave = await this.leaveRequestRepository
@@ -493,7 +494,7 @@ export class DailyReportsService {
 
       // 1. Notifica TOTI adminii activi
       const admins = await this.userRepository.find({
-        where: { role: UserRole.ADMIN, isActive: true },
+        where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
       });
 
       for (const admin of admins) {

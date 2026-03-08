@@ -57,6 +57,7 @@ export const SECTION_LABELS: Record<string, string> = {
 export const SECTIONS = ['Principal', 'Operatiuni', 'Administrare', 'Parcari'] as const;
 
 export const ROLES: Array<{ key: string; label: string }> = [
+  { key: 'MASTER_ADMIN', label: 'Master Admin' },
   { key: 'ADMIN', label: 'Administrator' },
   { key: 'MANAGER', label: 'Manager' },
   { key: 'USER', label: 'Utilizator' },

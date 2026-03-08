@@ -174,6 +174,7 @@ export class TimeTrackingService {
       const adminsAndManagers = await this.userRepository.find({
         where: [
           { role: UserRole.ADMIN, isActive: true },
+          { role: UserRole.MASTER_ADMIN, isActive: true },
           { role: UserRole.MANAGER, isActive: true },
         ],
       });
@@ -372,6 +373,7 @@ export class TimeTrackingService {
         const admins = await this.userRepository.find({
           where: [
             { role: UserRole.ADMIN, isActive: true },
+            { role: UserRole.MASTER_ADMIN, isActive: true },
             { role: UserRole.MANAGER, isActive: true },
           ],
         });
@@ -858,6 +860,7 @@ export class TimeTrackingService {
         const admins = await this.userRepository.find({
           where: [
             { role: UserRole.ADMIN, isActive: true },
+            { role: UserRole.MASTER_ADMIN, isActive: true },
             { role: UserRole.MANAGER, isActive: true },
           ],
         });
@@ -959,6 +962,7 @@ export class TimeTrackingService {
         const admins = await this.userRepository.find({
           where: [
             { role: UserRole.ADMIN, isActive: true },
+            { role: UserRole.MASTER_ADMIN, isActive: true },
             { role: UserRole.MANAGER, isActive: true },
           ],
         });

@@ -30,6 +30,7 @@ interface DepartmentFlowCardProps {
 
 const getRoleLabel = (role: string | null) => {
   switch (role) {
+    case 'MASTER_ADMIN': return 'Master Admin';
     case 'ADMIN': return 'Admin';
     case 'MANAGER': return 'Manager';
     case 'USER': return 'Utilizator';
@@ -37,8 +38,9 @@ const getRoleLabel = (role: string | null) => {
   }
 };
 
-const getRoleColor = (role: string | null): 'error' | 'warning' | 'info' | 'default' => {
+const getRoleColor = (role: string | null): 'secondary' | 'error' | 'warning' | 'info' | 'default' => {
   switch (role) {
+    case 'MASTER_ADMIN': return 'secondary';
     case 'ADMIN': return 'error';
     case 'MANAGER': return 'warning';
     case 'USER': return 'info';

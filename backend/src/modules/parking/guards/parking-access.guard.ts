@@ -5,6 +5,7 @@ import { User, UserRole } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
 import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../constants/parking.constants';
 import { removeDiacritics } from '../../../common/utils/remove-diacritics';
+import { isAdminOrAbove } from '../../../common/utils/role-hierarchy';
 
 @Injectable()
 export class ParkingAccessGuard implements CanActivate {
@@ -24,7 +25,7 @@ export class ParkingAccessGuard implements CanActivate {
     }
 
     // ADMIN si MANAGER au acces direct
-    if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
+    if (isAdminOrAbove(user.role) || user.role === UserRole.MANAGER) {
       return true;
     }
 

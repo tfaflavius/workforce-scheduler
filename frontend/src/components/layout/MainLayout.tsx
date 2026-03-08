@@ -117,10 +117,10 @@ export const MainLayout = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { mode, toggleTheme } = useThemeMode();
 
-  // Departments data for sidebar (ADMIN only)
-  const isAdmin = user?.role === 'ADMIN';
-  const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
-  const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdmin });
+  // Departments data for sidebar (ADMIN or MASTER_ADMIN)
+  const isAdminOrAbove = user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN';
+  const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdminOrAbove });
+  const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdminOrAbove });
 
   // Count users per department (memoized)
   const deptUserCounts = useMemo(() =>
@@ -291,18 +291,21 @@ export const MainLayout = () => {
       text: 'Permisiuni',
       icon: <SecurityIcon />,
       path: '/admin/permissions',
-      roles: ['ADMIN'],
+      roles: ['MASTER_ADMIN'],
     },
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
     if (!user) return false;
-    if (!item.roles.includes(user.role)) return false;
+    // MASTER_ADMIN can see items marked for ADMIN (hierarchical)
+    const roleMatches = item.roles.includes(user.role) ||
+      (user.role === 'MASTER_ADMIN' && item.roles.includes('ADMIN'));
+    if (!roleMatches) return false;
 
     const userDepartment = user.department?.name || '';
 
-    // Admin vede tot
-    if (user.role === 'ADMIN') return true;
+    // Admin si Master Admin vad tot
+    if (user.role === 'ADMIN' || user.role === 'MASTER_ADMIN') return true;
 
     // Manager vede tot EXCEPTAND daca exista excludeDepartments
     if (user.role === 'MANAGER') {
@@ -333,6 +336,8 @@ export const MainLayout = () => {
 
   const getRoleColor = (role: UserRole) => {
     switch (role) {
+      case 'MASTER_ADMIN':
+        return 'secondary';
       case 'ADMIN':
         return 'error';
       case 'MANAGER':
@@ -346,6 +351,8 @@ export const MainLayout = () => {
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
+      case 'MASTER_ADMIN':
+        return 'Master Admin';
       case 'ADMIN':
         return 'Administrator';
       case 'MANAGER':
@@ -669,8 +676,8 @@ export const MainLayout = () => {
           });
         })()}
 
-        {/* Departamente Section - Only for ADMIN */}
-        {isAdmin && departments && departments.length > 0 && (
+        {/* Departamente Section - Only for ADMIN and MASTER_ADMIN */}
+        {isAdminOrAbove && departments && departments.length > 0 && (
           <Box>
             <Divider sx={{ my: 1, mx: 1, opacity: 0.4 }} />
             <ListItem

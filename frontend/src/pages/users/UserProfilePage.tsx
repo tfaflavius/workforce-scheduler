@@ -51,6 +51,8 @@ const UserProfilePage: React.FC = () => {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
+      case 'MASTER_ADMIN':
+        return 'Master Admin';
       case 'ADMIN':
         return 'Administrator';
       case 'MANAGER':
@@ -146,7 +148,7 @@ const UserProfilePage: React.FC = () => {
                 email: user.email,
                 fullName: user.fullName,
                 phone: user.phone || '',
-                role: user.role,
+                role: user.role as any,
                 departmentId: user.departmentId || '',
                 birthDate: user.birthDate || '',
               }}

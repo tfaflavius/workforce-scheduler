@@ -3,6 +3,14 @@ import { Reflector } from '@nestjs/core';
 import { UserRole } from '../../users/entities/user.entity';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
+// Role hierarchy: higher index = higher privilege
+const ROLE_HIERARCHY: UserRole[] = [
+  UserRole.USER,
+  UserRole.MANAGER,
+  UserRole.ADMIN,
+  UserRole.MASTER_ADMIN,
+];
+
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -18,6 +26,12 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
-    return requiredRoles.some((role) => user.role === role);
+    const userRoleIndex = ROLE_HIERARCHY.indexOf(user.role);
+
+    // User passes if their role is at or above ANY of the required roles
+    return requiredRoles.some((role) => {
+      const requiredIndex = ROLE_HIERARCHY.indexOf(role);
+      return userRoleIndex >= requiredIndex;
+    });
   }
 }

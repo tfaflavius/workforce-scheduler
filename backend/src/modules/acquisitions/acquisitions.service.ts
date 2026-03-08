@@ -12,6 +12,7 @@ import { UpsertMonthlyRevenueDto, UpdateMonthlyRevenueDto } from './dto/create-m
 import { RevenueCategory } from './entities/revenue-category.entity';
 import { MonthlyRevenue } from './entities/monthly-revenue.entity';
 import { UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { CashCollectionsService } from '../parking/cash-collections.service';
 
 // Numele departamentului Achizitii - userii din acest departament au acces complet
@@ -38,7 +39,7 @@ export class AcquisitionsService {
    * Acces: ADMIN, MANAGER (toti), sau USER din departamentul Achizitii
    */
   checkAccess(user: any) {
-    if (user.role === UserRole.ADMIN) return;
+    if (isAdminOrAbove(user.role)) return;
     if (user.role === UserRole.MANAGER) return;
     if (user.department?.name === ACHIZITII_DEPARTMENT_NAME) return;
     throw new ForbiddenException('Nu aveti acces la modulul Achizitii');

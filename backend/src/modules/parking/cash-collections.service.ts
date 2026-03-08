@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CashCollection } from './entities/cash-collection.entity';
 import { CreateCashCollectionDto } from './dto/create-cash-collection.dto';
 import { User, UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 
 export interface CashCollectionTotals {
   totalAmount: number;
@@ -188,7 +189,7 @@ export class CashCollectionsService {
   }
 
   async delete(id: string, user: User): Promise<void> {
-    if (user.role !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot sterge ridicarile');
     }
 

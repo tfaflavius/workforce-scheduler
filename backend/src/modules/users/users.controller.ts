@@ -67,17 +67,23 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
     @Request() req,
   ) {
-    const isAdmin = req.user.role === UserRole.ADMIN;
+    const isMasterAdmin = req.user.role === UserRole.MASTER_ADMIN;
+    const isAdminOrAbove = req.user.role === UserRole.ADMIN || isMasterAdmin;
     const isOwnProfile = req.user.id === id;
 
     // Utilizatorii pot actualiza doar propriul profil
     // Adminii pot actualiza orice profil
-    if (!isAdmin && !isOwnProfile) {
+    if (!isAdminOrAbove && !isOwnProfile) {
       throw new ForbiddenException('You can only update your own profile');
     }
 
+    // Doar MASTER_ADMIN poate schimba rolurile
+    if (updateUserDto.role !== undefined && !isMasterAdmin) {
+      throw new ForbiddenException('Only Master Admin can change user roles');
+    }
+
     // Daca nu e admin, restrictioneaza campurile ce pot fi modificate
-    if (!isAdmin) {
+    if (!isAdminOrAbove) {
       // Utilizatorii normali pot modifica doar: fullName, phone, birthDate
       const allowedFields = ['fullName', 'phone', 'birthDate'];
       const restrictedUpdate: UpdateUserDto = {};
@@ -91,7 +97,7 @@ export class UsersController {
       return this.usersService.update(id, restrictedUpdate);
     }
 
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, req.user);
   }
 
   @Patch(':id/password')
@@ -100,25 +106,25 @@ export class UsersController {
     @Body() dto: ChangePasswordDto,
     @Request() req,
   ) {
-    const isAdmin = req.user.role === UserRole.ADMIN;
-    const canChange = isAdmin || req.user.id === id;
+    const isAdminOrAbove = req.user.role === UserRole.ADMIN || req.user.role === UserRole.MASTER_ADMIN;
+    const canChange = isAdminOrAbove || req.user.id === id;
 
     if (!canChange) {
       throw new ForbiddenException('You can only change your own password');
     }
 
-    await this.usersService.changePassword(id, dto, req.user.id, isAdmin);
+    await this.usersService.changePassword(id, dto, req.user.id, isAdminOrAbove);
     return { message: 'Password changed successfully' };
   }
 
   @Patch(':id/toggle-active')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.MASTER_ADMIN)
   async toggleActive(@Param('id') id: string, @Body('isActive') isActive: boolean) {
     return this.usersService.toggleActiveStatus(id, isActive);
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.MASTER_ADMIN)
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }

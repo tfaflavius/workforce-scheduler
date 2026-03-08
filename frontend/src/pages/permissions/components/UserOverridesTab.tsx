@@ -61,6 +61,7 @@ interface UserOption {
 
 const getRoleColor = (role: string) => {
   switch (role) {
+    case 'MASTER_ADMIN': return 'secondary';
     case 'ADMIN': return 'error';
     case 'MANAGER': return 'warning';
     case 'USER': return 'info';
@@ -70,6 +71,7 @@ const getRoleColor = (role: string) => {
 
 const getRoleLabel = (role: string) => {
   switch (role) {
+    case 'MASTER_ADMIN': return 'Master Admin';
     case 'ADMIN': return 'Admin';
     case 'MANAGER': return 'Manager';
     case 'USER': return 'Utilizator';

@@ -56,6 +56,7 @@ import {
   MyLocation as MyLocationIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import { Navigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -488,7 +489,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
     description: string;
   }>({ zone: 'ROSU', orientation: undefined, location: '', googleMapsLink: '', description: '' });
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
   const isMaintenanceUser = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const canResolve = isAdmin || isMaintenanceUser;
   const canEdit = isAdmin;
@@ -918,7 +919,7 @@ const ControlSesizariPage: React.FC = () => {
 
   // Access control
   const hasAccess =
-    user?.role === 'ADMIN' ||
+    isAdminOrAbove(user?.role) ||
     user?.role === 'MANAGER' ||
     (user?.department?.name && ALLOWED_DEPARTMENTS.includes(user.department.name));
 

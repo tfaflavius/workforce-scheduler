@@ -43,6 +43,7 @@ import {
   type NotificationType,
 } from '../../store/api/notifications.api';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 
 const getNotificationIcon = (type: NotificationType) => {
   switch (type) {
@@ -95,7 +96,7 @@ const getNotificationIcon = (type: NotificationType) => {
 // Get navigation path based on notification type, data, and user role
 const getNotificationPath = (notification: Notification, userRole?: string): { path: string; state?: any } | null => {
   const { type, data } = notification;
-  const isAdmin = userRole === 'ADMIN';
+  const isAdmin = isAdminOrAbove(userRole);
   const isManager = userRole === 'MANAGER';
   const isAdminOrManager = isAdmin || isManager;
 

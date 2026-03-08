@@ -61,6 +61,7 @@ import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
 
 // Tipuri de ture
@@ -114,7 +115,7 @@ const BulkSchedulePage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user: currentUser } = useAppSelector((state) => state.auth);
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(currentUser?.role);
 
   // State
   const [shiftPattern, setShiftPattern] = useState<ShiftPatternType>('12H');

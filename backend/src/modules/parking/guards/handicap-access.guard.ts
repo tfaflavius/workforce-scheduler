@@ -9,6 +9,7 @@ import {
   DOMICILIU_PARKING_DEPARTMENT_NAME,
 } from '../constants/parking.constants';
 import { removeDiacritics } from '../../../common/utils/remove-diacritics';
+import { isAdminOrAbove } from '../../../common/utils/role-hierarchy';
 
 @Injectable()
 export class HandicapAccessGuard implements CanActivate {
@@ -28,7 +29,7 @@ export class HandicapAccessGuard implements CanActivate {
     }
 
     // ADMIN si MANAGER au acces direct
-    if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
+    if (isAdminOrAbove(user.role) || user.role === UserRole.MANAGER) {
       return true;
     }
 

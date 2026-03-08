@@ -1,11 +1,12 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { EditRequest, EditRequestStatus, EditRequestType } from './entities/edit-request.entity';
 import { ParkingIssue } from './entities/parking-issue.entity';
 import { ParkingDamage } from './entities/parking-damage.entity';
 import { CashCollection } from './entities/cash-collection.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { EmailService } from '../../common/email/email.service';
@@ -38,7 +39,7 @@ export class EditRequestService {
     }
 
     // Adminii pot edita direct, nu au nevoie de aprobare
-    if (user.role === UserRole.ADMIN) {
+    if (isAdminOrAbove(user.role)) {
       return this.applyChangesDirectly(userId, dto);
     }
 
@@ -109,7 +110,7 @@ export class EditRequestService {
 
   async review(id: string, reviewerId: string, dto: ReviewEditRequestDto): Promise<EditRequest> {
     const reviewer = await this.userRepository.findOne({ where: { id: reviewerId } });
-    if (!reviewer || reviewer.role !== UserRole.ADMIN) {
+    if (!reviewer || !isAdminOrAbove(reviewer.role)) {
       throw new ForbiddenException('Doar adminii pot aproba/respinge cereri de editare');
     }
 
@@ -306,7 +307,7 @@ export class EditRequestService {
 
   private async notifyAdmins(editRequest: EditRequest, requester: User): Promise<void> {
     const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
 
     const entityDescription = await this.getEntityDescription(editRequest.requestType, editRequest.entityId);
@@ -383,6 +384,7 @@ export class EditRequestService {
     const recipients = await this.userRepository.find({
       where: [
         { role: UserRole.ADMIN, isActive: true },
+        { role: UserRole.MASTER_ADMIN, isActive: true },
         { role: UserRole.MANAGER, isActive: true },
       ],
     });

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
 import { RevolutionarLegitimationComment } from './entities/revolutionar-legitimation-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
@@ -11,6 +11,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import {
   HANDICAP_PARKING_DEPARTMENT_NAME,
@@ -64,7 +65,7 @@ export class RevolutionarLegitimationsService {
 
   async update(id: string, userId: string, dto: UpdateRevolutionarLegitimationDto, user: any): Promise<RevolutionarLegitimation> {
     // Admin si userii de la departamentul Parcari Handicap pot edita
-    const canEdit = user.role === UserRole.ADMIN ||
+    const canEdit = isAdminOrAbove(user.role) ||
       removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
@@ -152,7 +153,7 @@ export class RevolutionarLegitimationsService {
 
     // Adauga si adminii
     const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
 
     const allUsers = [...handicapUsers, ...admins].filter(
@@ -211,7 +212,7 @@ export class RevolutionarLegitimationsService {
 
     // 3. Toti adminii
     const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
     usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
 
@@ -375,7 +376,7 @@ export class RevolutionarLegitimationsService {
   }
 
   async delete(id: string, user: User): Promise<void> {
-    if (user.role !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot sterge legitimatiile');
     }
 

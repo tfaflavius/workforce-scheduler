@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, In } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { ParkingIssue } from '../parking/entities/parking-issue.entity';
 import { ParkingDamage } from '../parking/entities/parking-damage.entity';
@@ -92,7 +92,7 @@ export class AdminConsolidatedScheduler {
 
     try {
       const [admins, managers] = await Promise.all([
-        this.userRepository.find({ where: { role: UserRole.ADMIN, isActive: true } }),
+        this.userRepository.find({ where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true } }),
         this.userRepository.find({ where: { role: UserRole.MANAGER, isActive: true } }),
       ]);
 
@@ -215,7 +215,7 @@ export class AdminConsolidatedScheduler {
 
       // Get active admins + managers
       const [admins, managers] = await Promise.all([
-        this.userRepository.find({ where: { role: UserRole.ADMIN, isActive: true } }),
+        this.userRepository.find({ where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true } }),
         this.userRepository.find({ where: { role: UserRole.MANAGER, isActive: true } }),
       ]);
 

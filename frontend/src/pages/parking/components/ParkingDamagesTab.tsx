@@ -42,6 +42,7 @@ import {
   Gesture as SignatureIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
+import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
   useGetParkingDamagesQuery,
   useDeleteParkingDamageMutation,
@@ -80,8 +81,8 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   );
   const [deleteDamage] = useDeleteParkingDamageMutation();
 
-  const isAdmin = user?.role === 'ADMIN';
-  const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const isAdmin = isAdminOrAbove(user?.role);
+  const isAdminOrManager = isAdmin || user?.role === 'MANAGER';
   const deptName = user?.department?.name || '';
   const canComment = isAdminOrManager || [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME].includes(deptName);
 

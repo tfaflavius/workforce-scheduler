@@ -14,6 +14,7 @@ import {
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import PvSessionsTab from './components/PvSessionsTab';
 import PvMarketplaceTab from './components/PvMarketplaceTab';
 import PvMyDaysTab from './components/PvMyDaysTab';
@@ -53,7 +54,7 @@ const ProcesVerbalePage: React.FC = () => {
   const userDept = user?.department?.name || '';
   const isControl = userDept === CONTROL_DEPARTMENT_NAME;
   const isPvf = userDept === PROCESE_VERBALE_DEPARTMENT_NAME;
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);

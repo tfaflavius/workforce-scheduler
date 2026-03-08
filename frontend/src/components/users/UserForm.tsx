@@ -21,6 +21,8 @@ interface UserFormProps {
   onCancel: () => void;
   isCreate?: boolean;
   isLoading?: boolean;
+  currentUserRole?: string;
+  isEditingMasterAdmin?: boolean;
 }
 
 export const UserForm: React.FC<UserFormProps> = ({
@@ -29,6 +31,8 @@ export const UserForm: React.FC<UserFormProps> = ({
   onCancel,
   isCreate = false,
   isLoading = false,
+  currentUserRole,
+  isEditingMasterAdmin = false,
 }) => {
   const { data: departments, isLoading: departmentsLoading } = useGetDepartmentsQuery();
 
@@ -187,18 +191,21 @@ export const UserForm: React.FC<UserFormProps> = ({
           isBirthDate
         />
 
-        <FormControl fullWidth error={!!errors.role} required={isCreate}>
+        <FormControl fullWidth error={!!errors.role} required={isCreate} disabled={isEditingMasterAdmin}>
           <InputLabel>Rol</InputLabel>
           <Select
             value={formData.role}
             onChange={handleChange('role') as any}
             label="Rol"
           >
-            <MenuItem value="ADMIN">Administrator</MenuItem>
+            {currentUserRole === 'MASTER_ADMIN' && (
+              <MenuItem value="ADMIN">Administrator</MenuItem>
+            )}
             <MenuItem value="MANAGER">Manager</MenuItem>
             <MenuItem value="USER">User</MenuItem>
           </Select>
           {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
+          {isEditingMasterAdmin && <FormHelperText>Rolul Master Admin nu poate fi schimbat</FormHelperText>}
         </FormControl>
 
         <FormControl fullWidth error={!!errors.departmentId}>

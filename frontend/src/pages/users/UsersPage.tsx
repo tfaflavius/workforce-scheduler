@@ -206,6 +206,8 @@ const UsersPage: React.FC = () => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case 'MASTER_ADMIN':
+        return 'secondary';
       case 'ADMIN':
         return 'error';
       case 'MANAGER':
@@ -219,6 +221,8 @@ const UsersPage: React.FC = () => {
 
   const getRoleLabel = (role: string) => {
     switch (role) {
+      case 'MASTER_ADMIN':
+        return 'Master Admin';
       case 'ADMIN':
         return 'Admin';
       case 'MANAGER':
@@ -230,7 +234,8 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  const isAdmin = currentUser?.role === 'ADMIN';
+  const isMasterAdmin = currentUser?.role === 'MASTER_ADMIN';
+  const isAdminOrAbove = currentUser?.role === 'ADMIN' || isMasterAdmin;
 
   const paginatedUsers = users
     ? users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -319,7 +324,7 @@ const UsersPage: React.FC = () => {
               </Box>
             </Stack>
 
-            {isAdmin && (
+            {isAdminOrAbove && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -406,6 +411,7 @@ const UsersPage: React.FC = () => {
                         label="Rol"
                       >
                         <MenuItem value="">Toate</MenuItem>
+                        <MenuItem value="MASTER_ADMIN">Master Admin</MenuItem>
                         <MenuItem value="ADMIN">Admin</MenuItem>
                         <MenuItem value="MANAGER">Manager</MenuItem>
                         <MenuItem value="USER">User</MenuItem>
@@ -637,7 +643,7 @@ const UsersPage: React.FC = () => {
                               </Stack>
                             </Box>
                           </Stack>
-                          {isAdmin && (
+                          {isAdminOrAbove && (
                             <IconButton
                               onClick={(e) => handleMenuOpen(e, user)}
                               sx={{ ml: 1 }}
@@ -786,7 +792,7 @@ const UsersPage: React.FC = () => {
                                 : 'Niciodata'}
                             </TableCell>
                             <TableCell align="right">
-                              {isAdmin && (
+                              {isAdminOrAbove && (
                                 <IconButton
                                   size="small"
                                   onClick={(e) => handleMenuOpen(e, user)}
@@ -829,23 +835,27 @@ const UsersPage: React.FC = () => {
           <LockIcon fontSize="small" sx={{ mr: 1.5 }} />
           Schimba Parola
         </MenuItemComponent>
-        <MenuItemComponent onClick={handleToggleStatus}>
-          {selectedUser?.isActive ? (
-            <>
-              <InactiveIcon fontSize="small" sx={{ mr: 1.5 }} />
-              Dezactiveaza
-            </>
-          ) : (
-            <>
-              <ActiveIcon fontSize="small" sx={{ mr: 1.5 }} />
-              Activeaza
-            </>
-          )}
-        </MenuItemComponent>
-        <MenuItemComponent onClick={handleDelete} sx={{ color: 'error.main' }}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} />
-          Sterge
-        </MenuItemComponent>
+        {isMasterAdmin && (
+          <MenuItemComponent onClick={handleToggleStatus}>
+            {selectedUser?.isActive ? (
+              <>
+                <InactiveIcon fontSize="small" sx={{ mr: 1.5 }} />
+                Dezactiveaza
+              </>
+            ) : (
+              <>
+                <ActiveIcon fontSize="small" sx={{ mr: 1.5 }} />
+                Activeaza
+              </>
+            )}
+          </MenuItemComponent>
+        )}
+        {isMasterAdmin && selectedUser?.role !== 'MASTER_ADMIN' && (
+          <MenuItemComponent onClick={handleDelete} sx={{ color: 'error.main' }}>
+            <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} />
+            Sterge
+          </MenuItemComponent>
+        )}
       </Menu>
 
       {/* Create User Dialog */}
@@ -867,6 +877,7 @@ const UsersPage: React.FC = () => {
               onSubmit={handleCreateSubmit}
               onCancel={() => setCreateDialogOpen(false)}
               isLoading={isCreating}
+              currentUserRole={currentUser?.role}
             />
           </Box>
         </DialogContent>
@@ -891,7 +902,7 @@ const UsersPage: React.FC = () => {
                 email: editUser.email,
                 fullName: editUser.fullName,
                 phone: editUser.phone || '',
-                role: editUser.role,
+                role: editUser.role as any,
                 departmentId: editUser.departmentId || '',
               } : undefined}
               onSubmit={handleEditSubmit}
@@ -900,6 +911,8 @@ const UsersPage: React.FC = () => {
                 setEditUser(null);
               }}
               isLoading={isUpdating}
+              currentUserRole={currentUser?.role}
+              isEditingMasterAdmin={editUser?.role === 'MASTER_ADMIN'}
             />
           </Box>
         </DialogContent>
@@ -913,7 +926,7 @@ const UsersPage: React.FC = () => {
           setPasswordUser(null);
         }}
         userId={passwordUser?.id || ''}
-        isAdmin={isAdmin}
+        isAdmin={isAdminOrAbove}
       />
 
       {/* Delete User Dialog */}

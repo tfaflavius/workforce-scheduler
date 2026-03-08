@@ -62,6 +62,7 @@ import {
   Summarize as AllSectionsIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import { Navigate, useLocation } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -498,7 +499,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
     phone: '',
   });
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
   const isMaintenanceUser = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const isHandicapDepartment = user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
   const canResolve = isAdmin || isMaintenanceUser;
@@ -1209,16 +1210,16 @@ const HandicapParkingPage: React.FC = () => {
 
   // Access control
   const hasAccess =
-    user?.role === 'ADMIN' ||
+    isAdminOrAbove(user?.role) ||
     user?.role === 'MANAGER' ||
     (user?.department?.name && ALLOWED_DEPARTMENTS.includes(user.department.name));
 
   // Poate vedea tab-ul Legitimatii: doar Admin si departamentul Parcari Handicap
   const canSeeLegitimations =
-    user?.role === 'ADMIN' ||
+    isAdminOrAbove(user?.role) ||
     user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
   const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const isHandicapDepartmentUser = user?.department?.name === HANDICAP_PARKING_DEPARTMENT_NAME;
   const canEditHandicap = isAdmin || isHandicapDepartmentUser;

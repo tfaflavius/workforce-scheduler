@@ -22,6 +22,7 @@ import {
   Edit as EditIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
+import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
   useGetParkingLotsQuery,
   useGetEquipmentListQuery,
@@ -45,7 +46,7 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
 
   const [formData, setFormData] = useState({
     parkingLotId: issue.parkingLotId,

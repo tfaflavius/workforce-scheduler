@@ -23,6 +23,7 @@ import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapRequestComment } from './entities/handicap-request-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
 import { UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import {
   HandicapRequestType,
   HandicapRequestStatus,
@@ -39,7 +40,7 @@ export class HandicapRequestsController {
   // Verifica daca utilizatorul poate vedea CNP-ul
   // CNP vizibil doar pentru Admin si departamentele Parcari Handicap/Domiciliu
   private canSeeCnp(user: any): boolean {
-    if (user.role === UserRole.ADMIN) {
+    if (isAdminOrAbove(user.role)) {
       return true;
     }
     const departmentName = removeDiacritics(user.department?.name || '');

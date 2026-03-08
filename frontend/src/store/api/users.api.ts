@@ -9,7 +9,7 @@ export interface User {
   email: string;
   fullName: string;
   phone: string | null;
-  role: 'ADMIN' | 'MANAGER' | 'USER';
+  role: 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER';
   departmentId: string | null;
   avatarUrl: string | null;
   isActive: boolean;
@@ -29,7 +29,7 @@ export interface CreateUserRequest {
   password: string;
   fullName: string;
   phone?: string;
-  role: 'ADMIN' | 'MANAGER' | 'USER';
+  role: 'ADMIN' | 'MANAGER' | 'USER';  // Cannot create MASTER_ADMIN
   departmentId?: string;
 }
 
@@ -37,7 +37,7 @@ export interface UpdateUserRequest {
   email?: string;
   fullName?: string;
   phone?: string;
-  role?: 'ADMIN' | 'MANAGER' | 'USER';
+  role?: 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER';
   departmentId?: string;
   isActive?: boolean;
   birthDate?: string;

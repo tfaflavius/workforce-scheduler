@@ -55,6 +55,7 @@ import {
   ViewColumn as LayoutIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import { Navigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
@@ -411,7 +412,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
   const [showResolveDialog, setShowResolveDialog] = useState(false);
   const [resolutionDescription, setResolutionDescription] = useState('');
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = isAdminOrAbove(user?.role);
   const isMaintenanceUser = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const canResolve = isAdmin || isMaintenanceUser;
 
@@ -947,7 +948,7 @@ const DomiciliuParkingPage: React.FC = () => {
 
   // Access control
   const hasAccess =
-    user?.role === 'ADMIN' ||
+    isAdminOrAbove(user?.role) ||
     user?.role === 'MANAGER' ||
     (user?.department?.name && ALLOWED_DEPARTMENTS.includes(user.department.name));
 

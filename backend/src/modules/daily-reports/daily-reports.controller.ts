@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 
 @Controller('daily-reports')
 @UseGuards(JwtAuthGuard)
@@ -64,7 +65,7 @@ export class DailyReportsController {
     @Query('userId') userId?: string,
     @Query('departmentId') departmentId?: string,
   ) {
-    if (req.user.role === UserRole.ADMIN) {
+    if (isAdminOrAbove(req.user.role)) {
       return this.dailyReportsService.findAllForAdmin(startDate, endDate, userId, departmentId);
     }
     // Manager - rapoarte filtrate (Dispecerat + Control(DISP) + Achizitii)

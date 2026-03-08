@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { DailyReportsService } from './daily-reports.service';
 import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -54,7 +54,7 @@ export class DailyReportsScheduler {
 
     // Notifica adminii
     const admins = await this.userRepository.find({
-      where: { role: UserRole.ADMIN, isActive: true },
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
 
     const managers = await this.userRepository.find({

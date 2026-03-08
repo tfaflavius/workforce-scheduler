@@ -20,6 +20,7 @@ import {
 } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import ParkingIssuesTab from './components/ParkingIssuesTab';
 import ParkingDamagesTab from './components/ParkingDamagesTab';
 import CashCollectionsTab from './components/CashCollectionsTab';
@@ -102,7 +103,7 @@ const ParkingPage: React.FC = () => {
   // For maintenance users, show only assigned issues count
   const maintenanceActiveCount = myAssignedIssues.filter(i => i.status === 'ACTIVE').length;
 
-  const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const isAdminOrManager = isAdminOrAbove(user?.role) || user?.role === 'MANAGER';
 
   const tabConfig = [
     {

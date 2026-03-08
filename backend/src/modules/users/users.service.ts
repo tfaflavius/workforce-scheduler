@@ -4,12 +4,13 @@ import {
   ConflictException,
   BadRequestException,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -29,6 +30,11 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    // Prevent creating MASTER_ADMIN users
+    if ((createUserDto as any).role === UserRole.MASTER_ADMIN) {
+      throw new ForbiddenException('Cannot create users with MASTER_ADMIN role');
+    }
+
     // Check if user exists
     const existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
@@ -81,8 +87,23 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto, requestingUser?: any): Promise<User> {
     const user = await this.findOne(id);
+
+    // MASTER_ADMIN protection
+    if (user.role === UserRole.MASTER_ADMIN && updateUserDto.role !== undefined) {
+      throw new ForbiddenException('Cannot change MASTER_ADMIN role');
+    }
+
+    // Cannot promote anyone to MASTER_ADMIN
+    if ((updateUserDto as any).role === UserRole.MASTER_ADMIN) {
+      throw new ForbiddenException('Cannot assign MASTER_ADMIN role');
+    }
+
+    // Only MASTER_ADMIN can promote to ADMIN
+    if ((updateUserDto as any).role === UserRole.ADMIN && requestingUser?.role !== UserRole.MASTER_ADMIN) {
+      throw new ForbiddenException('Only Master Admin can promote users to Admin');
+    }
 
     // If email is being updated, check for conflicts
     if (updateUserDto.email && updateUserDto.email !== user.email) {
@@ -115,6 +136,11 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
+
+    // MASTER_ADMIN cannot be deleted
+    if (user.role === UserRole.MASTER_ADMIN) {
+      throw new ForbiddenException('MASTER_ADMIN account cannot be deleted');
+    }
 
     // Sterge din Supabase Auth (permite re-inregistrarea cu acelasi email)
     try {

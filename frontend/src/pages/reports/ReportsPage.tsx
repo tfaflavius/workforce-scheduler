@@ -76,6 +76,7 @@ import { useGetBudgetPositionsQuery, useGetRevenueSummaryQuery } from '../../sto
 import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import { useGetMonthlyTicketsSummaryQuery, useGetMonthlySubscriptionsQuery, useGetMonthlyOccupancySummaryQuery } from '../../store/api/parkingStats.api';
 import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName, TOTAL_PARKING_SPOTS } from '../../constants/parkingStats';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 
 // Genereaza lista de luni pentru anul 2026 (toate cele 12 luni)
 const generateMonthOptions = () => {
@@ -108,7 +109,7 @@ const ReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
-  const isAdminOrManager = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+  const isAdminOrManager = isAdminOrAbove(user?.role) || user?.role === 'MANAGER';
 
   const [tabValue, setTabValue] = useState(0);
   const [selectedMonth, setSelectedMonth] = useState(() => {

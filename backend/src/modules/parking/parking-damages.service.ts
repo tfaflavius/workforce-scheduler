@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { ParkingDamage, ParkingDamageStatus } from './entities/parking-damage.entity';
 import { ParkingDamageComment } from './entities/parking-damage-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
@@ -10,6 +10,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import { EmailService } from '../../common/email/email.service';
 import { MAINTENANCE_DEPARTMENT_NAME, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
@@ -83,6 +84,7 @@ export class ParkingDamagesService {
     const managersAndAdmins = await this.userRepository.find({
       where: [
         { role: UserRole.ADMIN, isActive: true },
+        { role: UserRole.MASTER_ADMIN, isActive: true },
         { role: UserRole.MANAGER, isActive: true },
       ],
     });
@@ -254,6 +256,7 @@ export class ParkingDamagesService {
     const managersAndAdmins = await this.userRepository.find({
       where: [
         { role: UserRole.ADMIN, isActive: true },
+        { role: UserRole.MASTER_ADMIN, isActive: true },
         { role: UserRole.MANAGER, isActive: true },
       ],
     });
@@ -291,7 +294,7 @@ export class ParkingDamagesService {
   }
 
   async delete(id: string, user: User): Promise<void> {
-    if (user.role !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot sterge prejudiciile');
     }
 
@@ -369,6 +372,7 @@ export class ParkingDamagesService {
     const users = await this.userRepository.find({
       where: [
         { role: UserRole.ADMIN, isActive: true },
+        { role: UserRole.MASTER_ADMIN, isActive: true },
         { role: UserRole.MANAGER, isActive: true },
         ...(dispeceratDept ? [{ departmentId: dispeceratDept.id, isActive: true }] : []),
         ...(maintenanceDept ? [{ departmentId: maintenanceDept.id, isActive: true }] : []),

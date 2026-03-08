@@ -201,7 +201,7 @@ const PermissionMatrixTab = () => {
                     <Chip
                       label={role.label}
                       size="small"
-                      color={role.key === 'ADMIN' ? 'error' : role.key === 'MANAGER' ? 'warning' : 'info'}
+                      color={role.key === 'MASTER_ADMIN' ? 'secondary' : role.key === 'ADMIN' ? 'error' : role.key === 'MANAGER' ? 'warning' : 'info'}
                       sx={{ fontWeight: 'bold' }}
                     />
                   </TableCell>

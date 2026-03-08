@@ -19,6 +19,7 @@ import { ResolveHandicapLegitimationDto } from './dto/resolve-handicap-legitimat
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { HandicapLegitimationStatus, HANDICAP_PARKING_DEPARTMENT_NAME } from './constants/parking.constants';
 import { UserRole } from '../users/entities/user.entity';
+import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Controller('parking/handicap-legitimations')
@@ -28,7 +29,7 @@ export class HandicapLegitimationsController {
 
   private checkAccess(user: any): void {
     // Doar Admin si departamentul Parcari Handicap pot accesa
-    const isAdmin = user.role === UserRole.ADMIN;
+    const isAdmin = isAdminOrAbove(user.role);
     const isHandicapDepartment = removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!isAdmin && !isHandicapDepartment) {
@@ -59,7 +60,7 @@ export class HandicapLegitimationsController {
     @Query('status') status?: HandicapLegitimationStatus,
   ) {
     // Doar adminii pot accesa rapoartele
-    if (req.user.role !== UserRole.ADMIN) {
+    if (!isAdminOrAbove(req.user.role)) {
       throw new ForbiddenException('Doar administratorii pot accesa rapoartele');
     }
 
