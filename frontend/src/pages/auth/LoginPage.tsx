@@ -25,12 +25,13 @@ import {
   VisibilityOff,
   Email as EmailIcon,
   Lock as LockIcon,
-  CalendarMonth as CalendarIcon,
+  Hub as HubIcon,
   Person as PersonIcon,
   Phone as PhoneIcon,
   CheckCircle as SuccessIcon,
-  SwapHoriz as SwapHorizIcon,
-  BeachAccess as BeachAccessIcon,
+  CalendarMonth as CalendarIcon,
+  Assessment as ReportsIcon,
+  FactCheck as EvidenceIcon,
 } from '@mui/icons-material';
 import { useAppDispatch } from '../../store/hooks';
 import { setCredentials } from '../../store/slices/auth.slice';
@@ -166,8 +167,8 @@ export const LoginPage = () => {
         width: '100%',
         display: 'flex',
         background: theme.palette.mode === 'light'
-          ? 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%)'
-          : 'linear-gradient(135deg, #1e40af 0%, #5b21b6 50%, #be185d 100%)',
+          ? 'linear-gradient(135deg, #0f172a 0%, #1e40af 40%, #3b82f6 100%)'
+          : 'linear-gradient(135deg, #020617 0%, #172554 40%, #1e40af 100%)',
         overflow: 'auto',
         position: 'relative',
       }}
@@ -267,7 +268,7 @@ export const LoginPage = () => {
                       boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
                     }}
                   >
-                    <CalendarIcon sx={{ fontSize: { xs: 36, sm: 48, md: 56 } }} />
+                    <HubIcon sx={{ fontSize: { xs: 36, sm: 48, md: 56 } }} />
                   </Box>
                   <Typography
                     variant="h2"
@@ -293,7 +294,7 @@ export const LoginPage = () => {
                     fontWeight: 500,
                   }}
                 >
-                  Sistem de Gestiune a Programului de Lucru
+                  Sistem de Management Integrat
                 </Typography>
               </Fade>
 
@@ -307,9 +308,8 @@ export const LoginPage = () => {
                     fontSize: { md: '1rem', lg: '1.1rem' },
                   }}
                 >
-                  Platforma completa pentru gestionarea programelor de lucru.
-                  Managerii creeaza programe, administratorii le aproba, iar
-                  angajatii isi pot vizualiza programul zilnic si lunar.
+                  Platforma completa pentru gestionarea programelor de lucru,
+                  evidente si rapoarte.
                 </Typography>
               </Fade>
 
@@ -324,8 +324,8 @@ export const LoginPage = () => {
                   >
                     {[
                       { icon: <CalendarIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Programare' },
-                      { icon: <SwapHorizIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Schimburi' },
-                      { icon: <BeachAccessIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Concedii' },
+                      { icon: <EvidenceIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Evidente' },
+                      { icon: <ReportsIcon sx={{ fontSize: { sm: 28, md: 34 } }} />, label: 'Rapoarte' },
                     ].map((feature) => (
                       <Box
                         key={feature.label}
@@ -522,11 +522,11 @@ export const LoginPage = () => {
                       fontWeight: 700,
                       textTransform: 'none',
                       borderRadius: 2.5,
-                      background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                      background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                       boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                        background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
                         boxShadow: '0 6px 20px rgba(37, 99, 235, 0.5)',
                         transform: 'translateY(-2px)',
                       },
@@ -721,11 +721,11 @@ export const LoginPage = () => {
                       fontWeight: 700,
                       textTransform: 'none',
                       borderRadius: 2.5,
-                      background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                      background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
                       boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                        background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
                         boxShadow: '0 6px 20px rgba(37, 99, 235, 0.5)',
                         transform: 'translateY(-2px)',
                       },
