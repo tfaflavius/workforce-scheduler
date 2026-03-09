@@ -162,7 +162,7 @@ export const LoginPage = () => {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         width: '100%',
         display: 'flex',
         background: theme.palette.mode === 'light'
@@ -221,7 +221,7 @@ export const LoginPage = () => {
       <Box
         sx={{
           width: '100%',
-          minHeight: '100vh',
+          minHeight: '100dvh',
           display: 'flex',
           flexDirection: { xs: 'column', lg: 'row' },
           alignItems: 'stretch',

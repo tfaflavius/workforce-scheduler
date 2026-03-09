@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
   Typography,
@@ -76,6 +77,7 @@ const UsersPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
   const [roleFilter, setRoleFilter] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState(searchParams.get('department') || '');
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -104,7 +106,7 @@ const UsersPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const filters: any = {
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     role: roleFilter || undefined,
     departmentId: departmentFilter || undefined,
   };

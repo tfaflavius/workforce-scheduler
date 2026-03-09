@@ -12,7 +12,7 @@ import type {
 } from '../../types/domiciliu.types';
 import type { ParkingHistory, CreateCommentDto } from '../../types/parking.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const domiciliuApi = createApi({
   reducerPath: 'domiciliuApi',

@@ -118,13 +118,11 @@ export const PushNotificationSettings: React.FC = () => {
       const existingSubscription = await registration.pushManager.getSubscription();
       if (existingSubscription) {
         await existingSubscription.unsubscribe();
-        console.log('[Push] Unsubscribed from existing subscription');
       }
 
       // Clear all subscriptions on server for this user (to remove old/invalid ones)
       try {
         await clearAllSubscriptions();
-        console.log('[Push] Cleared all server subscriptions');
       } catch (e) {
         console.warn('[Push] Failed to clear server subscriptions:', e);
       }
@@ -135,7 +133,6 @@ export const PushNotificationSettings: React.FC = () => {
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
-      console.log('[Push] New subscription created:', subscription.endpoint.substring(0, 50));
       setCurrentSubscription(subscription);
 
       // Send subscription to server

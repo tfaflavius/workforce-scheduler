@@ -539,7 +539,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
             color="primary"
             sx={{
               position: 'fixed',
-              bottom: 80,
+              bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
               background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',
             }}

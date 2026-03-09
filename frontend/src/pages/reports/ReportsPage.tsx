@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
   Typography,
@@ -156,6 +157,7 @@ const ReportsPage: React.FC = () => {
 
   // Filtering state
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL');
   const [selectedLeaveStatus, setSelectedLeaveStatus] = useState<string>('ALL');
   const [selectedSwapStatus, setSelectedSwapStatus] = useState<string>('ALL');
@@ -332,8 +334,8 @@ const ReportsPage: React.FC = () => {
     let filtered = [...eligibleUsers];
 
     // Filtru dupa nume
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const query = debouncedSearch.toLowerCase();
       filtered = filtered.filter(user =>
         user.fullName.toLowerCase().includes(query)
       );
@@ -345,7 +347,7 @@ const ReportsPage: React.FC = () => {
     }
 
     return filtered;
-  }, [eligibleUsers, searchQuery, selectedDepartment]);
+  }, [eligibleUsers, debouncedSearch, selectedDepartment]);
 
   // Filtrare concedii dupa luna selectata si status
   const filteredLeaveRequests = useMemo(() => {
@@ -364,8 +366,8 @@ const ReportsPage: React.FC = () => {
       const matchesStatus = selectedLeaveStatus === 'ALL' || req.status === selectedLeaveStatus;
 
       // Filter by search (user name)
-      const matchesSearch = !searchQuery.trim() ||
-        req.user?.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = !debouncedSearch.trim() ||
+        req.user?.fullName?.toLowerCase().includes(debouncedSearch.toLowerCase());
 
       // Filter by department
       const matchesDepartment = selectedDepartment === 'ALL' ||
@@ -373,7 +375,7 @@ const ReportsPage: React.FC = () => {
 
       return overlapsMonth && matchesStatus && matchesSearch && matchesDepartment;
     });
-  }, [leaveRequests, selectedMonth, selectedLeaveStatus, searchQuery, selectedDepartment]);
+  }, [leaveRequests, selectedMonth, selectedLeaveStatus, debouncedSearch, selectedDepartment]);
 
   // Filtrare schimburi de tura dupa luna selectata si status
   const filteredSwapRequests = useMemo(() => {
@@ -393,12 +395,12 @@ const ReportsPage: React.FC = () => {
       const matchesStatus = selectedSwapStatus === 'ALL' || req.status === selectedSwapStatus;
 
       // Filter by search (user name)
-      const matchesSearch = !searchQuery.trim() ||
-        req.requester?.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = !debouncedSearch.trim() ||
+        req.requester?.fullName?.toLowerCase().includes(debouncedSearch.toLowerCase());
 
       return inMonth && matchesStatus && matchesSearch;
     });
-  }, [swapRequests, selectedMonth, selectedSwapStatus, searchQuery]);
+  }, [swapRequests, selectedMonth, selectedSwapStatus, debouncedSearch]);
 
   // Calculeaza totaluri pentru fiecare angajat
   const getUserStats = (userId: string) => {
@@ -2649,6 +2651,7 @@ const ReportsPage: React.FC = () => {
         onClose={() => setCustomReportOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle sx={{ pb: 1 }}>
           <Typography variant="h6" fontWeight="bold">Raport Personalizat</Typography>

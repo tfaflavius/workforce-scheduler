@@ -252,7 +252,7 @@ const TicketsSection: React.FC = () => {
                               [loc.key]: Number(e.target.value) || 0,
                             }))}
                             sx={{ width: { xs: 70, sm: 100 } }}
-                            inputProps={{ min: 0, style: { fontSize: '0.85rem' } }}
+                            inputProps={{ min: 0, style: { fontSize: '0.85rem' }, inputMode: 'numeric' }}
                           />
                         ) : (
                           <Typography variant="body2" fontWeight="bold">{getTicketValue(loc.key)}</Typography>
@@ -421,7 +421,7 @@ const SubscriptionsSection: React.FC = () => {
                           [loc.key]: Number(e.target.value) || 0,
                         }))}
                         sx={{ width: { xs: 70, sm: 100 } }}
-                        inputProps={{ min: 0, style: { fontSize: '0.85rem' } }}
+                        inputProps={{ min: 0, style: { fontSize: '0.85rem' }, inputMode: 'numeric' }}
                       />
                     </TableCell>
                   </TableRow>
@@ -647,7 +647,7 @@ const OccupancySection: React.FC = () => {
                               [loc.key]: { ...prev[loc.key] || { min: 0, max: 0, avg: 0 }, min: Number(e.target.value) || 0 },
                             }))}
                             sx={{ width: { xs: 55, sm: 80 } }}
-                            inputProps={{ min: 0, style: { fontSize: '0.8rem', padding: '6px 4px' } }}
+                            inputProps={{ min: 0, style: { fontSize: '0.8rem', padding: '6px 4px' }, inputMode: 'numeric' }}
                           />
                         ) : (
                           <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{val.min}</Typography>
@@ -664,7 +664,7 @@ const OccupancySection: React.FC = () => {
                               [loc.key]: { ...prev[loc.key] || { min: 0, max: 0, avg: 0 }, max: Number(e.target.value) || 0 },
                             }))}
                             sx={{ width: { xs: 55, sm: 80 } }}
-                            inputProps={{ min: 0, style: { fontSize: '0.8rem', padding: '6px 4px' } }}
+                            inputProps={{ min: 0, style: { fontSize: '0.8rem', padding: '6px 4px' }, inputMode: 'numeric' }}
                           />
                         ) : (
                           <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{val.max}</Typography>
@@ -681,7 +681,7 @@ const OccupancySection: React.FC = () => {
                               [loc.key]: { ...prev[loc.key] || { min: 0, max: 0, avg: 0 }, avg: Number(e.target.value) || 0 },
                             }))}
                             sx={{ width: { xs: 60, sm: 90 } }}
-                            inputProps={{ min: 0, step: 0.01, style: { fontSize: '0.8rem', padding: '6px 4px' } }}
+                            inputProps={{ min: 0, step: 0.01, style: { fontSize: '0.8rem', padding: '6px 4px' }, inputMode: 'decimal' }}
                           />
                         ) : (
                           <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{val.avg}</Typography>

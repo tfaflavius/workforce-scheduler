@@ -226,7 +226,6 @@ const EmployeeDashboard = () => {
 
       // Prevent concurrent captures (the main source of duplicates)
       if (isCapturingRef.current) {
-        console.log('[GPS] Capture already in progress, skipping');
         return;
       }
       isCapturingRef.current = true;
@@ -237,7 +236,6 @@ const EmployeeDashboard = () => {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude, accuracy } = position.coords;
-            console.log(`[GPS] Location captured: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (accuracy: ${accuracy?.toFixed(0)}m, auto: ${isAutoRecorded})`);
             try {
               await recordLocationMutation({
                 timeEntryId,
@@ -284,7 +282,6 @@ const EmployeeDashboard = () => {
             // Retry for timeout/position unavailable errors
             if (retryCount < MAX_RETRIES && (error.code === 2 || error.code === 3)) {
               const delay = (retryCount + 1) * 5000; // 5s, 10s
-              console.log(`[GPS] Retrying in ${delay / 1000}s...`);
               setTimeout(() => {
                 captureLocation(timeEntryId, isAutoRecorded, retryCount + 1).then(resolve);
               }, delay);
@@ -372,29 +369,27 @@ const EmployeeDashboard = () => {
         return lastCaptureTimeRef.current > 0 && elapsed >= minInterval;
       };
 
-      const doCapture = (reason: string) => {
-        console.log(`[GPS] ${reason} (${Math.round((Date.now() - lastCaptureTimeRef.current) / 60000)} min since last)`);
+      const doCapture = () => {
         captureLocation(activeTimer.id, true);
       };
 
       // Regular interval check (every 60s, trigger if 10 min elapsed)
       const checkInterval = () => {
         if (shouldCapture(LOCATION_TRACKING_INTERVAL_MS)) {
-          doCapture('Periodic capture (interval)');
+          doCapture();
         }
       };
 
       // Visibility/focus: capture if at least 2 min since last (catch up after background)
       const checkResume = () => {
         if (shouldCapture(LOCATION_MIN_INTERVAL_MS)) {
-          doCapture('Resume capture (app visible)');
+          doCapture();
         }
       };
 
       // On effect mount: if ref is 0 (page reload with active timer),
       // capture immediately and initialize the ref
       if (lastCaptureTimeRef.current === 0) {
-        console.log('[GPS] Page loaded with active timer - capturing initial location');
         lastCaptureTimeRef.current = Date.now();
         captureLocation(activeTimer.id, true);
       } else {
@@ -435,7 +430,6 @@ const EmployeeDashboard = () => {
 
     const handleSWMessage = (event: MessageEvent) => {
       if (event.data?.type === 'GPS_CAPTURE_REQUEST') {
-        console.log('[GPS] Service Worker requested GPS capture (push-triggered)');
         captureLocation(activeTimer.id, true);
       }
     };

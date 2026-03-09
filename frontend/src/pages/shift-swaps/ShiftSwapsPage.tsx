@@ -776,6 +776,7 @@ const ShiftSwapsPage = () => {
         onClose={() => setRespondDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           {responseAccepted ? 'Accepta Cererea de Schimb' : 'Refuza Cererea de Schimb'}

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
   Typography,
@@ -196,7 +197,6 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
         (Array.isArray(err?.data?.message) ? err.data.message.join(', ') : null) ||
         err?.message ||
         'A aparut o eroare la crearea solicitarii';
-      console.log('Setting error:', errorMessage);
       setError(errorMessage);
     }
   };
@@ -323,7 +323,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
               }}
               fullWidth
               type="number"
-              inputProps={{ min: 1 }}
+              inputProps={{ min: 1, inputMode: 'numeric' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -776,6 +776,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
         onClose={() => setShowResolveDialog(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>Finalizeaza solicitarea</DialogTitle>
         <DialogContent>
@@ -923,6 +924,7 @@ const DomiciliuParkingPage: React.FC = () => {
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<DomiciliuRequestStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<DomiciliuRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -982,15 +984,15 @@ const DomiciliuParkingPage: React.FC = () => {
     const currentType = tabConfig[tabValue].type;
     return requests.filter((r) => {
       const matchesType = r.requestType === currentType;
-      const matchesSearch = searchQuery
-        ? r.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.personName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.carPlate?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.address?.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesSearch = debouncedSearch
+        ? r.location.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          r.personName?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          r.carPlate?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          r.address?.toLowerCase().includes(debouncedSearch.toLowerCase())
         : true;
       return matchesType && matchesSearch;
     });
-  }, [requests, tabValue, searchQuery, tabConfig]);
+  }, [requests, tabValue, debouncedSearch, tabConfig]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);

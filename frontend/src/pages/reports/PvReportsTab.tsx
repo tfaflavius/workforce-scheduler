@@ -562,7 +562,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
             color="primary"
             sx={{
               position: 'fixed',
-              bottom: 80,
+              bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
               background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
             }}

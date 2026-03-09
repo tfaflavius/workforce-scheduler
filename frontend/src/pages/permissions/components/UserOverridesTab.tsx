@@ -28,6 +28,8 @@ import {
   Select,
   MenuItem,
   FormControlLabel,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -80,6 +82,8 @@ const getRoleLabel = (role: string) => {
 };
 
 const UserOverridesTab = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { data: users, isLoading: usersLoading } = useGetUsersQuery();
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
   const [localOverrides, setLocalOverrides] = useState<Record<string, boolean>>({});
@@ -492,7 +496,7 @@ const UserOverridesTab = () => {
       )}
 
       {/* Grant Access Dialog */}
-      <Dialog open={grantDialog} onClose={() => setGrantDialog(false)} maxWidth="xs" fullWidth>
+      <Dialog open={grantDialog} onClose={() => setGrantDialog(false)} maxWidth="xs" fullWidth fullScreen={isMobile}>
         <DialogTitle>Adauga Acces la Flux</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>

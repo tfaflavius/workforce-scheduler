@@ -776,6 +776,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                   InputProps={{
                     startAdornment: <LockIcon sx={{ fontSize: 16, mr: 1, color: '#059669' }} />,
                   }}
+                  inputProps={{ inputMode: 'decimal' }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       bgcolor: alpha('#10b981', 0.06),
@@ -790,7 +791,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                   type="number"
                   value={editingCell.incasariCard}
                   onChange={(e) => setEditingCell(editingCell ? { ...editingCell, incasariCard: e.target.value } : null)}
-                  inputProps={{ min: 0, step: 0.01 }}
+                  inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
                   sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#2563eb' } } }}
                 />
                 {/* Total info */}
@@ -809,7 +810,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                 type="number"
                 value={editingCell?.incasari || '0'}
                 onChange={(e) => setEditingCell(editingCell ? { ...editingCell, incasari: e.target.value } : null)}
-                inputProps={{ min: 0, step: 0.01 }}
+                inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
                 sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#10b981' } } }}
               />
             )}
@@ -819,7 +820,7 @@ const IncasariCheltuieliPage: React.FC = () => {
               type="number"
               value={editingCell?.cheltuieli || '0'}
               onChange={(e) => setEditingCell(editingCell ? { ...editingCell, cheltuieli: e.target.value } : null)}
-              inputProps={{ min: 0, step: 0.01 }}
+              inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
               sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#ef4444' } } }}
             />
             <TextField
@@ -845,7 +846,7 @@ const IncasariCheltuieliPage: React.FC = () => {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} fullScreen={isMobile}>
         <DialogTitle sx={{ fontWeight: 700 }}>Confirmare Stergere</DialogTitle>
         <DialogContent>
           <Typography>

@@ -23,6 +23,8 @@ import {
   DialogActions,
   TextField,
   Menu,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -49,6 +51,8 @@ import { useGetUsersQuery } from '../../store/api/users.api';
 import type { ScheduleAssignmentDto } from '../../types/schedule.types';
 
 export const EditSchedulePage: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -131,14 +135,11 @@ export const EditSchedulePage: React.FC = () => {
   const handleSave = async () => {
     try {
       setError(null);
-      console.log('Saving schedule:', id, 'with', assignments.length, 'assignments');
-      const result = await updateSchedule({
+      await updateSchedule({
         id: id!,
         data: { assignments },
       }).unwrap();
-      console.log('Schedule saved successfully:', result);
       navigate('/schedules');
-      console.log('Navigation called to /schedules');
     } catch (err: any) {
       console.error('Failed to update schedule:', err);
       const errorMessage = err?.data?.message || err?.message || 'Failed to save schedule';
@@ -150,21 +151,16 @@ export const EditSchedulePage: React.FC = () => {
     try {
       setError(null);
       setValidationDetails(null);
-      console.log('Submitting schedule for approval:', id);
 
       // First, save any pending assignments
-      console.log('Saving assignments before submit:', assignments.length);
       await updateSchedule({
         id: id!,
         data: { assignments },
       }).unwrap();
-      console.log('Assignments saved');
 
       // Then submit for approval
-      const result = await submitSchedule(id!).unwrap();
-      console.log('Schedule submitted successfully:', result);
+      await submitSchedule(id!).unwrap();
       navigate('/schedules');
-      console.log('Navigation called to /schedules');
     } catch (err: any) {
       console.error('Failed to submit schedule:', err);
       const errorMessage = err?.data?.message || err?.message || 'Failed to submit schedule';
@@ -174,7 +170,6 @@ export const EditSchedulePage: React.FC = () => {
       if (errorMessage.includes('labor law violations')) {
         try {
           const validation = await validateSchedule(id!).unwrap();
-          console.log('Validation details:', validation);
           setValidationDetails(validation);
         } catch (validationErr) {
           console.error('Failed to fetch validation details:', validationErr);
@@ -187,15 +182,12 @@ export const EditSchedulePage: React.FC = () => {
     try {
       setError(null);
       setValidationDetails(null);
-      console.log('Force submitting schedule (admin override):', id);
 
       // First, save any pending assignments
-      console.log('Saving assignments before force submit:', assignments.length);
       await updateSchedule({
         id: id!,
         data: { assignments },
       }).unwrap();
-      console.log('Assignments saved');
 
       // Change status directly to PENDING_APPROVAL without validation
       await updateSchedule({
@@ -203,7 +195,6 @@ export const EditSchedulePage: React.FC = () => {
         data: { status: 'PENDING_APPROVAL' },
       }).unwrap();
 
-      console.log('Schedule force submitted successfully');
       navigate('/schedules');
     } catch (err: any) {
       console.error('Failed to force submit schedule:', err);
@@ -216,11 +207,9 @@ export const EditSchedulePage: React.FC = () => {
     try {
       setError(null);
       setValidationDetails(null);
-      console.log('Checking labor law violations before approval:', id);
 
       // First, check for labor law violations
       const validation = await validateSchedule(id!).unwrap();
-      console.log('Validation result:', validation);
 
       if (validation.violations && validation.violations.length > 0) {
         // Show violations to user and ask for confirmation
@@ -230,9 +219,7 @@ export const EditSchedulePage: React.FC = () => {
       }
 
       // No violations, approve directly
-      console.log('No violations, approving schedule:', id);
       await approveSchedule({ id: id! }).unwrap();
-      console.log('Schedule approved successfully');
       navigate('/schedules');
     } catch (err: any) {
       console.error('Failed to approve schedule:', err);
@@ -245,10 +232,8 @@ export const EditSchedulePage: React.FC = () => {
     try {
       setError(null);
       setValidationDetails(null);
-      console.log('Force approving schedule with violations:', id);
 
       await approveSchedule({ id: id! }).unwrap();
-      console.log('Schedule approved successfully (with violations)');
       navigate('/schedules');
     } catch (err: any) {
       console.error('Failed to approve schedule:', err);
@@ -269,14 +254,12 @@ export const EditSchedulePage: React.FC = () => {
 
     try {
       setError(null);
-      console.log('Rejecting schedule:', id, 'with reason:', rejectReason);
 
       await rejectSchedule({
         id: id!,
         data: { reason: rejectReason }
       }).unwrap();
 
-      console.log('Schedule rejected successfully');
       setShowRejectDialog(false);
       navigate('/schedules');
     } catch (err: any) {
@@ -293,7 +276,6 @@ export const EditSchedulePage: React.FC = () => {
   const handleCloneConfirm = async () => {
     try {
       setError(null);
-      console.log('Cloning schedule:', id, 'to month:', cloneMonth, 'year:', cloneYear);
 
       const clonedSchedule = await cloneSchedule({
         id: id!,
@@ -303,7 +285,6 @@ export const EditSchedulePage: React.FC = () => {
         },
       }).unwrap();
 
-      console.log('Schedule cloned successfully:', clonedSchedule.id);
       setShowCloneDialog(false);
       navigate(`/schedules/${clonedSchedule.id}`);
     } catch (err: any) {
@@ -316,7 +297,6 @@ export const EditSchedulePage: React.FC = () => {
   const handleExport = async (format: 'PDF' | 'EXCEL') => {
     try {
       setError(null);
-      console.log('Exporting schedule:', id, 'format:', format);
 
       const result = await exportSchedule({
         id: id!,
@@ -327,7 +307,6 @@ export const EditSchedulePage: React.FC = () => {
         },
       }).unwrap();
 
-      console.log('Export successful:', result);
       // Open in new tab
       window.open(result.downloadUrl, '_blank');
       setExportMenuAnchor(null);
@@ -648,7 +627,7 @@ export const EditSchedulePage: React.FC = () => {
       </Stack>
 
       {/* Add Assignment Dialog */}
-      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={showAddDialog} onClose={() => setShowAddDialog(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle>Add Shift Assignment</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 2 }}>
@@ -733,7 +712,7 @@ export const EditSchedulePage: React.FC = () => {
       </Dialog>
 
       {/* Reject Schedule Dialog */}
-      <Dialog open={showRejectDialog} onClose={() => setShowRejectDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={showRejectDialog} onClose={() => setShowRejectDialog(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle>Reject Schedule</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
@@ -764,7 +743,7 @@ export const EditSchedulePage: React.FC = () => {
       </Dialog>
 
       {/* Clone Schedule Dialog */}
-      <Dialog open={showCloneDialog} onClose={() => setShowCloneDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={showCloneDialog} onClose={() => setShowCloneDialog(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle>Clone Schedule to Another Month</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 3 }}>

@@ -542,7 +542,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
             color="primary"
             sx={{
               position: 'fixed',
-              bottom: 80,
+              bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
               background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
             }}

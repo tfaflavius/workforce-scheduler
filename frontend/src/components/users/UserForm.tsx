@@ -174,6 +174,8 @@ export const UserForm: React.FC<UserFormProps> = ({
           error={!!errors.phone}
           helperText={errors.phone}
           fullWidth
+          type="tel"
+          inputProps={{ inputMode: 'tel' }}
         />
 
         <DatePickerField

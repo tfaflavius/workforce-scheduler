@@ -5,8 +5,8 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, In, DataSource, EntityManager } from 'typeorm';
 import { ShiftSwapRequest, ShiftSwapStatus } from './entities/shift-swap-request.entity';
 import { ShiftSwapResponse, SwapResponseType } from './entities/shift-swap-response.entity';
 import { User, UserRole } from '../users/entities/user.entity';
@@ -34,6 +34,8 @@ export class ShiftSwapsService {
     private readonly assignmentRepository: Repository<ScheduleAssignment>,
     @InjectRepository(WorkSchedule)
     private readonly scheduleRepository: Repository<WorkSchedule>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
     private readonly pushNotificationService: PushNotificationService,
     private readonly emailService: EmailService,
@@ -583,42 +585,57 @@ export class ShiftSwapsService {
       ? swapRequest.targetDate.toISOString().split('T')[0]
       : String(swapRequest.targetDate);
 
-    // Gaseste assignment-urile DISP (prioritar)
-    const requesterAssignment = await this.findAssignmentForUserAndDate(
-      swapRequest.requesterId,
-      requesterDateStr,
-    );
-    const responderAssignment = await this.findAssignmentForUserAndDate(
-      approvedResponderId,
-      targetDateStr,
-    );
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (!requesterAssignment || !responderAssignment) {
-      throw new BadRequestException('Nu s-au gasit turele pentru schimb');
+    try {
+      const manager = queryRunner.manager;
+
+      // Gaseste assignment-urile DISP (prioritar)
+      const requesterAssignment = await this.findAssignmentForUserAndDate(
+        swapRequest.requesterId,
+        requesterDateStr,
+      );
+      const responderAssignment = await this.findAssignmentForUserAndDate(
+        approvedResponderId,
+        targetDateStr,
+      );
+
+      if (!requesterAssignment || !responderAssignment) {
+        throw new BadRequestException('Nu s-au gasit turele pentru schimb');
+      }
+
+      // Schimba user-ii intre assignment-urile DISP
+      const tempUserId = requesterAssignment.userId;
+
+      await manager.update(ScheduleAssignment, requesterAssignment.id, {
+        userId: approvedResponderId,
+      });
+
+      await manager.update(ScheduleAssignment, responderAssignment.id, {
+        userId: tempUserId,
+      });
+
+      // Gestioneaza assignment-urile CTRL pentru departamentul Control
+      // Cel care preia DISP-ul nu mai merge la CTRL in ziua respectiva -> sterge CTRL
+      // Cel care cedeaza DISP-ul merge la CTRL in ziua celuilalt (daca nu avea deja)
+      await this.handleControlAssignmentsAfterSwap(
+        swapRequest.requesterId,  // requester cedeaza DISP pe requesterDate, preia DISP pe targetDate
+        approvedResponderId,       // responder cedeaza DISP pe targetDate, preia DISP pe requesterDate
+        requesterDateStr,
+        targetDateStr,
+        manager,
+      );
+
+      await queryRunner.commitTransaction();
+      this.logger.log(`Swap executed: ${swapRequest.requesterId} <-> ${approvedResponderId}`);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    // Schimba user-ii intre assignment-urile DISP
-    const tempUserId = requesterAssignment.userId;
-
-    await this.assignmentRepository.update(requesterAssignment.id, {
-      userId: approvedResponderId,
-    });
-
-    await this.assignmentRepository.update(responderAssignment.id, {
-      userId: tempUserId,
-    });
-
-    // Gestioneaza assignment-urile CTRL pentru departamentul Control
-    // Cel care preia DISP-ul nu mai merge la CTRL in ziua respectiva -> sterge CTRL
-    // Cel care cedeaza DISP-ul merge la CTRL in ziua celuilalt (daca nu avea deja)
-    await this.handleControlAssignmentsAfterSwap(
-      swapRequest.requesterId,  // requester cedeaza DISP pe requesterDate, preia DISP pe targetDate
-      approvedResponderId,       // responder cedeaza DISP pe targetDate, preia DISP pe requesterDate
-      requesterDateStr,
-      targetDateStr,
-    );
-
-    this.logger.log(`Swap executed: ${swapRequest.requesterId} <-> ${approvedResponderId}`);
   }
 
   /**
@@ -632,6 +649,7 @@ export class ShiftSwapsService {
     responderId: string,
     requesterDate: string,
     targetDate: string,
+    manager: EntityManager,
   ): Promise<void> {
     // Pe requesterDate: responder preia DISP, requester cedeaza DISP
     // -> Sterge CTRL al responder-ului pe requesterDate (el merge doar la DISP)
@@ -644,14 +662,14 @@ export class ShiftSwapsService {
     // Sterge CTRL al responder-ului pe requesterDate
     const responderCtrlOnRequesterDate = await this.findCtrlAssignment(responderId, requesterDate);
     if (responderCtrlOnRequesterDate) {
-      await this.assignmentRepository.delete(responderCtrlOnRequesterDate.id);
+      await manager.delete(ScheduleAssignment, responderCtrlOnRequesterDate.id);
       this.logger.log(`Deleted CTRL assignment for responder ${responderId} on ${requesterDate}`);
     }
 
     // Sterge CTRL al requester-ului pe targetDate
     const requesterCtrlOnTargetDate = await this.findCtrlAssignment(requesterId, targetDate);
     if (requesterCtrlOnTargetDate) {
-      await this.assignmentRepository.delete(requesterCtrlOnTargetDate.id);
+      await manager.delete(ScheduleAssignment, requesterCtrlOnTargetDate.id);
       this.logger.log(`Deleted CTRL assignment for requester ${requesterId} on ${targetDate}`);
     }
 
@@ -659,7 +677,7 @@ export class ShiftSwapsService {
     // Daca nu, creaza unul folosind tura normala CTRL (07:30-15:30 default)
     const requesterCtrlOnOwnDate = await this.findCtrlAssignment(requesterId, requesterDate);
     if (!requesterCtrlOnOwnDate) {
-      await this.createDefaultCtrlAssignment(requesterId, requesterDate);
+      await this.createDefaultCtrlAssignment(requesterId, requesterDate, manager);
       this.logger.log(`Created CTRL assignment for requester ${requesterId} on ${requesterDate}`);
     }
 
@@ -667,7 +685,7 @@ export class ShiftSwapsService {
     // Daca nu, creaza unul
     const responderCtrlOnOwnDate = await this.findCtrlAssignment(responderId, targetDate);
     if (!responderCtrlOnOwnDate) {
-      await this.createDefaultCtrlAssignment(responderId, targetDate);
+      await this.createDefaultCtrlAssignment(responderId, targetDate, manager);
       this.logger.log(`Created CTRL assignment for responder ${responderId} on ${targetDate}`);
     }
   }
@@ -696,6 +714,7 @@ export class ShiftSwapsService {
   private async createDefaultCtrlAssignment(
     userId: string,
     date: string,
+    manager: EntityManager,
   ): Promise<void> {
     // Gaseste pozitia CTRL
     const ctrlAssignmentExample = await this.assignmentRepository.findOne({
@@ -732,7 +751,7 @@ export class ShiftSwapsService {
       relations: ['schedule'],
     });
 
-    const newAssignment = this.assignmentRepository.create({
+    const newAssignment = manager.create(ScheduleAssignment, {
       userId,
       shiftDate: new Date(date),
       shiftTypeId,
@@ -742,7 +761,7 @@ export class ShiftSwapsService {
       isRestDay: false,
     });
 
-    await this.assignmentRepository.save(newAssignment);
+    await manager.save(newAssignment);
   }
 
   /**

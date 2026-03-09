@@ -130,27 +130,14 @@ const CreateSchedulePage: React.FC = () => {
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
   const { data: existingSchedules = [] } = useGetSchedulesQuery({ monthYear });
   const { data: dbShiftTypes = [] } = useGetShiftTypesQuery();
-  const { data: dbWorkPositions = [], error: workPositionsError, isLoading: workPositionsLoading } = useGetWorkPositionsQuery();
+  const { data: dbWorkPositions = [] } = useGetWorkPositionsQuery();
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
 
-  // Log work positions status
-  useEffect(() => {
-    console.log('Work Positions Status:', {
-      loading: workPositionsLoading,
-      error: workPositionsError,
-      count: dbWorkPositions.length,
-      data: dbWorkPositions,
-    });
-  }, [dbWorkPositions, workPositionsError, workPositionsLoading]);
   const [createSchedule, { isLoading: creating, error }] = useCreateScheduleMutation();
   const [updateSchedule, { isLoading: updating }] = useUpdateScheduleMutation();
 
   // Mapeaza shift types din DB la optiunile locale
   const getShiftTypeId = (localId: string): string | null => {
-    // Log pentru debugging
-    console.log('Looking for shift type:', localId);
-    console.log('Available DB shift types:', dbShiftTypes);
-
     // Mapare bazata pe numele din DB
     const nameMapping: Record<string, string> = {
       'day_12': 'Zi 07-19',
@@ -176,7 +163,6 @@ const CreateSchedulePage: React.FC = () => {
     const dbShift = dbShiftTypes.find(st => st.name === expectedName);
 
     if (dbShift) {
-      console.log(`Found match for ${localId}:`, dbShift);
       return dbShift.id;
     }
 
@@ -193,7 +179,6 @@ const CreateSchedulePage: React.FC = () => {
     });
 
     if (fallbackShift) {
-      console.log(`Found fallback match for ${localId}:`, fallbackShift);
       return fallbackShift.id;
     }
 
@@ -403,7 +388,6 @@ const CreateSchedulePage: React.FC = () => {
 
     // Asteapta sa se incarce datele
     if (schedulesLoading) {
-      console.log('Waiting for schedules to load...');
       return;
     }
 
@@ -417,10 +401,6 @@ const CreateSchedulePage: React.FC = () => {
 
     // Daca s-a schimbat userul sau luna, incearca sa incarce asignarile
     const userExistingAssignments = allUsersAssignments[selectedUserId];
-
-    console.log('Checking assignments for user:', selectedUserId, 'month:', monthYear);
-    console.log('All users assignments:', allUsersAssignments);
-    console.log('User existing assignments:', userExistingAssignments);
 
     if (userExistingAssignments && Object.keys(userExistingAssignments).length > 0) {
       // Converteste asignarile din DB la formatul local (cu id-uri locale)
@@ -500,22 +480,17 @@ const CreateSchedulePage: React.FC = () => {
             if (!loadedAssignments[date]) {
               const vacationId = detectedPattern === '8H' ? 'vacation_8' : 'vacation_12';
               loadedAssignments[date] = vacationId;
-              console.log('✅ Pre-populating leave day:', date, 'with', vacationId);
             }
           });
         });
       }
 
       // Seteaza asignarile si pozitiile incarcate
-      console.log('✅ Loading existing assignments for user:', selectedUserId, loadedAssignments);
-      console.log('✅ Loading existing work positions:', loadedWorkPositions);
       setAssignments(loadedAssignments);
       setWorkPositions(loadedWorkPositions);
       setLoadedKey(currentKey);
     } else {
       // Nu are asignari existente - verifica daca are concedii aprobate
-      console.log('⚠️ No existing assignments for user:', selectedUserId, 'in month:', monthYear);
-
       // Pre-populeaza cu concedii aprobate daca exista
       const userLeaves = approvedLeaves.filter(leave => leave.userId === selectedUserId);
       if (userLeaves.length > 0) {
@@ -526,7 +501,6 @@ const CreateSchedulePage: React.FC = () => {
             leaveAssignments[date] = shiftPattern === '8H' ? 'vacation_8' : 'vacation_12';
           });
         });
-        console.log('✅ Pre-populating with approved leaves:', leaveAssignments);
         setAssignments(leaveAssignments);
       } else {
         setAssignments({});
@@ -537,13 +511,10 @@ const CreateSchedulePage: React.FC = () => {
 
   // Handler pentru schimbarea turei unei zile
   const handleDayShiftChange = (date: string, shiftId: string) => {
-    console.log('=== SHIFT CHANGE ===', { date, shiftId });
     setAssignments(prev => {
       const newAssignments = shiftId === ''
         ? (({ [date]: _, ...rest }) => rest)(prev)
         : { ...prev, [date]: shiftId };
-      console.log('New assignments state:', newAssignments);
-      console.log('Total assignments:', Object.keys(newAssignments).length);
       return newAssignments;
     });
     // Daca sterge tura, sterge si pozitia
@@ -556,7 +527,6 @@ const CreateSchedulePage: React.FC = () => {
       // Seteaza pozitia default in functie de departamentul utilizatorului
       // Control -> Control, Dispecerat/altele -> Dispecerat
       const defaultPositionId = getDefaultPositionForUser || dbWorkPositions[0].id;
-      console.log('Setting default position for user department:', selectedUser?.department?.name, '->', defaultPositionId);
       setWorkPositions(prev => ({
         ...prev,
         [date]: defaultPositionId,
@@ -566,7 +536,6 @@ const CreateSchedulePage: React.FC = () => {
 
   // Handler pentru schimbarea pozitiei de lucru
   const handleWorkPositionChange = (date: string, positionId: string) => {
-    console.log('=== POSITION CHANGE ===', { date, positionId });
     setWorkPositions(prev => ({
       ...prev,
       [date]: positionId,
@@ -586,10 +555,6 @@ const CreateSchedulePage: React.FC = () => {
     // Default work position ID - in functie de departamentul utilizatorului
     // Control -> Control, Dispecerat/altele -> Dispecerat
     const defaultPositionId = getDefaultPositionForUser || (dbWorkPositions.length > 0 ? dbWorkPositions[0].id : null);
-
-    console.log('Creating assignments with dbWorkPositions:', dbWorkPositions);
-    console.log('Default position ID (based on user department):', defaultPositionId);
-    console.log('User department:', selectedUser?.department?.name);
 
     Object.entries(assignments).forEach(([date, localShiftId]) => {
       const shiftOption = shiftOptions.find(s => s.id === localShiftId);
@@ -617,16 +582,12 @@ const CreateSchedulePage: React.FC = () => {
         const savedPositionId = workPositions[date];
         const existsInDb = (id: string) => id && dbWorkPositions.some(p => p.id === id);
 
-        console.log(`Position for ${date}: saved=${savedPositionId}, default=${defaultPositionId}`);
-
         // Verifica daca pozitia salvata exista in DB
         if (savedPositionId && existsInDb(savedPositionId)) {
           assignment.workPositionId = savedPositionId;
-          console.log(`  -> Using SAVED position: ${savedPositionId}`);
         } else if (defaultPositionId && existsInDb(defaultPositionId)) {
           // Foloseste default doar daca exista in DB
           assignment.workPositionId = defaultPositionId;
-          console.log(`  -> Using DEFAULT position: ${defaultPositionId}`);
         }
         // Daca nici una nu exista in DB, NU adaugam workPositionId deloc
       }
@@ -654,29 +615,19 @@ const CreateSchedulePage: React.FC = () => {
       const selectedUser = eligibleUsers.find(u => u.id === selectedUserId);
       const existingScheduleId = getExistingScheduleId(selectedUserId);
 
-      // Debug logging
-      console.log('=== SAVE DEBUG ===');
-      console.log('Selected User ID:', selectedUserId);
-      console.log('Month Year:', monthYear);
-      console.log('Existing Schedule ID:', existingScheduleId);
-      console.log('Assignments from state:', assignments);
-      console.log('Assignment DTOs to send:', JSON.stringify(assignmentDtos, null, 2));
-      console.log('Number of assignments:', assignmentDtos.length);
-
       // Verificare finala: toate workPositionId trebuie sa existe in dbWorkPositions
       const invalidAssignments = assignmentDtos.filter(a =>
         a.workPositionId !== undefined &&
         !dbWorkPositions.some(p => p.id === a.workPositionId)
       );
       if (invalidAssignments.length > 0) {
-        console.error('❌ Found invalid workPositionIds:', invalidAssignments);
+        console.error('Found invalid workPositionIds:', invalidAssignments);
         setErrorMessage('Eroare interna: pozitii de lucru invalide detectate. Reincarcati pagina.');
         return;
       }
 
       if (existingScheduleId) {
         // UPDATE programul existent
-        console.log('📝 Updating existing schedule:', existingScheduleId);
         await updateSchedule({
           id: existingScheduleId,
           data: {
@@ -690,16 +641,12 @@ const CreateSchedulePage: React.FC = () => {
           : 'Programul a fost actualizat ca draft.');
       } else {
         // CREATE program nou
-        console.log('🆕 Creating new schedule');
-        const requestBody = {
+        await createSchedule({
           monthYear,
           assignments: assignmentDtos,
           notes: `Program pentru ${selectedUser?.fullName || 'utilizator'} - Tura ${shiftPattern}`,
           status: (isAdmin ? 'APPROVED' : 'DRAFT') as ScheduleStatus,
-        };
-        console.log('Full request body:', JSON.stringify(requestBody, null, 2));
-
-        await createSchedule(requestBody).unwrap();
+        }).unwrap();
 
         setSuccessMessage(isAdmin
           ? 'Programul a fost salvat si aprobat cu succes!'
@@ -735,7 +682,6 @@ const CreateSchedulePage: React.FC = () => {
 
       if (existingScheduleId) {
         // UPDATE programul existent
-        console.log('📝 Updating existing schedule for approval:', existingScheduleId);
         await updateSchedule({
           id: existingScheduleId,
           data: {
@@ -745,7 +691,6 @@ const CreateSchedulePage: React.FC = () => {
         }).unwrap();
       } else {
         // CREATE program nou
-        console.log('🆕 Creating new schedule for approval');
         await createSchedule({
           monthYear,
           assignments: assignmentDtos,

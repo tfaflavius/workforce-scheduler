@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
   Typography,
@@ -222,8 +223,6 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
   };
 
   const handleSubmit = async () => {
-    console.log('handleSubmit called, formData:', formData);
-    console.log('isFormValid:', isFormValid());
     setError(null);
     try {
       await createRequest(formData).unwrap();
@@ -247,7 +246,6 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
         (Array.isArray(err?.data?.message) ? err.data.message.join(', ') : null) ||
         err?.message ||
         'A aparut o eroare la crearea solicitarii';
-      console.log('Setting error:', errorMessage);
       setError(errorMessage);
     }
   };
@@ -416,6 +414,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
                     </InputAdornment>
                   ),
                 }}
+                inputProps={{ inputMode: 'tel' }}
               />
             </>
           )}
@@ -760,6 +759,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                             value={editData.phone}
                             onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
                             fullWidth
+                            type="tel"
                             InputProps={{
                               startAdornment: (
                                 <InputAdornment position="start">
@@ -767,6 +767,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
                                 </InputAdornment>
                               ),
                             }}
+                            inputProps={{ inputMode: 'tel' }}
                           />
                           <Divider />
                           <TextField
@@ -993,6 +994,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
         onClose={() => setShowResolveDialog(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>Finalizeaza solicitarea</DialogTitle>
         <DialogContent>
@@ -1177,9 +1179,11 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
 const HandicapParkingPage: React.FC = () => {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md')); // < 768px - for tabs
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<HandicapRequestStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<HandicapRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
@@ -1286,16 +1290,16 @@ const HandicapParkingPage: React.FC = () => {
     const monthEnd = endOfMonth(new Date(year, month - 1));
     return requests.filter((r) => {
       const matchesType = r.requestType === currentType;
-      const matchesSearch = searchQuery
-        ? r.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.personName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.carPlate?.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesSearch = debouncedSearch
+        ? r.location.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          r.personName?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          r.carPlate?.toLowerCase().includes(debouncedSearch.toLowerCase())
         : true;
       const createdAt = new Date(r.createdAt);
       const matchesMonth = createdAt >= monthStart && createdAt <= monthEnd;
       return matchesType && matchesSearch && matchesMonth;
     });
-  }, [requests, tabValue, searchQuery, tabConfig, isLegitimationsTab, selectedMonth]);
+  }, [requests, tabValue, debouncedSearch, tabConfig, isLegitimationsTab, selectedMonth]);
 
   // Pagination
   const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE);
@@ -1307,7 +1311,7 @@ const HandicapParkingPage: React.FC = () => {
   // Reset page when tab/search/filter/month changes
   useEffect(() => {
     setPage(1);
-  }, [tabValue, searchQuery, statusFilter, selectedMonth]);
+  }, [tabValue, debouncedSearch, statusFilter, selectedMonth]);
 
   const handleSectionChange = (newValue: number) => {
     setTabValue(newValue);
@@ -1944,7 +1948,7 @@ const HandicapParkingPage: React.FC = () => {
       </Paper>
 
       {/* Export All Dialog */}
-      <Dialog open={exportAllOpen} onClose={() => setExportAllOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog open={exportAllOpen} onClose={() => setExportAllOpen(false)} maxWidth="xs" fullWidth fullScreen={isMobile}>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AllSectionsIcon color="primary" />
           Raport Complet — {monthLabel}
@@ -2073,7 +2077,7 @@ const HandicapParkingPage: React.FC = () => {
             <HandicapLegitimatiiTab
               isAdmin={isAdmin}
               canEdit={canEditHandicap}
-              searchQuery={searchQuery}
+              searchQuery={debouncedSearch}
               statusFilter={statusFilter as HandicapLegitimationStatus | ''}
               selectedMonth={selectedMonth}
               initialOpenId={openLegitimationId}
@@ -2090,7 +2094,7 @@ const HandicapParkingPage: React.FC = () => {
             <RevolutionarLegitimatiiTab
               isAdmin={isAdmin}
               canEdit={canEditHandicap}
-              searchQuery={searchQuery}
+              searchQuery={debouncedSearch}
               statusFilter={statusFilter as RevolutionarLegitimationStatus | ''}
               selectedMonth={selectedMonth}
               initialOpenId={openRevolutionarLegitimationId}

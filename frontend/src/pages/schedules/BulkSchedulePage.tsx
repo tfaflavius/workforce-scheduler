@@ -1105,6 +1105,7 @@ const BulkSchedulePage: React.FC = () => {
         onClose={() => { setQuickActionDialog(null); setSelectedDay(null); setSelectedShiftForAction(''); }}
         maxWidth="xs"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -1182,6 +1183,7 @@ const BulkSchedulePage: React.FC = () => {
         onClose={() => { setQuickActionDialog(null); setSelectedWeekStart(''); setSelectedShiftForAction(''); }}
         maxWidth="xs"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -1259,6 +1261,7 @@ const BulkSchedulePage: React.FC = () => {
         onClose={() => { setQuickActionDialog(null); setCopySourceUserId(''); setCopyTargetUserIds([]); }}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>
@@ -1366,6 +1369,7 @@ const BulkSchedulePage: React.FC = () => {
         onClose={() => setQuickActionDialog(null)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>

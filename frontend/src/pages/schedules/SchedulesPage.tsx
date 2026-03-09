@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
   Typography,
@@ -97,6 +98,7 @@ const SchedulesPage: React.FC = () => {
   // Filtering state
   const [shiftFilter, setShiftFilter] = useState<ShiftFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [departmentFilter, setDepartmentFilter] = useState<string>('ALL');
   const [dayFilter, setDayFilter] = useState<DayFilter>('ALL');
   const [workPositionFilter, setWorkPositionFilter] = useState<WorkPositionFilter>('ALL');
@@ -297,8 +299,8 @@ const SchedulesPage: React.FC = () => {
       : null;
 
     // Filtru dupa nume
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const query = debouncedSearch.toLowerCase();
       filtered = filtered.filter(user =>
         user.fullName.toLowerCase().includes(query)
       );
@@ -394,7 +396,7 @@ const SchedulesPage: React.FC = () => {
     });
 
     return filtered;
-  }, [eligibleUsers, searchQuery, departmentFilter, shiftFilter, dayFilter, workPositionFilter, selectedMonth, allUsersAssignments]);
+  }, [eligibleUsers, debouncedSearch, departmentFilter, shiftFilter, dayFilter, workPositionFilter, selectedMonth, allUsersAssignments]);
 
   const handleCreateSchedule = () => {
     navigate('/schedules/create');
@@ -1249,7 +1251,7 @@ const SchedulesPage: React.FC = () => {
       </Stack>
 
       {/* Dialog confirmare editare */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle>
           Editare Program - {selectedUser?.fullName}
         </DialogTitle>

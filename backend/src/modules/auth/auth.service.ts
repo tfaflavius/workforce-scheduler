@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
@@ -12,6 +12,8 @@ import { EmailService } from '../../common/email/email.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -107,20 +109,20 @@ export class AuthService {
         accessToken: loginResult.session.access_token,
       };
     } catch (supabaseError) {
-      console.log(`[Login] Supabase auth failed for ${loginDto.email}: ${supabaseError?.message}. Trying local password...`);
+      this.logger.log(`[Login] Supabase auth failed for ${loginDto.email}: ${supabaseError?.message}. Trying local password...`);
 
       // Fallback: check local password (useful after password reset if Supabase sync failed)
       if (user.password && user.password.length > 0) {
         const isLocalPasswordValid = await bcrypt.compare(loginDto.password, user.password);
         if (isLocalPasswordValid) {
-          console.log(`[Login] Local password matched for ${loginDto.email}. Syncing to Supabase...`);
+          this.logger.log(`[Login] Local password matched for ${loginDto.email}. Syncing to Supabase...`);
 
           // Sync password to Supabase so future logins work directly
           try {
             await this.supabaseService.updateUserPassword(user.id, loginDto.password);
-            console.log(`[Login] Supabase password synced for ${loginDto.email}`);
+            this.logger.log(`[Login] Supabase password synced for ${loginDto.email}`);
           } catch (syncErr) {
-            console.error(`[Login] Supabase password sync failed: ${syncErr?.message}`);
+            this.logger.error(`[Login] Supabase password sync failed: ${syncErr?.message}`);
           }
 
           // Now login with Supabase (should work after sync)
@@ -138,7 +140,7 @@ export class AuthService {
               accessToken: loginResult.session.access_token,
             };
           } catch (retryErr) {
-            console.error(`[Login] Supabase login retry failed after sync: ${retryErr?.message}`);
+            this.logger.error(`[Login] Supabase login retry failed after sync: ${retryErr?.message}`);
             throw new UnauthorizedException('Invalid credentials');
           }
         }
@@ -181,7 +183,7 @@ export class AuthService {
     const user = await this.userRepository.findOne({ where: { email } });
     // Nu dezvăluim dacă emailul există sau nu (securitate)
     if (!user) {
-      console.log(`[ForgotPassword] Email not found in DB: ${email}`);
+      this.logger.log(`[ForgotPassword] Email not found in DB: ${email}`);
       return { message: successMessage };
     }
 
@@ -190,14 +192,14 @@ export class AuthService {
       const jwtSecret = this.configService.get<string>('JWT_SECRET');
       const resendKey = this.configService.get<string>('RESEND_API_KEY');
 
-      console.log(`[ForgotPassword] Config check - JWT_SECRET: ${jwtSecret ? 'SET' : 'MISSING'}, RESEND_API_KEY: ${resendKey ? 'SET' : 'MISSING'}, FRONTEND_URL: ${frontendUrl}`);
+      this.logger.log(`[ForgotPassword] Config check - JWT_SECRET: ${jwtSecret ? 'SET' : 'MISSING'}, RESEND_API_KEY: ${resendKey ? 'SET' : 'MISSING'}, FRONTEND_URL: ${frontendUrl}`);
 
       if (!jwtSecret) {
-        console.error('[ForgotPassword] JWT_SECRET is not configured! Cannot generate reset token.');
+        this.logger.error('[ForgotPassword] JWT_SECRET is not configured! Cannot generate reset token.');
         return { message: successMessage };
       }
 
-      console.log(`[ForgotPassword] Generating reset token for ${email} (user: ${user.fullName})`);
+      this.logger.log(`[ForgotPassword] Generating reset token for ${email} (user: ${user.fullName})`);
 
       // Generate a password reset JWT token (1 hour expiry)
       const resetToken = jwt.sign(
@@ -207,7 +209,7 @@ export class AuthService {
       );
 
       const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
-      console.log(`[ForgotPassword] Reset URL: ${frontendUrl}/reset-password?token=<token>`);
+      this.logger.log(`[ForgotPassword] Reset URL: ${frontendUrl}/reset-password?token=<token>`);
 
       // Send password reset email via our own email service
       const emailSent = await this.emailService.sendPasswordResetEmail({
@@ -216,13 +218,13 @@ export class AuthService {
         resetUrl,
       });
 
-      console.log(`[ForgotPassword] Email send result for ${email}: ${emailSent ? 'SUCCESS' : 'FAILED (check RESEND_API_KEY and Resend domain verification)'}`);
+      this.logger.log(`[ForgotPassword] Email send result for ${email}: ${emailSent ? 'SUCCESS' : 'FAILED (check RESEND_API_KEY and Resend domain verification)'}`);
 
       if (!emailSent) {
-        console.error(`[ForgotPassword] Email FAILED for ${email}. Possible causes: RESEND_API_KEY missing/invalid, domain not verified in Resend, or Resend service error.`);
+        this.logger.error(`[ForgotPassword] Email FAILED for ${email}. Possible causes: RESEND_API_KEY missing/invalid, domain not verified in Resend, or Resend service error.`);
       }
     } catch (error) {
-      console.error('[ForgotPassword] Error:', error?.message || error);
+      this.logger.error('[ForgotPassword] Error:', error?.message || error);
     }
 
     return { message: successMessage };
@@ -236,38 +238,38 @@ export class AuthService {
     try {
       payload = jwt.verify(resetToken, jwtSecret);
     } catch (error) {
-      console.error('[ResetPassword] JWT verify failed:', error?.message);
+      this.logger.error('[ResetPassword] JWT verify failed:', error?.message);
       throw new BadRequestException('Link-ul de resetare a expirat sau este invalid. Te rugam sa soliciti un nou link.');
     }
 
     if (payload.purpose !== 'password-reset' || !payload.userId) {
-      console.error('[ResetPassword] Invalid token payload:', JSON.stringify(payload));
+      this.logger.error('[ResetPassword] Invalid token payload:', JSON.stringify(payload));
       throw new BadRequestException('Token invalid.');
     }
 
-    console.log(`[ResetPassword] Token valid for userId: ${payload.userId}, email: ${payload.email}`);
+    this.logger.log(`[ResetPassword] Token valid for userId: ${payload.userId}, email: ${payload.email}`);
 
     const user = await this.userRepository.findOne({ where: { id: payload.userId } });
     if (!user) {
-      console.error(`[ResetPassword] User not found in DB for id: ${payload.userId}`);
+      this.logger.error(`[ResetPassword] User not found in DB for id: ${payload.userId}`);
       throw new BadRequestException('Utilizatorul nu a fost gasit.');
     }
 
-    console.log(`[ResetPassword] User found: ${user.fullName} (${user.email}), updating password...`);
+    this.logger.log(`[ResetPassword] User found: ${user.fullName} (${user.email}), updating password...`);
 
     // 1. Update hashed password in local DB first (this always works)
     user.password = await bcrypt.hash(newPassword, 10);
     await this.userRepository.save(user);
-    console.log(`[ResetPassword] Local DB password updated for ${user.email}`);
+    this.logger.log(`[ResetPassword] Local DB password updated for ${user.email}`);
 
     // 2. Update password in Supabase (non-blocking - login will use Supabase)
     try {
       await this.supabaseService.updateUserPassword(user.id, newPassword);
-      console.log(`[ResetPassword] Supabase password updated for ${user.email}`);
+      this.logger.log(`[ResetPassword] Supabase password updated for ${user.email}`);
     } catch (error) {
       // Log the error but don't fail - we'll handle Supabase sync on next login
-      console.error(`[ResetPassword] Supabase password update failed for ${user.email}: ${error?.message || error}`);
-      console.error(`[ResetPassword] Full error:`, JSON.stringify(error, null, 2));
+      this.logger.error(`[ResetPassword] Supabase password update failed for ${user.email}: ${error?.message || error}`);
+      this.logger.error(`[ResetPassword] Full error: ${JSON.stringify(error, null, 2)}`);
     }
 
     return { message: 'Parola a fost resetata cu succes!' };

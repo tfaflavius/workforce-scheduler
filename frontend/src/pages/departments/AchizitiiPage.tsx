@@ -766,7 +766,7 @@ const AchizitiiPage: React.FC = () => {
               value={bpForm.totalAmount}
               onChange={(e) => setBpForm({ ...bpForm, totalAmount: e.target.value })}
               required
-              inputProps={{ min: 0, step: 0.01 }}
+              inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
             />
             <TextField
               fullWidth
@@ -829,7 +829,7 @@ const AchizitiiPage: React.FC = () => {
                   value={acqForm.value}
                   onChange={(e) => setAcqForm({ ...acqForm, value: e.target.value })}
                   required
-                  inputProps={{ min: 0, step: 0.01 }}
+                  inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
                 />
               </Grid>
             </Grid>
@@ -942,7 +942,7 @@ const AchizitiiPage: React.FC = () => {
                     value={acqForm.serviceMonths}
                     onChange={(e) => setAcqForm({ ...acqForm, serviceMonths: e.target.value })}
                     size="small"
-                    inputProps={{ min: 1, max: 120 }}
+                    inputProps={{ min: 1, max: 120, inputMode: 'numeric' }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
@@ -964,7 +964,7 @@ const AchizitiiPage: React.FC = () => {
                     value={acqForm.receptionDay}
                     onChange={(e) => setAcqForm({ ...acqForm, receptionDay: e.target.value })}
                     size="small"
-                    inputProps={{ min: 1, max: 31 }}
+                    inputProps={{ min: 1, max: 31, inputMode: 'numeric' }}
                   />
                 </Grid>
               </Grid>
@@ -1030,7 +1030,7 @@ const AchizitiiPage: React.FC = () => {
               value={invForm.amount}
               onChange={(e) => setInvForm({ ...invForm, amount: e.target.value })}
               required
-              inputProps={{ min: 0, step: 0.01 }}
+              inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
             />
             <TextField
               fullWidth
@@ -1038,7 +1038,7 @@ const AchizitiiPage: React.FC = () => {
               type="number"
               value={invForm.monthNumber}
               onChange={(e) => setInvForm({ ...invForm, monthNumber: e.target.value })}
-              inputProps={{ min: 1 }}
+              inputProps={{ min: 1, inputMode: 'numeric' }}
             />
             <TextField
               fullWidth

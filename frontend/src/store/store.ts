@@ -17,6 +17,7 @@ import { pvDisplayApi } from './api/pvDisplay.api';
 import { parkingStatsApi } from './api/parkingStats.api';
 import { controlApi } from './api/control.api';
 import { permissionsApi } from './api/permissions.api';
+import { scheduleGeneratorApi } from './api/scheduleGenerator.api';
 
 export const store = configureStore({
   reducer: {
@@ -38,6 +39,7 @@ export const store = configureStore({
     [parkingStatsApi.reducerPath]: parkingStatsApi.reducer,
     [controlApi.reducerPath]: controlApi.reducer,
     [permissionsApi.reducerPath]: permissionsApi.reducer,
+    [scheduleGeneratorApi.reducerPath]: scheduleGeneratorApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -57,7 +59,8 @@ export const store = configureStore({
       pvDisplayApi.middleware,
       parkingStatsApi.middleware,
       controlApi.middleware,
-      permissionsApi.middleware
+      permissionsApi.middleware,
+      scheduleGeneratorApi.middleware
     ),
 });
 

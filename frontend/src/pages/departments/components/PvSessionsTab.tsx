@@ -19,6 +19,8 @@ import {
   Collapse,
   Divider,
   Avatar,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -55,6 +57,8 @@ import {
 } from '../../../types/pv-display.types';
 
 const PvSessionsTab: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
   const isAdmin = isAdminOrAbove(user?.role);
   const isPvf = user?.department?.name === PROCESE_VERBALE_DEPARTMENT_NAME;
@@ -246,6 +250,7 @@ const PvSessionsTab: React.FC = () => {
         onClose={() => setCreateDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        fullScreen={isMobile}
         PaperProps={{ sx: { maxHeight: '90vh' } }}
       >
         <DialogTitle sx={{ fontWeight: 700 }}>

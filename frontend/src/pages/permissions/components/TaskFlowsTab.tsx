@@ -28,6 +28,8 @@ import {
   Autocomplete,
   TextField,
   Paper,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   ArrowForward as ArrowIcon,
@@ -149,6 +151,8 @@ interface DeptOption {
 }
 
 const TaskFlowsTab = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { data: flows, isLoading } = useGetTaskFlowsQuery();
   const { data: departments } = useGetDepartmentsQuery();
   const [updateFlow] = useUpdateTaskFlowMutation();
@@ -468,7 +472,7 @@ const TaskFlowsTab = () => {
       )}
 
       {/* Edit/Create Dialog */}
-      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle>{editingId ? 'Editeaza Regula' : 'Adauga Regula Noua'}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>

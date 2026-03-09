@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
   Typography,
@@ -809,7 +810,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       </Dialog>
 
       {/* Resolve Dialog */}
-      <Dialog open={showResolveDialog} onClose={() => setShowResolveDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={showResolveDialog} onClose={() => setShowResolveDialog(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
         <DialogTitle>Finalizeaza sesizarea</DialogTitle>
         <DialogContent>
           <TextField fullWidth multiline rows={3} label="Descrierea rezolutiei"
@@ -911,6 +912,7 @@ const ControlSesizariPage: React.FC = () => {
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<ControlSesizareStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<ControlSesizareType | null>(null);
   const [selectedSesizareId, setSelectedSesizareId] = useState<string | null>(null);
@@ -944,13 +946,13 @@ const ControlSesizariPage: React.FC = () => {
     const currentType = tabConfig[tabValue].type;
     return sesizari.filter((s) => {
       const matchesType = s.type === currentType;
-      const matchesSearch = searchQuery
-        ? s.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          s.description.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesSearch = debouncedSearch
+        ? s.location.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          s.description.toLowerCase().includes(debouncedSearch.toLowerCase())
         : true;
       return matchesType && matchesSearch;
     });
-  }, [sesizari, tabValue, searchQuery, tabConfig]);
+  }, [sesizari, tabValue, debouncedSearch, tabConfig]);
 
   return (
     <Box sx={{ p: { xs: 0, sm: 1 }, maxWidth: '100%', overflow: 'hidden' }}>

@@ -13,7 +13,7 @@ import type {
   PvUser,
 } from '../../types/pv-display.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const pvDisplayApi = createApi({
   reducerPath: 'pvDisplayApi',

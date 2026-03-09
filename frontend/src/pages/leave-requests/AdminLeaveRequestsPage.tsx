@@ -813,6 +813,7 @@ export const AdminLeaveRequestsPage = () => {
         onClose={handleCloseDelete}
         maxWidth="xs"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           <Stack direction="row" alignItems="center" spacing={1}>

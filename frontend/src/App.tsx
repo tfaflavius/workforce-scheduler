@@ -9,6 +9,7 @@ import { initializeAuth, updateToken, logout } from './store/slices/auth.slice';
 import { supabase } from './lib/supabase';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function AppContent() {
   const dispatch = useAppDispatch();
@@ -20,8 +21,6 @@ function AppContent() {
     // Listen for auth state changes (token refresh, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.access_token ? 'has token' : 'no token');
-
         if (event === 'SIGNED_OUT') {
           dispatch(logout());
         } else if (event === 'TOKEN_REFRESHED' && session) {
@@ -46,7 +45,7 @@ function AppContent() {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '100vh',
+          minHeight: '100dvh',
         }}
       >
         <CircularProgress />
@@ -59,14 +58,16 @@ function AppContent() {
 
 function App() {
   return (
-    <Provider store={store}>
-      <ThemeProvider>
-        <BrowserRouter>
-          <AppContent />
-          <InstallPrompt />
-        </BrowserRouter>
-      </ThemeProvider>
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ThemeProvider>
+          <BrowserRouter>
+            <AppContent />
+            <InstallPrompt />
+          </BrowserRouter>
+        </ThemeProvider>
+      </Provider>
+    </ErrorBoundary>
   );
 }
 

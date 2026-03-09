@@ -588,7 +588,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
             color="primary"
             sx={{
               position: 'fixed',
-              bottom: 80,
+              bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
               background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
             }}

@@ -573,7 +573,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
             color="primary"
             sx={{
               position: 'fixed',
-              bottom: 80,
+              bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
               background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
             }}

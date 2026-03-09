@@ -16,6 +16,8 @@ import {
   Card,
   CardContent,
   Divider,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Visibility as ViewIcon,
@@ -35,6 +37,8 @@ import {
 import type { WorkSchedule } from '../../types/schedule.types';
 
 const PendingSchedulesPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
 
   const { data: pendingSchedules, isLoading, refetch } = useGetSchedulesQuery({
@@ -414,6 +418,7 @@ const PendingSchedulesPage = () => {
         onClose={() => setRejectDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle sx={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
           Respinge Programul

@@ -383,6 +383,7 @@ const AdminEditRequestsPage: React.FC = () => {
         onClose={() => setReviewDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>
           {approving ? 'Confirma aprobarea' : 'Respinge cererea'}
@@ -451,6 +452,7 @@ const AdminEditRequestsPage: React.FC = () => {
         onClose={() => setViewDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
       >
         <DialogTitle>Detalii Cerere de Editare</DialogTitle>
         <DialogContent>

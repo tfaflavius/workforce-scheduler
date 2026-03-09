@@ -8,6 +8,8 @@ import {
   Button,
   Alert,
   CircularProgress,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { useDeleteUserMutation } from '../../store/api/users.api';
 import type { User } from '../../store/api/users.api';
@@ -19,6 +21,8 @@ interface DeleteUserDialogProps {
 }
 
 export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({ open, onClose, user }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [deleteUser, { isLoading, error }] = useDeleteUserMutation();
 
   const handleDelete = async () => {
@@ -33,7 +37,7 @@ export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({ open, onClos
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle>Sterge Utilizator</DialogTitle>
       <DialogContent>
         {error && (
