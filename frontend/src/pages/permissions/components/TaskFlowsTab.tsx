@@ -40,6 +40,7 @@ import {
   Business as BusinessIcon,
   ViewList as ListViewIcon,
   AccountTree as TreeViewIcon,
+  GridView as GridViewIcon,
 } from '@mui/icons-material';
 import {
   useGetTaskFlowsQuery,
@@ -159,7 +160,7 @@ const TaskFlowsTab = () => {
   const [createFlow] = useCreateTaskFlowMutation();
   const [deleteFlow] = useDeleteTaskFlowMutation();
 
-  const [viewMode, setViewMode] = useState<'per-task-type' | 'per-department'>('per-task-type');
+  const [viewMode, setViewMode] = useState<'per-task-type' | 'per-department' | 'overview'>('per-task-type');
   const [selectedDepartment, setSelectedDepartment] = useState<DeptOption | null>(null);
   const [editDialog, setEditDialog] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -380,6 +381,11 @@ const TaskFlowsTab = () => {
                 <TreeViewIcon fontSize="small" />
               </Tooltip>
             </ToggleButton>
+            <ToggleButton value="overview">
+              <Tooltip title="Sumar Complet">
+                <GridViewIcon fontSize="small" />
+              </Tooltip>
+            </ToggleButton>
           </ToggleButtonGroup>
         </Box>
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} size="small">
@@ -466,6 +472,154 @@ const TaskFlowsTab = () => {
                   Acest departament nu este implicat in niciun flux de task-uri.
                 </Alert>
               )}
+            </Box>
+          )}
+        </Box>
+      )}
+
+      {/* Overview - All Departments Summary */}
+      {viewMode === 'overview' && flows && flows.length > 0 && (
+        <Box>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Sumar complet al tuturor fluxurilor active — ce creaza, primeste si rezolva fiecare departament.
+          </Alert>
+
+          {/* Summary table */}
+          <Box sx={{ overflowX: 'auto' }}>
+            <Box
+              component="table"
+              sx={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                '& th, & td': {
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  p: { xs: 1, sm: 1.5 },
+                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                  verticalAlign: 'top',
+                },
+                '& th': {
+                  bgcolor: 'action.hover',
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  textAlign: 'center',
+                },
+                '& td:first-of-type': {
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  bgcolor: 'action.hover',
+                  minWidth: { xs: 120, sm: 160 },
+                },
+              }}
+            >
+              <thead>
+                <tr>
+                  <th>Departament</th>
+                  <th style={{ color: '#16a34a' }}>CREAZA</th>
+                  <th style={{ color: '#2563eb' }}>PRIMESTE</th>
+                  <th style={{ color: '#d97706' }}>REZOLVA</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(departments || []).map((dept) => {
+                  const deptFlowsCreates = flows.filter((f) => f.creatorDepartmentId === dept.id && f.isActive);
+                  const deptFlowsReceives = flows.filter((f) => f.receiverDepartmentId === dept.id && f.isActive);
+                  const deptFlowsResolves = flows.filter((f) => f.resolverDepartmentId === dept.id && f.isActive);
+                  const hasAnyFlow = deptFlowsCreates.length > 0 || deptFlowsReceives.length > 0 || deptFlowsResolves.length > 0;
+
+                  if (!hasAnyFlow) return null;
+
+                  return (
+                    <tr key={dept.id}>
+                      <td>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <BusinessIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                          {removeDiacritics(dept.name)}
+                        </Box>
+                      </td>
+                      <td>
+                        {deptFlowsCreates.length === 0 ? (
+                          <Typography variant="caption" color="text.disabled">—</Typography>
+                        ) : (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            {deptFlowsCreates.map((f) => (
+                              <Box key={f.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                                <Chip
+                                  label={TASK_TYPE_LABELS[f.taskType] || f.taskType}
+                                  size="small"
+                                  color="success"
+                                  variant="outlined"
+                                  sx={{ fontSize: '0.65rem', height: 20 }}
+                                />
+                                <ArrowIcon sx={{ fontSize: 12, color: 'text.disabled' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  {f.receiverDepartment ? removeDiacritics(f.receiverDepartment.name) : 'Oricine'}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </td>
+                      <td>
+                        {deptFlowsReceives.length === 0 ? (
+                          <Typography variant="caption" color="text.disabled">—</Typography>
+                        ) : (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            {deptFlowsReceives.map((f) => (
+                              <Box key={f.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                                <Chip
+                                  label={TASK_TYPE_LABELS[f.taskType] || f.taskType}
+                                  size="small"
+                                  color="info"
+                                  variant="outlined"
+                                  sx={{ fontSize: '0.65rem', height: 20 }}
+                                />
+                                <Typography variant="caption" color="text.secondary">
+                                  de la {f.creatorDepartment ? removeDiacritics(f.creatorDepartment.name) : 'Oricine'}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </td>
+                      <td>
+                        {deptFlowsResolves.length === 0 ? (
+                          <Typography variant="caption" color="text.disabled">—</Typography>
+                        ) : (
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            {deptFlowsResolves.map((f) => (
+                              <Box key={f.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexWrap: 'wrap' }}>
+                                <Chip
+                                  label={TASK_TYPE_LABELS[f.taskType] || f.taskType}
+                                  size="small"
+                                  color="warning"
+                                  variant="outlined"
+                                  sx={{ fontSize: '0.65rem', height: 20 }}
+                                />
+                                <Typography variant="caption" color="text.secondary">
+                                  creat de {f.creatorDepartment ? removeDiacritics(f.creatorDepartment.name) : 'Oricine'}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </Box>
+          </Box>
+
+          {/* Flows without department (global) */}
+          {flows.filter((f) => f.isActive && !f.creatorDepartmentId && !f.receiverDepartmentId && !f.resolverDepartmentId).length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+                Fluxuri globale (fara departament specific):
+              </Typography>
+              {flows
+                .filter((f) => f.isActive && !f.creatorDepartmentId && !f.receiverDepartmentId && !f.resolverDepartmentId)
+                .map((flow) => renderFlowCard(flow))}
             </Box>
           )}
         </Box>
