@@ -798,6 +798,7 @@ const ParkingStatsTab: React.FC = () => {
   const sectionStyle = (color: string) => ({
     border: `1px solid ${alpha(color, 0.3)}`,
     borderRadius: 2,
+    overflow: 'hidden',
     mb: 2,
     '&:before': { display: 'none' },
     '&.Mui-expanded': { mb: 2 },
