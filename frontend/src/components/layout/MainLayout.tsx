@@ -408,6 +408,7 @@ export const MainLayout = () => {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
             }}
           >
             <CalendarIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: 'white' }} />
@@ -448,6 +449,8 @@ export const MainLayout = () => {
         sx={{
           p: { xs: 1.5, sm: 2 },
           background: alpha(theme.palette.primary.main, 0.04),
+          backdropFilter: 'blur(8px)',
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.08)}`,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -574,6 +577,9 @@ export const MainLayout = () => {
                         textTransform: 'uppercase',
                         letterSpacing: '0.08em',
                         fontSize: '0.65rem',
+                        borderBottom: `1px solid ${alpha(group.color, 0.12)}`,
+                        pb: 0.25,
+                        display: 'inline-block',
                       }}
                     />
                     {hasActiveItem && !isSectionOpen && (
@@ -607,19 +613,21 @@ export const MainLayout = () => {
                               <ListItemButton
                                 onClick={() => handleNavigate(item.path)}
                                 sx={{
-                                  borderRadius: 2,
+                                  borderRadius: 3,
                                   mx: 0.5,
                                   py: { xs: 1, sm: 1.25 },
                                   px: { xs: 1.5, sm: 2 },
                                   bgcolor: isActive
-                                    ? alpha(group.color, 0.1)
+                                    ? alpha(group.color, 0.12)
                                     : 'transparent',
                                   color: isActive ? 'text.primary' : 'text.primary',
-                                  borderLeft: isActive ? `3px solid ${group.color}` : '3px solid transparent',
                                   transition: 'all 0.2s ease-in-out',
+                                  ...(isActive && {
+                                    boxShadow: `0 2px 8px ${alpha(group.color, 0.15)}`,
+                                  }),
                                   '&:hover': {
                                     bgcolor: isActive
-                                      ? alpha(group.color, 0.15)
+                                      ? alpha(group.color, 0.18)
                                       : alpha(theme.palette.primary.main, 0.06),
                                     transform: 'translateX(4px)',
                                   },
@@ -632,27 +640,12 @@ export const MainLayout = () => {
                                   sx={{
                                     color: isActive ? group.color : 'text.secondary',
                                     minWidth: { xs: 36, sm: 40 },
-                                    position: 'relative',
                                     '& .MuiSvgIcon-root': {
                                       fontSize: { xs: '1.25rem', sm: '1.4rem' },
                                     },
                                   }}
                                 >
                                   {item.icon}
-                                  {/* Section color dot */}
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      top: -2,
-                                      right: { xs: 10, sm: 12 },
-                                      width: 6,
-                                      height: 6,
-                                      borderRadius: '50%',
-                                      bgcolor: group.color,
-                                      opacity: isActive ? 1 : 0.4,
-                                      transition: 'opacity 0.2s ease',
-                                    }}
-                                  />
                                 </ListItemIcon>
                                 <ListItemText
                                   primary={item.text}

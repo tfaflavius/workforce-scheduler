@@ -41,32 +41,59 @@ export const GradientHeader: React.FC<GradientHeaderProps> = ({
           color: 'white',
           position: 'relative',
           overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
         }}
       >
-        {/* Background decorations */}
+        {/* Background geometric decorations */}
         <Box
           sx={{
             position: 'absolute',
-            top: -50,
-            right: -50,
-            width: 150,
-            height: 150,
-            borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.1)',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            overflow: 'hidden',
+            pointerEvents: 'none',
           }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -30,
-            left: -30,
-            width: 100,
-            height: 100,
-            borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.05)',
-          }}
-        />
+        >
+          {/* Diagonal line 1 */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-20%',
+              right: '10%',
+              width: 1,
+              height: '140%',
+              background: 'rgba(255, 255, 255, 0.08)',
+              transform: 'rotate(25deg)',
+            }}
+          />
+          {/* Diagonal line 2 */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-20%',
+              right: '25%',
+              width: 1,
+              height: '140%',
+              background: 'rgba(255, 255, 255, 0.05)',
+              transform: 'rotate(25deg)',
+            }}
+          />
+          {/* Diagonal line 3 */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-20%',
+              right: '40%',
+              width: 1,
+              height: '140%',
+              background: 'rgba(255, 255, 255, 0.03)',
+              transform: 'rotate(25deg)',
+            }}
+          />
+        </Box>
 
         <Box sx={{ position: 'relative', zIndex: 1 }}>
           <Box
@@ -82,7 +109,9 @@ export const GradientHeader: React.FC<GradientHeaderProps> = ({
                 sx={{
                   p: { xs: 1, sm: 1.5 },
                   borderRadius: { xs: 1.5, sm: 2 },
-                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                  bgcolor: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

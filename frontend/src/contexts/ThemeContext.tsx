@@ -184,6 +184,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
               contained: {
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                backgroundImage: 'linear-gradient(135deg, var(--mui-palette-primary-main), var(--mui-palette-primary-dark))',
+                '&.MuiButton-containedPrimary': {
+                  backgroundImage: `linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)`,
+                },
+                '&.MuiButton-containedSecondary': {
+                  backgroundImage: `linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)`,
+                },
+                '&.MuiButton-containedSuccess': {
+                  backgroundImage: `linear-gradient(135deg, #10b981 0%, #059669 100%)`,
+                },
+                '&.MuiButton-containedError': {
+                  backgroundImage: `linear-gradient(135deg, #ef4444 0%, #dc2626 100%)`,
+                },
               },
               sizeSmall: {
                 padding: '6px 14px',
@@ -199,15 +212,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 borderRadius: 16,
+                border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)',
                 boxShadow: mode === 'light'
-                  ? '0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05)'
-                  : '0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                  ? '0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03)'
+                  : '0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
                 transition: 'all 0.3s ease-in-out',
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: mode === 'light'
-                    ? '0 4px 12px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.08)'
-                    : '0 4px 12px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3)',
+                    ? '0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25)',
                 },
               },
             },
@@ -218,10 +232,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 12,
                 backgroundImage: 'none',
               },
+              elevation0: {
+                border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)',
+              },
               elevation1: {
+                border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.05)' : '1px solid rgba(255, 255, 255, 0.05)',
                 boxShadow: mode === 'light'
-                  ? '0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)'
-                  : '0 1px 3px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2)',
+                  ? '0 1px 2px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03)'
+                  : '0 1px 2px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15)',
               },
             },
           },
@@ -230,6 +248,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 borderRadius: 8,
                 fontWeight: 500,
+                backdropFilter: 'blur(4px)',
                 transition: 'all 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.02)',
@@ -242,12 +261,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 10,
+                  backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                    backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
                   },
                   '&.Mui-focused': {
-                    boxShadow: '0 2px 12px rgba(37, 99, 235, 0.15)',
+                    backgroundColor: mode === 'light' ? '#ffffff' : 'rgba(255, 255, 255, 0.05)',
+                    boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.12)',
                   },
                 },
               },
@@ -264,7 +286,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               paper: {
                 borderRadius: 20,
-                padding: '8px',
+                padding: '4px',
+                border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: mode === 'light'
+                  ? '0 24px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.08)'
+                  : '0 24px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3)',
               },
             },
           },
@@ -277,6 +303,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               head: {
                 fontWeight: 600,
                 backgroundColor: mode === 'light' ? '#f1f5f9' : '#334155',
+                backgroundImage: mode === 'light'
+                  ? 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+                  : 'linear-gradient(180deg, #3b4252 0%, #334155 100%)',
+                borderBottom: mode === 'light' ? '2px solid #e2e8f0' : '2px solid #475569',
               },
             },
           },

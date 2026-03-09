@@ -207,6 +207,24 @@ img {
   }
 }
 
+/* Brand selection color */
+::selection {
+  background: rgba(37, 99, 235, 0.2);
+  color: inherit;
+}
+
+/* Modern focus-visible outline */
+*:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Snappier list item transitions */
+.MuiListItemButton-root {
+  transition: all 0.15s ease !important;
+}
+
 /* Scrollbar styling for better UX */
 ::-webkit-scrollbar {
   width: 6px;
@@ -214,16 +232,31 @@ img {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: #94a3b8;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #64748b;
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
 }
 
 /* Touch-friendly scrollbar on mobile */

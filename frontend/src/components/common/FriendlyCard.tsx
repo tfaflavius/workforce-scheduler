@@ -20,7 +20,7 @@ const shimmer = keyframes`
 
 const float = keyframes`
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  50% { transform: translateY(-2px); }
 `;
 
 export type CardVariant = 'default' | 'elevated' | 'outlined' | 'gradient';
@@ -84,7 +84,11 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
           border: 'none',
         };
       default:
-        return {};
+        return {
+          border: theme.palette.mode === 'light'
+            ? `1px solid ${alpha(theme.palette.divider, 0.12)}`
+            : `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+        };
     }
   };
 
@@ -124,8 +128,8 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
           '&:hover': onClick ? {
             transform: 'translateY(-4px)',
             boxShadow: theme.palette.mode === 'light'
-              ? `0 12px 40px ${alpha(headerColor || theme.palette.primary.main, 0.2)}`
-              : `0 12px 40px rgba(0,0,0,0.5)`,
+              ? `0 12px 32px ${alpha(headerColor || theme.palette.primary.main, 0.18)}`
+              : `0 12px 32px ${alpha(headerColor || theme.palette.primary.main, 0.3)}`,
           } : {},
           '&:active': onClick ? {
             transform: 'scale(0.98)',
@@ -169,7 +173,7 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
                   bottom: 0,
                   background: `linear-gradient(90deg, transparent, ${alpha('#fff', 0.1)}, transparent)`,
                   backgroundSize: '200% 100%',
-                  animation: `${shimmer} 3s ease-in-out infinite`,
+                  animation: `${shimmer} 5s ease-in-out infinite`,
                 },
               }),
             }}

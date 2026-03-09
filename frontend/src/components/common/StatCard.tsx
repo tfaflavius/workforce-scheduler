@@ -44,16 +44,18 @@ export const StatCard: React.FC<StatCardProps> = ({
           height: '100%',
           position: 'relative',
           overflow: 'hidden',
-          border: urgent ? `2px solid ${color}` : 'none',
+          borderLeft: `4px solid ${color}`,
+          border: urgent ? `2px solid ${color}` : undefined,
+          borderLeftWidth: urgent ? 2 : 4,
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
           '&:hover': onClick
             ? {
-                transform: 'translateY(-6px)',
+                transform: 'translateY(-4px)',
                 boxShadow:
                   theme.palette.mode === 'light'
-                    ? `0 12px 28px ${alpha(color, 0.25)}`
-                    : `0 12px 28px ${alpha(color, 0.4)}`,
+                    ? `0 8px 24px ${alpha(color, 0.2)}, 0 0 0 1px ${alpha(color, 0.1)}`
+                    : `0 8px 24px ${alpha(color, 0.35)}, 0 0 0 1px ${alpha(color, 0.2)}`,
               }
             : {},
           '&:active': onClick
@@ -79,12 +81,12 @@ export const StatCard: React.FC<StatCardProps> = ({
         <Box
           sx={{
             position: 'absolute',
-            top: -30,
-            right: -30,
-            width: 100,
-            height: 100,
+            top: -20,
+            right: -20,
+            width: 80,
+            height: 80,
             borderRadius: '50%',
-            background: alpha(color, 0.08),
+            background: alpha(color, 0.04),
           }}
         />
         <CardContent sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, position: 'relative' }}>
@@ -113,6 +115,7 @@ export const StatCard: React.FC<StatCardProps> = ({
                 sx={{
                   color,
                   fontWeight: 800,
+                  letterSpacing: '-0.02em',
                   my: 0.5,
                   fontSize: { xs: '1rem', sm: '1.5rem', md: '2.5rem' },
                   lineHeight: 1.1,
@@ -140,7 +143,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             <Box
               sx={{
                 p: { xs: 1, sm: 1.5, md: 2 },
-                borderRadius: { xs: 2, sm: 2.5, md: 3 },
+                borderRadius: '50%',
                 bgcolor: bgColor,
                 display: 'flex',
                 alignItems: 'center',
