@@ -217,7 +217,6 @@ img {
 *:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
-  border-radius: 4px;
 }
 
 /* Snappier list item transitions */
@@ -244,19 +243,20 @@ img {
   background: #64748b;
 }
 
-/* Dark mode scrollbar */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #1e293b;
-  }
+/* Dark mode scrollbar — uses data attribute set by ThemeContext */
+[data-theme="dark"] ::-webkit-scrollbar-track,
+[data-mui-color-scheme="dark"] ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
 
-  ::-webkit-scrollbar-thumb {
-    background: #475569;
-  }
+[data-theme="dark"] ::-webkit-scrollbar-thumb,
+[data-mui-color-scheme="dark"] ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
-  }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+[data-mui-color-scheme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* Touch-friendly scrollbar on mobile */

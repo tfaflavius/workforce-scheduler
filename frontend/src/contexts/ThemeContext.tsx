@@ -30,6 +30,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('themeMode', mode);
+    document.documentElement.setAttribute('data-theme', mode);
   }, [mode]);
 
   const toggleTheme = () => {
@@ -184,7 +185,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
               contained: {
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                backgroundImage: 'linear-gradient(135deg, var(--mui-palette-primary-main), var(--mui-palette-primary-dark))',
                 '&.MuiButton-containedPrimary': {
                   backgroundImage: `linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)`,
                 },

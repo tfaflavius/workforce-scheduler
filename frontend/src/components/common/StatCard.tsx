@@ -44,9 +44,10 @@ export const StatCard: React.FC<StatCardProps> = ({
           height: '100%',
           position: 'relative',
           overflow: 'hidden',
-          borderLeft: `4px solid ${color}`,
-          border: urgent ? `2px solid ${color}` : undefined,
-          borderLeftWidth: urgent ? 2 : 4,
+          ...(urgent
+            ? { border: `2px solid ${color}` }
+            : { borderLeft: `4px solid ${color}` }
+          ),
           touchAction: 'manipulation',
           WebkitTapHighlightColor: 'transparent',
           '&:hover': onClick

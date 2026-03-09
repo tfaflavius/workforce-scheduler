@@ -85,9 +85,11 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
         };
       default:
         return {
-          border: theme.palette.mode === 'light'
-            ? `1px solid ${alpha(theme.palette.divider, 0.12)}`
-            : `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+          ...(!highlighted && {
+            border: theme.palette.mode === 'light'
+              ? `1px solid ${alpha(theme.palette.divider, 0.12)}`
+              : `1px solid ${alpha(theme.palette.divider, 0.08)}`,
+          }),
         };
     }
   };
