@@ -339,8 +339,8 @@ export const EditSchedulePage: React.FC = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Stack spacing={3}>
         {/* Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
-          <Stack direction="row" alignItems="center" spacing={2}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={{ xs: 1, sm: 2 }} justifyContent="space-between">
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={{ xs: 1, sm: 2 }}>
             <IconButton onClick={() => navigate('/')} color="primary">
               <HomeIcon />
             </IconButton>
@@ -359,7 +359,7 @@ export const EditSchedulePage: React.FC = () => {
             </Box>
           </Stack>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} flexWrap="wrap" useFlexGap>
             <Button
               variant="outlined"
               startIcon={<DownloadIcon />}

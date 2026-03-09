@@ -576,18 +576,18 @@ const IncasariCheltuieliPage: React.FC = () => {
       {/* Revenue Table */}
       {revenueSummary && revenueSummary.categories.length > 0 ? (
         <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3, overflowX: 'auto' }}>
-          <Table size="small" sx={{ minWidth: 900 }}>
+          <Table size="small" sx={{ minWidth: { xs: 400, sm: 600, md: 900 } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
                 <TableCell sx={{ fontWeight: 700, minWidth: { xs: 120, sm: 180 }, maxWidth: { xs: 120, sm: 180 }, position: 'sticky', left: 0, bgcolor: stickyBgHeader, zIndex: 3, borderRight: '2px solid', borderRightColor: 'divider', boxShadow: '2px 0 4px rgba(0,0,0,0.08)' }}>
                   Categorie
                 </TableCell>
                 {MONTH_LABELS.map((label, idx) => (
-                  <TableCell key={idx} align="center" sx={{ fontWeight: 700, minWidth: 80, px: 0.5 }}>
+                  <TableCell key={idx} align="center" sx={{ fontWeight: 700, minWidth: { xs: 55, sm: 80 }, px: 0.5 }}>
                     {label}
                   </TableCell>
                 ))}
-                <TableCell align="center" sx={{ fontWeight: 700, minWidth: 100 }}>
+                <TableCell align="center" sx={{ fontWeight: 700, minWidth: { xs: 70, sm: 100 } }}>
                   Total
                 </TableCell>
               </TableRow>

@@ -215,7 +215,7 @@ const TicketsSection: React.FC = () => {
       ) : (
         <>
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: 320 }}>
+            <Table size="small" sx={{ minWidth: { xs: 280, sm: 320 } }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
@@ -398,7 +398,7 @@ const SubscriptionsSection: React.FC = () => {
       ) : (
         <>
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: 400 }}>
+            <Table size="small" sx={{ minWidth: { xs: 300, sm: 400 } }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#10b981', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
@@ -603,7 +603,7 @@ const OccupancySection: React.FC = () => {
       ) : (
         <>
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: { xs: 540, sm: 700 } }}>
+            <Table size="small" sx={{ minWidth: { xs: 340, sm: 540, md: 700 } }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: alpha('#f59e0b', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 100, sm: 150 } }}>Parcare</TableCell>

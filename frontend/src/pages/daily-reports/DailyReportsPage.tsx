@@ -603,7 +603,7 @@ const DailyReportsPage: React.FC = () => {
               >
                 <ChevronLeftIcon />
               </Button>
-              <FormControl size="small" sx={{ minWidth: 180 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
                 <Select
                   value={`${selectedMonth.year}-${selectedMonth.month}`}
                   onChange={(e) => handleMonthChange(e.target.value)}
@@ -744,7 +744,7 @@ const DailyReportsPage: React.FC = () => {
               }}
             >
               {isAdmin && departments && (
-                <FormControl size="small" sx={{ minWidth: 160 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
                   <InputLabel>Departament</InputLabel>
                   <Select
                     value={filterDepartmentId}
@@ -762,7 +762,7 @@ const DailyReportsPage: React.FC = () => {
               )}
 
               {canViewAll && sortedUsers.length > 0 && (
-                <FormControl size="small" sx={{ minWidth: 160 }}>
+                <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
                   <InputLabel>Utilizator</InputLabel>
                   <Select value={filterUserId} label="Utilizator" onChange={(e) => setFilterUserId(e.target.value)}>
                     <MenuItem value="">Toti</MenuItem>

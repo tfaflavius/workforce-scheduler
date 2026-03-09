@@ -468,7 +468,7 @@ const CashCollectionsTab: React.FC = () => {
                 </Typography>
               </Box>
 
-              <FormControl size="small" sx={{ minWidth: 150 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 } }}>
                 <InputLabel>Parcare</InputLabel>
                 <Select
                   value={selectedParkingLotId}
@@ -487,7 +487,7 @@ const CashCollectionsTab: React.FC = () => {
                 </Select>
               </FormControl>
 
-              <FormControl size="small" sx={{ minWidth: 120 }} disabled={!selectedParkingLotId}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 120 } }} disabled={!selectedParkingLotId}>
                 <InputLabel>Automat</InputLabel>
                 <Select
                   value={selectedMachineId}
@@ -503,7 +503,7 @@ const CashCollectionsTab: React.FC = () => {
                 </Select>
               </FormControl>
 
-              <Box sx={{ minWidth: 160 }}>
+              <Box sx={{ minWidth: { xs: '100%', sm: 160 } }}>
                 <DatePickerField
                   label="De la"
                   value={startDate || null}
@@ -512,7 +512,7 @@ const CashCollectionsTab: React.FC = () => {
                 />
               </Box>
 
-              <Box sx={{ minWidth: 160 }}>
+              <Box sx={{ minWidth: { xs: '100%', sm: 160 } }}>
                 <DatePickerField
                   label="Pana la"
                   value={endDate || null}

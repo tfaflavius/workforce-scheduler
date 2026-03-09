@@ -407,14 +407,14 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: 40, p: { xs: 1, sm: 1.5 } }}></TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Parcare</TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 100 }}>Echipament</TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Firma</TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 150 }}>Descriere</TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 80 }}>Status</TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 100 }}>Data</TableCell>
-              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 100 }}>Creat de</TableCell>
-              <TableCell align="right" sx={{ p: { xs: 1, sm: 1.5 }, minWidth: 120 }}>Actiuni</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 80, sm: 120 } }}>Parcare</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 70, sm: 100 } }}>Echipament</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 80, sm: 120 } }}>Firma</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 100, sm: 150 } }}>Descriere</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 60, sm: 80 } }}>Status</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 70, sm: 100 } }}>Data</TableCell>
+              <TableCell sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 70, sm: 100 } }}>Creat de</TableCell>
+              <TableCell align="right" sx={{ p: { xs: 1, sm: 1.5 }, minWidth: { xs: 80, sm: 120 } }}>Actiuni</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

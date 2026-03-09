@@ -183,20 +183,20 @@ const PermissionMatrixTab = () => {
       )}
 
       {!isEmpty && (
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 'calc(100vh - 280px)' }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 'calc(100vh - 280px)', overflowX: 'auto' }}>
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 220, backgroundColor: 'background.paper' }}>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: { xs: 140, sm: 220 }, backgroundColor: 'background.paper' }}>
                   Resursa
                 </TableCell>
-                <TableCell sx={{ fontWeight: 'bold', minWidth: 80, backgroundColor: 'background.paper', textAlign: 'center' }}>
+                <TableCell sx={{ fontWeight: 'bold', minWidth: { xs: 60, sm: 80 }, backgroundColor: 'background.paper', textAlign: 'center' }}>
                   Actiune
                 </TableCell>
                 {ROLES.map((role) => (
                   <TableCell
                     key={role.key}
-                    sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: 100, backgroundColor: 'background.paper' }}
+                    sx={{ fontWeight: 'bold', textAlign: 'center', minWidth: { xs: 70, sm: 100 }, backgroundColor: 'background.paper' }}
                   >
                     <Chip
                       label={role.label}
