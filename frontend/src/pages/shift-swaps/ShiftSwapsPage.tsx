@@ -44,8 +44,9 @@ import {
   CheckCircle as ApprovedIcon,
   Error as RejectedIcon,
   Inbox as InboxIcon,
+  WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material';
-import { GradientHeader, StatCard } from '../../components/common';
+import { GradientHeader, StatCard, FriendlyDialog } from '../../components/common';
 import { useAppSelector } from '../../store/hooks';
 import {
   useGetMySwapRequestsQuery,
@@ -58,6 +59,7 @@ import {
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import type { ShiftSwapRequest, ShiftSwapStatus, UserOnDate } from '../../types/shift-swap.types';
 import type { ScheduleAssignment } from '../../types/schedule.types';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -154,6 +156,7 @@ const ShiftSwapsPage = () => {
   const highlightRef = useRef<HTMLDivElement>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const { user } = useAppSelector((state) => state.auth);
+  const { notifySuccess, notifyError } = useSnackbar();
   const [tabValue, setTabValue] = useState(0);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
@@ -164,8 +167,14 @@ const ShiftSwapsPage = () => {
   const [responseAccepted, setResponseAccepted] = useState<boolean | null>(null);
   const [responseMessage, setResponseMessage] = useState('');
   const [respondError, setRespondError] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // API calls
   const { data: myRequests = [], isLoading: loadingRequests } = useGetMySwapRequestsQuery();
@@ -282,15 +291,13 @@ const ShiftSwapsPage = () => {
       setRequesterDate('');
       setTargetDate('');
       setReason('');
-      setSuccessMessage('Cererea de schimb a fost trimisa cu succes!');
-      setTimeout(() => setSuccessMessage(null), 5000);
+      notifySuccess('Cererea de schimb a fost trimisa cu succes!');
     } catch (error: unknown) {
       console.error('Error creating swap request:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message || 'A aparut o eroare la crearea cererii.'
         : 'A aparut o eroare la crearea cererii.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
+      notifyError(errorMsg);
     }
   };
 
@@ -317,8 +324,7 @@ const ShiftSwapsPage = () => {
       setSelectedRequest(null);
       setResponseAccepted(null);
       setResponseMessage('');
-      setSuccessMessage(responseAccepted ? 'Ai acceptat cererea de schimb!' : 'Ai refuzat cererea de schimb.');
-      setTimeout(() => setSuccessMessage(null), 5000);
+      notifySuccess(responseAccepted ? 'Ai acceptat cererea de schimb!' : 'Ai refuzat cererea de schimb.');
     } catch (error: unknown) {
       console.error('Error responding to swap:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
@@ -328,21 +334,26 @@ const ShiftSwapsPage = () => {
     }
   };
 
-  const handleCancelSwap = async (id: string) => {
-    if (window.confirm('Esti sigur ca vrei sa anulezi aceasta cerere de schimb?')) {
-      try {
-        await cancelSwap(id).unwrap();
-        setSuccessMessage('Cererea a fost anulata.');
-        setTimeout(() => setSuccessMessage(null), 5000);
-      } catch (error: unknown) {
-        console.error('Error cancelling swap:', error);
-        const errorMsg = error && typeof error === 'object' && 'data' in error
-          ? (error.data as { message?: string })?.message || 'A aparut o eroare la anularea cererii.'
-          : 'A aparut o eroare la anularea cererii.';
-        setErrorMessage(errorMsg);
-        setTimeout(() => setErrorMessage(null), 5000);
-      }
-    }
+  const handleCancelSwap = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Anuleaza cererea',
+      message: 'Esti sigur ca vrei sa anulezi aceasta cerere de schimb?',
+      variant: 'warning',
+      confirmText: 'Anuleaza',
+      onConfirm: async () => {
+        try {
+          await cancelSwap(id).unwrap();
+          notifySuccess('Cererea a fost anulata.');
+        } catch (error: unknown) {
+          console.error('Error cancelling swap:', error);
+          const errorMsg = error && typeof error === 'object' && 'data' in error
+            ? (error.data as { message?: string })?.message || 'A aparut o eroare la anularea cererii.'
+            : 'A aparut o eroare la anularea cererii.';
+          notifyError(errorMsg);
+        }
+      },
+    });
   };
 
   const formatDate = (dateStr: string) => {
@@ -577,18 +588,6 @@ const ShiftSwapsPage = () => {
           </Box>
         </Grid>
       </Grid>
-
-      {/* Error/Success Messages */}
-      {errorMessage && (
-        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
-          {errorMessage}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
-          {successMessage}
-        </Alert>
-      )}
 
       {/* Tabs */}
       <Paper sx={{ width: '100%' }}>
@@ -831,6 +830,22 @@ const ShiftSwapsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<WarningAmberIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

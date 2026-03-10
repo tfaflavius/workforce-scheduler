@@ -63,6 +63,7 @@ import type {
 } from '../../types/handicap.types';
 import { HANDICAP_LEGITIMATION_STATUS_LABELS } from '../../types/handicap.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
+import FriendlyDialog from '../../components/common/FriendlyDialog';
 
 // Culori
 const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
@@ -416,6 +417,14 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
   const [addComment, { isLoading: isAddingComment }] = useAddHandicapLegitimationCommentMutation();
   const [updateLegitimation, { isLoading: isUpdating }] = useUpdateHandicapLegitimationMutation();
   const [deleteLegitimation, { isLoading: isDeleting }] = useDeleteHandicapLegitimationMutation();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // Populate edit data when legitimation loads
   useEffect(() => {
@@ -472,16 +481,23 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!legitimationId) return;
-    if (window.confirm('Sigur doriti sa stergeti aceasta legitimatie?')) {
-      try {
-        await deleteLegitimation(legitimationId).unwrap();
-        onClose();
-      } catch (error) {
-        console.error('Error deleting legitimation:', error);
-      }
-    }
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge legitimatia',
+      message: 'Sigur doriti sa stergeti aceasta legitimatie?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteLegitimation(legitimationId).unwrap();
+          onClose();
+        } catch (error) {
+          console.error('Error deleting legitimation:', error);
+        }
+      },
+    });
   };
 
   if (!legitimationId) return null;
@@ -926,6 +942,22 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
           </DialogActions>
         )}
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </>
   );
 };

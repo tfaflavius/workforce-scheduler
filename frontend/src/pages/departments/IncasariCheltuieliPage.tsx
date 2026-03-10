@@ -21,7 +21,6 @@ import {
   TableRow,
   Paper,
   Alert,
-  Snackbar,
   alpha,
   useTheme,
   useMediaQuery,
@@ -46,6 +45,7 @@ import {
 } from '../../store/api/acquisitions.api';
 import { useGetParkingLotsQuery } from '../../store/api/parking.api';
 import type { RevenueCategory, RevenueSummaryCategory } from '../../types/acquisitions.types';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('ro-RO', {
@@ -60,6 +60,7 @@ const MONTH_LABELS = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'S
 const IncasariCheltuieliPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { notifySuccess, notifyError } = useSnackbar();
 
   // Opaque backgrounds for sticky columns (alpha is semi-transparent and causes overlap issues)
   const stickyBgHeader = theme.palette.mode === 'light' ? '#f3f0fa' : '#1e1a2e';
@@ -89,10 +90,6 @@ const IncasariCheltuieliPage: React.FC = () => {
   // Delete
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string; isGroup?: boolean } | null>(null);
-
-  // Messages
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Year options
   const yearOptions = useMemo(() => {
@@ -144,18 +141,11 @@ const IncasariCheltuieliPage: React.FC = () => {
     return !!(cat?.parkingLotId);
   };
 
-  // Handlers
-  const showSuccess = (msg: string) => {
-    setSuccessMessage(msg);
-    setTimeout(() => setSuccessMessage(null), 4000);
-  };
-
-  const showError = (error: unknown) => {
-    const msg = error && typeof error === 'object' && 'data' in error
+  // Error extraction helper
+  const extractErrorMessage = (error: unknown): string => {
+    return error && typeof error === 'object' && 'data' in error
       ? ((error as any).data as any)?.message || 'A aparut o eroare'
       : 'A aparut o eroare';
-    setErrorMessage(msg);
-    setTimeout(() => setErrorMessage(null), 5000);
   };
 
   const handleOpenRevCatDialog = (cat?: RevenueCategory, parentId?: string) => {
@@ -185,7 +175,7 @@ const IncasariCheltuieliPage: React.FC = () => {
             parkingLotId: revCatForm.parkingLotId || undefined,
           },
         }).unwrap();
-        showSuccess('Categoria a fost actualizata');
+        notifySuccess('Categoria a fost actualizata');
       } else {
         await createRevCat({
           name: revCatForm.name,
@@ -193,11 +183,11 @@ const IncasariCheltuieliPage: React.FC = () => {
           parentId: revCatForm.parentId || undefined,
           parkingLotId: revCatForm.parkingLotId || undefined,
         }).unwrap();
-        showSuccess('Categoria a fost creata');
+        notifySuccess('Categoria a fost creata');
       }
       setRevCatDialogOpen(false);
     } catch (error) {
-      showError(error);
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -253,10 +243,10 @@ const IncasariCheltuieliPage: React.FC = () => {
           notes: editingCell.notes || undefined,
         }).unwrap();
       }
-      showSuccess('Datele au fost salvate');
+      notifySuccess('Datele au fost salvate');
       setCellDialogOpen(false);
     } catch (error) {
-      showError(error);
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -269,11 +259,11 @@ const IncasariCheltuieliPage: React.FC = () => {
     if (!deleteTarget) return;
     try {
       await deleteRevCat(deleteTarget.id).unwrap();
-      showSuccess('Categoria a fost stearsa');
+      notifySuccess('Categoria a fost stearsa');
       setDeleteConfirmOpen(false);
       setDeleteTarget(null);
     } catch (error) {
-      showError(error);
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -867,17 +857,6 @@ const IncasariCheltuieliPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Success/Error messages */}
-      <Snackbar open={!!successMessage} autoHideDuration={4000} onClose={() => setSuccessMessage(null)}>
-        <Alert onClose={() => setSuccessMessage(null)} severity="success" variant="filled" sx={{ width: '100%' }}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
-      <Snackbar open={!!errorMessage} autoHideDuration={5000} onClose={() => setErrorMessage(null)}>
-        <Alert onClose={() => setErrorMessage(null)} severity="error" variant="filled" sx={{ width: '100%' }}>
-          {errorMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

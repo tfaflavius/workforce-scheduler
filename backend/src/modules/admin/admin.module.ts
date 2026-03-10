@@ -13,11 +13,17 @@ import { DomiciliuRequest } from '../parking/entities/domiciliu-request.entity';
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { ShiftSwapRequest } from '../shift-swaps/entities/shift-swap-request.entity';
 import { Department } from '../departments/entities/department.entity';
+import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
+import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
+import { CashCollection } from '../parking/entities/cash-collection.entity';
+import { EditRequest } from '../parking/entities/edit-request.entity';
+import { Notification } from '../notifications/entities/notification.entity';
 import { ParkingModule } from '../parking/parking.module';
 import { TimeTrackingModule } from '../time-tracking/time-tracking.module';
 import { DailyReportsModule } from '../daily-reports/daily-reports.module';
 import { AdminConsolidatedScheduler } from './admin-consolidated.scheduler';
 import { SearchController } from './search.controller';
+import { DashboardController } from './dashboard.controller';
 
 @Module({
   imports: [
@@ -35,12 +41,17 @@ import { SearchController } from './search.controller';
       LeaveRequest,
       ShiftSwapRequest,
       Department,
+      WorkSchedule,
+      ScheduleAssignment,
+      CashCollection,
+      EditRequest,
+      Notification,
     ]),
     ParkingModule,
     TimeTrackingModule,
     DailyReportsModule,
   ],
-  controllers: [SearchController],
+  controllers: [SearchController, DashboardController],
   providers: [AdminConsolidatedScheduler],
 })
 export class AdminModule {}

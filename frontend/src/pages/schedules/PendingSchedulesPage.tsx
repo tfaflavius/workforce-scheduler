@@ -35,6 +35,7 @@ import {
   useRejectScheduleMutation,
 } from '../../store/api/schedulesApi';
 import type { WorkSchedule } from '../../types/schedule.types';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const PendingSchedulesPage = () => {
   const theme = useTheme();
@@ -51,18 +52,15 @@ const PendingSchedulesPage = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<WorkSchedule | null>(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const { notifySuccess, notifyError } = useSnackbar();
 
   const handleApprove = async (schedule: WorkSchedule) => {
     try {
-      setError(null);
       await approveSchedule({ id: schedule.id }).unwrap();
-      setSuccess(`Programul "${schedule.name}" a fost aprobat cu succes!`);
+      notifySuccess(`Programul "${schedule.name}" a fost aprobat cu succes!`);
       refetch();
-      setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.data?.message || 'Eroare la aprobarea programului');
+      notifyError(err.data?.message || 'Eroare la aprobarea programului');
     }
   };
 
@@ -76,19 +74,17 @@ const PendingSchedulesPage = () => {
     if (!selectedSchedule || !rejectReason.trim()) return;
 
     try {
-      setError(null);
       await rejectSchedule({
         id: selectedSchedule.id,
         data: { reason: rejectReason },
       }).unwrap();
-      setSuccess(`Programul "${selectedSchedule.name}" a fost respins.`);
+      notifySuccess(`Programul "${selectedSchedule.name}" a fost respins.`);
       setRejectDialogOpen(false);
       setSelectedSchedule(null);
       setRejectReason('');
       refetch();
-      setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.data?.message || 'Eroare la respingerea programului');
+      notifyError(err.data?.message || 'Eroare la respingerea programului');
     }
   };
 
@@ -119,18 +115,6 @@ const PendingSchedulesPage = () => {
           Revizuieste si aproba programele trimise de manageri
         </Typography>
       </Box>
-
-      {/* Alerts */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
-          {success}
-        </Alert>
-      )}
 
       {/* Stats Card */}
       <Card

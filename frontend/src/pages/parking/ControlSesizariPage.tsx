@@ -87,6 +87,7 @@ import {
   ZONE_COLORS,
 } from '../../types/control.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
+import FriendlyDialog from '../../components/common/FriendlyDialog';
 import { removeDiacritics } from '../../utils/removeDiacritics';
 import {
   CONTROL_DEPARTMENT_NAME,
@@ -476,6 +477,14 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
   const [updateSesizare, { isLoading: isUpdating }] = useUpdateControlSesizareMutation();
   const [resolveSesizare] = useResolveControlSesizareMutation();
   const [deleteSesizare] = useDeleteControlSesizareMutation();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const [showHistory, setShowHistory] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -564,16 +573,23 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!sesizareId) return;
-    if (window.confirm('Sigur doriti sa stergeti aceasta sesizare?')) {
-      try {
-        await deleteSesizare(sesizareId).unwrap();
-        onClose();
-      } catch (error) {
-        console.error('Error deleting sesizare:', error);
-      }
-    }
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge sesizarea',
+      message: 'Sigur doriti sa stergeti aceasta sesizare?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteSesizare(sesizareId).unwrap();
+          onClose();
+        } catch (error) {
+          console.error('Error deleting sesizare:', error);
+        }
+      },
+    });
   };
 
   if (!sesizareId) return null;
@@ -824,6 +840,22 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
             disabled={!resolutionDescription.trim()}>Finalizeaza</Button>
         </DialogActions>
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </>
   );
 };

@@ -38,8 +38,9 @@ import {
   Star as SpecialIcon,
   EventAvailable as ExtraDaysIcon,
   EventBusy as EventBusyIcon,
+  WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material';
-import { GradientHeader, EmptyState } from '../../components/common';
+import { GradientHeader, EmptyState, FriendlyDialog } from '../../components/common';
 import {
   useGetMyLeaveRequestsQuery,
   useGetMyLeaveBalanceQuery,
@@ -47,6 +48,7 @@ import {
   useCancelLeaveRequestMutation,
 } from '../../store/api/leaveRequests.api';
 import { useAppSelector } from '../../store/hooks';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import type {
   LeaveType,
   LeaveRequestStatus,
@@ -110,14 +112,21 @@ export const LeaveRequestsPage = () => {
   const highlightRef = useRef<HTMLDivElement>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const { user } = useAppSelector((state) => state.auth);
+  const { notifySuccess, notifyError } = useSnackbar();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [leaveType, setLeaveType] = useState<LeaveType>('VACATION');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const { data: requests = [], isLoading: loadingRequests } = useGetMyLeaveRequestsQuery();
   const { data: balances = [], isLoading: loadingBalance } = useGetMyLeaveBalanceQuery();
@@ -161,31 +170,34 @@ export const LeaveRequestsPage = () => {
     try {
       await createRequest(dto).unwrap();
       handleCloseDialog();
-      setSuccessMessage('Cererea de concediu a fost trimisa cu succes!');
-      setTimeout(() => setSuccessMessage(null), 5000);
+      notifySuccess('Cererea de concediu a fost trimisa cu succes!');
     } catch (err: unknown) {
       const errorMsg = err && typeof err === 'object' && 'data' in err
         ? (err.data as { message?: string })?.message || 'A aparut o eroare la crearea cererii.'
         : 'A aparut o eroare la crearea cererii.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
+      notifyError(errorMsg);
     }
   };
 
-  const handleCancel = async (id: string) => {
-    if (window.confirm('Esti sigur ca vrei sa anulezi aceasta cerere?')) {
-      try {
-        await cancelRequest(id).unwrap();
-        setSuccessMessage('Cererea a fost anulata cu succes.');
-        setTimeout(() => setSuccessMessage(null), 5000);
-      } catch (err: unknown) {
-        const errorMsg = err && typeof err === 'object' && 'data' in err
-          ? (err.data as { message?: string })?.message || 'A aparut o eroare la anularea cererii.'
-          : 'A aparut o eroare la anularea cererii.';
-        setErrorMessage(errorMsg);
-        setTimeout(() => setErrorMessage(null), 5000);
-      }
-    }
+  const handleCancel = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Anuleaza cererea',
+      message: 'Esti sigur ca vrei sa anulezi aceasta cerere?',
+      variant: 'warning',
+      confirmText: 'Anuleaza',
+      onConfirm: async () => {
+        try {
+          await cancelRequest(id).unwrap();
+          notifySuccess('Cererea a fost anulata cu succes.');
+        } catch (err: unknown) {
+          const errorMsg = err && typeof err === 'object' && 'data' in err
+            ? (err.data as { message?: string })?.message || 'A aparut o eroare la anularea cererii.'
+            : 'A aparut o eroare la anularea cererii.';
+          notifyError(errorMsg);
+        }
+      },
+    });
   };
 
   const getErrorMessage = (error: any): string => {
@@ -259,18 +271,6 @@ export const LeaveRequestsPage = () => {
           Cerere Noua de Concediu
         </Button>
       </Box>
-
-      {/* Error/Success Messages */}
-      {errorMessage && (
-        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
-          {errorMessage}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
-          {successMessage}
-        </Alert>
-      )}
 
       {/* Balance Cards with Progress Bars */}
       <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1rem', sm: '1.25rem' }, fontWeight: 600 }}>
@@ -644,6 +644,22 @@ export const LeaveRequestsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<WarningAmberIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

@@ -52,7 +52,7 @@ import {
   AdminPanelSettings as AdminIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { GradientHeader, StatCard } from '../../components/common';
+import { GradientHeader, StatCard, FriendlyDialog } from '../../components/common';
 import {
   useGetAllSwapRequestsQuery,
   useApproveSwapRequestMutation,
@@ -61,6 +61,7 @@ import {
   useLazyGetUsersOnDateQuery,
 } from '../../store/api/shiftSwaps.api';
 import type { ShiftSwapRequest, ShiftSwapStatus, UserOnDate } from '../../types/shift-swap.types';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -145,8 +146,15 @@ const AdminShiftSwapsPage = () => {
   const [actionType, setActionType] = useState<'approve' | 'reject'>('approve');
   const [adminNotes, setAdminNotes] = useState('');
   const [selectedResponderId, setSelectedResponderId] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { notifySuccess, notifyError } = useSnackbar();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // API calls
   const { data: allRequests = [], isLoading } = useGetAllSwapRequestsQuery({});
@@ -201,8 +209,7 @@ const AdminShiftSwapsPage = () => {
     try {
       if (actionType === 'approve') {
         if (!selectedResponderId) {
-          setErrorMessage('Selecteaza colegul cu care se va face schimbul.');
-          setTimeout(() => setErrorMessage(null), 5000);
+          notifyError('Selecteaza colegul cu care se va face schimbul.');
           return;
         }
         await approveSwap({
@@ -221,35 +228,36 @@ const AdminShiftSwapsPage = () => {
       setActionDialogOpen(false);
       setSelectedRequest(null);
       setAdminNotes('');
-      setSuccessMessage(actionType === 'approve' ? 'Schimbul de tura a fost aprobat cu succes!' : 'Cererea a fost respinsa.');
-      setTimeout(() => setSuccessMessage(null), 5000);
+      notifySuccess(actionType === 'approve' ? 'Schimbul de tura a fost aprobat cu succes!' : 'Cererea a fost respinsa.');
     } catch (error: unknown) {
       console.error('Error processing swap request:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message || 'A aparut o eroare la procesarea cererii.'
         : 'A aparut o eroare la procesarea cererii.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
+      notifyError(errorMsg);
     }
   };
 
-  const handleDeleteSwap = async (request: ShiftSwapRequest) => {
-    if (!window.confirm(`Esti sigur ca vrei sa stergi cererea de schimb a lui ${request.requester?.fullName}? Aceasta actiune este ireversibila.`)) {
-      return;
-    }
-
-    try {
-      await deleteSwap(request.id).unwrap();
-      setSuccessMessage('Cererea de schimb a fost stearsa cu succes.');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error: unknown) {
-      console.error('Error deleting swap request:', error);
-      const errorMsg = error && typeof error === 'object' && 'data' in error
-        ? (error.data as { message?: string })?.message || 'A aparut o eroare la stergerea cererii.'
-        : 'A aparut o eroare la stergerea cererii.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
-    }
+  const handleDeleteSwap = (request: ShiftSwapRequest) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge cererea',
+      message: `Esti sigur ca vrei sa stergi cererea de schimb a lui ${request.requester?.fullName}? Aceasta actiune este ireversibila.`,
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteSwap(request.id).unwrap();
+          notifySuccess('Cererea de schimb a fost stearsa cu succes.');
+        } catch (error: unknown) {
+          console.error('Error deleting swap request:', error);
+          const errorMsg = error && typeof error === 'object' && 'data' in error
+            ? (error.data as { message?: string })?.message || 'A aparut o eroare la stergerea cererii.'
+            : 'A aparut o eroare la stergerea cererii.';
+          notifyError(errorMsg);
+        }
+      },
+    });
   };
 
   const formatDate = (dateStr: string) => {
@@ -422,18 +430,6 @@ const AdminShiftSwapsPage = () => {
           />
         )}
       </GradientHeader>
-
-      {/* Error/Success Messages */}
-      {errorMessage && (
-        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
-          {errorMessage}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
-          {successMessage}
-        </Alert>
-      )}
 
       {/* Summary Cards with StatCard */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>
@@ -913,6 +909,22 @@ const AdminShiftSwapsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

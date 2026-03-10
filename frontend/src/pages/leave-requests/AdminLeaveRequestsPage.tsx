@@ -60,6 +60,7 @@ import type {
   LeaveRequestStatus,
 } from '../../types/leave-request.types';
 import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-request.types';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const LEAVE_TYPE_OPTIONS: { value: LeaveType; label: string }[] = [
   { value: 'VACATION', label: 'Concediu de Odihna' },
@@ -128,14 +129,14 @@ export const AdminLeaveRequestsPage = () => {
   const highlightRef = useRef<HTMLDivElement>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
+  const { notifySuccess, notifyError } = useSnackbar();
+
   const [tabValue, setTabValue] = useState(0);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [responseType, setResponseType] = useState<'APPROVED' | 'REJECTED'>('APPROVED');
   const [message, setMessage] = useState('');
   const [overlaps, setOverlaps] = useState<LeaveRequest[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Edit / Delete state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -231,12 +232,11 @@ export const AdminLeaveRequestsPage = () => {
         },
       }).unwrap();
       handleCloseDialog();
-      setSuccessMessage(
+      notifySuccess(
         responseType === 'APPROVED'
           ? 'Cererea a fost aprobata cu succes!'
           : 'Cererea a fost respinsa.'
       );
-      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: unknown) {
       const errorMsg = err && typeof err === 'object' && 'data' in err
         ? (err.data as { message?: string })?.message || 'A aparut o eroare la procesarea cererii.'
@@ -246,8 +246,7 @@ export const AdminLeaveRequestsPage = () => {
       // treat it as success - close dialog and refresh the list
       if (errorMsg.includes('deja procesata') || errorMsg.includes('already')) {
         handleCloseDialog();
-        setSuccessMessage('Cererea a fost deja procesata anterior.');
-        setTimeout(() => setSuccessMessage(null), 5000);
+        notifySuccess('Cererea a fost deja procesata anterior.');
         return;
       }
 
@@ -282,10 +281,10 @@ export const AdminLeaveRequestsPage = () => {
           reason: editReason || undefined,
         },
       }).unwrap();
-      setSuccessMessage('Cererea a fost modificata cu succes!');
+      notifySuccess('Cererea a fost modificata cu succes!');
       handleCloseEdit();
     } catch (err: any) {
-      setErrorMessage(err?.data?.message || 'Eroare la modificarea cererii');
+      notifyError(err?.data?.message || 'Eroare la modificarea cererii');
     }
   };
 
@@ -304,10 +303,10 @@ export const AdminLeaveRequestsPage = () => {
     if (!deleteRequest) return;
     try {
       await adminDelete(deleteRequest.id).unwrap();
-      setSuccessMessage('Cererea a fost stearsa cu succes!');
+      notifySuccess('Cererea a fost stearsa cu succes!');
       handleCloseDelete();
     } catch (err: any) {
-      setErrorMessage(err?.data?.message || 'Eroare la stergerea cererii');
+      notifyError(err?.data?.message || 'Eroare la stergerea cererii');
     }
   };
 
@@ -358,18 +357,6 @@ export const AdminLeaveRequestsPage = () => {
           />
         )}
       </GradientHeader>
-
-      {/* Error/Success Messages */}
-      {errorMessage && (
-        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 2 }}>
-          {errorMessage}
-        </Alert>
-      )}
-      {successMessage && (
-        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ mb: 2 }}>
-          {successMessage}
-        </Alert>
-      )}
 
       {/* Summary Cards with StatCard */}
       <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 3 }}>

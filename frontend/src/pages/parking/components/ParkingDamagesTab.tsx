@@ -55,6 +55,7 @@ import DamageDetailsDialog from './DamageDetailsDialog';
 import EditDamageDialog from './EditDamageDialog';
 import SignDamageDialog from './SignDamageDialog';
 import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
+import FriendlyDialog from '../../../components/common/FriendlyDialog';
 
 interface ParkingDamagesTabProps {
   initialOpenId?: string | null;
@@ -75,6 +76,14 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [selectedDamage, setSelectedDamage] = useState<ParkingDamage | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const { data: damages = [], isLoading, refetch } = useGetParkingDamagesQuery(
     statusFilter === 'ALL' ? undefined : statusFilter
@@ -118,14 +127,21 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
     setSignDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Esti sigur ca vrei sa stergi acest prejudiciu?')) {
-      try {
-        await deleteDamage(id).unwrap();
-      } catch (error) {
-        console.error('Error deleting damage:', error);
-      }
-    }
+  const handleDelete = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge prejudiciul',
+      message: 'Esti sigur ca vrei sa stergi acest prejudiciu?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteDamage(id).unwrap();
+        } catch (error) {
+          console.error('Error deleting damage:', error);
+        }
+      },
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -648,6 +664,22 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
           50% { opacity: 0.5; }
         }
       `}</style>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

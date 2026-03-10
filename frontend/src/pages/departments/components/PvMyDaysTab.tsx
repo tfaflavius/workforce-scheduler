@@ -22,7 +22,9 @@ import {
   CheckCircle as CompleteIcon,
   Cancel as UnclaimIcon,
   CalendarMonth as CalendarIcon,
+  WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material';
+import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { useAppSelector } from '../../../store/hooks';
 import {
   useGetMyClaimedDaysQuery,
@@ -31,9 +33,11 @@ import {
 } from '../../../store/api/pvDisplay.api';
 import type { PvDisplayDay } from '../../../types/pv-display.types';
 import { PV_DAY_STATUS_LABELS, PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 const PvMyDaysTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
 
   const { data: myDays = [], isLoading, error } = useGetMyClaimedDaysQuery();
   const [unclaimDay, { isLoading: isUnclaiming }] = useUnclaimDayMutation();
@@ -43,14 +47,30 @@ const PvMyDaysTab: React.FC = () => {
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [completeDayId, setCompleteDayId] = useState<string | null>(null);
   const [observations, setObservations] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
-  const handleUnclaim = async (dayId: string) => {
-    if (!window.confirm('Esti sigur ca vrei sa renunti la aceasta zi?')) return;
-    try {
-      await unclaimDay(dayId).unwrap();
-    } catch (err: any) {
-      alert(err?.data?.message || 'Eroare la renuntare');
-    }
+  const handleUnclaim = (dayId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Renunta la zi',
+      message: 'Esti sigur ca vrei sa renunti la aceasta zi?',
+      variant: 'warning',
+      confirmText: 'Renunta',
+      onConfirm: async () => {
+        try {
+          await unclaimDay(dayId).unwrap();
+        } catch (err: any) {
+          notifyError(err?.data?.message || 'Eroare la renuntare');
+        }
+      },
+    });
   };
 
   const handleOpenComplete = (dayId: string) => {
@@ -68,7 +88,7 @@ const PvMyDaysTab: React.FC = () => {
       }).unwrap();
       setCompleteDialogOpen(false);
     } catch (err: any) {
-      alert(err?.data?.message || 'Eroare la finalizare');
+      notifyError(err?.data?.message || 'Eroare la finalizare');
     }
   };
 
@@ -184,6 +204,22 @@ const PvMyDaysTab: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<WarningAmberIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

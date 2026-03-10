@@ -49,6 +49,7 @@ import {
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 // ============== HELPERS ==============
 
@@ -108,6 +109,7 @@ const DailyReportsPage: React.FC = () => {
   const isAdmin = isAdminOrAbove(user?.role);
   const isManager = user?.role === 'MANAGER';
   const canViewAll = isAdmin || isManager;
+  const { notifySuccess, notifyError } = useSnackbar();
 
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
@@ -115,8 +117,6 @@ const DailyReportsPage: React.FC = () => {
   // My report state
   const [reportContent, setReportContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
 
   // Admin comment state
   const [commentingReportId, setCommentingReportId] = useState<string | null>(null);
@@ -246,11 +246,10 @@ const DailyReportsPage: React.FC = () => {
   // Handlers
   const handleSaveDraft = async () => {
     if (!reportContent.trim()) {
-      setErrorMessage('Scrie continutul raportului inainte de a salva.');
+      notifyError('Scrie continutul raportului inainte de a salva.');
       return;
     }
     try {
-      setErrorMessage('');
       if (todayReport && todayReport.status === 'DRAFT') {
         await updateReport({
           id: todayReport.id,
@@ -263,21 +262,19 @@ const DailyReportsPage: React.FC = () => {
           status: 'DRAFT',
         }).unwrap();
       }
-      setSuccessMessage('Ciorna salvata cu succes!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      notifySuccess('Ciorna salvata cu succes!');
       refetchToday();
     } catch (err: any) {
-      setErrorMessage(err?.data?.message || 'Eroare la salvarea ciornei.');
+      notifyError(err?.data?.message || 'Eroare la salvarea ciornei.');
     }
   };
 
   const handleSubmitReport = async () => {
     if (!reportContent.trim()) {
-      setErrorMessage('Scrie continutul raportului inainte de a-l trimite.');
+      notifyError('Scrie continutul raportului inainte de a-l trimite.');
       return;
     }
     try {
-      setErrorMessage('');
       if (todayReport && todayReport.status === 'DRAFT') {
         await updateReport({
           id: todayReport.id,
@@ -290,12 +287,11 @@ const DailyReportsPage: React.FC = () => {
           status: 'SUBMITTED',
         }).unwrap();
       }
-      setSuccessMessage('Raportul a fost trimis cu succes!');
+      notifySuccess('Raportul a fost trimis cu succes!');
       setIsEditing(false);
-      setTimeout(() => setSuccessMessage(''), 3000);
       refetchToday();
     } catch (err: any) {
-      setErrorMessage(err?.data?.message || 'Eroare la trimiterea raportului.');
+      notifyError(err?.data?.message || 'Eroare la trimiterea raportului.');
     }
   };
 
@@ -306,7 +302,7 @@ const DailyReportsPage: React.FC = () => {
       setCommentingReportId(null);
       setCommentText('');
     } catch (err: any) {
-      setErrorMessage(err?.data?.message || 'Eroare la adaugarea comentariului.');
+      notifyError(err?.data?.message || 'Eroare la adaugarea comentariului.');
     }
   };
 
@@ -348,17 +344,6 @@ const DailyReportsPage: React.FC = () => {
           </Box>
 
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-            {successMessage && (
-              <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setSuccessMessage('')}>
-                {successMessage}
-              </Alert>
-            )}
-            {errorMessage && (
-              <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setErrorMessage('')}>
-                {errorMessage}
-              </Alert>
-            )}
-
             {loadingToday ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <CircularProgress />

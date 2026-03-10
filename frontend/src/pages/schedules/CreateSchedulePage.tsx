@@ -33,7 +33,9 @@ import {
   Clear as ClearIcon,
   Group as GroupIcon,
   Send as SendIcon,
+  WarningAmber as WarningAmberIcon,
 } from '@mui/icons-material';
+import FriendlyDialog from '../../components/common/FriendlyDialog';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateScheduleMutation, useUpdateScheduleMutation, useGetSchedulesQuery, useGetShiftTypesQuery, useGetWorkPositionsQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -41,6 +43,7 @@ import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useAppSelector } from '../../store/hooks';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
 
 // Tipuri de ture
@@ -100,6 +103,7 @@ const CreateSchedulePage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user: currentUser } = useAppSelector((state) => state.auth);
+  const { notifySuccess, notifyError } = useSnackbar();
 
   // Verifica rolul utilizatorului
   const isAdmin = isAdminOrAbove(currentUser?.role);
@@ -120,11 +124,16 @@ const CreateSchedulePage: React.FC = () => {
   const [assignments, setAssignments] = useState<Record<string, string>>({});
   // Pozitia de lucru pentru fiecare zi: { date: workPositionId }
   const [workPositions, setWorkPositions] = useState<Record<string, string>>({});
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   // Lista de luni (generata o singura data)
   const monthOptions = useMemo(() => generateMonthOptions(), []);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // API hooks
   const { data: users = [], isLoading: usersLoading } = useGetUsersQuery({ isActive: true });
@@ -608,7 +617,7 @@ const CreateSchedulePage: React.FC = () => {
 
       // Verifica ca s-au creat assignments
       if (assignmentDtos.length === 0 && Object.keys(assignments).length > 0) {
-        setErrorMessage('Nu s-au putut crea asignarile. Verifica ca datele sunt corecte.');
+        notifyError('Nu s-au putut crea asignarile. Verifica ca datele sunt corecte.');
         return;
       }
 
@@ -622,7 +631,7 @@ const CreateSchedulePage: React.FC = () => {
       );
       if (invalidAssignments.length > 0) {
         console.error('Found invalid workPositionIds:', invalidAssignments);
-        setErrorMessage('Eroare interna: pozitii de lucru invalide detectate. Reincarcati pagina.');
+        notifyError('Eroare interna: pozitii de lucru invalide detectate. Reincarcati pagina.');
         return;
       }
 
@@ -636,7 +645,7 @@ const CreateSchedulePage: React.FC = () => {
           }
         }).unwrap();
 
-        setSuccessMessage(isAdmin
+        notifySuccess(isAdmin
           ? 'Programul a fost actualizat si aprobat cu succes!'
           : 'Programul a fost actualizat ca draft.');
       } else {
@@ -648,7 +657,7 @@ const CreateSchedulePage: React.FC = () => {
           status: (isAdmin ? 'APPROVED' : 'DRAFT') as ScheduleStatus,
         }).unwrap();
 
-        setSuccessMessage(isAdmin
+        notifySuccess(isAdmin
           ? 'Programul a fost salvat si aprobat cu succes!'
           : 'Programul a fost salvat ca draft.');
       }
@@ -659,8 +668,7 @@ const CreateSchedulePage: React.FC = () => {
       const errorMsg = err && typeof err === 'object' && 'data' in err
         ? (err.data as { message?: string })?.message || 'A aparut o eroare la salvarea programului.'
         : 'A aparut o eroare la salvarea programului.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
+      notifyError(errorMsg);
     }
   };
 
@@ -673,7 +681,7 @@ const CreateSchedulePage: React.FC = () => {
 
       // Verifica ca s-au creat assignments
       if (assignmentDtos.length === 0 && Object.keys(assignments).length > 0) {
-        setErrorMessage('Nu s-au putut crea asignarile. Verifica ca datele sunt corecte.');
+        notifyError('Nu s-au putut crea asignarile. Verifica ca datele sunt corecte.');
         return;
       }
 
@@ -699,15 +707,14 @@ const CreateSchedulePage: React.FC = () => {
         }).unwrap();
       }
 
-      setSuccessMessage('Programul a fost trimis pentru aprobare. Un administrator il va revizui.');
+      notifySuccess('Programul a fost trimis pentru aprobare. Un administrator il va revizui.');
       setTimeout(() => navigate('/schedules'), 2000);
     } catch (err: unknown) {
       console.error('Failed to submit schedule:', err);
       const errorMsg = err && typeof err === 'object' && 'data' in err
         ? (err.data as { message?: string })?.message || 'A aparut o eroare la trimiterea programului.'
         : 'A aparut o eroare la trimiterea programului.';
-      setErrorMessage(errorMsg);
-      setTimeout(() => setErrorMessage(null), 5000);
+      notifyError(errorMsg);
     }
   };
 
@@ -776,18 +783,6 @@ const CreateSchedulePage: React.FC = () => {
           </Box>
         </Stack>
 
-        {/* Success/Error Alerts */}
-        {successMessage && (
-          <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ width: '100%' }}>
-            {successMessage}
-          </Alert>
-        )}
-        {errorMessage && (
-          <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ width: '100%' }}>
-            {errorMessage}
-          </Alert>
-        )}
-
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ width: '100%' }}>
@@ -855,10 +850,17 @@ const CreateSchedulePage: React.FC = () => {
                       // Asignarile incompatibile vor fi convertite sau ignorate la salvare
                       if (Object.keys(assignments).length > 0) {
                         // Avertizeaza utilizatorul ca are asignari care vor fi sterse
-                        if (window.confirm('Schimbarea tipului de tura va sterge asignarile curente. Continuati?')) {
-                          setShiftPattern(newPattern);
-                          setAssignments({});
-                        }
+                        setConfirmDialog({
+                          open: true,
+                          title: 'Schimba tipul de tura',
+                          message: 'Schimbarea tipului de tura va sterge asignarile curente. Continuati?',
+                          variant: 'warning',
+                          confirmText: 'Continua',
+                          onConfirm: () => {
+                            setShiftPattern(newPattern);
+                            setAssignments({});
+                          },
+                        });
                       } else {
                         setShiftPattern(newPattern);
                       }
@@ -881,11 +883,18 @@ const CreateSchedulePage: React.FC = () => {
                       const newMonth = e.target.value;
                       // Doar schimba luna, reseteaza asignarile pentru noua luna
                       if (Object.keys(assignments).length > 0) {
-                        if (window.confirm('Schimbarea lunii va sterge asignarile curente. Continuati?')) {
-                          setMonthYear(newMonth);
-                          setAssignments({});
-                          setLoadedKey(null); // Permite reincarcarea pentru luna noua
-                        }
+                        setConfirmDialog({
+                          open: true,
+                          title: 'Schimba luna',
+                          message: 'Schimbarea lunii va sterge asignarile curente. Continuati?',
+                          variant: 'warning',
+                          confirmText: 'Continua',
+                          onConfirm: () => {
+                            setMonthYear(newMonth);
+                            setAssignments({});
+                            setLoadedKey(null); // Permite reincarcarea pentru luna noua
+                          },
+                        });
                       } else {
                         setMonthYear(newMonth);
                         setLoadedKey(null); // Permite reincarcarea pentru luna noua
@@ -1342,6 +1351,22 @@ const CreateSchedulePage: React.FC = () => {
           </CardContent>
         </Card>
       </Stack>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<WarningAmberIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

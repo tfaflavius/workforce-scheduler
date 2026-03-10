@@ -32,6 +32,7 @@ import {
   Send as SendIcon,
   Description as PvIcon,
 } from '@mui/icons-material';
+import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import { PROCESE_VERBALE_DEPARTMENT_NAME } from '../../../constants/departments';
@@ -71,6 +72,14 @@ const PvSessionsTab: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [detailsTab, setDetailsTab] = useState<'days' | 'comments' | 'history'>('days');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // Create form state
   const [monthYear, setMonthYear] = useState('');
@@ -168,13 +177,21 @@ const PvSessionsTab: React.FC = () => {
     }
   };
 
-  const handleDelete = async (sessionId: string) => {
-    if (!window.confirm('Esti sigur ca vrei sa stergi aceasta sesiune?')) return;
-    try {
-      await deleteSession(sessionId).unwrap();
-    } catch (err) {
-      console.error('Error deleting session:', err);
-    }
+  const handleDelete = (sessionId: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge sesiunea',
+      message: 'Esti sigur ca vrei sa stergi aceasta sesiune?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteSession(sessionId).unwrap();
+        } catch (err) {
+          console.error('Error deleting session:', err);
+        }
+      },
+    });
   };
 
   const toggleExpanded = (sessionId: string) => {
@@ -447,6 +464,22 @@ const PvSessionsTab: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

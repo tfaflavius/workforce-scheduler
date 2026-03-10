@@ -101,6 +101,7 @@ import { removeDiacritics } from '../../utils/removeDiacritics';
 import HandicapLegitimatiiTab from './HandicapLegitimatiiTab';
 import RevolutionarLegitimatiiTab from './RevolutionarLegitimatiiTab';
 import type { RevolutionarLegitimationStatus } from '../../types/handicap.types';
+import FriendlyDialog from '../../components/common/FriendlyDialog';
 import {
   MAINTENANCE_DEPARTMENT_NAME,
   HANDICAP_DEPARTMENT_NAME,
@@ -472,6 +473,14 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
   const [updateRequest, { isLoading: isUpdating }] = useUpdateHandicapRequestMutation();
   const [resolveRequest] = useResolveHandicapRequestMutation();
   const [deleteRequest] = useDeleteHandicapRequestMutation();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const [showHistory, setShowHistory] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -573,16 +582,23 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!requestId) return;
-    if (window.confirm('Sigur doriti sa stergeti aceasta solicitare?')) {
-      try {
-        await deleteRequest(requestId).unwrap();
-        onClose();
-      } catch (error) {
-        console.error('Error deleting request:', error);
-      }
-    }
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge solicitarea',
+      message: 'Sigur doriti sa stergeti aceasta solicitare?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteRequest(requestId).unwrap();
+          onClose();
+        } catch (error) {
+          console.error('Error deleting request:', error);
+        }
+      },
+    });
   };
 
   if (!requestId) return null;
@@ -1021,6 +1037,21 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
           </Button>
         </DialogActions>
       </Dialog>
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </>
   );
 };

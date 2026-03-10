@@ -42,6 +42,7 @@ import {
   TrendingUp as TrendingIcon,
   CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
+import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
@@ -66,6 +67,14 @@ const CashCollectionsTab: React.FC = () => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [filtersExpanded, setFiltersExpanded] = useState(!isMobile);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const { data: parkingLots = [] } = useGetParkingLotsQuery();
   const { data: machines = [] } = useGetPaymentMachinesQuery(selectedParkingLotId || undefined);
@@ -111,14 +120,21 @@ const CashCollectionsTab: React.FC = () => {
 
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()).padStart(2, '0')}`;
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Esti sigur ca vrei sa stergi aceasta ridicare?')) {
-      try {
-        await deleteCollection(id).unwrap();
-      } catch (error) {
-        console.error('Error deleting collection:', error);
-      }
-    }
+  const handleDelete = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge ridicarea',
+      message: 'Esti sigur ca vrei sa stergi aceasta ridicare?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteCollection(id).unwrap();
+        } catch (error) {
+          console.error('Error deleting collection:', error);
+        }
+      },
+    });
   };
 
   const clearFilters = () => {
@@ -639,6 +655,22 @@ const CashCollectionsTab: React.FC = () => {
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
       />
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

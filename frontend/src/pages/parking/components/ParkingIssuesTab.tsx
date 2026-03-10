@@ -44,6 +44,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
+import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
@@ -77,6 +78,14 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState<ParkingIssue | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const { data: issues = [], isLoading, refetch } = useGetParkingIssuesQuery(
     statusFilter === 'ALL' ? undefined : statusFilter
@@ -116,14 +125,21 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
     setEditDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Esti sigur ca vrei sa stergi aceasta problema?')) {
-      try {
-        await deleteIssue(id).unwrap();
-      } catch (error) {
-        console.error('Error deleting issue:', error);
-      }
-    }
+  const handleDelete = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge problema',
+      message: 'Esti sigur ca vrei sa stergi aceasta problema?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteIssue(id).unwrap();
+        } catch (error) {
+          console.error('Error deleting issue:', error);
+        }
+      },
+    });
   };
 
   const formatDateShort = (dateString: string) => {
@@ -776,6 +792,22 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           />
         </>
       )}
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </Box>
   );
 };

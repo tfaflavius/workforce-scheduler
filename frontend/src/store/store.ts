@@ -20,6 +20,7 @@ import { permissionsApi } from './api/permissions.api';
 import { scheduleGeneratorApi } from './api/scheduleGenerator.api';
 import { searchApi } from './api/search.api';
 import { auditApi } from './api/audit.api';
+import { dashboardApi } from './api/dashboard.api';
 
 export const store = configureStore({
   reducer: {
@@ -44,6 +45,7 @@ export const store = configureStore({
     [scheduleGeneratorApi.reducerPath]: scheduleGeneratorApi.reducer,
     [searchApi.reducerPath]: searchApi.reducer,
     [auditApi.reducerPath]: auditApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -67,6 +69,7 @@ export const store = configureStore({
       scheduleGeneratorApi.middleware,
       searchApi.middleware,
       auditApi.middleware,
+      dashboardApi.middleware,
     ),
 });
 

@@ -86,6 +86,7 @@ import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import { useGetMonthlyTicketsSummaryQuery, useGetMonthlySubscriptionsQuery, useGetMonthlyOccupancySummaryQuery } from '../../store/api/parkingStats.api';
 import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS, getLocationFullName, TOTAL_PARKING_SPOTS } from '../../constants/parkingStats';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
   drawSectionHeader,
   drawStatCards,
@@ -147,6 +148,7 @@ const ReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
   const isAdminOrManager = isAdminOrAbove(user?.role) || user?.role === 'MANAGER';
 
   const [tabValue, setTabValue] = useState(0);
@@ -1408,7 +1410,7 @@ const ReportsPage: React.FC = () => {
     setCustomReportOpen(false);
     } catch (error) {
       console.error('Eroare la generarea raportului PDF:', error);
-      alert('A apărut o eroare la generarea raportului PDF. Verificați consola pentru detalii.');
+      notifyError('A aparut o eroare la generarea raportului PDF. Verificati consola pentru detalii.');
     }
   };
 
@@ -1752,7 +1754,7 @@ const ReportsPage: React.FC = () => {
     setCustomReportOpen(false);
     } catch (error) {
       console.error('Eroare la generarea raportului Excel:', error);
-      alert('A apărut o eroare la generarea raportului Excel. Verificați consola pentru detalii.');
+      notifyError('A aparut o eroare la generarea raportului Excel. Verificati consola pentru detalii.');
     }
   };
 

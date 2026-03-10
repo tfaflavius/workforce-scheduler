@@ -36,9 +36,11 @@ import {
 import type { PvDisplayDay, AdminAssignPvDayDto } from '../../../types/pv-display.types';
 import { PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
 import { CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 const PvMarketplaceTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
   const isAdmin = isAdminOrAbove(user?.role);
   const isControl = user?.department?.name === CONTROL_DEPARTMENT_NAME;
   const canClaim = isControl || isAdmin;
@@ -58,7 +60,7 @@ const PvMarketplaceTab: React.FC = () => {
     try {
       await claimDay(dayId).unwrap();
     } catch (err: any) {
-      alert(err?.data?.message || 'Eroare la revendicare');
+      notifyError(err?.data?.message || 'Eroare la revendicare');
     }
   };
 
@@ -76,7 +78,7 @@ const PvMarketplaceTab: React.FC = () => {
       await adminAssignDay({ dayId: assignDayId, data: dto }).unwrap();
       setAssignDialogOpen(false);
     } catch (err: any) {
-      alert(err?.data?.message || 'Eroare la asignare');
+      notifyError(err?.data?.message || 'Eroare la asignare');
     }
   };
 

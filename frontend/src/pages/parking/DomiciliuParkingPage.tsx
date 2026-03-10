@@ -81,6 +81,7 @@ import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import { removeDiacritics } from '../../utils/removeDiacritics';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
+import FriendlyDialog from '../../components/common/FriendlyDialog';
 import {
   MAINTENANCE_DEPARTMENT_NAME,
   HANDICAP_DEPARTMENT_NAME,
@@ -411,6 +412,14 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
   const [newComment, setNewComment] = useState('');
   const [showResolveDialog, setShowResolveDialog] = useState(false);
   const [resolutionDescription, setResolutionDescription] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'warning' | 'error';
+    confirmText?: string;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const isAdmin = isAdminOrAbove(user?.role);
   const isMaintenanceUser = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
@@ -438,16 +447,23 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!requestId) return;
-    if (window.confirm('Sigur doriti sa stergeti aceasta solicitare?')) {
-      try {
-        await deleteRequest(requestId).unwrap();
-        onClose();
-      } catch (error) {
-        console.error('Error deleting request:', error);
-      }
-    }
+    setConfirmDialog({
+      open: true,
+      title: 'Sterge solicitarea',
+      message: 'Sigur doriti sa stergeti aceasta solicitare?',
+      variant: 'error',
+      confirmText: 'Sterge',
+      onConfirm: async () => {
+        try {
+          await deleteRequest(requestId).unwrap();
+          onClose();
+        } catch (error) {
+          console.error('Error deleting request:', error);
+        }
+      },
+    });
   };
 
   if (!requestId) return null;
@@ -803,6 +819,22 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
           </Button>
         </DialogActions>
       </Dialog>
+
+      <FriendlyDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        variant={confirmDialog.variant || 'warning'}
+        icon={<DeleteIcon />}
+        onConfirm={async () => {
+          confirmDialog.onConfirm();
+          setConfirmDialog(prev => ({ ...prev, open: false }));
+        }}
+        confirmText={confirmDialog.confirmText || 'Confirma'}
+        cancelText="Anuleaza"
+      >
+        <Typography>{confirmDialog.message}</Typography>
+      </FriendlyDialog>
     </>
   );
 };

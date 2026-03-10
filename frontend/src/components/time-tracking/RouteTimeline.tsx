@@ -30,6 +30,7 @@ import {
   useGeocodeEntryLocationsMutation,
 } from '../../store/api/time-tracking.api';
 import type { RoutePoint } from '../../types/time-tracking.types';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const formatTime = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -121,14 +122,13 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
 
   const [geocode, { isLoading: isGeocoding }] = useGeocodeEntryLocationsMutation();
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
-  const [geocodeSuccess, setGeocodeSuccess] = useState<string | null>(null);
+  const { notifySuccess } = useSnackbar();
 
   const handleGeocode = async () => {
     if (isCombined) return; // Geocode not supported for combined view
     try {
       const result = await geocode(timeEntryId!).unwrap();
-      setGeocodeSuccess(`${result.geocodedCount} adrese geocodate cu succes!`);
-      setTimeout(() => setGeocodeSuccess(null), 5000);
+      notifySuccess(`${result.geocodedCount} adrese geocodate cu succes!`);
     } catch {
       // Error handled by RTK Query
     }
@@ -222,10 +222,6 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
       </Box>
 
       <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
-        {geocodeSuccess && (
-          <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>{geocodeSuccess}</Alert>
-        )}
-
         {/* Stats Row */}
         <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
           <Grid size={{ xs: 6, sm: 3 }}>

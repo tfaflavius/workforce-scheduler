@@ -48,6 +48,7 @@ import {
   Timer as TimerIcon,
   ReportProblem as ReportProblemIcon,
   Security as SecurityIcon,
+  EditNote as EditRequestsIcon,
 } from '@mui/icons-material';
 import {
   Groups as GroupsIcon,
@@ -289,6 +290,12 @@ export const MainLayout = () => {
       roles: ['ADMIN'],
     },
     {
+      text: 'Cereri de Editare',
+      icon: <EditRequestsIcon />,
+      path: '/admin/edit-requests',
+      roles: ['ADMIN'],
+    },
+    {
       text: 'Permisiuni',
       icon: <SecurityIcon />,
       path: '/admin/permissions',
@@ -521,7 +528,7 @@ export const MainLayout = () => {
           const sections: { label: string; paths: string[]; color: string }[] = [
             { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: theme.palette.primary.main },
             { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: theme.palette.info.main },
-            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: theme.palette.secondary.main },
+            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/admin/edit-requests', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: theme.palette.secondary.main },
             { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari'], color: theme.palette.success.main },
           ];
 

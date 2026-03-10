@@ -28,7 +28,6 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
-  Snackbar,
   alpha,
   useTheme,
   useMediaQuery,
@@ -54,6 +53,7 @@ import {
   Savings as SavingsIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard } from '../../components/common';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
   useGetBudgetPositionsQuery,
   useGetSummaryQuery,
@@ -91,6 +91,7 @@ const formatDate = (dateStr: string | null) => {
 const AchizitiiPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { notifySuccess, notifyError } = useSnackbar();
 
   // State
   const [tabValue, setTabValue] = useState(0);
@@ -148,10 +149,6 @@ const AchizitiiPage: React.FC = () => {
     notes: '',
   });
 
-  // Messages
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   // Current category based on tab
   const currentCategory: BudgetCategory = tabValue === 0 ? 'INVESTMENTS' : 'CURRENT_EXPENSES';
 
@@ -187,17 +184,11 @@ const AchizitiiPage: React.FC = () => {
 
   // ===================== HANDLERS =====================
 
-  const showSuccess = (msg: string) => {
-    setSuccessMessage(msg);
-    setTimeout(() => setSuccessMessage(null), 4000);
-  };
-
-  const showError = (error: unknown) => {
-    const msg = error && typeof error === 'object' && 'data' in error
+  // Error extraction helper
+  const extractErrorMessage = (error: unknown): string => {
+    return error && typeof error === 'object' && 'data' in error
       ? ((error as any).data as any)?.message || 'A aparut o eroare'
       : 'A aparut o eroare';
-    setErrorMessage(msg);
-    setTimeout(() => setErrorMessage(null), 5000);
   };
 
   // Budget Position handlers
@@ -227,7 +218,7 @@ const AchizitiiPage: React.FC = () => {
             description: bpForm.description || undefined,
           },
         }).unwrap();
-        showSuccess('Pozitia bugetara a fost actualizata');
+        notifySuccess('Pozitia bugetara a fost actualizata');
       } else {
         await createBp({
           year: selectedYear,
@@ -236,11 +227,11 @@ const AchizitiiPage: React.FC = () => {
           totalAmount: Number(bpForm.totalAmount),
           description: bpForm.description || undefined,
         }).unwrap();
-        showSuccess('Pozitia bugetara a fost creata');
+        notifySuccess('Pozitia bugetara a fost creata');
       }
       setBpDialogOpen(false);
     } catch (error) {
-      showError(error);
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -312,14 +303,14 @@ const AchizitiiPage: React.FC = () => {
 
       if (editingAcq) {
         await updateAcq({ id: editingAcq.id, data }).unwrap();
-        showSuccess('Achizitia a fost actualizata');
+        notifySuccess('Achizitia a fost actualizata');
       } else {
         await createAcq({ ...data, budgetPositionId: acqForm.budgetPositionId }).unwrap();
-        showSuccess('Achizitia a fost creata');
+        notifySuccess('Achizitia a fost creata');
       }
       setAcqDialogOpen(false);
     } catch (error) {
-      showError(error);
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -361,14 +352,14 @@ const AchizitiiPage: React.FC = () => {
 
       if (editingInv) {
         await updateInv({ id: editingInv.id, data }).unwrap();
-        showSuccess('Factura a fost actualizata');
+        notifySuccess('Factura a fost actualizata');
       } else {
         await createInv({ ...data, acquisitionId: invForm.acquisitionId }).unwrap();
-        showSuccess('Factura a fost adaugata');
+        notifySuccess('Factura a fost adaugata');
       }
       setInvDialogOpen(false);
     } catch (error) {
-      showError(error);
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -378,18 +369,18 @@ const AchizitiiPage: React.FC = () => {
     try {
       if (deleteTarget.type === 'bp') {
         await deleteBp(deleteTarget.id).unwrap();
-        showSuccess('Pozitia bugetara a fost stearsa');
+        notifySuccess('Pozitia bugetara a fost stearsa');
       } else if (deleteTarget.type === 'acq') {
         await deleteAcq(deleteTarget.id).unwrap();
-        showSuccess('Achizitia a fost stearsa');
+        notifySuccess('Achizitia a fost stearsa');
       } else if (deleteTarget.type === 'inv') {
         await deleteInv(deleteTarget.id).unwrap();
-        showSuccess('Factura a fost stearsa');
+        notifySuccess('Factura a fost stearsa');
       }
       setDeleteConfirmOpen(false);
       setDeleteTarget(null);
     } catch (error) {
-      showError(error);
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -1341,17 +1332,6 @@ const AchizitiiPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Success/Error messages */}
-      <Snackbar open={!!successMessage} autoHideDuration={4000} onClose={() => setSuccessMessage(null)}>
-        <Alert onClose={() => setSuccessMessage(null)} severity="success" variant="filled" sx={{ width: '100%' }}>
-          {successMessage}
-        </Alert>
-      </Snackbar>
-      <Snackbar open={!!errorMessage} autoHideDuration={5000} onClose={() => setErrorMessage(null)}>
-        <Alert onClose={() => setErrorMessage(null)} severity="error" variant="filled" sx={{ width: '100%' }}>
-          {errorMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

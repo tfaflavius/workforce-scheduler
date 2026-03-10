@@ -61,6 +61,7 @@ import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useAppSelector } from '../../store/hooks';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
 import type { ScheduleAssignmentDto, ScheduleStatus } from '../../types/schedule.types';
 
@@ -116,6 +117,7 @@ const BulkSchedulePage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user: currentUser } = useAppSelector((state) => state.auth);
   const isAdmin = isAdminOrAbove(currentUser?.role);
+  const { notifySuccess, notifyError } = useSnackbar();
 
   // State
   const [shiftPattern, setShiftPattern] = useState<ShiftPatternType>('12H');
@@ -131,8 +133,6 @@ const BulkSchedulePage: React.FC = () => {
   // Pozitii de lucru: { oderId: { date: workPositionId } }
   const [bulkWorkPositions, setBulkWorkPositions] = useState<Record<string, Record<string, string>>>({});
 
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [savingProgress, setSavingProgress] = useState<{ current: number; total: number } | null>(null);
 
   // Dialog states pentru actiuni rapide
@@ -456,7 +456,7 @@ const BulkSchedulePage: React.FC = () => {
           const errorMsg = err?.data?.message || err?.message || JSON.stringify(err);
           console.error(`Failed to save schedule for ${userName}:`, errorMsg, err);
           failedCount++;
-          setErrorMessage(`Eroare la ${userName}: ${errorMsg}`);
+          notifyError(`Eroare la ${userName}: ${errorMsg}`);
         }
 
         setSavingProgress(prev => prev ? { ...prev, current: prev.current + 1 } : null);
@@ -465,22 +465,17 @@ const BulkSchedulePage: React.FC = () => {
       setSavingProgress(null);
 
       if (failedCount === 0) {
-        setSuccessMessage(`Toate cele ${savedCount} programe au fost salvate cu succes!`);
+        notifySuccess(`Toate cele ${savedCount} programe au fost salvate cu succes!`);
       } else {
-        setErrorMessage(`${savedCount} programe salvate, ${failedCount} erori.`);
+        notifyError(`${savedCount} programe salvate, ${failedCount} erori.`);
       }
 
       // Reincarca datele
       refetchSchedules();
 
-      setTimeout(() => {
-        setSuccessMessage(null);
-        setErrorMessage(null);
-      }, 5000);
-
     } catch (err) {
       console.error('Failed to save schedules:', err);
-      setErrorMessage('A aparut o eroare la salvarea programelor.');
+      notifyError('A aparut o eroare la salvarea programelor.');
       setSavingProgress(null);
     }
   };
@@ -504,8 +499,7 @@ const BulkSchedulePage: React.FC = () => {
     setQuickActionDialog(null);
     setSelectedDay(null);
     setSelectedShiftForAction('');
-    setSuccessMessage(`Tura aplicata pentru ${selectedUserIds.length} angajati in ziua selectata.`);
-    setTimeout(() => setSuccessMessage(null), 3000);
+    notifySuccess(`Tura aplicata pentru ${selectedUserIds.length} angajati in ziua selectata.`);
   };
 
   // 2. Aplica tura pe toata saptamana (7 zile de la data selectata)
@@ -534,8 +528,7 @@ const BulkSchedulePage: React.FC = () => {
     setQuickActionDialog(null);
     setSelectedWeekStart('');
     setSelectedShiftForAction('');
-    setSuccessMessage(`Tura aplicata pe ${dates.length} zile pentru ${selectedUserIds.length} angajati.`);
-    setTimeout(() => setSuccessMessage(null), 3000);
+    notifySuccess(`Tura aplicata pe ${dates.length} zile pentru ${selectedUserIds.length} angajati.`);
   };
 
   // 3. Copiaza programul de la un angajat la altii
@@ -561,8 +554,7 @@ const BulkSchedulePage: React.FC = () => {
     setQuickActionDialog(null);
     setCopySourceUserId('');
     setCopyTargetUserIds([]);
-    setSuccessMessage(`Programul copiat la ${copyTargetUserIds.length} angajati.`);
-    setTimeout(() => setSuccessMessage(null), 3000);
+    notifySuccess(`Programul copiat la ${copyTargetUserIds.length} angajati.`);
   };
 
   // 4. Aplica un template de program
@@ -579,8 +571,7 @@ const BulkSchedulePage: React.FC = () => {
     });
 
     setQuickActionDialog(null);
-    setSuccessMessage(`Template aplicat pentru ${selectedUserIds.length} angajati.`);
-    setTimeout(() => setSuccessMessage(null), 3000);
+    notifySuccess(`Template aplicat pentru ${selectedUserIds.length} angajati.`);
   };
 
   // Handler pentru click pe header de zi (pentru aplicare rapida)
@@ -611,18 +602,6 @@ const BulkSchedulePage: React.FC = () => {
             </Typography>
           </Box>
         </Stack>
-
-        {/* Alerts */}
-        {successMessage && (
-          <Alert severity="success" onClose={() => setSuccessMessage(null)}>
-            {successMessage}
-          </Alert>
-        )}
-        {errorMessage && (
-          <Alert severity="error" onClose={() => setErrorMessage(null)}>
-            {errorMessage}
-          </Alert>
-        )}
 
         {/* Selectori - Luna si Tip Tura */}
         <Card>
