@@ -31,6 +31,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('themeMode', mode);
     document.documentElement.setAttribute('data-theme', mode);
+    // Update PWA theme-color meta tag to match current mode
+    const themeColor = mode === 'light' ? '#2563eb' : '#0f172a';
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', themeColor);
+    }
   }, [mode]);
 
   const toggleTheme = () => {
@@ -217,11 +223,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                   ? '0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03)'
                   : '0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
                 transition: 'all 0.3s ease-in-out',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: mode === 'light'
-                    ? '0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06)'
-                    : '0 4px 12px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25)',
+                // Hover lift only on interactive cards (with onClick or CardActionArea)
+                '&[role="button"], &:has(.MuiCardActionArea-root)': {
+                  cursor: 'pointer',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: mode === 'light'
+                      ? '0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06)'
+                      : '0 4px 12px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25)',
+                  },
                 },
               },
             },

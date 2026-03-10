@@ -102,10 +102,10 @@ export const MainLayout = () => {
   const [deptOpen, setDeptOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     Principal: true,
-    Operatiuni: true,
-    Administrare: true,
-    Parcari: true,
-    Altele: true,
+    Operatiuni: false,
+    Administrare: false,
+    Parcari: false,
+    Altele: false,
   });
 
   const toggleSection = (label: string) => {
@@ -372,8 +372,8 @@ export const MainLayout = () => {
         display: 'flex',
         flexDirection: 'column',
         background: theme.palette.mode === 'light'
-          ? 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)'
-          : 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+          ? `linear-gradient(180deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`
+          : `linear-gradient(180deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.default} 100%)`,
       }}
     >
       {/* Logo */}
@@ -404,11 +404,11 @@ export const MainLayout = () => {
               width: { xs: 36, sm: 40 },
               height: { xs: 36, sm: 40 },
               borderRadius: 2,
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+              boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
               border: '1px solid rgba(255, 255, 255, 0.15)',
             }}
           >
@@ -419,7 +419,7 @@ export const MainLayout = () => {
             sx={{
               fontWeight: 700,
               fontSize: { xs: '1rem', sm: '1.1rem' },
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -459,10 +459,10 @@ export const MainLayout = () => {
             sx={{
               width: { xs: 40, sm: 48 },
               height: { xs: 40, sm: 48 },
-              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
               fontSize: { xs: '1rem', sm: '1.2rem' },
               fontWeight: 600,
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+              boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
             }}
           >
             {user?.fullName?.charAt(0).toUpperCase() || 'U'}
@@ -519,10 +519,10 @@ export const MainLayout = () => {
         {(() => {
           // Define sections with labels and accent colors
           const sections: { label: string; paths: string[]; color: string }[] = [
-            { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: '#2563eb' },
-            { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: '#06b6d4' },
-            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: '#7c3aed' },
-            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari'], color: '#10b981' },
+            { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: theme.palette.primary.main },
+            { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: theme.palette.info.main },
+            { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: theme.palette.secondary.main },
+            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari'], color: theme.palette.success.main },
           ];
 
           // Group filtered menu items into sections
@@ -823,12 +823,12 @@ export const MainLayout = () => {
               py: { xs: 1, sm: 1.25 },
               transition: 'all 0.2s ease',
               '&:hover': {
-                bgcolor: alpha(mode === 'dark' ? '#f59e0b' : '#7c3aed', 0.08),
+                bgcolor: alpha(mode === 'dark' ? theme.palette.warning.main : theme.palette.secondary.main, 0.08),
                 transform: 'translateX(4px)',
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 }, color: mode === 'dark' ? '#f59e0b' : '#7c3aed' }}>
+            <ListItemIcon sx={{ minWidth: { xs: 36, sm: 40 }, color: mode === 'dark' ? theme.palette.warning.main : theme.palette.secondary.main }}>
               {mode === 'dark' ? (
                 <LightModeIcon sx={{ fontSize: { xs: '1.25rem', sm: '1.4rem' } }} />
               ) : (
@@ -943,7 +943,7 @@ export const MainLayout = () => {
                 sx={{
                   width: { xs: 32, sm: 36 },
                   height: { xs: 32, sm: 36 },
-                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                   fontSize: { xs: '0.875rem', sm: '1rem' },
                   fontWeight: 600,
                 }}

@@ -13,22 +13,24 @@ export const GradientHeader: React.FC<GradientHeaderProps> = ({
   title,
   subtitle,
   icon,
-  gradient = '#2563eb 0%, #7c3aed 100%',
+  gradient,
   children,
 }) => {
   const theme = useTheme();
 
-  // Adjust gradient for dark mode
+  // Build default gradient from theme palette
+  const defaultGradient = `${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%`;
+  const resolvedGradient = gradient || defaultGradient;
+
+  // Adjust gradient for dark mode — use darker variants for better contrast
   const effectiveGradient =
     theme.palette.mode === 'dark'
-      ? gradient
-          .replace('#2563eb', '#1e40af')
-          .replace('#7c3aed', '#5b21b6')
-          .replace('#10b981', '#047857')
-          .replace('#059669', '#065f46')
-          .replace('#6366f1', '#4f46e5')
-          .replace('#8b5cf6', '#7c3aed')
-      : gradient;
+      ? resolvedGradient
+          .replace(theme.palette.primary.main, theme.palette.primary.dark)
+          .replace(theme.palette.secondary.main, theme.palette.secondary.dark)
+          .replace(theme.palette.success.main, theme.palette.success.dark)
+          .replace(theme.palette.info.main, theme.palette.info.dark)
+      : resolvedGradient;
 
   return (
     <Fade in={true} timeout={600}>

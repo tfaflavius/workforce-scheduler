@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { getTimeAgo } from '../../utils/getTimeAgo';
 import {
   Box,
   Typography,
@@ -83,20 +84,6 @@ const getCategoryFromType = (type: NotificationType): string => {
   if (type.startsWith('DAILY_REPORT')) return 'Rapoarte Zilnice';
   if (type === 'EMPLOYEE_ABSENT') return 'Prezenta';
   return 'General';
-};
-
-const getTimeAgo = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffMins < 1) return 'Acum';
-  if (diffMins < 60) return `Acum ${diffMins} min`;
-  if (diffHours < 24) return `Acum ${diffHours} ore`;
-  if (diffDays < 7) return `Acum ${diffDays} zile`;
-  return date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 const NotificationsPage: React.FC = () => {

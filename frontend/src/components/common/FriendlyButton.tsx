@@ -7,7 +7,7 @@ import {
   useTheme,
   keyframes,
 } from '@mui/material';
-import type { ButtonProps } from '@mui/material';
+import type { ButtonProps, Theme } from '@mui/material';
 
 const pulse = keyframes`
   0%, 100% { transform: scale(1); }
@@ -33,14 +33,17 @@ export interface FriendlyButtonProps extends Omit<ButtonProps, 'variant' | 'colo
   fullWidthOnMobile?: boolean;
 }
 
-const variantColors: Record<ButtonVariantExtended, { main: string; light: string; dark: string }> = {
-  primary: { main: '#2563eb', light: '#60a5fa', dark: '#1d4ed8' },
-  secondary: { main: '#7c3aed', light: '#a78bfa', dark: '#5b21b6' },
-  success: { main: '#10b981', light: '#34d399', dark: '#059669' },
-  warning: { main: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
-  error: { main: '#ef4444', light: '#f87171', dark: '#dc2626' },
-  info: { main: '#06b6d4', light: '#22d3ee', dark: '#0891b2' },
-  ghost: { main: 'transparent', light: 'transparent', dark: 'transparent' },
+// Resolve variant colors from theme palette instead of hardcoded hex values
+const getVariantColorsFromTheme = (
+  theme: Theme,
+  colorVariant: ButtonVariantExtended,
+): { main: string; light: string; dark: string } => {
+  if (colorVariant === 'ghost') {
+    return { main: 'transparent', light: 'transparent', dark: 'transparent' };
+  }
+  const paletteKey = colorVariant as 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
+  const palette = theme.palette[paletteKey];
+  return { main: palette.main, light: palette.light, dark: palette.dark };
 };
 
 export const FriendlyButton: React.FC<FriendlyButtonProps> = ({
@@ -59,7 +62,7 @@ export const FriendlyButton: React.FC<FriendlyButtonProps> = ({
   ...props
 }) => {
   const theme = useTheme();
-  const colors = variantColors[colorVariant];
+  const colors = getVariantColorsFromTheme(theme, colorVariant);
 
   const getVariantStyles = () => {
     if (colorVariant === 'ghost') {

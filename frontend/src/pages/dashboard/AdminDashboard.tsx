@@ -6,7 +6,6 @@ import {
   CardContent,
   Grid,
   Stack,
-  CircularProgress,
   Divider,
   Grow,
   Fade,
@@ -66,9 +65,11 @@ import {
 import { useGetNotificationsQuery } from '../../store/api/notifications.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { StatCard } from '../../components/common/StatCard';
+import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
 import { StatusDistributionChart, WeeklyOverviewChart } from '../../components/common/DashboardCharts';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
+import { getTimeAgo } from '../../utils/getTimeAgo';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -104,12 +105,23 @@ const AdminDashboard = () => {
   const { data: carStatus } = useGetCarStatusTodayQuery();
 
   const isLoading = pendingLoading || approvedLoading || rejectedLoading || usersLoading || swapsLoading || leavesLoading || dispatchersLoading;
+  const hasError = !isLoading && !users && !pendingSchedules;
 
-  // Loading state - after all hooks
+  // Loading state - show skeleton instead of spinner for better perceived performance
   if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
+  // Error state
+  if (hasError) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress size={48} />
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Nu s-au putut incarca datele dashboard-ului. Verifica conexiunea la internet si reincearca.
+        </Alert>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Reincearca
+        </Button>
       </Box>
     );
   }
@@ -137,20 +149,6 @@ const AdminDashboard = () => {
     { label: 'Rapoarte', path: '/reports', icon: <ReportIcon />, color: '#10b981' },
   ];
 
-  // Time ago helper
-  const getTimeAgo = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffMins < 1) return 'Acum';
-    if (diffMins < 60) return `${diffMins} min`;
-    if (diffHours < 24) return `${diffHours} ore`;
-    if (diffDays < 7) return `${diffDays} zile`;
-    return date.toLocaleDateString('ro-RO');
-  };
 
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>

@@ -69,42 +69,20 @@ export interface FriendlyDialogProps {
   confirmVariant?: 'contained' | 'outlined' | 'text';
 }
 
-const variantColors: Record<DialogVariant, { gradient: string; main: string; light: string }> = {
-  default: {
-    gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-    main: '#6366f1',
-    light: '#818cf8',
-  },
-  success: {
-    gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
-    main: '#10b981',
-    light: '#34d399',
-  },
-  warning: {
-    gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
-    main: '#f59e0b',
-    light: '#fbbf24',
-  },
-  error: {
-    gradient: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
-    main: '#ef4444',
-    light: '#f87171',
-  },
-  info: {
-    gradient: 'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)',
-    main: '#06b6d4',
-    light: '#22d3ee',
-  },
-  primary: {
-    gradient: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-    main: '#2563eb',
-    light: '#60a5fa',
-  },
-  secondary: {
-    gradient: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
-    main: '#7c3aed',
-    light: '#a78bfa',
-  },
+// Resolve variant colors from theme palette instead of hardcoded hex values
+const getDialogColors = (
+  theme: import('@mui/material').Theme,
+  variant: DialogVariant,
+): { gradient: string; main: string; light: string } => {
+  // Map 'default' to secondary palette (indigo-ish tones)
+  const paletteKey = variant === 'default' ? 'secondary' : variant;
+  type PaletteKey = 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info';
+  const palette = theme.palette[paletteKey as PaletteKey];
+  return {
+    gradient: `linear-gradient(135deg, ${palette.main} 0%, ${palette.light} 100%)`,
+    main: palette.main,
+    light: palette.light,
+  };
 };
 
 export const FriendlyDialog: React.FC<FriendlyDialogProps> = ({
@@ -130,7 +108,7 @@ export const FriendlyDialog: React.FC<FriendlyDialogProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const colors = variantColors[variant];
+  const colors = getDialogColors(theme, variant);
 
   const handleClose = (_event: {}, reason: 'backdropClick' | 'escapeKeyDown') => {
     if (disableBackdropClick && reason === 'backdropClick') return;

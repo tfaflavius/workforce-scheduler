@@ -167,8 +167,8 @@ export const LoginPage = () => {
         width: '100%',
         display: 'flex',
         background: theme.palette.mode === 'light'
-          ? 'linear-gradient(135deg, #0f172a 0%, #1e40af 40%, #3b82f6 100%)'
-          : 'linear-gradient(135deg, #020617 0%, #172554 40%, #1e40af 100%)',
+          ? `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.primary.dark} 40%, ${theme.palette.primary.light} 100%)`
+          : `linear-gradient(135deg, ${theme.palette.background.default} 0%, ${theme.palette.primary.dark} 40%, ${theme.palette.primary.main} 100%)`,
         overflow: 'auto',
         position: 'relative',
       }}
@@ -379,7 +379,7 @@ export const LoginPage = () => {
                 maxWidth: { xs: '100%', sm: 480 },
                 p: { xs: 3, sm: 4 },
                 borderRadius: { xs: 3, sm: 4 },
-                bgcolor: theme.palette.mode === 'light' ? 'white' : alpha('#1e293b', 0.95),
+                bgcolor: theme.palette.mode === 'light' ? 'white' : alpha(theme.palette.background.paper, 0.95),
                 backdropFilter: 'blur(20px)',
                 boxShadow: isMobile ? 'none' : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
               }}
@@ -522,12 +522,12 @@ export const LoginPage = () => {
                       fontWeight: 700,
                       textTransform: 'none',
                       borderRadius: 2.5,
-                      background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.light} 100%)`,
+                      boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.4)}`,
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
-                        boxShadow: '0 6px 20px rgba(37, 99, 235, 0.5)',
+                        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                        boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.5)}`,
                         transform: 'translateY(-2px)',
                       },
                       '&:active': {
@@ -721,12 +721,12 @@ export const LoginPage = () => {
                       fontWeight: 700,
                       textTransform: 'none',
                       borderRadius: 2.5,
-                      background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
-                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.light} 100%)`,
+                      boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.4)}`,
                       transition: 'all 0.3s ease',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
-                        boxShadow: '0 6px 20px rgba(37, 99, 235, 0.5)',
+                        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                        boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.5)}`,
                         transform: 'translateY(-2px)',
                       },
                       '&:active': {
