@@ -90,7 +90,7 @@ export const StatusDistributionChart: React.FC<StatusDistributionProps> = ({ dat
               {title}
             </Typography>
           </Stack>
-          <Box sx={{ position: 'relative', height: 200, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ position: 'relative', height: { xs: 160, sm: 200 }, display: 'flex', justifyContent: 'center' }}>
             <Doughnut data={chartData} options={options} />
             {/* Center total */}
             <Box
@@ -192,7 +192,7 @@ export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = ({ data, title
               {title}
             </Typography>
           </Stack>
-          <Box sx={{ height: 180 }}>
+          <Box sx={{ height: { xs: 140, sm: 180 } }}>
             <Bar data={chartData} options={options} />
           </Box>
         </CardContent>

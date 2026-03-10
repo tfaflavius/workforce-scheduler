@@ -1823,7 +1823,7 @@ const ReportsPage: React.FC = () => {
           onClick={handleExportSchedulePDF}
           fullWidth={isMobile}
           disabled={filteredUsers.length === 0 || isLoading}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: { xs: 'auto', sm: 200 } }}
         >
           Descarca PDF
         </Button>
@@ -1835,7 +1835,7 @@ const ReportsPage: React.FC = () => {
           onClick={handleExportScheduleExcel}
           fullWidth={isMobile}
           disabled={filteredUsers.length === 0 || isLoading}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: { xs: 'auto', sm: 200 } }}
         >
           Descarca Excel
         </Button>
@@ -1943,7 +1943,7 @@ const ReportsPage: React.FC = () => {
           onClick={handleExportLeavesPDF}
           fullWidth={isMobile}
           disabled={filteredLeaveRequests.length === 0 || isLoading}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: { xs: 'auto', sm: 200 } }}
         >
           Descarca PDF
         </Button>
@@ -1955,7 +1955,7 @@ const ReportsPage: React.FC = () => {
           onClick={handleExportLeavesExcel}
           fullWidth={isMobile}
           disabled={filteredLeaveRequests.length === 0 || isLoading}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: { xs: 'auto', sm: 200 } }}
         >
           Descarca Excel
         </Button>
@@ -2046,7 +2046,7 @@ const ReportsPage: React.FC = () => {
           onClick={handleExportSwapsPDF}
           fullWidth={isMobile}
           disabled={filteredSwapRequests.length === 0 || isLoading}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: { xs: 'auto', sm: 200 } }}
         >
           Descarca PDF
         </Button>
@@ -2058,7 +2058,7 @@ const ReportsPage: React.FC = () => {
           onClick={handleExportSwapsExcel}
           fullWidth={isMobile}
           disabled={filteredSwapRequests.length === 0 || isLoading}
-          sx={{ minWidth: 200 }}
+          sx={{ minWidth: { xs: 'auto', sm: 200 } }}
         >
           Descarca Excel
         </Button>

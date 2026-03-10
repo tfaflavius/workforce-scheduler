@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState } from 'react';
 import { Box, useTheme } from '@mui/material';
 
 interface SignatureCanvasProps {
@@ -14,10 +14,12 @@ export interface SignatureCanvasRef {
 
 const SignatureCanvas = forwardRef<SignatureCanvasRef, SignatureCanvasProps>(
   ({ width = 400, height = 150 }, ref) => {
+    const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
     const lastPos = useRef({ x: 0, y: 0 });
     const theme = useTheme();
+    const [canvasSize, setCanvasSize] = useState({ w: width, h: height });
 
     useImperativeHandle(ref, () => ({
       clear: () => {
@@ -49,6 +51,28 @@ const SignatureCanvas = forwardRef<SignatureCanvasRef, SignatureCanvasProps>(
       },
     }));
 
+    // Responsive: observe container width and adjust canvas size
+    useEffect(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const updateSize = () => {
+        const containerWidth = container.clientWidth;
+        // Use container width but cap at provided width prop
+        const effectiveWidth = Math.min(containerWidth, width);
+        // Maintain aspect ratio from original width/height
+        const effectiveHeight = Math.round((effectiveWidth / width) * height);
+        setCanvasSize({ w: effectiveWidth, h: effectiveHeight });
+      };
+
+      // Initial measurement
+      updateSize();
+
+      const observer = new ResizeObserver(updateSize);
+      observer.observe(container);
+      return () => observer.disconnect();
+    }, [width, height]);
+
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -56,9 +80,9 @@ const SignatureCanvas = forwardRef<SignatureCanvasRef, SignatureCanvasProps>(
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set canvas size
-      canvas.width = width;
-      canvas.height = height;
+      // Set canvas internal resolution to match display size (1:1 pixel mapping)
+      canvas.width = canvasSize.w;
+      canvas.height = canvasSize.h;
 
       // Fill with white background
       ctx.fillStyle = '#ffffff';
@@ -69,7 +93,7 @@ const SignatureCanvas = forwardRef<SignatureCanvasRef, SignatureCanvasProps>(
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-    }, [width, height]);
+    }, [canvasSize]);
 
     const getPosition = (e: MouseEvent | TouchEvent) => {
       const canvas = canvasRef.current;
@@ -123,12 +147,14 @@ const SignatureCanvas = forwardRef<SignatureCanvasRef, SignatureCanvasProps>(
 
     return (
       <Box
+        ref={containerRef}
         sx={{
           border: `2px solid ${theme.palette.divider}`,
           borderRadius: 1,
           overflow: 'hidden',
           touchAction: 'none',
           userSelect: 'none',
+          width: '100%',
         }}
       >
         <canvas
@@ -136,7 +162,7 @@ const SignatureCanvas = forwardRef<SignatureCanvasRef, SignatureCanvasProps>(
           style={{
             display: 'block',
             width: '100%',
-            height: height,
+            height: canvasSize.h,
             cursor: 'crosshair',
           }}
           onMouseDown={startDrawing}

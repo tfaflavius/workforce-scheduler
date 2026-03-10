@@ -469,10 +469,10 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
         </Alert>
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
-          <Table size="small" sx={{ minWidth: 900 }}>
+          <Table size="small" sx={{ minWidth: { xs: 700, sm: 900 } }}>
             <TableHead>
-              <TableRow sx={{ bgcolor: alpha('#059669', 0.08) }}>
-                <TableCell sx={{ fontWeight: 600, minWidth: { xs: 120, sm: 150 }, position: 'sticky', left: 0, bgcolor: alpha('#059669', 0.08), zIndex: 1, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+              <TableRow sx={{ bgcolor: alpha(theme.palette.success.dark, 0.08) }}>
+                <TableCell sx={{ fontWeight: 600, minWidth: { xs: 120, sm: 150 }, position: 'sticky', left: 0, bgcolor: alpha(theme.palette.success.dark, 0.08), zIndex: 1, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                   Categorie
                 </TableCell>
                 {MONTH_LABELS.map((label) => (
@@ -540,12 +540,12 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
               ))}
               {/* Totals Row */}
               {revenueSummary && (
-                <TableRow sx={{ bgcolor: alpha('#059669', 0.05) }}>
+                <TableRow sx={{ bgcolor: alpha(theme.palette.success.dark, 0.05) }}>
                   <TableCell
                     sx={{
                       position: 'sticky',
                       left: 0,
-                      bgcolor: alpha('#059669', 0.05),
+                      bgcolor: alpha(theme.palette.success.dark, 0.05),
                       zIndex: 1,
                       fontWeight: 700,
                     }}

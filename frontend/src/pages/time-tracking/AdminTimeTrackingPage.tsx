@@ -20,6 +20,11 @@ import {
   Snackbar,
   Alert,
   alpha,
+  Card,
+  CardContent,
+  Stack,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Timer as TimerIcon,
@@ -191,6 +196,8 @@ interface ConsolidatedEntry {
 // ===== MAIN COMPONENT =====
 
 const AdminTimeTrackingPage: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [tabIndex, setTabIndex] = useState(0);
   const [selectedTrailEntryId, setSelectedTrailEntryId] = useState<string | null>(null);
   const [selectedRouteEntryId, setSelectedRouteEntryId] = useState<string | null>(null);
@@ -569,7 +576,92 @@ const AdminTimeTrackingPage: React.FC = () => {
               </Box>
             ) : (
               <>
-                {/* Table */}
+                {/* Real-time monitoring - Table (desktop) / Cards (mobile) */}
+                {isMobile ? (
+                  <Stack spacing={1.5} sx={{ mb: 3 }}>
+                    {realTimeRows.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: 3 }}>
+                        Nu sunt angajati in departamentele monitorizate
+                      </Typography>
+                    ) : (
+                      realTimeRows.map(row => {
+                        const gpsInfo = getGpsAlertInfo(row);
+                        return (
+                          <Card key={row.userId} sx={{ borderRadius: 2 }}>
+                            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                <Box>
+                                  <Typography variant="body2" fontWeight={600}>{row.name}</Typography>
+                                  <Chip
+                                    label={row.department}
+                                    size="small"
+                                    sx={{
+                                      height: 20,
+                                      mt: 0.5,
+                                      bgcolor: alpha(getDeptColor(row.department), 0.12),
+                                      color: getDeptColor(row.department),
+                                      fontWeight: 600,
+                                      fontSize: '0.7rem',
+                                    }}
+                                  />
+                                </Box>
+                                <Chip
+                                  label={row.isActive ? 'Pe Tura' : 'Inactiv'}
+                                  size="small"
+                                  color={row.isActive ? 'success' : 'default'}
+                                  variant={row.isActive ? 'filled' : 'outlined'}
+                                />
+                              </Box>
+                              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+                                {row.isActive && row.startTime && (
+                                  <Chip
+                                    icon={<ClockIcon sx={{ fontSize: 14 }} />}
+                                    label={`Start: ${formatTime(row.startTime)}`}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontSize: '0.7rem' }}
+                                  />
+                                )}
+                                {row.isActive && row.startTime && (
+                                  <Chip
+                                    icon={<TimerIcon sx={{ fontSize: 14 }} />}
+                                    label={getLiveDuration(row.startTime)}
+                                    size="small"
+                                    color="success"
+                                    sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                                  />
+                                )}
+                                {row.isActive && (
+                                  <Chip
+                                    icon={
+                                      gpsInfo.icon === 'ok' ? <GpsFixedIcon sx={{ fontSize: 14 }} /> :
+                                      gpsInfo.icon === 'off' ? <GpsOffIcon sx={{ fontSize: 14 }} /> :
+                                      <WarningIcon sx={{ fontSize: 14 }} />
+                                    }
+                                    label={gpsInfo.label}
+                                    size="small"
+                                    sx={{
+                                      bgcolor: alpha(gpsInfo.color, 0.12),
+                                      color: gpsInfo.color,
+                                      fontWeight: 600,
+                                      fontSize: '0.7rem',
+                                      '& .MuiChip-icon': { color: gpsInfo.color },
+                                    }}
+                                  />
+                                )}
+                              </Stack>
+                              {row.lastLocation?.address && (
+                                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                  {row.lastLocation.address}
+                                </Typography>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })
+                    )}
+                  </Stack>
+                ) : (
                 <Box sx={{ overflowX: 'auto', mb: 3 }}>
                   <Table size="small">
                     <TableHead>
@@ -676,6 +768,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                     </TableBody>
                   </Table>
                 </Box>
+                )}
 
                 {/* Map - show if any markers OR trails exist */}
                 {(activeMarkers.length > 0 || activeTrails.length > 0) && (
@@ -683,7 +776,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                     <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
                       Harta Locatii Active ({activeMarkers.length} angajati cu GPS, {activeTrails.length} trasee)
                     </Typography>
-                    <EmployeeLocationMap markers={activeMarkers} trails={activeTrails} height={450} />
+                    <EmployeeLocationMap markers={activeMarkers} trails={activeTrails} height={{ xs: 280, sm: 350, md: 450 }} />
                   </Box>
                 )}
               </>
@@ -744,6 +837,153 @@ const AdminTimeTrackingPage: React.FC = () => {
               </Box>
             ) : (
               <>
+                {isMobile ? (
+                  /* Mobile: Card view for history */
+                  <Stack spacing={1.5} sx={{ mb: 3 }}>
+                    {consolidatedEntries.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: 3 }}>
+                        Nu sunt inregistrari pentru filtrele selectate
+                      </Typography>
+                    ) : (
+                      consolidatedEntries.map(group => (
+                        <Card key={group.key} sx={{ borderRadius: 2 }}>
+                          <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                              <Box>
+                                <Typography variant="body2" fontWeight={600}>{group.userName}</Typography>
+                                <Chip
+                                  label={group.department}
+                                  size="small"
+                                  sx={{
+                                    height: 20,
+                                    mt: 0.5,
+                                    bgcolor: alpha(getDeptColor(group.department), 0.12),
+                                    color: getDeptColor(group.department),
+                                    fontWeight: 600,
+                                    fontSize: '0.7rem',
+                                  }}
+                                />
+                              </Box>
+                              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                {group.date}
+                              </Typography>
+                            </Box>
+                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
+                              <Chip
+                                icon={<ClockIcon sx={{ fontSize: 14 }} />}
+                                label={`${formatTime(group.firstStart)}${group.lastEnd ? ` - ${formatTime(group.lastEnd)}` : ' (In curs)'}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontSize: '0.7rem' }}
+                              />
+                              <Chip
+                                icon={<TimerIcon sx={{ fontSize: 14 }} />}
+                                label={formatDuration(group.totalDurationMinutes)}
+                                size="small"
+                                color="primary"
+                                sx={{ fontSize: '0.7rem', fontWeight: 600 }}
+                              />
+                              <Chip
+                                icon={<LocationIcon sx={{ fontSize: 14 }} />}
+                                label={`${group.totalLocationLogs} locatii`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontSize: '0.7rem' }}
+                              />
+                              {group.entryCount > 1 && (
+                                <Chip
+                                  label={`${group.entryCount} ture`}
+                                  size="small"
+                                  sx={{
+                                    fontSize: '0.7rem',
+                                    fontWeight: 700,
+                                    bgcolor: alpha(theme.palette.warning.main, 0.12),
+                                    color: theme.palette.warning.dark,
+                                  }}
+                                />
+                              )}
+                              {group.hasAutoStopped && (
+                                <Chip
+                                  icon={<GpsOffIcon sx={{ fontSize: 12 }} />}
+                                  label="Auto-stop"
+                                  size="small"
+                                  sx={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 700,
+                                    bgcolor: alpha(theme.palette.error.main, 0.12),
+                                    color: theme.palette.error.main,
+                                    '& .MuiChip-icon': { color: theme.palette.error.main },
+                                  }}
+                                />
+                              )}
+                            </Stack>
+                            <Box sx={{ display: 'flex', gap: 0.5, mt: 1.5, justifyContent: 'flex-end' }}>
+                              {group.entryCount === 1 && group.entries[0] ? (
+                                <>
+                                  <IconButton
+                                    size="small"
+                                    color={selectedTrailEntryId === group.entries[0].id ? 'warning' : 'default'}
+                                    onClick={() => {
+                                      setSelectedTrailEntryId(selectedTrailEntryId === group.entries[0].id ? null : group.entries[0].id);
+                                      setSelectedRouteEntryId(null);
+                                      setSelectedCombinedTrailIds(null);
+                                      setSelectedCombinedRouteIds(null);
+                                    }}
+                                  >
+                                    <MapIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    color={selectedRouteEntryId === group.entries[0].id ? 'warning' : 'default'}
+                                    onClick={() => {
+                                      setSelectedRouteEntryId(selectedRouteEntryId === group.entries[0].id ? null : group.entries[0].id);
+                                      setSelectedTrailEntryId(null);
+                                      setSelectedCombinedTrailIds(null);
+                                      setSelectedCombinedRouteIds(null);
+                                    }}
+                                  >
+                                    <RouteIcon fontSize="small" />
+                                  </IconButton>
+                                </>
+                              ) : (
+                                <>
+                                  <IconButton
+                                    size="small"
+                                    color={selectedCombinedTrailIds && JSON.stringify(selectedCombinedTrailIds) === JSON.stringify(group.entries.map(e => e.id)) ? 'warning' : 'default'}
+                                    onClick={() => {
+                                      const ids = group.entries.map(e => e.id);
+                                      const isActive = selectedCombinedTrailIds && JSON.stringify(selectedCombinedTrailIds) === JSON.stringify(ids);
+                                      setSelectedCombinedTrailIds(isActive ? null : ids);
+                                      setSelectedCombinedRouteIds(null);
+                                      setSelectedTrailEntryId(null);
+                                      setSelectedRouteEntryId(null);
+                                    }}
+                                  >
+                                    <MapIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    color={selectedCombinedRouteIds && JSON.stringify(selectedCombinedRouteIds) === JSON.stringify(group.entries.map(e => e.id)) ? 'warning' : 'default'}
+                                    onClick={() => {
+                                      const ids = group.entries.map(e => e.id);
+                                      const isActive = selectedCombinedRouteIds && JSON.stringify(selectedCombinedRouteIds) === JSON.stringify(ids);
+                                      setSelectedCombinedRouteIds(isActive ? null : ids);
+                                      setSelectedCombinedTrailIds(null);
+                                      setSelectedTrailEntryId(null);
+                                      setSelectedRouteEntryId(null);
+                                    }}
+                                  >
+                                    <RouteIcon fontSize="small" />
+                                  </IconButton>
+                                </>
+                              )}
+                            </Box>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </Stack>
+                ) : (
                 <Box sx={{ overflowX: 'auto', mb: 3 }}>
                   <Table size="small">
                     <TableHead>
@@ -781,8 +1021,8 @@ const AdminTimeTrackingPage: React.FC = () => {
                                 hover
                                 sx={{
                                   cursor: isSingle ? 'default' : 'pointer',
-                                  bgcolor: isExpanded ? alpha('#f59e0b', 0.04) : undefined,
-                                  '&:hover': { bgcolor: alpha('#f59e0b', 0.06) },
+                                  bgcolor: isExpanded ? alpha(theme.palette.warning.main, 0.04) : undefined,
+                                  '&:hover': { bgcolor: alpha(theme.palette.warning.main, 0.06) },
                                 }}
                                 onClick={() => {
                                   if (!isSingle) {
@@ -836,9 +1076,9 @@ const AdminTimeTrackingPage: React.FC = () => {
                                               height: 20,
                                               fontSize: '0.65rem',
                                               fontWeight: 700,
-                                              bgcolor: alpha('#ef4444', 0.12),
-                                              color: '#ef4444',
-                                              '& .MuiChip-icon': { color: '#ef4444' },
+                                              bgcolor: alpha(theme.palette.error.main, 0.12),
+                                              color: theme.palette.error.main,
+                                              '& .MuiChip-icon': { color: theme.palette.error.main },
                                             }}
                                           />
                                         </Tooltip>
@@ -870,8 +1110,8 @@ const AdminTimeTrackingPage: React.FC = () => {
                                         height: 22,
                                         fontSize: '0.75rem',
                                         fontWeight: 700,
-                                        bgcolor: alpha('#f59e0b', 0.12),
-                                        color: '#92400e',
+                                        bgcolor: alpha(theme.palette.warning.main, 0.12),
+                                        color: theme.palette.warning.dark,
                                       }}
                                     />
                                   ) : (
@@ -962,14 +1202,14 @@ const AdminTimeTrackingPage: React.FC = () => {
                                   key={entry.id}
                                   hover
                                   sx={{
-                                    bgcolor: alpha('#f59e0b', 0.02),
+                                    bgcolor: alpha(theme.palette.warning.main, 0.02),
                                     ...(selectedTrailEntryId === entry.id || selectedRouteEntryId === entry.id
-                                      ? { bgcolor: alpha('#f59e0b', 0.1) }
+                                      ? { bgcolor: alpha(theme.palette.warning.main, 0.1) }
                                       : {}),
                                   }}
                                 >
                                   <TableCell sx={{ width: 40, px: 1 }}>
-                                    <Box sx={{ width: 16, height: 16, ml: 0.5, borderLeft: '2px solid', borderBottom: '2px solid', borderColor: alpha('#f59e0b', 0.3), borderBottomLeftRadius: 4 }} />
+                                    <Box sx={{ width: 16, height: 16, ml: 0.5, borderLeft: '2px solid', borderBottom: '2px solid', borderColor: alpha(theme.palette.warning.main, 0.3), borderBottomLeftRadius: 4 }} />
                                   </TableCell>
                                   <TableCell>
                                     <Typography variant="caption" color="text.secondary">
@@ -994,9 +1234,9 @@ const AdminTimeTrackingPage: React.FC = () => {
                                                 height: 18,
                                                 fontSize: '0.6rem',
                                                 fontWeight: 700,
-                                                bgcolor: alpha('#ef4444', 0.12),
-                                                color: '#ef4444',
-                                                '& .MuiChip-icon': { color: '#ef4444' },
+                                                bgcolor: alpha(theme.palette.error.main, 0.12),
+                                                color: theme.palette.error.main,
+                                                '& .MuiChip-icon': { color: theme.palette.error.main },
                                               }}
                                             />
                                           </Tooltip>
@@ -1060,6 +1300,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                     </TableBody>
                   </Table>
                 </Box>
+                )}
 
                 {/* Trail Map - Single entry */}
                 {selectedTrail && (
@@ -1067,7 +1308,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                     <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
                       Traseu GPS - {selectedTrail.employeeName}
                     </Typography>
-                    <EmployeeLocationMap trails={[selectedTrail]} height={450} />
+                    <EmployeeLocationMap trails={[selectedTrail]} height={{ xs: 280, sm: 350, md: 450 }} />
                   </Box>
                 )}
 
@@ -1077,7 +1318,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                     <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
                       Traseu GPS Complet - {selectedCombinedTrail.employeeName} ({combinedTrailLocations.length} puncte din toate turele)
                     </Typography>
-                    <EmployeeLocationMap trails={[selectedCombinedTrail]} height={450} />
+                    <EmployeeLocationMap trails={[selectedCombinedTrail]} height={{ xs: 280, sm: 350, md: 450 }} />
                   </Box>
                 )}
 

@@ -17,6 +17,8 @@ import {
   CircularProgress,
   Tooltip,
   IconButton,
+  alpha,
+  useTheme,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -38,6 +40,7 @@ import {
 import type { BulkUpdateItem } from '../../../types/permission.types';
 
 const PermissionMatrixTab = () => {
+  const theme = useTheme();
   const { data: matrix, isLoading, refetch } = useGetMatrixQuery();
   const [bulkUpdate, { isLoading: isSaving }] = useBulkUpdateMutation();
   const [seedDefaults, { isLoading: isSeeding }] = useSeedDefaultsMutation();
@@ -288,8 +291,8 @@ const PermissionMatrixTab = () => {
                                 py: 0.25,
                                 backgroundColor: isChanged
                                   ? allowed
-                                    ? 'rgba(76, 175, 80, 0.15)'
-                                    : 'rgba(244, 67, 54, 0.15)'
+                                    ? alpha(theme.palette.success.main, 0.15)
+                                    : alpha(theme.palette.error.main, 0.15)
                                   : 'transparent',
                                 transition: 'background-color 0.2s',
                               }}
@@ -304,10 +307,10 @@ const PermissionMatrixTab = () => {
                                     onChange={() => handleToggle(resource.key, action, role.key)}
                                     size="small"
                                     sx={{
-                                      p: 0.5,
-                                      color: allowed ? '#4caf50' : 'rgba(0,0,0,0.26)',
+                                      p: { xs: 0.75, sm: 0.5 },
+                                      color: 'success.main',
                                       '&.Mui-checked': {
-                                        color: '#4caf50',
+                                        color: 'success.main',
                                       },
                                     }}
                                   />

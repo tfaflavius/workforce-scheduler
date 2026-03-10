@@ -61,7 +61,7 @@ export interface LocationTrail {
 interface EmployeeLocationMapProps {
   markers?: EmployeeMarker[];
   trails?: LocationTrail[];
-  height?: string | number;
+  height?: string | number | Record<string, string | number>;
   center?: [number, number];
   zoom?: number;
 }
@@ -86,7 +86,7 @@ const formatTime = (dateStr: string) => {
 const EmployeeLocationMap: React.FC<EmployeeLocationMapProps> = ({
   markers = [],
   trails = [],
-  height = 350,
+  height = { xs: 250, sm: 300, md: 350 },
   center = [47.06, 21.94], // Oradea
   zoom = 13,
 }) => {

@@ -481,7 +481,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       return (
         <>
         <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
-          <Table size="small" stickyHeader sx={{ minWidth: 300 }}>
+          <Table size="small" stickyHeader sx={{ minWidth: { xs: 250, sm: 300 } }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
@@ -560,7 +560,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       return (
         <>
         <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
-          <Table size="small" stickyHeader sx={{ minWidth: 400 }}>
+          <Table size="small" stickyHeader sx={{ minWidth: { xs: 320, sm: 400 } }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
@@ -631,7 +631,7 @@ const ParkingStatsReportsTab: React.FC = () => {
     return (
       <>
       <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
-        <Table size="small" stickyHeader sx={{ minWidth: 560 }}>
+        <Table size="small" stickyHeader sx={{ minWidth: { xs: 450, sm: 560 } }}>
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 90, sm: 140 } }}>Parcare</TableCell>

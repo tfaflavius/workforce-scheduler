@@ -385,7 +385,7 @@ const SubscriptionsSection: React.FC = () => {
   return (
     <Box>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }} alignItems={{ sm: 'center' }}>
-        <FormControl size="small" sx={{ minWidth: 220 }}>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
           <InputLabel>Luna</InputLabel>
           <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} label="Luna">
             {monthOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
