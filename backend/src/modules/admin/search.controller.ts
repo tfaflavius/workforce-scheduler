@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseGuards, UseInterceptors, Req } from '@nestjs
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository, ILike, Brackets } from 'typeorm';
 import { User, UserRole } from '../users/entities/user.entity';
 import { ParkingIssue } from '../parking/entities/parking-issue.entity';
 import { ParkingDamage } from '../parking/entities/parking-damage.entity';
@@ -41,7 +41,7 @@ interface AccessRule {
   excludeDepartments?: string[];
 }
 
-// Departments that don't see Programul Meu
+// Departments excluded from Programul Meu (also used in NO_SHIFT_SWAP_DEPARTMENTS)
 const PARKING_ONLY_DEPARTMENTS = [
   MAINTENANCE_DEPARTMENT_NAME,
   HANDICAP_PARKING_DEPARTMENT_NAME,
@@ -220,7 +220,7 @@ export class SearchController {
   @Get()
   @UseInterceptors(HttpCacheInterceptor)
   @CacheTTL(15) // Cache search results for 15 seconds
-  async search(@Query('q') query: string, @Req() req: any): Promise<SearchResult[]> {
+  async search(@Query('q') query: string, @Req() req: { user: User }): Promise<SearchResult[]> {
     if (!query || query.trim().length < 2) {
       return [];
     }
@@ -372,30 +372,44 @@ export class SearchController {
             order: { createdAt: 'DESC' },
           })
         : empty,
-      // Leave requests — search by reason and user name
+      // Leave requests — search by reason and user name; USER/MANAGER see only own
       this.canAccess(user, ACCESS_LEAVE)
-        ? this.leaveRepo.createQueryBuilder('lr')
-            .leftJoinAndSelect('lr.user', 'user')
-            .where('lr.reason ILIKE :q', { q: `%${q}%` })
-            .orWhere('user.full_name ILIKE :q', { q: `%${q}%` })
-            .orderBy('lr.created_at', 'DESC')
-            .take(3)
-            .getMany()
+        ? (() => {
+            const qb = this.leaveRepo.createQueryBuilder('lr')
+              .leftJoinAndSelect('lr.user', 'user')
+              .where(new Brackets(sub =>
+                sub.where('lr.reason ILIKE :q', { q: `%${q}%` })
+                   .orWhere('user.full_name ILIKE :q', { q: `%${q}%` }),
+              ))
+              .orderBy('lr.created_at', 'DESC')
+              .take(3);
+            if (user.role !== UserRole.ADMIN && user.role !== UserRole.MASTER_ADMIN) {
+              qb.andWhere('lr.user_id = :userId', { userId: user.id });
+            }
+            return qb.getMany();
+          })()
         : empty,
-      // Shift swap requests — search by reason and requester name
+      // Shift swap requests — search by reason and requester name; USER/MANAGER see only own
       this.canAccess(user, ACCESS_SHIFT_SWAPS)
-        ? this.shiftSwapRepo.createQueryBuilder('ss')
-            .leftJoinAndSelect('ss.requester', 'requester')
-            .where('ss.reason ILIKE :q', { q: `%${q}%` })
-            .orWhere('requester.full_name ILIKE :q', { q: `%${q}%` })
-            .orderBy('ss.created_at', 'DESC')
-            .take(3)
-            .getMany()
+        ? (() => {
+            const qb = this.shiftSwapRepo.createQueryBuilder('ss')
+              .leftJoinAndSelect('ss.requester', 'requester')
+              .where(new Brackets(sub =>
+                sub.where('ss.reason ILIKE :q', { q: `%${q}%` })
+                   .orWhere('requester.full_name ILIKE :q', { q: `%${q}%` }),
+              ))
+              .orderBy('ss.created_at', 'DESC')
+              .take(3);
+            if (user.role !== UserRole.ADMIN && user.role !== UserRole.MASTER_ADMIN) {
+              qb.andWhere('ss.requester_id = :userId', { userId: user.id });
+            }
+            return qb.getMany();
+          })()
         : empty,
     ]);
 
     // Map users
-    users.forEach((u: any) => {
+    (users as User[]).forEach((u) => {
       results.push({
         type: 'user',
         id: u.id,
@@ -406,7 +420,7 @@ export class SearchController {
     });
 
     // Map departments
-    departments.forEach((d: any) => {
+    (departments as Department[]).forEach((d) => {
       results.push({
         type: 'department',
         id: d.id,
@@ -417,7 +431,7 @@ export class SearchController {
     });
 
     // Map parking issues
-    issues.forEach((i: any) => {
+    (issues as ParkingIssue[]).forEach((i) => {
       results.push({
         type: 'parking_issue',
         id: i.id,
@@ -428,7 +442,7 @@ export class SearchController {
     });
 
     // Map parking damages
-    damages.forEach((d: any) => {
+    (damages as ParkingDamage[]).forEach((d) => {
       results.push({
         type: 'parking_damage',
         id: d.id,
@@ -439,7 +453,7 @@ export class SearchController {
     });
 
     // Map handicap requests
-    handicapReqs.forEach((h: any) => {
+    (handicapReqs as HandicapRequest[]).forEach((h) => {
       results.push({
         type: 'handicap_request',
         id: h.id,
@@ -450,7 +464,7 @@ export class SearchController {
     });
 
     // Map handicap legitimations
-    handicapLegs.forEach((h: any) => {
+    (handicapLegs as HandicapLegitimation[]).forEach((h) => {
       results.push({
         type: 'handicap_legitimation',
         id: h.id,
@@ -461,7 +475,7 @@ export class SearchController {
     });
 
     // Map revolutionar legitimations
-    revLegs.forEach((r: any) => {
+    (revLegs as RevolutionarLegitimation[]).forEach((r) => {
       results.push({
         type: 'revolutionar_legitimation',
         id: r.id,
@@ -472,7 +486,7 @@ export class SearchController {
     });
 
     // Map domiciliu requests
-    domReqs.forEach((d: any) => {
+    (domReqs as DomiciliuRequest[]).forEach((d) => {
       results.push({
         type: 'domiciliu_request',
         id: d.id,
@@ -483,7 +497,7 @@ export class SearchController {
     });
 
     // Map control sesizari
-    sesizari.forEach((s: any) => {
+    (sesizari as ControlSesizare[]).forEach((s) => {
       results.push({
         type: 'control_sesizare',
         id: s.id,
@@ -494,7 +508,7 @@ export class SearchController {
     });
 
     // Map leave requests
-    leaves.forEach((l: any) => {
+    (leaves as LeaveRequest[]).forEach((l) => {
       results.push({
         type: 'leave_request',
         id: l.id,
@@ -505,7 +519,7 @@ export class SearchController {
     });
 
     // Map shift swap requests
-    swaps.forEach((s: any) => {
+    (swaps as ShiftSwapRequest[]).forEach((s) => {
       results.push({
         type: 'shift_swap',
         id: s.id,
