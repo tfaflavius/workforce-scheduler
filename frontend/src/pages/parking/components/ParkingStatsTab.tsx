@@ -620,11 +620,23 @@ const OccupancySection: React.FC = () => {
                   const rows: React.ReactNode[] = [];
                   if (isFirstInGroup(idx) && loc.group) {
                     const groupSpots = getGroupTotalSpots(loc.group);
+                    const groupKeys = getGroupKeys(loc.group);
+                    const groupMin = groupKeys.reduce((sum, k) => sum + getOccValue(k).min, 0);
+                    const groupMax = groupKeys.reduce((sum, k) => sum + getOccValue(k).max, 0);
+                    const groupAvg = groupKeys.reduce((sum, k) => sum + getOccValue(k).avg, 0);
+                    const groupRate = getWeeklyRate(groupAvg, groupSpots);
                     rows.push(
                       <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#f59e0b', 0.06) }}>
                         <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>{loc.group}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>{groupSpots}</TableCell>
-                        <TableCell colSpan={4} />
+                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>{groupMin || ''}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>{groupMax || ''}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>{groupAvg || ''}</TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body2" fontWeight="bold" color="primary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                            {groupRate}
+                          </Typography>
+                        </TableCell>
                       </TableRow>
                     );
                   }
