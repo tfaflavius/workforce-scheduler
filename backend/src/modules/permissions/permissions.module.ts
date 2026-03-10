@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PermissionsService } from './permissions.service';
 import { PermissionsController } from './permissions.controller';
@@ -9,6 +9,7 @@ import { EmailNotificationRule } from './entities/email-notification-rule.entity
 import { NotificationSetting } from './entities/notification-setting.entity';
 import { Department } from '../departments/entities/department.entity';
 import { User } from '../users/entities/user.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { User } from '../users/entities/user.entity';
       Department,
       User,
     ]),
+    forwardRef(() => NotificationsModule),
   ],
   controllers: [PermissionsController],
   providers: [PermissionsService],

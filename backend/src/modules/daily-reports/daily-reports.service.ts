@@ -308,6 +308,7 @@ export class DailyReportsService {
         'Comentariu la raportul zilnic',
         `${adminName} a adaugat un comentariu la raportul tau.`,
         { type: 'DAILY_REPORT_COMMENTED', dailyReportId: report.id },
+        NotificationType.DAILY_REPORT_COMMENTED,
       );
     } catch (error) {
       this.logger.error(`Eroare la trimiterea notificarii de comentariu: ${error.message}`);
@@ -545,6 +546,7 @@ export class DailyReportsService {
           'Raport zilnic nou',
           `${user.fullName} a trimis raportul zilnic.`,
           { type: 'DAILY_REPORT_SUBMITTED', dailyReportId: report.id },
+          NotificationType.DAILY_REPORT_SUBMITTED,
         );
       }
 

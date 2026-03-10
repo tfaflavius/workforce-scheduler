@@ -367,7 +367,7 @@ export class HandicapRequestsService {
     if (request.createdBy !== commenterUserId) {
       await this.notificationsService.create({
         userId: request.createdBy,
-        type: NotificationType.HANDICAP_REQUEST_RESOLVED,
+        type: NotificationType.HANDICAP_REQUEST_ASSIGNED,
         title: 'Comentariu nou la solicitare',
         message: `${commenterName} a adaugat un comentariu la solicitarea ta de tip "${requestTypeLabel}".`,
         data: {
@@ -391,7 +391,7 @@ export class HandicapRequestsService {
       if (toNotify.length > 0) {
         const notifications = toNotify.map(user => ({
           userId: user.id,
-          type: NotificationType.HANDICAP_REQUEST_RESOLVED,
+          type: NotificationType.HANDICAP_REQUEST_ASSIGNED,
           title: 'Comentariu nou la solicitare handicap',
           message: `${commenterName} a adaugat un comentariu la solicitarea "${requestTypeLabel}" de la ${request.location}.`,
           data: {

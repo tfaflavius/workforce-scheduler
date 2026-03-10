@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TimeEntry } from './entities/time-entry.entity';
 import { PushNotificationService } from '../notifications/push-notification.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 import { TimeTrackingService } from './time-tracking.service';
 
 /**
@@ -67,6 +68,7 @@ export class GpsTrackingScheduler {
               userId: entry.userId,
               silent: true,
             },
+            NotificationType.GPS_STATUS_ALERT,
           );
         } catch (err) {
           this.logger.debug(`[GPS Cron] Failed to send push to ${entry.user?.fullName}: ${err.message}`);

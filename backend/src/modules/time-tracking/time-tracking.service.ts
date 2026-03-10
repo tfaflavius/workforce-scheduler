@@ -892,6 +892,7 @@ export class TimeTrackingService {
           'Tura oprita automat',
           reason,
           { action: 'SHIFT_AUTO_STOPPED', timeEntryId: entry.id },
+          NotificationType.TIME_ENTRY_MISMATCH,
         );
       } catch {
         // Silent fail for push
@@ -1032,6 +1033,7 @@ export class TimeTrackingService {
               userId: entry.userId,
               silent: true,
             },
+            NotificationType.GPS_STATUS_ALERT,
           );
           notifiedCount++;
         } catch (err) {

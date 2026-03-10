@@ -106,6 +106,7 @@ export class DailyReportsScheduler {
         'Rapoarte zilnice lipsa',
         `${missingUsers.length} utilizator(i) nu au trimis raportul zilnic.`,
         { type: 'DAILY_REPORT_MISSING', date: today },
+        NotificationType.DAILY_REPORT_MISSING,
       );
     }
 

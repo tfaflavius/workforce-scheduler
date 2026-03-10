@@ -638,6 +638,7 @@ export class LeaveRequestsService {
       '📝 Cerere de Concediu Modificata',
       `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} a fost modificata. Noua perioada: ${startDate} - ${endDate}`,
       { url: '/leave-requests' },
+      NotificationType.LEAVE_REQUEST_APPROVED,
     );
   }
 
@@ -664,6 +665,7 @@ export class LeaveRequestsService {
       '🗑️ Cerere de Concediu Stearsa',
       `Cererea ta de ${LEAVE_TYPE_LABELS[leaveType]} (${startStr} - ${endStr}) a fost stearsa.`,
       { url: '/leave-requests' },
+      NotificationType.LEAVE_REQUEST_REJECTED,
     );
   }
 
@@ -702,6 +704,7 @@ export class LeaveRequestsService {
         '📋 Cerere Noua de Concediu',
         `${user.fullName} a solicitat ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate})`,
         { url: '/admin/leave-requests' },
+        NotificationType.LEAVE_REQUEST_CREATED,
       );
 
       // Email catre admin
@@ -772,6 +775,7 @@ export class LeaveRequestsService {
         ? `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost aprobata!`
         : `Cererea ta de ${LEAVE_TYPE_LABELS[request.leaveType]} (${startDate} - ${endDate}) a fost respinsa.`,
       { url: '/leave-requests' },
+      approved ? NotificationType.LEAVE_REQUEST_APPROVED : NotificationType.LEAVE_REQUEST_REJECTED,
     );
 
     // Email catre angajat

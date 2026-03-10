@@ -329,7 +329,7 @@ export class HandicapLegitimationsService {
     if (legitimation.createdBy !== commenterUserId) {
       await this.notificationsService.create({
         userId: legitimation.createdBy,
-        type: NotificationType.LEGITIMATION_RESOLVED,
+        type: NotificationType.LEGITIMATION_ASSIGNED,
         title: 'Comentariu nou la legitimatie handicap',
         message: `${commenterName} a adaugat un comentariu la legitimatia pentru ${legitimation.personName}.`,
         data: {
@@ -353,7 +353,7 @@ export class HandicapLegitimationsService {
       if (toNotify.length > 0) {
         const notifications = toNotify.map(user => ({
           userId: user.id,
-          type: NotificationType.LEGITIMATION_RESOLVED,
+          type: NotificationType.LEGITIMATION_ASSIGNED,
           title: 'Comentariu nou la legitimatie handicap',
           message: `${commenterName} a adaugat un comentariu la legitimatia pentru ${legitimation.personName}.`,
           data: {

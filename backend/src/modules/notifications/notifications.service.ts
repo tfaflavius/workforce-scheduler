@@ -152,7 +152,7 @@ export class NotificationsService {
     userId: string,
     monthYear: string,
     approverName: string,
-  ): Promise<Notification> {
+  ): Promise<Notification | null> {
     const [year, month] = monthYear.split('-');
     const monthNames = [
       'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
@@ -174,7 +174,7 @@ export class NotificationsService {
     monthYear: string,
     reason: string,
     rejectorName: string,
-  ): Promise<Notification> {
+  ): Promise<Notification | null> {
     const [year, month] = monthYear.split('-');
     const monthNames = [
       'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
@@ -242,7 +242,7 @@ export class NotificationsService {
     shiftDate: string,
     shiftTime: string,
     shiftType: string,
-  ): Promise<Notification> {
+  ): Promise<Notification | null> {
     return this.create({
       userId,
       type: NotificationType.SHIFT_REMINDER,

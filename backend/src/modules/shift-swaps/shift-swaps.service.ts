@@ -14,6 +14,7 @@ import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.en
 import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 import { EmailService } from '../../common/email/email.service';
 import { CreateSwapRequestDto } from './dto/create-swap-request.dto';
 import { RespondSwapDto } from './dto/respond-swap.dto';
@@ -291,6 +292,7 @@ export class ShiftSwapsService {
         '❌ Schimb Respins',
         `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsa`,
         { url: '/shift-swaps' },
+        NotificationType.SHIFT_SWAP_REJECTED,
       );
 
       // Email catre solicitant
@@ -796,6 +798,7 @@ export class ShiftSwapsService {
         '🔄 Cerere Schimb de Tura',
         `${requester.fullName}: ${requesterDateFormatted} ↔ ${targetDateFormatted}`,
         { url: '/admin/shift-swaps' },
+        NotificationType.SHIFT_SWAP_REQUEST,
       );
 
       // Email catre admin
@@ -827,6 +830,7 @@ export class ShiftSwapsService {
         '🔄 Cerere Schimb de Tura',
         `${requester.fullName} doreste sa schimbe tura cu tine (${targetDateFormatted})`,
         { url: '/shift-swaps' },
+        NotificationType.SHIFT_SWAP_REQUEST,
       );
 
       // Email catre user
@@ -872,6 +876,7 @@ export class ShiftSwapsService {
       responseType === SwapResponseType.ACCEPTED ? '✅ Schimb Acceptat' : '❌ Schimb Refuzat',
       `${responder.fullName} ${responseText} schimbul pentru ${requesterDateFormatted}`,
       { url: '/shift-swaps' },
+      NotificationType.SHIFT_SWAP_RESPONSE,
     );
 
     // Email catre solicitant
@@ -909,6 +914,7 @@ export class ShiftSwapsService {
           '⏳ Schimb Asteapta Aprobare',
           `${responder.fullName} a acceptat schimbul cu ${request.requester?.fullName || 'solicitant'}`,
           { url: '/admin/shift-swaps' },
+          NotificationType.SHIFT_SWAP_ACCEPTED,
         );
 
         // Email catre admin
@@ -957,6 +963,7 @@ export class ShiftSwapsService {
       '🎉 Schimb Aprobat!',
       `Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}`,
       { url: '/my-schedule' },
+      NotificationType.SHIFT_SWAP_APPROVED,
     );
 
     // Email catre solicitant
@@ -987,6 +994,7 @@ export class ShiftSwapsService {
       '🎉 Schimb Aprobat!',
       `Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}`,
       { url: '/my-schedule' },
+      NotificationType.SHIFT_SWAP_APPROVED,
     );
 
     // Email catre userul aprobat

@@ -375,7 +375,7 @@ export class DomiciliuRequestsService {
     if (request.createdBy !== commenterUserId) {
       await this.notificationsService.create({
         userId: request.createdBy,
-        type: NotificationType.DOMICILIU_REQUEST_RESOLVED,
+        type: NotificationType.DOMICILIU_REQUEST_ASSIGNED,
         title: 'Comentariu nou la solicitare domiciliu',
         message: `${commenterName} a adaugat un comentariu la solicitarea ta de tip "${requestTypeLabel}".`,
         data: {
@@ -399,7 +399,7 @@ export class DomiciliuRequestsService {
       if (toNotify.length > 0) {
         const notifications = toNotify.map(user => ({
           userId: user.id,
-          type: NotificationType.DOMICILIU_REQUEST_RESOLVED,
+          type: NotificationType.DOMICILIU_REQUEST_ASSIGNED,
           title: 'Comentariu nou la solicitare domiciliu',
           message: `${commenterName} a adaugat un comentariu la solicitarea "${requestTypeLabel}" pentru ${request.personName}.`,
           data: {

@@ -9,6 +9,7 @@ import { NotificationSetting } from './entities/notification-setting.entity';
 import { Department } from '../departments/entities/department.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationType } from '../notifications/entities/notification.entity';
+import { NotificationSettingCheckService } from '../notifications/notification-setting-check.service';
 import { RESOURCE_DEFINITIONS } from './constants/resources';
 
 @Injectable()
@@ -30,6 +31,7 @@ export class PermissionsService {
     private readonly departmentRepo: Repository<Department>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly notificationSettingCheckService: NotificationSettingCheckService,
   ) {}
 
   // ─── Permission Matrix ───────────────────────────────────────────────
@@ -652,9 +654,14 @@ export class PermissionsService {
 
   // ─── Notification Settings ──────────────────────────────────────────
 
+  private syncDone = false;
+
   async getNotificationSettings(): Promise<NotificationSetting[]> {
-    // Auto-sync: ensure all NotificationType×Role combos exist
-    await this.syncMissingNotificationSettings();
+    // Auto-sync once per process: ensure all NotificationType×Role combos exist
+    if (!this.syncDone) {
+      const added = await this.syncMissingNotificationSettings();
+      if (added === 0) this.syncDone = true; // only cache if no new types were added (stable)
+    }
 
     return this.notificationSettingRepo.find({
       order: { notificationType: 'ASC', role: 'ASC' },
@@ -677,6 +684,7 @@ export class PermissionsService {
     }
 
     await this.notificationSettingRepo.save(settings);
+    this.notificationSettingCheckService.invalidateCache();
     return { updated: settings.length };
   }
 
@@ -743,6 +751,7 @@ export class PermissionsService {
     const entities = settingsToCreate.map((s) => this.notificationSettingRepo.create(s));
     await this.notificationSettingRepo.save(entities, { chunk: 100 });
 
+    this.notificationSettingCheckService.invalidateCache();
     this.logger.log(`Seeded ${entities.length} notification settings`);
   }
 }

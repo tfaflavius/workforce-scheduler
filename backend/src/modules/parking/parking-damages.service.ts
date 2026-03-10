@@ -123,9 +123,13 @@ export class ParkingDamagesService {
         break;
     }
 
+    const notificationType = action === 'RESOLVED'
+      ? NotificationType.PARKING_DAMAGE_RESOLVED
+      : NotificationType.PARKING_DAMAGE_ASSIGNED;
+
     const notifications = toNotify.map(user => ({
       userId: user.id,
-      type: NotificationType.PARKING_DAMAGE_RESOLVED,
+      type: notificationType,
       title,
       message,
       data: {
@@ -267,7 +271,7 @@ export class ParkingDamagesService {
     if (toNotify.length > 0) {
       const notifications = toNotify.map(user => ({
         userId: user.id,
-        type: NotificationType.PARKING_DAMAGE_RESOLVED,
+        type: NotificationType.PARKING_DAMAGE_ASSIGNED,
         title: 'Comentariu nou la prejudiciu',
         message: `${actor?.fullName || 'Un utilizator'} a adaugat un comentariu la prejudiciul de la ${damage.parkingLot?.name || 'parcare'}.`,
         data: {
