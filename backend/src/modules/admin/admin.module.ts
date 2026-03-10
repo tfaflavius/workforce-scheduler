@@ -9,8 +9,10 @@ import { RevolutionarLegitimation } from '../parking/entities/revolutionar-legit
 import { PvDisplaySession } from '../parking/entities/pv-display-session.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
 import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
+import { DomiciliuRequest } from '../parking/entities/domiciliu-request.entity';
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { ShiftSwapRequest } from '../shift-swaps/entities/shift-swap-request.entity';
+import { Department } from '../departments/entities/department.entity';
 import { ParkingModule } from '../parking/parking.module';
 import { TimeTrackingModule } from '../time-tracking/time-tracking.module';
 import { DailyReportsModule } from '../daily-reports/daily-reports.module';
@@ -29,8 +31,10 @@ import { SearchController } from './search.controller';
       PvDisplaySession,
       PvDisplayDay,
       ControlSesizare,
+      DomiciliuRequest,
       LeaveRequest,
       ShiftSwapRequest,
+      Department,
     ]),
     ParkingModule,
     TimeTrackingModule,

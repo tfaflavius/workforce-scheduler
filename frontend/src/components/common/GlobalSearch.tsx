@@ -30,15 +30,30 @@ import {
   SwapHoriz as SwapIcon,
   Close as CloseIcon,
   ArrowBack as ArrowBackIcon,
+  OpenInNew as OpenInNewIcon,
+  ReportProblem as ReportProblemIcon,
+  Accessible as AccessibleIcon,
+  MilitaryTech as MilitaryTechIcon,
+  Home as HomeIcon,
+  Gavel as GavelIcon,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useLazySearchQuery } from '../../store/api/search.api';
 import type { SearchResult } from '../../store/api/search.api';
 
 // Use semantic palette keys so colors follow the theme
-const typeConfig: Record<string, { icon: React.ReactElement; paletteColor: 'primary' | 'error' | 'success' | 'warning'; label: string }> = {
+const typeConfig: Record<string, { icon: React.ReactElement; paletteColor: 'primary' | 'error' | 'success' | 'warning' | 'info'; label: string }> = {
+  page: { icon: <OpenInNewIcon fontSize="small" />, paletteColor: 'info', label: 'Pagina' },
   user: { icon: <PersonIcon fontSize="small" />, paletteColor: 'primary', label: 'Utilizator' },
+  department: { icon: <BusinessIcon fontSize="small" />, paletteColor: 'primary', label: 'Departament' },
   parking_issue: { icon: <ParkingIcon fontSize="small" />, paletteColor: 'error', label: 'Problema Parcari' },
+  parking_damage: { icon: <ReportProblemIcon fontSize="small" />, paletteColor: 'error', label: 'Prejudiciu' },
+  handicap_request: { icon: <AccessibleIcon fontSize="small" />, paletteColor: 'info', label: 'Solicitare HC' },
+  handicap_legitimation: { icon: <AccessibleIcon fontSize="small" />, paletteColor: 'info', label: 'Legitimatie HC' },
+  revolutionar_legitimation: { icon: <MilitaryTechIcon fontSize="small" />, paletteColor: 'info', label: 'Legitimatie Rev' },
+  domiciliu_request: { icon: <HomeIcon fontSize="small" />, paletteColor: 'info', label: 'Domiciliu' },
+  control_sesizare: { icon: <GavelIcon fontSize="small" />, paletteColor: 'warning', label: 'Sesizare' },
   leave_request: { icon: <LeaveIcon fontSize="small" />, paletteColor: 'success', label: 'Concediu' },
   shift_swap: { icon: <SwapIcon fontSize="small" />, paletteColor: 'warning', label: 'Schimb Tura' },
 };
@@ -220,7 +235,7 @@ const GlobalSearch: React.FC = () => {
             </IconButton>
             <InputBase
               inputRef={mobileInputRef}
-              placeholder="Cauta utilizatori, probleme..."
+              placeholder="Cauta pagini, utilizatori, parcari..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               autoFocus
@@ -272,7 +287,7 @@ const GlobalSearch: React.FC = () => {
           >
             <SearchIcon sx={{ color: 'inherit', opacity: 0.7, mr: 1, fontSize: 20 }} />
             <InputBase
-              placeholder="Cauta utilizatori, probleme..."
+              placeholder="Cauta pagini, utilizatori, parcari..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onFocus={() => query.length >= 2 && results && setOpen(true)}
