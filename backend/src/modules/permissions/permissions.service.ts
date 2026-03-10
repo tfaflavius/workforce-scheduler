@@ -653,6 +653,9 @@ export class PermissionsService {
   // ─── Notification Settings ──────────────────────────────────────────
 
   async getNotificationSettings(): Promise<NotificationSetting[]> {
+    // Auto-sync: ensure all NotificationType×Role combos exist
+    await this.syncMissingNotificationSettings();
+
     return this.notificationSettingRepo.find({
       order: { notificationType: 'ASC', role: 'ASC' },
     });
@@ -677,6 +680,47 @@ export class PermissionsService {
     return { updated: settings.length };
   }
 
+  /**
+   * Additive sync: only inserts missing NotificationType×Role combos.
+   * Preserves existing settings (customizations are never overwritten).
+   */
+  private async syncMissingNotificationSettings(): Promise<number> {
+    const existing = await this.notificationSettingRepo.find({
+      select: ['notificationType', 'role'],
+    });
+    const existingKeys = new Set(existing.map((s) => `${s.notificationType}:${s.role}`));
+
+    const allTypes = Object.values(NotificationType);
+    const allRoles = Object.values(UserRole);
+
+    const toCreate: Partial<NotificationSetting>[] = [];
+
+    for (const type of allTypes) {
+      for (const role of allRoles) {
+        if (!existingKeys.has(`${type}:${role}`)) {
+          toCreate.push({
+            notificationType: type,
+            role,
+            inAppEnabled: true,
+            pushEnabled: true,
+          });
+        }
+      }
+    }
+
+    if (toCreate.length === 0) return 0;
+
+    const entities = toCreate.map((s) => this.notificationSettingRepo.create(s));
+    await this.notificationSettingRepo.save(entities, { chunk: 100 });
+
+    this.logger.log(`Synced ${entities.length} missing notification settings`);
+    return entities.length;
+  }
+
+  /**
+   * Full reset: clears all notification settings and re-creates them (all enabled).
+   * Used by the "Populeaza Defaults" button.
+   */
   private async seedNotificationSettings(): Promise<void> {
     await this.notificationSettingRepo.clear();
 
