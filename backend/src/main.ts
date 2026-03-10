@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { GlobalUuidValidationPipe } from './common/pipes/uuid-validation.pipe';
@@ -7,6 +8,9 @@ import { GlobalUuidValidationPipe } from './common/pipes/uuid-validation.pipe';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('Bootstrap');
+
+  // Security headers (X-Frame-Options, HSTS, X-Content-Type-Options, etc.)
+  app.use(helmet());
 
   // Enable CORS
   const corsOrigins = process.env.CORS_ORIGIN

@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { RootState } from '../store';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createAuthBaseQuery } from './baseQuery';
 import type {
   LeaveRequest,
   LeaveBalance,
@@ -10,20 +10,9 @@ import type {
   LeaveRequestStatus,
 } from '../../types/leave-request.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
 export const leaveRequestsApi = createApi({
   reducerPath: 'leaveRequestsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/leave-requests`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: createAuthBaseQuery('/leave-requests'),
   tagTypes: ['LeaveRequests', 'MyLeaveRequests', 'LeaveBalance'],
   endpoints: (builder) => ({
     // Creaza cerere de concediu

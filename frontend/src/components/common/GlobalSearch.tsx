@@ -20,6 +20,7 @@ import {
   AppBar,
   Toolbar,
   useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import type { TransitionProps } from '@mui/material/transitions';
 import {
@@ -145,10 +146,12 @@ const SearchResults: React.FC<{
 
 const GlobalSearch: React.FC = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const [triggerSearch, { data: results, isFetching }] = useLazySearchQuery();
@@ -198,6 +201,27 @@ const GlobalSearch: React.FC = () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
+
+  // Ctrl+K / Cmd+K keyboard shortcut to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (isMobile) {
+          handleMobileOpen();
+        } else {
+          desktopInputRef.current?.focus();
+        }
+      }
+      // Escape closes search
+      if (e.key === 'Escape') {
+        setOpen(false);
+        desktopInputRef.current?.blur();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMobile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -287,6 +311,7 @@ const GlobalSearch: React.FC = () => {
           >
             <SearchIcon sx={{ color: 'inherit', opacity: 0.7, mr: 1, fontSize: 20 }} />
             <InputBase
+              inputRef={desktopInputRef}
               placeholder="Cauta pagini, utilizatori, parcari..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
@@ -303,6 +328,25 @@ const GlobalSearch: React.FC = () => {
               <IconButton size="small" onClick={handleClear} sx={{ color: 'inherit', opacity: 0.7, p: 0.25 }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
+            )}
+            {!query && (
+              <Typography
+                variant="caption"
+                sx={{
+                  opacity: 0.5,
+                  fontSize: '0.65rem',
+                  border: '1px solid',
+                  borderColor: 'inherit',
+                  borderRadius: 0.5,
+                  px: 0.5,
+                  py: 0.1,
+                  lineHeight: 1.4,
+                  whiteSpace: 'nowrap',
+                  userSelect: 'none',
+                }}
+              >
+                {navigator.platform?.includes('Mac') ? '⌘K' : 'Ctrl+K'}
+              </Typography>
             )}
           </Box>
 

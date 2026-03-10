@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createAuthBaseQuery } from './baseQuery';
 import type {
   WorkSchedule,
   ShiftType,
@@ -13,9 +14,6 @@ import type {
   ScheduleFilters,
   LaborLawValidation,
 } from '../../types/schedule.types';
-import type { RootState } from '../store';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // Type for colleague on shift
 export interface ShiftColleague {
@@ -54,16 +52,7 @@ export interface TodayDispatcher {
 
 export const schedulesApi = createApi({
   reducerPath: 'schedulesApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: createAuthBaseQuery(),
   tagTypes: ['Schedule', 'ShiftType', 'WorkPosition'],
   endpoints: (builder) => ({
     // Get all shift types

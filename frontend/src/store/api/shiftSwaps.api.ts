@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { RootState } from '../store';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createAuthBaseQuery } from './baseQuery';
 import type {
   ShiftSwapRequest,
   ShiftSwapResponse,
@@ -11,20 +11,9 @@ import type {
   ShiftSwapStatus,
 } from '../../types/shift-swap.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
 export const shiftSwapsApi = createApi({
   reducerPath: 'shiftSwapsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/shift-swaps`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: createAuthBaseQuery('/shift-swaps'),
   tagTypes: ['ShiftSwaps', 'MySwapRequests'],
   endpoints: (builder) => ({
     // Creaza cerere de schimb

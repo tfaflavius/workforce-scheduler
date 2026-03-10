@@ -9,6 +9,7 @@ import { initializeAuth, updateToken, logout } from './store/slices/auth.slice';
 import { supabase } from './lib/supabase';
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { SnackbarProvider } from './contexts/SnackbarContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 function AppContent() {
@@ -61,10 +62,12 @@ function App() {
     <ErrorBoundary>
       <Provider store={store}>
         <ThemeProvider>
-          <BrowserRouter>
-            <AppContent />
-            <InstallPrompt />
-          </BrowserRouter>
+          <SnackbarProvider>
+            <BrowserRouter>
+              <AppContent />
+              <InstallPrompt />
+            </BrowserRouter>
+          </SnackbarProvider>
         </ThemeProvider>
       </Provider>
     </ErrorBoundary>

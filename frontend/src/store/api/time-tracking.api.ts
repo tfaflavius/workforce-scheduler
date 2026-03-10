@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { RootState } from '../store';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createAuthBaseQuery } from './baseQuery';
 import type {
   TimeEntry,
   LocationLog,
@@ -16,20 +16,9 @@ import type {
   ReportGpsStatusRequest,
 } from '../../types/time-tracking.types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
 export const timeTrackingApi = createApi({
   reducerPath: 'timeTrackingApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_URL,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: createAuthBaseQuery(),
   tagTypes: ['TimeEntry', 'ActiveTimer', 'LocationLog', 'AdminActiveTimer', 'AdminTimeEntry', 'AdminStats', 'AdminUsers', 'RouteData'],
   endpoints: (builder) => ({
     startTimer: builder.mutation<TimeEntry, StartTimerRequest | void>({
