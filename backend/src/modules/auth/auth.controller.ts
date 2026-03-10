@@ -1,8 +1,10 @@
-import { Body, Controller, Post, Get, Headers, UnauthorizedException, BadRequestException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
@@ -36,21 +38,18 @@ export class AuthController {
   @Public()
   @Post('forgot-password')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  async forgotPassword(@Body() body: { email: string }) {
-    return this.authService.forgotPassword(body.email);
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto.email);
   }
 
   @Public()
   @Post('reset-password')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
-  async resetPassword(@Body() body: { token?: string; accessToken?: string; newPassword: string }) {
-    const resetToken = body.token || body.accessToken;
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    const resetToken = dto.token || dto.accessToken;
     if (!resetToken) {
       throw new UnauthorizedException('Token de resetare lipseste');
     }
-    if (!body.newPassword || body.newPassword.length < 6) {
-      throw new BadRequestException('Parola trebuie sa aiba cel putin 6 caractere');
-    }
-    return this.authService.resetPassword(resetToken, body.newPassword);
+    return this.authService.resetPassword(resetToken, dto.newPassword);
   }
 }

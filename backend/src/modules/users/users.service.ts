@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ConflictException,
   BadRequestException,
@@ -21,6 +22,8 @@ import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -147,7 +150,7 @@ export class UsersService {
       await this.supabaseService.deleteUser(id);
     } catch (error) {
       // Log but don't block - user might not exist in Supabase (e.g. created by admin directly)
-      console.warn(`Could not delete user ${id} from Supabase Auth:`, error?.message);
+      this.logger.warn(`Could not delete user ${id} from Supabase Auth: ${error?.message}`);
     }
 
     // Clean up all related records to avoid FK constraint violations

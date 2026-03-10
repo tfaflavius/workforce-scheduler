@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Task } from '../../tasks/entities/task.entity';
@@ -19,6 +20,8 @@ export enum ApprovalStatus {
 }
 
 @Entity('time_entries')
+@Index('IDX_entry_user_start', ['userId', 'startTime'])
+@Index('IDX_entry_user_end', ['userId', 'endTime'])
 export class TimeEntry {
   @PrimaryGeneratedColumn('uuid')
   id: string;

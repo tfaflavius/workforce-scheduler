@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { GlobalUuidValidationPipe } from './common/pipes/uuid-validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
 
   // Enable CORS
   const corsOrigins = process.env.CORS_ORIGIN
@@ -17,12 +20,18 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Enable validation pipes
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  // Global exception filter — catches all unhandled errors, prevents stack trace leaks
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Global pipes — UUID validation for :id params + DTO validation
+  app.useGlobalPipes(
+    new GlobalUuidValidationPipe(),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // Set global prefix
   app.setGlobalPrefix('api');
@@ -30,7 +39,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  console.log(`🚀 Application is running on: http://localhost:${port}/api`);
+  logger.log(`Application is running on: http://localhost:${port}/api`);
 }
 
 bootstrap();

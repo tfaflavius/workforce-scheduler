@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
@@ -12,6 +13,7 @@ export type ParkingHistoryEntityType = 'ISSUE' | 'DAMAGE' | 'COLLECTION' | 'HAND
 export type ParkingHistoryAction = 'CREATED' | 'UPDATED' | 'RESOLVED' | 'DELETED' | 'CLAIMED' | 'UNCLAIMED' | 'FINALIZED' | 'ADMIN_ASSIGNED';
 
 @Entity('parking_history')
+@Index('IDX_history_entity', ['entityType', 'entityId'])
 export class ParkingHistory {
   @PrimaryGeneratedColumn('uuid')
   id: string;

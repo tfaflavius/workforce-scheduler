@@ -44,6 +44,7 @@ const IncasariCheltuieliPage = lazy(() => import('../pages/departments/IncasariC
 const ControlSesizariPage = lazy(() => import('../pages/parking/ControlSesizariPage'));
 const PermissionsPage = lazy(() => import('../pages/permissions/PermissionsPage'));
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'));
+const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -274,8 +275,20 @@ export const AppRoutes = () => {
       {/* Default redirect */}
       <Route path="/" element={<Navigate to={token ? '/dashboard' : '/login'} replace />} />
 
-      {/* 404 - redirect to dashboard if authenticated, otherwise to login */}
-      <Route path="*" element={<Navigate to={token ? '/dashboard' : '/login'} replace />} />
+      {/* 404 page for authenticated users, redirect to login for unauthenticated */}
+      {token ? (
+        <Route
+          element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
+        </Route>
+      ) : (
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      )}
     </Routes>
   );
 };

@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { ParkingLot } from './parking-lot.entity';
 import { User } from '../../users/entities/user.entity';
@@ -15,6 +16,10 @@ import { ParkingIssueComment } from './parking-issue-comment.entity';
 export type ParkingIssueStatus = 'ACTIVE' | 'FINALIZAT';
 
 @Entity('parking_issues')
+@Index('IDX_issue_status', ['status'])
+@Index('IDX_issue_parking_lot', ['parkingLotId'])
+@Index('IDX_issue_urgent', ['isUrgent'])
+@Index('IDX_issue_created_by', ['createdBy'])
 export class ParkingIssue {
   @PrimaryGeneratedColumn('uuid')
   id: string;

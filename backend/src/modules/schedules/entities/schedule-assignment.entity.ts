@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { WorkSchedule } from './work-schedule.entity';
 import { User } from '../../users/entities/user.entity';
@@ -13,6 +14,8 @@ import { ShiftType } from './shift-type.entity';
 import { WorkPosition } from './work-position.entity';
 
 @Entity('schedule_assignments')
+@Index('IDX_assignment_user_date', ['userId', 'shiftDate'])
+@Index('IDX_assignment_schedule', ['workScheduleId'])
 export class ScheduleAssignment {
   @PrimaryGeneratedColumn('uuid')
   id: string;

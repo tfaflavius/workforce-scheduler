@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
@@ -19,6 +20,8 @@ export type LeaveType =
 export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 @Entity('leave_requests')
+@Index('IDX_leave_user_status', ['userId', 'status'])
+@Index('IDX_leave_status', ['status'])
 export class LeaveRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -139,10 +139,10 @@ export class AdminConsolidatedScheduler {
       this.collectControlSesizariData(startOfDay, endOfDay),
     ]);
 
-    let sentCount = 0;
-    for (const recipient of recipients) {
-      try {
-        const success = await this.emailService.sendConsolidatedDailyReport({
+    // Send emails in parallel for better performance
+    const results = await Promise.allSettled(
+      recipients.map(recipient =>
+        this.emailService.sendConsolidatedDailyReport({
           recipientEmail: recipient.email,
           recipientName: recipient.fullName,
           reportDate: dateStr,
@@ -154,11 +154,14 @@ export class AdminConsolidatedScheduler {
           missingDailyReports: missingReportsData,
           pvDisplayReport: pvDisplayData,
           controlSesizariReport: controlSesizariData,
-        });
-        if (success) sentCount++;
-      } catch (err) {
-        this.logger.error(`[Consolidat] Eroare trimitere catre ${recipient.email}: ${err.message}`);
-      }
+        }),
+      ),
+    );
+
+    const sentCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
+    const failedCount = results.filter(r => r.status === 'rejected').length;
+    if (failedCount > 0) {
+      this.logger.error(`[Consolidat] ${failedCount} emailuri zilnice esuate din ${recipients.length}`);
     }
 
     return sentCount;
@@ -225,18 +228,21 @@ export class AdminConsolidatedScheduler {
         return;
       }
 
-      let sentCount = 0;
-      for (const recipient of recipients) {
-        try {
-          const success = await this.emailService.sendConsolidatedWeeklyReport({
+      // Send weekly emails in parallel
+      const results = await Promise.allSettled(
+        recipients.map(recipient =>
+          this.emailService.sendConsolidatedWeeklyReport({
             ...emailData,
             recipientEmail: recipient.email,
             recipientName: recipient.fullName,
-          });
-          if (success) sentCount++;
-        } catch (err) {
-          this.logger.error(`[Consolidat] Eroare weekly catre ${recipient.email}: ${err.message}`);
-        }
+          }),
+        ),
+      );
+
+      const sentCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
+      const failedCount = results.filter(r => r.status === 'rejected').length;
+      if (failedCount > 0) {
+        this.logger.error(`[Consolidat] ${failedCount} emailuri saptamanale esuate din ${recipients.length}`);
       }
 
       this.logger.log(`[Consolidat] Raport saptamanal trimis la ${sentCount}/${recipients.length} (${admins.length} admini, ${managers.length} manageri)`);
