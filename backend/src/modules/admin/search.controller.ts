@@ -80,6 +80,16 @@ export class SearchController {
     private readonly departmentRepo: Repository<Department>,
   ) {}
 
+  private formatDate(date: Date | string | null | undefined): string {
+    if (!date) return 'N/A';
+    if (typeof date === 'string') return date;
+    try {
+      return date.toISOString().split('T')[0];
+    } catch {
+      return 'N/A';
+    }
+  }
+
   @Get()
   @UseInterceptors(HttpCacheInterceptor)
   @CacheTTL(15) // Cache search results for 15 seconds
@@ -108,15 +118,128 @@ export class SearchController {
       });
     });
 
-    // 2. Search users
-    const users = await this.userRepo.find({
-      where: [
-        { fullName: ILike(`%${q}%`) },
-        { email: ILike(`%${q}%`) },
-      ],
-      take: 5,
-      relations: ['department'],
-    });
+    // 2. Run all DB queries in parallel for performance
+    const [
+      users,
+      departments,
+      issues,
+      damages,
+      handicapReqs,
+      handicapLegs,
+      revLegs,
+      domReqs,
+      sesizari,
+      leaves,
+      swaps,
+    ] = await Promise.all([
+      // Users
+      this.userRepo.find({
+        where: [
+          { fullName: ILike(`%${q}%`) },
+          { email: ILike(`%${q}%`) },
+        ],
+        take: 5,
+        relations: ['department'],
+      }),
+      // Departments
+      this.departmentRepo.find({
+        where: [{ name: ILike(`%${q}%`) }],
+        take: 2,
+        relations: ['manager'],
+      }),
+      // Parking issues
+      this.parkingIssueRepo.find({
+        where: [
+          { description: ILike(`%${q}%`) },
+          { equipment: ILike(`%${q}%`) },
+          { contactedCompany: ILike(`%${q}%`) },
+        ],
+        take: 3,
+        relations: ['parkingLot'],
+        order: { createdAt: 'DESC' },
+      }),
+      // Parking damages
+      this.parkingDamageRepo.find({
+        where: [
+          { damagedEquipment: ILike(`%${q}%`) },
+          { personName: ILike(`%${q}%`) },
+          { carPlate: ILike(`%${q}%`) },
+          { description: ILike(`%${q}%`) },
+        ],
+        take: 3,
+        relations: ['parkingLot'],
+        order: { createdAt: 'DESC' },
+      }),
+      // Handicap requests
+      this.handicapRequestRepo.find({
+        where: [
+          { personName: ILike(`%${q}%`) },
+          { location: ILike(`%${q}%`) },
+          { carPlate: ILike(`%${q}%`) },
+          { description: ILike(`%${q}%`) },
+        ],
+        take: 3,
+        order: { createdAt: 'DESC' },
+      }),
+      // Handicap legitimations
+      this.handicapLegitimationRepo.find({
+        where: [
+          { personName: ILike(`%${q}%`) },
+          { carPlate: ILike(`%${q}%`) },
+          { handicapCertificateNumber: ILike(`%${q}%`) },
+        ],
+        take: 3,
+        order: { createdAt: 'DESC' },
+      }),
+      // Revolutionar legitimations
+      this.revolutionarLegitimationRepo.find({
+        where: [
+          { personName: ILike(`%${q}%`) },
+          { carPlate: ILike(`%${q}%`) },
+          { lawNumber: ILike(`%${q}%`) },
+        ],
+        take: 3,
+        order: { createdAt: 'DESC' },
+      }),
+      // Domiciliu requests
+      this.domiciliuRequestRepo.find({
+        where: [
+          { personName: ILike(`%${q}%`) },
+          { location: ILike(`%${q}%`) },
+          { carPlate: ILike(`%${q}%`) },
+          { address: ILike(`%${q}%`) },
+        ],
+        take: 3,
+        order: { createdAt: 'DESC' },
+      }),
+      // Control sesizari
+      this.controlSesizareRepo.find({
+        where: [
+          { location: ILike(`%${q}%`) },
+          { description: ILike(`%${q}%`) },
+        ],
+        take: 3,
+        order: { createdAt: 'DESC' },
+      }),
+      // Leave requests — search by reason and by user name via query builder
+      this.leaveRepo.createQueryBuilder('lr')
+        .leftJoinAndSelect('lr.user', 'user')
+        .where('lr.reason ILIKE :q', { q: `%${q}%` })
+        .orWhere('user.full_name ILIKE :q', { q: `%${q}%` })
+        .orderBy('lr.created_at', 'DESC')
+        .take(3)
+        .getMany(),
+      // Shift swap requests — search by reason and by requester name via query builder
+      this.shiftSwapRepo.createQueryBuilder('ss')
+        .leftJoinAndSelect('ss.requester', 'requester')
+        .where('ss.reason ILIKE :q', { q: `%${q}%` })
+        .orWhere('requester.full_name ILIKE :q', { q: `%${q}%` })
+        .orderBy('ss.created_at', 'DESC')
+        .take(3)
+        .getMany(),
+    ]);
+
+    // Map users
     users.forEach(u => {
       results.push({
         type: 'user',
@@ -127,12 +250,7 @@ export class SearchController {
       });
     });
 
-    // 3. Search departments
-    const departments = await this.departmentRepo.find({
-      where: [{ name: ILike(`%${q}%`) }],
-      take: 2,
-      relations: ['manager'],
-    });
+    // Map departments
     departments.forEach(d => {
       results.push({
         type: 'department',
@@ -143,17 +261,7 @@ export class SearchController {
       });
     });
 
-    // 4. Search parking issues
-    const issues = await this.parkingIssueRepo.find({
-      where: [
-        { description: ILike(`%${q}%`) },
-        { equipment: ILike(`%${q}%`) },
-        { contactedCompany: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      relations: ['parkingLot'],
-      order: { createdAt: 'DESC' },
-    });
+    // Map parking issues
     issues.forEach(i => {
       results.push({
         type: 'parking_issue',
@@ -164,18 +272,7 @@ export class SearchController {
       });
     });
 
-    // 5. Search parking damages
-    const damages = await this.parkingDamageRepo.find({
-      where: [
-        { damagedEquipment: ILike(`%${q}%`) },
-        { personName: ILike(`%${q}%`) },
-        { carPlate: ILike(`%${q}%`) },
-        { description: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      relations: ['parkingLot'],
-      order: { createdAt: 'DESC' },
-    });
+    // Map parking damages
     damages.forEach(d => {
       results.push({
         type: 'parking_damage',
@@ -186,17 +283,7 @@ export class SearchController {
       });
     });
 
-    // 6. Search handicap requests
-    const handicapReqs = await this.handicapRequestRepo.find({
-      where: [
-        { personName: ILike(`%${q}%`) },
-        { location: ILike(`%${q}%`) },
-        { carPlate: ILike(`%${q}%`) },
-        { description: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      order: { createdAt: 'DESC' },
-    });
+    // Map handicap requests
     handicapReqs.forEach(h => {
       results.push({
         type: 'handicap_request',
@@ -207,16 +294,7 @@ export class SearchController {
       });
     });
 
-    // 7. Search handicap legitimations
-    const handicapLegs = await this.handicapLegitimationRepo.find({
-      where: [
-        { personName: ILike(`%${q}%`) },
-        { carPlate: ILike(`%${q}%`) },
-        { handicapCertificateNumber: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      order: { createdAt: 'DESC' },
-    });
+    // Map handicap legitimations
     handicapLegs.forEach(h => {
       results.push({
         type: 'handicap_legitimation',
@@ -227,16 +305,7 @@ export class SearchController {
       });
     });
 
-    // 8. Search revolutionar legitimations
-    const revLegs = await this.revolutionarLegitimationRepo.find({
-      where: [
-        { personName: ILike(`%${q}%`) },
-        { carPlate: ILike(`%${q}%`) },
-        { lawNumber: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      order: { createdAt: 'DESC' },
-    });
+    // Map revolutionar legitimations
     revLegs.forEach(r => {
       results.push({
         type: 'revolutionar_legitimation',
@@ -247,17 +316,7 @@ export class SearchController {
       });
     });
 
-    // 9. Search domiciliu requests
-    const domReqs = await this.domiciliuRequestRepo.find({
-      where: [
-        { personName: ILike(`%${q}%`) },
-        { location: ILike(`%${q}%`) },
-        { carPlate: ILike(`%${q}%`) },
-        { address: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      order: { createdAt: 'DESC' },
-    });
+    // Map domiciliu requests
     domReqs.forEach(d => {
       results.push({
         type: 'domiciliu_request',
@@ -268,15 +327,7 @@ export class SearchController {
       });
     });
 
-    // 10. Search control sesizari
-    const sesizari = await this.controlSesizareRepo.find({
-      where: [
-        { location: ILike(`%${q}%`) },
-        { description: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      order: { createdAt: 'DESC' },
-    });
+    // Map control sesizari
     sesizari.forEach(s => {
       results.push({
         type: 'control_sesizare',
@@ -287,15 +338,7 @@ export class SearchController {
       });
     });
 
-    // 11. Search leave requests
-    const leaves = await this.leaveRepo.find({
-      where: [
-        { reason: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      relations: ['user'],
-      order: { createdAt: 'DESC' },
-    });
+    // Map leave requests
     leaves.forEach(l => {
       results.push({
         type: 'leave_request',
@@ -306,21 +349,13 @@ export class SearchController {
       });
     });
 
-    // 12. Search shift swap requests
-    const swaps = await this.shiftSwapRepo.find({
-      where: [
-        { reason: ILike(`%${q}%`) },
-      ],
-      take: 3,
-      relations: ['requester'],
-      order: { createdAt: 'DESC' },
-    });
+    // Map shift swap requests
     swaps.forEach(s => {
       results.push({
         type: 'shift_swap',
         id: s.id,
         title: `Schimb: ${s.requester?.fullName || 'N/A'}`,
-        subtitle: `${s.requesterDate} - ${s.status}`,
+        subtitle: `${this.formatDate(s.requesterDate)} - ${s.status}`,
         url: `/shift-swaps`,
       });
     });
