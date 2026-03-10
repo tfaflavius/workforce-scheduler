@@ -10,6 +10,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { LeaveRequestsService } from './leave-requests.service';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
 import { RespondLeaveRequestDto } from './dto/respond-leave-request.dto';
@@ -22,7 +23,7 @@ import { UserRole } from '../users/entities/user.entity';
 import { LeaveRequestStatus } from './entities/leave-request.entity';
 
 @Controller('leave-requests')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class LeaveRequestsController {
   constructor(private readonly leaveRequestsService: LeaveRequestsService) {}
 

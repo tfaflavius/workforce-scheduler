@@ -419,8 +419,11 @@ export const NotificationBell: React.FC = () => {
             <Typography
               variant="body2"
               color="primary"
-              sx={{ textAlign: 'center', cursor: 'pointer' }}
-              onClick={handleClose}
+              sx={{ textAlign: 'center', cursor: 'pointer', fontWeight: 600 }}
+              onClick={() => {
+                handleClose();
+                navigate('/notifications');
+              }}
             >
               Vezi toate notificarile
             </Typography>

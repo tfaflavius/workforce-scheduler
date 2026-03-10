@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, UseInterceptors, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { ParkingStatsService } from './parking-stats.service';
 import { PARKING_STAT_LOCATIONS } from './constants/parking.constants';
+import { HttpCacheInterceptor, CacheTTL } from '../../common/interceptors/cache.interceptor';
 
 @Controller('parking-stats')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,6 +16,8 @@ export class ParkingStatsController {
   // ==================== LOCATIONS ====================
 
   @Get('locations')
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheTTL(300) // Cache static data for 5 minutes
   getLocations() {
     return PARKING_STAT_LOCATIONS;
   }
@@ -35,11 +38,15 @@ export class ParkingStatsController {
   }
 
   @Get('tickets/weekly')
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheTTL(120) // Cache weekly summary for 2 minutes
   async getWeeklyTicketsSummary(@Query('weekStart') weekStart: string) {
     return this.parkingStatsService.getWeeklyTicketsSummary(weekStart);
   }
 
   @Get('tickets/monthly')
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheTTL(120) // Cache monthly summary for 2 minutes
   async getMonthlyTicketsSummary(@Query('monthYear') monthYear: string) {
     return this.parkingStatsService.getMonthlyTicketsSummary(monthYear);
   }
@@ -78,6 +85,8 @@ export class ParkingStatsController {
   }
 
   @Get('occupancy/monthly')
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheTTL(120) // Cache monthly occupancy for 2 minutes
   async getMonthlyOccupancySummary(@Query('monthYear') monthYear: string) {
     return this.parkingStatsService.getMonthlyOccupancySummary(monthYear);
   }

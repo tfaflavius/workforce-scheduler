@@ -43,6 +43,7 @@ const AchizitiiPage = lazy(() => import('../pages/departments/AchizitiiPage'));
 const IncasariCheltuieliPage = lazy(() => import('../pages/departments/IncasariCheltuieliPage'));
 const ControlSesizariPage = lazy(() => import('../pages/parking/ControlSesizariPage'));
 const PermissionsPage = lazy(() => import('../pages/permissions/PermissionsPage'));
+const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'));
 
 const PageLoader = () => (
   <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
@@ -184,6 +185,9 @@ export const AppRoutes = () => {
 
         {/* Profile */}
         <Route path="/profile" element={<Suspense fallback={<PageLoader />}><UserProfilePage /></Suspense>} />
+
+        {/* Notifications - all authenticated users */}
+        <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense>} />
 
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<Suspense fallback={<PageLoader />}><ParkingPage /></Suspense>} />

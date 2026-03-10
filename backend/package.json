@@ -30,6 +30,7 @@
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bull": "^11.0.4",
+    "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/cli": "^11.0.14",
     "@nestjs/common": "^11.1.11",
     "@nestjs/config": "^4.0.2",
@@ -46,6 +47,7 @@
     "aws-sdk": "^2.1693.0",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.66.5",
+    "cache-manager": "^5.7.6",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "dotenv": "^17.2.3",
@@ -59,6 +61,7 @@
     "puppeteer": "^24.35.0",
     "redis": "^5.10.0",
     "resend": "^6.9.1",
+    "rxjs": "^7.8.2",
     "socket.io": "^4.8.3",
     "typeorm": "^0.3.28",
     "web-push": "^3.6.7"

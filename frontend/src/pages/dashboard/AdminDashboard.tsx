@@ -66,6 +66,7 @@ import {
 import { useGetNotificationsQuery } from '../../store/api/notifications.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { StatCard } from '../../components/common/StatCard';
+import { StatusDistributionChart, WeeklyOverviewChart } from '../../components/common/DashboardCharts';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
 
@@ -963,6 +964,30 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </Fade>
+
+          {/* Status Distribution Chart */}
+          <StatusDistributionChart
+            title="Distributie Cereri Active"
+            data={[
+              { label: 'Probleme Parcari', value: activeIssues.length, color: '#ef4444' },
+              { label: 'Prejudicii', value: activeDamages.length, color: '#f59e0b' },
+              { label: 'Schimburi Ture', value: pendingSwaps, color: '#06b6d4' },
+              { label: 'Concedii', value: pendingLeaves, color: '#8b5cf6' },
+              { label: 'Cereri Editare', value: pendingEditRequests?.count || 0, color: '#2563eb' },
+            ]}
+          />
+
+          {/* Weekly Overview Chart */}
+          <WeeklyOverviewChart
+            title="Sumar Activitate"
+            data={[
+              { label: 'Programe', value: pendingCount, color: '#f59e0b' },
+              { label: 'Schimburi', value: swapRequests.length, color: '#06b6d4' },
+              { label: 'Concedii', value: leaveRequests.length, color: '#8b5cf6' },
+              { label: 'Probleme', value: activeIssues.length, color: '#ef4444' },
+              { label: 'Prejudicii', value: activeDamages.length, color: '#f59e0b' },
+            ]}
+          />
 
           {/* Parking Quick Overview - visible on desktop sidebar */}
           <Fade in={true} timeout={900}>

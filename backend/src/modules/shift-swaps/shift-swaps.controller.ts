@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { ShiftSwapsService } from './shift-swaps.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -20,7 +21,7 @@ import { AdminApproveSwapDto, AdminRejectSwapDto } from './dto/admin-approve-swa
 import { ShiftSwapStatus } from './entities/shift-swap-request.entity';
 
 @Controller('shift-swaps')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 export class ShiftSwapsController {
   constructor(private readonly shiftSwapsService: ShiftSwapsService) {}
 

@@ -13,6 +13,7 @@ import {
   Request,
   ForbiddenException,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,9 +23,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
+import { HttpCacheInterceptor, CacheTTL } from '../../common/interceptors/cache.interceptor';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -42,6 +44,8 @@ export class UsersController {
 
   @Get('stats')
   @Roles(UserRole.ADMIN)
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheTTL(60) // Cache user stats for 60 seconds
   getUserStats() {
     return this.usersService.getUserStats();
   }

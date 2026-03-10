@@ -1,4 +1,5 @@
-import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, UseInterceptors, Req } from '@nestjs/common';
+import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
@@ -6,6 +7,7 @@ import { User } from '../users/entities/user.entity';
 import { ParkingIssue } from '../parking/entities/parking-issue.entity';
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { ShiftSwapRequest } from '../shift-swaps/entities/shift-swap-request.entity';
+import { HttpCacheInterceptor, CacheTTL } from '../../common/interceptors/cache.interceptor';
 
 interface SearchResult {
   type: string;
@@ -16,7 +18,8 @@ interface SearchResult {
 }
 
 @Controller('search')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ThrottlerGuard)
+@Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 searches per minute
 export class SearchController {
   constructor(
     @InjectRepository(User)
@@ -30,6 +33,8 @@ export class SearchController {
   ) {}
 
   @Get()
+  @UseInterceptors(HttpCacheInterceptor)
+  @CacheTTL(15) // Cache search results for 15 seconds
   async search(@Query('q') query: string, @Req() req: any): Promise<SearchResult[]> {
     if (!query || query.trim().length < 2) {
       return [];
