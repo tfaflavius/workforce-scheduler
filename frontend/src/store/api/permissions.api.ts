@@ -4,11 +4,13 @@ import type {
   PermissionMatrix,
   UserPermissionOverride,
   TaskFlowRule,
+  EmailNotificationRule,
   EffectivePermissions,
   PermissionSummary,
   BulkUpdateItem,
   OverrideItem,
   CreateTaskFlowRequest,
+  CreateEmailRuleRequest,
 } from '../../types/permission.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -25,7 +27,7 @@ export const permissionsApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary'],
+  tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary', 'EmailRule'],
   endpoints: (builder) => ({
     // Permission Matrix
     getMatrix: builder.query<PermissionMatrix, void>({
@@ -115,13 +117,45 @@ export const permissionsApi = createApi({
       invalidatesTags: ['TaskFlow'],
     }),
 
+    // Email Notification Rules
+    getEmailRules: builder.query<EmailNotificationRule[], void>({
+      query: () => '/permissions/email-rules',
+      providesTags: ['EmailRule'],
+    }),
+
+    createEmailRule: builder.mutation<EmailNotificationRule, CreateEmailRuleRequest>({
+      query: (body) => ({
+        url: '/permissions/email-rules',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['EmailRule'],
+    }),
+
+    updateEmailRule: builder.mutation<EmailNotificationRule, { id: string; data: Partial<CreateEmailRuleRequest> }>({
+      query: ({ id, data }) => ({
+        url: `/permissions/email-rules/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['EmailRule'],
+    }),
+
+    deleteEmailRule: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/permissions/email-rules/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['EmailRule'],
+    }),
+
     // Seed & Summary
     seedDefaults: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: '/permissions/seed',
         method: 'POST',
       }),
-      invalidatesTags: ['Permission', 'TaskFlow', 'PermissionSummary'],
+      invalidatesTags: ['Permission', 'TaskFlow', 'PermissionSummary', 'EmailRule'],
     }),
 
     getSummary: builder.query<PermissionSummary, void>({
@@ -143,6 +177,10 @@ export const {
   useCreateTaskFlowMutation,
   useUpdateTaskFlowMutation,
   useDeleteTaskFlowMutation,
+  useGetEmailRulesQuery,
+  useCreateEmailRuleMutation,
+  useUpdateEmailRuleMutation,
+  useDeleteEmailRuleMutation,
   useSeedDefaultsMutation,
   useGetSummaryQuery,
 } = permissionsApi;

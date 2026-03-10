@@ -75,6 +75,34 @@ export interface OverrideItem {
   allowed: boolean;
 }
 
+export interface EmailNotificationRule {
+  id: string;
+  eventType: string;
+  eventAction: string;
+  recipientType: 'ROLE' | 'DEPARTMENT' | 'CREATOR' | 'ASSIGNED' | 'ADMIN_ALL' | 'MANAGER_ALL';
+  recipientRole: string | null;
+  recipientDepartmentId: string | null;
+  recipientDepartment?: { id: string; name: string } | null;
+  description: string;
+  sendImmediate: boolean;
+  cronSchedule: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEmailRuleRequest {
+  eventType: string;
+  eventAction: string;
+  recipientType: string;
+  recipientRole?: string | null;
+  recipientDepartmentId?: string | null;
+  description: string;
+  sendImmediate?: boolean;
+  cronSchedule?: string | null;
+  isActive?: boolean;
+}
+
 export interface CreateTaskFlowRequest {
   taskType: string;
   creatorRole?: UserRole | null;

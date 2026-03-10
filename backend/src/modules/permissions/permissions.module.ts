@@ -5,6 +5,7 @@ import { PermissionsController } from './permissions.controller';
 import { Permission } from './entities/permission.entity';
 import { UserPermissionOverride } from './entities/user-permission-override.entity';
 import { TaskFlowRule } from './entities/task-flow-rule.entity';
+import { EmailNotificationRule } from './entities/email-notification-rule.entity';
 import { Department } from '../departments/entities/department.entity';
 import { User } from '../users/entities/user.entity';
 
@@ -14,6 +15,7 @@ import { User } from '../users/entities/user.entity';
       Permission,
       UserPermissionOverride,
       TaskFlowRule,
+      EmailNotificationRule,
       Department,
       User,
     ]),

@@ -97,3 +97,72 @@ export const FLOW_STEP_LABELS = {
 
 // Status progression for task flows
 export const FLOW_STATUS_STEPS = ['ACTIV', 'IN LUCRU', 'FINALIZAT'] as const;
+
+// ─── Email Notification Rules ───────────────────────────────
+
+export const EMAIL_EVENT_TYPES = [
+  { key: 'parking_issue', label: 'Probleme Parcari' },
+  { key: 'parking_damage', label: 'Prejudicii Parcari' },
+  { key: 'handicap_request', label: 'Solicitari Handicap' },
+  { key: 'domiciliu_request', label: 'Solicitari Domiciliu' },
+  { key: 'control_sesizare', label: 'Sesizari Control' },
+  { key: 'leave_request', label: 'Cereri Concediu' },
+  { key: 'shift_swap', label: 'Schimburi Ture' },
+  { key: 'schedule', label: 'Program' },
+  { key: 'daily_report', label: 'Raport Zilnic' },
+  { key: 'weekly_report', label: 'Raport Saptamanal' },
+  { key: 'unresolved_reminder', label: 'Reminder Nerezolvate' },
+  { key: 'welcome', label: 'Cont Nou' },
+  { key: 'password_reset', label: 'Resetare Parola' },
+] as const;
+
+export const EMAIL_EVENT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  EMAIL_EVENT_TYPES.map((t) => [t.key, t.label]),
+);
+
+export const EMAIL_EVENT_ACTIONS = [
+  { key: 'created', label: 'Creare' },
+  { key: 'resolved', label: 'Rezolvare' },
+  { key: 'approved', label: 'Aprobare' },
+  { key: 'rejected', label: 'Respingere' },
+  { key: 'accepted', label: 'Acceptare' },
+  { key: 'declined', label: 'Refuzare' },
+  { key: 'reminder', label: 'Reminder' },
+  { key: 'report', label: 'Raport' },
+  { key: 'updated', label: 'Actualizare' },
+  { key: 'final_approval', label: 'Aprobare Finala' },
+] as const;
+
+export const EMAIL_EVENT_ACTION_LABELS: Record<string, string> = Object.fromEntries(
+  EMAIL_EVENT_ACTIONS.map((a) => [a.key, a.label]),
+);
+
+export const EMAIL_RECIPIENT_TYPES = [
+  { key: 'ROLE', label: 'Rol Specific' },
+  { key: 'DEPARTMENT', label: 'Departament' },
+  { key: 'CREATOR', label: 'Creatorul' },
+  { key: 'ASSIGNED', label: 'Angajatul Asignat' },
+  { key: 'ADMIN_ALL', label: 'Toti Adminii' },
+  { key: 'MANAGER_ALL', label: 'Toti Managerii' },
+] as const;
+
+export const EMAIL_RECIPIENT_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  EMAIL_RECIPIENT_TYPES.map((r) => [r.key, r.label]),
+);
+
+// Color map for event type chips
+export const EMAIL_EVENT_TYPE_COLORS: Record<string, 'error' | 'warning' | 'info' | 'success' | 'secondary' | 'primary' | 'default'> = {
+  parking_issue: 'error',
+  parking_damage: 'error',
+  handicap_request: 'info',
+  domiciliu_request: 'info',
+  control_sesizare: 'warning',
+  leave_request: 'success',
+  shift_swap: 'success',
+  schedule: 'primary',
+  daily_report: 'secondary',
+  weekly_report: 'secondary',
+  unresolved_reminder: 'warning',
+  welcome: 'primary',
+  password_reset: 'default',
+};

@@ -79,6 +79,26 @@ export class PermissionsController {
     return this.permissionsService.deleteTaskFlow(id);
   }
 
+  @Get('email-rules')
+  getEmailRules() {
+    return this.permissionsService.getEmailNotificationRules();
+  }
+
+  @Post('email-rules')
+  createEmailRule(@Body() body: any) {
+    return this.permissionsService.createEmailNotificationRule(body);
+  }
+
+  @Patch('email-rules/:id')
+  updateEmailRule(@Param('id') id: string, @Body() body: any) {
+    return this.permissionsService.updateEmailNotificationRule(id, body);
+  }
+
+  @Delete('email-rules/:id')
+  deleteEmailRule(@Param('id') id: string) {
+    return this.permissionsService.deleteEmailNotificationRule(id);
+  }
+
   @Post('seed')
   seedDefaults() {
     return this.permissionsService.seedDefaults();

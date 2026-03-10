@@ -12,11 +12,13 @@ import {
   People as PeopleIcon,
   AccountTree as FlowIcon,
   PersonAdd as OverrideIcon,
+  Email as EmailIcon,
 } from '@mui/icons-material';
 import PermissionMatrixTab from './components/PermissionMatrixTab';
 import UsersDepartmentsTab from './components/UsersDepartmentsTab';
 import TaskFlowsTab from './components/TaskFlowsTab';
 import UserOverridesTab from './components/UserOverridesTab';
+import EmailNotificationRulesTab from './components/EmailNotificationRulesTab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -69,6 +71,7 @@ const PermissionsPage = () => {
           <Tab icon={<PeopleIcon />} iconPosition="start" label="Utilizatori & Departamente" />
           <Tab icon={<FlowIcon />} iconPosition="start" label="Fluxuri Task-uri" />
           <Tab icon={<OverrideIcon />} iconPosition="start" label="Exceptii Utilizator" />
+          <Tab icon={<EmailIcon />} iconPosition="start" label="Fluxuri Email" />
         </Tabs>
       </Paper>
 
@@ -84,6 +87,9 @@ const PermissionsPage = () => {
       </TabPanel>
       <TabPanel value={tabIndex} index={3}>
         <UserOverridesTab />
+      </TabPanel>
+      <TabPanel value={tabIndex} index={4}>
+        <EmailNotificationRulesTab />
       </TabPanel>
     </Box>
   );
