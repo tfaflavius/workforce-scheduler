@@ -18,6 +18,8 @@ import { parkingStatsApi } from './api/parkingStats.api';
 import { controlApi } from './api/control.api';
 import { permissionsApi } from './api/permissions.api';
 import { scheduleGeneratorApi } from './api/scheduleGenerator.api';
+import { searchApi } from './api/search.api';
+import { auditApi } from './api/audit.api';
 
 export const store = configureStore({
   reducer: {
@@ -40,6 +42,8 @@ export const store = configureStore({
     [controlApi.reducerPath]: controlApi.reducer,
     [permissionsApi.reducerPath]: permissionsApi.reducer,
     [scheduleGeneratorApi.reducerPath]: scheduleGeneratorApi.reducer,
+    [searchApi.reducerPath]: searchApi.reducer,
+    [auditApi.reducerPath]: auditApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -60,7 +64,9 @@ export const store = configureStore({
       parkingStatsApi.middleware,
       controlApi.middleware,
       permissionsApi.middleware,
-      scheduleGeneratorApi.middleware
+      scheduleGeneratorApi.middleware,
+      searchApi.middleware,
+      auditApi.middleware,
     ),
 });
 

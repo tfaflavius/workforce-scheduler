@@ -9,10 +9,13 @@ import { RevolutionarLegitimation } from '../parking/entities/revolutionar-legit
 import { PvDisplaySession } from '../parking/entities/pv-display-session.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
 import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
+import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
+import { ShiftSwapRequest } from '../shift-swaps/entities/shift-swap-request.entity';
 import { ParkingModule } from '../parking/parking.module';
 import { TimeTrackingModule } from '../time-tracking/time-tracking.module';
 import { DailyReportsModule } from '../daily-reports/daily-reports.module';
 import { AdminConsolidatedScheduler } from './admin-consolidated.scheduler';
+import { SearchController } from './search.controller';
 
 @Module({
   imports: [
@@ -26,11 +29,14 @@ import { AdminConsolidatedScheduler } from './admin-consolidated.scheduler';
       PvDisplaySession,
       PvDisplayDay,
       ControlSesizare,
+      LeaveRequest,
+      ShiftSwapRequest,
     ]),
     ParkingModule,
     TimeTrackingModule,
     DailyReportsModule,
   ],
+  controllers: [SearchController],
   providers: [AdminConsolidatedScheduler],
 })
 export class AdminModule {}

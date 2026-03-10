@@ -61,6 +61,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logoutAsync } from '../../store/slices/auth.slice';
 import type { UserRole } from '../../types/user.types';
 import NotificationBell from '../notifications/NotificationBell';
+import GlobalSearch from '../common/GlobalSearch';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useThemeMode } from '../../contexts/ThemeContext';
@@ -923,6 +924,9 @@ export const MainLayout = () => {
           >
             {filteredMenuItems.find((item) => item.path === location.pathname)?.text || 'WorkSchedule'}
           </Typography>
+
+          {/* Global Search */}
+          <GlobalSearch />
 
           {/* Notifications Bell */}
           <NotificationBell />
