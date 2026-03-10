@@ -215,6 +215,16 @@ export const NOTIFICATION_TYPE_DEFINITIONS: NotificationTypeDefinition[] = [
   // Parcari
   { key: 'PARKING_ISSUE_ASSIGNED', label: 'Problema parcari asignata', category: 'Parcari' },
   { key: 'PARKING_ISSUE_RESOLVED', label: 'Problema parcari rezolvata', category: 'Parcari' },
+  { key: 'PARKING_DAMAGE_ASSIGNED', label: 'Prejudiciu parcari asignat', category: 'Parcari' },
+  { key: 'PARKING_DAMAGE_RESOLVED', label: 'Prejudiciu parcari rezolvat', category: 'Parcari' },
+  { key: 'HANDICAP_REQUEST_ASSIGNED', label: 'Solicitare handicap asignata', category: 'Parcari' },
+  { key: 'HANDICAP_REQUEST_RESOLVED', label: 'Solicitare handicap rezolvata', category: 'Parcari' },
+  { key: 'DOMICILIU_REQUEST_ASSIGNED', label: 'Solicitare domiciliu asignata', category: 'Parcari' },
+  { key: 'DOMICILIU_REQUEST_RESOLVED', label: 'Solicitare domiciliu rezolvata', category: 'Parcari' },
+  { key: 'LEGITIMATION_ASSIGNED', label: 'Legitimatie asignata', category: 'Parcari' },
+  { key: 'LEGITIMATION_RESOLVED', label: 'Legitimatie rezolvata', category: 'Parcari' },
+  { key: 'PV_SESSION_ASSIGNED', label: 'Sesiune PV asignata', category: 'Parcari' },
+  { key: 'PV_SESSION_UPDATED', label: 'Sesiune PV actualizata', category: 'Parcari' },
   { key: 'CONTROL_SESIZARE_ASSIGNED', label: 'Sesizare control asignata', category: 'Parcari' },
   { key: 'CONTROL_SESIZARE_RESOLVED', label: 'Sesizare control rezolvata', category: 'Parcari' },
   // Rapoarte

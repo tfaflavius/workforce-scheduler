@@ -82,7 +82,7 @@ export class PvDisplayScheduler {
         for (const userId of controlUserIds) {
           notifications.push({
             userId,
-            type: NotificationType.GENERAL,
+            type: NotificationType.PV_SESSION_ASSIGNED,
             title: 'Azi ai afisare procese verbale',
             message: `Ziua ${day.dayOrder} de afisare PV este programata pentru azi (${this.formatDate(day.displayDate)}). ${day.noticeCount} procese verbale de afisat.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },
@@ -133,7 +133,7 @@ export class PvDisplayScheduler {
         if (assignment.user) {
           notifications.push({
             userId: assignment.user.id,
-            type: NotificationType.GENERAL,
+            type: NotificationType.PV_SESSION_UPDATED,
             title: 'Masina indisponibila - Afisare PV',
             message: `Masina va fi indisponibila astazi (estimativ pana la ~15:00) pentru afisarea proceselor verbale.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },

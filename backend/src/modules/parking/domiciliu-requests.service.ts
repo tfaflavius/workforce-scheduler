@@ -197,7 +197,7 @@ export class DomiciliuRequestsService {
     // Trimite notificari in-app catre toti userii din echipa de intretinere (email-urile se trimit doar in digest-ul zilnic)
     const notifications = maintenanceUsers.map(user => ({
       userId: user.id,
-      type: NotificationType.PARKING_ISSUE_ASSIGNED,
+      type: NotificationType.DOMICILIU_REQUEST_ASSIGNED,
       title: `Solicitare domiciliu noua: ${requestTypeLabel}`,
       message: `O noua solicitare de tip "${requestTypeLabel}" pentru ${request.personName} la ${request.location} necesita atentia ta.`,
       data: {
@@ -267,7 +267,7 @@ export class DomiciliuRequestsService {
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
     const notifications = uniqueUsers.map(user => ({
       userId: user.id,
-      type: NotificationType.PARKING_ISSUE_RESOLVED,
+      type: NotificationType.DOMICILIU_REQUEST_RESOLVED,
       title: `Solicitare domiciliu finalizata: ${requestTypeLabel}`,
       message: `Solicitarea de tip "${requestTypeLabel}" pentru ${request.personName} a fost finalizata de ${resolverName}.`,
       data: {
@@ -375,7 +375,7 @@ export class DomiciliuRequestsService {
     if (request.createdBy !== commenterUserId) {
       await this.notificationsService.create({
         userId: request.createdBy,
-        type: NotificationType.PARKING_ISSUE_RESOLVED,
+        type: NotificationType.DOMICILIU_REQUEST_RESOLVED,
         title: 'Comentariu nou la solicitare domiciliu',
         message: `${commenterName} a adaugat un comentariu la solicitarea ta de tip "${requestTypeLabel}".`,
         data: {
@@ -399,7 +399,7 @@ export class DomiciliuRequestsService {
       if (toNotify.length > 0) {
         const notifications = toNotify.map(user => ({
           userId: user.id,
-          type: NotificationType.PARKING_ISSUE_RESOLVED,
+          type: NotificationType.DOMICILIU_REQUEST_RESOLVED,
           title: 'Comentariu nou la solicitare domiciliu',
           message: `${commenterName} a adaugat un comentariu la solicitarea "${requestTypeLabel}" pentru ${request.personName}.`,
           data: {

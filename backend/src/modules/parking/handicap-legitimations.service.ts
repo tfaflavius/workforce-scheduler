@@ -171,7 +171,7 @@ export class HandicapLegitimationsService {
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
     const notifications = allUsers.map(user => ({
       userId: user.id,
-      type: NotificationType.PARKING_ISSUE_ASSIGNED,
+      type: NotificationType.LEGITIMATION_ASSIGNED,
       title: 'Solicitare legitimatie handicap noua',
       message: `O noua solicitare de legitimatie pentru ${legitimation.personName} (${legitimation.carPlate}) a fost creata de ${creatorName}.`,
       data: {
@@ -228,7 +228,7 @@ export class HandicapLegitimationsService {
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
     const notifications = uniqueUsers.map(user => ({
       userId: user.id,
-      type: NotificationType.PARKING_ISSUE_RESOLVED,
+      type: NotificationType.LEGITIMATION_RESOLVED,
       title: 'Legitimatie handicap finalizata',
       message: `Legitimatia pentru ${legitimation.personName} a fost finalizata de ${resolverName}.`,
       data: {
@@ -329,7 +329,7 @@ export class HandicapLegitimationsService {
     if (legitimation.createdBy !== commenterUserId) {
       await this.notificationsService.create({
         userId: legitimation.createdBy,
-        type: NotificationType.PARKING_ISSUE_RESOLVED,
+        type: NotificationType.LEGITIMATION_RESOLVED,
         title: 'Comentariu nou la legitimatie handicap',
         message: `${commenterName} a adaugat un comentariu la legitimatia pentru ${legitimation.personName}.`,
         data: {
@@ -353,7 +353,7 @@ export class HandicapLegitimationsService {
       if (toNotify.length > 0) {
         const notifications = toNotify.map(user => ({
           userId: user.id,
-          type: NotificationType.PARKING_ISSUE_RESOLVED,
+          type: NotificationType.LEGITIMATION_RESOLVED,
           title: 'Comentariu nou la legitimatie handicap',
           message: `${commenterName} a adaugat un comentariu la legitimatia pentru ${legitimation.personName}.`,
           data: {

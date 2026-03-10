@@ -125,7 +125,7 @@ export class ParkingDamagesService {
 
     const notifications = toNotify.map(user => ({
       userId: user.id,
-      type: NotificationType.PARKING_ISSUE_RESOLVED,
+      type: NotificationType.PARKING_DAMAGE_RESOLVED,
       title,
       message,
       data: {
@@ -219,7 +219,7 @@ export class ParkingDamagesService {
         // Notificare in-app
         await this.notificationsService.create({
           userId: damage.createdBy,
-          type: NotificationType.PARKING_ISSUE_RESOLVED,
+          type: NotificationType.PARKING_DAMAGE_RESOLVED,
           title: 'Prejudiciu finalizat',
           message: `Prejudiciul la ${damage.parkingLot?.name || 'parcare'} (${damage.damagedEquipment}) a fost finalizat.`,
           data: {
@@ -267,7 +267,7 @@ export class ParkingDamagesService {
     if (toNotify.length > 0) {
       const notifications = toNotify.map(user => ({
         userId: user.id,
-        type: NotificationType.PARKING_ISSUE_RESOLVED,
+        type: NotificationType.PARKING_DAMAGE_RESOLVED,
         title: 'Comentariu nou la prejudiciu',
         message: `${actor?.fullName || 'Un utilizator'} a adaugat un comentariu la prejudiciul de la ${damage.parkingLot?.name || 'parcare'}.`,
         data: {

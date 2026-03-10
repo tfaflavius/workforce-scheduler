@@ -450,7 +450,7 @@ export class PvDisplayService {
     // Notifica userul asignat
     await this.notificationsService.createMany([{
       userId: dto.userId,
-      type: NotificationType.GENERAL,
+      type: NotificationType.PV_SESSION_ASSIGNED,
       title: 'Asignat pe zi afisare PV',
       message: `Ai fost asignat de administrator pe o zi de afisare procese verbale (${this.formatDate(day.displayDate)}).`,
       data: { pvDayId: dayId, pvSessionId: day.sessionId },
@@ -630,7 +630,7 @@ export class PvDisplayService {
             notifiedUserIds.add(u.id);
             notifications.push({
               userId: u.id,
-              type: NotificationType.GENERAL,
+              type: NotificationType.PV_SESSION_ASSIGNED,
               title: 'Sesiune noua afisare PV',
               message: `O noua sesiune de afisare procese verbale a fost creata pentru ${session.monthYear}. Verifica zilele disponibile in marketplace.`,
               data: { pvSessionId: session.id },
@@ -653,7 +653,7 @@ export class PvDisplayService {
           notifiedUserIds.add(u.id);
           notifications.push({
             userId: u.id,
-            type: NotificationType.GENERAL,
+            type: NotificationType.PV_SESSION_ASSIGNED,
             title: 'Sesiune noua afisare PV',
             message: `O noua sesiune de afisare procese verbale a fost creata pentru ${session.monthYear}.`,
             data: { pvSessionId: session.id },
@@ -689,7 +689,7 @@ export class PvDisplayService {
             notifiedUserIds.add(u.id);
             notifications.push({
               userId: u.id,
-              type: NotificationType.GENERAL,
+              type: NotificationType.PV_SESSION_UPDATED,
               title: 'Zi afisare PV - complet asignata',
               message: `Ziua ${this.formatDate(day.displayDate)} are acum 2/2 utilizatori Control asignati.`,
               data: { pvDayId: day.id, pvSessionId: day.sessionId },
@@ -708,7 +708,7 @@ export class PvDisplayService {
           notifiedUserIds.add(u.id);
           notifications.push({
             userId: u.id,
-            type: NotificationType.GENERAL,
+            type: NotificationType.PV_SESSION_UPDATED,
             title: 'Zi afisare PV - complet asignata',
             message: `Ziua ${this.formatDate(day.displayDate)} are acum 2/2 utilizatori Control asignati.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },
@@ -744,7 +744,7 @@ export class PvDisplayService {
             notifiedUserIds.add(u.id);
             notifications.push({
               userId: u.id,
-              type: NotificationType.GENERAL,
+              type: NotificationType.PV_SESSION_UPDATED,
               title: 'Zi afisare PV finalizata',
               message: `Ziua ${this.formatDate(day.displayDate)} a fost finalizata.`,
               data: { pvDayId: day.id, pvSessionId: day.sessionId },
@@ -763,7 +763,7 @@ export class PvDisplayService {
           notifiedUserIds.add(u.id);
           notifications.push({
             userId: u.id,
-            type: NotificationType.GENERAL,
+            type: NotificationType.PV_SESSION_UPDATED,
             title: 'Zi afisare PV finalizata',
             message: `Ziua ${this.formatDate(day.displayDate)} a fost finalizata.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },
