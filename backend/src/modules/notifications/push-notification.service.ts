@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as webpush from 'web-push';
 import { PushSubscription } from './entities/push-subscription.entity';
+import { User } from '../users/entities/user.entity';
+import { NotificationSettingCheckService } from './notification-setting-check.service';
 
 // Generate VAPID keys: npx web-push generate-vapid-keys
 // Store these in environment variables in production
@@ -16,6 +18,9 @@ export class PushNotificationService {
   constructor(
     @InjectRepository(PushSubscription)
     private pushSubscriptionRepository: Repository<PushSubscription>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private settingCheck: NotificationSettingCheckService,
   ) {
     // Configure web-push
     webpush.setVapidDetails(
@@ -59,7 +64,26 @@ export class PushNotificationService {
     this.logger.log(`Unsubscribed push notification for endpoint: ${endpoint.substring(0, 50)}...`);
   }
 
-  async sendToUser(userId: string, title: string, body: string, data?: Record<string, any>): Promise<void> {
+  async sendToUser(userId: string, title: string, body: string, data?: Record<string, any>, notificationType?: string): Promise<void> {
+    // If notification type provided, check push setting
+    if (notificationType) {
+      try {
+        const user = await this.userRepository.findOne({
+          where: { id: userId },
+          select: ['id', 'role'],
+        });
+        if (user) {
+          const enabled = await this.settingCheck.isPushEnabled(notificationType, user.role);
+          if (!enabled) {
+            this.logger.debug(`Push notification ${notificationType} suppressed for role ${user.role}`);
+            return;
+          }
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to check push notification setting, proceeding: ${error}`);
+      }
+    }
+
     const subscriptions = await this.pushSubscriptionRepository.find({
       where: { userId },
     });
@@ -106,8 +130,8 @@ export class PushNotificationService {
     await Promise.all(sendPromises);
   }
 
-  async sendToUsers(userIds: string[], title: string, body: string, data?: Record<string, any>): Promise<void> {
-    await Promise.all(userIds.map((userId) => this.sendToUser(userId, title, body, data)));
+  async sendToUsers(userIds: string[], title: string, body: string, data?: Record<string, any>, notificationType?: string): Promise<void> {
+    await Promise.all(userIds.map((userId) => this.sendToUser(userId, title, body, data, notificationType)));
   }
 
   async getUserSubscriptions(userId: string): Promise<PushSubscription[]> {

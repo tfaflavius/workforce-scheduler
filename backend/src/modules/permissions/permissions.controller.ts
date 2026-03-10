@@ -108,4 +108,18 @@ export class PermissionsController {
   getSummary() {
     return this.permissionsService.getSummary();
   }
+
+  // ─── Notification Settings ──────────────────────────
+
+  @Get('notification-settings')
+  getNotificationSettings() {
+    return this.permissionsService.getNotificationSettings();
+  }
+
+  @Put('notification-settings/bulk')
+  bulkUpdateNotificationSettings(
+    @Body() body: { updates: { id: string; inAppEnabled: boolean; pushEnabled: boolean }[] },
+  ) {
+    return this.permissionsService.bulkUpdateNotificationSettings(body.updates);
+  }
 }

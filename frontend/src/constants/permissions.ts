@@ -166,3 +166,79 @@ export const EMAIL_EVENT_TYPE_COLORS: Record<string, 'error' | 'warning' | 'info
   welcome: 'primary',
   password_reset: 'default',
 };
+
+// ─── Notification Settings ───────────────────────────────
+
+export interface NotificationTypeDefinition {
+  key: string;
+  label: string;
+  category: string;
+}
+
+export const NOTIFICATION_CATEGORIES = [
+  'Programe',
+  'Ture',
+  'Concedii',
+  'Parcari',
+  'Rapoarte',
+  'Sistem',
+] as const;
+
+export const NOTIFICATION_CATEGORY_LABELS: Record<string, string> = {
+  Programe: 'Programe',
+  Ture: 'Ture',
+  Concedii: 'Concedii',
+  Parcari: 'Parcari',
+  Rapoarte: 'Rapoarte',
+  Sistem: 'Sistem',
+};
+
+export const NOTIFICATION_TYPE_DEFINITIONS: NotificationTypeDefinition[] = [
+  // Programe
+  { key: 'SCHEDULE_CREATED', label: 'Program creat', category: 'Programe' },
+  { key: 'SCHEDULE_UPDATED', label: 'Program actualizat', category: 'Programe' },
+  { key: 'SCHEDULE_APPROVED', label: 'Program aprobat', category: 'Programe' },
+  { key: 'SCHEDULE_REJECTED', label: 'Program respins', category: 'Programe' },
+  // Ture
+  { key: 'SHIFT_REMINDER', label: 'Reminder tura', category: 'Ture' },
+  { key: 'SHIFT_SWAP_REQUEST', label: 'Cerere schimb tura', category: 'Ture' },
+  { key: 'SHIFT_SWAP_RESPONSE', label: 'Raspuns schimb tura', category: 'Ture' },
+  { key: 'SHIFT_SWAP_APPROVED', label: 'Schimb tura aprobat', category: 'Ture' },
+  { key: 'SHIFT_SWAP_REJECTED', label: 'Schimb tura respins', category: 'Ture' },
+  { key: 'SHIFT_SWAP_ACCEPTED', label: 'Schimb tura acceptat', category: 'Ture' },
+  { key: 'EMPLOYEE_ABSENT', label: 'Angajat absent', category: 'Ture' },
+  // Concedii
+  { key: 'LEAVE_REQUEST_CREATED', label: 'Cerere concediu creata', category: 'Concedii' },
+  { key: 'LEAVE_REQUEST_APPROVED', label: 'Concediu aprobat', category: 'Concedii' },
+  { key: 'LEAVE_REQUEST_REJECTED', label: 'Concediu respins', category: 'Concedii' },
+  { key: 'LEAVE_OVERLAP_WARNING', label: 'Avertizare suprapunere', category: 'Concedii' },
+  // Parcari
+  { key: 'PARKING_ISSUE_ASSIGNED', label: 'Problema parcari asignata', category: 'Parcari' },
+  { key: 'PARKING_ISSUE_RESOLVED', label: 'Problema parcari rezolvata', category: 'Parcari' },
+  { key: 'CONTROL_SESIZARE_ASSIGNED', label: 'Sesizare control asignata', category: 'Parcari' },
+  { key: 'CONTROL_SESIZARE_RESOLVED', label: 'Sesizare control rezolvata', category: 'Parcari' },
+  // Rapoarte
+  { key: 'DAILY_REPORT_SUBMITTED', label: 'Raport zilnic trimis', category: 'Rapoarte' },
+  { key: 'DAILY_REPORT_COMMENTED', label: 'Comentariu raport zilnic', category: 'Rapoarte' },
+  { key: 'DAILY_REPORT_MISSING', label: 'Raport zilnic lipsa', category: 'Rapoarte' },
+  { key: 'EDIT_REQUEST_CREATED', label: 'Cerere editare creata', category: 'Rapoarte' },
+  { key: 'EDIT_REQUEST_APPROVED', label: 'Cerere editare aprobata', category: 'Rapoarte' },
+  { key: 'EDIT_REQUEST_REJECTED', label: 'Cerere editare respinsa', category: 'Rapoarte' },
+  // Sistem
+  { key: 'GENERAL', label: 'Notificare generala', category: 'Sistem' },
+  { key: 'TIME_ENTRY_MISMATCH', label: 'Nepotrivire pontaj', category: 'Sistem' },
+  { key: 'GPS_STATUS_ALERT', label: 'Alerta status GPS', category: 'Sistem' },
+];
+
+export const NOTIFICATION_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  NOTIFICATION_TYPE_DEFINITIONS.map((t) => [t.key, t.label]),
+);
+
+export const NOTIFICATION_CATEGORY_COLORS: Record<string, 'primary' | 'warning' | 'success' | 'error' | 'info' | 'secondary'> = {
+  Programe: 'primary',
+  Ture: 'warning',
+  Concedii: 'success',
+  Parcari: 'error',
+  Rapoarte: 'info',
+  Sistem: 'secondary',
+};

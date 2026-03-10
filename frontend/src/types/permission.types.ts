@@ -114,3 +114,21 @@ export interface CreateTaskFlowRequest {
   autoAssign?: boolean;
   isActive?: boolean;
 }
+
+// ─── Notification Settings ───────────────────────────────
+
+export interface NotificationSetting {
+  id: string;
+  notificationType: string;
+  role: string;
+  inAppEnabled: boolean;
+  pushEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationSettingBulkUpdateItem {
+  id: string;
+  inAppEnabled: boolean;
+  pushEnabled: boolean;
+}

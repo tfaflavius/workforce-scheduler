@@ -1,7 +1,9 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Notification, NotificationType } from './entities/notification.entity';
+import { User } from '../users/entities/user.entity';
+import { NotificationSettingCheckService } from './notification-setting-check.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @Injectable()
@@ -11,9 +13,36 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private settingCheck: NotificationSettingCheckService,
   ) {}
 
-  async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
+  async create(createNotificationDto: CreateNotificationDto): Promise<Notification | null> {
+    // Check if in-app notification is enabled for this user's role
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: createNotificationDto.userId },
+        select: ['id', 'role'],
+      });
+
+      if (user) {
+        const enabled = await this.settingCheck.isInAppEnabled(
+          createNotificationDto.type,
+          user.role,
+        );
+        if (!enabled) {
+          this.logger.debug(
+            `In-app notification ${createNotificationDto.type} suppressed for role ${user.role}`,
+          );
+          return null;
+        }
+      }
+    } catch (error) {
+      // If check fails, proceed with sending (safe fallback)
+      this.logger.warn(`Failed to check notification setting, proceeding: ${error}`);
+    }
+
     const notification = this.notificationRepository.create(createNotificationDto);
     const saved = await this.notificationRepository.save(notification);
     this.logger.log(`Created notification for user ${createNotificationDto.userId}: ${createNotificationDto.title}`);
@@ -21,10 +50,49 @@ export class NotificationsService {
   }
 
   async createMany(notifications: CreateNotificationDto[]): Promise<Notification[]> {
-    const entities = notifications.map(dto => this.notificationRepository.create(dto));
-    const saved = await this.notificationRepository.save(entities);
-    this.logger.log(`Created ${saved.length} notifications`);
-    return saved;
+    // Batch check: get unique userIds, fetch roles, filter
+    try {
+      const userIds = [...new Set(notifications.map(n => n.userId))];
+      const users = await this.userRepository.find({
+        where: { id: In(userIds) },
+        select: ['id', 'role'],
+      });
+      const roleMap = new Map(users.map(u => [u.id, u.role]));
+
+      const filtered: CreateNotificationDto[] = [];
+      for (const dto of notifications) {
+        const role = roleMap.get(dto.userId);
+        if (!role) {
+          filtered.push(dto); // fallback: send anyway if user not found
+          continue;
+        }
+        const enabled = await this.settingCheck.isInAppEnabled(dto.type, role);
+        if (enabled) {
+          filtered.push(dto);
+        } else {
+          this.logger.debug(`In-app notification ${dto.type} suppressed for role ${role}`);
+        }
+      }
+
+      if (filtered.length === 0) return [];
+
+      const entities = filtered.map(dto => this.notificationRepository.create(dto));
+      const saved = await this.notificationRepository.save(entities);
+      const suppressed = notifications.length - filtered.length;
+      if (suppressed > 0) {
+        this.logger.log(`Created ${saved.length} notifications (${suppressed} suppressed by settings)`);
+      } else {
+        this.logger.log(`Created ${saved.length} notifications`);
+      }
+      return saved;
+    } catch (error) {
+      // If check fails, proceed with sending all (safe fallback)
+      this.logger.warn(`Failed to check notification settings, sending all: ${error}`);
+      const entities = notifications.map(dto => this.notificationRepository.create(dto));
+      const saved = await this.notificationRepository.save(entities);
+      this.logger.log(`Created ${saved.length} notifications`);
+      return saved;
+    }
   }
 
   async findAllForUser(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]> {

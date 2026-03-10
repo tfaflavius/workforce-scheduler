@@ -5,8 +5,10 @@ import { Permission } from './entities/permission.entity';
 import { UserPermissionOverride } from './entities/user-permission-override.entity';
 import { TaskFlowRule } from './entities/task-flow-rule.entity';
 import { EmailNotificationRule, RecipientType } from './entities/email-notification-rule.entity';
+import { NotificationSetting } from './entities/notification-setting.entity';
 import { Department } from '../departments/entities/department.entity';
 import { User, UserRole } from '../users/entities/user.entity';
+import { NotificationType } from '../notifications/entities/notification.entity';
 import { RESOURCE_DEFINITIONS } from './constants/resources';
 
 @Injectable()
@@ -22,6 +24,8 @@ export class PermissionsService {
     private readonly taskFlowRepo: Repository<TaskFlowRule>,
     @InjectRepository(EmailNotificationRule)
     private readonly emailRuleRepo: Repository<EmailNotificationRule>,
+    @InjectRepository(NotificationSetting)
+    private readonly notificationSettingRepo: Repository<NotificationSetting>,
     @InjectRepository(Department)
     private readonly departmentRepo: Repository<Department>,
     @InjectRepository(User)
@@ -287,7 +291,8 @@ export class PermissionsService {
     await this.seedPermissions();
     await this.seedTaskFlows();
     await this.seedEmailNotificationRules();
-    return { message: 'Permissions, task flows and email notification rules seeded successfully' };
+    await this.seedNotificationSettings();
+    return { message: 'Permissions, task flows, email rules and notification settings seeded successfully' };
   }
 
   private async seedPermissions() {
@@ -643,5 +648,57 @@ export class PermissionsService {
     await this.emailRuleRepo.save(entities);
 
     this.logger.log(`Seeded ${entities.length} email notification rules`);
+  }
+
+  // ─── Notification Settings ──────────────────────────────────────────
+
+  async getNotificationSettings(): Promise<NotificationSetting[]> {
+    return this.notificationSettingRepo.find({
+      order: { notificationType: 'ASC', role: 'ASC' },
+    });
+  }
+
+  async bulkUpdateNotificationSettings(
+    updates: { id: string; inAppEnabled: boolean; pushEnabled: boolean }[],
+  ): Promise<{ updated: number }> {
+    const ids = updates.map((u) => u.id);
+    const settings = await this.notificationSettingRepo.find({ where: { id: In(ids) } });
+    const settingMap = new Map(settings.map((s) => [s.id, s]));
+
+    for (const update of updates) {
+      const setting = settingMap.get(update.id);
+      if (setting) {
+        setting.inAppEnabled = update.inAppEnabled;
+        setting.pushEnabled = update.pushEnabled;
+      }
+    }
+
+    await this.notificationSettingRepo.save(settings);
+    return { updated: settings.length };
+  }
+
+  private async seedNotificationSettings(): Promise<void> {
+    await this.notificationSettingRepo.clear();
+
+    const allTypes = Object.values(NotificationType);
+    const allRoles = Object.values(UserRole);
+
+    const settingsToCreate: Partial<NotificationSetting>[] = [];
+
+    for (const type of allTypes) {
+      for (const role of allRoles) {
+        settingsToCreate.push({
+          notificationType: type,
+          role,
+          inAppEnabled: true,
+          pushEnabled: true,
+        });
+      }
+    }
+
+    const entities = settingsToCreate.map((s) => this.notificationSettingRepo.create(s));
+    await this.notificationSettingRepo.save(entities, { chunk: 100 });
+
+    this.logger.log(`Seeded ${entities.length} notification settings`);
   }
 }

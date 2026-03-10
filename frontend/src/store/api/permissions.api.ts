@@ -11,6 +11,8 @@ import type {
   OverrideItem,
   CreateTaskFlowRequest,
   CreateEmailRuleRequest,
+  NotificationSetting,
+  NotificationSettingBulkUpdateItem,
 } from '../../types/permission.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -27,7 +29,7 @@ export const permissionsApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary', 'EmailRule'],
+  tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary', 'EmailRule', 'NotificationSetting'],
   endpoints: (builder) => ({
     // Permission Matrix
     getMatrix: builder.query<PermissionMatrix, void>({
@@ -155,12 +157,30 @@ export const permissionsApi = createApi({
         url: '/permissions/seed',
         method: 'POST',
       }),
-      invalidatesTags: ['Permission', 'TaskFlow', 'PermissionSummary', 'EmailRule'],
+      invalidatesTags: ['Permission', 'TaskFlow', 'PermissionSummary', 'EmailRule', 'NotificationSetting'],
     }),
 
     getSummary: builder.query<PermissionSummary, void>({
       query: () => '/permissions/summary',
       providesTags: ['PermissionSummary'],
+    }),
+
+    // Notification Settings
+    getNotificationSettings: builder.query<NotificationSetting[], void>({
+      query: () => '/permissions/notification-settings',
+      providesTags: ['NotificationSetting'],
+    }),
+
+    bulkUpdateNotificationSettings: builder.mutation<
+      { updated: number },
+      { updates: NotificationSettingBulkUpdateItem[] }
+    >({
+      query: (body) => ({
+        url: '/permissions/notification-settings/bulk',
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['NotificationSetting'],
     }),
   }),
 });
@@ -183,4 +203,6 @@ export const {
   useDeleteEmailRuleMutation,
   useSeedDefaultsMutation,
   useGetSummaryQuery,
+  useGetNotificationSettingsQuery,
+  useBulkUpdateNotificationSettingsMutation,
 } = permissionsApi;
