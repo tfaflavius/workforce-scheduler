@@ -428,6 +428,63 @@ export interface ConsolidatedWeeklyReportData {
   totalReports: number;
   totalUsers: number;
   totalMissing: number;
+  // Sectiuni saptamanale consolidate
+  weeklyCash?: {
+    totalAmount: number;
+    collectionCount: number;
+    byParkingLot: Array<{ parkingLotName: string; totalAmount: number; count: number }>;
+  } | null;
+  weeklyParking?: {
+    newIssues: number;
+    resolvedIssues: number;
+    newDamages: number;
+    resolvedDamages: number;
+    unresolvedIssues: number;
+    unresolvedDamages: number;
+    urgentCount: number;
+  } | null;
+  weeklyHandicap?: {
+    createdCount: number;
+    resolvedCount: number;
+    activeCount: number;
+    expiredCount: number;
+    legitimationsCount: number;
+    revolutionarCount: number;
+  } | null;
+  weeklyDomiciliu?: {
+    createdCount: number;
+    resolvedCount: number;
+    activeCount: number;
+  } | null;
+  weeklyControlSesizari?: {
+    createdCount: number;
+    resolvedCount: number;
+    activeCount: number;
+  } | null;
+  weeklyPvDisplay?: {
+    activeSessions: number;
+    totalDays: number;
+    completedDays: number;
+  } | null;
+  weeklyShiftSwaps?: {
+    totalRequests: number;
+    approved: number;
+    rejected: number;
+    pending: number;
+  } | null;
+  weeklyLeaveRequests?: {
+    totalRequests: number;
+    approved: number;
+    rejected: number;
+    pending: number;
+    byType: Array<{ type: string; count: number }>;
+  } | null;
+  weeklyEditRequests?: {
+    totalRequests: number;
+    approved: number;
+    rejected: number;
+    pending: number;
+  } | null;
 }
 
 // ============== SERVICE ==============
@@ -3317,7 +3374,351 @@ export class EmailService {
 
   async sendConsolidatedWeeklyReport(data: ConsolidatedWeeklyReportData): Promise<boolean> {
     const weekRange = `${this.formatDate(data.weekStartDate)} - ${this.formatDate(data.weekEndDate)}`;
+    const sections: string[] = [];
 
+    // ---- Top KPI Summary Cards ----
+    const kpiCards: string[] = [];
+
+    if (data.weeklyCash) {
+      kpiCards.push(`
+        <div style="flex: 1; min-width: 120px; background: linear-gradient(135deg, #2196F3, #1976D2); padding: 14px; border-radius: 10px; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Incasari</div>
+          <div style="color: white; font-size: 22px; font-weight: 700; margin-top: 3px;">${data.weeklyCash.totalAmount.toFixed(0)} RON</div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 10px;">${data.weeklyCash.collectionCount} ridicari</div>
+        </div>
+      `);
+    }
+
+    if (data.weeklyParking) {
+      const wp = data.weeklyParking;
+      kpiCards.push(`
+        <div style="flex: 1; min-width: 120px; background: linear-gradient(135deg, #1565c0, #0d47a1); padding: 14px; border-radius: 10px; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Parcari</div>
+          <div style="color: white; font-size: 22px; font-weight: 700; margin-top: 3px;">${wp.newIssues + wp.newDamages} noi</div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 10px;">${wp.resolvedIssues + wp.resolvedDamages} rezolvate | ${wp.unresolvedIssues + wp.unresolvedDamages} nerezolvate</div>
+        </div>
+      `);
+    }
+
+    if (data.weeklyLeaveRequests) {
+      kpiCards.push(`
+        <div style="flex: 1; min-width: 120px; background: linear-gradient(135deg, #7c3aed, #5b21b6); padding: 14px; border-radius: 10px; text-align: center;">
+          <div style="color: rgba(255,255,255,0.8); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Concedii</div>
+          <div style="color: white; font-size: 22px; font-weight: 700; margin-top: 3px;">${data.weeklyLeaveRequests.totalRequests}</div>
+          <div style="color: rgba(255,255,255,0.7); font-size: 10px;">${data.weeklyLeaveRequests.approved} aprobate | ${data.weeklyLeaveRequests.pending} in asteptare</div>
+        </div>
+      `);
+    }
+
+    kpiCards.push(`
+      <div style="flex: 1; min-width: 120px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 14px; border-radius: 10px; text-align: center;">
+        <div style="color: rgba(255,255,255,0.8); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Rapoarte</div>
+        <div style="color: white; font-size: 22px; font-weight: 700; margin-top: 3px;">${data.totalReports}</div>
+        <div style="color: rgba(255,255,255,0.7); font-size: 10px;">${data.totalUsers} utilizatori${data.totalMissing ? ` | ${data.totalMissing} lipsa` : ''}</div>
+      </div>
+    `);
+
+    // ---- Section 1: Incasari ----
+    if (data.weeklyCash) {
+      const lotRows = data.weeklyCash.byParkingLot.map(lot => `
+        <tr>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; font-size: 13px;">${lot.parkingLotName}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-size: 13px;">${lot.count}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold; font-size: 13px;">${lot.totalAmount.toFixed(2)} RON</td>
+        </tr>
+      `).join('');
+
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #2196F3, #1976D2); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#128176; Incasari Saptamanale</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="background: #e3f2fd; padding: 14px; border-radius: 8px; margin-bottom: 12px; text-align: center;">
+              <div style="font-size: 26px; font-weight: bold; color: #1565c0;">${data.weeklyCash.totalAmount.toFixed(2)} RON</div>
+              <div style="font-size: 12px; color: #666;">${data.weeklyCash.collectionCount} ridicari in aceasta saptamana</div>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #f5f5f5;">
+                  <th style="padding: 6px 10px; text-align: left; border-bottom: 2px solid #e5e7eb; font-size: 12px;">Parcare</th>
+                  <th style="padding: 6px 10px; text-align: right; border-bottom: 2px solid #e5e7eb; font-size: 12px;">Ridicari</th>
+                  <th style="padding: 6px 10px; text-align: right; border-bottom: 2px solid #e5e7eb; font-size: 12px;">Total</th>
+                </tr>
+              </thead>
+              <tbody>${lotRows}</tbody>
+            </table>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 2: Parcari Etajate ----
+    if (data.weeklyParking) {
+      const wp = data.weeklyParking;
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #1565c0, #0d47a1); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#127359;&#65039; Parcari Etajate</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 80px; background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #1565c0;">${wp.newIssues}</div>
+                <div style="font-size: 10px; color: #666;">Probleme noi</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wp.resolvedIssues}</div>
+                <div style="font-size: 10px; color: #666;">Probleme rezolvate</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #fff3e0; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #e65100;">${wp.newDamages}</div>
+                <div style="font-size: 10px; color: #666;">Prejudicii noi</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wp.resolvedDamages}</div>
+                <div style="font-size: 10px; color: #666;">Prejudicii rezolvate</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 100px; background: ${wp.urgentCount > 0 ? '#ffebee' : '#f5f5f5'}; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: ${wp.urgentCount > 0 ? '#c62828' : '#666'};">${wp.unresolvedIssues + wp.unresolvedDamages}</div>
+                <div style="font-size: 10px; color: #666;">Nerezolvate total${wp.urgentCount > 0 ? ` (${wp.urgentCount} urgente)` : ''}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 3: Handicap ----
+    if (data.weeklyHandicap) {
+      const wh = data.weeklyHandicap;
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#9855; Solicitari Handicap</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 70px; background: #10b981; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 18px; font-weight: bold;">${wh.createdCount}</div>
+                <div style="font-size: 10px;">Create</div>
+              </div>
+              <div style="flex: 1; min-width: 70px; background: #3b82f6; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 18px; font-weight: bold;">${wh.resolvedCount}</div>
+                <div style="font-size: 10px;">Finalizate</div>
+              </div>
+              <div style="flex: 1; min-width: 70px; background: #f59e0b; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 18px; font-weight: bold;">${wh.activeCount}</div>
+                <div style="font-size: 10px;">Active</div>
+              </div>
+              <div style="flex: 1; min-width: 70px; background: ${wh.expiredCount > 0 ? '#ef4444' : '#9ca3af'}; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 18px; font-weight: bold;">${wh.expiredCount}</div>
+                <div style="font-size: 10px;">Expirate</div>
+              </div>
+              <div style="flex: 1; min-width: 70px; background: #059669; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 18px; font-weight: bold;">${wh.legitimationsCount}</div>
+                <div style="font-size: 10px;">Leg. Hand.</div>
+              </div>
+              <div style="flex: 1; min-width: 70px; background: #7c3aed; color: white; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 18px; font-weight: bold;">${wh.revolutionarCount}</div>
+                <div style="font-size: 10px;">Leg. Rev.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 4: Domiciliu ----
+    if (data.weeklyDomiciliu) {
+      const wd = data.weeklyDomiciliu;
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #0891b2, #0e7490); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#127968; Solicitari Domiciliu</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 90px; background: #e0f2fe; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #0369a1;">${wd.createdCount}</div>
+                <div style="font-size: 10px; color: #666;">Create</div>
+              </div>
+              <div style="flex: 1; min-width: 90px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wd.resolvedCount}</div>
+                <div style="font-size: 10px; color: #666;">Finalizate</div>
+              </div>
+              <div style="flex: 1; min-width: 90px; background: #fff3e0; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #ef6c00;">${wd.activeCount}</div>
+                <div style="font-size: 10px; color: #666;">Active</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 5: Control Sesizari ----
+    if (data.weeklyControlSesizari) {
+      const wcs = data.weeklyControlSesizari;
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#9888;&#65039; Control Sesizari</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 90px; background: #fff7ed; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #ea580c;">${wcs.createdCount}</div>
+                <div style="font-size: 10px; color: #666;">Create</div>
+              </div>
+              <div style="flex: 1; min-width: 90px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wcs.resolvedCount}</div>
+                <div style="font-size: 10px; color: #666;">Finalizate</div>
+              </div>
+              <div style="flex: 1; min-width: 90px; background: #fff3e0; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #ef6c00;">${wcs.activeCount}</div>
+                <div style="font-size: 10px; color: #666;">Active total</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 6: Procese Verbale ----
+    if (data.weeklyPvDisplay) {
+      const wpv = data.weeklyPvDisplay;
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #7c3aed, #5b21b6); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#128203; Procese Verbale</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 90px; background: #f3e8ff; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #7c3aed;">${wpv.activeSessions}</div>
+                <div style="font-size: 10px; color: #666;">Sesiuni active</div>
+              </div>
+              <div style="flex: 1; min-width: 90px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wpv.completedDays}</div>
+                <div style="font-size: 10px; color: #666;">Zile finalizate</div>
+              </div>
+              <div style="flex: 1; min-width: 90px; background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #1565c0;">${wpv.totalDays}</div>
+                <div style="font-size: 10px; color: #666;">Total zile sapt.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 7: Schimburi Ture ----
+    if (data.weeklyShiftSwaps) {
+      const wss = data.weeklyShiftSwaps;
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #0d9488, #0f766e); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#128260; Schimburi Ture</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 80px; background: #e0f2fe; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #0369a1;">${wss.totalRequests}</div>
+                <div style="font-size: 10px; color: #666;">Cereri noi</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wss.approved}</div>
+                <div style="font-size: 10px; color: #666;">Aprobate</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #fef2f2; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #dc2626;">${wss.rejected}</div>
+                <div style="font-size: 10px; color: #666;">Respinse</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #fff3e0; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #ef6c00;">${wss.pending}</div>
+                <div style="font-size: 10px; color: #666;">In asteptare</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 8: Concedii ----
+    if (data.weeklyLeaveRequests) {
+      const wlr = data.weeklyLeaveRequests;
+      const byTypeRows = wlr.byType.map(t => `
+        <span style="display: inline-block; background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin: 2px 4px 2px 0;">
+          ${t.type}: <strong>${t.count}</strong>
+        </span>
+      `).join('');
+
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#127796; Concedii</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 80px; background: #f3e8ff; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #7c3aed;">${wlr.totalRequests}</div>
+                <div style="font-size: 10px; color: #666;">Cereri noi</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wlr.approved}</div>
+                <div style="font-size: 10px; color: #666;">Aprobate</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #fef2f2; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #dc2626;">${wlr.rejected}</div>
+                <div style="font-size: 10px; color: #666;">Respinse</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #fff3e0; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #ef6c00;">${wlr.pending}</div>
+                <div style="font-size: 10px; color: #666;">In asteptare</div>
+              </div>
+            </div>
+            ${wlr.byType.length > 0 ? `<div style="padding: 8px 0;"><strong style="font-size: 12px; color: #475569;">Defalcare pe tip:</strong><div style="margin-top: 6px;">${byTypeRows}</div></div>` : ''}
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 9: Cereri Editare ----
+    if (data.weeklyEditRequests) {
+      const wer = data.weeklyEditRequests;
+      sections.push(`
+        <div style="margin-bottom: 25px;">
+          <div style="background: linear-gradient(135deg, #64748b, #475569); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">&#9999;&#65039; Cereri Editare</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 80px; background: #f1f5f9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #475569;">${wer.totalRequests}</div>
+                <div style="font-size: 10px; color: #666;">Cereri noi</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #e8f5e9; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #2e7d32;">${wer.approved}</div>
+                <div style="font-size: 10px; color: #666;">Aprobate</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #fef2f2; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #dc2626;">${wer.rejected}</div>
+                <div style="font-size: 10px; color: #666;">Respinse</div>
+              </div>
+              <div style="flex: 1; min-width: 80px; background: #fff3e0; padding: 10px; border-radius: 6px; text-align: center;">
+                <div style="font-size: 20px; font-weight: bold; color: #ef6c00;">${wer.pending}</div>
+                <div style="font-size: 10px; color: #666;">In asteptare</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    // ---- Section 10: Rapoarte Zilnice (existing daily reports per day) ----
     const dayRows = data.reportsByDay.map(day => {
       const missingUsers = day.missingUsers || [];
       const hasMissing = missingUsers.length > 0;
@@ -3325,7 +3726,7 @@ export class EmailService {
       if (day.reports.length === 0 && !hasMissing) {
         return `
           <tr>
-            <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+            <td colspan="2" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
               <strong style="color: #374151;">${day.dayName} (${this.formatDate(day.date)})</strong>
               <span style="color: #9ca3af; margin-left: 10px; font-style: italic;">— Niciun raport</span>
             </td>
@@ -3335,7 +3736,7 @@ export class EmailService {
 
       const dayHeader = `
         <tr>
-          <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
+          <td colspan="2" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
             <strong style="color: #1e40af; font-size: 15px;">${day.dayName} (${this.formatDate(day.date)})</strong>
             <span style="color: #3b82f6; margin-left: 10px;">${day.reports.length} raport${day.reports.length > 1 ? 'e' : ''}</span>
             ${hasMissing ? `<span style="color: #dc2626; margin-left: 10px;">&#9888; ${missingUsers.length} lipsa</span>` : ''}
@@ -3365,7 +3766,7 @@ export class EmailService {
 
       const missingSection = hasMissing ? `
         <tr>
-          <td colspan="4" style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; background: #fef2f2;">
+          <td colspan="2" style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; background: #fef2f2;">
             <strong style="color: #dc2626; font-size: 13px;">&#9888; Nu au trimis raportul (${missingUsers.length}):</strong>
             <div style="color: #991b1b; font-size: 12px; margin-top: 4px;">
               ${missingUsers.map(u => `${u.userName} (${u.departmentName})`).join(', ')}
@@ -3377,58 +3778,55 @@ export class EmailService {
       return dayHeader + reportRows + missingSection;
     }).join('');
 
-    const content = `
+    sections.push(`
       <div style="margin-bottom: 25px;">
-        <h2 style="color: #1e40af; margin: 0 0 5px 0;">Centralizare Rapoarte Saptamanale</h2>
-        <p style="color: #6b7280; margin: 0;">Saptamana: ${weekRange}</p>
+        <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+          <h3 style="color: white; margin: 0; font-size: 16px;">&#128221; Rapoarte Zilnice</h3>
+        </div>
+        <div style="border: 1px solid #e5e7eb; border-top: none; padding: 0; border-radius: 0 0 8px 8px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f8fafc;">
+                <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Utilizator</th>
+                <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Raport</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${dayRows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `);
+
+    // Build final content
+    const content = `
+      <p style="font-size: 16px; margin-bottom: 5px;">Buna seara, <strong>${data.recipientName}</strong>!</p>
+      <p style="color: #666; margin-top: 0;">Acesta este raportul saptamanal consolidat pentru saptamana <strong>${weekRange}</strong>.</p>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap;">
+        ${kpiCards.join('')}
       </div>
 
-      <div style="display: flex; gap: 15px; margin-bottom: 25px;">
-        <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
-          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Total Rapoarte</div>
-          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalReports}</div>
-        </div>
-        <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
-          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Utilizatori</div>
-          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalUsers}</div>
-        </div>
-        ${data.totalMissing ? `
-        <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
-          <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Lipsa Rapoarte</div>
-          <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalMissing}</div>
-        </div>
-        ` : ''}
-      </div>
+      ${sections.join('')}
 
-      <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-        <thead>
-          <tr style="background: #f8fafc;">
-            <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Utilizator</th>
-            <th style="padding: 12px 15px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0;">Raport</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${dayRows}
-        </tbody>
-      </table>
-
-      <div style="margin-top: 25px; text-align: center;">
-        <a href="${this.appUrl}/daily-reports" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 500;">
-          Deschide Rapoarte Zilnice
+      <div style="margin-top: 20px; text-align: center;">
+        <a href="${this.appUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: 500;">
+          Deschide Aplicatia
         </a>
       </div>
     `;
 
     const html = this.generateBaseTemplate(
-      'Centralizare Saptamanala',
-      `Rapoarte Saptamanale - ${weekRange}`,
+      'Raport Saptamanal',
+      `Raport Saptamanal Consolidat - ${weekRange}`,
       content,
       '#3b82f6 0%, #8b5cf6 100%'
     );
 
     return this.sendEmail(
       data.recipientEmail,
-      `📊 Centralizare Rapoarte Saptamanale - ${weekRange}`,
+      `📊 Raport Saptamanal Consolidat - ${weekRange}`,
       html,
     );
   }

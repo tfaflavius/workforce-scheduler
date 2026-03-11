@@ -19,6 +19,10 @@ import { PvDisplaySession } from '../parking/entities/pv-display-session.entity'
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
 import { HANDICAP_REQUEST_TYPE_LABELS, PV_DAY_STATUS, PV_SESSION_STATUS, PV_DAY_STATUS_LABELS, CONTROL_SESIZARE_TYPE_LABELS } from '../parking/constants/parking.constants';
 import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
+import { ShiftSwapRequest, ShiftSwapStatus } from '../shift-swaps/entities/shift-swap-request.entity';
+import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
+import { DomiciliuRequest } from '../parking/entities/domiciliu-request.entity';
+import { EditRequest } from '../parking/entities/edit-request.entity';
 
 /**
  * Admin & Manager Consolidated Scheduler
@@ -59,6 +63,14 @@ export class AdminConsolidatedScheduler {
     private readonly parkingDamagesService: ParkingDamagesService,
     private readonly timeTrackingService: TimeTrackingService,
     private readonly dailyReportsService: DailyReportsService,
+    @InjectRepository(ShiftSwapRequest)
+    private readonly shiftSwapRepository: Repository<ShiftSwapRequest>,
+    @InjectRepository(LeaveRequest)
+    private readonly leaveRequestRepository: Repository<LeaveRequest>,
+    @InjectRepository(DomiciliuRequest)
+    private readonly domiciliuRequestRepository: Repository<DomiciliuRequest>,
+    @InjectRepository(EditRequest)
+    private readonly editRequestRepository: Repository<EditRequest>,
   ) {}
 
   // ============== CRON 1: Raport zilnic consolidat DIMINEATA — doar Manageri (08:00) ==============
@@ -186,10 +198,32 @@ export class AdminConsolidatedScheduler {
       const mondayStr = monday.toISOString().split('T')[0];
       const fridayStr = friday.toISOString().split('T')[0];
 
-      // Get weekly reports for admin
-      const allReports = await this.dailyReportsService.getWeeklyReportsForAdmin(monday, friday);
+      // Collect ALL weekly data in parallel
+      const [
+        allReports,
+        weeklyCashData,
+        weeklyParkingData,
+        weeklyHandicapData,
+        weeklyDomiciliuData,
+        weeklyControlSesizariData,
+        weeklyPvDisplayData,
+        weeklyShiftSwapsData,
+        weeklyLeaveRequestsData,
+        weeklyEditRequestsData,
+      ] = await Promise.all([
+        this.dailyReportsService.getWeeklyReportsForAdmin(monday, friday),
+        this.collectWeeklyCashData(monday, friday),
+        this.collectWeeklyParkingData(monday, friday),
+        this.collectWeeklyHandicapData(monday, friday),
+        this.collectWeeklyDomiciliuData(monday, friday),
+        this.collectWeeklyControlSesizariData(monday, friday),
+        this.collectWeeklyPvDisplayData(monday, friday),
+        this.collectWeeklyShiftSwapsData(monday, friday),
+        this.collectWeeklyLeaveRequestsData(monday, friday),
+        this.collectWeeklyEditRequestsData(monday, friday),
+      ]);
 
-      // Calculate missing reports per day
+      // Calculate missing reports per day (sequential — each day depends on DB state)
       const missingByDate = new Map<string, Array<{ userName: string; departmentName: string }>>();
       const current = new Date(monday);
       while (current <= friday) {
@@ -228,13 +262,22 @@ export class AdminConsolidatedScheduler {
         return;
       }
 
-      // Send weekly emails in parallel
+      // Send weekly emails in parallel with ALL data
       const results = await Promise.allSettled(
         recipients.map(recipient =>
           this.emailService.sendConsolidatedWeeklyReport({
             ...emailData,
             recipientEmail: recipient.email,
             recipientName: recipient.fullName,
+            weeklyCash: weeklyCashData,
+            weeklyParking: weeklyParkingData,
+            weeklyHandicap: weeklyHandicapData,
+            weeklyDomiciliu: weeklyDomiciliuData,
+            weeklyControlSesizari: weeklyControlSesizariData,
+            weeklyPvDisplay: weeklyPvDisplayData,
+            weeklyShiftSwaps: weeklyShiftSwapsData,
+            weeklyLeaveRequests: weeklyLeaveRequestsData,
+            weeklyEditRequests: weeklyEditRequestsData,
           }),
         ),
       );
@@ -694,5 +737,236 @@ export class AdminConsolidatedScheduler {
       totalUsers: uniqueUsers.size,
       totalMissing,
     };
+  }
+
+  // ============== WEEKLY DATA COLLECTION METHODS ==============
+
+  private async collectWeeklyCashData(weekStart: Date, weekEnd: Date) {
+    try {
+      const totals = await this.cashCollectionsService.getTotals({
+        startDate: weekStart,
+        endDate: weekEnd,
+      });
+      if (totals.count === 0) return null;
+      return {
+        totalAmount: totals.totalAmount,
+        collectionCount: totals.count,
+        byParkingLot: totals.byParkingLot.map(lot => ({
+          parkingLotName: lot.parkingLotName,
+          totalAmount: lot.totalAmount,
+          count: lot.count,
+        })),
+      };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare cash saptamanal: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyParkingData(weekStart: Date, weekEnd: Date) {
+    try {
+      const [newIssues, resolvedIssues, newDamages, resolvedDamages, unresolvedIssues, unresolvedDamages, urgentIssues, urgentDamages] = await Promise.all([
+        this.parkingIssueRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
+        this.parkingIssueRepository.count({ where: { resolvedAt: Between(weekStart, weekEnd) } }),
+        this.parkingDamageRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
+        this.parkingDamageRepository.count({ where: { resolvedAt: Between(weekStart, weekEnd) } }),
+        this.parkingIssueRepository.count({ where: { status: 'ACTIVE' as any } }),
+        this.parkingDamageRepository.count({ where: { status: 'ACTIVE' as any } }),
+        this.parkingIssueRepository.count({ where: { status: 'ACTIVE' as any, isUrgent: true } }),
+        this.parkingDamageRepository.count({ where: { status: 'ACTIVE' as any, isUrgent: true } }),
+      ]);
+
+      const hasData = newIssues > 0 || resolvedIssues > 0 || newDamages > 0 || resolvedDamages > 0 || unresolvedIssues > 0 || unresolvedDamages > 0;
+      if (!hasData) return null;
+
+      return {
+        newIssues,
+        resolvedIssues,
+        newDamages,
+        resolvedDamages,
+        unresolvedIssues,
+        unresolvedDamages,
+        urgentCount: urgentIssues + urgentDamages,
+      };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare parcari saptamanale: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyHandicapData(weekStart: Date, weekEnd: Date) {
+    try {
+      const fiveDaysAgo = new Date();
+      fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+
+      const [created, resolved, allActive, handicapLeg, revolutionarLeg] = await Promise.all([
+        this.handicapRequestRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
+        this.handicapRequestRepository.count({ where: { status: 'FINALIZAT', resolvedAt: Between(weekStart, weekEnd) } }),
+        this.handicapRequestRepository.find({ where: { status: 'ACTIVE' } }),
+        this.handicapLegitimationRepository.count({ where: { status: 'ACTIVE' } }),
+        this.revolutionarLegitimationRepository.count({ where: { status: 'ACTIVE' } }),
+      ]);
+
+      let activeCount = 0;
+      let expiredCount = 0;
+      for (const req of allActive) {
+        if (new Date(req.createdAt) < fiveDaysAgo) {
+          expiredCount++;
+        } else {
+          activeCount++;
+        }
+      }
+
+      const hasData = created > 0 || resolved > 0 || allActive.length > 0 || handicapLeg > 0 || revolutionarLeg > 0;
+      if (!hasData) return null;
+
+      return {
+        createdCount: created,
+        resolvedCount: resolved,
+        activeCount,
+        expiredCount,
+        legitimationsCount: handicapLeg,
+        revolutionarCount: revolutionarLeg,
+      };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare handicap saptamanal: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyDomiciliuData(weekStart: Date, weekEnd: Date) {
+    try {
+      const [created, resolved, active] = await Promise.all([
+        this.domiciliuRequestRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
+        this.domiciliuRequestRepository.count({ where: { status: 'FINALIZAT' as any, resolvedAt: Between(weekStart, weekEnd) } }),
+        this.domiciliuRequestRepository.count({ where: { status: 'ACTIVE' as any } }),
+      ]);
+      if (created === 0 && resolved === 0 && active === 0) return null;
+      return { createdCount: created, resolvedCount: resolved, activeCount: active };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare domiciliu saptamanal: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyControlSesizariData(weekStart: Date, weekEnd: Date) {
+    try {
+      const [created, resolved, active] = await Promise.all([
+        this.controlSesizareRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
+        this.controlSesizareRepository.count({ where: { status: 'FINALIZAT' as any, resolvedAt: Between(weekStart, weekEnd) } }),
+        this.controlSesizareRepository.count({ where: { status: 'ACTIVE' } }),
+      ]);
+      if (created === 0 && resolved === 0 && active === 0) return null;
+      return { createdCount: created, resolvedCount: resolved, activeCount: active };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare control sesizari saptamanal: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyPvDisplayData(weekStart: Date, weekEnd: Date) {
+    try {
+      const weekStartStr = weekStart.toISOString().split('T')[0];
+      const weekEndStr = weekEnd.toISOString().split('T')[0];
+
+      const [activeSessions, totalDays, completedDays] = await Promise.all([
+        this.pvDisplaySessionRepository.count({
+          where: [
+            { status: PV_SESSION_STATUS.DRAFT as any },
+            { status: PV_SESSION_STATUS.READY as any },
+            { status: PV_SESSION_STATUS.IN_PROGRESS as any },
+          ],
+        }),
+        this.pvDisplayDayRepository.createQueryBuilder('day')
+          .where('day.displayDate >= :start AND day.displayDate <= :end', { start: weekStartStr, end: weekEndStr })
+          .getCount(),
+        this.pvDisplayDayRepository.createQueryBuilder('day')
+          .where('day.displayDate >= :start AND day.displayDate <= :end', { start: weekStartStr, end: weekEndStr })
+          .andWhere('day.status = :completed', { completed: PV_DAY_STATUS.COMPLETED })
+          .getCount(),
+      ]);
+      if (activeSessions === 0 && totalDays === 0) return null;
+      return { activeSessions, totalDays, completedDays };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare PV display saptamanal: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyShiftSwapsData(weekStart: Date, weekEnd: Date) {
+    try {
+      const requests = await this.shiftSwapRepository.find({
+        where: { createdAt: Between(weekStart, weekEnd) },
+      });
+
+      const pending = await this.shiftSwapRepository.count({
+        where: [
+          { status: ShiftSwapStatus.PENDING },
+          { status: ShiftSwapStatus.AWAITING_ADMIN },
+        ],
+      });
+
+      if (requests.length === 0 && pending === 0) return null;
+
+      const approved = requests.filter(r => r.status === ShiftSwapStatus.APPROVED).length;
+      const rejected = requests.filter(r => r.status === ShiftSwapStatus.REJECTED).length;
+
+      return { totalRequests: requests.length, approved, rejected, pending };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare shift swaps saptamanal: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyLeaveRequestsData(weekStart: Date, weekEnd: Date) {
+    try {
+      const requests = await this.leaveRequestRepository.find({
+        where: { createdAt: Between(weekStart, weekEnd) },
+      });
+
+      const pendingTotal = await this.leaveRequestRepository.count({
+        where: { status: 'PENDING' as any },
+      });
+
+      if (requests.length === 0 && pendingTotal === 0) return null;
+
+      const approved = requests.filter(r => r.status === 'APPROVED').length;
+      const rejected = requests.filter(r => r.status === 'REJECTED').length;
+
+      const typeLabels: Record<string, string> = {
+        VACATION: 'Concediu Odihna',
+        MEDICAL: 'Concediu Medical',
+        BIRTHDAY: 'Zi Nastere',
+        SPECIAL: 'Concediu Special',
+        EXTRA_DAYS: 'Zile Suplimentare',
+      };
+      const typeMap = new Map<string, number>();
+      for (const req of requests) {
+        const label = typeLabels[req.leaveType] || req.leaveType;
+        typeMap.set(label, (typeMap.get(label) || 0) + 1);
+      }
+      const byType = Array.from(typeMap.entries()).map(([type, count]) => ({ type, count }));
+
+      return { totalRequests: requests.length, approved, rejected, pending: pendingTotal, byType };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare concedii saptamanal: ${err.message}`);
+      return null;
+    }
+  }
+
+  private async collectWeeklyEditRequestsData(weekStart: Date, weekEnd: Date) {
+    try {
+      const [created, approved, rejected, pending] = await Promise.all([
+        this.editRequestRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
+        this.editRequestRepository.count({ where: { status: 'APPROVED' as any, createdAt: Between(weekStart, weekEnd) } }),
+        this.editRequestRepository.count({ where: { status: 'REJECTED' as any, createdAt: Between(weekStart, weekEnd) } }),
+        this.editRequestRepository.count({ where: { status: 'PENDING' as any } }),
+      ]);
+      if (created === 0 && pending === 0) return null;
+      return { totalRequests: created, approved, rejected, pending };
+    } catch (err) {
+      this.logger.error(`[Consolidat] Eroare edit requests saptamanal: ${err.message}`);
+      return null;
+    }
   }
 }
