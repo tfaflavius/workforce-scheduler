@@ -13,12 +13,15 @@ import { NotificationType } from '../notifications/entities/notification.entity'
 import { User, UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
+import { ContactFirm } from '../permissions/entities/contact-firm.entity';
 import { INTERNAL_MAINTENANCE_COMPANIES, MAINTENANCE_DEPARTMENT_NAME, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
 import { EmailService } from '../../common/email/email.service';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class ParkingIssuesService {
+  private cachedInternalFirms: string[] | null = null;
+
   constructor(
     @InjectRepository(ParkingIssue)
     private readonly parkingIssueRepository: Repository<ParkingIssue>,
@@ -30,9 +33,29 @@ export class ParkingIssuesService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
+    @InjectRepository(ContactFirm)
+    private readonly contactFirmRepo: Repository<ContactFirm>,
     private readonly notificationsService: NotificationsService,
     private readonly emailService: EmailService,
   ) {}
+
+  /**
+   * Get internal firm names from DB, with fallback to hardcoded constants.
+   * Cached in memory to avoid repeated DB queries.
+   */
+  private async getInternalFirmNames(): Promise<string[]> {
+    if (this.cachedInternalFirms) return this.cachedInternalFirms;
+    try {
+      const firms = await this.contactFirmRepo.find({
+        where: { isInternal: true, isActive: true },
+      });
+      if (firms.length > 0) {
+        this.cachedInternalFirms = firms.map((f) => f.name);
+        return this.cachedInternalFirms;
+      }
+    } catch { /* fallback */ }
+    return [...INTERNAL_MAINTENANCE_COMPANIES];
+  }
 
   async create(userId: string, dto: CreateParkingIssueDto): Promise<ParkingIssue> {
     const issue = this.parkingIssueRepository.create({
@@ -53,7 +76,8 @@ export class ParkingIssuesService {
     });
 
     // Daca firma contactata este una dintre cele interne, notifica si aloca
-    if (INTERNAL_MAINTENANCE_COMPANIES.includes(dto.contactedCompany as any)) {
+    const internalFirms = await this.getInternalFirmNames();
+    if (internalFirms.includes(dto.contactedCompany)) {
       await this.notifyMaintenanceTeam(savedIssue);
     }
 
@@ -267,12 +291,13 @@ export class ParkingIssuesService {
     }
 
     // Returneaza toate problemele ACTIVE care au firma din lista interna
+    const internalFirms = await this.getInternalFirmNames();
     return this.parkingIssueRepository.createQueryBuilder('issue')
       .leftJoinAndSelect('issue.parkingLot', 'parkingLot')
       .leftJoinAndSelect('issue.creator', 'creator')
       .where('issue.status = :status', { status: 'ACTIVE' })
       .andWhere('issue.contactedCompany IN (:...companies)', {
-        companies: INTERNAL_MAINTENANCE_COMPANIES
+        companies: internalFirms
       })
       .orderBy('issue.isUrgent', 'DESC')
       .addOrderBy('issue.createdAt', 'DESC')

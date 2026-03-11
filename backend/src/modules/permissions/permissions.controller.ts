@@ -122,4 +122,58 @@ export class PermissionsController {
   ) {
     return this.permissionsService.bulkUpdateNotificationSettings(body.updates);
   }
+
+  // ─── Parking Equipment ──────────────────────────────────────────
+
+  @Get('equipment')
+  getEquipment() {
+    return this.permissionsService.getEquipment();
+  }
+
+  @Post('equipment')
+  createEquipment(@Body() body: any) {
+    return this.permissionsService.createEquipment(body);
+  }
+
+  @Patch('equipment/:id')
+  updateEquipment(@Param('id') id: string, @Body() body: any) {
+    return this.permissionsService.updateEquipment(id, body);
+  }
+
+  @Delete('equipment/:id')
+  deleteEquipment(@Param('id') id: string) {
+    return this.permissionsService.deleteEquipment(id);
+  }
+
+  @Post('seed-equipment')
+  seedEquipment() {
+    return this.permissionsService.seedEquipment();
+  }
+
+  // ─── Contact Firms ──────────────────────────────────────────────
+
+  @Get('firms')
+  getContactFirms() {
+    return this.permissionsService.getContactFirms();
+  }
+
+  @Post('firms')
+  createContactFirm(@Body() body: any) {
+    return this.permissionsService.createContactFirm(body);
+  }
+
+  @Patch('firms/:id')
+  updateContactFirm(@Param('id') id: string, @Body() body: any) {
+    return this.permissionsService.updateContactFirm(id, body);
+  }
+
+  @Delete('firms/:id')
+  deleteContactFirm(@Param('id') id: string) {
+    return this.permissionsService.deleteContactFirm(id);
+  }
+
+  @Post('seed-firms')
+  seedFirms() {
+    return this.permissionsService.seedContactFirms();
+  }
 }

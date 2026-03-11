@@ -31,6 +31,8 @@ import { ControlSesizareComment } from './entities/control-sesizare-comment.enti
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
+import { ParkingEquipment } from '../permissions/entities/parking-equipment.entity';
+import { ContactFirm } from '../permissions/entities/contact-firm.entity';
 
 // Services
 import { ParkingLotsService } from './parking-lots.service';
@@ -107,6 +109,8 @@ import { EmailModule } from '../../common/email/email.module';
       User,
       Department,
       ScheduleAssignment,
+      ParkingEquipment,
+      ContactFirm,
     ]),
     NotificationsModule,
     EmailModule,

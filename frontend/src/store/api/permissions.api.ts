@@ -15,10 +15,50 @@ import type {
   NotificationSettingBulkUpdateItem,
 } from '../../types/permission.types';
 
+export interface ParkingEquipmentItem {
+  id: string;
+  name: string;
+  category: 'ISSUE' | 'DAMAGE' | 'BOTH';
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateEquipmentRequest {
+  name: string;
+  category: 'ISSUE' | 'DAMAGE' | 'BOTH';
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export interface ContactFirmItem {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  contactPerson: string | null;
+  isInternal: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateContactFirmRequest {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  contactPerson?: string | null;
+  isInternal?: boolean;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
 export const permissionsApi = createApi({
   reducerPath: 'permissionsApi',
   baseQuery: createAuthBaseQuery(),
-  tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary', 'EmailRule', 'NotificationSetting'],
+  tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary', 'EmailRule', 'NotificationSetting', 'Equipment', 'ContactFirm'],
   endpoints: (builder) => ({
     // Permission Matrix
     getMatrix: builder.query<PermissionMatrix, void>({
@@ -171,6 +211,86 @@ export const permissionsApi = createApi({
       }),
       invalidatesTags: ['NotificationSetting'],
     }),
+
+    // Parking Equipment
+    getEquipment: builder.query<ParkingEquipmentItem[], void>({
+      query: () => '/permissions/equipment',
+      providesTags: ['Equipment'],
+    }),
+
+    createEquipment: builder.mutation<ParkingEquipmentItem, CreateEquipmentRequest>({
+      query: (body) => ({
+        url: '/permissions/equipment',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Equipment'],
+    }),
+
+    updateEquipment: builder.mutation<ParkingEquipmentItem, { id: string; data: Partial<CreateEquipmentRequest> }>({
+      query: ({ id, data }) => ({
+        url: `/permissions/equipment/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['Equipment'],
+    }),
+
+    deleteEquipment: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/permissions/equipment/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Equipment'],
+    }),
+
+    seedEquipment: builder.mutation<{ created: number }, void>({
+      query: () => ({
+        url: '/permissions/seed-equipment',
+        method: 'POST',
+      }),
+      invalidatesTags: ['Equipment'],
+    }),
+
+    // Contact Firms
+    getContactFirms: builder.query<ContactFirmItem[], void>({
+      query: () => '/permissions/firms',
+      providesTags: ['ContactFirm'],
+    }),
+
+    createContactFirm: builder.mutation<ContactFirmItem, CreateContactFirmRequest>({
+      query: (body) => ({
+        url: '/permissions/firms',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['ContactFirm'],
+    }),
+
+    updateContactFirm: builder.mutation<ContactFirmItem, { id: string; data: Partial<CreateContactFirmRequest> }>({
+      query: ({ id, data }) => ({
+        url: `/permissions/firms/${id}`,
+        method: 'PATCH',
+        body: data,
+      }),
+      invalidatesTags: ['ContactFirm'],
+    }),
+
+    deleteContactFirm: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/permissions/firms/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ContactFirm'],
+    }),
+
+    seedContactFirms: builder.mutation<{ created: number }, void>({
+      query: () => ({
+        url: '/permissions/seed-firms',
+        method: 'POST',
+      }),
+      invalidatesTags: ['ContactFirm'],
+    }),
   }),
 });
 
@@ -194,4 +314,16 @@ export const {
   useGetSummaryQuery,
   useGetNotificationSettingsQuery,
   useBulkUpdateNotificationSettingsMutation,
+  // Equipment
+  useGetEquipmentQuery,
+  useCreateEquipmentMutation,
+  useUpdateEquipmentMutation,
+  useDeleteEquipmentMutation,
+  useSeedEquipmentMutation,
+  // Contact Firms
+  useGetContactFirmsQuery,
+  useCreateContactFirmMutation,
+  useUpdateContactFirmMutation,
+  useDeleteContactFirmMutation,
+  useSeedContactFirmsMutation,
 } = permissionsApi;

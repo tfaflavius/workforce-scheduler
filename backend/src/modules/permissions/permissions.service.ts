@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Permission } from './entities/permission.entity';
@@ -6,6 +6,8 @@ import { UserPermissionOverride } from './entities/user-permission-override.enti
 import { TaskFlowRule } from './entities/task-flow-rule.entity';
 import { EmailNotificationRule, RecipientType } from './entities/email-notification-rule.entity';
 import { NotificationSetting } from './entities/notification-setting.entity';
+import { ParkingEquipment, EquipmentCategory } from './entities/parking-equipment.entity';
+import { ContactFirm } from './entities/contact-firm.entity';
 import { Department } from '../departments/entities/department.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationType } from '../notifications/entities/notification.entity';
@@ -27,6 +29,10 @@ export class PermissionsService {
     private readonly emailRuleRepo: Repository<EmailNotificationRule>,
     @InjectRepository(NotificationSetting)
     private readonly notificationSettingRepo: Repository<NotificationSetting>,
+    @InjectRepository(ParkingEquipment)
+    private readonly equipmentRepo: Repository<ParkingEquipment>,
+    @InjectRepository(ContactFirm)
+    private readonly contactFirmRepo: Repository<ContactFirm>,
     @InjectRepository(Department)
     private readonly departmentRepo: Repository<Department>,
     @InjectRepository(User)
@@ -753,5 +759,148 @@ export class PermissionsService {
 
     this.notificationSettingCheckService.invalidateCache();
     this.logger.log(`Seeded ${entities.length} notification settings`);
+  }
+
+  // ─── Parking Equipment CRUD ────────────────────────────────────────
+
+  async getEquipment(): Promise<ParkingEquipment[]> {
+    return this.equipmentRepo.find({ order: { sortOrder: 'ASC', name: 'ASC' } });
+  }
+
+  async createEquipment(data: Partial<ParkingEquipment>): Promise<ParkingEquipment> {
+    const existing = await this.equipmentRepo.findOne({ where: { name: data.name } });
+    if (existing) {
+      throw new ConflictException(`Echipamentul "${data.name}" exista deja`);
+    }
+    const entity = this.equipmentRepo.create(data);
+    return this.equipmentRepo.save(entity);
+  }
+
+  async updateEquipment(id: string, data: Partial<ParkingEquipment>): Promise<ParkingEquipment> {
+    const entity = await this.equipmentRepo.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException(`Echipament ${id} nu a fost gasit`);
+    }
+    if (data.name && data.name !== entity.name) {
+      const existing = await this.equipmentRepo.findOne({ where: { name: data.name } });
+      if (existing) {
+        throw new ConflictException(`Echipamentul "${data.name}" exista deja`);
+      }
+    }
+    Object.assign(entity, data);
+    return this.equipmentRepo.save(entity);
+  }
+
+  async deleteEquipment(id: string): Promise<{ deleted: boolean }> {
+    const entity = await this.equipmentRepo.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException(`Echipament ${id} nu a fost gasit`);
+    }
+    await this.equipmentRepo.remove(entity);
+    return { deleted: true };
+  }
+
+  async seedEquipment(): Promise<{ created: number }> {
+    const { EQUIPMENT_LIST, DAMAGE_EQUIPMENT_LIST } = await import(
+      '../parking/constants/parking.constants'
+    );
+
+    const issueSet = new Set<string>(EQUIPMENT_LIST as any);
+    const damageSet = new Set<string>(DAMAGE_EQUIPMENT_LIST as any);
+
+    // Build combined map: name -> category
+    const nameToCategory = new Map<string, EquipmentCategory>();
+    for (const name of issueSet) {
+      nameToCategory.set(name, damageSet.has(name) ? 'BOTH' : 'ISSUE');
+    }
+    for (const name of damageSet) {
+      if (!nameToCategory.has(name)) {
+        nameToCategory.set(name, 'DAMAGE');
+      }
+    }
+
+    let created = 0;
+    let order = 0;
+    for (const [name, category] of nameToCategory) {
+      const existing = await this.equipmentRepo.findOne({ where: { name } });
+      if (!existing) {
+        await this.equipmentRepo.save(
+          this.equipmentRepo.create({ name, category, isActive: true, sortOrder: order }),
+        );
+        created++;
+      }
+      order++;
+    }
+
+    this.logger.log(`Seeded ${created} parking equipment items`);
+    return { created };
+  }
+
+  // ─── Contact Firms CRUD ────────────────────────────────────────────
+
+  async getContactFirms(): Promise<ContactFirm[]> {
+    return this.contactFirmRepo.find({ order: { sortOrder: 'ASC', name: 'ASC' } });
+  }
+
+  async createContactFirm(data: Partial<ContactFirm>): Promise<ContactFirm> {
+    const existing = await this.contactFirmRepo.findOne({ where: { name: data.name } });
+    if (existing) {
+      throw new ConflictException(`Firma "${data.name}" exista deja`);
+    }
+    const entity = this.contactFirmRepo.create(data);
+    return this.contactFirmRepo.save(entity);
+  }
+
+  async updateContactFirm(id: string, data: Partial<ContactFirm>): Promise<ContactFirm> {
+    const entity = await this.contactFirmRepo.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException(`Firma ${id} nu a fost gasita`);
+    }
+    if (data.name && data.name !== entity.name) {
+      const existing = await this.contactFirmRepo.findOne({ where: { name: data.name } });
+      if (existing) {
+        throw new ConflictException(`Firma "${data.name}" exista deja`);
+      }
+    }
+    Object.assign(entity, data);
+    return this.contactFirmRepo.save(entity);
+  }
+
+  async deleteContactFirm(id: string): Promise<{ deleted: boolean }> {
+    const entity = await this.contactFirmRepo.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException(`Firma ${id} nu a fost gasita`);
+    }
+    await this.contactFirmRepo.remove(entity);
+    return { deleted: true };
+  }
+
+  async seedContactFirms(): Promise<{ created: number }> {
+    const { COMPANY_LIST, INTERNAL_MAINTENANCE_COMPANIES } = await import(
+      '../parking/constants/parking.constants'
+    );
+
+    const internalSet = new Set<string>(INTERNAL_MAINTENANCE_COMPANIES as any);
+
+    let created = 0;
+    let order = 0;
+    for (const name of COMPANY_LIST) {
+      const existing = await this.contactFirmRepo.findOne({ where: { name } });
+      if (!existing) {
+        await this.contactFirmRepo.save(
+          this.contactFirmRepo.create({
+            name,
+            isInternal: internalSet.has(name),
+            isActive: true,
+            sortOrder: order,
+          }),
+        );
+        created++;
+      }
+      order++;
+    }
+
+    this.logger.log(`Seeded ${created} contact firms`);
+    return { created };
   }
 }
