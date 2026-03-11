@@ -54,6 +54,7 @@ import {
 } from '@mui/icons-material';
 import { GradientHeader, StatCard } from '../../components/common';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { formatDateOrDash } from '../../utils/dateFormatters';
 import {
   useGetBudgetPositionsQuery,
   useGetSummaryQuery,
@@ -82,11 +83,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount) + ' lei';
 };
 
-const formatDate = (dateStr: string | null) => {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
+const formatDate = formatDateOrDash;
 
 const AchizitiiPage: React.FC = () => {
   const theme = useTheme();

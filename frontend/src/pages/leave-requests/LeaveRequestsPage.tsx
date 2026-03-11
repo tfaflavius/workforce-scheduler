@@ -55,18 +55,8 @@ import type {
   CreateLeaveRequestDto,
 } from '../../types/leave-request.types';
 import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-request.types';
-
-const getStatusColor = (status: LeaveRequestStatus) => {
-  switch (status) {
-    case 'APPROVED':
-      return 'success';
-    case 'REJECTED':
-      return 'error';
-    case 'PENDING':
-    default:
-      return 'warning';
-  }
-};
+import { getStatusColor } from '../../utils/statusHelpers';
+import { formatDateDayMonthYear } from '../../utils/dateFormatters';
 
 const getStatusIcon = (status: LeaveRequestStatus) => {
   switch (status) {
@@ -96,13 +86,7 @@ const getLeaveTypeIcon = (type: LeaveType) => {
   }
 };
 
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('ro-RO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-};
+const formatDate = formatDateDayMonthYear;
 
 export const LeaveRequestsPage = () => {
   const theme = useTheme();

@@ -31,6 +31,8 @@ import {
 } from '../../../store/api/parking.api';
 import type { ParkingIssue } from '../../../types/parking.types';
 import { ISSUE_STATUS_LABELS, HISTORY_ACTION_LABELS } from '../../../types/parking.types';
+import { getStatusColor } from '../../../utils/statusHelpers';
+import { formatDateTime } from '../../../utils/dateFormatters';
 
 interface IssueDetailsDialogProps {
   open: boolean;
@@ -55,16 +57,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
   const { data: comments = [], isLoading: commentsLoading } = useGetIssueCommentsQuery(issue.id, { skip: !open });
   const [addComment, { isLoading: addingComment }] = useAddIssueCommentMutation();
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const formatDate = formatDateTime;
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -80,9 +73,6 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
     }
   };
 
-  const getStatusColor = (status: string) => {
-    return status === 'ACTIVE' ? 'warning' : 'success';
-  };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile}>

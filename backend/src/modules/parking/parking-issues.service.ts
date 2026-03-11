@@ -76,8 +76,11 @@ export class ParkingIssuesService {
 
     const savedIssue = await this.parkingIssueRepository.save(issue);
 
+    // Incarca issue-ul complet cu relatii (o singura interogare)
+    const fullIssue = await this.findOne(savedIssue.id);
+
     // Inregistreaza in history
-    await this.recordHistory(savedIssue.id, 'CREATED', userId, {
+    await this.recordHistory(fullIssue.id, 'CREATED', userId, {
       parkingLotId: dto.parkingLotId,
       equipment: dto.equipment,
       contactedCompany: dto.contactedCompany,
@@ -86,13 +89,13 @@ export class ParkingIssuesService {
     // Daca firma contactata este una dintre cele interne, notifica si aloca
     const internalFirms = await this.getInternalFirmNames();
     if (internalFirms.includes(dto.contactedCompany)) {
-      await this.notifyMaintenanceTeam(savedIssue);
+      await this.notifyMaintenanceTeam(fullIssue);
     }
 
     // Notifica managerii si adminii
-    await this.notifyManagersAndAdmins(savedIssue, 'CREATED', userId);
+    await this.notifyManagersAndAdmins(fullIssue, 'CREATED', userId);
 
-    return this.findOne(savedIssue.id);
+    return fullIssue;
   }
 
   async update(id: string, userId: string, dto: UpdateParkingIssueDto): Promise<ParkingIssue> {
@@ -166,14 +169,9 @@ export class ParkingIssuesService {
       return;
     }
 
-    // Obtine numele parcarii si creatorul
-    const issueWithParkingLot = await this.parkingIssueRepository.findOne({
-      where: { id: issue.id },
-      relations: ['parkingLot', 'creator'],
-    });
-
-    const parkingName = issueWithParkingLot?.parkingLot?.name || 'parcare';
-    const creatorName = issueWithParkingLot?.creator?.fullName || 'Un utilizator';
+    // Foloseste relatiile deja incarcate (issue vine din findOne cu relations)
+    const parkingName = issue.parkingLot?.name || 'parcare';
+    const creatorName = issue.creator?.fullName || 'Un utilizator';
 
     // Trimite notificari in-app catre toti userii din echipa de intretinere
     const notifications = maintenanceUsers.map(user => ({
@@ -213,16 +211,14 @@ export class ParkingIssuesService {
 
     if (toNotify.length === 0) return;
 
-    // Obtine detaliile actorului
-    const actor = await this.userRepository.findOne({ where: { id: actorUserId } });
-    const actorName = actor?.fullName || 'Un utilizator';
-
-    // Obtine parcarea
-    const issueWithParkingLot = await this.parkingIssueRepository.findOne({
-      where: { id: issue.id },
-      relations: ['parkingLot'],
-    });
-    const parkingName = issueWithParkingLot?.parkingLot?.name || 'parcare';
+    // Foloseste relatiile deja incarcate (issue vine din findOne cu relations)
+    const parkingName = issue.parkingLot?.name || 'parcare';
+    // Determina numele actorului din relatiile existente
+    const actorName = issue.creator?.id === actorUserId
+      ? issue.creator.fullName
+      : issue.resolver?.id === actorUserId
+        ? issue.resolver.fullName
+        : issue.lastModifier?.fullName || 'Un utilizator';
 
     let title: string;
     let message: string;
@@ -260,7 +256,7 @@ export class ParkingIssuesService {
     // Emailurile individuale au fost eliminate - se trimite rezumat zilnic centralizat
   }
 
-  async findAll(status?: ParkingIssueStatus): Promise<ParkingIssue[]> {
+  async findAll(status?: ParkingIssueStatus, limit = 1000): Promise<ParkingIssue[]> {
     const query = this.parkingIssueRepository.createQueryBuilder('issue')
       .leftJoinAndSelect('issue.parkingLot', 'parkingLot')
       .leftJoinAndSelect('issue.creator', 'creator')
@@ -274,6 +270,7 @@ export class ParkingIssuesService {
 
     return query.orderBy('issue.isUrgent', 'DESC')
       .addOrderBy('issue.createdAt', 'DESC')
+      .take(limit)
       .getMany();
   }
 

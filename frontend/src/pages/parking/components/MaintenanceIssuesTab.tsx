@@ -36,6 +36,8 @@ import type { ParkingIssue, ParkingIssueStatus } from '../../../types/parking.ty
 import { ISSUE_STATUS_LABELS } from '../../../types/parking.types';
 import ResolveIssueDialog from './ResolveIssueDialog';
 import IssueDetailsDialog from './IssueDetailsDialog';
+import { getStatusColor } from '../../../utils/statusHelpers';
+import { formatDateTimeNoYear } from '../../../utils/dateFormatters';
 
 const MaintenanceIssuesTab: React.FC = () => {
   const theme = useTheme();
@@ -61,19 +63,7 @@ const MaintenanceIssuesTab: React.FC = () => {
     setDetailsDialogOpen(true);
   };
 
-  const formatDateShort = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusColor = (status: ParkingIssueStatus) => {
-    return status === 'ACTIVE' ? 'warning' : 'success';
-  };
+  const formatDateShort = formatDateTimeNoYear;
 
   const urgentCount = activeIssues.filter(i => i.isUrgent).length;
 

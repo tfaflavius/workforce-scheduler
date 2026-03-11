@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CashCollection } from './entities/cash-collection.entity';
 import { CreateCashCollectionDto } from './dto/create-cash-collection.dto';
 import { User, UserRole } from '../users/entities/user.entity';
@@ -81,7 +81,7 @@ export class CashCollectionsService {
       });
     }
 
-    return query.orderBy('collection.collectedAt', 'DESC').getMany();
+    return query.orderBy('collection.collectedAt', 'DESC').take(2000).getMany();
   }
 
   async findOne(id: string): Promise<CashCollection> {
@@ -98,59 +98,75 @@ export class CashCollectionsService {
   }
 
   async getTotals(filters?: CashCollectionFilters): Promise<CashCollectionTotals> {
-    const collections = await this.findAll(filters);
+    // Construieste conditiile de filtrare o singura data
+    const applyFilters = (qb: SelectQueryBuilder<CashCollection>) => {
+      if (filters?.parkingLotIds?.length) {
+        qb.andWhere('c.parkingLotId IN (:...parkingLotIds)', { parkingLotIds: filters.parkingLotIds });
+      }
+      if (filters?.paymentMachineIds?.length) {
+        qb.andWhere('c.paymentMachineId IN (:...paymentMachineIds)', { paymentMachineIds: filters.paymentMachineIds });
+      }
+      if (filters?.startDate) {
+        qb.andWhere('c.collectedAt >= :startDate', { startDate: filters.startDate });
+      }
+      if (filters?.endDate) {
+        const endOfDay = new Date(filters.endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        qb.andWhere('c.collectedAt <= :endDate', { endDate: endOfDay });
+      }
+    };
 
-    // Calculeaza totalul general
-    const totalAmount = collections.reduce(
-      (sum, c) => sum + parseFloat(c.amount.toString()),
-      0
-    );
+    // 1. Total general — un singur query SQL (nu mai incarca toate entitatile)
+    const totalQb = this.cashCollectionRepository.createQueryBuilder('c')
+      .select('COALESCE(SUM(c.amount), 0)', 'total')
+      .addSelect('COUNT(*)::int', 'cnt');
+    applyFilters(totalQb);
+    const totalRow = await totalQb.getRawOne();
+    const totalAmount = parseFloat(totalRow?.total) || 0;
+    const count = parseInt(totalRow?.cnt) || 0;
 
-    // Grupeaza per parcare
-    const byParkingLotMap = new Map<string, { name: string; total: number; count: number }>();
-    // Grupeaza per automat
-    const byMachineMap = new Map<string, { number: string; parkingName: string; total: number; count: number }>();
+    // 2. Grupare per parcare — GROUP BY SQL
+    const lotQb = this.cashCollectionRepository.createQueryBuilder('c')
+      .leftJoin('c.parkingLot', 'lot')
+      .select('c.parkingLotId', 'parkingLotId')
+      .addSelect('lot.name', 'parkingLotName')
+      .addSelect('SUM(c.amount)', 'totalAmount')
+      .addSelect('COUNT(*)::int', 'cnt')
+      .groupBy('c.parkingLotId')
+      .addGroupBy('lot.name');
+    applyFilters(lotQb);
+    const byParkingLotRows = await lotQb.getRawMany();
 
-    for (const collection of collections) {
-      // Per parcare
-      const lotKey = collection.parkingLotId;
-      const lotData = byParkingLotMap.get(lotKey) || {
-        name: collection.parkingLot?.name || '',
-        total: 0,
-        count: 0,
-      };
-      lotData.total += parseFloat(collection.amount.toString());
-      lotData.count += 1;
-      byParkingLotMap.set(lotKey, lotData);
-
-      // Per automat
-      const machineKey = collection.paymentMachineId;
-      const machineData = byMachineMap.get(machineKey) || {
-        number: collection.paymentMachine?.machineNumber || '',
-        parkingName: collection.parkingLot?.name || '',
-        total: 0,
-        count: 0,
-      };
-      machineData.total += parseFloat(collection.amount.toString());
-      machineData.count += 1;
-      byMachineMap.set(machineKey, machineData);
-    }
+    // 3. Grupare per automat — GROUP BY SQL
+    const machineQb = this.cashCollectionRepository.createQueryBuilder('c')
+      .leftJoin('c.parkingLot', 'lot2')
+      .leftJoin('c.paymentMachine', 'machine')
+      .select('c.paymentMachineId', 'paymentMachineId')
+      .addSelect('machine.machineNumber', 'machineNumber')
+      .addSelect('lot2.name', 'parkingLotName')
+      .addSelect('SUM(c.amount)', 'totalAmount')
+      .addSelect('COUNT(*)::int', 'cnt')
+      .groupBy('c.paymentMachineId')
+      .addGroupBy('machine.machineNumber')
+      .addGroupBy('lot2.name');
+    applyFilters(machineQb);
+    const byMachineRows = await machineQb.getRawMany();
 
     return {
       totalAmount,
-      count: collections.length,
-      byParkingLot: Array.from(byParkingLotMap.entries()).map(([id, data]) => ({
-        parkingLotId: id,
-        parkingLotName: data.name,
-        totalAmount: data.total,
-        count: data.count,
+      count,
+      byParkingLot: byParkingLotRows.map(row => ({
+        parkingLotId: row.parkingLotId,
+        parkingLotName: row.parkingLotName || '',
+        totalAmount: parseFloat(row.totalAmount) || 0,
+        count: parseInt(row.cnt) || 0,
       })),
-      byMachine: Array.from(byMachineMap.entries()).map(([id, data]) => ({
-        paymentMachineId: id,
-        machineNumber: data.number,
-        parkingLotName: data.parkingName,
-        totalAmount: data.total,
-        count: data.count,
+      byMachine: byMachineRows.map(row => ({
+        paymentMachineId: row.paymentMachineId,
+        machineNumber: row.machineNumber || '',
+        parkingLotName: row.parkingLotName || '',
+        totalAmount: parseFloat(row.totalAmount) || 0,
+        count: parseInt(row.cnt) || 0,
       })),
     };
   }

@@ -47,10 +47,8 @@ import {
 import DatePickerField from '../../components/common/DatePickerField';
 import { useGetPvSessionsQuery } from '../../store/api/pvDisplay.api';
 import type { PvDisplaySession, PvSessionStatus } from '../../types/pv-display.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawProgressBar, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -131,7 +129,8 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
   }, [filteredSessions]);
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     const pageWidth = 210;
     const VIOLET: RGB = [139, 92, 246];
@@ -198,7 +197,8 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const excelData = filteredSessions.map((s: PvDisplaySession) => {
       const dayStats = getSessionDayStats(s);
       return {

@@ -47,10 +47,8 @@ import {
 import DatePickerField from '../../components/common/DatePickerField';
 import { useGetControlSesizariQuery } from '../../store/api/control.api';
 import type { ControlSesizare, ControlSesizareType, ControlSesizareStatus, ControlSesizareZone } from '../../types/control.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawStatusDistributionBar, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -128,7 +126,8 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
   }, [filteredSesizari]);
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     const pageWidth = 210;
     const INDIGO: RGB = [99, 102, 241];
@@ -193,7 +192,8 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const excelData = filteredSesizari.map((s: ControlSesizare) => ({
       'Tip': TYPE_LABELS[s.type],
       'Zona': ZONE_LABELS[s.zone],

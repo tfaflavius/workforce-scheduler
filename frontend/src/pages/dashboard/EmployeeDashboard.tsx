@@ -76,6 +76,7 @@ import {
   PROCESE_VERBALE_DEPARTMENT_NAME,
   PARCOMETRE_DEPARTMENT_NAME,
 } from '../../constants/departments';
+import { formatTimeManual as formatTime } from '../../utils/dateFormatters';
 
 // GPS tracking: capture every 10 minutes when possible
 const LOCATION_TRACKING_INTERVAL_MS = 10 * 60 * 1000;
@@ -88,12 +89,6 @@ const formatElapsed = (totalSeconds: number): string => {
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-};
-
-// Helper: format date to HH:MM
-const formatTime = (dateStr: string): string => {
-  const d = new Date(dateStr);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 };
 
 

@@ -9,7 +9,7 @@ export interface EmptyStateProps {
   onAction?: () => void;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
+export const EmptyState: React.FC<EmptyStateProps> = React.memo(({
   icon,
   title,
   description,
@@ -98,6 +98,6 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       </Box>
     </Fade>
   );
-};
+});
 
 export default EmptyState;

@@ -47,6 +47,8 @@ import {
   EDIT_REQUEST_TYPE_LABELS,
 } from '../../types/parking.types';
 import GradientHeader from '../../components/common/GradientHeader';
+import { getStatusColor } from '../../utils/statusHelpers';
+import { formatDateTime } from '../../utils/dateFormatters';
 
 const AdminEditRequestsPage: React.FC = () => {
   const theme = useTheme();
@@ -107,28 +109,7 @@ const AdminEditRequestsPage: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusColor = (status: EditRequestStatus) => {
-    switch (status) {
-      case 'PENDING':
-        return 'warning';
-      case 'APPROVED':
-        return 'success';
-      case 'REJECTED':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
+  const formatDate = formatDateTime;
 
   const pendingCount = requests.filter((r) => r.status === 'PENDING').length;
 

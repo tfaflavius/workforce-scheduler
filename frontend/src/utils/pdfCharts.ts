@@ -7,7 +7,7 @@
  * Each function accepts a jsPDF doc instance, draws at specified coordinates,
  * and returns the Y position after the drawn element for flow layout.
  */
-import jsPDF from 'jspdf';
+import type jsPDF from 'jspdf';
 
 // ─── Types ───────────────────────────────────────────────────────────
 

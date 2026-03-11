@@ -49,10 +49,8 @@ import DatePickerField from '../../components/common/DatePickerField';
 import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
 import { DOMICILIU_REQUEST_TYPE_LABELS, DOMICILIU_REQUEST_STATUS_LABELS } from '../../types/domiciliu.types';
 import type { DomiciliuRequestType, DomiciliuRequestStatus } from '../../types/domiciliu.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -134,7 +132,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
   }, [filteredRequests]);
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     const pageWidth = 210;
     const EMERALD: RGB = [5, 150, 105];
@@ -191,7 +190,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const excelData = filteredRequests.map(r => ({
       'Tip Solicitare': DOMICILIU_REQUEST_TYPE_LABELS[r.requestType],
       'Locatie Parcare': r.location,

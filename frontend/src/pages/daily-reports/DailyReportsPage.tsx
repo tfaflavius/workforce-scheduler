@@ -49,40 +49,12 @@ import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
+import { formatDateLong } from '../../utils/dateFormatters';
 
 // ============== HELPERS ==============
 
-const formatDate = (dateStr: string): string => {
-  const date = new Date(dateStr + 'T00:00:00');
-  return date.toLocaleDateString('ro-RO', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-};
-
-const getStatusColor = (status: string): 'success' | 'warning' | 'default' => {
-  switch (status) {
-    case 'SUBMITTED':
-      return 'success';
-    case 'DRAFT':
-      return 'warning';
-    default:
-      return 'default';
-  }
-};
-
-const getStatusLabel = (status: string): string => {
-  switch (status) {
-    case 'SUBMITTED':
-      return 'Trimis';
-    case 'DRAFT':
-      return 'Ciorna';
-    default:
-      return status;
-  }
-};
+const formatDate = formatDateLong;
 
 const getTodayDateString = (): string => {
   return new Date().toISOString().split('T')[0];

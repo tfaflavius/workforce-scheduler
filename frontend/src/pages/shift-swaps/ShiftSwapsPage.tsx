@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
+import { formatDateFull } from '../../utils/dateFormatters';
 import {
   Box,
   Typography,
@@ -77,43 +79,6 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const getStatusColor = (status: ShiftSwapStatus) => {
-  switch (status) {
-    case 'PENDING':
-      return 'warning';
-    case 'AWAITING_ADMIN':
-      return 'info';
-    case 'APPROVED':
-      return 'success';
-    case 'REJECTED':
-      return 'error';
-    case 'CANCELLED':
-      return 'default';
-    case 'EXPIRED':
-      return 'default';
-    default:
-      return 'default';
-  }
-};
-
-const getStatusLabel = (status: ShiftSwapStatus) => {
-  switch (status) {
-    case 'PENDING':
-      return 'In asteptare';
-    case 'AWAITING_ADMIN':
-      return 'Asteapta aprobare admin';
-    case 'APPROVED':
-      return 'Aprobat';
-    case 'REJECTED':
-      return 'Respins';
-    case 'CANCELLED':
-      return 'Anulat';
-    case 'EXPIRED':
-      return 'Expirat';
-    default:
-      return status;
-  }
-};
 
 const getStatusIcon = (status: ShiftSwapStatus) => {
   switch (status) {
@@ -356,15 +321,7 @@ const ShiftSwapsPage = () => {
     });
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ro-RO', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
+  const formatDate = formatDateFull;
 
   const formatDateShort = (dateStr: string) => {
     const date = new Date(dateStr);

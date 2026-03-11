@@ -43,6 +43,8 @@ import {
 } from '@mui/icons-material';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
+import { getStatusColor } from '../../../utils/statusHelpers';
+import { formatDateTime } from '../../../utils/dateFormatters';
 import {
   useGetParkingDamagesQuery,
   useDeleteParkingDamageMutation,
@@ -144,20 +146,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
     });
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusColor = (status: ParkingDamageStatus) => {
-    return status === 'ACTIVE' ? 'warning' : 'success';
-  };
+  const formatDate = formatDateTime;
 
   const urgentCount = damages.filter(d => d.isUrgent && d.status === 'ACTIVE').length;
 

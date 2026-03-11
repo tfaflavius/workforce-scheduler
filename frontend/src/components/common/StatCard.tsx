@@ -22,7 +22,7 @@ export interface StatCardProps {
   urgent?: boolean;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({
+export const StatCard: React.FC<StatCardProps> = React.memo(({
   title,
   value,
   subtitle,
@@ -160,6 +160,6 @@ export const StatCard: React.FC<StatCardProps> = ({
       </Card>
     </Grow>
   );
-};
+});
 
 export default StatCard;

@@ -72,9 +72,7 @@ import { useGetAllSwapRequestsQuery } from '../../store/api/shiftSwaps.api';
 import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-request.types';
 import type { LeaveType, LeaveRequestStatus } from '../../types/leave-request.types';
 import type { ShiftSwapStatus } from '../../types/shift-swap.types';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME } from '../../constants/departments';
 import { useGetPvSessionsQuery } from '../../store/api/pvDisplay.api';
 import { useGetParkingMetersQuery, useGetParkingIssuesQuery, useGetParkingDamagesQuery } from '../../store/api/parking.api';
@@ -494,7 +492,8 @@ const ReportsPage: React.FC = () => {
   // ==================== EXPORT FUNCTIONS ====================
 
   // Export Work Schedule to PDF
-  const handleExportSchedulePDF = () => {
+  const handleExportSchedulePDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -680,7 +679,8 @@ const ReportsPage: React.FC = () => {
   };
 
   // Export Work Schedule to Excel
-  const handleExportScheduleExcel = () => {
+  const handleExportScheduleExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
 
     const headers = ['Angajat', 'Rol', ...calendarDays.map(d => `${d.day} ${d.dayOfWeek}`), 'Total ore', 'Norma', 'Diferenta', 'Ture zi', 'Ture noapte', 'Concediu', 'Liber'];
@@ -753,7 +753,8 @@ const ReportsPage: React.FC = () => {
   };
 
   // Export Leave Requests to PDF
-  const handleExportLeavesPDF = () => {
+  const handleExportLeavesPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -817,7 +818,8 @@ const ReportsPage: React.FC = () => {
   };
 
   // Export Leave Requests to Excel
-  const handleExportLeavesExcel = () => {
+  const handleExportLeavesExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
 
     const approved = filteredLeaveRequests.filter(r => r.status === 'APPROVED').length;
@@ -866,7 +868,8 @@ const ReportsPage: React.FC = () => {
   };
 
   // Export Shift Swaps to PDF
-  const handleExportSwapsPDF = () => {
+  const handleExportSwapsPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
@@ -926,7 +929,8 @@ const ReportsPage: React.FC = () => {
   };
 
   // Export Shift Swaps to Excel
-  const handleExportSwapsExcel = () => {
+  const handleExportSwapsExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
 
     const approved = filteredSwapRequests.filter(r => r.status === 'APPROVED').length;
@@ -970,7 +974,8 @@ const ReportsPage: React.FC = () => {
     XLSX.writeFile(wb, `raport-schimburi-${selectedMonth}.xlsx`);
   };
 
-  const handleExportCustomPDF = () => {
+  const handleExportCustomPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     try {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
@@ -1414,7 +1419,8 @@ const ReportsPage: React.FC = () => {
     }
   };
 
-  const handleExportCustomExcel = () => {
+  const handleExportCustomExcel = async () => {
+    const XLSX = await loadXLSXLib();
     try {
     const monthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || selectedMonth;
     const selectedCount = Object.values(selectedSections).filter(Boolean).length;

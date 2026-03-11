@@ -48,10 +48,8 @@ import {
 import { useGetBudgetPositionsQuery } from '../../store/api/acquisitions.api';
 import { BUDGET_CATEGORY_LABELS } from '../../types/acquisitions.types';
 import type { BudgetCategory, BudgetPosition } from '../../types/acquisitions.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawProgressBar, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 
 interface AchizitiiReportsTabProps {
@@ -100,7 +98,8 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
   }, [filteredPositions]);
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     const pageWidth = 210;
     const ORANGE: RGB = [234, 88, 12];
@@ -160,7 +159,8 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const wb = XLSX.utils.book_new();
 
     // Sheet 1: Pozitii Bugetare

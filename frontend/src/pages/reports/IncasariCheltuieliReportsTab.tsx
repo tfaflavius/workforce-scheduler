@@ -46,10 +46,8 @@ import {
 } from '@mui/icons-material';
 import { useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
 import type { RevenueSummaryCategory } from '../../types/acquisitions.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 
 interface IncasariCheltuieliReportsTabProps {
@@ -119,7 +117,8 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
   };
 
   // Export to PDF - LANDSCAPE due to 12 month columns
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const EMERALD: RGB = [5, 150, 105];
@@ -187,7 +186,8 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const wb = XLSX.utils.book_new();
 
     // Build Excel data with Incasari and Cheltuieli per month

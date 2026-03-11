@@ -48,10 +48,8 @@ import {
 import DatePickerField from '../../components/common/DatePickerField';
 import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import type { AdminTimeEntry } from '../../types/time-tracking.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -126,7 +124,8 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
   }, [filteredEntries]);
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     const pageWidth = 210;
     const TEAL: RGB = [8, 145, 178];
@@ -186,7 +185,8 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const excelData = filteredEntries.map((e: AdminTimeEntry) => ({
       'Angajat': e.user ? `${e.user.lastName} ${e.user.firstName}` : '-',
       'Departament': e.user?.department?.name || '',

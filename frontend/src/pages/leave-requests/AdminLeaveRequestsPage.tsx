@@ -61,6 +61,8 @@ import type {
 } from '../../types/leave-request.types';
 import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-request.types';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import { getStatusColor } from '../../utils/statusHelpers';
+import { formatDateDayMonthShortYear } from '../../utils/dateFormatters';
 
 const LEAVE_TYPE_OPTIONS: { value: LeaveType; label: string }[] = [
   { value: 'VACATION', label: 'Concediu de Odihna' },
@@ -70,17 +72,6 @@ const LEAVE_TYPE_OPTIONS: { value: LeaveType; label: string }[] = [
   { value: 'EXTRA_DAYS', label: 'Zile Suplimentare' },
 ];
 
-const getStatusColor = (status: LeaveRequestStatus) => {
-  switch (status) {
-    case 'APPROVED':
-      return 'success';
-    case 'REJECTED':
-      return 'error';
-    case 'PENDING':
-    default:
-      return 'warning';
-  }
-};
 
 const getLeaveTypeIcon = (type: LeaveType) => {
   switch (type) {
@@ -98,13 +89,7 @@ const getLeaveTypeIcon = (type: LeaveType) => {
   }
 };
 
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('ro-RO', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-};
+const formatDate = formatDateDayMonthShortYear;
 
 const calculateDays = (start: string, end: string): number => {
   const startDate = new Date(start);

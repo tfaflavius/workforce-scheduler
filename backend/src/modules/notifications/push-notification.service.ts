@@ -7,13 +7,19 @@ import { User } from '../users/entities/user.entity';
 import { NotificationSettingCheckService } from './notification-setting-check.service';
 
 // Generate VAPID keys: npx web-push generate-vapid-keys
-// Store these in environment variables in production
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || 'BI932e5lPMdw2qQKvElMx00XrJjI98C1rou6RC_xpNP6PUslQ07bqn31OW06I9lOB9AdATQwHRuNT2Yi7b-Nmbc';
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || 'H8rdA6o2OeaPd0MOakP_SzEiAq-2lWXlcnxnoSG7lLI';
+// Store these in environment variables — never hardcode in production
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+
+if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+  console.warn('[PushNotification] VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY env vars are not set. Push notifications will be disabled.');
+}
 
 @Injectable()
 export class PushNotificationService {
   private readonly logger = new Logger(PushNotificationService.name);
+
+  private readonly vapidConfigured: boolean;
 
   constructor(
     @InjectRepository(PushSubscription)
@@ -22,16 +28,21 @@ export class PushNotificationService {
     private userRepository: Repository<User>,
     private settingCheck: NotificationSettingCheckService,
   ) {
-    // Configure web-push
-    webpush.setVapidDetails(
-      'mailto:admin@workforce-scheduler.com',
-      VAPID_PUBLIC_KEY,
-      VAPID_PRIVATE_KEY,
-    );
+    // Configure web-push only if VAPID keys are available
+    if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+      webpush.setVapidDetails(
+        'mailto:admin@workforce-scheduler.com',
+        VAPID_PUBLIC_KEY,
+        VAPID_PRIVATE_KEY,
+      );
+      this.vapidConfigured = true;
+    } else {
+      this.vapidConfigured = false;
+    }
   }
 
   getVapidPublicKey(): string {
-    return VAPID_PUBLIC_KEY;
+    return VAPID_PUBLIC_KEY || '';
   }
 
   async subscribe(userId: string, subscription: webpush.PushSubscription): Promise<PushSubscription> {
@@ -65,6 +76,11 @@ export class PushNotificationService {
   }
 
   async sendToUser(userId: string, title: string, body: string, data?: Record<string, any>, notificationType?: string): Promise<void> {
+    if (!this.vapidConfigured) {
+      this.logger.debug('Push notifications disabled — VAPID keys not configured');
+      return;
+    }
+
     // If notification type provided, check push setting
     if (notificationType) {
       try {

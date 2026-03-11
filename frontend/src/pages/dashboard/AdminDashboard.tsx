@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -93,22 +94,22 @@ const AdminDashboard = () => {
   const carStatus = stats?.carStatus;
 
   // Quick summary items - items that need attention
-  const summaryItems = [
+  const summaryItems = useMemo(() => [
     { label: 'Programe', value: pendingCount, color: '#f59e0b', urgent: pendingCount > 0 },
     { label: 'Schimburi', value: pendingSwaps, color: '#06b6d4', urgent: pendingSwaps > 0 },
     { label: 'Concedii', value: pendingLeaves, color: '#8b5cf6', urgent: pendingLeaves > 0 },
     { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
     { label: 'Utilizatori', value: activeUsers, color: '#2563eb', urgent: false },
-  ];
+  ], [pendingCount, pendingSwaps, pendingLeaves, stats?.parking?.activeIssues, stats?.parking?.urgentIssues?.length, activeUsers]);
 
   // Quick actions
-  const quickActions = [
+  const quickActions = useMemo(() => [
     { label: 'Aproba Programe', path: '/schedules/pending', icon: <CalendarIcon />, color: '#f59e0b', count: pendingCount },
     { label: 'Schimburi', path: '/admin/shift-swaps', icon: <SwapIcon />, color: '#06b6d4', count: pendingSwaps },
     { label: 'Concedii', path: '/admin/leave-requests', icon: <BeachIcon />, color: '#8b5cf6', count: pendingLeaves },
     { label: 'Utilizatori', path: '/users', icon: <PeopleIcon />, color: '#2563eb' },
     { label: 'Rapoarte', path: '/reports', icon: <ReportIcon />, color: '#10b981' },
-  ];
+  ], [pendingCount, pendingSwaps, pendingLeaves]);
 
 
   return (

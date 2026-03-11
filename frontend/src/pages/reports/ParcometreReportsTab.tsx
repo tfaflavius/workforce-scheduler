@@ -45,10 +45,8 @@ import {
 } from '@mui/icons-material';
 import { useGetParkingMetersQuery } from '../../store/api/parking.api';
 import type { ParkingMeter, ParkingZone, PowerSource, MeterCondition } from '../../types/parking.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawHorizontalBarChart, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -110,7 +108,8 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
   }, [filteredMeters]);
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     const pageWidth = 210;
     const BLUE: RGB = [37, 99, 235];
@@ -172,7 +171,8 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const excelData = filteredMeters.map((m: ParkingMeter) => ({
       'Nume': m.name,
       'Zona': ZONE_LABELS[m.zone],

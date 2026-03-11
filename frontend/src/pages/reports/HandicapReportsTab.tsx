@@ -50,10 +50,8 @@ import DatePickerField from '../../components/common/DatePickerField';
 import { useGetHandicapRequestsQuery } from '../../store/api/handicap.api';
 import { HANDICAP_REQUEST_TYPE_LABELS, HANDICAP_REQUEST_STATUS_LABELS } from '../../types/handicap.types';
 import type { HandicapRequestType, HandicapRequestStatus } from '../../types/handicap.types';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawStatusDistributionBar, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 
@@ -138,7 +136,8 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
   }, [filteredRequests]);
 
   // Export to PDF
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     const pageWidth = 210;
     const INDIGO: RGB = [99, 102, 241];
@@ -201,7 +200,8 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
   };
 
   // Export to Excel
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const excelData = filteredRequests.map(r => ({
       'Tip Solicitare': HANDICAP_REQUEST_TYPE_LABELS[r.requestType],
       'Locatie': r.location,

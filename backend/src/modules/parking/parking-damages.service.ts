@@ -45,8 +45,11 @@ export class ParkingDamagesService {
 
     const savedDamage = await this.parkingDamageRepository.save(damage);
 
+    // Incarca damage-ul complet cu relatii (o singura interogare)
+    const fullDamage = await this.findOne(savedDamage.id);
+
     // Inregistreaza in history
-    await this.recordHistory(savedDamage.id, 'CREATED', userId, {
+    await this.recordHistory(fullDamage.id, 'CREATED', userId, {
       parkingLotId: dto.parkingLotId,
       damagedEquipment: dto.damagedEquipment,
       personName: dto.personName,
@@ -54,9 +57,9 @@ export class ParkingDamagesService {
     });
 
     // Notifica managerii si adminii
-    await this.notifyManagersAndAdmins(savedDamage, 'CREATED', userId);
+    await this.notifyManagersAndAdmins(fullDamage, 'CREATED', userId);
 
-    return this.findOne(savedDamage.id);
+    return fullDamage;
   }
 
   private async recordHistory(
@@ -94,16 +97,13 @@ export class ParkingDamagesService {
 
     if (toNotify.length === 0) return;
 
-    // Obtine detaliile actorului
-    const actor = await this.userRepository.findOne({ where: { id: actorUserId } });
-    const actorName = actor?.fullName || 'Un utilizator';
-
-    // Obtine parcarea
-    const damageWithParkingLot = await this.parkingDamageRepository.findOne({
-      where: { id: damage.id },
-      relations: ['parkingLot'],
-    });
-    const parkingName = damageWithParkingLot?.parkingLot?.name || 'parcare';
+    // Foloseste relatiile deja incarcate (damage vine din findOne cu relations)
+    const parkingName = damage.parkingLot?.name || 'parcare';
+    const actorName = damage.creator?.id === actorUserId
+      ? damage.creator.fullName
+      : damage.resolver?.id === actorUserId
+        ? damage.resolver.fullName
+        : damage.lastModifier?.fullName || 'Un utilizator';
 
     let title: string;
     let message: string;
@@ -146,7 +146,7 @@ export class ParkingDamagesService {
     // via ParkingUrgentScheduler.sendDailyParkingSummary()
   }
 
-  async findAll(status?: ParkingDamageStatus): Promise<ParkingDamage[]> {
+  async findAll(status?: ParkingDamageStatus, limit = 1000): Promise<ParkingDamage[]> {
     const query = this.parkingDamageRepository.createQueryBuilder('damage')
       .leftJoinAndSelect('damage.parkingLot', 'parkingLot')
       .leftJoinAndSelect('damage.creator', 'creator')
@@ -159,6 +159,7 @@ export class ParkingDamagesService {
 
     return query.orderBy('damage.isUrgent', 'DESC')
       .addOrderBy('damage.createdAt', 'DESC')
+      .take(limit)
       .getMany();
   }
 

@@ -42,10 +42,8 @@ import {
   useGetMonthlyOccupancySummaryQuery,
   useGetWeeklyOccupancyQuery,
 } from '../../store/api/parkingStats.api';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawHorizontalBarChart, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 
 type ReportType = 'tickets' | 'subscriptions' | 'occupancy';
 
@@ -229,7 +227,8 @@ const ParkingStatsReportsTab: React.FC = () => {
 
   // ===== EXPORT PDF =====
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -404,7 +403,8 @@ const ParkingStatsReportsTab: React.FC = () => {
 
   // ===== EXPORT EXCEL =====
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const periodLabel = getPeriodLabel();
     const wb = XLSX.utils.book_new();
 

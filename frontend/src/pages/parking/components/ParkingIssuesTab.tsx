@@ -47,6 +47,8 @@ import {
 import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
+import { getStatusColor } from '../../../utils/statusHelpers';
+import { formatDateTimeNoYear } from '../../../utils/dateFormatters';
 import {
   useGetParkingIssuesQuery,
   useGetMyAssignedIssuesQuery,
@@ -142,19 +144,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
     });
   };
 
-  const formatDateShort = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getStatusColor = (status: ParkingIssueStatus) => {
-    return status === 'ACTIVE' ? 'warning' : 'success';
-  };
+  const formatDateShort = formatDateTimeNoYear;
 
   const urgentCount = issues.filter(i => i.isUrgent && i.status === 'ACTIVE').length;
 

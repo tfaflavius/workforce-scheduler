@@ -52,10 +52,9 @@ import {
   useGetCashCollectionTotalsQuery,
   useGetParkingLotsQuery,
 } from '../../store/api/parking.api';
-import jsPDF from 'jspdf';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawHorizontalBarChart, drawStatusDistributionBar, type RGB } from '../../utils/pdfCharts';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import { formatDateShort, formatDateTime } from '../../utils/dateFormatters';
 
 interface ParkingReportsTabProps {
   startDate: string;
@@ -170,23 +169,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   }, [selectedParkingLot, startDate, endDate, selectedReport, issueStatus, damageStatus]);
 
   // Format helpers
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ro-RO', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const formatDate = formatDateShort;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ro-RO', {
@@ -221,7 +204,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   };
 
   // Export functions
-  const handleExportIssuesPDF = () => {
+  const handleExportIssuesPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const RED: RGB = [239, 68, 68];
@@ -289,7 +273,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     setExportDrawerOpen(false);
   };
 
-  const handleExportIssuesExcel = () => {
+  const handleExportIssuesExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const data = filteredIssues.map(issue => ({
       'Parcare': issue.parkingLot?.name || '-',
       'Echipament': issue.equipment || '-',
@@ -317,7 +302,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     setExportDrawerOpen(false);
   };
 
-  const handleExportDamagesPDF = () => {
+  const handleExportDamagesPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const DAMAGE_ORANGE: RGB = [249, 115, 22];
@@ -379,7 +365,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     setExportDrawerOpen(false);
   };
 
-  const handleExportDamagesExcel = () => {
+  const handleExportDamagesExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const data = filteredDamages.map(damage => ({
       'Parcare': damage.parkingLot?.name || '-',
       'Echipament avariat': damage.damagedEquipment || '-',
@@ -410,7 +397,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     setExportDrawerOpen(false);
   };
 
-  const handleExportCollectionsPDF = () => {
+  const handleExportCollectionsPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF('landscape', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const COLL_GREEN: RGB = [16, 185, 129];
@@ -477,7 +465,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
     setExportDrawerOpen(false);
   };
 
-  const handleExportCollectionsExcel = () => {
+  const handleExportCollectionsExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const data = allCollections.map(collection => ({
       'Parcare': collection.parkingLot?.name || '-',
       'Automat': collection.paymentMachine?.machineNumber || '-',

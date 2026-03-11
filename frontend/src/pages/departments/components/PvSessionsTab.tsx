@@ -36,6 +36,7 @@ import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import { PROCESE_VERBALE_DEPARTMENT_NAME } from '../../../constants/departments';
+import { formatDateShort } from '../../../utils/dateFormatters';
 import {
   useGetPvSessionsQuery,
   useCreatePvSessionMutation,
@@ -611,8 +612,8 @@ const SessionCard: React.FC<SessionCardProps> = ({
 
 const formatDateRo = (date: string | Date | undefined): string => {
   if (!date) return '';
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const str = typeof date === 'string' ? date : date.toISOString();
+  return formatDateShort(str);
 };
 
 const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {

@@ -56,25 +56,9 @@ import {
   useRequestInstantLocationsMutation,
 } from '../../store/api/time-tracking.api';
 import type { AdminTimeEntriesFilters, AdminTimeEntry } from '../../types/time-tracking.types';
+import { formatTime, formatDateShort as formatDate, formatDuration } from '../../utils/dateFormatters';
 
 // ===== HELPERS =====
-
-const formatTime = (dateStr: string) => {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
-};
-
-const formatDate = (dateStr: string) => {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
-
-const formatDuration = (minutes: number | null) => {
-  if (minutes == null) return '-';
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}h ${m}m`;
-};
 
 const getLiveDuration = (startTime: string) => {
   const now = new Date().getTime();

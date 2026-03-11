@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   Box,
   TableContainer,
@@ -7,6 +7,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableSortLabel,
   Paper,
   Typography,
   useMediaQuery,
@@ -35,7 +36,13 @@ export interface ColumnDef {
   chipOnMobile?: boolean;
   /** Color for mobile chip */
   chipColor?: string;
+  /** Whether this column is sortable */
+  sortable?: boolean;
+  /** Key to use for sorting (defaults to `key` if not set) */
+  sortKey?: string;
 }
+
+type SortDirection = 'asc' | 'desc' | null;
 
 interface ResponsiveTableProps {
   columns: ColumnDef[];
@@ -75,16 +82,78 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSortClick = useCallback((columnKey: string) => {
+    if (sortColumn === columnKey) {
+      // Cycle: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortColumn(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortColumn(columnKey);
+      setSortDirection('asc');
+    }
+  }, [sortColumn, sortDirection]);
+
+  // Sort data based on current sort state
+  const sortedData = useMemo(() => {
+    if (!sortColumn || !sortDirection) return data;
+
+    const col = columns.find((c) => c.key === sortColumn);
+    if (!col) return data;
+
+    const key = col.sortKey || col.key;
+
+    return [...data].sort((a, b) => {
+      const aVal = a[key];
+      const bVal = b[key];
+
+      // Handle null/undefined — push them to the end
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+
+      let comparison = 0;
+
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        comparison = aVal - bVal;
+      } else if (aVal instanceof Date && bVal instanceof Date) {
+        comparison = aVal.getTime() - bVal.getTime();
+      } else {
+        // Try parsing as dates if both are date-like strings
+        const aDate = Date.parse(String(aVal));
+        const bDate = Date.parse(String(bVal));
+        if (!isNaN(aDate) && !isNaN(bDate)) {
+          comparison = aDate - bDate;
+        } else {
+          // Case-insensitive string comparison using locale
+          comparison = String(aVal).localeCompare(String(bVal), undefined, {
+            sensitivity: 'base',
+            numeric: true,
+          });
+        }
+      }
+
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [data, columns, sortColumn, sortDirection]);
+
   // Filter columns based on screen size
-  const visibleColumns = columns.filter((col) => {
+  const visibleColumns = useMemo(() => columns.filter((col) => {
     if (isMobile && col.hideOnMobile) return false;
     if (isTablet && col.hideOnTablet) return false;
     return true;
-  });
+  }), [columns, isMobile, isTablet]);
 
   // Mobile card columns (all columns, including hidden ones for chips)
-  const mobileMainColumns = columns.filter((col) => !col.hideOnMobile);
-  const mobileChipColumns = columns.filter((col) => col.hideOnMobile && col.chipOnMobile);
+  const mobileMainColumns = useMemo(() => columns.filter((col) => !col.hideOnMobile), [columns]);
+  const mobileChipColumns = useMemo(() => columns.filter((col) => col.hideOnMobile && col.chipOnMobile), [columns]);
 
   // Empty state
   if (data.length === 0) {
@@ -101,7 +170,7 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
   if (isMobile && mobileCardView) {
     return (
       <Stack spacing={1.5}>
-        {data.map((row, index) => (
+        {sortedData.map((row, index) => (
           <Card
             key={row[keyField] ?? index}
             sx={{
@@ -190,6 +259,7 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
               <TableCell
                 key={col.key}
                 align={col.align || 'left'}
+                sortDirection={sortColumn === col.key && sortDirection ? sortDirection : false}
                 sx={{
                   fontWeight: 700,
                   bgcolor: 'background.paper',
@@ -197,13 +267,23 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {col.label}
+                {col.sortable ? (
+                  <TableSortLabel
+                    active={sortColumn === col.key && sortDirection !== null}
+                    direction={sortColumn === col.key && sortDirection ? sortDirection : 'asc'}
+                    onClick={() => handleSortClick(col.key)}
+                  >
+                    {col.label}
+                  </TableSortLabel>
+                ) : (
+                  col.label
+                )}
               </TableCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((row, index) => (
+          {sortedData.map((row, index) => (
             <TableRow
               key={row[keyField] ?? index}
               hover

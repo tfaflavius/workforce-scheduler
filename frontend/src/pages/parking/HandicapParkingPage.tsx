@@ -79,9 +79,7 @@ import {
   useGetHandicapLegitimationsQuery,
   useGetRevolutionarLegitimationsQuery,
 } from '../../store/api/handicap.api';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import type {
   HandicapRequest,
   HandicapRequestType,
@@ -1488,7 +1486,8 @@ const HandicapParkingPage: React.FC = () => {
   const HANDICAP_LEGIT_HEADERS = [['Persoana', 'Nr Certificat', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
   const REVOLUTIONAR_LEGIT_HEADERS = [['Persoana', 'Nr Lege', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
 
-  const exportCurrentSectionPDF = () => {
+  const exportCurrentSectionPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
     let sectionTitle = '';
     let headers: string[][] = [];
@@ -1549,7 +1548,8 @@ const HandicapParkingPage: React.FC = () => {
     doc.save(`${fileName}.pdf`);
   };
 
-  const exportCurrentSectionExcel = () => {
+  const exportCurrentSectionExcel = async () => {
+    const XLSX = await loadXLSXLib();
     let sheetName = '';
     let excelData: Record<string, string>[] = [];
     let fileName = '';
@@ -1622,7 +1622,8 @@ const HandicapParkingPage: React.FC = () => {
     XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
 
-  const exportAllSectionsPDF = () => {
+  const exportAllSectionsPDF = async () => {
+    const { jsPDF, autoTable } = await loadPDFLibs();
     const doc = new jsPDF();
 
     // Cover header
@@ -1673,7 +1674,8 @@ const HandicapParkingPage: React.FC = () => {
     doc.save(`raport-complet-handicap-${selectedMonth}.pdf`);
   };
 
-  const exportAllSectionsExcel = () => {
+  const exportAllSectionsExcel = async () => {
+    const XLSX = await loadXLSXLib();
     const wb = XLSX.utils.book_new();
 
     const addSheet = (name: string, data: Record<string, string>[]) => {
