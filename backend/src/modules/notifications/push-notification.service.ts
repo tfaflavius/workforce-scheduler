@@ -164,9 +164,20 @@ export class PushNotificationService {
     this.logger.log(`Cleared ${result.affected || 0} push subscriptions for user ${userId}`);
   }
 
-  async clearAllExpiredSubscriptions(): Promise<void> {
-    // This can be called periodically to clean up old subscriptions
-    const result = await this.pushSubscriptionRepository.delete({});
-    this.logger.log(`Cleared all push subscriptions: ${result.affected || 0}`);
+  /**
+   * Sterge subscriptiile vechi care nu au mai fost folosite de 90+ zile.
+   * Apelata periodic pentru curatenie (nu sterge toate subscriptiile).
+   */
+  async clearExpiredSubscriptions(): Promise<void> {
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    const result = await this.pushSubscriptionRepository
+      .createQueryBuilder()
+      .delete()
+      .where('updatedAt < :cutoff', { cutoff: ninetyDaysAgo })
+      .execute();
+
+    this.logger.log(`Cleared ${result.affected || 0} expired push subscriptions (older than 90 days)`);
   }
 }

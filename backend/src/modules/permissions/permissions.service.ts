@@ -787,7 +787,9 @@ export class PermissionsService {
         throw new ConflictException(`Echipamentul "${data.name}" exista deja`);
       }
     }
-    Object.assign(entity, data);
+    // Filtreaza campurile permise (nu permite suprascrierea id, createdAt, updatedAt)
+    const { id: _id, createdAt: _ca, updatedAt: _ua, ...safeData } = data as any;
+    Object.assign(entity, safeData);
     return this.equipmentRepo.save(entity);
   }
 
@@ -862,7 +864,9 @@ export class PermissionsService {
         throw new ConflictException(`Firma "${data.name}" exista deja`);
       }
     }
-    Object.assign(entity, data);
+    // Filtreaza campurile permise (nu permite suprascrierea id, createdAt, updatedAt)
+    const { id: _id, createdAt: _ca, updatedAt: _ua, ...safeData } = data as any;
+    Object.assign(entity, safeData);
     return this.contactFirmRepo.save(entity);
   }
 

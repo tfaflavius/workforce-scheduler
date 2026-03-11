@@ -238,9 +238,13 @@ export class ParkingIssuesService {
         break;
     }
 
+    const notificationType = action === 'RESOLVED'
+      ? NotificationType.PARKING_ISSUE_RESOLVED
+      : NotificationType.PARKING_ISSUE_ASSIGNED;
+
     const notifications = toNotify.map(user => ({
       userId: user.id,
-      type: NotificationType.PARKING_ISSUE_RESOLVED,
+      type: notificationType,
       title,
       message,
       data: {
@@ -297,6 +301,8 @@ export class ParkingIssuesService {
 
     // Returneaza toate problemele ACTIVE care au firma din lista interna
     const internalFirms = await this.getInternalFirmNames();
+    if (internalFirms.length === 0) return [];
+
     return this.parkingIssueRepository.createQueryBuilder('issue')
       .leftJoinAndSelect('issue.parkingLot', 'parkingLot')
       .leftJoinAndSelect('issue.creator', 'creator')
@@ -402,7 +408,7 @@ export class ParkingIssuesService {
     if (toNotify.length > 0) {
       const notifications = toNotify.map(user => ({
         userId: user.id,
-        type: NotificationType.PARKING_ISSUE_RESOLVED,
+        type: NotificationType.PARKING_ISSUE_ASSIGNED,
         title: 'Comentariu nou la problema',
         message: `${actor?.fullName || 'Un utilizator'} a adaugat un comentariu la problema de la ${issue.parkingLot?.name || 'parcare'}.`,
         data: {
@@ -414,10 +420,16 @@ export class ParkingIssuesService {
       await this.notificationsService.createMany(notifications);
     }
 
-    return this.commentRepository.findOne({
+    const savedComment = await this.commentRepository.findOne({
       where: { id: comment.id },
       relations: ['user'],
     });
+
+    if (!savedComment) {
+      throw new NotFoundException(`Comentariul cu ID ${comment.id} nu a fost gasit`);
+    }
+
+    return savedComment;
   }
 
   async getComments(issueId: string): Promise<ParkingIssueComment[]> {

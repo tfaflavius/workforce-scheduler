@@ -284,10 +284,16 @@ export class ParkingDamagesService {
       await this.notificationsService.createMany(notifications);
     }
 
-    return this.commentRepository.findOne({
+    const savedComment = await this.commentRepository.findOne({
       where: { id: comment.id },
       relations: ['user'],
     });
+
+    if (!savedComment) {
+      throw new NotFoundException(`Comentariul cu ID ${comment.id} nu a fost gasit`);
+    }
+
+    return savedComment;
   }
 
   async getComments(damageId: string): Promise<ParkingDamageComment[]> {

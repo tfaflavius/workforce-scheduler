@@ -123,7 +123,7 @@ export class CashCollectionsService {
     applyFilters(totalQb);
     const totalRow = await totalQb.getRawOne();
     const totalAmount = parseFloat(totalRow?.total) || 0;
-    const count = parseInt(totalRow?.cnt) || 0;
+    const count = parseInt(totalRow?.cnt, 10) || 0;
 
     // 2. Grupare per parcare — GROUP BY SQL
     const lotQb = this.cashCollectionRepository.createQueryBuilder('c')
@@ -159,14 +159,14 @@ export class CashCollectionsService {
         parkingLotId: row.parkingLotId,
         parkingLotName: row.parkingLotName || '',
         totalAmount: parseFloat(row.totalAmount) || 0,
-        count: parseInt(row.cnt) || 0,
+        count: parseInt(row.cnt, 10) || 0,
       })),
       byMachine: byMachineRows.map(row => ({
         paymentMachineId: row.paymentMachineId,
         machineNumber: row.machineNumber || '',
         parkingLotName: row.parkingLotName || '',
         totalAmount: parseFloat(row.totalAmount) || 0,
-        count: parseInt(row.cnt) || 0,
+        count: parseInt(row.cnt, 10) || 0,
       })),
     };
   }
@@ -184,13 +184,13 @@ export class CashCollectionsService {
 
     const rows = await this.cashCollectionRepository
       .createQueryBuilder('c')
-      .select('c.parking_lot_id', 'parkingLotId')
-      .addSelect('EXTRACT(MONTH FROM c.collected_at)::int', 'month')
+      .select('c.parkingLotId', 'parkingLotId')
+      .addSelect('EXTRACT(MONTH FROM c.collectedAt)::int', 'month')
       .addSelect('SUM(c.amount)', 'total')
-      .where('c.parking_lot_id IN (:...ids)', { ids: parkingLotIds })
-      .andWhere('EXTRACT(YEAR FROM c.collected_at) = :year', { year })
-      .groupBy('c.parking_lot_id')
-      .addGroupBy('EXTRACT(MONTH FROM c.collected_at)')
+      .where('c.parkingLotId IN (:...ids)', { ids: parkingLotIds })
+      .andWhere('EXTRACT(YEAR FROM c.collectedAt) = :year', { year })
+      .groupBy('c.parkingLotId')
+      .addGroupBy('EXTRACT(MONTH FROM c.collectedAt)')
       .getRawMany();
 
     const result: Record<string, Record<number, number>> = {};
