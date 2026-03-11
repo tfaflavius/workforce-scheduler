@@ -80,6 +80,7 @@ import {
   useGetRevolutionarLegitimationsQuery,
 } from '../../store/api/handicap.api';
 import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
+import type jsPDF from 'jspdf';
 import type {
   HandicapRequest,
   HandicapRequestType,
@@ -1415,7 +1416,7 @@ const HandicapParkingPage: React.FC = () => {
 
   // ============== EXPORT FUNCTIONS ==============
 
-  const addSectionToPDF = (doc: jsPDF, title: string, headers: string[][], data: string[][], startY: number, color: number[]): number => {
+  const addSectionToPDF = (doc: jsPDF, autoTableFn: typeof import('jspdf-autotable').default, title: string, headers: string[][], data: string[][], startY: number, color: number[]): number => {
     doc.setFontSize(14);
     doc.setTextColor(color[0], color[1], color[2]);
     doc.text(title, 14, startY);
@@ -1434,7 +1435,7 @@ const HandicapParkingPage: React.FC = () => {
       return startY + 24;
     }
 
-    autoTable(doc, {
+    autoTableFn(doc, {
       startY: startY + 12,
       head: headers,
       body: data,
@@ -1653,23 +1654,23 @@ const HandicapParkingPage: React.FC = () => {
     let y = 94;
 
     // Section 1: Amplasare
-    y = addSectionToPDF(doc, 'Amplasare Panouri', REQUEST_HEADERS, buildRequestsTableData(amplasare), y, [37, 99, 235]);
+    y = addSectionToPDF(doc, autoTable, 'Amplasare Panouri', REQUEST_HEADERS, buildRequestsTableData(amplasare), y, [37, 99, 235]);
     if (y > 240) { doc.addPage(); y = 20; }
 
     // Section 2: Revocare
-    y = addSectionToPDF(doc, 'Revocare Panouri', REQUEST_HEADERS, buildRequestsTableData(revocare), y, [245, 158, 11]);
+    y = addSectionToPDF(doc, autoTable, 'Revocare Panouri', REQUEST_HEADERS, buildRequestsTableData(revocare), y, [245, 158, 11]);
     if (y > 240) { doc.addPage(); y = 20; }
 
     // Section 3: Marcaje
-    y = addSectionToPDF(doc, 'Creare Marcaje', REQUEST_HEADERS, buildRequestsTableData(marcaje), y, [139, 92, 246]);
+    y = addSectionToPDF(doc, autoTable, 'Creare Marcaje', REQUEST_HEADERS, buildRequestsTableData(marcaje), y, [139, 92, 246]);
     if (y > 240) { doc.addPage(); y = 20; }
 
     // Section 4: Legitimatii Handicap
-    y = addSectionToPDF(doc, 'Legitimatii Handicap', HANDICAP_LEGIT_HEADERS, buildHandicapLegitTableData(filteredHandicapLegitimations), y, [5, 150, 105]);
+    y = addSectionToPDF(doc, autoTable, 'Legitimatii Handicap', HANDICAP_LEGIT_HEADERS, buildHandicapLegitTableData(filteredHandicapLegitimations), y, [5, 150, 105]);
     if (y > 240) { doc.addPage(); y = 20; }
 
     // Section 5: Legitimatii Revolutionar
-    addSectionToPDF(doc, 'Legitimatii Revolutionar', REVOLUTIONAR_LEGIT_HEADERS, buildRevolutionarLegitTableData(filteredRevolutionarLegitimations), y, [124, 58, 237]);
+    addSectionToPDF(doc, autoTable, 'Legitimatii Revolutionar', REVOLUTIONAR_LEGIT_HEADERS, buildRevolutionarLegitTableData(filteredRevolutionarLegitimations), y, [124, 58, 237]);
 
     doc.save(`raport-complet-handicap-${selectedMonth}.pdf`);
   };

@@ -20,7 +20,7 @@ import {
   Close as CloseIcon,
   HourglassEmpty as PendingIcon,
 } from '@mui/icons-material';
-import { User } from '../../../store/api/users.api';
+import type { User } from '../../../store/api/users.api';
 import type {
   AssignmentInfo,
   CalendarDay,

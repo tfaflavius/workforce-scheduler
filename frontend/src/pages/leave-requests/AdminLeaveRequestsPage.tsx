@@ -57,7 +57,6 @@ import {
 import type {
   LeaveRequest,
   LeaveType,
-  LeaveRequestStatus,
 } from '../../types/leave-request.types';
 import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-request.types';
 import { useSnackbar } from '../../contexts/SnackbarContext';

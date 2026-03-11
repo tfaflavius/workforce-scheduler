@@ -32,7 +32,7 @@ import {
 import {
   useGetMyAssignedIssuesQuery,
 } from '../../../store/api/parking.api';
-import type { ParkingIssue, ParkingIssueStatus } from '../../../types/parking.types';
+import type { ParkingIssue } from '../../../types/parking.types';
 import { ISSUE_STATUS_LABELS } from '../../../types/parking.types';
 import ResolveIssueDialog from './ResolveIssueDialog';
 import IssueDetailsDialog from './IssueDetailsDialog';

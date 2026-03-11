@@ -12,7 +12,7 @@ import {
 import {
   Edit as EditIcon,
 } from '@mui/icons-material';
-import { User } from '../../../store/api/users.api';
+import type { User } from '../../../store/api/users.api';
 
 export interface ScheduleEditDialogProps {
   open: boolean;
