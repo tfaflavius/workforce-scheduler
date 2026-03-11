@@ -48,6 +48,7 @@ import {
   useSeedContactFirmsMutation,
 } from '../../../store/api/permissions.api';
 import type { ContactFirmItem, CreateContactFirmRequest } from '../../../store/api/permissions.api';
+import { TableSkeleton } from '../../../components/common';
 
 const emptyForm: CreateContactFirmRequest = {
   name: '',
@@ -162,11 +163,7 @@ const ContactFirmsTab = () => {
   };
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <TableSkeleton rows={5} columns={7} />;
   }
 
   return (
@@ -218,6 +215,7 @@ const ContactFirmsTab = () => {
         fullWidth
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        aria-label="Cauta firma, email, telefon"
         sx={{ mb: 2 }}
         slotProps={{
           input: {

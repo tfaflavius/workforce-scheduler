@@ -245,6 +245,7 @@ export const FriendlyDialog: React.FC<FriendlyDialogProps> = ({
           <IconButton
             onClick={() => onClose()}
             disabled={confirmLoading}
+            aria-label="Inchide dialogul"
             sx={{
               position: 'absolute',
               right: { xs: 8, sm: 12 },

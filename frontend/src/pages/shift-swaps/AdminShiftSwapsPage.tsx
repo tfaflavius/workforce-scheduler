@@ -54,7 +54,7 @@ import {
   AdminPanelSettings as AdminIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { GradientHeader, StatCard, FriendlyDialog } from '../../components/common';
+import { GradientHeader, StatCard, FriendlyDialog, TableSkeleton } from '../../components/common';
 import {
   useGetAllSwapRequestsQuery,
   useApproveSwapRequestMutation,
@@ -353,8 +353,8 @@ const AdminShiftSwapsPage = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
+      <Box sx={{ width: '100%' }}>
+        <TableSkeleton rows={5} columns={5} />
       </Box>
     );
   }

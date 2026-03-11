@@ -138,7 +138,7 @@ export const InstallPrompt: React.FC = () => {
                 Instaleaza Aplicatia
               </Typography>
             </Stack>
-            <IconButton size="small" onClick={handleDismiss}>
+            <IconButton size="small" onClick={handleDismiss} aria-label="Inchide notificarea de instalare">
               <CloseIcon fontSize="small" />
             </IconButton>
           </Stack>

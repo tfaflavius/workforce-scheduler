@@ -46,6 +46,7 @@ import {
   useSeedEquipmentMutation,
 } from '../../../store/api/permissions.api';
 import type { ParkingEquipmentItem, CreateEquipmentRequest } from '../../../store/api/permissions.api';
+import { TableSkeleton } from '../../../components/common';
 
 const CATEGORY_LABELS: Record<string, string> = {
   ISSUE: 'Probleme',
@@ -149,11 +150,7 @@ const EquipmentTab = () => {
   };
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+    return <TableSkeleton rows={5} columns={5} />;
   }
 
   return (
@@ -205,6 +202,7 @@ const EquipmentTab = () => {
         fullWidth
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        aria-label="Cauta echipament"
         sx={{ mb: 2 }}
         slotProps={{
           input: {

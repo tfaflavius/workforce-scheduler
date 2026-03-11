@@ -78,12 +78,12 @@ export class UsersController {
     // Utilizatorii pot actualiza doar propriul profil
     // Adminii pot actualiza orice profil
     if (!isAdminOrAbove && !isOwnProfile) {
-      throw new ForbiddenException('You can only update your own profile');
+      throw new ForbiddenException('Poti actualiza doar propriul profil');
     }
 
     // Doar MASTER_ADMIN poate schimba rolurile
     if (updateUserDto.role !== undefined && !isMasterAdmin) {
-      throw new ForbiddenException('Only Master Admin can change user roles');
+      throw new ForbiddenException('Doar Master Admin poate schimba rolurile utilizatorilor');
     }
 
     // Daca nu e admin, restrictioneaza campurile ce pot fi modificate
@@ -114,11 +114,11 @@ export class UsersController {
     const canChange = isAdminOrAbove || req.user.id === id;
 
     if (!canChange) {
-      throw new ForbiddenException('You can only change your own password');
+      throw new ForbiddenException('Poti schimba doar propria parola');
     }
 
     await this.usersService.changePassword(id, dto, req.user.id, isAdminOrAbove);
-    return { message: 'Password changed successfully' };
+    return { message: 'Parola a fost schimbata cu succes' };
   }
 
   @Patch(':id/toggle-active')

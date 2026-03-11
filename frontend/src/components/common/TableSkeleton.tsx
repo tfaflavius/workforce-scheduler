@@ -1,61 +1,65 @@
 import React from 'react';
-import { Box, Skeleton, Card, CardContent, Stack } from '@mui/material';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Skeleton,
+} from '@mui/material';
 
 interface TableSkeletonProps {
   rows?: number;
-  hasHeader?: boolean;
+  columns?: number;
+  showHeader?: boolean;
 }
 
-export const TableSkeleton: React.FC<TableSkeletonProps> = ({ rows = 5, hasHeader = true }) => {
-  return (
-    <Box sx={{ width: '100%' }}>
-      {hasHeader && (
-        <Skeleton
-          variant="rounded"
-          sx={{
-            height: { xs: 80, sm: 100 },
-            borderRadius: { xs: 2, sm: 3 },
-            mb: { xs: 2, sm: 3 },
-          }}
-        />
-      )}
+export const TableSkeleton = React.memo(
+  ({ rows = 5, columns = 4, showHeader = true }: TableSkeletonProps) => {
+    // Use deterministic widths based on index to avoid hydration mismatches
+    const getHeaderWidth = (index: number) => {
+      const widths = [70, 85, 60, 75, 90, 65, 80, 55, 72, 88];
+      return `${widths[index % widths.length]}%`;
+    };
 
-      {/* Filter/tabs skeleton */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-        <Skeleton variant="rounded" width={80} height={36} sx={{ borderRadius: 2 }} />
-        <Skeleton variant="rounded" width={80} height={36} sx={{ borderRadius: 2 }} />
-        <Skeleton variant="rounded" width={80} height={36} sx={{ borderRadius: 2 }} />
-      </Stack>
+    const getCellWidth = (rowIndex: number, colIndex: number) => {
+      const widths = [55, 70, 45, 65, 80, 50, 60, 75, 42, 68];
+      return `${widths[(rowIndex * 3 + colIndex) % widths.length]}%`;
+    };
 
-      {/* Table rows skeleton */}
-      <Card>
-        <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-          <Stack spacing={1.5}>
-            {Array.from({ length: rows }).map((_, i) => (
-              <Stack
-                key={i}
-                direction="row"
-                alignItems="center"
-                spacing={2}
-                sx={{
-                  p: { xs: 1, sm: 1.5 },
-                  borderRadius: 1.5,
-                  bgcolor: 'action.hover',
-                }}
-              >
-                <Skeleton variant="circular" width={36} height={36} sx={{ flexShrink: 0 }} />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Skeleton variant="text" width={`${60 + Math.random() * 30}%`} />
-                  <Skeleton variant="text" width={`${30 + Math.random() * 20}%`} sx={{ fontSize: '0.75rem' }} />
-                </Box>
-                <Skeleton variant="rounded" width={70} height={28} sx={{ borderRadius: 2, flexShrink: 0 }} />
-              </Stack>
+    return (
+      <TableContainer component={Paper} variant="outlined">
+        <Table size="small">
+          {showHeader && (
+            <TableHead>
+              <TableRow>
+                {Array.from({ length: columns }).map((_, i) => (
+                  <TableCell key={i}>
+                    <Skeleton variant="text" width={getHeaderWidth(i)} />
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+          )}
+          <TableBody>
+            {Array.from({ length: rows }).map((_, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {Array.from({ length: columns }).map((_, colIndex) => (
+                  <TableCell key={colIndex}>
+                    <Skeleton variant="text" width={getCellWidth(rowIndex, colIndex)} />
+                  </TableCell>
+                ))}
+              </TableRow>
             ))}
-          </Stack>
-        </CardContent>
-      </Card>
-    </Box>
-  );
-};
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+);
+
+TableSkeleton.displayName = 'TableSkeleton';
 
 export default TableSkeleton;

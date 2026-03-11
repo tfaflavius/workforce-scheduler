@@ -1779,6 +1779,7 @@ const ReportsPage: React.FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
+          aria-label="Cauta dupa nume"
           sx={{ minWidth: { xs: '100%', sm: 200 } }}
         />
 
@@ -1865,6 +1866,7 @@ const ReportsPage: React.FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
+          aria-label="Cauta dupa nume"
           sx={{ minWidth: { xs: '100%', sm: 200 } }}
         />
 
@@ -1985,6 +1987,7 @@ const ReportsPage: React.FC = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           size="small"
+          aria-label="Cauta dupa nume"
           sx={{ minWidth: { xs: '100%', sm: 200 } }}
         />
 
@@ -2444,6 +2447,7 @@ const ReportsPage: React.FC = () => {
                   <Select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
+                    aria-label="Selecteaza luna"
                   >
                     {monthOptions.map(({ value, label }) => (
                       <MenuItem key={value} value={value}>

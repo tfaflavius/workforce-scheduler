@@ -213,7 +213,7 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
               </Button>
             )}
             {onClose && (
-              <IconButton onClick={onClose} sx={{ color: 'white' }}>
+              <IconButton onClick={onClose} aria-label="Inchide traseul" sx={{ color: 'white' }}>
                 <CloseIcon />
               </IconButton>
             )}
@@ -328,6 +328,8 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
 
                   {/* Content */}
                   <Box
+                    role={hasMultiplePoints ? 'button' : undefined}
+                    tabIndex={hasMultiplePoints ? 0 : undefined}
                     sx={{
                       p: 1.5,
                       borderRadius: 2,
@@ -336,6 +338,12 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
                       cursor: hasMultiplePoints ? 'pointer' : 'default',
                     }}
                     onClick={() => hasMultiplePoints && toggleGroup(groupIndex)}
+                    onKeyDown={hasMultiplePoints ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggleGroup(groupIndex);
+                      }
+                    } : undefined}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -374,7 +382,7 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
                         </Box>
                       </Box>
                       {hasMultiplePoints && (
-                        <IconButton size="small">
+                        <IconButton size="small" aria-label={isExpanded ? 'Restringe punctele' : 'Expandeaza punctele'}>
                           {isExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
                         </IconButton>
                       )}

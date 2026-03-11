@@ -58,6 +58,7 @@ import EditDamageDialog from './EditDamageDialog';
 import SignDamageDialog from './SignDamageDialog';
 import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
 import FriendlyDialog from '../../../components/common/FriendlyDialog';
+import { TableSkeleton } from '../../../components/common';
 
 interface ParkingDamagesTabProps {
   initialOpenId?: string | null;
@@ -534,9 +535,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
 
       {/* Content */}
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress size={48} />
-        </Box>
+        <TableSkeleton rows={5} columns={10} />
       ) : damages.length === 0 ? (
         <Fade in={true} timeout={600}>
           <Alert severity="info" sx={{ borderRadius: 2 }}>

@@ -422,6 +422,7 @@ const ParcometrePage: React.FC = () => {
             placeholder="Cauta dupa nume..."
             value={filterName}
             onChange={(e) => setFilterName(e.target.value)}
+            aria-label="Cauta dupa nume"
             slotProps={{
               input: {
                 startAdornment: (

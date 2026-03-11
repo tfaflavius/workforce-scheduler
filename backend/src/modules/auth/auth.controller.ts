@@ -29,7 +29,7 @@ export class AuthController {
   @Get('me')
   async getProfile(@Headers('authorization') authHeader: string) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing authorization header');
+      throw new UnauthorizedException('Header-ul de autorizare lipseste');
     }
     const token = authHeader.substring(7);
     return this.authService.getMe(token);

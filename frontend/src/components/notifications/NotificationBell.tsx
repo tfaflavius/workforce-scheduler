@@ -405,10 +405,19 @@ export const NotificationBell: React.FC = () => {
             <Typography
               variant="body2"
               color="primary"
+              role="button"
+              tabIndex={0}
               sx={{ textAlign: 'center', cursor: 'pointer', fontWeight: 600 }}
               onClick={() => {
                 handleClose();
                 navigate('/notifications');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleClose();
+                  navigate('/notifications');
+                }
               }}
             >
               Vezi toate notificarile

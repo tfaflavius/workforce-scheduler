@@ -26,7 +26,7 @@ export class AuthService {
     // Prevent self-assignment of privileged roles during registration
     // Only USER role is allowed for self-registration
     if (registerDto.role && registerDto.role !== UserRole.USER) {
-      throw new ForbiddenException('Cannot register with elevated role. Contact an administrator.');
+      throw new ForbiddenException('Nu te poti inregistra cu un rol privilegiat. Contacteaza un administrator.');
     }
 
     // Check if user already exists in our DB
@@ -35,7 +35,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('User with this email already exists');
+      throw new BadRequestException('Un utilizator cu acest email exista deja');
     }
 
     try {
@@ -73,7 +73,7 @@ export class AuthService {
         requiresAdminApproval: true,
       };
     } catch (error) {
-      throw new BadRequestException(error.message || 'Failed to create user');
+      throw new BadRequestException(error.message || 'Eroare la crearea utilizatorului');
     }
   }
 
@@ -85,7 +85,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credentiale invalide');
     }
 
     // Check if user is approved by admin
@@ -141,12 +141,12 @@ export class AuthService {
             };
           } catch (retryErr) {
             this.logger.error(`[Login] Supabase login retry failed after sync: ${retryErr?.message}`);
-            throw new UnauthorizedException('Invalid credentials');
+            throw new UnauthorizedException('Credentiale invalide');
           }
         }
       }
 
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Credentiale invalide');
     }
   }
 
@@ -162,12 +162,12 @@ export class AuthService {
       });
 
       if (!user || !user.isActive) {
-        throw new UnauthorizedException('User not found or inactive');
+        throw new UnauthorizedException('Utilizatorul nu a fost gasit sau este inactiv');
       }
 
       return user;
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Token invalid');
     }
   }
 

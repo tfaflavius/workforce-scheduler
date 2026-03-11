@@ -66,6 +66,7 @@ import { UserForm } from '../../components/users/UserForm';
 import { ChangePasswordDialog } from '../../components/users/ChangePasswordDialog';
 import { DeleteUserDialog } from '../../components/users/DeleteUserDialog';
 import { UserStatusChip } from '../../components/users/UserStatusChip';
+import { TableSkeleton } from '../../components/common';
 import type { User } from '../../store/api/users.api';
 
 const UsersPage: React.FC = () => {
@@ -371,6 +372,7 @@ const UsersPage: React.FC = () => {
                     onChange={(e) => setSearch(e.target.value)}
                     size="small"
                     fullWidth
+                    aria-label="Cauta utilizator"
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
@@ -474,6 +476,7 @@ const UsersPage: React.FC = () => {
                   onChange={(e) => setSearch(e.target.value)}
                   size="small"
                   fullWidth
+                  aria-label="Cauta dupa nume sau email"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -569,9 +572,7 @@ const UsersPage: React.FC = () => {
           // Mobile Card View
           <Box>
             {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                <CircularProgress size={48} />
-              </Box>
+              <TableSkeleton rows={5} columns={4} />
             ) : paginatedUsers.length === 0 ? (
               <Card sx={{ borderRadius: 2 }}>
                 <CardContent sx={{ py: 6, textAlign: 'center' }}>
@@ -716,9 +717,7 @@ const UsersPage: React.FC = () => {
           // Desktop Table View
           <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
             {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <CircularProgress size={48} />
-              </Box>
+              <TableSkeleton rows={5} columns={7} />
             ) : (
               <>
                 <TableContainer>

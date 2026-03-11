@@ -80,7 +80,7 @@ export class TasksService {
     });
 
     if (!task) {
-      throw new NotFoundException(`Task with ID ${id} not found`);
+      throw new NotFoundException(`Sarcina cu ID-ul ${id} nu a fost gasita`);
     }
 
     return task;

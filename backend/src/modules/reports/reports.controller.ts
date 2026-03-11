@@ -50,11 +50,11 @@ export class ReportsController {
     const report = await this.reportsService.getReport(reportId);
 
     if (!report) {
-      throw new NotFoundException('Report not found');
+      throw new NotFoundException('Raportul nu a fost gasit');
     }
 
     if (report.expiresAt && new Date() > report.expiresAt) {
-      throw new BadRequestException('Report has expired');
+      throw new BadRequestException('Raportul a expirat');
     }
 
     // Redirect to MinIO URL

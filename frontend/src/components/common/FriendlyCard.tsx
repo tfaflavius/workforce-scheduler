@@ -117,6 +117,14 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
     <Grow in timeout={400 + delay}>
       <Card
         onClick={onClick}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onKeyDown={onClick ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        } : undefined}
         sx={{
           borderRadius: 3,
           overflow: 'hidden',

@@ -240,6 +240,14 @@ const NotificationsPage: React.FC = () => {
                   return (
                     <Card
                       key={notif.id}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleNotificationClick(notif);
+                        }
+                      }}
                       sx={{
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',

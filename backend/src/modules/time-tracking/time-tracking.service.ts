@@ -44,7 +44,7 @@ export class TimeTrackingService {
     });
 
     if (activeTimer) {
-      throw new BadRequestException('You already have an active timer running');
+      throw new BadRequestException('Ai deja un cronometru activ in desfasurare');
     }
 
     const timeEntry = this.timeEntryRepository.create({
@@ -63,11 +63,11 @@ export class TimeTrackingService {
     });
 
     if (!timeEntry) {
-      throw new NotFoundException('Time entry not found');
+      throw new NotFoundException('Inregistrarea de timp nu a fost gasita');
     }
 
     if (timeEntry.endTime) {
-      throw new BadRequestException('Timer already stopped');
+      throw new BadRequestException('Cronometrul este deja oprit');
     }
 
     const endTime = new Date();
@@ -252,11 +252,11 @@ export class TimeTrackingService {
     });
 
     if (!timeEntry) {
-      throw new NotFoundException('Time entry not found');
+      throw new NotFoundException('Inregistrarea de timp nu a fost gasita');
     }
 
     if (timeEntry.endTime) {
-      throw new BadRequestException('Cannot record location for stopped timer');
+      throw new BadRequestException('Nu se poate inregistra locatia pentru un cronometru oprit');
     }
 
     // Deduplication: skip if last log for this user is same coords within 90 seconds
@@ -325,7 +325,7 @@ export class TimeTrackingService {
     });
 
     if (!timeEntry) {
-      throw new NotFoundException('Time entry not found');
+      throw new NotFoundException('Inregistrarea de timp nu a fost gasita');
     }
 
     return this.locationLogRepository.find({
@@ -343,11 +343,11 @@ export class TimeTrackingService {
     });
 
     if (!timeEntry) {
-      throw new NotFoundException('Time entry not found');
+      throw new NotFoundException('Inregistrarea de timp nu a fost gasita');
     }
 
     if (timeEntry.endTime) {
-      throw new BadRequestException('Cannot report GPS status for stopped timer');
+      throw new BadRequestException('Nu se poate raporta statusul GPS pentru un cronometru oprit');
     }
 
     const previousStatus = timeEntry.gpsStatus;
@@ -457,7 +457,7 @@ export class TimeTrackingService {
       where: { id: timeEntryId },
     });
     if (!entry) {
-      throw new NotFoundException('Time entry not found');
+      throw new NotFoundException('Inregistrarea de timp nu a fost gasita');
     }
 
     return this.locationLogRepository.find({
@@ -530,7 +530,7 @@ export class TimeTrackingService {
     });
 
     if (!entry) {
-      throw new NotFoundException('Time entry not found');
+      throw new NotFoundException('Inregistrarea de timp nu a fost gasita');
     }
 
     const logs = await this.locationLogRepository.find({
@@ -647,7 +647,7 @@ export class TimeTrackingService {
    */
   async getAdminCombinedRoute(entryIds: string[]) {
     if (!entryIds.length) {
-      throw new BadRequestException('No entry IDs provided');
+      throw new BadRequestException('Nu au fost furnizate ID-uri de inregistrari');
     }
 
     // Fetch all entries
@@ -658,7 +658,7 @@ export class TimeTrackingService {
     });
 
     if (entries.length === 0) {
-      throw new NotFoundException('No time entries found');
+      throw new NotFoundException('Nu s-au gasit inregistrari de timp');
     }
 
     // Fetch all location logs for all entries, sorted chronologically
@@ -777,7 +777,7 @@ export class TimeTrackingService {
    */
   async getAdminCombinedLocations(entryIds: string[]): Promise<LocationLog[]> {
     if (!entryIds.length) {
-      throw new BadRequestException('No entry IDs provided');
+      throw new BadRequestException('Nu au fost furnizate ID-uri de inregistrari');
     }
 
     return this.locationLogRepository.find({

@@ -93,7 +93,7 @@ export class WorkPositionsService implements OnModuleInit {
     });
 
     if (!position) {
-      throw new NotFoundException(`Work position with ID ${id} not found`);
+      throw new NotFoundException(`Pozitia de lucru cu ID-ul ${id} nu a fost gasita`);
     }
 
     return position;

@@ -40,7 +40,7 @@ import {
   GpsOff as GpsOffIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
-import { GradientHeader, StatCard } from '../../components/common';
+import { GradientHeader, StatCard, TableSkeleton } from '../../components/common';
 import EmployeeLocationMap, {
   type EmployeeMarker,
   type LocationTrail,
@@ -555,9 +555,7 @@ const AdminTimeTrackingPage: React.FC = () => {
             </Box>
 
             {activeLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
+              <TableSkeleton rows={5} columns={7} />
             ) : (
               <>
                 {/* Real-time monitoring - Table (desktop) / Cards (mobile) */}
@@ -816,9 +814,7 @@ const AdminTimeTrackingPage: React.FC = () => {
 
             {/* History Table - Consolidated per employee/day */}
             {historyLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
-              </Box>
+              <TableSkeleton rows={5} columns={9} />
             ) : (
               <>
                 {isMobile ? (

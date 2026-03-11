@@ -35,7 +35,7 @@ export class JwtAuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid authorization header');
+      throw new UnauthorizedException('Header-ul de autorizare lipseste sau este invalid');
     }
 
     const token = authHeader.substring(7); // Remove 'Bearer '
@@ -51,13 +51,13 @@ export class JwtAuthGuard implements CanActivate {
       });
 
       if (!user || !user.isActive) {
-        throw new UnauthorizedException('User not found or inactive');
+        throw new UnauthorizedException('Utilizatorul nu a fost gasit sau este inactiv');
       }
 
       request.user = user;
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Token invalid');
     }
   }
 }

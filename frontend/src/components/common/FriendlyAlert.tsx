@@ -123,6 +123,7 @@ export const FriendlyAlert: React.FC<FriendlyAlertProps> = ({
                 <IconButton
                   size="small"
                   onClick={onClose}
+                  aria-label="Inchide alerta"
                   sx={{
                     color: 'inherit',
                     opacity: 0.7,

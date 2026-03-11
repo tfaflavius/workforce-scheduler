@@ -372,6 +372,7 @@ const DailyReportsPage: React.FC = () => {
                   placeholder="Descrie activitatile realizate astazi..."
                   value={reportContent}
                   onChange={(e) => setReportContent(e.target.value)}
+                  aria-label="Continutul raportului zilnic"
                   sx={{
                     mb: 2,
                     '& .MuiOutlinedInput-root': {

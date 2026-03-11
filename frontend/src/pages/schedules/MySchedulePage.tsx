@@ -418,7 +418,7 @@ const MySchedulePage = () => {
           sx={{ mb: { xs: 2, sm: 3 } }}
         >
           <Stack direction="row" alignItems="center" justifyContent="center" spacing={{ xs: 1, sm: 2 }}>
-            <IconButton onClick={() => navigatePeriod('prev')} size={isMobile ? 'small' : 'medium'}>
+            <IconButton onClick={() => navigatePeriod('prev')} size={isMobile ? 'small' : 'medium'} aria-label="Perioada anterioara">
               <PrevIcon />
             </IconButton>
             <Typography
@@ -434,7 +434,7 @@ const MySchedulePage = () => {
                 ? `${dates[0]?.getDate()} - ${dates[6]?.getDate()} ${monthNames[dates[0]?.getMonth()]?.substring(0, 3)}`
                 : `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
             </Typography>
-            <IconButton onClick={() => navigatePeriod('next')} size={isMobile ? 'small' : 'medium'}>
+            <IconButton onClick={() => navigatePeriod('next')} size={isMobile ? 'small' : 'medium'} aria-label="Perioada urmatoare">
               <NextIcon />
             </IconButton>
             <Button variant="text" onClick={goToToday} size="small">

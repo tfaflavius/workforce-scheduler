@@ -204,7 +204,7 @@ export class NotificationsService {
     );
     const notification = await this.notificationRepository.findOne({ where: { id } });
     if (!notification) {
-      throw new NotFoundException(`Notification ${id} not found`);
+      throw new NotFoundException(`Notificarea ${id} nu a fost gasita`);
     }
     return notification;
   }

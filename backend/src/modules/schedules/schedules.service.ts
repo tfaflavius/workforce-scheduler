@@ -99,7 +99,7 @@ export class SchedulesService {
           });
 
           if (!shiftType) {
-            throw new NotFoundException(`Shift type ${assignmentDto.shiftTypeId} not found`);
+            throw new NotFoundException(`Tipul de tura ${assignmentDto.shiftTypeId} nu a fost gasit`);
           }
 
           return this.assignmentRepository.create({
@@ -205,7 +205,7 @@ export class SchedulesService {
     });
 
     if (!schedule) {
-      throw new NotFoundException(`Schedule ${id} not found`);
+      throw new NotFoundException(`Programul ${id} nu a fost gasit`);
     }
 
     return schedule;
@@ -319,7 +319,7 @@ export class SchedulesService {
     const schedule = await this.findOne(id);
 
     if (schedule.status !== 'PENDING_APPROVAL') {
-      throw new BadRequestException('Schedule is not pending approval');
+      throw new BadRequestException('Programul nu este in asteptarea aprobarii');
     }
 
     // Get approver name
@@ -357,7 +357,7 @@ export class SchedulesService {
     const schedule = await this.findOne(id);
 
     if (schedule.status !== 'PENDING_APPROVAL') {
-      throw new BadRequestException('Only schedules pending approval can be rejected');
+      throw new BadRequestException('Doar programele in asteptarea aprobarii pot fi respinse');
     }
 
     // Get rejector name
@@ -392,14 +392,14 @@ export class SchedulesService {
     const schedule = await this.findOne(id);
 
     if (schedule.status !== 'DRAFT') {
-      throw new BadRequestException('Only draft schedules can be submitted for approval');
+      throw new BadRequestException('Doar programele in starea draft pot fi trimise spre aprobare');
     }
 
     // Validate labor law
     const validation = await this.validateLaborLaw(id);
 
     if (validation.criticalViolations && validation.criticalViolations.length > 0) {
-      throw new BadRequestException('Cannot submit schedule with critical labor law violations');
+      throw new BadRequestException('Nu se poate trimite programul cu incalcari critice ale legislatiei muncii');
     }
 
     schedule.status = 'PENDING_APPROVAL';
@@ -422,16 +422,16 @@ export class SchedulesService {
     });
 
     if (!sourceSchedule) {
-      throw new NotFoundException('Source schedule not found');
+      throw new NotFoundException('Programul sursa nu a fost gasit');
     }
 
     // Validate target month and year
     if (targetMonth < 1 || targetMonth > 12) {
-      throw new BadRequestException('Month must be between 1 and 12');
+      throw new BadRequestException('Luna trebuie sa fie intre 1 si 12');
     }
 
     if (targetYear < 2024 || targetYear > 2100) {
-      throw new BadRequestException('Invalid year');
+      throw new BadRequestException('An invalid');
     }
 
     // Check if a schedule already exists for this month/year/department
@@ -508,7 +508,7 @@ export class SchedulesService {
     const schedule = await this.findOne(id);
 
     if (schedule.status === 'APPROVED' || schedule.status === 'ACTIVE') {
-      throw new BadRequestException('Cannot delete approved or active schedules');
+      throw new BadRequestException('Nu se pot sterge programele aprobate sau active');
     }
 
     await this.assignmentRepository.delete({ workScheduleId: id });

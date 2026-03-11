@@ -102,7 +102,15 @@ const SearchResults: React.FC<{
         return (
           <ListItem
             key={`${r.type}-${r.id}`}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect(r)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect(r);
+              }
+            }}
             sx={{
               cursor: 'pointer',
               '&:hover': { bgcolor: 'action.hover' },
@@ -264,6 +272,7 @@ const GlobalSearch: React.FC = () => {
               onChange={(e) => handleSearch(e.target.value)}
               autoFocus
               fullWidth
+              inputProps={{ 'aria-label': 'Cauta pagini, utilizatori, parcari' }}
               sx={{
                 fontSize: '1rem',
                 '& input::placeholder': { opacity: 0.6 },
@@ -271,7 +280,7 @@ const GlobalSearch: React.FC = () => {
             />
             {isFetching && <CircularProgress size={20} />}
             {query && !isFetching && (
-              <IconButton size="small" onClick={handleClear}>
+              <IconButton size="small" onClick={handleClear} aria-label="Sterge cautarea">
                 <CloseIcon fontSize="small" />
               </IconButton>
             )}
@@ -316,6 +325,7 @@ const GlobalSearch: React.FC = () => {
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onFocus={() => query.length >= 2 && results && setOpen(true)}
+              inputProps={{ 'aria-label': 'Cauta pagini, utilizatori, parcari' }}
               sx={{
                 color: 'inherit',
                 flex: 1,
@@ -325,7 +335,7 @@ const GlobalSearch: React.FC = () => {
             />
             {isFetching && <CircularProgress size={16} sx={{ color: 'inherit', opacity: 0.7 }} />}
             {query && !isFetching && (
-              <IconButton size="small" onClick={handleClear} sx={{ color: 'inherit', opacity: 0.7, p: 0.25 }}>
+              <IconButton size="small" onClick={handleClear} aria-label="Sterge cautarea" sx={{ color: 'inherit', opacity: 0.7, p: 0.25 }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             )}

@@ -45,6 +45,7 @@ import {
   CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import FriendlyDialog from '../../../components/common/FriendlyDialog';
+import { TableSkeleton } from '../../../components/common';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import { getStatusColor } from '../../../utils/statusHelpers';
@@ -675,9 +676,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
 
       {/* Content */}
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 4, sm: 6 } }}>
-          <CircularProgress size={isMobile ? 32 : 40} />
-        </Box>
+        <TableSkeleton rows={5} columns={9} />
       ) : issues.length === 0 ? (
         <Alert
           severity="info"

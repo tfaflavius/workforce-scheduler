@@ -38,6 +38,8 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
   return (
     <Grow in={true} timeout={500 + delay}>
       <Card
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
         sx={{
           cursor: onClick ? 'pointer' : 'default',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -77,6 +79,12 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
             : {},
         }}
         onClick={onClick}
+        onKeyDown={onClick ? (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        } : undefined}
       >
         {/* Background decoration */}
         <Box

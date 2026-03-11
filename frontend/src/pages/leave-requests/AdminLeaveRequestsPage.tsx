@@ -46,7 +46,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { GradientHeader, StatCard, EmptyState } from '../../components/common';
+import { GradientHeader, StatCard, EmptyState, TableSkeleton } from '../../components/common';
 import {
   useGetAllLeaveRequestsQuery,
   useRespondToLeaveRequestMutation,
@@ -312,8 +312,8 @@ export const AdminLeaveRequestsPage = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
+      <Box sx={{ width: '100%' }}>
+        <TableSkeleton rows={5} columns={6} />
       </Box>
     );
   }

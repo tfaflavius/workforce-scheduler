@@ -35,7 +35,7 @@ export class DepartmentsService {
     });
 
     if (!department) {
-      throw new NotFoundException(`Department with ID ${id} not found`);
+      throw new NotFoundException(`Departamentul cu ID-ul ${id} nu a fost gasit`);
     }
 
     return department;

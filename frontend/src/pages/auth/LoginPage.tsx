@@ -501,6 +501,7 @@ export const LoginPage = () => {
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
                             size={isMobile ? 'small' : 'medium'}
+                            aria-label={showPassword ? 'Ascunde parola' : 'Arata parola'}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -680,6 +681,7 @@ export const LoginPage = () => {
                             onClick={() => setShowPassword(!showPassword)}
                             edge="end"
                             size={isMobile ? 'small' : 'medium'}
+                            aria-label={showPassword ? 'Ascunde parola' : 'Arata parola'}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>

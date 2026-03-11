@@ -53,7 +53,7 @@ export class ReportsService {
     // 1. Fetch schedule with all relations
     const schedule = await this.schedulesService.findOne(scheduleId);
     if (!schedule) {
-      throw new NotFoundException('Schedule not found');
+      throw new NotFoundException('Programul nu a fost gasit');
     }
 
     // 2. Validate labor law if requested
@@ -316,7 +316,7 @@ export class ReportsService {
   ): Promise<OvertimeReportResponse> {
     // Validate monthYear format (YYYY-MM)
     if (!/^\d{4}-\d{2}$/.test(monthYear)) {
-      throw new BadRequestException('Invalid monthYear format. Use YYYY-MM');
+      throw new BadRequestException('Format monthYear invalid. Foloseste YYYY-MM');
     }
 
     // 1. Calculate overtime data
@@ -327,7 +327,7 @@ export class ReportsService {
     );
 
     if (!overtimeData || overtimeData.length === 0) {
-      throw new NotFoundException('No overtime data found for the specified period');
+      throw new NotFoundException('Nu s-au gasit date de ore suplimentare pentru perioada specificata');
     }
 
     // 2. Generate report buffer

@@ -35,7 +35,7 @@ export class UsersService {
   async create(createUserDto: CreateUserDto): Promise<User> {
     // Prevent creating MASTER_ADMIN users
     if ((createUserDto as any).role === UserRole.MASTER_ADMIN) {
-      throw new ForbiddenException('Cannot create users with MASTER_ADMIN role');
+      throw new ForbiddenException('Nu se pot crea utilizatori cu rolul MASTER_ADMIN');
     }
 
     // Check if user exists
@@ -44,7 +44,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+      throw new ConflictException('Un utilizator cu acest email exista deja');
     }
 
     // Hash password
@@ -84,7 +84,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Utilizatorul cu ID-ul ${id} nu a fost gasit`);
     }
 
     return user;
@@ -95,17 +95,17 @@ export class UsersService {
 
     // MASTER_ADMIN protection
     if (user.role === UserRole.MASTER_ADMIN && updateUserDto.role !== undefined) {
-      throw new ForbiddenException('Cannot change MASTER_ADMIN role');
+      throw new ForbiddenException('Nu se poate schimba rolul MASTER_ADMIN');
     }
 
     // Cannot promote anyone to MASTER_ADMIN
     if ((updateUserDto as any).role === UserRole.MASTER_ADMIN) {
-      throw new ForbiddenException('Cannot assign MASTER_ADMIN role');
+      throw new ForbiddenException('Nu se poate atribui rolul MASTER_ADMIN');
     }
 
     // Only MASTER_ADMIN can promote to ADMIN
     if ((updateUserDto as any).role === UserRole.ADMIN && requestingUser?.role !== UserRole.MASTER_ADMIN) {
-      throw new ForbiddenException('Only Master Admin can promote users to Admin');
+      throw new ForbiddenException('Doar Master Admin poate promova utilizatori la rolul de Admin');
     }
 
     // If email is being updated, check for conflicts
@@ -115,7 +115,7 @@ export class UsersService {
       });
 
       if (existingUser) {
-        throw new ConflictException('User with this email already exists');
+        throw new ConflictException('Un utilizator cu acest email exista deja');
       }
     }
 
@@ -142,7 +142,7 @@ export class UsersService {
 
     // MASTER_ADMIN cannot be deleted
     if (user.role === UserRole.MASTER_ADMIN) {
-      throw new ForbiddenException('MASTER_ADMIN account cannot be deleted');
+      throw new ForbiddenException('Contul MASTER_ADMIN nu poate fi sters');
     }
 
     // Sterge din Supabase Auth (permite re-inregistrarea cu acelasi email)
@@ -224,7 +224,7 @@ export class UsersService {
   ): Promise<void> {
     // Validate confirmPassword matches
     if (dto.newPassword !== dto.confirmPassword) {
-      throw new BadRequestException('Passwords do not match');
+      throw new BadRequestException('Parolele nu coincid');
     }
 
     const user = await this.findOne(userId);
@@ -234,7 +234,7 @@ export class UsersService {
       try {
         await this.supabaseService.signIn(user.email, dto.oldPassword);
       } catch {
-        throw new UnauthorizedException('Old password is incorrect');
+        throw new UnauthorizedException('Parola veche este incorecta');
       }
     }
 

@@ -394,6 +394,9 @@ export const MainLayout = () => {
         }}
       >
         <Box
+          role="button"
+          tabIndex={0}
+          aria-label="Navigheaza la Dashboard"
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -405,6 +408,12 @@ export const MainLayout = () => {
             },
           }}
           onClick={() => handleNavigate('/dashboard')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleNavigate('/dashboard');
+            }
+          }}
         >
           <Box
             sx={{
@@ -438,6 +447,7 @@ export const MainLayout = () => {
         {!showPermanentDrawer && (
           <IconButton
             onClick={handleDrawerToggle}
+            aria-label="Inchide meniul"
             sx={{
               bgcolor: alpha(theme.palette.primary.main, 0.1),
               '&:hover': {
@@ -905,6 +915,7 @@ export const MainLayout = () => {
         >
           <IconButton
             color="inherit"
+            aria-label="Deschide meniul"
             edge="start"
             onClick={handleDrawerToggle}
             sx={{

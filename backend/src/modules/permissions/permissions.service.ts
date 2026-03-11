@@ -90,7 +90,7 @@ export class PermissionsService {
   async updateOne(id: string, allowed: boolean) {
     const permission = await this.permissionRepo.findOne({ where: { id } });
     if (!permission) {
-      throw new NotFoundException(`Permission ${id} not found`);
+      throw new NotFoundException(`Permisiunea ${id} nu a fost gasita`);
     }
     permission.allowed = allowed;
     return this.permissionRepo.save(permission);
@@ -131,7 +131,7 @@ export class PermissionsService {
   async removeUserOverride(id: string) {
     const override = await this.overrideRepo.findOne({ where: { id } });
     if (!override) {
-      throw new NotFoundException(`Override ${id} not found`);
+      throw new NotFoundException(`Suprascrierea ${id} nu a fost gasita`);
     }
     await this.overrideRepo.remove(override);
     return { deleted: true };
@@ -145,7 +145,7 @@ export class PermissionsService {
       relations: ['department'],
     });
     if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
+      throw new NotFoundException(`Utilizatorul ${userId} nu a fost gasit`);
     }
 
     // Get default permissions for the user's role
@@ -227,7 +227,7 @@ export class PermissionsService {
   async updateTaskFlow(id: string, data: Partial<TaskFlowRule>) {
     const rule = await this.taskFlowRepo.findOne({ where: { id } });
     if (!rule) {
-      throw new NotFoundException(`TaskFlowRule ${id} not found`);
+      throw new NotFoundException(`Regula TaskFlow ${id} nu a fost gasita`);
     }
     Object.assign(rule, data);
     return this.taskFlowRepo.save(rule);
@@ -236,7 +236,7 @@ export class PermissionsService {
   async deleteTaskFlow(id: string) {
     const rule = await this.taskFlowRepo.findOne({ where: { id } });
     if (!rule) {
-      throw new NotFoundException(`TaskFlowRule ${id} not found`);
+      throw new NotFoundException(`Regula TaskFlow ${id} nu a fost gasita`);
     }
     await this.taskFlowRepo.remove(rule);
     return { deleted: true };
@@ -259,7 +259,7 @@ export class PermissionsService {
   async updateEmailNotificationRule(id: string, data: Partial<EmailNotificationRule>) {
     const rule = await this.emailRuleRepo.findOne({ where: { id } });
     if (!rule) {
-      throw new NotFoundException(`EmailNotificationRule ${id} not found`);
+      throw new NotFoundException(`Regula de notificare email ${id} nu a fost gasita`);
     }
     Object.assign(rule, data);
     return this.emailRuleRepo.save(rule);
@@ -268,7 +268,7 @@ export class PermissionsService {
   async deleteEmailNotificationRule(id: string) {
     const rule = await this.emailRuleRepo.findOne({ where: { id } });
     if (!rule) {
-      throw new NotFoundException(`EmailNotificationRule ${id} not found`);
+      throw new NotFoundException(`Regula de notificare email ${id} nu a fost gasita`);
     }
     await this.emailRuleRepo.remove(rule);
     return { deleted: true };

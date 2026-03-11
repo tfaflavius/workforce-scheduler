@@ -19,7 +19,7 @@ import {
   alpha,
 } from '@mui/material';
 
-export interface ColumnDef {
+export interface ColumnDef<T = Record<string, any>> {
   key: string;
   label: string;
   /** Hide on mobile (xs) screens */
@@ -31,7 +31,7 @@ export interface ColumnDef {
   /** Minimum width */
   minWidth?: number;
   /** Custom render function */
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: any, row: T) => React.ReactNode;
   /** Show as chip on mobile card view */
   chipOnMobile?: boolean;
   /** Color for mobile chip */
@@ -44,13 +44,13 @@ export interface ColumnDef {
 
 type SortDirection = 'asc' | 'desc' | null;
 
-interface ResponsiveTableProps {
-  columns: ColumnDef[];
-  data: any[];
+interface ResponsiveTableProps<T extends Record<string, any> = Record<string, any>> {
+  columns: ColumnDef<T>[];
+  data: T[];
   /** Key field for unique row identification */
   keyField?: string;
   /** Row click handler */
-  onRowClick?: (row: any) => void;
+  onRowClick?: (row: T) => void;
   /** Empty state message */
   emptyMessage?: string;
   /** Show card view on mobile instead of table */
@@ -67,7 +67,7 @@ interface ResponsiveTableProps {
  * Responsive table component that adapts to screen size.
  * On mobile, can optionally render as cards instead of a table.
  */
-export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
+export function ResponsiveTable<T extends Record<string, any> = Record<string, any>>({
   columns,
   data,
   keyField = 'id',
@@ -77,7 +77,7 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
   maxHeight,
   showIndex = false,
   dense = false,
-}) => {
+}: ResponsiveTableProps<T>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -173,6 +173,14 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
         {sortedData.map((row, index) => (
           <Card
             key={row[keyField] ?? index}
+            role={onRowClick ? 'button' : undefined}
+            tabIndex={onRowClick ? 0 : undefined}
+            onKeyDown={onRowClick ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onRowClick(row);
+              }
+            } : undefined}
             sx={{
               cursor: onRowClick ? 'pointer' : 'default',
               transition: 'all 0.2s ease',
@@ -309,6 +317,6 @@ export const ResponsiveTable: React.FC<ResponsiveTableProps> = ({
       </Table>
     </TableContainer>
   );
-};
+}
 
 export default ResponsiveTable;

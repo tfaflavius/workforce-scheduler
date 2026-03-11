@@ -43,6 +43,7 @@ import {
   CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import FriendlyDialog from '../../../components/common/FriendlyDialog';
+import { TableSkeleton } from '../../../components/common';
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
@@ -572,9 +573,7 @@ const CashCollectionsTab: React.FC = () => {
 
       {/* Content */}
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress size={48} />
-        </Box>
+        <TableSkeleton rows={5} columns={7} />
       ) : collections.length === 0 ? (
         <Fade in={true} timeout={600}>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
