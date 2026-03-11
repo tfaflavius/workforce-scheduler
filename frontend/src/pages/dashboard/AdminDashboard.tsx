@@ -703,13 +703,13 @@ const AdminDashboard = () => {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {stats?.parking?.cashCollectionToday
+                              {stats?.parking?.cashCollectionTotals
                                 ? new Intl.NumberFormat('ro-RO', {
                                     style: 'currency',
                                     currency: 'RON',
                                     minimumFractionDigits: 0,
                                     maximumFractionDigits: 0,
-                                  }).format(stats.parking.cashCollectionToday.totalAmount || 0)
+                                  }).format(stats.parking.cashCollectionTotals.totalAmount || 0)
                                 : '0 RON'}
                             </Typography>
                             <Typography
@@ -721,7 +721,7 @@ const AdminDashboard = () => {
                                 lineHeight: 1.3,
                               }}
                             >
-                              {stats?.parking?.cashCollectionToday ? `${stats.parking.cashCollectionToday.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
+                              {stats?.parking?.cashCollectionTotals ? `${stats.parking.cashCollectionTotals.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
                             </Typography>
                           </Box>
                           <Box
@@ -963,7 +963,7 @@ const AdminDashboard = () => {
                     { label: 'Probleme active', value: stats?.parking?.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
                     { label: 'Prejudicii active', value: stats?.parking?.activeDamages || 0, color: '#f59e0b', urgent: (stats?.parking?.urgentDamages?.length || 0) > 0 },
                     { label: 'Cereri editare', value: stats?.parking?.pendingEditRequests || 0, color: '#8b5cf6', urgent: (stats?.parking?.pendingEditRequests || 0) > 0 },
-                    { label: 'Incasari automate', value: stats?.parking?.cashCollectionToday?.count || 0, color: '#10b981', urgent: false },
+                    { label: 'Incasari automate', value: stats?.parking?.cashCollectionTotals?.count || 0, color: '#10b981', urgent: false },
                   ].map((item) => (
                     <Stack
                       key={item.label}

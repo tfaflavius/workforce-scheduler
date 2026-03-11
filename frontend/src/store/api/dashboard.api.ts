@@ -36,7 +36,7 @@ export interface DashboardStatsResponse {
     activeDamages: number;
     urgentDamages: { id: string; damagedEquipment: string; parkingLotId: string; createdAt: string }[];
     pendingEditRequests: number;
-    cashCollectionToday: { totalAmount: number; count: number };
+    cashCollectionTotals: { totalAmount: number; count: number };
   };
   handicap: {
     requestsByType: {

@@ -59,7 +59,7 @@ interface DashboardStatsResponse {
     activeDamages: number;
     urgentDamages: { id: string; damagedEquipment: string; parkingLotId: string; createdAt: Date }[];
     pendingEditRequests: number;
-    cashCollectionToday: { totalAmount: number; count: number };
+    cashCollectionTotals: { totalAmount: number; count: number };
   };
   handicap: {
     requestsByType: {
@@ -136,10 +136,6 @@ export class DashboardController {
     const now = new Date();
     const romaniaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Bucharest' }));
     const todayStr = romaniaTime.toISOString().split('T')[0];
-
-    // Start of today for cash collections
-    const todayStart = new Date(todayStr + 'T00:00:00');
-    const todayEnd = new Date(todayStr + 'T23:59:59');
 
     const [
       // Schedule counts by status
@@ -244,13 +240,11 @@ export class DashboardController {
       // Edit requests
       this.editRequestRepo.count({ where: { status: 'PENDING' } }),
 
-      // Cash collection today - use query builder for SUM
+      // Cash collection - all-time totals (matching original /cash-collections/totals endpoint)
       this.cashCollectionRepo
         .createQueryBuilder('cc')
         .select('COALESCE(SUM(cc.amount), 0)', 'totalAmount')
         .addSelect('COUNT(cc.id)', 'count')
-        .where('cc.collected_at >= :start', { start: todayStart })
-        .andWhere('cc.collected_at <= :end', { end: todayEnd })
         .getRawOne(),
 
       // Handicap requests by type (only ACTIVE)
@@ -331,7 +325,7 @@ export class DashboardController {
         activeDamages: activeDamagesCount,
         urgentDamages,
         pendingEditRequests,
-        cashCollectionToday: {
+        cashCollectionTotals: {
           totalAmount: parseFloat(cashCollectionToday?.totalAmount || '0'),
           count: parseInt(cashCollectionToday?.count || '0', 10),
         },
