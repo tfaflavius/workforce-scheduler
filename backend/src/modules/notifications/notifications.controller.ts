@@ -58,14 +58,14 @@ export class NotificationsController {
     return this.notificationsService.markAllAsRead(req.user.id);
   }
 
-  @Delete(':id')
-  delete(@Param('id') id: string, @Request() req) {
-    return this.notificationsService.delete(id, req.user.id);
-  }
-
   @Delete('read/all')
   deleteAllRead(@Request() req) {
     return this.notificationsService.deleteAllRead(req.user.id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string, @Request() req) {
+    return this.notificationsService.delete(id, req.user.id);
   }
 
   // Push Notification Endpoints

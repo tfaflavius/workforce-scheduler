@@ -445,7 +445,7 @@ export class ShiftSwapsService {
       .andWhere('schedule.status = :status', { status: 'APPROVED' });
 
     if (departmentId) {
-      qb.andWhere('user.department_id = :departmentId', { departmentId });
+      qb.andWhere('user.departmentId = :departmentId', { departmentId });
     }
 
     // NU filtram pe workPositionId - userii din Control pot schimba tura
@@ -511,7 +511,7 @@ export class ShiftSwapsService {
 
     // Filtreaza pe departament (daca exista)
     if (departmentId) {
-      qb.andWhere('user.department_id = :departmentId', { departmentId });
+      qb.andWhere('user.departmentId = :departmentId', { departmentId });
     }
 
     // NU filtram pe workPositionId - userii din Control pot schimba tura

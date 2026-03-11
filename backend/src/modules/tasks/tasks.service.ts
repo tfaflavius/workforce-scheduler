@@ -48,7 +48,7 @@ export class TasksService {
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.assignedToUser', 'assignedToUser')
       .leftJoinAndSelect('task.assignedByUser', 'assignedByUser')
-      .orderBy('task.created_at', 'DESC');
+      .orderBy('task.createdAt', 'DESC');
 
     if (filters?.status) {
       query.andWhere('task.status = :status', { status: filters.status });
@@ -59,13 +59,13 @@ export class TasksService {
     }
 
     if (filters?.assignedToId) {
-      query.andWhere('task.assigned_to = :assignedToId', {
+      query.andWhere('task.assignedTo = :assignedToId', {
         assignedToId: filters.assignedToId,
       });
     }
 
     if (filters?.createdById) {
-      query.andWhere('task.assigned_by = :createdById', {
+      query.andWhere('task.assignedBy = :createdById', {
         createdById: filters.createdById,
       });
     }

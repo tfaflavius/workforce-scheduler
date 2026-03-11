@@ -125,10 +125,10 @@ export class TimeTrackingService {
       const assignment = await this.scheduleAssignmentRepository
         .createQueryBuilder('sa')
         .leftJoinAndSelect('sa.shiftType', 'st')
-        .where('sa.user_id = :userId', { userId })
-        .andWhere('sa.shift_date = :dateStr', { dateStr })
-        .andWhere('sa.work_schedule_id IN (:...scheduleIds)', { scheduleIds })
-        .andWhere('sa.is_rest_day = false')
+        .where('sa.userId = :userId', { userId })
+        .andWhere('sa.shiftDate = :dateStr', { dateStr })
+        .andWhere('sa.workScheduleId IN (:...scheduleIds)', { scheduleIds })
+        .andWhere('sa.isRestDay = false')
         .getOne();
 
       if (!assignment || !assignment.shiftType) {
@@ -225,22 +225,22 @@ export class TimeTrackingService {
       .leftJoinAndSelect('entry.task', 'task')
       .leftJoinAndSelect('entry.user', 'user')
       .leftJoinAndSelect('entry.locationLogs', 'logs')
-      .where('entry.user_id = :userId', { userId })
-      .orderBy('entry.start_time', 'DESC');
+      .where('entry.userId = :userId', { userId })
+      .orderBy('entry.startTime', 'DESC');
 
     if (filters?.startDate) {
-      query.andWhere('entry.start_time >= :startDate', { startDate: filters.startDate });
+      query.andWhere('entry.startTime >= :startDate', { startDate: filters.startDate });
     }
 
     if (filters?.endDate) {
       // Ensure endDate includes the entire day (set to end of day)
       const endOfDay = new Date(filters.endDate);
       endOfDay.setHours(23, 59, 59, 999);
-      query.andWhere('entry.start_time <= :endDate', { endDate: endOfDay });
+      query.andWhere('entry.startTime <= :endDate', { endDate: endOfDay });
     }
 
     if (filters?.taskId) {
-      query.andWhere('entry.task_id = :taskId', { taskId: filters.taskId });
+      query.andWhere('entry.taskId = :taskId', { taskId: filters.taskId });
     }
 
     return query.getMany();
@@ -412,12 +412,12 @@ export class TimeTrackingService {
       .leftJoinAndSelect('entry.user', 'user')
       .leftJoinAndSelect('user.department', 'department')
       .leftJoinAndSelect('entry.locationLogs', 'logs')
-      .where('entry.end_time IS NULL')
+      .where('entry.endTime IS NULL')
       .andWhere('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
-      .orderBy('entry.start_time', 'ASC')
-      .addOrderBy('logs.recorded_at', 'DESC')
+      .orderBy('entry.startTime', 'ASC')
+      .addOrderBy('logs.recordedAt', 'DESC')
       .getMany();
   }
 
@@ -434,19 +434,19 @@ export class TimeTrackingService {
       .where('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
-      .orderBy('entry.start_time', 'DESC');
+      .orderBy('entry.startTime', 'DESC');
 
     if (filters?.startDate) {
-      query.andWhere('entry.start_time >= :startDate', { startDate: filters.startDate });
+      query.andWhere('entry.startTime >= :startDate', { startDate: filters.startDate });
     }
     if (filters?.endDate) {
       // Ensure endDate includes the entire day (set to end of day)
       const endOfDay = new Date(filters.endDate);
       endOfDay.setHours(23, 59, 59, 999);
-      query.andWhere('entry.start_time <= :endDate', { endDate: endOfDay });
+      query.andWhere('entry.startTime <= :endDate', { endDate: endOfDay });
     }
     if (filters?.userId) {
-      query.andWhere('entry.user_id = :userId', { userId: filters.userId });
+      query.andWhere('entry.userId = :userId', { userId: filters.userId });
     }
 
     return query.getMany();
@@ -473,8 +473,8 @@ export class TimeTrackingService {
       .where('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
-      .andWhere('user.is_active = true')
-      .orderBy('user.full_name', 'ASC')
+      .andWhere('user.isActive = true')
+      .orderBy('user.fullName', 'ASC')
       .getMany();
   }
 
@@ -488,7 +488,7 @@ export class TimeTrackingService {
       .createQueryBuilder('entry')
       .leftJoin('entry.user', 'user')
       .leftJoin('user.department', 'department')
-      .where('entry.end_time IS NULL')
+      .where('entry.endTime IS NULL')
       .andWhere('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
@@ -499,13 +499,13 @@ export class TimeTrackingService {
       .createQueryBuilder('entry')
       .leftJoin('entry.user', 'user')
       .leftJoin('user.department', 'department')
-      .where('entry.start_time >= :startOfDay', { startOfDay })
-      .andWhere('entry.start_time < :endOfDay', { endOfDay })
-      .andWhere('entry.duration_minutes IS NOT NULL')
+      .where('entry.startTime >= :startOfDay', { startOfDay })
+      .andWhere('entry.startTime < :endOfDay', { endOfDay })
+      .andWhere('entry.durationMinutes IS NOT NULL')
       .andWhere('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
-      .select('SUM(entry.duration_minutes)', 'totalMinutes')
+      .select('SUM(entry.durationMinutes)', 'totalMinutes')
       .getRawOne();
 
     const totalHoursToday = Math.round(((completedToday?.totalMinutes || 0) / 60) * 100) / 100;
@@ -513,8 +513,8 @@ export class TimeTrackingService {
     // Location logs today
     const locationLogsToday = await this.locationLogRepository
       .createQueryBuilder('log')
-      .where('log.recorded_at >= :startOfDay', { startOfDay })
-      .andWhere('log.recorded_at < :endOfDay', { endOfDay })
+      .where('log.recordedAt >= :startOfDay', { startOfDay })
+      .andWhere('log.recordedAt < :endOfDay', { endOfDay })
       .getCount();
 
     return { activeCount, totalHoursToday, locationLogsToday };
@@ -797,7 +797,7 @@ export class TimeTrackingService {
       .leftJoinAndSelect('entry.user', 'user')
       .leftJoinAndSelect('user.department', 'department')
       .leftJoinAndSelect('entry.locationLogs', 'logs')
-      .where('entry.end_time IS NULL')
+      .where('entry.endTime IS NULL')
       .andWhere('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
@@ -916,7 +916,7 @@ export class TimeTrackingService {
       .leftJoinAndSelect('entry.user', 'user')
       .leftJoinAndSelect('user.department', 'department')
       .leftJoinAndSelect('entry.locationLogs', 'logs')
-      .where('entry.end_time IS NULL')
+      .where('entry.endTime IS NULL')
       .andWhere('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
@@ -1008,7 +1008,7 @@ export class TimeTrackingService {
         .createQueryBuilder('entry')
         .leftJoinAndSelect('entry.user', 'user')
         .leftJoinAndSelect('user.department', 'department')
-        .where('entry.end_time IS NULL')
+        .where('entry.endTime IS NULL')
         .andWhere('department.name IN (:...deptNames)', {
           deptNames: ['Intretinere Parcari', 'Control'],
         })
@@ -1068,14 +1068,14 @@ export class TimeTrackingService {
       .leftJoinAndSelect('entry.user', 'user')
       .leftJoinAndSelect('user.department', 'department')
       .leftJoinAndSelect('entry.locationLogs', 'logs')
-      .where('entry.start_time >= :startOfDay', { startOfDay })
-      .andWhere('entry.start_time < :endOfDay', { endOfDay })
+      .where('entry.startTime >= :startOfDay', { startOfDay })
+      .andWhere('entry.startTime < :endOfDay', { endOfDay })
       .andWhere('department.name IN (:...deptNames)', {
         deptNames: ['Intretinere Parcari', 'Control'],
       })
-      .orderBy('user.full_name', 'ASC')
-      .addOrderBy('entry.start_time', 'ASC')
-      .addOrderBy('logs.recorded_at', 'ASC')
+      .orderBy('user.fullName', 'ASC')
+      .addOrderBy('entry.startTime', 'ASC')
+      .addOrderBy('logs.recordedAt', 'ASC')
       .getMany();
 
     if (entries.length === 0) {

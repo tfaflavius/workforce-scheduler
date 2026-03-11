@@ -379,12 +379,12 @@ export class SearchController {
               .leftJoinAndSelect('lr.user', 'user')
               .where(new Brackets(sub =>
                 sub.where('lr.reason ILIKE :q', { q: `%${q}%` })
-                   .orWhere('user.full_name ILIKE :q', { q: `%${q}%` }),
+                   .orWhere('user.fullName ILIKE :q', { q: `%${q}%` }),
               ))
-              .orderBy('lr.created_at', 'DESC')
+              .orderBy('lr.createdAt', 'DESC')
               .take(3);
             if (user.role !== UserRole.ADMIN && user.role !== UserRole.MASTER_ADMIN) {
-              qb.andWhere('lr.user_id = :userId', { userId: user.id });
+              qb.andWhere('lr.userId = :userId', { userId: user.id });
             }
             return qb.getMany();
           })()
@@ -396,12 +396,12 @@ export class SearchController {
               .leftJoinAndSelect('ss.requester', 'requester')
               .where(new Brackets(sub =>
                 sub.where('ss.reason ILIKE :q', { q: `%${q}%` })
-                   .orWhere('requester.full_name ILIKE :q', { q: `%${q}%` }),
+                   .orWhere('requester.fullName ILIKE :q', { q: `%${q}%` }),
               ))
-              .orderBy('ss.created_at', 'DESC')
+              .orderBy('ss.createdAt', 'DESC')
               .take(3);
             if (user.role !== UserRole.ADMIN && user.role !== UserRole.MASTER_ADMIN) {
-              qb.andWhere('ss.requester_id = :userId', { userId: user.id });
+              qb.andWhere('ss.requesterId = :userId', { userId: user.id });
             }
             return qb.getMany();
           })()

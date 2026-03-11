@@ -43,7 +43,7 @@ export class GpsTrackingScheduler {
         .createQueryBuilder('entry')
         .leftJoinAndSelect('entry.user', 'user')
         .leftJoinAndSelect('user.department', 'department')
-        .where('entry.end_time IS NULL')
+        .where('entry.endTime IS NULL')
         .andWhere('department.name IN (:...deptNames)', {
           deptNames: ['Intretinere Parcari', 'Control'],
         })

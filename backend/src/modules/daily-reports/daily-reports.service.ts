@@ -186,7 +186,7 @@ export class DailyReportsService {
     }
 
     if (userId) {
-      query.andWhere('report.user_id = :userId', { userId });
+      query.andWhere('report.userId = :userId', { userId });
     }
 
     if (departmentId) {
@@ -356,10 +356,10 @@ export class DailyReportsService {
     // Userii in concediu aprobat pe aceasta data
     const usersOnLeave = await this.leaveRequestRepository
       .createQueryBuilder('lr')
-      .select('lr.user_id', 'userId')
+      .select('lr.userId', 'userId')
       .where('lr.status = :status', { status: 'APPROVED' })
-      .andWhere('lr.start_date <= :date', { date })
-      .andWhere('lr.end_date >= :date', { date })
+      .andWhere('lr.startDate <= :date', { date })
+      .andWhere('lr.endDate >= :date', { date })
       .getRawMany();
 
     const onLeaveUserIds = new Set(usersOnLeave.map(lr => lr.userId));
@@ -404,12 +404,12 @@ export class DailyReportsService {
       const assignments = await this.scheduleAssignmentRepository
         .createQueryBuilder('sa')
         .innerJoin('sa.schedule', 'ws')
-        .select('DISTINCT sa.user_id', 'userId')
-        .where('sa.shift_date = :date', { date })
-        .andWhere('sa.is_rest_day = false')
-        .andWhere('sa.leave_type IS NULL')
+        .select('DISTINCT sa.userId', 'userId')
+        .where('sa.shiftDate = :date', { date })
+        .andWhere('sa.isRestDay = false')
+        .andWhere('sa.leaveType IS NULL')
         .andWhere('ws.status = :wsStatus', { wsStatus: 'APPROVED' })
-        .andWhere('sa.user_id IN (:...userIds)', { userIds: scheduleBasedIds })
+        .andWhere('sa.userId IN (:...userIds)', { userIds: scheduleBasedIds })
         .getRawMany();
 
       assignments.forEach(a => usersWithShifts.add(a.userId));
@@ -578,10 +578,10 @@ export class DailyReportsService {
       const assignment = await this.scheduleAssignmentRepository
         .createQueryBuilder('sa')
         .innerJoin('sa.workPosition', 'wp')
-        .where('sa.user_id = :userId', { userId: user.id })
-        .andWhere('sa.shift_date = :date', { date: dateStr })
-        .andWhere('sa.is_rest_day = false')
-        .andWhere("wp.short_name = 'DISP'")
+        .where('sa.userId = :userId', { userId: user.id })
+        .andWhere('sa.shiftDate = :date', { date: dateStr })
+        .andWhere('sa.isRestDay = false')
+        .andWhere("wp.shortName = 'DISP'")
         .getOne();
 
       return !!assignment;

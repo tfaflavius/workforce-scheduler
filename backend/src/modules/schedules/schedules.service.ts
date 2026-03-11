@@ -158,7 +158,7 @@ export class SchedulesService {
       .leftJoinAndSelect('assignments.shiftType', 'shiftType')
       .leftJoinAndSelect('assignments.workPosition', 'workPosition')
       .leftJoinAndSelect('assignments.user', 'assignmentUser')
-      .orderBy('schedule.created_at', 'DESC');
+      .orderBy('schedule.createdAt', 'DESC');
 
     if (filters?.monthYear) {
       const [year, month] = filters.monthYear.split('-').map(Number);
@@ -170,7 +170,7 @@ export class SchedulesService {
     }
 
     if (filters?.departmentId) {
-      query.andWhere('schedule.department_id = :departmentId', { departmentId: filters.departmentId });
+      query.andWhere('schedule.departmentId = :departmentId', { departmentId: filters.departmentId });
     }
 
     // Role-based filtering
@@ -572,7 +572,7 @@ export class SchedulesService {
     const employeesWithSchedules = await this.assignmentRepository
       .createQueryBuilder('assignment')
       .leftJoin('assignment.schedule', 'schedule')
-      .select('COUNT(DISTINCT assignment.user_id)', 'count')
+      .select('COUNT(DISTINCT assignment.userId)', 'count')
       .where('schedule.month = :month', { month: currentMonth })
       .andWhere('schedule.year = :year', { year: currentYear })
       .andWhere('schedule.status IN (:...statuses)', {
@@ -928,11 +928,11 @@ export class SchedulesService {
       .leftJoinAndSelect('assignment.shiftType', 'shiftType')
       .leftJoinAndSelect('assignment.workPosition', 'workPosition')
       .leftJoinAndSelect('assignment.schedule', 'schedule')
-      .where('DATE(assignment.shift_date) = :today', { today: todayStr })
+      .where('DATE(assignment.shiftDate) = :today', { today: todayStr })
       .andWhere('schedule.status = :status', { status: 'APPROVED' })
-      .andWhere('workPosition.short_name IN (:...positions)', { positions: ['DISP', 'CTRL'] })
-      .orderBy('workPosition.short_name', 'ASC')
-      .addOrderBy('shiftType.start_time', 'ASC')
+      .andWhere('workPosition.shortName IN (:...positions)', { positions: ['DISP', 'CTRL'] })
+      .orderBy('workPosition.shortName', 'ASC')
+      .addOrderBy('shiftType.startTime', 'ASC')
       .getMany();
 
     // Format the response
@@ -985,8 +985,8 @@ export class SchedulesService {
       .leftJoinAndSelect('assignment.schedule', 'schedule')
       .leftJoinAndSelect('assignment.user', 'user')
       .leftJoinAndSelect('user.department', 'department')
-      .where('assignment.user_id = :userId', { userId })
-      .andWhere('DATE(assignment.shift_date) = :today', { today: todayStr })
+      .where('assignment.userId = :userId', { userId })
+      .andWhere('DATE(assignment.shiftDate) = :today', { today: todayStr })
       .andWhere('schedule.status = :status', { status: 'APPROVED' })
       .getOne();
 
@@ -1029,10 +1029,10 @@ export class SchedulesService {
         .leftJoinAndSelect('assignment.shiftType', 'shiftType')
         .leftJoinAndSelect('assignment.workPosition', 'workPosition')
         .leftJoinAndSelect('assignment.schedule', 'schedule')
-        .where('DATE(assignment.shift_date) = :date', { date: dateStr })
+        .where('DATE(assignment.shiftDate) = :date', { date: dateStr })
         .andWhere('schedule.status = :status', { status: 'APPROVED' })
-        .andWhere('workPosition.short_name = :position', { position: positionCode })
-        .orderBy('shiftType.start_time', 'ASC')
+        .andWhere('workPosition.shortName = :position', { position: positionCode })
+        .orderBy('shiftType.startTime', 'ASC')
         .getMany();
 
       return assignments.map(assignment => {

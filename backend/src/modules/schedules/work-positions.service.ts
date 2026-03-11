@@ -79,10 +79,10 @@ export class WorkPositionsService implements OnModuleInit {
     const query = this.workPositionsRepository.createQueryBuilder('position');
 
     if (!includeInactive) {
-      query.where('position.is_active = :isActive', { isActive: true });
+      query.where('position.isActive = :isActive', { isActive: true });
     }
 
-    query.orderBy('position.display_order', 'ASC');
+    query.orderBy('position.displayOrder', 'ASC');
 
     return query.getMany();
   }

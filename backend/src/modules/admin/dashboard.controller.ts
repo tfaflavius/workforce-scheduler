@@ -201,11 +201,11 @@ export class DashboardController {
         .leftJoinAndSelect('assignment.shiftType', 'shiftType')
         .leftJoinAndSelect('assignment.workPosition', 'workPosition')
         .leftJoinAndSelect('assignment.schedule', 'schedule')
-        .where('DATE(assignment.shift_date) = :today', { today: todayStr })
+        .where('DATE(assignment.shiftDate) = :today', { today: todayStr })
         .andWhere('schedule.status = :status', { status: 'APPROVED' })
-        .andWhere('workPosition.short_name IN (:...positions)', { positions: ['DISP', 'CTRL'] })
-        .orderBy('workPosition.short_name', 'ASC')
-        .addOrderBy('shiftType.start_time', 'ASC')
+        .andWhere('workPosition.shortName IN (:...positions)', { positions: ['DISP', 'CTRL'] })
+        .orderBy('workPosition.shortName', 'ASC')
+        .addOrderBy('shiftType.startTime', 'ASC')
         .getMany(),
 
       // Active users count

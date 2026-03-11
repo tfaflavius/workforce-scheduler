@@ -177,11 +177,11 @@ export class NotificationsService {
   async findAllForUser(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]> {
     const query = this.notificationRepository
       .createQueryBuilder('notification')
-      .where('notification.user_id = :userId', { userId })
-      .orderBy('notification.created_at', 'DESC');
+      .where('notification.userId = :userId', { userId })
+      .orderBy('notification.createdAt', 'DESC');
 
     if (options?.unreadOnly) {
-      query.andWhere('notification.is_read = false');
+      query.andWhere('notification.isRead = false');
     }
 
     if (options?.limit) {
