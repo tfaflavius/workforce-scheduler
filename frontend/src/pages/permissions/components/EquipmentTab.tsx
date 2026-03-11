@@ -76,6 +76,7 @@ const EquipmentTab = () => {
   const [seedEquipment, { isLoading: isSeeding }] = useSeedEquipmentMutation();
 
   const [editDialog, setEditDialog] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateEquipmentRequest>(emptyForm);
   const [search, setSearch] = useState('');
@@ -100,7 +101,7 @@ const EquipmentTab = () => {
 
   const handleAdd = () => {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm });
     setEditDialog(true);
   };
 
@@ -119,13 +120,15 @@ const EquipmentTab = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteConfirmed = async () => {
+    if (!deleteConfirm) return;
     try {
-      await deleteEquipment(id).unwrap();
+      await deleteEquipment(deleteConfirm).unwrap();
       setSnackbar({ open: true, message: 'Echipament sters.', severity: 'success' });
     } catch {
       setSnackbar({ open: true, message: 'Eroare la stergere.', severity: 'error' });
     }
+    setDeleteConfirm(null);
   };
 
   const handleToggleActive = async (item: ParkingEquipmentItem) => {
@@ -203,12 +206,14 @@ const EquipmentTab = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         sx={{ mb: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" />
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          },
         }}
       />
 
@@ -260,7 +265,7 @@ const EquipmentTab = () => {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Sterge">
-                      <IconButton size="small" color="error" onClick={() => handleDelete(item.id)}>
+                      <IconButton size="small" color="error" onClick={() => setDeleteConfirm(item.id)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -319,6 +324,18 @@ const EquipmentTab = () => {
           >
             {editingId ? 'Salveaza' : 'Adauga'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirma Stergerea</DialogTitle>
+        <DialogContent>
+          <Typography>Esti sigur ca vrei sa stergi acest echipament?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirm(null)}>Anuleaza</Button>
+          <Button variant="contained" color="error" onClick={handleDeleteConfirmed}>Sterge</Button>
         </DialogActions>
       </Dialog>
 

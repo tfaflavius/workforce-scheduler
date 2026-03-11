@@ -21,6 +21,8 @@ import { removeDiacritics } from '../../common/utils/remove-diacritics';
 @Injectable()
 export class ParkingIssuesService {
   private cachedInternalFirms: string[] | null = null;
+  private cacheTimestamp = 0;
+  private static readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
   constructor(
     @InjectRepository(ParkingIssue)
@@ -41,18 +43,24 @@ export class ParkingIssuesService {
 
   /**
    * Get internal firm names from DB, with fallback to hardcoded constants.
-   * Cached in memory to avoid repeated DB queries.
+   * Cached in memory with 5-minute TTL to avoid repeated DB queries
+   * while still picking up admin changes within a reasonable time.
    */
   private async getInternalFirmNames(): Promise<string[]> {
-    if (this.cachedInternalFirms) return this.cachedInternalFirms;
+    const now = Date.now();
+    if (this.cachedInternalFirms && (now - this.cacheTimestamp) < ParkingIssuesService.CACHE_TTL_MS) {
+      return this.cachedInternalFirms;
+    }
     try {
       const firms = await this.contactFirmRepo.find({
         where: { isInternal: true, isActive: true },
       });
-      if (firms.length > 0) {
-        this.cachedInternalFirms = firms.map((f) => f.name);
-        return this.cachedInternalFirms;
-      }
+      // Cache even empty results to avoid repeated DB queries
+      this.cachedInternalFirms = firms.length > 0
+        ? firms.map((f) => f.name)
+        : [...INTERNAL_MAINTENANCE_COMPANIES];
+      this.cacheTimestamp = now;
+      return this.cachedInternalFirms;
     } catch { /* fallback */ }
     return [...INTERNAL_MAINTENANCE_COMPANIES];
   }

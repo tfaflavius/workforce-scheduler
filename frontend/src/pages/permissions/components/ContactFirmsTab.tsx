@@ -69,6 +69,7 @@ const ContactFirmsTab = () => {
   const [seedFirms, { isLoading: isSeeding }] = useSeedContactFirmsMutation();
 
   const [editDialog, setEditDialog] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CreateContactFirmRequest>(emptyForm);
   const [search, setSearch] = useState('');
@@ -107,7 +108,7 @@ const ContactFirmsTab = () => {
 
   const handleAdd = () => {
     setEditingId(null);
-    setForm(emptyForm);
+    setForm({ ...emptyForm });
     setEditDialog(true);
   };
 
@@ -132,13 +133,15 @@ const ContactFirmsTab = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteConfirmed = async () => {
+    if (!deleteConfirm) return;
     try {
-      await deleteFirm(id).unwrap();
+      await deleteFirm(deleteConfirm).unwrap();
       setSnackbar({ open: true, message: 'Firma stearsa.', severity: 'success' });
     } catch {
       setSnackbar({ open: true, message: 'Eroare la stergere.', severity: 'error' });
     }
+    setDeleteConfirm(null);
   };
 
   const handleToggleActive = async (item: ContactFirmItem) => {
@@ -216,12 +219,14 @@ const ContactFirmsTab = () => {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         sx={{ mb: 2 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" />
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" />
+              </InputAdornment>
+            ),
+          },
         }}
       />
 
@@ -314,7 +319,7 @@ const ContactFirmsTab = () => {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Sterge">
-                      <IconButton size="small" color="error" onClick={() => handleDelete(item.id)}>
+                      <IconButton size="small" color="error" onClick={() => setDeleteConfirm(item.id)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -351,12 +356,14 @@ const ContactFirmsTab = () => {
               size="small"
               fullWidth
               placeholder="email@firma.ro"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -367,12 +374,14 @@ const ContactFirmsTab = () => {
               size="small"
               fullWidth
               placeholder="07xx xxx xxx"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PhoneIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PhoneIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -383,12 +392,14 @@ const ContactFirmsTab = () => {
               size="small"
               fullWidth
               placeholder="Nume si prenume"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonIcon fontSize="small" />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
               }}
             />
 
@@ -432,6 +443,18 @@ const ContactFirmsTab = () => {
           >
             {editingId ? 'Salveaza' : 'Adauga'}
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Confirma Stergerea</DialogTitle>
+        <DialogContent>
+          <Typography>Esti sigur ca vrei sa stergi aceasta firma?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirm(null)}>Anuleaza</Button>
+          <Button variant="contained" color="error" onClick={handleDeleteConfirmed}>Sterge</Button>
         </DialogActions>
       </Dialog>
 
