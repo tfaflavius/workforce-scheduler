@@ -264,7 +264,7 @@ export class DashboardController {
 
       // Recent notifications (last 5, admin-targeted)
       this.notificationRepo.find({
-        select: ['id', 'type', 'title', 'message', 'createdAt'],
+        select: ['id', 'type', 'title', 'message', 'createdAt', 'isRead'],
         order: { createdAt: 'DESC' },
         take: 5,
       }),

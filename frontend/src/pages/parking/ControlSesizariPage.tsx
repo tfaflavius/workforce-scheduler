@@ -848,7 +848,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
         variant={confirmDialog.variant || 'warning'}
         icon={<DeleteIcon />}
         onConfirm={async () => {
-          confirmDialog.onConfirm();
+          await confirmDialog.onConfirm();
           setConfirmDialog(prev => ({ ...prev, open: false }));
         }}
         confirmText={confirmDialog.confirmText || 'Confirma'}

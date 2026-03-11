@@ -85,9 +85,9 @@ const AdminDashboard = () => {
 
   // Derived values from the consolidated stats response
   const activeUsers = stats?.activeUsersCount || 0;
-  const pendingSwaps = stats?.shiftSwaps.pendingAdmin || 0;
-  const pendingLeaves = stats?.leaveRequests.pending || 0;
-  const pendingCount = stats?.schedules.pending || 0;
+  const pendingSwaps = stats?.shiftSwaps?.pendingAdmin || 0;
+  const pendingLeaves = stats?.leaveRequests?.pending || 0;
+  const pendingCount = stats?.schedules?.pending || 0;
   const todayDispatchers = stats?.todayDispatchers || [];
   const recentNotifications = stats?.recentNotifications || [];
   const carStatus = stats?.carStatus;
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
     { label: 'Programe', value: pendingCount, color: '#f59e0b', urgent: pendingCount > 0 },
     { label: 'Schimburi', value: pendingSwaps, color: '#06b6d4', urgent: pendingSwaps > 0 },
     { label: 'Concedii', value: pendingLeaves, color: '#8b5cf6', urgent: pendingLeaves > 0 },
-    { label: 'Probleme', value: stats?.parking.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking.urgentIssues.length || 0) > 0 },
+    { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
     { label: 'Utilizatori', value: activeUsers, color: '#2563eb', urgent: false },
   ];
 
@@ -609,40 +609,40 @@ const AdminDashboard = () => {
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
                   <StatCard
                     title="Probleme Active"
-                    value={stats?.parking.activeIssues || 0}
-                    subtitle={(stats?.parking.urgentIssues.length || 0) > 0 ? `${stats?.parking.urgentIssues.length} urgente` : 'Niciuna urgenta'}
+                    value={stats?.parking?.activeIssues || 0}
+                    subtitle={(stats?.parking?.urgentIssues?.length || 0) > 0 ? `${stats.parking.urgentIssues.length} urgente` : 'Niciuna urgenta'}
                     icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                     color="#ef4444"
                     bgColor={alpha('#ef4444', 0.12)}
                     onClick={() => navigate('/parking')}
                     delay={800}
-                    urgent={(stats?.parking.urgentIssues.length || 0) > 0}
+                    urgent={(stats?.parking?.urgentIssues?.length || 0) > 0}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
                   <StatCard
                     title="Prejudicii Active"
-                    value={stats?.parking.activeDamages || 0}
-                    subtitle={(stats?.parking.urgentDamages.length || 0) > 0 ? `${stats?.parking.urgentDamages.length} urgente` : 'Niciuna urgenta'}
+                    value={stats?.parking?.activeDamages || 0}
+                    subtitle={(stats?.parking?.urgentDamages?.length || 0) > 0 ? `${stats.parking.urgentDamages.length} urgente` : 'Niciuna urgenta'}
                     icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                     color="#f59e0b"
                     bgColor={alpha('#f59e0b', 0.12)}
                     onClick={() => navigate('/parking')}
                     delay={900}
-                    urgent={(stats?.parking.urgentDamages.length || 0) > 0}
+                    urgent={(stats?.parking?.urgentDamages?.length || 0) > 0}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
                   <StatCard
                     title="Cereri Editare"
-                    value={stats?.parking.pendingEditRequests || 0}
+                    value={stats?.parking?.pendingEditRequests || 0}
                     subtitle="In asteptare aprobare"
                     icon={<EditIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
                     color="#8b5cf6"
                     bgColor={alpha('#8b5cf6', 0.12)}
                     onClick={() => navigate('/admin/edit-requests')}
                     delay={950}
-                    urgent={(stats?.parking.pendingEditRequests || 0) > 0}
+                    urgent={(stats?.parking?.pendingEditRequests || 0) > 0}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -703,7 +703,7 @@ const AdminDashboard = () => {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {stats?.parking.cashCollectionToday
+                              {stats?.parking?.cashCollectionToday
                                 ? new Intl.NumberFormat('ro-RO', {
                                     style: 'currency',
                                     currency: 'RON',
@@ -721,7 +721,7 @@ const AdminDashboard = () => {
                                 lineHeight: 1.3,
                               }}
                             >
-                              {stats?.parking.cashCollectionToday ? `${stats.parking.cashCollectionToday.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
+                              {stats?.parking?.cashCollectionToday ? `${stats.parking.cashCollectionToday.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
                             </Typography>
                           </Box>
                           <Box
@@ -768,8 +768,8 @@ const AdminDashboard = () => {
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
                   <StatCard
                     title="Amplasare Panouri"
-                    value={stats?.handicap.requestsByType.amplasare || 0}
-                    subtitle={`${stats?.handicap.requestsByType.amplasare || 0} active`}
+                    value={stats?.handicap?.requestsByType?.amplasare || 0}
+                    subtitle={`${stats?.handicap?.requestsByType?.amplasare || 0} active`}
                     icon={<AmplasareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
                     color="#059669"
                     bgColor={alpha('#059669', 0.12)}
@@ -780,8 +780,8 @@ const AdminDashboard = () => {
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
                   <StatCard
                     title="Revocare Panouri"
-                    value={stats?.handicap.requestsByType.revocare || 0}
-                    subtitle={`${stats?.handicap.requestsByType.revocare || 0} active`}
+                    value={stats?.handicap?.requestsByType?.revocare || 0}
+                    subtitle={`${stats?.handicap?.requestsByType?.revocare || 0} active`}
                     icon={<RevocareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#dc2626' }} />}
                     color="#dc2626"
                     bgColor={alpha('#dc2626', 0.12)}
@@ -792,8 +792,8 @@ const AdminDashboard = () => {
                 <Grid size={{ xs: 6, sm: 6, md: 4 }}>
                   <StatCard
                     title="Creare Marcaje"
-                    value={stats?.handicap.requestsByType.marcaje || 0}
-                    subtitle={`${stats?.handicap.requestsByType.marcaje || 0} active`}
+                    value={stats?.handicap?.requestsByType?.marcaje || 0}
+                    subtitle={`${stats?.handicap?.requestsByType?.marcaje || 0} active`}
                     icon={<MarcajeIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#0284c7' }} />}
                     color="#0284c7"
                     bgColor={alpha('#0284c7', 0.12)}
@@ -827,27 +827,27 @@ const AdminDashboard = () => {
                 <Grid size={{ xs: 6, sm: 6, md: 6 }}>
                   <StatCard
                     title="Legitimatii Handicap"
-                    value={stats?.handicap.legitimationsCount || 0}
-                    subtitle={`${stats?.handicap.legitimationsCount || 0} active`}
+                    value={stats?.handicap?.legitimationsCount || 0}
+                    subtitle={`${stats?.handicap?.legitimationsCount || 0} active`}
                     icon={<LegitimatiiIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
                     color="#059669"
                     bgColor={alpha('#059669', 0.12)}
                     onClick={() => navigate('/parking/handicap')}
                     delay={1300}
-                    urgent={(stats?.handicap.legitimationsCount || 0) > 0}
+                    urgent={(stats?.handicap?.legitimationsCount || 0) > 0}
                   />
                 </Grid>
                 <Grid size={{ xs: 6, sm: 6, md: 6 }}>
                   <StatCard
                     title="Legitimatii Revolutionar"
-                    value={stats?.handicap.revolutionarCount || 0}
-                    subtitle={`${stats?.handicap.revolutionarCount || 0} active`}
+                    value={stats?.handicap?.revolutionarCount || 0}
+                    subtitle={`${stats?.handicap?.revolutionarCount || 0} active`}
                     icon={<RevolutionarIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#7c3aed' }} />}
                     color="#7c3aed"
                     bgColor={alpha('#7c3aed', 0.12)}
                     onClick={() => navigate('/parking/handicap')}
                     delay={1400}
-                    urgent={(stats?.handicap.revolutionarCount || 0) > 0}
+                    urgent={(stats?.handicap?.revolutionarCount || 0) > 0}
                   />
                 </Grid>
               </Grid>
@@ -928,11 +928,11 @@ const AdminDashboard = () => {
           <StatusDistributionChart
             title="Distributie Cereri Active"
             data={[
-              { label: 'Probleme Parcari', value: stats?.parking.activeIssues || 0, color: '#ef4444' },
-              { label: 'Prejudicii', value: stats?.parking.activeDamages || 0, color: '#f59e0b' },
+              { label: 'Probleme Parcari', value: stats?.parking?.activeIssues || 0, color: '#ef4444' },
+              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: '#f59e0b' },
               { label: 'Schimburi Ture', value: pendingSwaps, color: '#06b6d4' },
               { label: 'Concedii', value: pendingLeaves, color: '#8b5cf6' },
-              { label: 'Cereri Editare', value: stats?.parking.pendingEditRequests || 0, color: '#2563eb' },
+              { label: 'Cereri Editare', value: stats?.parking?.pendingEditRequests || 0, color: '#2563eb' },
             ]}
           />
 
@@ -941,10 +941,10 @@ const AdminDashboard = () => {
             title="Sumar Activitate"
             data={[
               { label: 'Programe', value: pendingCount, color: '#f59e0b' },
-              { label: 'Schimburi', value: stats?.shiftSwaps.total || 0, color: '#06b6d4' },
-              { label: 'Concedii', value: stats?.leaveRequests.total || 0, color: '#8b5cf6' },
-              { label: 'Probleme', value: stats?.parking.activeIssues || 0, color: '#ef4444' },
-              { label: 'Prejudicii', value: stats?.parking.activeDamages || 0, color: '#f59e0b' },
+              { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: '#06b6d4' },
+              { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: '#8b5cf6' },
+              { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: '#ef4444' },
+              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: '#f59e0b' },
             ]}
           />
 
@@ -960,10 +960,10 @@ const AdminDashboard = () => {
                 </Stack>
                 <Stack spacing={1.5}>
                   {[
-                    { label: 'Probleme active', value: stats?.parking.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking.urgentIssues.length || 0) > 0 },
-                    { label: 'Prejudicii active', value: stats?.parking.activeDamages || 0, color: '#f59e0b', urgent: (stats?.parking.urgentDamages.length || 0) > 0 },
-                    { label: 'Cereri editare', value: stats?.parking.pendingEditRequests || 0, color: '#8b5cf6', urgent: (stats?.parking.pendingEditRequests || 0) > 0 },
-                    { label: 'Incasari automate', value: stats?.parking.cashCollectionToday.count || 0, color: '#10b981', urgent: false },
+                    { label: 'Probleme active', value: stats?.parking?.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
+                    { label: 'Prejudicii active', value: stats?.parking?.activeDamages || 0, color: '#f59e0b', urgent: (stats?.parking?.urgentDamages?.length || 0) > 0 },
+                    { label: 'Cereri editare', value: stats?.parking?.pendingEditRequests || 0, color: '#8b5cf6', urgent: (stats?.parking?.pendingEditRequests || 0) > 0 },
+                    { label: 'Incasari automate', value: stats?.parking?.cashCollectionToday?.count || 0, color: '#10b981', urgent: false },
                   ].map((item) => (
                     <Stack
                       key={item.label}
