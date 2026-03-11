@@ -4,7 +4,36 @@ import { Repository, In } from 'typeorm';
 import { Notification, NotificationType } from './entities/notification.entity';
 import { User } from '../users/entities/user.entity';
 import { NotificationSettingCheckService } from './notification-setting-check.service';
+import { PushNotificationService } from './push-notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+
+// URL mapping per notification type - used for push notification click navigation
+const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
+  [NotificationType.SCHEDULE_CREATED]: '/schedules',
+  [NotificationType.SCHEDULE_UPDATED]: '/schedules',
+  [NotificationType.SCHEDULE_APPROVED]: '/schedules',
+  [NotificationType.SCHEDULE_REJECTED]: '/schedules',
+  [NotificationType.SHIFT_REMINDER]: '/my-schedule',
+  [NotificationType.EMPLOYEE_ABSENT]: '/admin/time-tracking',
+  [NotificationType.PARKING_ISSUE_ASSIGNED]: '/parking',
+  [NotificationType.PARKING_ISSUE_RESOLVED]: '/parking',
+  [NotificationType.PARKING_DAMAGE_ASSIGNED]: '/parking-damages',
+  [NotificationType.PARKING_DAMAGE_RESOLVED]: '/parking-damages',
+  [NotificationType.HANDICAP_REQUEST_ASSIGNED]: '/handicap-parking',
+  [NotificationType.HANDICAP_REQUEST_RESOLVED]: '/handicap-parking',
+  [NotificationType.DOMICILIU_REQUEST_ASSIGNED]: '/domiciliu-parking',
+  [NotificationType.DOMICILIU_REQUEST_RESOLVED]: '/domiciliu-parking',
+  [NotificationType.LEGITIMATION_ASSIGNED]: '/handicap-parking',
+  [NotificationType.LEGITIMATION_RESOLVED]: '/handicap-parking',
+  [NotificationType.EDIT_REQUEST_CREATED]: '/admin/edit-requests',
+  [NotificationType.EDIT_REQUEST_APPROVED]: '/admin/edit-requests',
+  [NotificationType.EDIT_REQUEST_REJECTED]: '/admin/edit-requests',
+  [NotificationType.PV_SESSION_ASSIGNED]: '/pv-display',
+  [NotificationType.PV_SESSION_UPDATED]: '/pv-display',
+  [NotificationType.CONTROL_SESIZARE_ASSIGNED]: '/control-sesizari',
+  [NotificationType.CONTROL_SESIZARE_RESOLVED]: '/control-sesizari',
+  [NotificationType.LEAVE_OVERLAP_WARNING]: '/leave-requests',
+};
 
 @Injectable()
 export class NotificationsService {
@@ -16,6 +45,7 @@ export class NotificationsService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private settingCheck: NotificationSettingCheckService,
+    private pushNotificationService: PushNotificationService,
   ) {}
 
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification | null> {
@@ -35,6 +65,12 @@ export class NotificationsService {
           this.logger.debug(
             `In-app notification ${createNotificationDto.type} suppressed for role ${user.role}`,
           );
+          // Even if in-app is suppressed, still try push (separate setting)
+          if (!createNotificationDto.skipPush) {
+            this.sendPushForNotification(createNotificationDto).catch(err => {
+              this.logger.warn(`Failed to auto-send push: ${err?.message}`);
+            });
+          }
           return null;
         }
       }
@@ -46,6 +82,14 @@ export class NotificationsService {
     const notification = this.notificationRepository.create(createNotificationDto);
     const saved = await this.notificationRepository.save(notification);
     this.logger.log(`Created notification for user ${createNotificationDto.userId}: ${createNotificationDto.title}`);
+
+    // Auto-send push notification (unless explicitly skipped)
+    if (!createNotificationDto.skipPush) {
+      this.sendPushForNotification(createNotificationDto).catch(err => {
+        this.logger.warn(`Failed to auto-send push: ${err?.message}`);
+      });
+    }
+
     return saved;
   }
 
@@ -60,10 +104,13 @@ export class NotificationsService {
       const roleMap = new Map(users.map(u => [u.id, u.role]));
 
       const filtered: CreateNotificationDto[] = [];
+      const pushCandidates: CreateNotificationDto[] = [];
+
       for (const dto of notifications) {
         const role = roleMap.get(dto.userId);
         if (!role) {
           filtered.push(dto); // fallback: send anyway if user not found
+          if (!dto.skipPush) pushCandidates.push(dto);
           continue;
         }
         const enabled = await this.settingCheck.isInAppEnabled(dto.type, role);
@@ -72,18 +119,37 @@ export class NotificationsService {
         } else {
           this.logger.debug(`In-app notification ${dto.type} suppressed for role ${role}`);
         }
+        // Push is a separate setting — always add to candidates if not skipped
+        if (!dto.skipPush) {
+          pushCandidates.push(dto);
+        }
       }
 
-      if (filtered.length === 0) return [];
+      // Save in-app notifications
+      let saved: Notification[] = [];
+      if (filtered.length > 0) {
+        const entities = filtered.map(dto => this.notificationRepository.create(dto));
+        saved = await this.notificationRepository.save(entities);
+      }
 
-      const entities = filtered.map(dto => this.notificationRepository.create(dto));
-      const saved = await this.notificationRepository.save(entities);
       const suppressed = notifications.length - filtered.length;
       if (suppressed > 0) {
         this.logger.log(`Created ${saved.length} notifications (${suppressed} suppressed by settings)`);
       } else {
         this.logger.log(`Created ${saved.length} notifications`);
       }
+
+      // Auto-send push notifications (fire-and-forget)
+      if (pushCandidates.length > 0) {
+        Promise.all(
+          pushCandidates.map(dto =>
+            this.sendPushForNotification(dto).catch(err => {
+              this.logger.warn(`Failed to auto-send push: ${err?.message}`);
+            }),
+          ),
+        ).catch(() => {});
+      }
+
       return saved;
     } catch (error) {
       // If check fails, proceed with sending all (safe fallback)
@@ -91,6 +157,19 @@ export class NotificationsService {
       const entities = notifications.map(dto => this.notificationRepository.create(dto));
       const saved = await this.notificationRepository.save(entities);
       this.logger.log(`Created ${saved.length} notifications`);
+
+      // Still try push for non-skipped
+      const pushCandidates = notifications.filter(dto => !dto.skipPush);
+      if (pushCandidates.length > 0) {
+        Promise.all(
+          pushCandidates.map(dto =>
+            this.sendPushForNotification(dto).catch(err => {
+              this.logger.warn(`Failed to auto-send push: ${err?.message}`);
+            }),
+          ),
+        ).catch(() => {});
+      }
+
       return saved;
     }
   }
@@ -250,5 +329,18 @@ export class NotificationsService {
       message: `Tura ta ${shiftType} incepe in curand (${shiftTime}).`,
       data: { shiftDate, shiftTime, shiftType },
     });
+  }
+
+  // ============== PUSH NOTIFICATION HELPERS ==============
+
+  private async sendPushForNotification(dto: CreateNotificationDto): Promise<void> {
+    const url = NOTIFICATION_URL_MAP[dto.type] || '/notifications';
+    await this.pushNotificationService.sendToUser(
+      dto.userId,
+      dto.title,
+      dto.message,
+      { ...dto.data, url },
+      dto.type,
+    );
   }
 }

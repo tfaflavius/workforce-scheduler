@@ -4,6 +4,17 @@ import { Repository } from 'typeorm';
 import { NotificationSetting } from '../permissions/entities/notification-setting.entity';
 import { UserRole } from '../users/entities/user.entity';
 
+// Notification types that have push DISABLED by default (when no DB setting exists).
+// Admin can enable these via the Permisiuni page.
+const PUSH_DISABLED_BY_DEFAULT = new Set([
+  'GPS_STATUS_ALERT',
+  'TIME_ENTRY_MISMATCH',
+  'HANDICAP_REQUEST_ASSIGNED',
+  'HANDICAP_REQUEST_RESOLVED',
+  'LEGITIMATION_ASSIGNED',
+  'LEGITIMATION_RESOLVED',
+]);
+
 @Injectable()
 export class NotificationSettingCheckService {
   private readonly logger = new Logger(NotificationSettingCheckService.name);
@@ -52,7 +63,9 @@ export class NotificationSettingCheckService {
   async isPushEnabled(type: string, role: UserRole): Promise<boolean> {
     const cache = await this.ensureCache();
     const entry = cache.get(this.cacheKey(type, role));
-    return entry?.push ?? true;
+    // If no setting in DB, use type-specific default
+    const defaultEnabled = !PUSH_DISABLED_BY_DEFAULT.has(type);
+    return entry?.push ?? defaultEnabled;
   }
 
   invalidateCache(): void {

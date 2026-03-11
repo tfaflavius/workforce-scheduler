@@ -284,6 +284,7 @@ export class ShiftSwapsService {
         title: 'Cerere de schimb respinsa',
         message: `Cererea ta de schimb pentru ${requesterDateFormatted} a fost respinsa de administrator.${dto.adminNotes ? ` Motiv: ${dto.adminNotes}` : ''}`,
         data: { swapRequestId },
+        skipPush: true,
       });
 
       // Push notification catre solicitant
@@ -790,6 +791,7 @@ export class ShiftSwapsService {
         title: 'Cerere noua de schimb de tura',
         message: `${requester.fullName} a solicitat schimb de tura: ${requesterDateFormatted} ↔ ${targetDateFormatted}. Motiv: ${request.reason}`,
         data: { swapRequestId: request.id },
+        skipPush: true,
       });
 
       // Push notification cu URL catre pagina de gestionare schimburi
@@ -822,6 +824,7 @@ export class ShiftSwapsService {
         title: 'Cerere de schimb de tura',
         message: `${requester.fullName} doreste sa schimbe tura din ${requesterDateFormatted} cu tura ta din ${targetDateFormatted}. Motiv: ${request.reason}`,
         data: { swapRequestId: request.id },
+        skipPush: true,
       });
 
       // Push notification cu URL catre pagina de schimburi a userului
@@ -868,6 +871,7 @@ export class ShiftSwapsService {
       title: `Raspuns la cererea de schimb`,
       message: `${responder.fullName} ${responseText} cererea ta de schimb pentru ${requesterDateFormatted}.`,
       data: { swapRequestId: request.id },
+      skipPush: true,
     });
 
     // Push notification catre solicitant
@@ -906,6 +910,7 @@ export class ShiftSwapsService {
           title: 'Schimb de tura - acceptare',
           message: `${responder.fullName} a acceptat sa faca schimb cu ${request.requester?.fullName || 'solicitant'}. Asteapta aprobarea ta.`,
           data: { swapRequestId: request.id },
+          skipPush: true,
         });
 
         // Push notification catre admin
@@ -955,6 +960,7 @@ export class ShiftSwapsService {
       title: 'Schimb de tura aprobat!',
       message: `Schimbul tau a fost aprobat! Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}.`,
       data: { swapRequestId: request.id },
+      skipPush: true,
     });
 
     // Push notification catre solicitant
@@ -986,6 +992,7 @@ export class ShiftSwapsService {
       title: 'Schimb de tura aprobat!',
       message: `Schimbul a fost aprobat! Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}.`,
       data: { swapRequestId: request.id },
+      skipPush: true,
     });
 
     // Push notification catre userul aprobat

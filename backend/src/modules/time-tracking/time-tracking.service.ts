@@ -877,6 +877,7 @@ export class TimeTrackingService {
               timeEntryId: entry.id,
               autoStopped: true,
             },
+            skipPush: true, // GPS push handled separately below
           }));
 
           await this.notificationsService.createMany(notifications);
@@ -885,7 +886,7 @@ export class TimeTrackingService {
         this.logger.error(`[GPS Auto-Stop] Failed to send notifications: ${err?.message}`);
       }
 
-      // Also notify the employee via push
+      // Also notify the employee via push (handled separately, not auto-pushed)
       try {
         await this.pushNotificationService.sendToUser(
           entry.userId,
@@ -981,6 +982,7 @@ export class TimeTrackingService {
               autoStopped: false,
               minutesWithoutGps: minutesWithout,
             },
+            skipPush: true, // GPS alerts - push disabled by default
           }));
 
           await this.notificationsService.createMany(notifications);

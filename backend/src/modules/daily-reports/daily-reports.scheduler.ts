@@ -75,6 +75,7 @@ export class DailyReportsScheduler {
           missingCount: missingUsers.length,
           missingUserIds: missingUsers.map(u => u.id),
         },
+        skipPush: true, // Push sent separately below with custom message
       });
       pushUserIds.push(admin.id);
     }
@@ -92,6 +93,7 @@ export class DailyReportsScheduler {
           missingCount: missingUsers.length,
           missingUserIds: missingUsers.map(u => u.id),
         },
+        skipPush: true, // Push sent separately below with custom message
       });
       pushUserIds.push(manager.id);
     }

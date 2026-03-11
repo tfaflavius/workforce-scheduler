@@ -631,6 +631,7 @@ export class LeaveRequestsService {
         startDate: request.startDate,
         endDate: request.endDate,
       },
+      skipPush: true,
     });
 
     await this.pushNotificationService.sendToUser(
@@ -658,6 +659,7 @@ export class LeaveRequestsService {
       title: 'Cerere de Concediu Stearsa',
       message: `Cererea ta de ${LEAVE_TYPE_LABELS[leaveType]} pentru perioada ${startStr} - ${endStr} a fost stearsa de un administrator.`,
       data: { leaveType, startDate, endDate },
+      skipPush: true,
     });
 
     await this.pushNotificationService.sendToUser(
@@ -696,6 +698,7 @@ export class LeaveRequestsService {
           startDate: request.startDate,
           endDate: request.endDate,
         },
+        skipPush: true,
       });
 
       // Push notification cu URL catre pagina de gestionare concedii
@@ -765,6 +768,7 @@ export class LeaveRequestsService {
         approved,
         adminMessage: request.adminMessage,
       },
+      skipPush: true,
     });
 
     // Push notification cu URL catre pagina de concedii a utilizatorului

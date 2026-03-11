@@ -301,6 +301,7 @@ export class DailyReportsService {
         title: 'Comentariu la raportul zilnic',
         message: `${adminName} a adaugat un comentariu la raportul tau din ${this.formatDate(report.date)}.`,
         data: { dailyReportId: report.id },
+        skipPush: true,
       });
 
       await this.pushNotificationService.sendToUser(
@@ -506,6 +507,7 @@ export class DailyReportsService {
           title: 'Raport zilnic nou',
           message: `${user.fullName} a trimis raportul zilnic pentru ${this.formatDate(report.date)}.`,
           data: { dailyReportId: report.id, reportUserId: user.id },
+          skipPush: true,
         });
         pushUserIds.push(admin.id);
       }
@@ -529,6 +531,7 @@ export class DailyReportsService {
             title: 'Raport zilnic nou',
             message: `${user.fullName} a trimis raportul zilnic pentru ${this.formatDate(report.date)}.`,
             data: { dailyReportId: report.id, reportUserId: user.id },
+            skipPush: true,
           });
           pushUserIds.push(manager.id);
         }

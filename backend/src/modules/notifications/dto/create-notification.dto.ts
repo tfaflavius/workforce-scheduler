@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, IsBoolean } from 'class-validator';
 import { NotificationType } from '../entities/notification.entity';
 
 export class CreateNotificationDto {
@@ -20,4 +20,8 @@ export class CreateNotificationDto {
 
   @IsOptional()
   data?: Record<string, any>;
+
+  @IsOptional()
+  @IsBoolean()
+  skipPush?: boolean;
 }
