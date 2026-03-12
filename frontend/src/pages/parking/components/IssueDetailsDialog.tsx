@@ -133,6 +133,9 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
         <Tabs
           value={activeTab}
           onChange={(_, v) => setActiveTab(v)}
+          variant={isMobile ? 'scrollable' : 'standard'}
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{ mb: 2 }}
         >
           <Tab icon={<CommentIcon />} label="Comentarii" iconPosition="start" />

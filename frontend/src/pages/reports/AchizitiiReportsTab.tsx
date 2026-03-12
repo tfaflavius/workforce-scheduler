@@ -460,7 +460,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
           Nu exista pozitii bugetare pentru filtrele selectate.
         </Alert>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#ea580c', 0.08) }}>

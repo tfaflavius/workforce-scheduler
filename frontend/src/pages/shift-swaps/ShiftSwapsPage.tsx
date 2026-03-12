@@ -16,10 +16,6 @@ import {
   Avatar,
   CircularProgress,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -606,187 +602,179 @@ const ShiftSwapsPage = () => {
       </Paper>
 
       {/* Create Swap Request Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
+        icon={<SwapIcon />}
+        variant="primary"
+        title="Cerere Noua de Schimb"
+        subtitle="Selecteaza datele si colegul pentru schimb"
+        actions={
+          <>
+            <Button onClick={() => setCreateDialogOpen(false)}>Anuleaza</Button>
+            <Button
+              variant="contained"
+              onClick={handleCreateSwapRequest}
+              disabled={!requesterDate || !targetDate || !reason.trim() || creating}
+              startIcon={creating ? <CircularProgress size={20} /> : <SwapIcon />}
+            >
+              {creating ? 'Se trimite...' : 'Trimite Cererea'}
+            </Button>
+          </>
+        }
       >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <SwapIcon color="primary" />
-            <span>Cerere Noua de Schimb</span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            {/* Select My Date (requester date) */}
-            <FormControl fullWidth>
-              <InputLabel>Tura mea pe care vreau sa o schimb</InputLabel>
-              <Select
-                value={requesterDate}
-                onChange={(e) => handleRequesterDateChange(e.target.value)}
-                label="Tura mea pe care vreau sa o schimb"
-              >
-                {myAssignments.length === 0 ? (
-                  <MenuItem disabled>Nu ai ture programate</MenuItem>
-                ) : (
-                  myAssignments.map((assignment) => {
-                    const shiftInfo = getShiftInfoFromNotes(assignment.notes);
-                    const dateStr = typeof assignment.shiftDate === 'string'
-                      ? assignment.shiftDate.split('T')[0]
-                      : new Date(assignment.shiftDate).toISOString().split('T')[0];
-                    return (
-                      <MenuItem key={assignment.id} value={dateStr}>
-                        {formatDate(dateStr)} - {shiftInfo.name}
-                        {shiftInfo.startTime && ` (${shiftInfo.startTime} - ${shiftInfo.endTime})`}
-                      </MenuItem>
-                    );
-                  })
-                )}
-              </Select>
-            </FormControl>
+        <Stack spacing={{ xs: 2, sm: 3 }}>
+          {/* Select My Date (requester date) */}
+          <FormControl fullWidth>
+            <InputLabel>Tura mea pe care vreau sa o schimb</InputLabel>
+            <Select
+              value={requesterDate}
+              onChange={(e) => handleRequesterDateChange(e.target.value)}
+              label="Tura mea pe care vreau sa o schimb"
+            >
+              {myAssignments.length === 0 ? (
+                <MenuItem disabled>Nu ai ture programate</MenuItem>
+              ) : (
+                myAssignments.map((assignment) => {
+                  const shiftInfo = getShiftInfoFromNotes(assignment.notes);
+                  const dateStr = typeof assignment.shiftDate === 'string'
+                    ? assignment.shiftDate.split('T')[0]
+                    : new Date(assignment.shiftDate).toISOString().split('T')[0];
+                  return (
+                    <MenuItem key={assignment.id} value={dateStr}>
+                      {formatDate(dateStr)} - {shiftInfo.name}
+                      {shiftInfo.startTime && ` (${shiftInfo.startTime} - ${shiftInfo.endTime})`}
+                    </MenuItem>
+                  );
+                })
+              )}
+            </Select>
+          </FormControl>
 
-            {/* Select Target Date */}
-            <FormControl fullWidth>
-              <InputLabel>Data pe care o doresc</InputLabel>
-              <Select
-                value={targetDate}
-                onChange={(e) => handleTargetDateChange(e.target.value)}
-                label="Data pe care o doresc"
-                disabled={!requesterDate}
-              >
-                {loadingAvailableDates ? (
-                  <MenuItem disabled>Se incarca datele...</MenuItem>
-                ) : availableSwapDates.length === 0 ? (
-                  <MenuItem disabled>
-                    {requesterDate ? 'Nu sunt date disponibile cu colegi din acelasi departament' : 'Selecteaza mai intai tura ta'}
-                  </MenuItem>
-                ) : (
-                  availableSwapDates
-                    .filter(d => d.date !== requesterDate) // Exclude requester date
-                    .map((dateInfo) => (
-                      <MenuItem key={dateInfo.date} value={dateInfo.date}>
-                        {formatDate(dateInfo.date)} ({dateInfo.count} {dateInfo.count === 1 ? 'coleg' : 'colegi'} lucreaza)
-                      </MenuItem>
-                    ))
-                )}
-              </Select>
-            </FormControl>
+          {/* Select Target Date */}
+          <FormControl fullWidth>
+            <InputLabel>Data pe care o doresc</InputLabel>
+            <Select
+              value={targetDate}
+              onChange={(e) => handleTargetDateChange(e.target.value)}
+              label="Data pe care o doresc"
+              disabled={!requesterDate}
+            >
+              {loadingAvailableDates ? (
+                <MenuItem disabled>Se incarca datele...</MenuItem>
+              ) : availableSwapDates.length === 0 ? (
+                <MenuItem disabled>
+                  {requesterDate ? 'Nu sunt date disponibile cu colegi din acelasi departament' : 'Selecteaza mai intai tura ta'}
+                </MenuItem>
+              ) : (
+                availableSwapDates
+                  .filter(d => d.date !== requesterDate) // Exclude requester date
+                  .map((dateInfo) => (
+                    <MenuItem key={dateInfo.date} value={dateInfo.date}>
+                      {formatDate(dateInfo.date)} ({dateInfo.count} {dateInfo.count === 1 ? 'coleg' : 'colegi'} lucreaza)
+                    </MenuItem>
+                  ))
+              )}
+            </Select>
+          </FormControl>
 
-            {/* Show users working on target date */}
-            {targetDate && usersOnDate.length > 0 && (
-              <Alert severity="info">
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Colegi care lucreaza in {formatDateShort(targetDate)}:</strong>
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
-                  {usersOnDate.map((u: UserOnDate) => (
-                    <Chip
-                      key={u.id}
-                      avatar={<Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem' }}>{u.fullName?.charAt(0).toUpperCase()}</Avatar>}
-                      label={u.fullName}
-                      size="small"
-                      variant="outlined"
-                    />
-                  ))}
-                </Stack>
-              </Alert>
-            )}
-
-            {/* Reason */}
-            <TextField
-              label="Motivul cererii"
-              multiline
-              rows={3}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Explica de ce doresti sa faci schimbul..."
-              required
-              helperText="Obligatoriu - explica motivul cererii tale"
-            />
-
-            <Alert severity="info" sx={{ mt: 1 }}>
-              Dupa ce trimiti cererea, toti colegii care lucreaza in data dorita vor fi notificati.
-              Daca cineva accepta, un administrator va trebui sa aprobe schimbul final.
+          {/* Show users working on target date */}
+          {targetDate && usersOnDate.length > 0 && (
+            <Alert severity="info">
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Colegi care lucreaza in {formatDateShort(targetDate)}:</strong>
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
+                {usersOnDate.map((u: UserOnDate) => (
+                  <Chip
+                    key={u.id}
+                    avatar={<Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem' }}>{u.fullName?.charAt(0).toUpperCase()}</Avatar>}
+                    label={u.fullName}
+                    size="small"
+                    variant="outlined"
+                  />
+                ))}
+              </Stack>
             </Alert>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setCreateDialogOpen(false)}>Anuleaza</Button>
-          <Button
-            variant="contained"
-            onClick={handleCreateSwapRequest}
-            disabled={!requesterDate || !targetDate || !reason.trim() || creating}
-            startIcon={creating ? <CircularProgress size={20} /> : <SwapIcon />}
-          >
-            {creating ? 'Se trimite...' : 'Trimite Cererea'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          )}
+
+          {/* Reason */}
+          <TextField
+            label="Motivul cererii"
+            multiline
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Explica de ce doresti sa faci schimbul..."
+            required
+            helperText="Obligatoriu - explica motivul cererii tale"
+          />
+
+          <Alert severity="info">
+            Dupa ce trimiti cererea, toti colegii care lucreaza in data dorita vor fi notificati.
+            Daca cineva accepta, un administrator va trebui sa aprobe schimbul final.
+          </Alert>
+        </Stack>
+      </FriendlyDialog>
 
       {/* Respond Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={respondDialogOpen}
-        onClose={() => setRespondDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
+        onClose={() => { setRespondDialogOpen(false); setRespondError(null); }}
+        icon={<SwapIcon />}
+        variant="info"
+        title="Raspunde la Cererea de Schimb"
+        actions={
+          <>
+            <Button onClick={() => { setRespondDialogOpen(false); setRespondError(null); }}>Anuleaza</Button>
+            <Button
+              variant="contained"
+              color={responseAccepted ? 'success' : 'error'}
+              onClick={handleRespondToSwap}
+              disabled={responding}
+              startIcon={responding ? <CircularProgress size={20} /> : (responseAccepted ? <CheckIcon /> : <CloseIcon />)}
+            >
+              {responding ? 'Se proceseaza...' : (responseAccepted ? 'Accepta' : 'Refuza')}
+            </Button>
+          </>
+        }
       >
-        <DialogTitle>
-          {responseAccepted ? 'Accepta Cererea de Schimb' : 'Refuza Cererea de Schimb'}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            {selectedRequest && (
-              <>
-                <Alert severity={responseAccepted ? 'success' : 'warning'}>
-                  {responseAccepted
-                    ? `Vei accepta sa faci schimb cu ${selectedRequest.requester?.fullName}. Tu vei lucra in ${formatDateShort(selectedRequest.requesterDate)} in loc de ${formatDateShort(selectedRequest.targetDate)}.`
-                    : `Vei refuza cererea de schimb de la ${selectedRequest.requester?.fullName}.`}
-                </Alert>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Detalii schimb:</strong>
-                  </Typography>
-                  <Typography variant="body2">
-                    • {selectedRequest.requester?.fullName} vrea sa lucreze in: <strong>{formatDateShort(selectedRequest.targetDate)}</strong>
-                  </Typography>
-                  <Typography variant="body2">
-                    • In schimb, tu vei lucra in: <strong>{formatDateShort(selectedRequest.requesterDate)}</strong>
-                  </Typography>
-                </Box>
-              </>
-            )}
-            {respondError && (
-              <Alert severity="error" onClose={() => setRespondError(null)}>
-                {respondError}
+        <Stack spacing={{ xs: 1.5, sm: 2 }}>
+          {selectedRequest && (
+            <>
+              <Alert severity={responseAccepted ? 'success' : 'warning'}>
+                {responseAccepted
+                  ? `Vei accepta sa faci schimb cu ${selectedRequest.requester?.fullName}. Tu vei lucra in ${formatDateShort(selectedRequest.requesterDate)} in loc de ${formatDateShort(selectedRequest.targetDate)}.`
+                  : `Vei refuza cererea de schimb de la ${selectedRequest.requester?.fullName}.`}
               </Alert>
-            )}
-            <TextField
-              label="Mesaj (optional)"
-              multiline
-              rows={2}
-              value={responseMessage}
-              onChange={(e) => setResponseMessage(e.target.value)}
-              placeholder={responseAccepted ? 'Adauga un mesaj...' : 'Explica de ce refuzi...'}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => { setRespondDialogOpen(false); setRespondError(null); }}>Anuleaza</Button>
-          <Button
-            variant="contained"
-            color={responseAccepted ? 'success' : 'error'}
-            onClick={handleRespondToSwap}
-            disabled={responding}
-            startIcon={responding ? <CircularProgress size={20} /> : (responseAccepted ? <CheckIcon /> : <CloseIcon />)}
-          >
-            {responding ? 'Se proceseaza...' : (responseAccepted ? 'Accepta' : 'Refuza')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Detalii schimb:</strong>
+                </Typography>
+                <Typography variant="body2">
+                  • {selectedRequest.requester?.fullName} vrea sa lucreze in: <strong>{formatDateShort(selectedRequest.targetDate)}</strong>
+                </Typography>
+                <Typography variant="body2">
+                  • In schimb, tu vei lucra in: <strong>{formatDateShort(selectedRequest.requesterDate)}</strong>
+                </Typography>
+              </Paper>
+            </>
+          )}
+          {respondError && (
+            <Alert severity="error" onClose={() => setRespondError(null)}>
+              {respondError}
+            </Alert>
+          )}
+          <TextField
+            label="Mesaj (optional)"
+            multiline
+            rows={2}
+            value={responseMessage}
+            onChange={(e) => setResponseMessage(e.target.value)}
+            placeholder={responseAccepted ? 'Adauga un mesaj...' : 'Explica de ce refuzi...'}
+          />
+        </Stack>
+      </FriendlyDialog>
 
       <FriendlyDialog
         open={confirmDialog.open}

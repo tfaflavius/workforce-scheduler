@@ -256,7 +256,7 @@ const UsersDepartmentsTab = () => {
       <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
         Distributie Utilizatori
       </Typography>
-      <TableContainer component={Paper} variant="outlined">
+      <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
         <Table size="small">
           <TableHead>
             <TableRow>

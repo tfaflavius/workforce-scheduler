@@ -8,10 +8,6 @@ import {
   CardContent,
   Chip,
   Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Alert,
   CircularProgress,
@@ -46,7 +42,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { GradientHeader, StatCard, EmptyState, TableSkeleton } from '../../components/common';
+import { GradientHeader, StatCard, EmptyState, TableSkeleton, FriendlyDialog } from '../../components/common';
 import {
   useGetAllLeaveRequestsQuery,
   useRespondToLeaveRequestMutation,
@@ -577,264 +573,227 @@ export const AdminLeaveRequestsPage = () => {
       )}
 
       {/* Response Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            {responseType === 'APPROVED' ? (
-              <ApproveIcon color="success" />
-            ) : (
-              <RejectIcon color="error" />
-            )}
-            <span>
-              {responseType === 'APPROVED' ? 'Aproba' : 'Respinge'} Cererea
-            </span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            {selectedRequest && (
-              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Detalii Cerere:
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Angajat:</strong> {selectedRequest.user?.fullName}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Tip:</strong> {LEAVE_TYPE_LABELS[selectedRequest.leaveType]}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Perioada:</strong> {formatDate(selectedRequest.startDate)} - {formatDate(selectedRequest.endDate)}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Zile:</strong> {calculateDays(selectedRequest.startDate, selectedRequest.endDate)}
-                </Typography>
-              </Paper>
-            )}
-
-            {overlaps.length > 0 && (
-              <Alert severity="warning" icon={<WarningIcon />}>
-                <Typography variant="subtitle2" gutterBottom>
-                  ⚠️ Suprapuneri in departament:
-                </Typography>
-                {overlaps.map((overlap) => (
-                  <Typography key={overlap.id} variant="body2">
-                    • {overlap.user?.fullName}: {formatDate(overlap.startDate)} - {formatDate(overlap.endDate)} ({LEAVE_TYPE_LABELS[overlap.leaveType]})
-                  </Typography>
-                ))}
-              </Alert>
-            )}
-
-            {dialogError && (
-              <Alert severity="error" onClose={() => setDialogError(null)}>
-                {dialogError}
-              </Alert>
-            )}
-
-            <TextField
-              label={responseType === 'APPROVED' ? 'Mesaj (optional)' : 'Motivul respingerii'}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-              helperText={
-                responseType === 'APPROVED'
-                  ? 'Poti adauga un mesaj pentru angajat'
-                  : 'Explica de ce cererea a fost respinsa'
+        icon={responseType === 'APPROVED' ? <ApproveIcon /> : <RejectIcon />}
+        variant={responseType === 'APPROVED' ? 'success' : 'error'}
+        title={responseType === 'APPROVED' ? 'Aproba Cererea' : 'Respinge Cererea'}
+        actions={
+          <>
+            <Button onClick={handleCloseDialog}>Anuleaza</Button>
+            <Button
+              variant="contained"
+              color={responseType === 'APPROVED' ? 'success' : 'error'}
+              onClick={handleSubmit}
+              disabled={responding}
+              startIcon={
+                responding ? (
+                  <CircularProgress size={20} />
+                ) : responseType === 'APPROVED' ? (
+                  <ApproveIcon />
+                ) : (
+                  <RejectIcon />
+                )
               }
-            />
+            >
+              {responseType === 'APPROVED' ? 'Aproba' : 'Respinge'}
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={{ xs: 2, sm: 3 }}>
+          {selectedRequest && (
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Detalii Cerere:
+              </Typography>
+              <Typography variant="body2">
+                <strong>Angajat:</strong> {selectedRequest.user?.fullName}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Tip:</strong> {LEAVE_TYPE_LABELS[selectedRequest.leaveType]}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Perioada:</strong> {formatDate(selectedRequest.startDate)} - {formatDate(selectedRequest.endDate)}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Zile:</strong> {calculateDays(selectedRequest.startDate, selectedRequest.endDate)}
+              </Typography>
+            </Paper>
+          )}
 
-            {responseType === 'APPROVED' && (
-              <Alert severity="info">
-                La aprobare, concediul va fi adaugat automat in programul de lucru al angajatului.
-              </Alert>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Anuleaza</Button>
-          <Button
-            variant="contained"
-            color={responseType === 'APPROVED' ? 'success' : 'error'}
-            onClick={handleSubmit}
-            disabled={responding}
-            startIcon={
-              responding ? (
-                <CircularProgress size={20} />
-              ) : responseType === 'APPROVED' ? (
-                <ApproveIcon />
-              ) : (
-                <RejectIcon />
-              )
+          {overlaps.length > 0 && (
+            <Alert severity="warning" icon={<WarningIcon />}>
+              <Typography variant="subtitle2" gutterBottom>
+                Suprapuneri in departament:
+              </Typography>
+              {overlaps.map((overlap) => (
+                <Typography key={overlap.id} variant="body2">
+                  {overlap.user?.fullName}: {formatDate(overlap.startDate)} - {formatDate(overlap.endDate)} ({LEAVE_TYPE_LABELS[overlap.leaveType]})
+                </Typography>
+              ))}
+            </Alert>
+          )}
+
+          {dialogError && (
+            <Alert severity="error" onClose={() => setDialogError(null)}>
+              {dialogError}
+            </Alert>
+          )}
+
+          <TextField
+            label={responseType === 'APPROVED' ? 'Mesaj (optional)' : 'Motivul respingerii'}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            multiline
+            rows={3}
+            fullWidth
+            helperText={
+              responseType === 'APPROVED'
+                ? 'Poti adauga un mesaj pentru angajat'
+                : 'Explica de ce cererea a fost respinsa'
             }
-          >
-            {responseType === 'APPROVED' ? 'Aproba' : 'Respinge'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          />
+
+          {responseType === 'APPROVED' && (
+            <Alert severity="info">
+              La aprobare, concediul va fi adaugat automat in programul de lucru al angajatului.
+            </Alert>
+          )}
+        </Stack>
+      </FriendlyDialog>
 
       {/* Edit Leave Request Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={editDialogOpen}
         onClose={handleCloseEdit}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
+        icon={<EditIcon />}
+        variant="primary"
+        title="Editeaza Cererea de Concediu"
+        actions={
+          <>
+            <Button onClick={handleCloseEdit}>Anuleaza</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmitEdit}
+              disabled={editing || !editStartDate || !editEndDate}
+              startIcon={editing ? <CircularProgress size={20} /> : <EditIcon />}
+            >
+              Salveaza
+            </Button>
+          </>
+        }
       >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <EditIcon color="primary" />
-            <span>Editeaza Cererea de Concediu</span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2.5} sx={{ mt: 1 }}>
-            {editRequest && (
-              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Angajat: {editRequest.user?.fullName || 'N/A'}
-                </Typography>
-                <Chip
-                  label={LEAVE_STATUS_LABELS[editRequest.status]}
-                  color={getStatusColor(editRequest.status)}
-                  size="small"
-                />
-              </Paper>
-            )}
-
-            {editRequest?.status === 'APPROVED' && (
-              <Alert severity="warning" icon={<WarningIcon />}>
-                Aceasta cerere este <strong>aprobata</strong>. Modificarea va actualiza automat programul de lucru si balanta de zile.
-              </Alert>
-            )}
-
-            <FormControl fullWidth>
-              <InputLabel>Tip Concediu</InputLabel>
-              <Select
-                value={editLeaveType}
-                label="Tip Concediu"
-                onChange={(e) => setEditLeaveType(e.target.value as LeaveType)}
-              >
-                {LEAVE_TYPE_OPTIONS.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              label="Data Inceput"
-              type="date"
-              value={editStartDate}
-              onChange={(e) => setEditStartDate(e.target.value)}
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-
-            <TextField
-              label="Data Sfarsit"
-              type="date"
-              value={editEndDate}
-              onChange={(e) => setEditEndDate(e.target.value)}
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-
-            {editStartDate && editEndDate && (
-              <Typography variant="body2" color="text.secondary">
-                Zile lucratoare: <strong>{calculateDays(editStartDate, editEndDate)}</strong>
+        <Stack spacing={{ xs: 2, sm: 2.5 }}>
+          {editRequest && (
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Angajat: {editRequest.user?.fullName || 'N/A'}
               </Typography>
-            )}
+              <Chip
+                label={LEAVE_STATUS_LABELS[editRequest.status]}
+                color={getStatusColor(editRequest.status)}
+                size="small"
+              />
+            </Paper>
+          )}
 
-            <TextField
-              label="Motiv (optional)"
-              value={editReason}
-              onChange={(e) => setEditReason(e.target.value)}
-              multiline
-              rows={2}
-              fullWidth
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEdit}>Anuleaza</Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmitEdit}
-            disabled={editing || !editStartDate || !editEndDate}
-            startIcon={editing ? <CircularProgress size={20} /> : <EditIcon />}
-          >
-            Salveaza
-          </Button>
-        </DialogActions>
-      </Dialog>
+          {editRequest?.status === 'APPROVED' && (
+            <Alert severity="warning" icon={<WarningIcon />}>
+              Aceasta cerere este <strong>aprobata</strong>. Modificarea va actualiza automat programul de lucru si balanta de zile.
+            </Alert>
+          )}
+
+          <FormControl fullWidth>
+            <InputLabel>Tip Concediu</InputLabel>
+            <Select
+              value={editLeaveType}
+              label="Tip Concediu"
+              onChange={(e) => setEditLeaveType(e.target.value as LeaveType)}
+            >
+              {LEAVE_TYPE_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Data Inceput"
+            type="date"
+            value={editStartDate}
+            onChange={(e) => setEditStartDate(e.target.value)}
+            fullWidth
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+
+          <TextField
+            label="Data Sfarsit"
+            type="date"
+            value={editEndDate}
+            onChange={(e) => setEditEndDate(e.target.value)}
+            fullWidth
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+
+          {editStartDate && editEndDate && (
+            <Typography variant="body2" color="text.secondary">
+              Zile lucratoare: <strong>{calculateDays(editStartDate, editEndDate)}</strong>
+            </Typography>
+          )}
+
+          <TextField
+            label="Motiv (optional)"
+            value={editReason}
+            onChange={(e) => setEditReason(e.target.value)}
+            multiline
+            rows={2}
+            fullWidth
+          />
+        </Stack>
+      </FriendlyDialog>
 
       {/* Delete Leave Request Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={deleteDialogOpen}
         onClose={handleCloseDelete}
+        icon={<DeleteIcon />}
+        variant="error"
+        title="Sterge Cererea de Concediu"
+        subtitle="Aceasta actiune este ireversibila"
         maxWidth="xs"
-        fullWidth
-        fullScreen={isMobile}
+        onConfirm={handleSubmitDelete}
+        confirmText="Sterge"
+        confirmLoading={deleting}
       >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <DeleteIcon color="error" />
-            <span>Sterge Cererea de Concediu</span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            {deleteRequest && (
-              <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-                <Typography variant="body2">
-                  <strong>Angajat:</strong> {deleteRequest.user?.fullName || 'N/A'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Tip:</strong> {LEAVE_TYPE_LABELS[deleteRequest.leaveType]}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Perioada:</strong> {formatDate(deleteRequest.startDate)} - {formatDate(deleteRequest.endDate)}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Zile:</strong> {calculateDays(deleteRequest.startDate, deleteRequest.endDate)}
-                </Typography>
-              </Paper>
-            )}
+        <Stack spacing={2}>
+          {deleteRequest && (
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Typography variant="body2">
+                <strong>Angajat:</strong> {deleteRequest.user?.fullName || 'N/A'}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Tip:</strong> {LEAVE_TYPE_LABELS[deleteRequest.leaveType]}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Perioada:</strong> {formatDate(deleteRequest.startDate)} - {formatDate(deleteRequest.endDate)}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Zile:</strong> {calculateDays(deleteRequest.startDate, deleteRequest.endDate)}
+              </Typography>
+            </Paper>
+          )}
 
-            {deleteRequest?.status === 'APPROVED' && (
-              <Alert severity="warning" icon={<WarningIcon />}>
-                Aceasta cerere este <strong>aprobata</strong>. Stergerea va reversa automat zilele din balanta si va elimina concediul din programul de lucru.
-              </Alert>
-            )}
-
-            <Alert severity="error">
-              Aceasta actiune este ireversibila. Esti sigur ca vrei sa stergi aceasta cerere?
+          {deleteRequest?.status === 'APPROVED' && (
+            <Alert severity="warning" icon={<WarningIcon />}>
+              Aceasta cerere este <strong>aprobata</strong>. Stergerea va reversa automat zilele din balanta si va elimina concediul din programul de lucru.
             </Alert>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDelete}>Anuleaza</Button>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleSubmitDelete}
-            disabled={deleting}
-            startIcon={deleting ? <CircularProgress size={20} /> : <DeleteIcon />}
-          >
-            Sterge
-          </Button>
-        </DialogActions>
-      </Dialog>
+          )}
+        </Stack>
+      </FriendlyDialog>
     </Box>
   );
 };

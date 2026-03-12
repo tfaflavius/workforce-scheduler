@@ -203,7 +203,7 @@ const AdminEditRequestsPage: React.FC = () => {
   );
 
   const renderRequestTable = () => (
-    <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+    <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
       <Table>
         <TableHead>
           <TableRow>
@@ -322,6 +322,9 @@ const AdminEditRequestsPage: React.FC = () => {
           <Tabs
             value={statusFilter}
             onChange={(_, v) => setStatusFilter(v)}
+            variant={isMobile ? 'scrollable' : 'standard'}
+            scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{
               '& .MuiTab-root': {
                 minWidth: 80,

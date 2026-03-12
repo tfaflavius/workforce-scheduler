@@ -235,7 +235,7 @@ const ContactFirmsTab = () => {
 
       {/* Table */}
       {filtered.length > 0 && (
-        <TableContainer component={Paper} variant="outlined">
+        <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
           <Table size="small">
             <TableHead>
               <TableRow>

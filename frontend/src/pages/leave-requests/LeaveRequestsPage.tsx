@@ -8,10 +8,6 @@ import {
   CardContent,
   Chip,
   Stack,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   MenuItem,
   Alert,
@@ -536,98 +532,93 @@ export const LeaveRequestsPage = () => {
       )}
 
       {/* Create Request Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={dialogOpen}
         onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <BeachIcon color="primary" />
-            <span>Cerere Noua de Concediu</span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            {createError && (
-              <Alert severity="error">{getErrorMessage(createError)}</Alert>
-            )}
-
-            <TextField
-              select
-              label="Tip Concediu"
-              value={leaveType}
-              onChange={(e) => setLeaveType(e.target.value as LeaveType)}
-              fullWidth
+        icon={<BeachIcon />}
+        variant="success"
+        title="Cerere Noua de Concediu"
+        subtitle="Completeaza datele pentru cererea de concediu"
+        actions={
+          <>
+            <Button onClick={handleCloseDialog}>Anuleaza</Button>
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
+              disabled={!startDate || !endDate || creating}
+              startIcon={creating ? <CircularProgress size={20} /> : <BeachIcon />}
             >
-              {leaveTypeOptions.map((option) => (
-                <MenuItem
-                  key={option.value}
-                  value={option.value}
-                  disabled={option.disabled}
-                >
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    {getLeaveTypeIcon(option.value)}
-                    <span>{option.label}</span>
-                    {option.disabled && (
-                      <Typography variant="caption" color="text.secondary">
-                        (completeaza data nasterii in profil)
-                      </Typography>
-                    )}
-                  </Stack>
-                </MenuItem>
-              ))}
-            </TextField>
+              Trimite Cererea
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={{ xs: 2, sm: 3 }}>
+          {createError && (
+            <Alert severity="error">{getErrorMessage(createError)}</Alert>
+          )}
 
-            <DatePickerField
-              label="Data Inceput"
-              value={startDate || null}
-              onChange={(value) => setStartDate(value || '')}
-              fullWidth
-              minDate={new Date().toISOString().split('T')[0]}
-            />
-
-            <DatePickerField
-              label="Data Sfarsit"
-              value={endDate || null}
-              onChange={(value) => setEndDate(value || '')}
-              fullWidth
-              minDate={startDate || new Date().toISOString().split('T')[0]}
-            />
-
-            <TextField
-              label="Motiv (optional)"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              multiline
-              rows={3}
-              fullWidth
-              helperText="Explica motivul cererii tale"
-            />
-
-            <Alert severity="info">
-              <Typography variant="body2">
-                {leaveType === 'MEDICAL'
-                  ? 'Concediul medical nu necesita aprobare cu 1 zi in avans.'
-                  : 'Cererea trebuie facuta cu cel putin 1 zi inainte de data de inceput.'}
-              </Typography>
-            </Alert>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Anuleaza</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmit}
-            disabled={!startDate || !endDate || creating}
-            startIcon={creating ? <CircularProgress size={20} /> : <BeachIcon />}
+          <TextField
+            select
+            label="Tip Concediu"
+            value={leaveType}
+            onChange={(e) => setLeaveType(e.target.value as LeaveType)}
+            fullWidth
           >
-            Trimite Cererea
-          </Button>
-        </DialogActions>
-      </Dialog>
+            {leaveTypeOptions.map((option) => (
+              <MenuItem
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  {getLeaveTypeIcon(option.value)}
+                  <span>{option.label}</span>
+                  {option.disabled && (
+                    <Typography variant="caption" color="text.secondary">
+                      (completeaza data nasterii in profil)
+                    </Typography>
+                  )}
+                </Stack>
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <DatePickerField
+            label="Data Inceput"
+            value={startDate || null}
+            onChange={(value) => setStartDate(value || '')}
+            fullWidth
+            minDate={new Date().toISOString().split('T')[0]}
+          />
+
+          <DatePickerField
+            label="Data Sfarsit"
+            value={endDate || null}
+            onChange={(value) => setEndDate(value || '')}
+            fullWidth
+            minDate={startDate || new Date().toISOString().split('T')[0]}
+          />
+
+          <TextField
+            label="Motiv (optional)"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            multiline
+            rows={3}
+            fullWidth
+            helperText="Explica motivul cererii tale"
+          />
+
+          <Alert severity="info">
+            <Typography variant="body2">
+              {leaveType === 'MEDICAL'
+                ? 'Concediul medical nu necesita aprobare cu 1 zi in avans.'
+                : 'Cererea trebuie facuta cu cel putin 1 zi inainte de data de inceput.'}
+            </Typography>
+          </Alert>
+        </Stack>
+      </FriendlyDialog>
 
       <FriendlyDialog
         open={confirmDialog.open}

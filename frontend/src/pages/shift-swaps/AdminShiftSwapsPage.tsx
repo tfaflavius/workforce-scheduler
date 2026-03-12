@@ -15,10 +15,6 @@ import {
   Avatar,
   CircularProgress,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   IconButton,
   Tooltip,
@@ -534,7 +530,7 @@ const AdminShiftSwapsPage = () => {
               </Stack>
             ) : (
               // Desktop view - table
-              <TableContainer>
+              <TableContainer sx={{ overflowX: 'auto' }}>
                 <Table size="small">
                   <TableHead>
                     <TableRow>
@@ -582,250 +578,210 @@ const AdminShiftSwapsPage = () => {
       </Paper>
 
       {/* Details Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={detailsDialogOpen}
         onClose={() => setDetailsDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
+        icon={<SwapIcon />}
+        variant="info"
+        title="Detalii Cerere Schimb"
+        maxWidth="md"
+        actions={
+          <>
+            <Button onClick={() => setDetailsDialogOpen(false)}>Inchide</Button>
+            {(selectedRequest?.status === 'AWAITING_ADMIN' || selectedRequest?.status === 'PENDING') && (
+              <>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={() => {
+                    setDetailsDialogOpen(false);
+                    handleOpenActionDialog(selectedRequest, 'approve');
+                  }}
+                >
+                  {selectedRequest?.status === 'PENDING' ? 'Aloca' : 'Aproba'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => {
+                    setDetailsDialogOpen(false);
+                    handleOpenActionDialog(selectedRequest, 'reject');
+                  }}
+                >
+                  Respinge
+                </Button>
+              </>
+            )}
+          </>
+        }
       >
-        <DialogTitle>
-          Detalii Cerere de Schimb
-        </DialogTitle>
-        <DialogContent>
-          {selectedRequest && (
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">Status</Typography>
-                <Box sx={{ mt: 0.5 }}>
-                  <Chip
-                    icon={getStatusIcon(selectedRequest.status)}
-                    label={getStatusLabel(selectedRequest.status)}
-                    color={getStatusColor(selectedRequest.status)}
-                  />
-                </Box>
+        {selectedRequest && (
+          <Stack spacing={{ xs: 1.5, sm: 2 }}>
+            <Box>
+              <Typography variant="caption" color="text.secondary">Status</Typography>
+              <Box sx={{ mt: 0.5 }}>
+                <Chip
+                  icon={getStatusIcon(selectedRequest.status)}
+                  label={getStatusLabel(selectedRequest.status)}
+                  color={getStatusColor(selectedRequest.status)}
+                />
               </Box>
+            </Box>
 
+            <Box>
+              <Typography variant="caption" color="text.secondary">Date Schimb</Typography>
+              <Typography variant="body1" fontWeight="medium">
+                {formatDate(selectedRequest.requesterDate)} ↔ {formatDate(selectedRequest.targetDate)}
+              </Typography>
+            </Box>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary">Solicitant</Typography>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
+                <Avatar sx={{ width: 32, height: 32 }}>
+                  {selectedRequest.requester?.fullName?.charAt(0)}
+                </Avatar>
+                <Typography variant="body1">{selectedRequest.requester?.fullName}</Typography>
+              </Stack>
+            </Box>
+
+            {selectedRequest.reason && (
               <Box>
-                <Typography variant="caption" color="text.secondary">Date Schimb</Typography>
-                <Typography variant="body1" fontWeight="medium">
-                  {formatDate(selectedRequest.requesterDate)} ↔ {formatDate(selectedRequest.targetDate)}
+                <Typography variant="caption" color="text.secondary">Motiv</Typography>
+                <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+                  "{selectedRequest.reason}"
                 </Typography>
               </Box>
+            )}
 
+            {selectedRequest.responses && selectedRequest.responses.length > 0 && (
               <Box>
-                <Typography variant="caption" color="text.secondary">Solicitant</Typography>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
-                  <Avatar sx={{ width: 32, height: 32 }}>
-                    {selectedRequest.requester?.fullName?.charAt(0)}
-                  </Avatar>
-                  <Typography variant="body1">{selectedRequest.requester?.fullName}</Typography>
+                <Typography variant="caption" color="text.secondary">Raspunsuri</Typography>
+                <Stack spacing={1} sx={{ mt: 1 }}>
+                  {selectedRequest.responses.map((response) => (
+                    <Paper key={response.id} variant="outlined" sx={{ p: 1.5 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Stack direction="row" alignItems="center" spacing={1}>
+                          <Avatar sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
+                            {response.responder?.fullName?.charAt(0)}
+                          </Avatar>
+                          <Typography variant="body2">{response.responder?.fullName}</Typography>
+                        </Stack>
+                        <Chip
+                          icon={response.response === 'ACCEPTED' ? <CheckIcon /> : <CloseIcon />}
+                          label={response.response === 'ACCEPTED' ? 'Acceptat' : 'Refuzat'}
+                          color={response.response === 'ACCEPTED' ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </Stack>
+                      {response.message && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                          "{response.message}"
+                        </Typography>
+                      )}
+                    </Paper>
+                  ))}
                 </Stack>
               </Box>
+            )}
 
-              {selectedRequest.reason && (
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Motiv</Typography>
-                  <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
-                    "{selectedRequest.reason}"
-                  </Typography>
-                </Box>
-              )}
-
-              {selectedRequest.responses && selectedRequest.responses.length > 0 && (
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Raspunsuri</Typography>
-                  <Stack spacing={1} sx={{ mt: 1 }}>
-                    {selectedRequest.responses.map((response) => (
-                      <Paper key={response.id} variant="outlined" sx={{ p: 1.5 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Stack direction="row" alignItems="center" spacing={1}>
-                            <Avatar sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                              {response.responder?.fullName?.charAt(0)}
-                            </Avatar>
-                            <Typography variant="body2">{response.responder?.fullName}</Typography>
-                          </Stack>
-                          <Chip
-                            icon={response.response === 'ACCEPTED' ? <CheckIcon /> : <CloseIcon />}
-                            label={response.response === 'ACCEPTED' ? 'Acceptat' : 'Refuzat'}
-                            color={response.response === 'ACCEPTED' ? 'success' : 'error'}
-                            size="small"
-                          />
-                        </Stack>
-                        {response.message && (
-                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
-                            "{response.message}"
-                          </Typography>
-                        )}
-                      </Paper>
-                    ))}
-                  </Stack>
-                </Box>
-              )}
-
-              {selectedRequest.adminNotes && (
-                <Box>
-                  <Typography variant="caption" color="text.secondary">Note Admin</Typography>
-                  <Typography variant="body1">{selectedRequest.adminNotes}</Typography>
-                </Box>
-              )}
-
+            {selectedRequest.adminNotes && (
               <Box>
-                <Typography variant="caption" color="text.secondary">Creat la</Typography>
-                <Typography variant="body2">
-                  {new Date(selectedRequest.createdAt).toLocaleString('ro-RO')}
-                </Typography>
+                <Typography variant="caption" color="text.secondary">Note Admin</Typography>
+                <Typography variant="body1">{selectedRequest.adminNotes}</Typography>
               </Box>
-            </Stack>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDetailsDialogOpen(false)}>Inchide</Button>
-          {(selectedRequest?.status === 'AWAITING_ADMIN' || selectedRequest?.status === 'PENDING') && (
-            <>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={() => {
-                  setDetailsDialogOpen(false);
-                  handleOpenActionDialog(selectedRequest, 'approve');
-                }}
-              >
-                {selectedRequest?.status === 'PENDING' ? 'Aloca' : 'Aproba'}
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => {
-                  setDetailsDialogOpen(false);
-                  handleOpenActionDialog(selectedRequest, 'reject');
-                }}
-              >
-                Respinge
-              </Button>
-            </>
-          )}
-        </DialogActions>
-      </Dialog>
+            )}
+
+            <Box>
+              <Typography variant="caption" color="text.secondary">Creat la</Typography>
+              <Typography variant="body2">
+                {new Date(selectedRequest.createdAt).toLocaleString('ro-RO')}
+              </Typography>
+            </Box>
+          </Stack>
+        )}
+      </FriendlyDialog>
 
       {/* Action Dialog */}
-      <Dialog
+      <FriendlyDialog
         open={actionDialogOpen}
         onClose={() => setActionDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        fullScreen={isMobile}
-      >
-        <DialogTitle>
-          {actionType === 'approve'
+        icon={actionType === 'approve' ? <ApprovedIcon /> : <CancelIcon />}
+        variant={actionType === 'approve' ? 'success' : 'error'}
+        title={
+          actionType === 'approve'
             ? (selectedRequest?.status === 'PENDING' ? 'Aloca Schimb de Tura' : 'Aproba Schimbul de Tura')
-            : 'Respinge Cererea de Schimb'}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            {selectedRequest && actionType === 'approve' && (
-              <>
-                {(() => {
-                  const acceptedResponses = selectedRequest.responses?.filter((r) => r.response === 'ACCEPTED') || [];
+            : 'Respinge Cererea de Schimb'
+        }
+        actions={
+          <>
+            <Button onClick={() => setActionDialogOpen(false)}>Anuleaza</Button>
+            <Button
+              variant="contained"
+              color={actionType === 'approve' ? 'success' : 'error'}
+              onClick={handleAction}
+              disabled={approving || rejecting || (actionType === 'reject' && !adminNotes) || (actionType === 'approve' && !selectedResponderId)}
+              startIcon={(approving || rejecting) ? <CircularProgress size={20} /> : (actionType === 'approve' ? <CheckIcon /> : <CloseIcon />)}
+            >
+              {(approving || rejecting) ? 'Se proceseaza...' : (actionType === 'approve' ? (selectedRequest?.status === 'PENDING' ? 'Aloca' : 'Aproba') : 'Respinge')}
+            </Button>
+          </>
+        }
+      >
+        <Stack spacing={{ xs: 1.5, sm: 2 }}>
+          {selectedRequest && actionType === 'approve' && (
+            <>
+              {(() => {
+                const acceptedResponses = selectedRequest.responses?.filter((r) => r.response === 'ACCEPTED') || [];
 
-                  // Cazul 1: Nimeni nu a acceptat - admin aloca fortat
-                  if (acceptedResponses.length === 0) {
-                    // Filtram userii de pe targetDate, excludem requester-ul
-                    const availableUsers = targetDateUsers.filter(
-                      (u: UserOnDate) => u.id !== selectedRequest.requesterId
-                    );
+                // Cazul 1: Nimeni nu a acceptat - admin aloca fortat
+                if (acceptedResponses.length === 0) {
+                  // Filtram userii de pe targetDate, excludem requester-ul
+                  const availableUsers = targetDateUsers.filter(
+                    (u: UserOnDate) => u.id !== selectedRequest.requesterId
+                  );
 
-                    if (loadingTargetUsers) {
-                      return (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                          <CircularProgress size={24} />
-                          <Typography variant="body2" sx={{ ml: 1 }}>Se incarca colegii...</Typography>
-                        </Box>
-                      );
-                    }
-
-                    if (availableUsers.length === 0) {
-                      return (
-                        <Alert severity="warning">
-                          Nu s-au gasit colegi care lucreaza in {formatDateShort(selectedRequest.targetDate)}.
-                        </Alert>
-                      );
-                    }
-
+                  if (loadingTargetUsers) {
                     return (
-                      <>
-                        <Alert severity="info">
-                          Niciun coleg nu a acceptat cererea. Selecteaza manual colegul cu care se va face schimbul fortat:
-                        </Alert>
-                        <MuiFormControl component="fieldset">
-                          <FormLabel component="legend">
-                            Colegi care lucreaza in {formatDateShort(selectedRequest.targetDate)}
-                          </FormLabel>
-                          <RadioGroup
-                            value={selectedResponderId}
-                            onChange={(e) => setSelectedResponderId(e.target.value)}
-                          >
-                            {availableUsers.map((user: UserOnDate) => (
-                              <FormControlLabel
-                                key={user.id}
-                                value={user.id}
-                                control={<Radio />}
-                                label={
-                                  <Stack direction="row" alignItems="center" spacing={1}>
-                                    <Avatar sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                                      {user.fullName?.charAt(0)}
-                                    </Avatar>
-                                    <Typography variant="body2">{user.fullName}</Typography>
-                                  </Stack>
-                                }
-                              />
-                            ))}
-                          </RadioGroup>
-                        </MuiFormControl>
-                      </>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                        <CircularProgress size={24} />
+                        <Typography variant="body2" sx={{ ml: 1 }}>Se incarca colegii...</Typography>
+                      </Box>
                     );
                   }
 
-                  // Cazul 2: Un singur coleg a acceptat
-                  if (acceptedResponses.length === 1) {
+                  if (availableUsers.length === 0) {
                     return (
-                      <Alert severity="success">
-                        Vei aproba schimbul intre <strong>{selectedRequest.requester?.fullName}</strong> si <strong>{acceptedResponses[0].responder?.fullName}</strong>.
-                        {selectedRequest.requester?.fullName} va lucra in {formatDateShort(selectedRequest.targetDate)}, iar {acceptedResponses[0].responder?.fullName} in {formatDateShort(selectedRequest.requesterDate)}.
+                      <Alert severity="warning">
+                        Nu s-au gasit colegi care lucreaza in {formatDateShort(selectedRequest.targetDate)}.
                       </Alert>
                     );
                   }
 
-                  // Cazul 3: Mai multi colegi au acceptat - adminul alege
                   return (
                     <>
                       <Alert severity="info">
-                        <strong>{acceptedResponses.length} colegi</strong> au acceptat cererea. Alege cu cine se va face schimbul:
+                        Niciun coleg nu a acceptat cererea. Selecteaza manual colegul cu care se va face schimbul fortat:
                       </Alert>
                       <MuiFormControl component="fieldset">
-                        <FormLabel component="legend">Selecteaza colegul pentru schimb</FormLabel>
+                        <FormLabel component="legend">
+                          Colegi care lucreaza in {formatDateShort(selectedRequest.targetDate)}
+                        </FormLabel>
                         <RadioGroup
                           value={selectedResponderId}
                           onChange={(e) => setSelectedResponderId(e.target.value)}
                         >
-                          {acceptedResponses.map((resp) => (
+                          {availableUsers.map((user: UserOnDate) => (
                             <FormControlLabel
-                              key={resp.responderId}
-                              value={resp.responderId}
+                              key={user.id}
+                              value={user.id}
                               control={<Radio />}
                               label={
                                 <Stack direction="row" alignItems="center" spacing={1}>
                                   <Avatar sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
-                                    {resp.responder?.fullName?.charAt(0)}
+                                    {user.fullName?.charAt(0)}
                                   </Avatar>
-                                  <Typography variant="body2">
-                                    {resp.responder?.fullName}
-                                    {resp.message && (
-                                      <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                                        - "{resp.message}"
-                                      </Typography>
-                                    )}
-                                  </Typography>
+                                  <Typography variant="body2">{user.fullName}</Typography>
                                 </Stack>
                               }
                             />
@@ -834,38 +790,75 @@ const AdminShiftSwapsPage = () => {
                       </MuiFormControl>
                     </>
                   );
-                })()}
-              </>
-            )}
-            {selectedRequest && actionType === 'reject' && (
-              <Alert severity="warning">
-                Vei respinge cererea de schimb pentru datele {formatDateShort(selectedRequest.requesterDate)} ↔ {formatDateShort(selectedRequest.targetDate)}.
-              </Alert>
-            )}
-            <TextField
-              label={actionType === 'approve' ? 'Note (optional)' : 'Motiv respingere'}
-              multiline
-              rows={3}
-              value={adminNotes}
-              onChange={(e) => setAdminNotes(e.target.value)}
-              placeholder={actionType === 'approve' ? 'Adauga note...' : 'Explica de ce respingi...'}
-              required={actionType === 'reject'}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setActionDialogOpen(false)}>Anuleaza</Button>
-          <Button
-            variant="contained"
-            color={actionType === 'approve' ? 'success' : 'error'}
-            onClick={handleAction}
-            disabled={approving || rejecting || (actionType === 'reject' && !adminNotes) || (actionType === 'approve' && !selectedResponderId)}
-            startIcon={(approving || rejecting) ? <CircularProgress size={20} /> : (actionType === 'approve' ? <CheckIcon /> : <CloseIcon />)}
-          >
-            {(approving || rejecting) ? 'Se proceseaza...' : (actionType === 'approve' ? (selectedRequest?.status === 'PENDING' ? 'Aloca' : 'Aproba') : 'Respinge')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+                }
+
+                // Cazul 2: Un singur coleg a acceptat
+                if (acceptedResponses.length === 1) {
+                  return (
+                    <Alert severity="success">
+                      Vei aproba schimbul intre <strong>{selectedRequest.requester?.fullName}</strong> si <strong>{acceptedResponses[0].responder?.fullName}</strong>.
+                      {selectedRequest.requester?.fullName} va lucra in {formatDateShort(selectedRequest.targetDate)}, iar {acceptedResponses[0].responder?.fullName} in {formatDateShort(selectedRequest.requesterDate)}.
+                    </Alert>
+                  );
+                }
+
+                // Cazul 3: Mai multi colegi au acceptat - adminul alege
+                return (
+                  <>
+                    <Alert severity="info">
+                      <strong>{acceptedResponses.length} colegi</strong> au acceptat cererea. Alege cu cine se va face schimbul:
+                    </Alert>
+                    <MuiFormControl component="fieldset">
+                      <FormLabel component="legend">Selecteaza colegul pentru schimb</FormLabel>
+                      <RadioGroup
+                        value={selectedResponderId}
+                        onChange={(e) => setSelectedResponderId(e.target.value)}
+                      >
+                        {acceptedResponses.map((resp) => (
+                          <FormControlLabel
+                            key={resp.responderId}
+                            value={resp.responderId}
+                            control={<Radio />}
+                            label={
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <Avatar sx={{ width: 28, height: 28, fontSize: '0.75rem' }}>
+                                  {resp.responder?.fullName?.charAt(0)}
+                                </Avatar>
+                                <Typography variant="body2">
+                                  {resp.responder?.fullName}
+                                  {resp.message && (
+                                    <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                      - "{resp.message}"
+                                    </Typography>
+                                  )}
+                                </Typography>
+                              </Stack>
+                            }
+                          />
+                        ))}
+                      </RadioGroup>
+                    </MuiFormControl>
+                  </>
+                );
+              })()}
+            </>
+          )}
+          {selectedRequest && actionType === 'reject' && (
+            <Alert severity="warning">
+              Vei respinge cererea de schimb pentru datele {formatDateShort(selectedRequest.requesterDate)} ↔ {formatDateShort(selectedRequest.targetDate)}.
+            </Alert>
+          )}
+          <TextField
+            label={actionType === 'approve' ? 'Note (optional)' : 'Motiv respingere'}
+            multiline
+            rows={3}
+            value={adminNotes}
+            onChange={(e) => setAdminNotes(e.target.value)}
+            placeholder={actionType === 'approve' ? 'Adauga note...' : 'Explica de ce respingi...'}
+            required={actionType === 'reject'}
+          />
+        </Stack>
+      </FriendlyDialog>
 
       <FriendlyDialog
         open={confirmDialog.open}

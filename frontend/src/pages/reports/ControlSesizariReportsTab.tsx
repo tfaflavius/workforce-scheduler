@@ -503,7 +503,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
           Nu exista sesizari pentru filtrele selectate.
         </Alert>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#6366f1', 0.08) }}>

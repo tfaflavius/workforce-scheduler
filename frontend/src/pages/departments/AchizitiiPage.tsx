@@ -446,6 +446,9 @@ const AchizitiiPage: React.FC = () => {
         <Tabs
           value={tabValue}
           onChange={(_, v) => setTabValue(v)}
+          variant={isMobile ? 'scrollable' : 'standard'}
+          scrollButtons="auto"
+          allowScrollButtonsMobile
           sx={{ flex: 1, minWidth: 0 }}
         >
           <Tab
@@ -630,7 +633,7 @@ const AchizitiiPage: React.FC = () => {
                     Nicio achizitie adaugata
                   </Typography>
                 ) : (
-                  <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                  <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflowX: 'auto' }}>
                     <Table size="small">
                       <TableHead>
                         <TableRow sx={{ bgcolor: alpha('#10b981', 0.06) }}>
@@ -1143,7 +1146,7 @@ const AchizitiiPage: React.FC = () => {
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
                     Program Lunar ({selectedAcquisition.serviceMonths} luni)
                   </Typography>
-                  <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, borderRadius: 2 }}>
+                  <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, borderRadius: 2, overflowX: 'auto' }}>
                     <Table size="small">
                       <TableHead>
                         <TableRow sx={{ bgcolor: alpha('#3b82f6', 0.06) }}>
@@ -1215,7 +1218,7 @@ const AchizitiiPage: React.FC = () => {
               </Box>
 
               {selectedAcquisition.invoices && selectedAcquisition.invoices.length > 0 ? (
-                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflowX: 'auto' }}>
                   <Table size="small">
                     <TableHead>
                       <TableRow sx={{ bgcolor: alpha('#f59e0b', 0.06) }}>

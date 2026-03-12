@@ -502,7 +502,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
           Nu exista solicitari pentru filtrele selectate.
         </Alert>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#6366f1', 0.08) }}>

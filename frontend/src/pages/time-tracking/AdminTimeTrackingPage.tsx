@@ -522,6 +522,9 @@ const AdminTimeTrackingPage: React.FC = () => {
           <Tabs
             value={tabIndex}
             onChange={(_, v) => setTabIndex(v)}
+            variant={isMobile ? 'scrollable' : 'standard'}
+            scrollButtons="auto"
+            allowScrollButtonsMobile
             sx={{
               '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 },
             }}

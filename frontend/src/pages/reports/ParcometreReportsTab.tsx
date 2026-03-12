@@ -465,7 +465,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
           Nu exista parcometre pentru filtrele selectate.
         </Alert>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#2563eb', 0.08) }}>

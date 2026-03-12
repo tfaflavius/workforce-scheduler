@@ -321,7 +321,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
     <TableContainer
       component={Paper}
       sx={{
-        borderRadius: 2,
+        borderRadius: 2, overflowX: 'auto',
         '& .MuiTableHead-root': {
           '& .MuiTableCell-root': {
             fontWeight: 700,

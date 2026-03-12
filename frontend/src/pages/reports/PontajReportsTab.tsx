@@ -469,7 +469,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
           Nu exista inregistrari de pontaj pentru filtrele selectate.
         </Alert>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#0891b2', 0.08) }}>
