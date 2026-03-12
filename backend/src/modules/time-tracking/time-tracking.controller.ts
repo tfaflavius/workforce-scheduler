@@ -44,11 +44,17 @@ export class TimeTrackingController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('userId') userId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     const filters = {
       ...(startDate && { startDate: new Date(startDate) }),
       ...(endDate && { endDate: new Date(endDate) }),
       ...(userId && { userId }),
+      ...(page || limit ? {
+        page: Math.max(1, parseInt(page || '1', 10) || 1),
+        limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
+      } : {}),
     };
     return this.timeTrackingService.getAdminAllEntries(filters);
   }

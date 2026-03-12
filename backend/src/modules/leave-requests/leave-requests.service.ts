@@ -195,6 +195,7 @@ export class LeaveRequestsService {
       where: { userId },
       relations: ['user', 'admin'],
       order: { createdAt: 'DESC' },
+      take: 200, // Cap to last 200 requests
     });
   }
 
@@ -214,17 +215,38 @@ export class LeaveRequestsService {
     });
   }
 
-  async getAllRequests(status?: LeaveRequestStatus): Promise<LeaveRequest[]> {
+  async getAllRequests(
+    status?: LeaveRequestStatus,
+    pagination?: { page: number; limit: number },
+  ): Promise<{ data: LeaveRequest[]; meta?: { page: number; limit: number; total: number; totalPages: number } }> {
     const where: any = {};
     if (status) {
       where.status = status;
     }
 
-    return this.leaveRequestRepository.find({
+    if (pagination) {
+      const { page, limit } = pagination;
+      const [data, total] = await this.leaveRequestRepository.findAndCount({
+        where,
+        relations: ['user', 'user.department', 'admin'],
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+      return {
+        data,
+        meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      };
+    }
+
+    // Backward compatible: no pagination params → return all (capped at 500)
+    const data = await this.leaveRequestRepository.find({
       where,
       relations: ['user', 'user.department', 'admin'],
       order: { createdAt: 'DESC' },
+      take: 500,
     });
+    return { data };
   }
 
   async getApprovedByMonth(monthYear: string): Promise<{ userId: string; dates: string[]; leaveType: string }[]> {

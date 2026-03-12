@@ -37,19 +37,33 @@ export class TasksController {
     @Query('priority') priority?: string,
     @Query('assignedToId') assignedToId?: string,
     @Query('createdById') createdById?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     return this.tasksService.findAll({
       status,
       priority,
       assignedToId,
       createdById,
+      ...(page || limit ? {
+        page: Math.max(1, parseInt(page || '1', 10) || 1),
+        limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
+      } : {}),
     });
   }
 
   @Get('my-tasks')
-  findMyTasks(@Request() req) {
+  findMyTasks(
+    @Request() req,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     return this.tasksService.findAll({
       assignedToId: req.user.id,
+      ...(page || limit ? {
+        page: Math.max(1, parseInt(page || '1', 10) || 1),
+        limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
+      } : {}),
     });
   }
 

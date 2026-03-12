@@ -425,7 +425,9 @@ export class TimeTrackingService {
     startDate?: Date;
     endDate?: Date;
     userId?: string;
-  }): Promise<TimeEntry[]> {
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: TimeEntry[]; meta?: { page: number; limit: number; total: number; totalPages: number } }> {
     const query = this.timeEntryRepository
       .createQueryBuilder('entry')
       .leftJoinAndSelect('entry.user', 'user')
@@ -449,7 +451,25 @@ export class TimeTrackingService {
       query.andWhere('entry.userId = :userId', { userId: filters.userId });
     }
 
-    return query.getMany();
+    if (filters?.page && filters?.limit) {
+      const [data, total] = await query
+        .skip((filters.page - 1) * filters.limit)
+        .take(filters.limit)
+        .getManyAndCount();
+      return {
+        data,
+        meta: {
+          page: filters.page,
+          limit: filters.limit,
+          total,
+          totalPages: Math.ceil(total / filters.limit),
+        },
+      };
+    }
+
+    // Backward compatible: no pagination → return all (capped at 500)
+    const data = await query.take(500).getMany();
+    return { data };
   }
 
   async getAdminLocationLogs(timeEntryId: string): Promise<LocationLog[]> {
@@ -463,6 +483,7 @@ export class TimeTrackingService {
     return this.locationLogRepository.find({
       where: { timeEntryId },
       order: { recordedAt: 'ASC' },
+      take: 1000, // Cap location logs per entry
     });
   }
 
@@ -783,6 +804,7 @@ export class TimeTrackingService {
     return this.locationLogRepository.find({
       where: { timeEntryId: In(entryIds) },
       order: { recordedAt: 'ASC' },
+      take: 5000, // Cap combined location logs
     });
   }
 

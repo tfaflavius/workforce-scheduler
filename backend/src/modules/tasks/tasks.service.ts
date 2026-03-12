@@ -43,7 +43,9 @@ export class TasksService {
     priority?: string;
     assignedToId?: string;
     createdById?: string;
-  }): Promise<Task[]> {
+    page?: number;
+    limit?: number;
+  }): Promise<{ data: Task[]; meta?: { page: number; limit: number; total: number; totalPages: number } }> {
     const query = this.taskRepository
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.assignedToUser', 'assignedToUser')
@@ -70,7 +72,25 @@ export class TasksService {
       });
     }
 
-    return query.getMany();
+    if (filters?.page && filters?.limit) {
+      const [data, total] = await query
+        .skip((filters.page - 1) * filters.limit)
+        .take(filters.limit)
+        .getManyAndCount();
+      return {
+        data,
+        meta: {
+          page: filters.page,
+          limit: filters.limit,
+          total,
+          totalPages: Math.ceil(total / filters.limit),
+        },
+      };
+    }
+
+    // Backward compatible: no pagination → return all (capped at 500)
+    const data = await query.take(500).getMany();
+    return { data };
   }
 
   async findOne(id: string): Promise<Task> {

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { formatRONCompact } from '../../utils/formatters';
 import {
   Box,
   Typography,
@@ -704,12 +705,7 @@ const AdminDashboard = () => {
                               }}
                             >
                               {stats?.parking?.cashCollectionTotals
-                                ? new Intl.NumberFormat('ro-RO', {
-                                    style: 'currency',
-                                    currency: 'RON',
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0,
-                                  }).format(stats.parking.cashCollectionTotals.totalAmount || 0)
+                                ? formatRONCompact(stats.parking.cashCollectionTotals.totalAmount || 0)
                                 : '0 RON'}
                             </Typography>
                             <Typography

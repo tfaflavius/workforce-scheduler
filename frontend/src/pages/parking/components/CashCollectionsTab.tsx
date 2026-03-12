@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { formatRON } from '../../../utils/formatters';
 import {
   Box,
   Paper,
@@ -150,12 +151,7 @@ const CashCollectionsTab: React.FC = () => {
 
   const formatDate = formatDateTime;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ro-RO', {
-      style: 'currency',
-      currency: 'RON',
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => formatRON(amount);
 
   const renderCollectionCard = (collection: CashCollection, index: number) => (
     <Grow in={true} timeout={300 + index * 50} key={collection.id}>

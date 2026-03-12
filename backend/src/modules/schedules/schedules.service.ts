@@ -201,6 +201,9 @@ export class SchedulesService {
       );
     }
 
+    // Safety cap: limit to 200 schedules max
+    query.take(200);
+
     const schedules = await query.getMany();
 
     // For regular users, filter assignments to only show their own

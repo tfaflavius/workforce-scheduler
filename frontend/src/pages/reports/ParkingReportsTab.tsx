@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { formatRON } from '../../utils/formatters';
 import {
   Box,
   Typography,
@@ -171,12 +172,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   // Format helpers
   const formatDate = formatDateShort;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ro-RO', {
-      style: 'currency',
-      currency: 'RON',
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => formatRON(amount);
 
   const formatShortDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ro-RO', {

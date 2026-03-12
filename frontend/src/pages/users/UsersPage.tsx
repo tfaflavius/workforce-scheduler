@@ -68,12 +68,14 @@ import { UserStatusChip } from '../../components/users/UserStatusChip';
 import { TableSkeleton } from '../../components/common';
 import type { User } from '../../store/api/users.api';
 import { getRoleLabel, getRoleBadgeColor } from '../../utils/roleHelpers';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const UsersPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const currentUser = useAppSelector((state) => state.auth.user);
   const [searchParams, setSearchParams] = useSearchParams();
+  const { notifyError } = useSnackbar();
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -173,6 +175,7 @@ const UsersPage: React.FC = () => {
         }).unwrap();
       } catch (err) {
         console.error('Failed to toggle user status:', err);
+        notifyError('Eroare la schimbarea statusului utilizatorului.');
       }
     }
     handleMenuClose();
@@ -184,6 +187,7 @@ const UsersPage: React.FC = () => {
       setCreateDialogOpen(false);
     } catch (err) {
       console.error('Failed to create user:', err);
+      notifyError('Eroare la crearea utilizatorului.');
     }
   };
 
@@ -195,6 +199,7 @@ const UsersPage: React.FC = () => {
       setEditUser(null);
     } catch (err) {
       console.error('Failed to update user:', err);
+      notifyError('Eroare la actualizarea utilizatorului.');
     }
   };
 

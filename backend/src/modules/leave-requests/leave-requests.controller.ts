@@ -48,8 +48,15 @@ export class LeaveRequestsController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  getAllRequests(@Query('status') status?: LeaveRequestStatus) {
-    return this.leaveRequestsService.getAllRequests(status);
+  getAllRequests(
+    @Query('status') status?: LeaveRequestStatus,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pagination = page || limit
+      ? { page: Math.max(1, parseInt(page || '1', 10) || 1), limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)) }
+      : undefined;
+    return this.leaveRequestsService.getAllRequests(status, pagination);
   }
 
   @Get('user/:userId/balance')

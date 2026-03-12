@@ -185,9 +185,8 @@ export class NotificationsService {
       query.andWhere('notification.isRead = false');
     }
 
-    if (options?.limit) {
-      query.take(options.limit);
-    }
+    // Apply limit (default max 200 to prevent unbounded queries)
+    query.take(options?.limit ?? 200);
 
     return query.getMany();
   }

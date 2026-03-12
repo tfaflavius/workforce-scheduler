@@ -29,10 +29,12 @@ import { UserForm } from '../../components/users/UserForm';
 import { UserStatusChip } from '../../components/users/UserStatusChip';
 import { PushNotificationSettings } from '../../components/notifications/PushNotificationSettings';
 import { getRoleLabel, getRoleBadgeColor } from '../../utils/roleHelpers';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const UserProfilePage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { notifyError } = useSnackbar();
 
   const { data: user, isLoading, error } = useGetCurrentUserQuery();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
@@ -47,6 +49,7 @@ const UserProfilePage: React.FC = () => {
       setEditMode(false);
     } catch (err) {
       console.error('Failed to update profile:', err);
+      notifyError('Eroare la actualizarea profilului.');
     }
   };
 
