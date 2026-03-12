@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
   ForbiddenException,
@@ -57,6 +58,8 @@ const LEAVE_TYPE_EMAIL_MAP: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER
 
 @Injectable()
 export class LeaveRequestsService {
+  private readonly logger = new Logger(LeaveRequestsService.name);
+
   constructor(
     @InjectRepository(LeaveRequest)
     private leaveRequestRepository: Repository<LeaveRequest>,
@@ -518,7 +521,7 @@ export class LeaveRequestsService {
     try {
       await this.notifyUserAboutEdit(request, adminId);
     } catch (err) {
-      console.error('Failed to notify user about leave edit:', err?.message);
+      this.logger.error('Failed to notify user about leave edit:', err?.message);
     }
 
     return this.findOne(id);
@@ -556,7 +559,7 @@ export class LeaveRequestsService {
     try {
       await this.notifyUserAboutDeletion(userId, leaveType, startDate, endDate, adminId);
     } catch (err) {
-      console.error('Failed to notify user about leave deletion:', err?.message);
+      this.logger.error('Failed to notify user about leave deletion:', err?.message);
     }
   }
 

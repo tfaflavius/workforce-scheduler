@@ -33,6 +33,7 @@ export class ParkingHistory {
   @Column({ type: 'jsonb', nullable: true })
   changes: Record<string, any>;
 
+  @Index()
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

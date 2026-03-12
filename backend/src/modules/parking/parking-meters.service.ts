@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ParkingMeter } from './entities/parking-meter.entity';
@@ -6,6 +6,8 @@ import { CreateParkingMeterDto, UpdateParkingMeterDto } from './dto/parking-mete
 
 @Injectable()
 export class ParkingMetersService {
+  private readonly logger = new Logger(ParkingMetersService.name);
+
   constructor(
     @InjectRepository(ParkingMeter)
     private readonly parkingMeterRepository: Repository<ParkingMeter>,

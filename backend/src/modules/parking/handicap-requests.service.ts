@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { HandicapRequest } from './entities/handicap-request.entity';
@@ -25,6 +25,8 @@ import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class HandicapRequestsService {
+  private readonly logger = new Logger(HandicapRequestsService.name);
+
   constructor(
     @InjectRepository(HandicapRequest)
     private readonly handicapRequestRepository: Repository<HandicapRequest>,

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { ControlSesizare } from './entities/control-sesizare.entity';
@@ -26,6 +26,8 @@ import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class ControlSesizariService {
+  private readonly logger = new Logger(ControlSesizariService.name);
+
   constructor(
     @InjectRepository(ControlSesizare)
     private readonly sesizareRepository: Repository<ControlSesizare>,

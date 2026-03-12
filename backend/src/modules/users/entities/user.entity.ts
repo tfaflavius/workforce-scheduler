@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { Department } from '../../departments/entities/department.entity';
 import { Exclude } from 'class-transformer';
@@ -22,6 +23,7 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Index()
   @Column({ unique: true })
   email: string;
 
@@ -35,12 +37,14 @@ export class User {
   @Column({ nullable: true })
   phone: string;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: UserRole,
   })
   role: UserRole;
 
+  @Index()
   @Column({ name: 'department_id', nullable: true })
   departmentId: string;
 
@@ -51,6 +55,7 @@ export class User {
   @Column({ name: 'avatar_url', nullable: true })
   avatarUrl: string;
 
+  @Index()
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 

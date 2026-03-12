@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { DomiciliuRequest } from './entities/domiciliu-request.entity';
@@ -25,6 +25,8 @@ import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class DomiciliuRequestsService {
+  private readonly logger = new Logger(DomiciliuRequestsService.name);
+
   constructor(
     @InjectRepository(DomiciliuRequest)
     private readonly domiciliuRequestRepository: Repository<DomiciliuRequest>,

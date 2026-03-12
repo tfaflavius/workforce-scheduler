@@ -12,7 +12,8 @@ const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
 if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-  console.warn('[PushNotification] VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY env vars are not set. Push notifications will be disabled.');
+  const bootstrapLogger = new Logger('PushNotificationService');
+  bootstrapLogger.warn('VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY env vars are not set. Push notifications will be disabled.');
 }
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CashCollection } from './entities/cash-collection.entity';
@@ -33,6 +33,8 @@ export interface CashCollectionFilters {
 
 @Injectable()
 export class CashCollectionsService {
+  private readonly logger = new Logger(CashCollectionsService.name);
+
   constructor(
     @InjectRepository(CashCollection)
     private readonly cashCollectionRepository: Repository<CashCollection>,

@@ -12,6 +12,7 @@ import { TimeEntry } from './time-entry.entity';
 
 @Entity('location_logs')
 @Index('IDX_location_logs_time_entry_id', ['timeEntryId'])
+@Index('IDX_location_logs_user_recorded', ['userId', 'recordedAt'])
 export class LocationLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -39,6 +40,7 @@ export class LocationLog {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   accuracy: number;
 
+  @Index()
   @Column({ type: 'timestamp', name: 'recorded_at' })
   recordedAt: Date;
 

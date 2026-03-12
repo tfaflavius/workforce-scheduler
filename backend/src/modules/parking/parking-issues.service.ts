@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { ParkingIssue, ParkingIssueStatus } from './entities/parking-issue.entity';
@@ -20,6 +20,7 @@ import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
 export class ParkingIssuesService {
+  private readonly logger = new Logger(ParkingIssuesService.name);
   private cachedInternalFirms: string[] | null = null;
   private cacheTimestamp = 0;
   private static readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes

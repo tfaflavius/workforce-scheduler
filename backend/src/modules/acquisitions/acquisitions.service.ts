@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { BudgetPosition, BudgetCategory } from './entities/budget-position.entity';
@@ -20,6 +20,8 @@ const ACHIZITII_DEPARTMENT_NAME = 'Achizitii';
 
 @Injectable()
 export class AcquisitionsService {
+  private readonly logger = new Logger(AcquisitionsService.name);
+
   constructor(
     @InjectRepository(BudgetPosition)
     private budgetPositionRepository: Repository<BudgetPosition>,

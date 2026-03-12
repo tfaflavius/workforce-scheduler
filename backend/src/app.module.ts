@@ -79,12 +79,15 @@ import { EmailNotificationRule } from './modules/permissions/entities/email-noti
 import { NotificationSetting } from './modules/permissions/entities/notification-setting.entity';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuditLog } from './modules/audit/entities/audit-log.entity';
+import { envValidationSchema } from './config/env.validation';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      validationSchema: envValidationSchema,
+      validationOptions: { abortEarly: true },
     }),
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{
