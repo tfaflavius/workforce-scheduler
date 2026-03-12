@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
@@ -317,10 +317,14 @@ export class RevolutionarLegitimationsService {
     // Notifica despre comentariu
     await this.notifyAboutComment(legitimation, userId, dto.content);
 
-    return this.commentRepository.findOne({
+    const savedComment = await this.commentRepository.findOne({
       where: { id: comment.id },
       relations: ['user'],
     });
+    if (!savedComment) {
+      throw new InternalServerErrorException('Failed to reload comment after save');
+    }
+    return savedComment;
   }
 
   private async notifyAboutComment(legitimation: RevolutionarLegitimation, commenterUserId: string, commentContent: string): Promise<void> {

@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -523,10 +524,14 @@ export class PvDisplayService {
 
     const saved = await this.commentRepository.save(comment);
 
-    return this.commentRepository.findOne({
+    const savedComment = await this.commentRepository.findOne({
       where: { id: saved.id },
       relations: ['user'],
     });
+    if (!savedComment) {
+      throw new InternalServerErrorException('Failed to reload comment after save');
+    }
+    return savedComment;
   }
 
   async getComments(sessionId: string): Promise<PvDisplaySessionComment[]> {

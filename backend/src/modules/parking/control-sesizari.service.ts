@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { ControlSesizare } from './entities/control-sesizare.entity';
@@ -195,10 +195,14 @@ export class ControlSesizariService {
     // Notifica despre comentariu
     await this.notifyAboutComment(sesizare, userId, dto.content);
 
-    return this.commentRepository.findOne({
+    const savedComment = await this.commentRepository.findOne({
       where: { id: comment.id },
       relations: ['user'],
     });
+    if (!savedComment) {
+      throw new InternalServerErrorException('Failed to reload comment after save');
+    }
+    return savedComment;
   }
 
   async getComments(sesizareId: string): Promise<ControlSesizareComment[]> {

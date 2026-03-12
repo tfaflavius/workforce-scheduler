@@ -87,6 +87,24 @@ export class HandicapRequestsController {
     return this.filterCnpFromList(requests, this.canSeeCnp(req.user));
   }
 
+  // IMPORTANT: Ruta statica 'reports/export' trebuie sa fie INAINTE de ':id' parametric
+  @Get('reports/export')
+  async findForReports(
+    @Request() req,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('status') status?: HandicapRequestStatus,
+    @Query('type') requestType?: HandicapRequestType,
+  ): Promise<HandicapRequest[]> {
+    const requests = await this.handicapRequestsService.findForReports({
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      status,
+      requestType,
+    });
+    return this.filterCnpFromList(requests, this.canSeeCnp(req.user));
+  }
+
   @Get(':id')
   async findOne(@Request() req, @Param('id') id: string): Promise<HandicapRequest> {
     const request = await this.handicapRequestsService.findOne(id);
@@ -136,23 +154,5 @@ export class HandicapRequestsController {
   @Roles(UserRole.ADMIN)
   async delete(@Param('id') id: string, @Request() req): Promise<void> {
     return this.handicapRequestsService.delete(id, req.user);
-  }
-
-  // Endpoint pentru rapoarte
-  @Get('reports/export')
-  async findForReports(
-    @Request() req,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('status') status?: HandicapRequestStatus,
-    @Query('type') requestType?: HandicapRequestType,
-  ): Promise<HandicapRequest[]> {
-    const requests = await this.handicapRequestsService.findForReports({
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      status,
-      requestType,
-    });
-    return this.filterCnpFromList(requests, this.canSeeCnp(req.user));
   }
 }

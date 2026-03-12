@@ -173,13 +173,14 @@ export class AuthService {
         }
       }
 
-      // Increment failed login attempts
-      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
-      if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
-        user.lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000);
-        this.logger.warn(`[Login] Account locked for ${loginDto.email} after ${user.failedLoginAttempts} failed attempts. Locked until ${user.lockedUntil.toISOString()}`);
+      // Atomic increment to prevent race conditions on concurrent failed logins
+      await this.userRepository.increment({ id: user.id }, 'failedLoginAttempts', 1);
+      const updatedUser = await this.userRepository.findOne({ where: { id: user.id } });
+      if (updatedUser && updatedUser.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        updatedUser.lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000);
+        await this.userRepository.save(updatedUser);
+        this.logger.warn(`[Login] Account locked for ${loginDto.email} after ${updatedUser.failedLoginAttempts} failed attempts. Locked until ${updatedUser.lockedUntil.toISOString()}`);
       }
-      await this.userRepository.save(user);
 
       throw new UnauthorizedException('Credentiale invalide');
     }

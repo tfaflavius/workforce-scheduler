@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { HandicapRequest } from './entities/handicap-request.entity';
@@ -353,10 +353,14 @@ export class HandicapRequestsService {
     // Notifica despre comentariu
     await this.notifyAboutComment(request, userId, dto.content);
 
-    return this.commentRepository.findOne({
+    const savedComment = await this.commentRepository.findOne({
       where: { id: comment.id },
       relations: ['user'],
     });
+    if (!savedComment) {
+      throw new InternalServerErrorException('Failed to reload comment after save');
+    }
+    return savedComment;
   }
 
   private async notifyAboutComment(request: HandicapRequest, commenterUserId: string, commentContent: string): Promise<void> {

@@ -4,8 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmailService } from './email.service';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
-import { Roles } from '../decorators/roles.decorator';
+import { RolesGuard } from '../../modules/auth/guards/roles.guard';
+import { Roles } from '../../modules/auth/decorators/roles.decorator';
 import { UserRole, User } from '../../modules/users/entities/user.entity';
 
 class SendTestEmailDto {

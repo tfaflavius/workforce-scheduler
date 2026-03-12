@@ -105,6 +105,14 @@ const ParkingPage: React.FC = () => {
 
   const isAdminOrManager = isAdminOrAbove(user?.role) || user?.role === 'MANAGER';
 
+  // Clamp tabValue when tabConfig length changes (e.g., role change removes Stats tab)
+  const safeTabValue = Math.min(tabValue, Math.max(0, (isAdminOrManager ? 4 : 3) - 1));
+  useEffect(() => {
+    if (tabValue !== safeTabValue) {
+      setTabValue(safeTabValue);
+    }
+  }, [tabValue, safeTabValue]);
+
   const tabConfig = [
     {
       icon: <IssuesIcon />,
@@ -316,7 +324,7 @@ const ParkingPage: React.FC = () => {
             '& .MuiTabs-indicator': {
               height: 3,
               borderRadius: '3px 3px 0 0',
-              background: tabConfig[tabValue].color,
+              background: tabConfig[safeTabValue]?.color || '#2563eb',
             },
             '& .MuiTab-root': {
               minHeight: { xs: 44, md: 72 },
@@ -327,7 +335,7 @@ const ParkingPage: React.FC = () => {
               minWidth: 0,
               '&.Mui-selected': {
                 fontWeight: 700,
-                color: tabConfig[tabValue].color,
+                color: tabConfig[safeTabValue]?.color || '#2563eb',
               },
             },
           }}
