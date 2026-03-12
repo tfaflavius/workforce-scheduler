@@ -19,6 +19,7 @@ import { UserFiltersDto } from './dto/user-filters.dto';
 import { SupabaseService } from '../../common/supabase/supabase.service';
 import { EmailService } from '../../common/email/email.service';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
+import { BCRYPT_SALT_ROUNDS } from '../../common/constants/security';
 
 @Injectable()
 export class UsersService {
@@ -48,7 +49,7 @@ export class UsersService {
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, BCRYPT_SALT_ROUNDS);
 
     const user = this.userRepository.create({
       ...createUserDto,
@@ -121,7 +122,7 @@ export class UsersService {
 
     // Hash password if it's being updated
     if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, BCRYPT_SALT_ROUNDS);
     }
 
     // Daca se actualizeaza departmentId, trebuie sa stergem relatia department
@@ -242,7 +243,7 @@ export class UsersService {
     await this.supabaseService.updateUserPassword(userId, dto.newPassword);
 
     // Also update hash in local DB for backwards compatibility
-    user.password = await bcrypt.hash(dto.newPassword, 10);
+    user.password = await bcrypt.hash(dto.newPassword, BCRYPT_SALT_ROUNDS);
     await this.userRepository.save(user);
   }
 

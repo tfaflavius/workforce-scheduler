@@ -9,6 +9,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { SupabaseService } from '../../common/supabase/supabase.service';
 import { EmailService } from '../../common/email/email.service';
+import { BCRYPT_SALT_ROUNDS } from '../../common/constants/security';
 
 @Injectable()
 export class AuthService {
@@ -258,7 +259,7 @@ export class AuthService {
     this.logger.log(`[ResetPassword] User found: ${user.fullName} (${user.email}), updating password...`);
 
     // 1. Update hashed password in local DB first (this always works)
-    user.password = await bcrypt.hash(newPassword, 10);
+    user.password = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
     await this.userRepository.save(user);
     this.logger.log(`[ResetPassword] Local DB password updated for ${user.email}`);
 

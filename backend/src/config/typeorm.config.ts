@@ -19,6 +19,6 @@ export const AppDataSource = new DataSource({
   entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition],
   migrations: ['src/database/migrations/*.ts'],
   synchronize: false,
-  logging: true,
+  logging: process.env.NODE_ENV !== 'production',
   ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });

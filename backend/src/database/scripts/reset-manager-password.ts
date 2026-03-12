@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AppDataSource } from '../../config/typeorm.config';
+import { BCRYPT_SALT_ROUNDS } from '../../common/constants/security';
 
 async function resetManagerPassword() {
   try {
@@ -23,7 +24,7 @@ async function resetManagerPassword() {
     console.log('✅ Manager account found:', manager.fullName);
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash('manager123', 10);
+    const hashedPassword = await bcrypt.hash('manager123', BCRYPT_SALT_ROUNDS);
 
     // Update password
     await userRepository.update(

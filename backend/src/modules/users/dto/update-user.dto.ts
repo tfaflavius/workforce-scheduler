@@ -8,9 +8,9 @@ export class UpdateUserDto {
   @IsOptional()
   email?: string;
 
-  @ApiPropertyOptional({ description: 'User password (minimum 6 characters)', example: 'newSecurePass456', minLength: 6 })
+  @ApiPropertyOptional({ description: 'User password (minimum 8 characters)', example: 'newSecurePass456', minLength: 8 })
   @IsString()
-  @MinLength(6)
+  @MinLength(8)
   @IsOptional()
   password?: string;
 

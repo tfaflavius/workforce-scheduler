@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsUUID, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsUUID, IsDateString, MaxLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskPriority, TaskUrgency, TaskStatus } from '../entities/task.entity';
 
@@ -6,11 +6,13 @@ export class UpdateTaskDto {
   @ApiPropertyOptional({ description: 'Task title', example: 'Review monthly report' })
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   title?: string;
 
   @ApiPropertyOptional({ description: 'Detailed task description', example: 'Review and approve the monthly financial report for March' })
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   description?: string;
 
   @ApiPropertyOptional({ description: 'Task priority level', enum: TaskPriority, example: 'HIGH' })

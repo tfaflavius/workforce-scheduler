@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AppDataSource } from '../../config/typeorm.config';
+import { BCRYPT_SALT_ROUNDS } from '../../common/constants/security';
 
 async function createAdminUser() {
   await AppDataSource.initialize();
@@ -19,7 +20,7 @@ async function createAdminUser() {
   }
 
   // Create admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const hashedPassword = await bcrypt.hash('admin123', BCRYPT_SALT_ROUNDS);
 
   await userRepository.save({
     email: 'admin@workforce.com',

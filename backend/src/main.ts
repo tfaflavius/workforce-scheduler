@@ -11,7 +11,10 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   // Security headers (X-Frame-Options, HSTS, X-Content-Type-Options, etc.)
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+    crossOriginEmbedderPolicy: false,
+  }));
 
   // Enable CORS
   const corsOrigins = process.env.CORS_ORIGIN

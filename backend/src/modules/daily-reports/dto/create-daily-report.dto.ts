@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsDateString, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDateString, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DailyReportStatus } from '../entities/daily-report.entity';
 
@@ -11,6 +11,7 @@ export class CreateDailyReportDto {
   @ApiProperty({ description: 'Report content', example: 'Completed patrol routes A and B. No incidents reported.' })
   @IsString()
   @MinLength(1)
+  @MaxLength(10000)
   content: string;
 
   @ApiPropertyOptional({ description: 'Report status', enum: DailyReportStatus, example: 'DRAFT' })

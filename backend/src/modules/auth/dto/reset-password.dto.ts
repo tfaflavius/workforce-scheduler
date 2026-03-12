@@ -12,10 +12,10 @@ export class ResetPasswordDto {
   @IsOptional()
   accessToken?: string;
 
-  @ApiProperty({ description: 'New password (6-128 characters)', example: 'newSecurePass456', minLength: 6, maxLength: 128 })
+  @ApiProperty({ description: 'New password (8-128 characters)', example: 'newSecurePass456', minLength: 8, maxLength: 128 })
   @IsString()
   @IsNotEmpty({ message: 'Parola noua este obligatorie' })
-  @MinLength(6, { message: 'Parola trebuie sa aiba cel putin 6 caractere' })
+  @MinLength(8, { message: 'Parola trebuie sa aiba cel putin 8 caractere' })
   @MaxLength(128, { message: 'Parola nu poate depasi 128 caractere' })
   newPassword: string;
 }

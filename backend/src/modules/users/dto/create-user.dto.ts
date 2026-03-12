@@ -8,10 +8,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ description: 'User password (minimum 6 characters)', example: 'securePass123', minLength: 6 })
+  @ApiProperty({ description: 'User password (minimum 8 characters)', example: 'securePass123', minLength: 8 })
   @IsString()
   @IsNotEmpty()
-  @MinLength(6)
+  @MinLength(8)
   password: string;
 
   @ApiProperty({ description: 'Full name of the user', example: 'John Doe' })
