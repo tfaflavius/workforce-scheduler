@@ -2,9 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { GlobalUuidValidationPipe } from './common/pipes/uuid-validation.pipe';
+import { XssSanitizeInterceptor } from './common/interceptors/xss-sanitize.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +17,10 @@ async function bootstrap() {
     contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
     crossOriginEmbedderPolicy: false,
   }));
+
+  // Request payload size limits (prevent DoS via large payloads)
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ limit: '10mb', extended: true }));
 
   // Enable CORS
   const corsOrigins = process.env.CORS_ORIGIN
@@ -27,6 +33,9 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  // Global XSS sanitization — strips malicious HTML/JS from all request body strings
+  app.useGlobalInterceptors(new XssSanitizeInterceptor());
 
   // Global exception filter — catches all unhandled errors, prevents stack trace leaks
   app.useGlobalFilters(new AllExceptionsFilter());

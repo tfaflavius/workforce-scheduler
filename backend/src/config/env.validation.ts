@@ -10,7 +10,24 @@ export const envValidationSchema = Joi.object({
     .valid('development', 'production', 'test')
     .default('development'),
   PORT: Joi.number().default(3000),
-  CORS_ORIGIN: Joi.string().optional(),
+  CORS_ORIGIN: Joi.string()
+    .optional()
+    .custom((value, helpers) => {
+      if (value === '*') {
+        return helpers.error('any.invalid');
+      }
+      // Validate each origin is a proper URL
+      const origins = value.split(',').map((o: string) => o.trim());
+      for (const origin of origins) {
+        if (!/^https?:\/\/.+/.test(origin)) {
+          return helpers.error('any.invalid');
+        }
+      }
+      return value;
+    })
+    .messages({
+      'any.invalid': 'CORS_ORIGIN must be comma-separated URLs (http/https). Wildcard "*" is not allowed.',
+    }),
   FRONTEND_URL: Joi.string().uri().optional(),
 
   // Database (required)

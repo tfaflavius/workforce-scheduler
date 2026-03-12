@@ -73,4 +73,12 @@ export class User {
 
   @Column({ name: 'birth_date', type: 'date', nullable: true })
   birthDate: Date;
+
+  /** Brute-force protection: failed login attempts counter */
+  @Column({ name: 'failed_login_attempts', default: 0 })
+  failedLoginAttempts: number;
+
+  /** Account locked until this timestamp (null = not locked) */
+  @Column({ name: 'locked_until', type: 'timestamptz', nullable: true })
+  lockedUntil: Date | null;
 }

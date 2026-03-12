@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MinLength, MaxLength, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, MaxLength, IsOptional, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ResetPasswordDto {
@@ -17,5 +17,8 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: 'Parola noua este obligatorie' })
   @MinLength(8, { message: 'Parola trebuie sa aiba cel putin 8 caractere' })
   @MaxLength(128, { message: 'Parola nu poate depasi 128 caractere' })
+  @Matches(/^(?=.*[A-Z])(?=.*[0-9])/, {
+    message: 'Parola trebuie sa contina cel putin o litera mare si o cifra',
+  })
   newPassword: string;
 }

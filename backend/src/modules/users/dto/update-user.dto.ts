@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsDateString, IsEmail, IsEnum, IsOptional, IsString, MinLength, MaxLength, Matches } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../entities/user.entity';
 
@@ -8,9 +8,13 @@ export class UpdateUserDto {
   @IsOptional()
   email?: string;
 
-  @ApiPropertyOptional({ description: 'User password (minimum 8 characters)', example: 'newSecurePass456', minLength: 8 })
+  @ApiPropertyOptional({ description: 'User password (8-128 chars, must contain uppercase + digit)', example: 'NewSecurePass456', minLength: 8, maxLength: 128 })
   @IsString()
-  @MinLength(8)
+  @MinLength(8, { message: 'Parola trebuie sa aiba cel putin 8 caractere' })
+  @MaxLength(128, { message: 'Parola nu poate depasi 128 caractere' })
+  @Matches(/^(?=.*[A-Z])(?=.*[0-9])/, {
+    message: 'Parola trebuie sa contina cel putin o litera mare si o cifra',
+  })
   @IsOptional()
   password?: string;
 

@@ -11,6 +11,11 @@ import { SupabaseService } from '../../common/supabase/supabase.service';
 import { EmailService } from '../../common/email/email.service';
 import { BCRYPT_SALT_ROUNDS } from '../../common/constants/security';
 
+/** Max failed login attempts before account lockout */
+const MAX_LOGIN_ATTEMPTS = 5;
+/** Lockout duration in minutes */
+const LOCKOUT_DURATION_MINUTES = 15;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -94,12 +99,27 @@ export class AuthService {
       throw new UnauthorizedException('Contul tau asteapta aprobarea unui administrator. Vei primi acces in curand.');
     }
 
+    // Check account lockout
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      this.logger.warn(`[Login] Account locked for ${loginDto.email}. ${minutesLeft} minutes remaining.`);
+      throw new UnauthorizedException(
+        `Contul este blocat temporar dupa prea multe incercari esuate. Incearca din nou in ${minutesLeft} minute.`,
+      );
+    }
+
     // Try Supabase authentication first (primary)
     try {
       const loginResult = await this.supabaseService.signIn(
         loginDto.email,
         loginDto.password,
       );
+
+      // Reset failed attempts on successful login
+      if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+        user.failedLoginAttempts = 0;
+        user.lockedUntil = null;
+      }
 
       // Update last login
       user.lastLogin = new Date();
@@ -117,6 +137,12 @@ export class AuthService {
         const isLocalPasswordValid = await bcrypt.compare(loginDto.password, user.password);
         if (isLocalPasswordValid) {
           this.logger.log(`[Login] Local password matched for ${loginDto.email}. Syncing to Supabase...`);
+
+          // Reset failed attempts on successful login
+          if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+            user.failedLoginAttempts = 0;
+            user.lockedUntil = null;
+          }
 
           // Sync password to Supabase so future logins work directly
           try {
@@ -146,6 +172,14 @@ export class AuthService {
           }
         }
       }
+
+      // Increment failed login attempts
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000);
+        this.logger.warn(`[Login] Account locked for ${loginDto.email} after ${user.failedLoginAttempts} failed attempts. Locked until ${user.lockedUntil.toISOString()}`);
+      }
+      await this.userRepository.save(user);
 
       throw new UnauthorizedException('Credentiale invalide');
     }

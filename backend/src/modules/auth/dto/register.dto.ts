@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../../users/entities/user.entity';
@@ -9,10 +9,14 @@ export class RegisterDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ description: 'User password (minimum 8 characters)', example: 'securePass123', minLength: 8 })
+  @ApiProperty({ description: 'User password (8-128 chars, must contain uppercase + digit)', example: 'SecurePass123', minLength: 8, maxLength: 128 })
   @IsString()
   @IsNotEmpty()
-  @MinLength(8)
+  @MinLength(8, { message: 'Parola trebuie sa aiba cel putin 8 caractere' })
+  @MaxLength(128, { message: 'Parola nu poate depasi 128 caractere' })
+  @Matches(/^(?=.*[A-Z])(?=.*[0-9])/, {
+    message: 'Parola trebuie sa contina cel putin o litera mare si o cifra',
+  })
   password: string;
 
   @ApiProperty({ description: 'Full name of the user', example: 'John Doe' })
