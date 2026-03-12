@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Query, UseGuards, UseInterceptors, Request } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -7,6 +8,8 @@ import { ParkingStatsService } from './parking-stats.service';
 import { PARKING_STAT_LOCATIONS } from './constants/parking.constants';
 import { HttpCacheInterceptor, CacheTTL } from '../../common/interceptors/cache.interceptor';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('parking-stats')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER)

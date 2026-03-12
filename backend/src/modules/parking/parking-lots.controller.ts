@@ -12,7 +12,10 @@ import { PaymentMachine } from './entities/payment-machine.entity';
 import { ParkingEquipment } from '../permissions/entities/parking-equipment.entity';
 import { ContactFirm } from '../permissions/entities/contact-firm.entity';
 import { EQUIPMENT_LIST, DAMAGE_EQUIPMENT_LIST, COMPANY_LIST } from './constants/parking.constants';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('parking-lots')
 @UseGuards(JwtAuthGuard, RolesGuard, ParkingAccessGuard)
 export class ParkingLotsController {

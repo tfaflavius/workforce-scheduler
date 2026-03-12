@@ -11,6 +11,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DomiciliuRequestsService } from './domiciliu-requests.service';
 import { CreateDomiciliuRequestDto } from './dto/create-domiciliu-request.dto';
@@ -20,6 +21,8 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { HandicapAccessGuard } from './guards/handicap-access.guard';
 import { DomiciliuRequestStatus, DomiciliuRequestType } from './constants/parking.constants';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('parking/domiciliu-requests')
 @UseGuards(JwtAuthGuard, HandicapAccessGuard, ThrottlerGuard)
 export class DomiciliuRequestsController {

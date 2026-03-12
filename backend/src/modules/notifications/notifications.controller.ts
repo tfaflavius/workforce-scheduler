@@ -14,6 +14,7 @@ import { NotificationsService } from './notifications.service';
 import { PushNotificationService } from './push-notification.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 interface PushSubscriptionBody {
   endpoint: string;
@@ -23,6 +24,8 @@ interface PushSubscriptionBody {
   };
 }
 
+@ApiTags('Notifications')
+@ApiBearerAuth('JWT')
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationsController {

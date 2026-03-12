@@ -1,5 +1,6 @@
 import { Body, Controller, Post, Get, Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -7,6 +8,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Public } from './decorators/public.decorator';
 
+@ApiTags('Auth')
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {

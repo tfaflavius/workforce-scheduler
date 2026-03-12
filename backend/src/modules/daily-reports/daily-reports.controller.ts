@@ -19,7 +19,10 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Daily Reports')
+@ApiBearerAuth('JWT')
 @Controller('daily-reports')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class DailyReportsController {

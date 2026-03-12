@@ -24,7 +24,10 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
 import { HttpCacheInterceptor, CacheTTL } from '../../common/interceptors/cache.interceptor';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Users')
+@ApiBearerAuth('JWT')
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 @UseInterceptors(ClassSerializerInterceptor)

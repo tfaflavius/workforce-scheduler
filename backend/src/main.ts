@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -40,10 +41,42 @@ async function bootstrap() {
   // Set global prefix
   app.setGlobalPrefix('api');
 
+  // Swagger API Documentation (available at /api/docs)
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Workforce Scheduler API')
+    .setDescription('API pentru gestionarea programelor, concediilor, parcărilor și resurselor umane')
+    .setVersion('1.0')
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
+    .addTag('Auth', 'Autentificare si gestionare sesiuni')
+    .addTag('Users', 'Gestionare utilizatori')
+    .addTag('Schedules', 'Programe de lucru')
+    .addTag('Leave Requests', 'Cereri de concediu')
+    .addTag('Shift Swaps', 'Schimburi de ture')
+    .addTag('Tasks', 'Task-uri si sarcini')
+    .addTag('Time Tracking', 'Pontaj si GPS tracking')
+    .addTag('Daily Reports', 'Rapoarte zilnice')
+    .addTag('Notifications', 'Notificari in-app si push')
+    .addTag('Reports', 'Rapoarte si export PDF/Excel')
+    .addTag('Parking', 'Module parcari (probleme, prejudicii, handicap, domiciliu)')
+    .addTag('Acquisitions', 'Achizitii')
+    .addTag('Permissions', 'Permisiuni, fluxuri si configurari')
+    .addTag('Admin', 'Dashboard si cautare admin')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+    },
+  });
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
   logger.log(`Application is running on: http://localhost:${port}/api`);
+  logger.log(`Swagger docs available at: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();

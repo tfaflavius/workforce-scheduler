@@ -17,7 +17,10 @@ import { WorkPositionsService } from './work-positions.service';
 import { CreateWorkPositionDto, UpdateWorkPositionDto } from './dto/work-position.dto';
 import { WorkPosition } from './entities/work-position.entity';
 import { UserRole } from '../users/entities/user.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Schedules')
+@ApiBearerAuth('JWT')
 @Controller('work-positions')
 @UseGuards(JwtAuthGuard)
 export class WorkPositionsController {

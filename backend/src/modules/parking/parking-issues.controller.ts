@@ -11,6 +11,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -25,6 +26,8 @@ import { ParkingIssueComment } from './entities/parking-issue-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
 import { UserRole } from '../users/entities/user.entity';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('parking-issues')
 @UseGuards(JwtAuthGuard, ParkingAccessGuard, ThrottlerGuard)
 export class ParkingIssuesController {

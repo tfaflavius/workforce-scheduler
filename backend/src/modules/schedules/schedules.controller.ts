@@ -18,7 +18,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Schedules')
+@ApiBearerAuth('JWT')
 @Controller('schedules')
 @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 export class SchedulesController {

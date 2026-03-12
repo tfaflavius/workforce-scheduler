@@ -19,7 +19,10 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { TaskStatus } from './entities/task.entity';
 import { UserRole } from '../users/entities/user.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Tasks')
+@ApiBearerAuth('JWT')
 @Controller('tasks')
 @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 export class TasksController {

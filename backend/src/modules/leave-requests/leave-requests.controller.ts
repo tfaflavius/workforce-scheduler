@@ -21,7 +21,10 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { LeaveRequestStatus } from './entities/leave-request.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Leave Requests')
+@ApiBearerAuth('JWT')
 @Controller('leave-requests')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class LeaveRequestsController {

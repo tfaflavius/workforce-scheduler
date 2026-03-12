@@ -22,7 +22,10 @@ import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/create-invoice.dto';
 import { CreateRevenueCategoryDto, UpdateRevenueCategoryDto } from './dto/create-revenue-category.dto';
 import { UpsertMonthlyRevenueDto } from './dto/create-monthly-revenue.dto';
 import { BudgetCategory } from './entities/budget-position.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Acquisitions')
+@ApiBearerAuth('JWT')
 @Controller('acquisitions')
 @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)

@@ -23,6 +23,7 @@ import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
 import { PV_DAY_STATUS } from '../parking/constants/parking.constants';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 interface DashboardStatsResponse {
   schedules: {
@@ -91,6 +92,8 @@ interface DashboardStatsResponse {
   };
 }
 
+@ApiTags('Admin')
+@ApiBearerAuth('JWT')
 @Controller('admin/dashboard')
 @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 export class DashboardController {

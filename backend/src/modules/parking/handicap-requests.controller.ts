@@ -11,6 +11,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -33,6 +34,8 @@ import {
 } from './constants/parking.constants';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('handicap-requests')
 @UseGuards(JwtAuthGuard, HandicapAccessGuard, ThrottlerGuard)
 export class HandicapRequestsController {

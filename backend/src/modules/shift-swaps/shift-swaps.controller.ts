@@ -19,7 +19,10 @@ import { CreateSwapRequestDto } from './dto/create-swap-request.dto';
 import { RespondSwapDto } from './dto/respond-swap.dto';
 import { AdminApproveSwapDto, AdminRejectSwapDto } from './dto/admin-approve-swap.dto';
 import { ShiftSwapStatus } from './entities/shift-swap-request.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Shift Swaps')
+@ApiBearerAuth('JWT')
 @Controller('shift-swaps')
 @UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 export class ShiftSwapsController {

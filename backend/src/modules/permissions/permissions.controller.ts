@@ -14,7 +14,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Permissions')
+@ApiBearerAuth('JWT')
 @Controller('permissions')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.MASTER_ADMIN)

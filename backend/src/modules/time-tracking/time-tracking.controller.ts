@@ -18,7 +18,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Time Tracking')
+@ApiBearerAuth('JWT')
 @Controller('time-tracking')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 @Throttle({ default: { limit: 30, ttl: 60000 } })

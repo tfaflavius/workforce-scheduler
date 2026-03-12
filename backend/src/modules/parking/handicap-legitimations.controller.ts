@@ -12,6 +12,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { CreateHandicapLegitimationDto } from './dto/create-handicap-legitimation.dto';
@@ -23,6 +24,8 @@ import { UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('parking/handicap-legitimations')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class HandicapLegitimationsController {

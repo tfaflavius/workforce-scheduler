@@ -12,6 +12,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 import { CreateRevolutionarLegitimationDto } from './dto/create-revolutionar-legitimation.dto';
@@ -23,6 +24,8 @@ import { UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('parking/revolutionar-legitimations')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class RevolutionarLegitimationsController {

@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -23,6 +24,8 @@ import { AdminAssignPvDayDto } from './dto/admin-assign-pv-day.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { PvSessionStatus } from './constants/parking.constants';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('pv-display')
 @UseGuards(JwtAuthGuard, PvDisplayAccessGuard)
 export class PvDisplayController {

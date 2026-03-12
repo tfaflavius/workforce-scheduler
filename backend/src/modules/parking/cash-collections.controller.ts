@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -18,6 +19,8 @@ import { CreateCashCollectionDto } from './dto/create-cash-collection.dto';
 import { CashCollection } from './entities/cash-collection.entity';
 import { UserRole } from '../users/entities/user.entity';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('cash-collections')
 @UseGuards(JwtAuthGuard, ParkingAccessGuard)
 export class CashCollectionsController {

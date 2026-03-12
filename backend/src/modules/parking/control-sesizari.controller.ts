@@ -11,6 +11,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -26,6 +27,8 @@ import { ParkingHistory } from './entities/parking-history.entity';
 import { UserRole } from '../users/entities/user.entity';
 import { ControlSesizareStatus, ControlSesizareType } from './constants/parking.constants';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('control-sesizari')
 @UseGuards(JwtAuthGuard, ControlSesizareAccessGuard, ThrottlerGuard)
 export class ControlSesizariController {

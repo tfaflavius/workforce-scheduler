@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -16,6 +17,8 @@ import { ParkingMetersService } from './parking-meters.service';
 import { ParkingMeter } from './entities/parking-meter.entity';
 import { CreateParkingMeterDto, UpdateParkingMeterDto } from './dto/parking-meter.dto';
 
+@ApiTags('Parking')
+@ApiBearerAuth('JWT')
 @Controller('parking-meters')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ParkingMetersController {

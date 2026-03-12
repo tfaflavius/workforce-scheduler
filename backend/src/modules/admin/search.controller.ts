@@ -15,6 +15,7 @@ import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { ShiftSwapRequest } from '../shift-swaps/entities/shift-swap-request.entity';
 import { Department } from '../departments/entities/department.entity';
 import { HttpCacheInterceptor, CacheTTL } from '../../common/interceptors/cache.interceptor';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   DISPECERAT_DEPARTMENT_NAME,
   CONTROL_DEPARTMENT_NAME,
@@ -151,6 +152,8 @@ const PAGES: { label: string; path: string; keywords: string[]; access: AccessRu
   { label: 'Notificari', path: '/notifications', keywords: ['notificare', 'notificari', 'notifications'], access: ACCESS_ALL },
 ];
 
+@ApiTags('Admin')
+@ApiBearerAuth('JWT')
 @Controller('search')
 @UseGuards(JwtAuthGuard, ThrottlerGuard)
 @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 searches per minute
