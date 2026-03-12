@@ -6,6 +6,7 @@ import { User } from '../users/entities/user.entity';
 import { NotificationSettingCheckService } from './notification-setting-check.service';
 import { PushNotificationService } from './push-notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { formatMonthYear } from '../../common/utils/romanian-months';
 
 // URL mapping per notification type - used for push notification click navigation
 const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
@@ -232,18 +233,13 @@ export class NotificationsService {
     monthYear: string,
     approverName: string,
   ): Promise<Notification | null> {
-    const [year, month] = monthYear.split('-');
-    const monthNames = [
-      'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
-      'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
-    ];
-    const monthName = monthNames[parseInt(month) - 1];
+    const formatted = formatMonthYear(monthYear);
 
     return this.create({
       userId,
       type: NotificationType.SCHEDULE_APPROVED,
       title: 'Program aprobat',
-      message: `Programul tau pentru ${monthName} ${year} a fost aprobat de ${approverName}.`,
+      message: `Programul tau pentru ${formatted} a fost aprobat de ${approverName}.`,
       data: { monthYear, approverName },
     });
   }
@@ -254,18 +250,13 @@ export class NotificationsService {
     reason: string,
     rejectorName: string,
   ): Promise<Notification | null> {
-    const [year, month] = monthYear.split('-');
-    const monthNames = [
-      'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
-      'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
-    ];
-    const monthName = monthNames[parseInt(month) - 1];
+    const formatted = formatMonthYear(monthYear);
 
     return this.create({
       userId,
       type: NotificationType.SCHEDULE_REJECTED,
       title: 'Program respins',
-      message: `Programul pentru ${monthName} ${year} a fost respins. Motiv: ${reason}`,
+      message: `Programul pentru ${formatted} a fost respins. Motiv: ${reason}`,
       data: { monthYear, reason, rejectorName },
     });
   }
@@ -275,18 +266,13 @@ export class NotificationsService {
     monthYear: string,
     creatorName: string,
   ): Promise<Notification[]> {
-    const [year, month] = monthYear.split('-');
-    const monthNames = [
-      'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
-      'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
-    ];
-    const monthName = monthNames[parseInt(month) - 1];
+    const formatted = formatMonthYear(monthYear);
 
     const notifications = userIds.map(userId => ({
       userId,
       type: NotificationType.SCHEDULE_CREATED,
       title: 'Program nou creat',
-      message: `A fost creat un program nou pentru ${monthName} ${year} de catre ${creatorName}.`,
+      message: `A fost creat un program nou pentru ${formatted} de catre ${creatorName}.`,
       data: { monthYear, creatorName },
     }));
 
@@ -298,18 +284,13 @@ export class NotificationsService {
     monthYear: string,
     updaterName: string,
   ): Promise<Notification[]> {
-    const [year, month] = monthYear.split('-');
-    const monthNames = [
-      'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
-      'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
-    ];
-    const monthName = monthNames[parseInt(month) - 1];
+    const formatted = formatMonthYear(monthYear);
 
     const notifications = userIds.map(userId => ({
       userId,
       type: NotificationType.SCHEDULE_UPDATED,
       title: 'Program actualizat',
-      message: `Programul pentru ${monthName} ${year} a fost actualizat de ${updaterName}.`,
+      message: `Programul pentru ${formatted} a fost actualizat de ${updaterName}.`,
       data: { monthYear, updaterName },
     }));
 

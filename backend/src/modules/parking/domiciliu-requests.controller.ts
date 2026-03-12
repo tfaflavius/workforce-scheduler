@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DomiciliuRequestsService } from './domiciliu-requests.service';
 import { CreateDomiciliuRequestDto } from './dto/create-domiciliu-request.dto';
@@ -20,7 +21,7 @@ import { HandicapAccessGuard } from './guards/handicap-access.guard';
 import { DomiciliuRequestStatus, DomiciliuRequestType } from './constants/parking.constants';
 
 @Controller('parking/domiciliu-requests')
-@UseGuards(JwtAuthGuard, HandicapAccessGuard)
+@UseGuards(JwtAuthGuard, HandicapAccessGuard, ThrottlerGuard)
 export class DomiciliuRequestsController {
   constructor(private readonly domiciliuRequestsService: DomiciliuRequestsService) {}
 

@@ -5,12 +5,15 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { ParkingLot } from './parking-lot.entity';
 import { PaymentMachine } from './payment-machine.entity';
 import { User } from '../../users/entities/user.entity';
 
 @Entity('cash_collections')
+@Index('IDX_cash_collections_parking_lot_id', ['parkingLotId'])
+@Index('IDX_cash_collections_collected_at', ['collectedAt'])
 export class CashCollection {
   @PrimaryGeneratedColumn('uuid')
   id: string;

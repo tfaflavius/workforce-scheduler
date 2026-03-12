@@ -50,6 +50,7 @@ import {
 } from '../../../store/api/permissions.api';
 import { useGetDepartmentsQuery } from '../../../store/api/departmentsApi';
 import { TASK_TYPE_LABELS, TASK_TYPE_DEFINITIONS, FLOW_STEP_LABELS, FLOW_STATUS_STEPS } from '../../../constants/permissions';
+import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 import DepartmentFlowCard from './DepartmentFlowCard';
 import type { TaskFlowRule, CreateTaskFlowRequest } from '../../../types/permission.types';
@@ -70,9 +71,6 @@ const getRoleColor = (role: string | null) => {
     default: return 'default';
   }
 };
-
-const getRoleLabel = (role: string | null) =>
-  ROLES.find((r) => r.key === role)?.label || 'Oricine';
 
 interface FlowStepProps {
   label: string;

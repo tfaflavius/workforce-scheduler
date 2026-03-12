@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { TimeEntry } from './time-entry.entity';
 
 @Entity('location_logs')
+@Index('IDX_location_logs_time_entry_id', ['timeEntryId'])
 export class LocationLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;

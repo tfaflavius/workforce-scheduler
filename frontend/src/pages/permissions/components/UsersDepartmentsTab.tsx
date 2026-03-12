@@ -32,6 +32,7 @@ import { useGetUsersQuery } from '../../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../../store/api/departmentsApi';
 import { useGetSummaryQuery, useGetTaskFlowsQuery } from '../../../store/api/permissions.api';
 import DepartmentFlowOverview from './DepartmentFlowOverview';
+import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 
 const getRoleColor = (role: string) => {
@@ -41,16 +42,6 @@ const getRoleColor = (role: string) => {
     case 'MANAGER': return 'warning';
     case 'USER': return 'info';
     default: return 'default';
-  }
-};
-
-const getRoleLabel = (role: string) => {
-  switch (role) {
-    case 'MASTER_ADMIN': return 'Master Admin';
-    case 'ADMIN': return 'Admin';
-    case 'MANAGER': return 'Manager';
-    case 'USER': return 'Utilizator';
-    default: return role;
   }
 };
 

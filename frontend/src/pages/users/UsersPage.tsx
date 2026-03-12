@@ -67,6 +67,7 @@ import { DeleteUserDialog } from '../../components/users/DeleteUserDialog';
 import { UserStatusChip } from '../../components/users/UserStatusChip';
 import { TableSkeleton } from '../../components/common';
 import type { User } from '../../store/api/users.api';
+import { getRoleLabel, getRoleBadgeColor } from '../../utils/roleHelpers';
 
 const UsersPage: React.FC = () => {
   const theme = useTheme();
@@ -204,36 +205,6 @@ const UsersPage: React.FC = () => {
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'MASTER_ADMIN':
-        return 'secondary';
-      case 'ADMIN':
-        return 'error';
-      case 'MANAGER':
-        return 'warning';
-      case 'USER':
-        return 'info';
-      default:
-        return 'default';
-    }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'MASTER_ADMIN':
-        return 'Master Admin';
-      case 'ADMIN':
-        return 'Admin';
-      case 'MANAGER':
-        return 'Manager';
-      case 'USER':
-        return 'User';
-      default:
-        return role;
-    }
   };
 
   const isMasterAdmin = currentUser?.role === 'MASTER_ADMIN';
@@ -669,7 +640,7 @@ const UsersPage: React.FC = () => {
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            📍 {user.department.name}
+                            {user.department.name}
                           </Typography>
                         )}
                       </CardContent>

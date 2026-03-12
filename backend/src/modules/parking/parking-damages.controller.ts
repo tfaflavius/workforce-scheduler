@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -24,7 +25,7 @@ import { ParkingHistory } from './entities/parking-history.entity';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('parking-damages')
-@UseGuards(JwtAuthGuard, ParkingAccessGuard)
+@UseGuards(JwtAuthGuard, ParkingAccessGuard, ThrottlerGuard)
 export class ParkingDamagesController {
   constructor(private readonly parkingDamagesService: ParkingDamagesService) {}
 

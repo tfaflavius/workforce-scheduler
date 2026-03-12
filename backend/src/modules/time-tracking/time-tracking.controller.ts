@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { TimeTrackingService } from './time-tracking.service';
 import { GeocodingService } from './geocoding.service';
 import { StartTimerDto } from './dto/start-timer.dto';
@@ -19,7 +20,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('time-tracking')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ThrottlerGuard)
+@Throttle({ default: { limit: 30, ttl: 60000 } })
 export class TimeTrackingController {
   constructor(
     private readonly timeTrackingService: TimeTrackingService,
@@ -143,6 +145,7 @@ export class TimeTrackingController {
   }
 
   @Post('location')
+  @Throttle({ default: { limit: 60, ttl: 60000 } })
   recordLocation(@Body() recordLocationDto: RecordLocationDto, @Request() req) {
     return this.timeTrackingService.recordLocation(req.user.id, recordLocationDto);
   }

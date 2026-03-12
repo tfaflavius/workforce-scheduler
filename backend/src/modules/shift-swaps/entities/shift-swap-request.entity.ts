@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { ShiftSwapResponse } from './shift-swap-response.entity';
@@ -21,6 +22,9 @@ export enum ShiftSwapStatus {
 }
 
 @Entity('shift_swap_requests')
+@Index('IDX_shift_swap_requests_requester_id', ['requesterId'])
+@Index('IDX_shift_swap_requests_status', ['status'])
+@Index('IDX_shift_swap_requests_requester_date_target_date', ['requesterDate', 'targetDate'])
 export class ShiftSwapRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;

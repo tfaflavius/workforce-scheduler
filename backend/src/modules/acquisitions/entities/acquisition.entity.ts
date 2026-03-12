@@ -7,11 +7,13 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { BudgetPosition } from './budget-position.entity';
 import { AcquisitionInvoice } from './acquisition-invoice.entity';
 
 @Entity('acquisitions')
+@Index('IDX_acquisitions_budget_position_id', ['budgetPositionId'])
 export class Acquisition {
   @PrimaryGeneratedColumn('uuid')
   id: string;

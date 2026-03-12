@@ -55,12 +55,14 @@ import {
 import type { CashCollection } from '../../../types/parking.types';
 import CreateCollectionDialog from './CreateCollectionDialog';
 import { formatDateTime } from '../../../utils/dateFormatters';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 const CashCollectionsTab: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedParkingLotId, setSelectedParkingLotId] = useState<string>('');
@@ -133,6 +135,7 @@ const CashCollectionsTab: React.FC = () => {
           await deleteCollection(id).unwrap();
         } catch (error) {
           console.error('Error deleting collection:', error);
+          notifyError('Eroare la stergerea ridicarii.');
         }
       },
     });

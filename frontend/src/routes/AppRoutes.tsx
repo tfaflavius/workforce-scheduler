@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage';
@@ -6,6 +6,7 @@ import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
+import { RouteErrorBoundary } from '../components/RouteErrorBoundary';
 import { useAppSelector } from '../store/hooks';
 import { Box, CircularProgress } from '@mui/material';
 import {
@@ -52,6 +53,15 @@ const PageLoader = () => (
   </Box>
 );
 
+/** Wraps a lazy-loaded page component with RouteErrorBoundary + Suspense */
+const SafePage = ({ children }: { children: ReactNode }) => (
+  <RouteErrorBoundary>
+    <Suspense fallback={<PageLoader />}>
+      {children}
+    </Suspense>
+  </RouteErrorBoundary>
+);
+
 export const AppRoutes = () => {
   const { token } = useAppSelector((state) => state.auth);
 
@@ -78,36 +88,36 @@ export const AppRoutes = () => {
         }
       >
         {/* Dashboard - accessible by all authenticated users (not lazy - first page users see) */}
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<RouteErrorBoundary><DashboardPage /></RouteErrorBoundary>} />
 
         {/* My Schedule - for employees */}
-        <Route path="/my-schedule" element={<Suspense fallback={<PageLoader />}><MySchedulePage /></Suspense>} />
+        <Route path="/my-schedule" element={<SafePage><MySchedulePage /></SafePage>} />
 
         {/* Shift Swaps - for all users */}
-        <Route path="/shift-swaps" element={<Suspense fallback={<PageLoader />}><ShiftSwapsPage /></Suspense>} />
+        <Route path="/shift-swaps" element={<SafePage><ShiftSwapsPage /></SafePage>} />
 
         {/* Admin Shift Swaps */}
         <Route
           path="/admin/shift-swaps"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><AdminShiftSwapsPage /></Suspense>
+              <SafePage><AdminShiftSwapsPage /></SafePage>
             </ProtectedRoute>
           }
         />
 
         {/* Daily Reports - for all users */}
-        <Route path="/daily-reports" element={<Suspense fallback={<PageLoader />}><DailyReportsPage /></Suspense>} />
+        <Route path="/daily-reports" element={<SafePage><DailyReportsPage /></SafePage>} />
 
         {/* Leave Requests - for all users */}
-        <Route path="/leave-requests" element={<Suspense fallback={<PageLoader />}><LeaveRequestsPage /></Suspense>} />
+        <Route path="/leave-requests" element={<SafePage><LeaveRequestsPage /></SafePage>} />
 
         {/* Admin Leave Requests */}
         <Route
           path="/admin/leave-requests"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><AdminLeaveRequestsPage /></Suspense>
+              <SafePage><AdminLeaveRequestsPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -117,7 +127,7 @@ export const AppRoutes = () => {
           path="/schedules"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-              <Suspense fallback={<PageLoader />}><SchedulesPage /></Suspense>
+              <SafePage><SchedulesPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -126,7 +136,7 @@ export const AppRoutes = () => {
           path="/schedules/create"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-              <Suspense fallback={<PageLoader />}><CreateSchedulePage /></Suspense>
+              <SafePage><CreateSchedulePage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -135,7 +145,7 @@ export const AppRoutes = () => {
           path="/schedules/bulk"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
-              <Suspense fallback={<PageLoader />}><BulkSchedulePage /></Suspense>
+              <SafePage><BulkSchedulePage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -144,7 +154,7 @@ export const AppRoutes = () => {
           path="/schedules/pending"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><PendingSchedulesPage /></Suspense>
+              <SafePage><PendingSchedulesPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -153,14 +163,14 @@ export const AppRoutes = () => {
           path="/schedules/rejected"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><RejectedSchedulesPage /></Suspense>
+              <SafePage><RejectedSchedulesPage /></SafePage>
             </ProtectedRoute>
           }
         />
 
         <Route path="/schedules/:id" element={
           <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'MASTER_ADMIN']}>
-            <Suspense fallback={<PageLoader />}><EditSchedulePage /></Suspense>
+            <SafePage><EditSchedulePage /></SafePage>
           </ProtectedRoute>
         } />
 
@@ -169,7 +179,7 @@ export const AppRoutes = () => {
           path="/users"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><UsersPage /></Suspense>
+              <SafePage><UsersPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -179,32 +189,32 @@ export const AppRoutes = () => {
           path="/reports"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><ReportsPage /></Suspense>
+              <SafePage><ReportsPage /></SafePage>
             </ProtectedRoute>
           }
         />
 
         {/* Profile */}
-        <Route path="/profile" element={<Suspense fallback={<PageLoader />}><UserProfilePage /></Suspense>} />
+        <Route path="/profile" element={<SafePage><UserProfilePage /></SafePage>} />
 
         {/* Notifications - all authenticated users */}
-        <Route path="/notifications" element={<Suspense fallback={<PageLoader />}><NotificationsPage /></Suspense>} />
+        <Route path="/notifications" element={<SafePage><NotificationsPage /></SafePage>} />
 
         {/* Parking - Dispecerat, Manager, Admin */}
-        <Route path="/parking" element={<Suspense fallback={<PageLoader />}><ParkingPage /></Suspense>} />
+        <Route path="/parking" element={<SafePage><ParkingPage /></SafePage>} />
 
         {/* Handicap Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
-        <Route path="/parking/handicap" element={<Suspense fallback={<PageLoader />}><HandicapParkingPage /></Suspense>} />
+        <Route path="/parking/handicap" element={<SafePage><HandicapParkingPage /></SafePage>} />
 
         {/* Domiciliu Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
-        <Route path="/parking/domiciliu" element={<Suspense fallback={<PageLoader />}><DomiciliuParkingPage /></Suspense>} />
+        <Route path="/parking/domiciliu" element={<SafePage><DomiciliuParkingPage /></SafePage>} />
 
         {/* Admin Time Tracking */}
         <Route
           path="/admin/pontaj"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><AdminTimeTrackingPage /></Suspense>
+              <SafePage><AdminTimeTrackingPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -214,7 +224,7 @@ export const AppRoutes = () => {
           path="/admin/edit-requests"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <Suspense fallback={<PageLoader />}><AdminEditRequestsPage /></Suspense>
+              <SafePage><AdminEditRequestsPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -224,7 +234,7 @@ export const AppRoutes = () => {
           path="/procese-verbale"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME]}>
-              <Suspense fallback={<PageLoader />}><ProcesVerbalePage /></Suspense>
+              <SafePage><ProcesVerbalePage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -232,7 +242,7 @@ export const AppRoutes = () => {
           path="/parcometre"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PARCOMETRE_DEPARTMENT_NAME]}>
-              <Suspense fallback={<PageLoader />}><ParcometrePage /></Suspense>
+              <SafePage><ParcometrePage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -240,7 +250,7 @@ export const AppRoutes = () => {
           path="/achizitii"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[ACHIZITII_DEPARTMENT_NAME]}>
-              <Suspense fallback={<PageLoader />}><AchizitiiPage /></Suspense>
+              <SafePage><AchizitiiPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -248,7 +258,7 @@ export const AppRoutes = () => {
           path="/incasari-cheltuieli"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[ACHIZITII_DEPARTMENT_NAME]}>
-              <Suspense fallback={<PageLoader />}><IncasariCheltuieliPage /></Suspense>
+              <SafePage><IncasariCheltuieliPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -257,7 +267,7 @@ export const AppRoutes = () => {
           path="/admin/permissions"
           element={
             <ProtectedRoute allowedRoles={['MASTER_ADMIN']}>
-              <Suspense fallback={<PageLoader />}><PermissionsPage /></Suspense>
+              <SafePage><PermissionsPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -266,7 +276,7 @@ export const AppRoutes = () => {
           path="/control-sesizari"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME]}>
-              <Suspense fallback={<PageLoader />}><ControlSesizariPage /></Suspense>
+              <SafePage><ControlSesizariPage /></SafePage>
             </ProtectedRoute>
           }
         />
@@ -284,7 +294,7 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage /></Suspense>} />
+          <Route path="*" element={<SafePage><NotFoundPage /></SafePage>} />
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" replace />} />

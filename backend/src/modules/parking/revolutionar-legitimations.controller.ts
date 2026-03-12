@@ -11,6 +11,7 @@ import {
   Request,
   ForbiddenException,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RevolutionarLegitimationsService } from './revolutionar-legitimations.service';
 import { CreateRevolutionarLegitimationDto } from './dto/create-revolutionar-legitimation.dto';
@@ -23,7 +24,7 @@ import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Controller('parking/revolutionar-legitimations')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class RevolutionarLegitimationsController {
   constructor(private readonly legitimationsService: RevolutionarLegitimationsService) {}
 

@@ -89,6 +89,7 @@ import {
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import FriendlyDialog from '../../components/common/FriendlyDialog';
 import { removeDiacritics } from '../../utils/removeDiacritics';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
   CONTROL_DEPARTMENT_NAME,
   MAINTENANCE_DEPARTMENT_NAME,
@@ -470,6 +471,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
 
   const { data: sesizare, isLoading, refetch } = useGetControlSesizareQuery(sesizareId!, { skip: !sesizareId });
   const { data: history = [] } = useGetControlHistoryQuery(sesizareId!, { skip: !sesizareId });
@@ -548,6 +550,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       refetch();
     } catch (error) {
       console.error('Error updating sesizare:', error);
+      notifyError('Eroare la actualizarea sesizarii.');
     }
   };
 
@@ -558,6 +561,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+      notifyError('Eroare la adaugarea comentariului.');
     }
   };
 
@@ -570,6 +574,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       onClose();
     } catch (error) {
       console.error('Error resolving sesizare:', error);
+      notifyError('Eroare la rezolvarea sesizarii.');
     }
   };
 
@@ -587,6 +592,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
           onClose();
         } catch (error) {
           console.error('Error deleting sesizare:', error);
+          notifyError('Eroare la stergerea sesizarii.');
         }
       },
     });

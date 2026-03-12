@@ -7,12 +7,16 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { HandicapRequestComment } from './handicap-request-comment.entity';
 import { HandicapRequestType, HandicapRequestStatus } from '../constants/parking.constants';
 
 @Entity('handicap_requests')
+@Index('IDX_handicap_requests_status', ['status'])
+@Index('IDX_handicap_requests_request_type', ['requestType'])
+@Index('IDX_handicap_requests_created_at', ['createdAt'])
 export class HandicapRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;

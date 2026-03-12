@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import { formatMonthYear as formatMonthYearUtil } from '../utils/romanian-months';
 
 // ============== INTERFACES ==============
 
@@ -543,12 +544,7 @@ export class EmailService {
   // ============== HELPER METHODS ==============
 
   private formatMonthYear(monthYear: string): string {
-    const [year, month] = monthYear.split('-');
-    const months = [
-      'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
-      'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'
-    ];
-    return `${months[parseInt(month) - 1]} ${year}`;
+    return formatMonthYearUtil(monthYear);
   }
 
   private formatDate(dateString: string): string {

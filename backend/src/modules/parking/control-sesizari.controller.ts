@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -26,7 +27,7 @@ import { UserRole } from '../users/entities/user.entity';
 import { ControlSesizareStatus, ControlSesizareType } from './constants/parking.constants';
 
 @Controller('control-sesizari')
-@UseGuards(JwtAuthGuard, ControlSesizareAccessGuard)
+@UseGuards(JwtAuthGuard, ControlSesizareAccessGuard, ThrottlerGuard)
 export class ControlSesizariController {
   constructor(private readonly controlSesizariService: ControlSesizariService) {}
 

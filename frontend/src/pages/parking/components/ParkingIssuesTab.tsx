@@ -61,6 +61,7 @@ import ResolveIssueDialog from './ResolveIssueDialog';
 import IssueDetailsDialog from './IssueDetailsDialog';
 import EditIssueDialog from './EditIssueDialog';
 import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 interface ParkingIssuesTabProps {
   initialOpenId?: string | null;
@@ -72,6 +73,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 430px
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg')); // 430px - 1024px
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
 
   // When opening from notification, show ALL issues so we can find the specific one
   const [statusFilter, setStatusFilter] = useState<'ALL' | ParkingIssueStatus>(initialOpenId ? 'ALL' : 'ACTIVE');
@@ -139,6 +141,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           await deleteIssue(id).unwrap();
         } catch (error) {
           console.error('Error deleting issue:', error);
+          notifyError('Eroare la stergerea problemei.');
         }
       },
     });

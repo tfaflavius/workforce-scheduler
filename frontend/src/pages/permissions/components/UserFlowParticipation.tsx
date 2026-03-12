@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { useGetTaskFlowsQuery } from '../../../store/api/permissions.api';
 import { TASK_TYPE_LABELS } from '../../../constants/permissions';
+import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 import type { TaskFlowRule } from '../../../types/permission.types';
 
@@ -37,16 +38,6 @@ const matchesRole = (flowRole: string | null, userRole: string) =>
 
 const matchesDept = (flowDeptId: string | null, userDeptId: string | null) =>
   flowDeptId === null || flowDeptId === userDeptId;
-
-const getRoleLabel = (role: string | null) => {
-  switch (role) {
-    case 'MASTER_ADMIN': return 'Master Admin';
-    case 'ADMIN': return 'Admin';
-    case 'MANAGER': return 'Manager';
-    case 'USER': return 'Utilizator';
-    default: return 'Oricine';
-  }
-};
 
 const FlowEntry = ({ flow, highlightStep }: { flow: TaskFlowRule; highlightStep: 'creator' | 'receiver' | 'resolver' }) => {
   const steps = [

@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
@@ -17,6 +18,7 @@ export enum DailyReportStatus {
 
 @Entity('daily_reports')
 @Unique(['userId', 'date'])
+@Index('IDX_daily_reports_status', ['status'])
 export class DailyReport {
   @PrimaryGeneratedColumn('uuid')
   id: string;

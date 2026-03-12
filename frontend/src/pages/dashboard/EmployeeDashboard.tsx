@@ -77,6 +77,7 @@ import {
   PARCOMETRE_DEPARTMENT_NAME,
 } from '../../constants/departments';
 import { formatTimeManual as formatTime } from '../../utils/dateFormatters';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 // GPS tracking: capture every 10 minutes when possible
 const LOCATION_TRACKING_INTERVAL_MS = 10 * 60 * 1000;
@@ -97,6 +98,7 @@ const EmployeeDashboard = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
   const currentDate = new Date();
 
   const currentMonth = currentDate.getMonth() + 1;
@@ -497,6 +499,7 @@ const EmployeeDashboard = () => {
       captureLocation(result.id, false).catch(() => {});
     } catch (err: any) {
       console.error('Failed to start timer:', err);
+      notifyError('Eroare la pornirea pontajului.');
     }
   };
 
@@ -540,6 +543,7 @@ const EmployeeDashboard = () => {
       refetchActiveTimer();
     } catch (err: any) {
       console.error('Failed to stop timer:', err);
+      notifyError('Eroare la oprirea pontajului.');
     }
   };
 

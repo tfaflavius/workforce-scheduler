@@ -11,6 +11,7 @@ import {
   Request,
   ForbiddenException,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { HandicapLegitimationsService } from './handicap-legitimations.service';
 import { CreateHandicapLegitimationDto } from './dto/create-handicap-legitimation.dto';
@@ -23,7 +24,7 @@ import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Controller('parking/handicap-legitimations')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ThrottlerGuard)
 export class HandicapLegitimationsController {
   constructor(private readonly legitimationsService: HandicapLegitimationsService) {}
 

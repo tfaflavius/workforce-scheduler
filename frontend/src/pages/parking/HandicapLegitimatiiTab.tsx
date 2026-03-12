@@ -64,6 +64,7 @@ import type {
 import { HANDICAP_LEGITIMATION_STATUS_LABELS } from '../../types/handicap.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import FriendlyDialog from '../../components/common/FriendlyDialog';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 // Culori
 const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
@@ -192,6 +193,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [createLegitimation, { isLoading }] = useCreateHandicapLegitimationMutation();
+  const { notifyError } = useSnackbar();
 
   const [formData, setFormData] = useState<CreateHandicapLegitimationDto>({
     personName: '',
@@ -218,6 +220,7 @@ const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ ope
       });
     } catch (error) {
       console.error('Error creating legitimation:', error);
+      notifyError('Eroare la crearea legitimatiei.');
     }
   };
 
@@ -394,6 +397,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { notifyError } = useSnackbar();
   const [activeSection, setActiveSection] = useState<'details' | 'comments' | 'history'>('details');
   const [newComment, setNewComment] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -468,6 +472,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
       refetch();
     } catch (error) {
       console.error('Error updating legitimation:', error);
+      notifyError('Eroare la actualizarea legitimatiei.');
     }
   };
 
@@ -478,6 +483,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+      notifyError('Eroare la adaugarea comentariului.');
     }
   };
 
@@ -495,6 +501,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
           onClose();
         } catch (error) {
           console.error('Error deleting legitimation:', error);
+          notifyError('Eroare la stergerea legitimatiei.');
         }
       },
     });

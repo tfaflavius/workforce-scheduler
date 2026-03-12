@@ -11,6 +11,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { ReportsService } from './reports.service';
 import { ExportScheduleDto } from './dto/export-schedule.dto';
 import { OvertimeReportFilters } from './dto/overtime-report.dto';
@@ -20,7 +21,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('reports')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
+@Throttle({ default: { limit: 5, ttl: 60000 } })
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 

@@ -1,11 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
-const ROLE_HIERARCHY: Record<string, number> = {
-  'USER': 0,
-  'MANAGER': 1,
-  'ADMIN': 2,
-  'MASTER_ADMIN': 3,
-};
+import { ROLE_HIERARCHY } from '../../utils/roleHelpers';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

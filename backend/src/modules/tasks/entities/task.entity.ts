@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
@@ -34,6 +35,10 @@ export enum TaskStatus {
 }
 
 @Entity('tasks')
+@Index('IDX_tasks_status', ['status'])
+@Index('IDX_tasks_assigned_to', ['assignedTo'])
+@Index('IDX_tasks_assigned_by', ['assignedBy'])
+@Index('IDX_tasks_department_id', ['departmentId'])
 export class Task {
   @PrimaryGeneratedColumn('uuid')
   id: string;

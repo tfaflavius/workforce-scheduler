@@ -10,6 +10,7 @@ import {
   Request,
   Query,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -20,7 +21,7 @@ import { TaskStatus } from './entities/task.entity';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 

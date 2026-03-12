@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AcquisitionsService } from './acquisitions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -23,7 +24,7 @@ import { UpsertMonthlyRevenueDto } from './dto/create-monthly-revenue.dto';
 import { BudgetCategory } from './entities/budget-position.entity';
 
 @Controller('acquisitions')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, ThrottlerGuard)
 @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
 export class AcquisitionsController {
   constructor(private readonly acquisitionsService: AcquisitionsService) {}

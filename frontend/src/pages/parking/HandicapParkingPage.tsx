@@ -101,6 +101,7 @@ import HandicapLegitimatiiTab from './HandicapLegitimatiiTab';
 import RevolutionarLegitimatiiTab from './RevolutionarLegitimatiiTab';
 import type { RevolutionarLegitimationStatus } from '../../types/handicap.types';
 import FriendlyDialog from '../../components/common/FriendlyDialog';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
   MAINTENANCE_DEPARTMENT_NAME,
   HANDICAP_DEPARTMENT_NAME,
@@ -465,6 +466,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
 
   const { data: request, isLoading, refetch } = useGetHandicapRequestQuery(requestId!, { skip: !requestId });
   const { data: history = [] } = useGetHandicapHistoryQuery(requestId!, { skip: !requestId });
@@ -556,6 +558,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       refetch();
     } catch (error) {
       console.error('Error updating request:', error);
+      notifyError('Eroare la actualizarea solicitarii.');
     }
   };
 
@@ -566,6 +569,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+      notifyError('Eroare la adaugarea comentariului.');
     }
   };
 
@@ -578,6 +582,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       onClose();
     } catch (error) {
       console.error('Error resolving request:', error);
+      notifyError('Eroare la rezolvarea solicitarii.');
     }
   };
 
@@ -595,6 +600,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
           onClose();
         } catch (error) {
           console.error('Error deleting request:', error);
+          notifyError('Eroare la stergerea solicitarii.');
         }
       },
     });

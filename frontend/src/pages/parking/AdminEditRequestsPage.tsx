@@ -49,11 +49,13 @@ import {
 import GradientHeader from '../../components/common/GradientHeader';
 import { getStatusColor } from '../../utils/statusHelpers';
 import { formatDateTime } from '../../utils/dateFormatters';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const AdminEditRequestsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const { notifyError } = useSnackbar();
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | EditRequestStatus>('PENDING');
   const [selectedRequest, setSelectedRequest] = useState<EditRequest | null>(null);
@@ -106,6 +108,7 @@ const AdminEditRequestsPage: React.FC = () => {
       setSelectedRequest(null);
     } catch (error) {
       console.error('Error reviewing request:', error);
+      notifyError('Eroare la procesarea cererii de editare.');
     }
   };
 

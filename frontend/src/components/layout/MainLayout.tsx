@@ -76,6 +76,8 @@ import {
   DISPECERAT_DEPARTMENT_NAME,
   CONTROL_DEPARTMENT_NAME,
 } from '../../constants/departments';
+import { getRoleLabel } from '../../utils/roleHelpers';
+import { isAdminOrAbove as checkIsAdminOrAbove } from '../../utils/roleHelpers';
 
 // Responsive drawer width based on screen size
 const getDrawerWidth = (isTablet: boolean) => isTablet ? 220 : 260;
@@ -120,9 +122,9 @@ export const MainLayout = () => {
   const { mode, toggleTheme } = useThemeMode();
 
   // Departments data for sidebar (ADMIN or MASTER_ADMIN)
-  const isAdminOrAbove = user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN';
-  const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdminOrAbove });
-  const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdminOrAbove });
+  const isAdmin = checkIsAdminOrAbove(user?.role);
+  const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
+  const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdmin });
 
   // Count users per department (memoized)
   const deptUserCounts = useMemo(() =>
@@ -354,21 +356,6 @@ export const MainLayout = () => {
         return 'info';
       default:
         return 'default';
-    }
-  };
-
-  const getRoleLabel = (role: UserRole) => {
-    switch (role) {
-      case 'MASTER_ADMIN':
-        return 'Master Admin';
-      case 'ADMIN':
-        return 'Administrator';
-      case 'MANAGER':
-        return 'Manager';
-      case 'USER':
-        return 'User';
-      default:
-        return role;
     }
   };
 
@@ -688,7 +675,7 @@ export const MainLayout = () => {
         })()}
 
         {/* Departamente Section - Only for ADMIN and MASTER_ADMIN */}
-        {isAdminOrAbove && departments && departments.length > 0 && (
+        {isAdmin && departments && departments.length > 0 && (
           <Box>
             <Divider sx={{ my: 1, mx: 1, opacity: 0.4 }} />
             <ListItem

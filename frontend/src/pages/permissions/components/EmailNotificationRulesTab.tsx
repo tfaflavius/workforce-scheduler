@@ -53,6 +53,7 @@ import {
   EMAIL_RECIPIENT_TYPES,
   EMAIL_EVENT_TYPE_COLORS,
 } from '../../../constants/permissions';
+import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 import type { EmailNotificationRule, CreateEmailRuleRequest } from '../../../types/permission.types';
 
@@ -62,9 +63,6 @@ const ROLES = [
   { key: 'MANAGER', label: 'Manager' },
   { key: 'USER', label: 'Utilizator' },
 ];
-
-const getRoleLabel = (role: string | null) =>
-  ROLES.find((r) => r.key === role)?.label || role || '';
 
 const getRecipientLabel = (rule: EmailNotificationRule) => {
   switch (rule.recipientType) {

@@ -33,6 +33,7 @@ import type { ParkingIssue } from '../../../types/parking.types';
 import { ISSUE_STATUS_LABELS, HISTORY_ACTION_LABELS } from '../../../types/parking.types';
 import { getStatusColor } from '../../../utils/statusHelpers';
 import { formatDateTime } from '../../../utils/dateFormatters';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 interface IssueDetailsDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { notifyError } = useSnackbar();
 
   const [activeTab, setActiveTab] = useState(0);
   const [newComment, setNewComment] = useState('');
@@ -70,6 +72,7 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+      notifyError('Eroare la adaugarea comentariului.');
     }
   };
 

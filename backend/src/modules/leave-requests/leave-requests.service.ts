@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, DataSource } from 'typeorm';
 import { LeaveRequest, LeaveType, LeaveRequestStatus } from './entities/leave-request.entity';
 import { LeaveBalance } from './entities/leave-balance.entity';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
@@ -46,6 +46,15 @@ function toISODateString(date: Date | string): string {
   return new Date(String(date)).toISOString();
 }
 
+/** Maps internal leave types to email-friendly categories */
+const LEAVE_TYPE_EMAIL_MAP: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER'> = {
+  'VACATION': 'ANNUAL',
+  'MEDICAL': 'SICK',
+  'BIRTHDAY': 'OTHER',
+  'SPECIAL': 'OTHER',
+  'EXTRA_DAYS': 'OTHER',
+};
+
 @Injectable()
 export class LeaveRequestsService {
   constructor(
@@ -62,6 +71,7 @@ export class LeaveRequestsService {
     private notificationsService: NotificationsService,
     private pushNotificationService: PushNotificationService,
     private emailService: EmailService,
+    private dataSource: DataSource,
   ) {}
 
   async create(userId: string, dto: CreateLeaveRequestDto): Promise<LeaveRequest> {
@@ -316,40 +326,55 @@ export class LeaveRequestsService {
       throw new BadRequestException('Aceasta cerere a fost deja procesata');
     }
 
-    request.status = dto.status as LeaveRequestStatus;
-    request.adminId = adminId;
-    request.adminMessage = dto.message;
-    request.respondedAt = new Date();
+    // Use transaction for atomicity (status + balance + assignments)
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    await this.leaveRequestRepository.save(request);
+    try {
+      request.status = dto.status as LeaveRequestStatus;
+      request.adminId = adminId;
+      request.adminMessage = dto.message;
+      request.respondedAt = new Date();
 
-    if (dto.status === 'APPROVED') {
-      // Update leave balance
-      const days = this.calculateBusinessDays(
-        new Date(request.startDate),
-        new Date(request.endDate),
-      );
-      const year = new Date(request.startDate).getFullYear();
+      await queryRunner.manager.save(request);
 
-      await this.leaveBalanceRepository
-        .createQueryBuilder()
-        .update(LeaveBalance)
-        .set({ usedDays: () => `used_days + ${days}` })
-        .where('userId = :userId', { userId: request.userId })
-        .andWhere('leaveType = :leaveType', { leaveType: request.leaveType })
-        .andWhere('year = :year', { year })
-        .execute();
+      if (dto.status === 'APPROVED') {
+        const days = this.calculateBusinessDays(
+          new Date(request.startDate),
+          new Date(request.endDate),
+        );
+        const year = new Date(request.startDate).getFullYear();
 
-      // Create schedule assignments for the leave period
-      await this.createLeaveAssignments(request);
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(LeaveBalance)
+          .set({ usedDays: () => `used_days + :days` })
+          .setParameter('days', days)
+          .where('userId = :userId', { userId: request.userId })
+          .andWhere('leaveType = :leaveType', { leaveType: request.leaveType })
+          .andWhere('year = :year', { year })
+          .execute();
+
+        await this.createLeaveAssignments(request);
+      }
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
 
-    // Notify the user
-    await this.notifyUserAboutResponse(request, dto.status === 'APPROVED');
-
-    // If approved, notify the department manager
-    if (dto.status === 'APPROVED' && request.user?.departmentId) {
-      await this.notifyManagerAboutApproval(request);
+    // Notifications outside transaction (non-critical)
+    try {
+      await this.notifyUserAboutResponse(request, dto.status === 'APPROVED');
+      if (dto.status === 'APPROVED' && request.user?.departmentId) {
+        await this.notifyManagerAboutApproval(request);
+      }
+    } catch {
+      // Notification failures should not affect the response
     }
 
     return this.findOne(id);
@@ -420,39 +445,54 @@ export class LeaveRequestsService {
       throw new BadRequestException('Data de inceput trebuie sa fie inainte de data de sfarsit');
     }
 
-    // If approved, reverse old balance + assignments first
-    if (wasApproved) {
-      await this.reverseApprovedLeaveRequest(request);
+    // Use transaction for atomicity (reverse + update + re-apply)
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // If approved, reverse old balance + assignments first
+      if (wasApproved) {
+        await this.reverseApprovedLeaveRequest(request);
+      }
+
+      // Update the request fields
+      if (dto.startDate) request.startDate = newStartDate;
+      if (dto.endDate) request.endDate = newEndDate;
+      if (dto.leaveType) request.leaveType = newLeaveType;
+      if (dto.reason !== undefined) request.reason = dto.reason;
+
+      await queryRunner.manager.save(request);
+
+      // If was approved, re-apply with new values
+      if (wasApproved) {
+        const newDays = this.calculateBusinessDays(newStartDate, newEndDate);
+        const newYear = newStartDate.getFullYear();
+
+        await this.getOrCreateBalance(request.userId, newLeaveType, newYear);
+
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(LeaveBalance)
+          .set({ usedDays: () => `used_days + :days` })
+          .setParameter('days', newDays)
+          .where('userId = :userId', { userId: request.userId })
+          .andWhere('leaveType = :leaveType', { leaveType: newLeaveType })
+          .andWhere('year = :year', { year: newYear })
+          .execute();
+
+        await this.createLeaveAssignments(request);
+      }
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
 
-    // Update the request fields
-    if (dto.startDate) request.startDate = newStartDate;
-    if (dto.endDate) request.endDate = newEndDate;
-    if (dto.leaveType) request.leaveType = newLeaveType;
-    if (dto.reason !== undefined) request.reason = dto.reason;
-
-    await this.leaveRequestRepository.save(request);
-
-    // If was approved, re-apply with new values
-    if (wasApproved) {
-      const newDays = this.calculateBusinessDays(newStartDate, newEndDate);
-      const newYear = newStartDate.getFullYear();
-
-      await this.getOrCreateBalance(request.userId, newLeaveType, newYear);
-
-      await this.leaveBalanceRepository
-        .createQueryBuilder()
-        .update(LeaveBalance)
-        .set({ usedDays: () => `used_days + ${newDays}` })
-        .where('userId = :userId', { userId: request.userId })
-        .andWhere('leaveType = :leaveType', { leaveType: newLeaveType })
-        .andWhere('year = :year', { year: newYear })
-        .execute();
-
-      await this.createLeaveAssignments(request);
-    }
-
-    // Notify user
+    // Notify user (outside transaction)
     try {
       await this.notifyUserAboutEdit(request, adminId);
     } catch (err) {
@@ -465,19 +505,32 @@ export class LeaveRequestsService {
   async adminDelete(id: string, adminId: string): Promise<void> {
     const request = await this.findOne(id);
 
-    // If approved, reverse balance + assignments
-    if (request.status === 'APPROVED') {
-      await this.reverseApprovedLeaveRequest(request);
-    }
-
     const userId = request.userId;
     const leaveType = request.leaveType;
     const startDate = request.startDate;
     const endDate = request.endDate;
 
-    await this.leaveRequestRepository.remove(request);
+    // Use transaction for atomicity (reverse balance + delete)
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    // Notify user
+    try {
+      if (request.status === 'APPROVED') {
+        await this.reverseApprovedLeaveRequest(request);
+      }
+
+      await queryRunner.manager.remove(request);
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+
+    // Notify user (outside transaction)
     try {
       await this.notifyUserAboutDeletion(userId, leaveType, startDate, endDate, adminId);
     } catch (err) {
@@ -577,7 +630,8 @@ export class LeaveRequestsService {
     await this.leaveBalanceRepository
       .createQueryBuilder()
       .update(LeaveBalance)
-      .set({ usedDays: () => `GREATEST(used_days - ${oldDays}, 0)` })
+      .set({ usedDays: () => `GREATEST(used_days - :days, 0)` })
+      .setParameter('days', oldDays)
       .where('userId = :userId', { userId: request.userId })
       .andWhere('leaveType = :leaveType', { leaveType: request.leaveType })
       .andWhere('year = :year', { year })
@@ -723,18 +777,10 @@ export class LeaveRequestsService {
     }
 
     // Email confirmare catre angajat
-    const leaveTypeMap: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER'> = {
-      'VACATION': 'ANNUAL',
-      'MEDICAL': 'SICK',
-      'BIRTHDAY': 'OTHER',
-      'SPECIAL': 'OTHER',
-      'EXTRA_DAYS': 'OTHER',
-    };
-
     await this.emailService.sendLeaveRequestNotification({
       employeeEmail: user.email,
       employeeName: user.fullName,
-      leaveType: leaveTypeMap[request.leaveType] || 'OTHER',
+      leaveType: LEAVE_TYPE_EMAIL_MAP[request.leaveType] || 'OTHER',
       startDate: toISODateString(request.startDate),
       endDate: toISODateString(request.endDate),
       totalDays: days,
@@ -789,18 +835,10 @@ export class LeaveRequestsService {
         ? await this.userRepository.findOne({ where: { id: request.adminId } })
         : null;
 
-      const leaveTypeMap: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER'> = {
-        'VACATION': 'ANNUAL',
-        'MEDICAL': 'SICK',
-        'BIRTHDAY': 'OTHER',
-        'SPECIAL': 'OTHER',
-        'EXTRA_DAYS': 'OTHER',
-      };
-
       await this.emailService.sendLeaveRequestNotification({
         employeeEmail: user.email,
         employeeName: user.fullName,
-        leaveType: leaveTypeMap[request.leaveType] || 'OTHER',
+        leaveType: LEAVE_TYPE_EMAIL_MAP[request.leaveType] || 'OTHER',
         startDate: toISODateString(request.startDate),
         endDate: toISODateString(request.endDate),
         totalDays: days,

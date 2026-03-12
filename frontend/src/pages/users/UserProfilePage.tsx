@@ -28,6 +28,7 @@ import { ChangePasswordDialog } from '../../components/users/ChangePasswordDialo
 import { UserForm } from '../../components/users/UserForm';
 import { UserStatusChip } from '../../components/users/UserStatusChip';
 import { PushNotificationSettings } from '../../components/notifications/PushNotificationSettings';
+import { getRoleLabel, getRoleBadgeColor } from '../../utils/roleHelpers';
 
 const UserProfilePage: React.FC = () => {
   const theme = useTheme();
@@ -46,36 +47,6 @@ const UserProfilePage: React.FC = () => {
       setEditMode(false);
     } catch (err) {
       console.error('Failed to update profile:', err);
-    }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'MASTER_ADMIN':
-        return 'Master Admin';
-      case 'ADMIN':
-        return 'Administrator';
-      case 'MANAGER':
-        return 'Manager';
-      case 'USER':
-        return 'User';
-      default:
-        return role;
-    }
-  };
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'MASTER_ADMIN':
-        return 'secondary';
-      case 'ADMIN':
-        return 'error';
-      case 'MANAGER':
-        return 'warning';
-      case 'USER':
-        return 'info';
-      default:
-        return 'default';
     }
   };
 

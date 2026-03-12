@@ -58,6 +58,7 @@ import SignDamageDialog from './SignDamageDialog';
 import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
 import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { TableSkeleton } from '../../../components/common';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 interface ParkingDamagesTabProps {
   initialOpenId?: string | null;
@@ -69,6 +70,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
 
   // When opening from notification, show ALL damages so we can find the specific one
   const [statusFilter, setStatusFilter] = useState<'ALL' | ParkingDamageStatus>(initialOpenId ? 'ALL' : 'ACTIVE');
@@ -141,6 +143,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
           await deleteDamage(id).unwrap();
         } catch (error) {
           console.error('Error deleting damage:', error);
+          notifyError('Eroare la stergerea prejudiciului.');
         }
       },
     });

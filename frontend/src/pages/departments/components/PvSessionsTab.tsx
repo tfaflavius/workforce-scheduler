@@ -34,6 +34,7 @@ import {
 } from '@mui/icons-material';
 import FriendlyDialog from '../../../components/common/FriendlyDialog';
 import { useAppSelector } from '../../../store/hooks';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import { PROCESE_VERBALE_DEPARTMENT_NAME } from '../../../constants/departments';
 import { formatDateShort } from '../../../utils/dateFormatters';
@@ -62,6 +63,7 @@ const PvSessionsTab: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
   const isAdmin = isAdminOrAbove(user?.role);
   const isPvf = user?.department?.name === PROCESE_VERBALE_DEPARTMENT_NAME;
   const canCreate = isAdmin || isPvf;
@@ -175,6 +177,7 @@ const PvSessionsTab: React.FC = () => {
       setCreateDialogOpen(false);
     } catch (err) {
       console.error('Error creating session:', err);
+      notifyError('Eroare la crearea sesiunii.');
     }
   };
 
@@ -190,6 +193,7 @@ const PvSessionsTab: React.FC = () => {
           await deleteSession(sessionId).unwrap();
         } catch (err) {
           console.error('Error deleting session:', err);
+          notifyError('Eroare la stergerea sesiunii.');
         }
       },
     });
@@ -741,6 +745,7 @@ const CommentsSection: React.FC<{ sessionId: string }> = ({ sessionId }) => {
   const { data: comments = [], isLoading } = useGetPvSessionCommentsQuery(sessionId);
   const [addComment, { isLoading: isAdding }] = useAddPvSessionCommentMutation();
   const [newComment, setNewComment] = useState('');
+  const { notifyError } = useSnackbar();
 
   const handleAdd = async () => {
     if (!newComment.trim()) return;
@@ -749,6 +754,7 @@ const CommentsSection: React.FC<{ sessionId: string }> = ({ sessionId }) => {
       setNewComment('');
     } catch (err) {
       console.error('Error adding comment:', err);
+      notifyError('Eroare la adaugarea comentariului.');
     }
   };
 

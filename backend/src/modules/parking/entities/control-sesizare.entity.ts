@@ -7,6 +7,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { ControlSesizareComment } from './control-sesizare-comment.entity';
@@ -14,6 +15,8 @@ import { ControlSesizareType, ControlSesizareStatus, ControlSesizareZone } from 
 import { ParkingLayoutType } from '../constants/parking.constants';
 
 @Entity('control_sesizari')
+@Index('IDX_control_sesizari_status', ['status'])
+@Index('IDX_control_sesizari_created_at', ['createdAt'])
 export class ControlSesizare {
   @PrimaryGeneratedColumn('uuid')
   id: string;

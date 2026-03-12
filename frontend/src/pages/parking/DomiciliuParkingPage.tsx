@@ -82,6 +82,7 @@ import { removeDiacritics } from '../../utils/removeDiacritics';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
 import FriendlyDialog from '../../components/common/FriendlyDialog';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
   MAINTENANCE_DEPARTMENT_NAME,
   HANDICAP_DEPARTMENT_NAME,
@@ -401,6 +402,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
 
   const { data: request, isLoading } = useGetDomiciliuRequestQuery(requestId!, { skip: !requestId });
   const { data: history = [] } = useGetDomiciliuHistoryQuery(requestId!, { skip: !requestId });
@@ -432,6 +434,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+      notifyError('Eroare la adaugarea comentariului.');
     }
   };
 
@@ -444,6 +447,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
       onClose();
     } catch (error) {
       console.error('Error resolving request:', error);
+      notifyError('Eroare la rezolvarea solicitarii.');
     }
   };
 
@@ -461,6 +465,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
           onClose();
         } catch (error) {
           console.error('Error deleting request:', error);
+          notifyError('Eroare la stergerea solicitarii.');
         }
       },
     });

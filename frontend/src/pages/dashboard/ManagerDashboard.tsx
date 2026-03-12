@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -50,6 +51,13 @@ import { StatCard } from '../../components/common/StatCard';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
 
+const RON_FORMATTER = new Intl.NumberFormat('ro-RO', {
+  style: 'currency',
+  currency: 'RON',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
 const ManagerDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -73,6 +81,24 @@ const ManagerDashboard = () => {
   // PV Car status
   const { data: carStatus } = useGetCarStatusTodayQuery();
 
+  // Memoized schedule filters
+  const myDrafts = useMemo(
+    () => draftSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
+    [draftSchedules, user?.id],
+  );
+  const myPending = useMemo(
+    () => pendingSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
+    [pendingSchedules, user?.id],
+  );
+  const myApproved = useMemo(
+    () => approvedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
+    [approvedSchedules, user?.id],
+  );
+  const myRejected = useMemo(
+    () => rejectedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
+    [rejectedSchedules, user?.id],
+  );
+
   // Loading state
   if (draftLoading || pendingLoading || approvedLoading || rejectedLoading || dispatchersLoading) {
     return (
@@ -81,11 +107,6 @@ const ManagerDashboard = () => {
       </Box>
     );
   }
-
-  const myDrafts = draftSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
-  const myPending = pendingSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
-  const myApproved = approvedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
-  const myRejected = rejectedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [];
 
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
@@ -121,7 +142,7 @@ const ManagerDashboard = () => {
             }
           >
             <Typography variant="body2" fontWeight="medium">
-              ⚠️ Ai {myRejected.length} program(e) respins(e) care necesita atentie!
+              Ai {myRejected.length} program(e) respins(e) care necesita atentie!
             </Typography>
           </Alert>
         </Fade>
@@ -242,7 +263,7 @@ const ManagerDashboard = () => {
                   letterSpacing: '1px',
                 }}
               >
-                🎧 Dispecerat Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                Dispecerat Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
               </Typography>
               <Grow in={true} timeout={600}>
                 <Card
@@ -349,7 +370,7 @@ const ManagerDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            📊 Programele Mele
+            Programele Mele
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -421,7 +442,7 @@ const ManagerDashboard = () => {
               letterSpacing: '1px',
             }}
           >
-            🅿️ Parcari Etajate
+            Parcari Etajate
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             <Grid size={{ xs: 6, sm: 6, md: 4 }}>
@@ -509,12 +530,7 @@ const ManagerDashboard = () => {
                           }}
                         >
                           {cashTotals
-                            ? new Intl.NumberFormat('ro-RO', {
-                                style: 'currency',
-                                currency: 'RON',
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0,
-                              }).format(cashTotals.totalAmount || 0)
+                            ? RON_FORMATTER.format(cashTotals.totalAmount || 0)
                             : '0 RON'}
                         </Typography>
                         <Typography

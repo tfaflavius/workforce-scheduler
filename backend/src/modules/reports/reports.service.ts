@@ -132,22 +132,31 @@ export class ReportsService {
       company: { name: 'Workforce Management System' },
     });
 
-    // Generate PDF using Puppeteer
+    return this.generatePdfFromHtml(html);
+  }
+
+  /**
+   * Shared Puppeteer PDF generation helper.
+   * Wraps browser lifecycle in try/finally to prevent zombie processes.
+   */
+  private async generatePdfFromHtml(html: string): Promise<Buffer> {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      landscape: true,
-      margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' },
-      printBackground: true,
-    });
-    await browser.close();
-
-    return Buffer.from(pdfBuffer);
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        landscape: true,
+        margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' },
+        printBackground: true,
+      });
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await browser.close();
+    }
   }
 
   private async generateExcelReport(
@@ -407,22 +416,7 @@ export class ReportsService {
       company: { name: 'Workforce Management System' },
     });
 
-    // Generate PDF using Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      landscape: true,
-      margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' },
-      printBackground: true,
-    });
-    await browser.close();
-
-    return Buffer.from(pdfBuffer);
+    return this.generatePdfFromHtml(html);
   }
 
   private async generateOvertimeExcelReport(

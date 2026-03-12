@@ -33,6 +33,7 @@ import type { ParkingDamage } from '../../../types/parking.types';
 import { DAMAGE_STATUS_LABELS, RESOLUTION_TYPE_LABELS, HISTORY_ACTION_LABELS } from '../../../types/parking.types';
 import { getStatusColor } from '../../../utils/statusHelpers';
 import { formatDateTime } from '../../../utils/dateFormatters';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 interface DamageDetailsDialogProps {
   open: boolean;
@@ -49,6 +50,7 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { notifyError } = useSnackbar();
 
   const [activeTab, setActiveTab] = useState(0);
   const [newComment, setNewComment] = useState('');
@@ -70,6 +72,7 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
+      notifyError('Eroare la adaugarea comentariului.');
     }
   };
 

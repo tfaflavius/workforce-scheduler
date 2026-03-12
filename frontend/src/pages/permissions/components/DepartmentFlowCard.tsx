@@ -15,6 +15,7 @@ import {
   Inbox as InboxIcon,
 } from '@mui/icons-material';
 import { TASK_TYPE_LABELS } from '../../../constants/permissions';
+import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 import type { TaskFlowRule } from '../../../types/permission.types';
 
@@ -27,16 +28,6 @@ interface DepartmentFlowCardProps {
   department: Department;
   flows: TaskFlowRule[];
 }
-
-const getRoleLabel = (role: string | null) => {
-  switch (role) {
-    case 'MASTER_ADMIN': return 'Master Admin';
-    case 'ADMIN': return 'Admin';
-    case 'MANAGER': return 'Manager';
-    case 'USER': return 'Utilizator';
-    default: return 'Oricine';
-  }
-};
 
 const getRoleColor = (role: string | null): 'secondary' | 'error' | 'warning' | 'info' | 'default' => {
   switch (role) {

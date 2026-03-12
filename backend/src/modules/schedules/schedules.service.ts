@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, DataSource } from 'typeorm';
 import { WorkSchedule } from './entities/work-schedule.entity';
 import { ScheduleAssignment } from './entities/schedule-assignment.entity';
 import { ShiftType } from './entities/shift-type.entity';
@@ -25,6 +25,7 @@ export class SchedulesService {
     private readonly userRepository: Repository<User>,
     private readonly emailService: EmailService,
     private readonly notificationsService: NotificationsService,
+    private dataSource: DataSource,
   ) {}
 
   async create(userId: string, createScheduleDto: CreateScheduleDto): Promise<WorkSchedule> {
@@ -47,77 +48,92 @@ export class SchedulesService {
       }
     }
 
-    // Create schedule
-    const schedule = this.scheduleRepository.create({
-      name,
-      month,
-      year,
-      shiftPattern,
-      departmentId: createScheduleDto.departmentId,
-      createdBy: userId,
-      status: createScheduleDto.status || 'DRAFT',
-    });
+    let savedScheduleId: string;
 
-    this.logger.log(`Creating schedule with status: ${schedule.status} for month: ${month}/${year}`);
-    const savedSchedule = await this.scheduleRepository.save(schedule);
-    this.logger.log(`Schedule created with ID: ${savedSchedule.id}, status: ${savedSchedule.status}`);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      // Create schedule
+      const schedule = queryRunner.manager.getRepository(WorkSchedule).create({
+        name,
+        month,
+        year,
+        shiftPattern,
+        departmentId: createScheduleDto.departmentId,
+        createdBy: userId,
+        status: createScheduleDto.status || 'DRAFT',
+      });
 
-    // Create assignments
-    if (createScheduleDto.assignments && createScheduleDto.assignments.length > 0) {
-      // Remove any existing conflicting assignments (UNIQUE constraint: user_id + shift_date)
-      const conflictPairs = createScheduleDto.assignments.map(a => ({
-        userId: a.userId,
-        shiftDate: new Date(a.shiftDate).toISOString().split('T')[0],
-      }));
+      this.logger.log(`Creating schedule with status: ${schedule.status} for month: ${month}/${year}`);
+      const savedSchedule = await queryRunner.manager.save(schedule);
+      savedScheduleId = savedSchedule.id;
+      this.logger.log(`Schedule created with ID: ${savedSchedule.id}, status: ${savedSchedule.status}`);
 
-      // Group by userId for efficient deletion
-      const userDates = new Map<string, string[]>();
-      for (const pair of conflictPairs) {
-        if (!userDates.has(pair.userId)) {
-          userDates.set(pair.userId, []);
-        }
-        userDates.get(pair.userId)!.push(pair.shiftDate);
-      }
+      // Create assignments
+      if (createScheduleDto.assignments && createScheduleDto.assignments.length > 0) {
+        // Remove any existing conflicting assignments (UNIQUE constraint: user_id + shift_date)
+        const conflictPairs = createScheduleDto.assignments.map(a => ({
+          userId: a.userId,
+          shiftDate: new Date(a.shiftDate).toISOString().split('T')[0],
+        }));
 
-      // Delete conflicting assignments from ANY schedule
-      for (const [uId, dates] of userDates) {
-        if (dates.length > 0) {
-          await this.assignmentRepository
-            .createQueryBuilder()
-            .delete()
-            .from('schedule_assignments')
-            .where('user_id = :userId', { userId: uId })
-            .andWhere('shift_date IN (:...dates)', { dates })
-            .execute();
-        }
-      }
-
-      const assignments = await Promise.all(
-        createScheduleDto.assignments.map(async (assignmentDto) => {
-          const shiftType = await this.shiftTypeRepository.findOne({
-            where: { id: assignmentDto.shiftTypeId },
-          });
-
-          if (!shiftType) {
-            throw new NotFoundException(`Tipul de tura ${assignmentDto.shiftTypeId} nu a fost gasit`);
+        // Group by userId for efficient deletion
+        const userDates = new Map<string, string[]>();
+        for (const pair of conflictPairs) {
+          if (!userDates.has(pair.userId)) {
+            userDates.set(pair.userId, []);
           }
+          userDates.get(pair.userId)!.push(pair.shiftDate);
+        }
 
-          return this.assignmentRepository.create({
-            workScheduleId: savedSchedule.id,
-            userId: assignmentDto.userId,
-            shiftTypeId: assignmentDto.shiftTypeId,
-            shiftDate: new Date(assignmentDto.shiftDate),
-            isRestDay: false,
-            notes: assignmentDto.notes,
-            workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
-          });
-        }),
-      );
+        // Delete conflicting assignments from ANY schedule
+        for (const [uId, dates] of userDates) {
+          if (dates.length > 0) {
+            await queryRunner.manager
+              .createQueryBuilder()
+              .delete()
+              .from('schedule_assignments')
+              .where('user_id = :userId', { userId: uId })
+              .andWhere('shift_date IN (:...dates)', { dates })
+              .execute();
+          }
+        }
 
-      await this.assignmentRepository.save(assignments);
+        const assignments = await Promise.all(
+          createScheduleDto.assignments.map(async (assignmentDto) => {
+            const shiftType = await queryRunner.manager.getRepository(ShiftType).findOne({
+              where: { id: assignmentDto.shiftTypeId },
+            });
+
+            if (!shiftType) {
+              throw new NotFoundException(`Tipul de tura ${assignmentDto.shiftTypeId} nu a fost gasit`);
+            }
+
+            return queryRunner.manager.getRepository(ScheduleAssignment).create({
+              workScheduleId: savedScheduleId,
+              userId: assignmentDto.userId,
+              shiftTypeId: assignmentDto.shiftTypeId,
+              shiftDate: new Date(assignmentDto.shiftDate),
+              isRestDay: false,
+              notes: assignmentDto.notes,
+              workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
+            });
+          }),
+        );
+
+        await queryRunner.manager.save(assignments);
+      }
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
 
-    const finalSchedule = await this.findOne(savedSchedule.id);
+    const finalSchedule = await this.findOne(savedScheduleId);
 
     // Get creator name
     const creator = await this.userRepository.findOne({ where: { id: userId } });
@@ -214,76 +230,94 @@ export class SchedulesService {
   async update(id: string, updateScheduleDto: UpdateScheduleDto, updaterUserId?: string): Promise<WorkSchedule> {
     const schedule = await this.findOne(id);
 
-    if (updateScheduleDto.status) {
-      schedule.status = updateScheduleDto.status;
-      // IMPORTANT: Save the status change immediately
-      await this.scheduleRepository.save(schedule);
-      this.logger.log(`Schedule ${id} status updated to: ${updateScheduleDto.status}`);
-    }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      if (updateScheduleDto.status) {
+        schedule.status = updateScheduleDto.status;
+        // IMPORTANT: Save the status change immediately
+        await queryRunner.manager.save(schedule);
+        this.logger.log(`Schedule ${id} status updated to: ${updateScheduleDto.status}`);
+      }
 
-    // If assignments are updated, recreate them
-    if (updateScheduleDto.assignments) {
-      // Get the unique user IDs being updated
-      const affectedUserIds = [...new Set(updateScheduleDto.assignments.map(a => a.userId))];
+      // If assignments are updated, recreate them
+      if (updateScheduleDto.assignments) {
+        // Get the unique user IDs being updated
+        const affectedUserIds = [...new Set(updateScheduleDto.assignments.map(a => a.userId))];
 
-      // Delete ONLY the affected users' assignments (not all assignments in the schedule!)
-      // This prevents wiping other users' data when bulk-saving user by user
-      for (const affectedUserId of affectedUserIds) {
-        // Delete from THIS schedule
-        await this.assignmentRepository
-          .createQueryBuilder()
-          .delete()
-          .from('schedule_assignments')
-          .where('work_schedule_id = :scheduleId', { scheduleId: id })
-          .andWhere('user_id = :userId', { userId: affectedUserId })
-          .execute();
-
-        // Also delete from ANY other schedule for the same dates (UNIQUE: user_id + shift_date)
-        const userDates = updateScheduleDto.assignments
-          .filter(a => a.userId === affectedUserId)
-          .map(a => new Date(a.shiftDate).toISOString().split('T')[0]);
-
-        if (userDates.length > 0) {
-          await this.assignmentRepository
+        // Delete ONLY the affected users' assignments (not all assignments in the schedule!)
+        // This prevents wiping other users' data when bulk-saving user by user
+        for (const affectedUserId of affectedUserIds) {
+          // Delete from THIS schedule
+          await queryRunner.manager
             .createQueryBuilder()
             .delete()
             .from('schedule_assignments')
-            .where('user_id = :userId', { userId: affectedUserId })
-            .andWhere('shift_date IN (:...dates)', { dates: userDates })
+            .where('work_schedule_id = :scheduleId', { scheduleId: id })
+            .andWhere('user_id = :userId', { userId: affectedUserId })
+            .execute();
+
+          // Also delete from ANY other schedule for the same dates (UNIQUE: user_id + shift_date)
+          const userDates = updateScheduleDto.assignments
+            .filter(a => a.userId === affectedUserId)
+            .map(a => new Date(a.shiftDate).toISOString().split('T')[0]);
+
+          if (userDates.length > 0) {
+            await queryRunner.manager
+              .createQueryBuilder()
+              .delete()
+              .from('schedule_assignments')
+              .where('user_id = :userId', { userId: affectedUserId })
+              .andWhere('shift_date IN (:...dates)', { dates: userDates })
+              .execute();
+          }
+        }
+
+        // Create new assignments - use query builder to ensure workScheduleId is set
+        for (const assignmentDto of updateScheduleDto.assignments) {
+          const shiftType = await queryRunner.manager.getRepository(ShiftType).findOne({
+            where: { id: assignmentDto.shiftTypeId },
+          });
+
+          if (!shiftType) {
+            this.logger.warn(`Shift type ${assignmentDto.shiftTypeId} not found, skipping assignment`);
+            continue;
+          }
+
+          await queryRunner.manager
+            .createQueryBuilder()
+            .insert()
+            .into('schedule_assignments')
+            .values({
+              workScheduleId: id,
+              userId: assignmentDto.userId,
+              shiftTypeId: assignmentDto.shiftTypeId,
+              shiftDate: new Date(assignmentDto.shiftDate),
+              isRestDay: false,
+              notes: assignmentDto.notes || null,
+              workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001',
+            })
             .execute();
         }
+      } else {
+        // Only save schedule if no assignments were updated
+        await queryRunner.manager.save(schedule);
       }
 
-      // Create new assignments - use query builder to ensure workScheduleId is set
-      for (const assignmentDto of updateScheduleDto.assignments) {
-        const shiftType = await this.shiftTypeRepository.findOne({
-          where: { id: assignmentDto.shiftTypeId },
-        });
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
 
-        if (!shiftType) {
-          this.logger.warn(`Shift type ${assignmentDto.shiftTypeId} not found, skipping assignment`);
-          continue;
-        }
+    // Reload schedule to get fresh data after transaction
+    const updatedSchedule = await this.findOne(id);
 
-        await this.assignmentRepository
-          .createQueryBuilder()
-          .insert()
-          .into('schedule_assignments')
-          .values({
-            workScheduleId: id,
-            userId: assignmentDto.userId,
-            shiftTypeId: assignmentDto.shiftTypeId,
-            shiftDate: new Date(assignmentDto.shiftDate),
-            isRestDay: false,
-            notes: assignmentDto.notes || null,
-            workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001',
-          })
-          .execute();
-      }
-
-      // Reload schedule to get fresh assignments without triggering cascade updates
-      const updatedSchedule = await this.findOne(id);
-
+    // Send notifications OUTSIDE the transaction
+    if (updateScheduleDto.assignments) {
       const monthYear = `${updatedSchedule.year}-${String(updatedSchedule.month).padStart(2, '0')}`;
 
       // Send in-app notifications to affected employees about the update
@@ -306,13 +340,9 @@ export class SchedulesService {
           this.logger.error('Failed to send schedule update email notifications:', err);
         });
       }
-
-      return updatedSchedule;
     }
 
-    // Only save schedule if no assignments were updated
-    await this.scheduleRepository.save(schedule);
-    return this.findOne(id);
+    return updatedSchedule;
   }
 
   async approve(id: string, userId: string, notes?: string): Promise<WorkSchedule> {
@@ -454,54 +484,66 @@ export class SchedulesService {
     const monthName = date.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
     const name = targetName || `Program ${monthName} (Cloned)`;
 
-    // Create the new schedule
-    const newSchedule = this.scheduleRepository.create({
-      name,
-      month: targetMonth,
-      year: targetYear,
-      shiftPattern: sourceSchedule.shiftPattern,
-      departmentId: sourceSchedule.departmentId,
-      createdBy: userId,
-      status: 'DRAFT',
-    });
+    let savedScheduleId: string;
 
-    const savedSchedule = await this.scheduleRepository.save(newSchedule);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      // Create the new schedule
+      const newSchedule = queryRunner.manager.getRepository(WorkSchedule).create({
+        name,
+        month: targetMonth,
+        year: targetYear,
+        shiftPattern: sourceSchedule.shiftPattern,
+        departmentId: sourceSchedule.departmentId,
+        createdBy: userId,
+        status: 'DRAFT',
+      });
 
-    // Calculate day difference between source and target months
-    const sourceDate = new Date(sourceSchedule.year, sourceSchedule.month - 1, 1);
-    const targetDate = new Date(targetYear, targetMonth - 1, 1);
-    const daysInTargetMonth = new Date(targetYear, targetMonth, 0).getDate();
-    const daysInSourceMonth = new Date(sourceSchedule.year, sourceSchedule.month, 0).getDate();
+      const savedSchedule = await queryRunner.manager.save(newSchedule);
+      savedScheduleId = savedSchedule.id;
 
-    // Clone assignments, adjusting dates to the target month
-    const newAssignments: ScheduleAssignment[] = [];
-    for (const assignment of sourceSchedule.assignments) {
-      const sourceShiftDate = new Date(assignment.shiftDate);
-      const dayOfMonth = sourceShiftDate.getDate();
+      // Calculate day difference between source and target months
+      const daysInTargetMonth = new Date(targetYear, targetMonth, 0).getDate();
 
-      // Only clone if the day exists in target month (e.g., Feb 31 doesn't exist)
-      if (dayOfMonth <= daysInTargetMonth) {
-        const targetShiftDate = new Date(targetYear, targetMonth - 1, dayOfMonth);
+      // Clone assignments, adjusting dates to the target month
+      const newAssignments: ScheduleAssignment[] = [];
+      for (const assignment of sourceSchedule.assignments) {
+        const sourceShiftDate = new Date(assignment.shiftDate);
+        const dayOfMonth = sourceShiftDate.getDate();
 
-        const newAssignment = this.assignmentRepository.create({
-          workScheduleId: savedSchedule.id,
-          userId: assignment.userId,
-          shiftTypeId: assignment.shiftTypeId,
-          shiftDate: targetShiftDate,
-          durationHours: assignment.durationHours,
-          notes: assignment.notes,
-          workPositionId: assignment.workPositionId || '00000000-0000-0000-0000-000000000001', // Preserve work position or default to Dispecerat
-        });
+        // Only clone if the day exists in target month (e.g., Feb 31 doesn't exist)
+        if (dayOfMonth <= daysInTargetMonth) {
+          const targetShiftDate = new Date(targetYear, targetMonth - 1, dayOfMonth);
 
-        newAssignments.push(newAssignment);
+          const newAssignment = queryRunner.manager.getRepository(ScheduleAssignment).create({
+            workScheduleId: savedScheduleId,
+            userId: assignment.userId,
+            shiftTypeId: assignment.shiftTypeId,
+            shiftDate: targetShiftDate,
+            durationHours: assignment.durationHours,
+            notes: assignment.notes,
+            workPositionId: assignment.workPositionId || '00000000-0000-0000-0000-000000000001', // Preserve work position or default to Dispecerat
+          });
+
+          newAssignments.push(newAssignment);
+        }
       }
+
+      if (newAssignments.length > 0) {
+        await queryRunner.manager.save(newAssignments);
+      }
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
 
-    if (newAssignments.length > 0) {
-      await this.assignmentRepository.save(newAssignments);
-    }
-
-    return this.findOne(savedSchedule.id);
+    return this.findOne(savedScheduleId);
   }
 
   async delete(id: string): Promise<void> {
