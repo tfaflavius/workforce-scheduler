@@ -23,6 +23,9 @@ export const tasksApi = createApi({
         const queryString = searchParams.toString();
         return `/tasks${queryString ? `?${queryString}` : ''}`;
       },
+      // Backend returns { data: Task[], meta?: {...} } wrapper
+      transformResponse: (response: { data: Task[] } | Task[]) =>
+        Array.isArray(response) ? response : response.data,
       providesTags: ['Task'],
     }),
     getMyTasks: builder.query<Task[], void>({

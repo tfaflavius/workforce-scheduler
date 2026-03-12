@@ -107,6 +107,9 @@ export const timeTrackingApi = createApi({
         if (filters?.userId) params.append('userId', filters.userId);
         return `/time-tracking/admin/entries?${params.toString()}`;
       },
+      // Backend returns { data: AdminTimeEntry[], meta?: {...} } wrapper
+      transformResponse: (response: { data: AdminTimeEntry[] } | AdminTimeEntry[]) =>
+        Array.isArray(response) ? response : response.data,
       providesTags: ['AdminTimeEntry'],
     }),
 

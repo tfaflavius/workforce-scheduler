@@ -46,6 +46,9 @@ export const leaveRequestsApi = createApi({
         url: '',
         params: params || undefined,
       }),
+      // Backend returns { data: LeaveRequest[], meta?: {...} } wrapper
+      transformResponse: (response: { data: LeaveRequest[] } | LeaveRequest[]) =>
+        Array.isArray(response) ? response : response.data,
       providesTags: ['LeaveRequests'],
     }),
 
