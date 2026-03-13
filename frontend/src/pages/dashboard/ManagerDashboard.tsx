@@ -524,9 +524,8 @@ const ManagerDashboard = () => {
                           sx={{
                             fontWeight: 800,
                             my: 0.5,
-                            fontSize: { xs: '1.1rem', sm: '1.75rem', md: '2rem' },
+                            fontSize: { xs: '0.95rem', sm: '1.75rem', md: '2rem' },
                             lineHeight: 1.2,
-                            wordBreak: 'break-word',
                           }}
                         >
                           {cashTotals

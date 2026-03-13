@@ -1773,17 +1773,16 @@ const ReportsPage: React.FC = () => {
           <FilterIcon color="action" fontSize="small" />
           <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
         </Stack>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
           <TextField
             placeholder="Cauta dupa nume..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
             aria-label="Cauta dupa nume"
-            fullWidth
-            sx={{ maxWidth: { sm: 250 } }}
+            sx={{ width: '100%', maxWidth: { sm: 250 } }}
           />
-          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 220 } }}>
+          <FormControl size="small" sx={{ width: '100%', maxWidth: { sm: 220 } }}>
             <InputLabel>Departament</InputLabel>
             <Select
               value={selectedDepartment}
@@ -1798,7 +1797,7 @@ const ReportsPage: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-        </Stack>
+        </Box>
       </Box>
 
       {/* Legenda */}
@@ -1861,17 +1860,16 @@ const ReportsPage: React.FC = () => {
           <FilterIcon color="action" fontSize="small" />
           <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
         </Stack>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
           <TextField
             placeholder="Cauta dupa nume..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
             aria-label="Cauta dupa nume"
-            fullWidth
-            sx={{ maxWidth: { sm: 250 } }}
+            sx={{ width: '100%', maxWidth: { sm: 250 } }}
           />
-          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 180 } }}>
+          <FormControl size="small" sx={{ width: '100%', maxWidth: { sm: 180 } }}>
             <InputLabel>Status</InputLabel>
             <Select
               value={selectedLeaveStatus}
@@ -1884,7 +1882,7 @@ const ReportsPage: React.FC = () => {
               <MenuItem value="REJECTED">Respinse</MenuItem>
             </Select>
           </FormControl>
-          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 220 } }}>
+          <FormControl size="small" sx={{ width: '100%', maxWidth: { sm: 220 } }}>
             <InputLabel>Departament</InputLabel>
             <Select
               value={selectedDepartment}
@@ -1899,7 +1897,7 @@ const ReportsPage: React.FC = () => {
               ))}
             </Select>
           </FormControl>
-        </Stack>
+        </Box>
       </Box>
 
       {/* Sumar */}
@@ -1982,17 +1980,16 @@ const ReportsPage: React.FC = () => {
           <FilterIcon color="action" fontSize="small" />
           <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
         </Stack>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
           <TextField
             placeholder="Cauta dupa nume..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             size="small"
             aria-label="Cauta dupa nume"
-            fullWidth
-            sx={{ maxWidth: { sm: 250 } }}
+            sx={{ width: '100%', maxWidth: { sm: 250 } }}
           />
-          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 180 } }}>
+          <FormControl size="small" sx={{ width: '100%', maxWidth: { sm: 180 } }}>
             <InputLabel>Status</InputLabel>
             <Select
               value={selectedSwapStatus}
@@ -2006,7 +2003,7 @@ const ReportsPage: React.FC = () => {
               <MenuItem value="REJECTED">Respinse</MenuItem>
             </Select>
           </FormControl>
-        </Stack>
+        </Box>
       </Box>
 
       {/* Sumar */}
