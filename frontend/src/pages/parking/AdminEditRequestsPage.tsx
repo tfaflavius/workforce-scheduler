@@ -303,49 +303,55 @@ const AdminEditRequestsPage: React.FC = () => {
           p: { xs: 1.5, sm: 2 },
           mb: 2,
           borderRadius: 2,
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          gap: 2,
         }}
       >
-        <Button
-          startIcon={<BackIcon />}
-          onClick={() => navigate('/parking')}
-          variant="outlined"
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={{ xs: 1.5, sm: 2 }}
         >
-          Inapoi la Parcari
-        </Button>
-
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Tabs
-            value={statusFilter}
-            onChange={(_, v) => setStatusFilter(v)}
-            variant={isMobile ? 'scrollable' : 'standard'}
-            scrollButtons="auto"
-            allowScrollButtonsMobile
-            sx={{
-              '& .MuiTab-root': {
-                minWidth: 80,
-                px: 1.5,
-              },
-            }}
+          <Button
+            startIcon={<BackIcon />}
+            onClick={() => navigate('/parking')}
+            variant="outlined"
+            sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}
           >
-            <Tab label={`In asteptare (${pendingCount})`} value="PENDING" />
-            <Tab label="Aprobate" value="APPROVED" />
-            <Tab label="Respinse" value="REJECTED" />
-            <Tab label="Toate" value="ALL" />
-          </Tabs>
+            Inapoi la Parcari
+          </Button>
 
-          <IconButton
-            onClick={() => refetch()}
-            sx={{
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-            }}
-          >
-            <RefreshIcon />
-          </IconButton>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ overflow: 'hidden' }}>
+            <Tabs
+              value={statusFilter}
+              onChange={(_, v) => setStatusFilter(v)}
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
+              sx={{
+                minWidth: 0,
+                '& .MuiTab-root': {
+                  minWidth: { xs: 'auto', sm: 80 },
+                  px: { xs: 1, sm: 1.5 },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                },
+              }}
+            >
+              <Tab label={`In asteptare (${pendingCount})`} value="PENDING" />
+              <Tab label="Aprobate" value="APPROVED" />
+              <Tab label="Respinse" value="REJECTED" />
+              <Tab label="Toate" value="ALL" />
+            </Tabs>
+
+            <IconButton
+              onClick={() => refetch()}
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                flexShrink: 0,
+              }}
+            >
+              <RefreshIcon />
+            </IconButton>
+          </Stack>
         </Stack>
       </Paper>
 

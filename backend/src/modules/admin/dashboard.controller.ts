@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Get, Post, UseGuards, Logger } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -24,6 +24,7 @@ import { Notification } from '../notifications/entities/notification.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
 import { PV_DAY_STATUS } from '../parking/constants/parking.constants';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { AdminConsolidatedScheduler } from './admin-consolidated.scheduler';
 
 interface DashboardStatsResponse {
   schedules: {
@@ -128,6 +129,7 @@ export class DashboardController {
     private readonly notificationRepo: Repository<Notification>,
     @InjectRepository(PvDisplayDay)
     private readonly pvDisplayDayRepo: Repository<PvDisplayDay>,
+    private readonly adminConsolidatedScheduler: AdminConsolidatedScheduler,
   ) {}
 
   @Get('stats')
@@ -361,5 +363,31 @@ export class DashboardController {
         }),
       },
     };
+  }
+
+  @Post('trigger-weekly-report')
+  @Roles(UserRole.ADMIN, UserRole.MASTER_ADMIN)
+  async triggerWeeklyReport(): Promise<{ success: boolean; message: string }> {
+    this.logger.log('Manual trigger: Weekly consolidated report');
+    try {
+      await this.adminConsolidatedScheduler.handleConsolidatedWeeklyReport();
+      return { success: true, message: 'Raportul saptamanal a fost trimis cu succes.' };
+    } catch (error) {
+      this.logger.error(`Failed to trigger weekly report: ${error.message}`);
+      return { success: false, message: `Eroare la trimiterea raportului: ${error.message}` };
+    }
+  }
+
+  @Post('trigger-daily-report')
+  @Roles(UserRole.ADMIN, UserRole.MASTER_ADMIN)
+  async triggerDailyReport(): Promise<{ success: boolean; message: string }> {
+    this.logger.log('Manual trigger: Daily consolidated report');
+    try {
+      await this.adminConsolidatedScheduler.handleConsolidatedDailyReport();
+      return { success: true, message: 'Raportul zilnic a fost trimis cu succes.' };
+    } catch (error) {
+      this.logger.error(`Failed to trigger daily report: ${error.message}`);
+      return { success: false, message: `Eroare la trimiterea raportului: ${error.message}` };
+    }
   }
 }
