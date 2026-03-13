@@ -48,7 +48,7 @@ import type {
 
 const SchedulesPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const isLandscape = useMediaQuery('(orientation: landscape)');
   const navigate = useNavigate();

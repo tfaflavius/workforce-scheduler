@@ -70,7 +70,7 @@ const formatCurrencyShort = (value: number): string => {
 
 const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [filtersOpen, setFiltersOpen] = useState(false);

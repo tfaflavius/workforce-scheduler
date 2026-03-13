@@ -91,7 +91,7 @@ const getWeekOptions = () => {
 
 const ParkingStatsReportsTab: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [reportType, setReportType] = useState<ReportType>('tickets');
   const [selectedMonth, setSelectedMonth] = useState(() => {

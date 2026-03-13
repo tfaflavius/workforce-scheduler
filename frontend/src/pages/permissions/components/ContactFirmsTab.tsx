@@ -61,7 +61,7 @@ const emptyForm: CreateContactFirmRequest = {
 
 const ContactFirmsTab = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { data: firms, isLoading } = useGetContactFirmsQuery();
   const [createFirm] = useCreateContactFirmMutation();
   const [updateFirm] = useUpdateContactFirmMutation();

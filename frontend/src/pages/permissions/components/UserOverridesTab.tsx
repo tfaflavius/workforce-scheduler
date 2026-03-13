@@ -74,7 +74,7 @@ const getRoleColor = (role: string) => {
 
 const UserOverridesTab = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { data: users, isLoading: usersLoading } = useGetUsersQuery();
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
   const [localOverrides, setLocalOverrides] = useState<Record<string, boolean>>({});

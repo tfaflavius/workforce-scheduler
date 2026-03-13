@@ -59,7 +59,7 @@ const MONTH_LABELS = ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'S
 
 const IncasariCheltuieliPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { notifySuccess, notifyError } = useSnackbar();
 
   // Opaque backgrounds for sticky columns (alpha is semi-transparent and causes overlap issues)

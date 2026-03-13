@@ -156,7 +156,7 @@ interface CreateDialogProps {
 
 const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClose, requestType }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [createRequest, { isLoading }] = useCreateHandicapRequestMutation();
   const [error, setError] = useState<string | null>(null);
 
@@ -464,7 +464,7 @@ interface DetailsDialogProps {
 
 const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onClose, requestId }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
 
@@ -1069,7 +1069,7 @@ interface RequestCardProps {
 
 const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const colors = REQUEST_TYPE_COLORS[request.requestType];
 
   return (
@@ -1215,7 +1215,7 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
 const HandicapParkingPage: React.FC = () => {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md')); // < 768px - for tabs
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');

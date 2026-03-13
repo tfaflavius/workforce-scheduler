@@ -28,7 +28,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const ResetPasswordPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 

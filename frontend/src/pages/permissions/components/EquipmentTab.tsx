@@ -68,7 +68,7 @@ const emptyForm: CreateEquipmentRequest = {
 
 const EquipmentTab = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { data: equipment, isLoading } = useGetEquipmentQuery();
   const [createEquipment] = useCreateEquipmentMutation();
   const [updateEquipment] = useUpdateEquipmentMutation();

@@ -106,7 +106,7 @@ const emptyForm: CreateEmailRuleRequest = {
 
 const EmailNotificationRulesTab = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { data: rules, isLoading } = useGetEmailRulesQuery();
   const { data: departments } = useGetDepartmentsQuery();
   const [createRule] = useCreateEmailRuleMutation();

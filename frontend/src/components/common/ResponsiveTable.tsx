@@ -79,8 +79,8 @@ export function ResponsiveTable<T extends Record<string, any> = Record<string, a
   dense = false,
 }: ResponsiveTableProps<T>) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
   // Sorting state
   const [sortColumn, setSortColumn] = useState<string | null>(null);

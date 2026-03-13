@@ -38,7 +38,7 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const PendingSchedulesPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
 
   const { data: pendingSchedules, isLoading, refetch } = useGetSchedulesQuery({

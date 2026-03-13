@@ -87,7 +87,7 @@ const formatDate = formatDateOrDash;
 
 const AchizitiiPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { notifySuccess, notifyError } = useSnackbar();
 
   // State

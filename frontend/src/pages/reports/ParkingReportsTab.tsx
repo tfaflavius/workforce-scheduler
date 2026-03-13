@@ -73,7 +73,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   onEndDateChange,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedReport, setSelectedReport] = useState<ReportType>('issues');
   const [filtersOpen, setFiltersOpen] = useState(false);

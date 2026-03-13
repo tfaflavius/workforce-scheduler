@@ -75,7 +75,7 @@ const getLast30DaysRange = () => {
 
 const DailyReportsPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const user = useSelector((state: RootState) => state.auth.user);
   const isAdmin = isAdminOrAbove(user?.role);
   const isManager = user?.role === 'MANAGER';

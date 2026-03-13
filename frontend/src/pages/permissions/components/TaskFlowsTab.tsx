@@ -151,7 +151,7 @@ interface DeptOption {
 
 const TaskFlowsTab = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { data: flows, isLoading } = useGetTaskFlowsQuery();
   const { data: departments } = useGetDepartmentsQuery();
   const [updateFlow] = useUpdateTaskFlowMutation();

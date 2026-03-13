@@ -70,7 +70,7 @@ const getShiftInfoFromNotes = (notes: string | undefined | null) => {
 
 const MySchedulePage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month');

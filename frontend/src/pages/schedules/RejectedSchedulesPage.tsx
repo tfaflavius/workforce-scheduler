@@ -27,7 +27,7 @@ import { useGetUsersQuery } from '../../store/api/users.api';
 
 const RejectedSchedulesPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
 
   const { data: rejectedSchedules = [], isLoading, error, refetch } = useGetSchedulesQuery({

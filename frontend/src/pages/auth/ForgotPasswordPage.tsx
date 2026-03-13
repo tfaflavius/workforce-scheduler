@@ -25,7 +25,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 export const ForgotPasswordPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);

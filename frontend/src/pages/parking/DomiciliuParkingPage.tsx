@@ -138,7 +138,7 @@ interface CreateDialogProps {
 
 const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClose, requestType }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [createRequest, { isLoading }] = useCreateDomiciliuRequestMutation();
   const [error, setError] = useState<string | null>(null);
 
@@ -400,7 +400,7 @@ interface DetailsDialogProps {
 
 const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onClose, requestId }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
 
@@ -852,7 +852,7 @@ interface RequestCardProps {
 
 const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const colors = REQUEST_TYPE_COLORS[request.requestType];
 
   return (

@@ -107,7 +107,7 @@ export const FriendlyDialog: React.FC<FriendlyDialogProps> = ({
   confirmVariant = 'contained',
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const colors = getDialogColors(theme, variant);
 
   const handleClose = (_event: {}, reason: 'backdropClick' | 'escapeKeyDown') => {

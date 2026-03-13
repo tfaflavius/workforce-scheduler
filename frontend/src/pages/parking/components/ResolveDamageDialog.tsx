@@ -30,7 +30,7 @@ interface ResolveDamageDialogProps {
 
 const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose, damage }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [resolveDamage, { isLoading }] = useResolveParkingDamageMutation();
   const [resolutionType, setResolutionType] = useState<DamageResolutionType | ''>('');

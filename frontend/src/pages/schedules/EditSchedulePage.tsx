@@ -52,7 +52,7 @@ import type { ScheduleAssignmentDto } from '../../types/schedule.types';
 
 export const EditSchedulePage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 

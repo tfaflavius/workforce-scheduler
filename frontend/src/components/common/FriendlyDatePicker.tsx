@@ -56,7 +56,7 @@ export const FriendlyDatePicker: React.FC<FriendlyDatePickerProps> = ({
   disableFuture,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [isFocused, setIsFocused] = useState(false);
 
   const getStateColor = () => {

@@ -224,7 +224,7 @@ const DEFAULT_FORM: FormData = {
 
 const ParcometrePage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // API hooks
   const { data: meters, isLoading } = useGetParkingMetersQuery();

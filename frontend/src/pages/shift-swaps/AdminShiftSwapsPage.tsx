@@ -99,7 +99,7 @@ const getStatusIcon = (status: ShiftSwapStatus) => {
 
 const AdminShiftSwapsPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [tabValue, setTabValue] = useState(0);
   const [selectedRequest, setSelectedRequest] = useState<ShiftSwapRequest | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);

@@ -191,7 +191,7 @@ interface CreateLegitimationDialogProps {
 
 const CreateLegitimationDialog: React.FC<CreateLegitimationDialogProps> = ({ open, onClose }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [createLegitimation, { isLoading }] = useCreateHandicapLegitimationMutation();
   const { notifyError } = useSnackbar();
 
@@ -396,7 +396,7 @@ const LegitimationDetailsDialog: React.FC<LegitimationDetailsDialogProps> = ({
   canEdit,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { notifyError } = useSnackbar();
   const [activeSection, setActiveSection] = useState<'details' | 'comments' | 'history'>('details');
   const [newComment, setNewComment] = useState('');
@@ -979,7 +979,7 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   initialOpenId,
   onOpenIdHandled,
 }) => {
-  const isMobile = useMediaQuery(useTheme().breakpoints.down('sm'));
+  const isMobile = useMediaQuery(useTheme().breakpoints.down('md'));
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedLegitimationId, setSelectedLegitimationId] = useState<string | null>(null);
   const [page, setPage] = useState(1);

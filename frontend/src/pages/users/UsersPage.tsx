@@ -72,7 +72,7 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const UsersPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const currentUser = useAppSelector((state) => state.auth.user);
   const [searchParams, setSearchParams] = useSearchParams();
   const { notifyError } = useSnackbar();

@@ -41,7 +41,7 @@ import { formatDateTimeNoYear } from '../../../utils/dateFormatters';
 
 const MaintenanceIssuesTab: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);

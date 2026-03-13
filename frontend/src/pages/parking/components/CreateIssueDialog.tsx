@@ -35,7 +35,7 @@ interface CreateIssueDialogProps {
 
 const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const { data: parkingLots = [], isLoading: lotsLoading } = useGetParkingLotsQuery();
   const { data: equipmentList = [], isLoading: equipmentLoading } = useGetEquipmentListQuery();

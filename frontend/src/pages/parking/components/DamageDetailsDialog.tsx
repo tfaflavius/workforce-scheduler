@@ -49,7 +49,7 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
   canComment,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { notifyError } = useSnackbar();
 
   const [activeTab, setActiveTab] = useState(0);

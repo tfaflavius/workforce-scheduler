@@ -86,7 +86,7 @@ const formatDate = formatDateDayMonthYear;
 
 export const LeaveRequestsPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const highlightRequestId = (location.state as any)?.highlightRequestId as string | undefined;
   const highlightRef = useRef<HTMLDivElement>(null);

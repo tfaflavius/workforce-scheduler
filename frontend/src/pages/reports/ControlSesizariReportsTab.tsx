@@ -82,7 +82,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
   onEndDateChange,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedType, setSelectedType] = useState<ControlSesizareType | 'ALL'>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<ControlSesizareStatus | 'ALL'>('ALL');

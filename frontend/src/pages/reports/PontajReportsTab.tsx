@@ -81,7 +81,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
   onEndDateChange,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedGpsStatus, setSelectedGpsStatus] = useState<string>('ALL');
   const [filtersOpen, setFiltersOpen] = useState(false);

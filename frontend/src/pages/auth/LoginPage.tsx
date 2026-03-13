@@ -39,7 +39,7 @@ import { supabase } from '../../lib/supabase';
 
 export const LoginPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [activeTab, setActiveTab] = useState(0);
   const [email, setEmail] = useState('');

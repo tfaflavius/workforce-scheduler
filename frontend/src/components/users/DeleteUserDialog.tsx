@@ -22,7 +22,7 @@ interface DeleteUserDialogProps {
 
 export const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({ open, onClose, user }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [deleteUser, { isLoading, error }] = useDeleteUserMutation();
 
   const handleDelete = async () => {

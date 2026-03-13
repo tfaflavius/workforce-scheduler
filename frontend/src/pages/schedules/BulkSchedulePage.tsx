@@ -114,7 +114,7 @@ const generateMonthOptions = () => {
 const BulkSchedulePage: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user: currentUser } = useAppSelector((state) => state.auth);
   const isAdmin = isAdminOrAbove(currentUser?.role);
   const { notifySuccess, notifyError } = useSnackbar();

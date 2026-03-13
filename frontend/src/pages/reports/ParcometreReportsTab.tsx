@@ -75,7 +75,7 @@ const CONDITION_LABELS: Record<MeterCondition, string> = {
 
 const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedZone, setSelectedZone] = useState<ParkingZone | 'ALL'>('ALL');
   const [selectedCondition, setSelectedCondition] = useState<MeterCondition | 'ALL'>('ALL');

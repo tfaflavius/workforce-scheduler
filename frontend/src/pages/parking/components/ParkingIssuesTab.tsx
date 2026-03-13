@@ -70,7 +70,7 @@ interface ParkingIssuesTabProps {
 
 const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOpenIdHandled }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // < 430px
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // < 430px
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'lg')); // 430px - 1024px
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();

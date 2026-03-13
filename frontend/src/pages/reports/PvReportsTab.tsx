@@ -80,7 +80,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
   onEndDateChange,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [selectedStatus, setSelectedStatus] = useState<PvSessionStatus | 'ALL'>('ALL');
   const [filtersOpen, setFiltersOpen] = useState(false);

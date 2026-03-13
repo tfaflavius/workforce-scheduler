@@ -111,7 +111,7 @@ const getShiftInfoFromNotes = (notes: string | undefined | null) => {
 
 const ShiftSwapsPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const highlightSwapId = (location.state as any)?.highlightSwapId as string | undefined;
   const highlightRef = useRef<HTMLDivElement>(null);

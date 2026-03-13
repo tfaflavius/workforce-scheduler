@@ -43,7 +43,7 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
   issue,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
 
   const isAdmin = isAdminOrAbove(user?.role);

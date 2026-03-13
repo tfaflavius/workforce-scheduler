@@ -201,7 +201,7 @@ interface CreateDialogProps {
 
 const CreateControlSesizareDialog: React.FC<CreateDialogProps> = ({ open, onClose, sesizareType }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [createSesizare, { isLoading }] = useCreateControlSesizareMutation();
   const [error, setError] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -469,7 +469,7 @@ interface DetailsDialogProps {
 
 const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onClose, sesizareId }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
 
@@ -874,7 +874,7 @@ interface SesizareCardProps {
 
 const ControlSesizareCard: React.FC<SesizareCardProps> = ({ sesizare, onClick }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const zoneColor = ZONE_COLORS[sesizare.zone];
 
   return (

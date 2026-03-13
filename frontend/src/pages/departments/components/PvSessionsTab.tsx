@@ -61,7 +61,7 @@ import {
 
 const PvSessionsTab: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
   const isAdmin = isAdminOrAbove(user?.role);

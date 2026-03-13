@@ -25,7 +25,7 @@ interface ResolveIssueDialogProps {
 
 const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, issue }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [resolveIssue, { isLoading }] = useResolveParkingIssueMutation();
   const [resolutionDescription, setResolutionDescription] = useState('');
