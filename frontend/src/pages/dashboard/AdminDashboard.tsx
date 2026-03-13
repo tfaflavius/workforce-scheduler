@@ -699,9 +699,9 @@ const AdminDashboard = () => {
                               sx={{
                                 fontWeight: 800,
                                 my: 0.5,
-                                fontSize: { xs: '1.25rem', sm: '1.75rem', md: '2rem' },
-                                lineHeight: 1.1,
-                                whiteSpace: 'nowrap',
+                                fontSize: { xs: '1.1rem', sm: '1.75rem', md: '2rem' },
+                                lineHeight: 1.2,
+                                wordBreak: 'break-word',
                               }}
                             >
                               {stats?.parking?.cashCollectionTotals

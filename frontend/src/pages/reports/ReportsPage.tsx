@@ -1768,37 +1768,38 @@ const ReportsPage: React.FC = () => {
   const renderScheduleTab = () => (
     <Stack spacing={3}>
       {/* Filtre */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+      <Box>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
           <FilterIcon color="action" fontSize="small" />
           <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
         </Stack>
-
-        <TextField
-          placeholder="Cauta dupa nume..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          size="small"
-          aria-label="Cauta dupa nume"
-          sx={{ minWidth: { xs: '100%', sm: 200 } }}
-        />
-
-        <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
-          <InputLabel>Departament</InputLabel>
-          <Select
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            label="Departament"
-          >
-            <MenuItem value="ALL">Toate departamentele</MenuItem>
-            {departments.map((deptId) => (
-              <MenuItem key={deptId} value={deptId}>
-                {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <TextField
+            placeholder="Cauta dupa nume..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            aria-label="Cauta dupa nume"
+            fullWidth
+            sx={{ maxWidth: { sm: 250 } }}
+          />
+          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 220 } }}>
+            <InputLabel>Departament</InputLabel>
+            <Select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              label="Departament"
+            >
+              <MenuItem value="ALL">Toate departamentele</MenuItem>
+              {departments.map((deptId) => (
+                <MenuItem key={deptId} value={deptId}>
+                  {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      </Box>
 
       {/* Legenda */}
       <Paper sx={{ p: 1.5, bgcolor: 'grey.50' }}>
@@ -1855,51 +1856,51 @@ const ReportsPage: React.FC = () => {
   const renderLeavesTab = () => (
     <Stack spacing={3}>
       {/* Filtre */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+      <Box>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
           <FilterIcon color="action" fontSize="small" />
           <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
         </Stack>
-
-        <TextField
-          placeholder="Cauta dupa nume..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          size="small"
-          aria-label="Cauta dupa nume"
-          sx={{ minWidth: { xs: '100%', sm: 200 } }}
-        />
-
-        <FormControl sx={{ minWidth: { xs: '100%', sm: 150 } }} size="small">
-          <InputLabel>Status</InputLabel>
-          <Select
-            value={selectedLeaveStatus}
-            onChange={(e) => setSelectedLeaveStatus(e.target.value)}
-            label="Status"
-          >
-            <MenuItem value="ALL">Toate</MenuItem>
-            <MenuItem value="PENDING">In asteptare</MenuItem>
-            <MenuItem value="APPROVED">Aprobate</MenuItem>
-            <MenuItem value="REJECTED">Respinse</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl sx={{ minWidth: { xs: '100%', sm: 180 } }} size="small">
-          <InputLabel>Departament</InputLabel>
-          <Select
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            label="Departament"
-          >
-            <MenuItem value="ALL">Toate departamentele</MenuItem>
-            {departments.map((deptId) => (
-              <MenuItem key={deptId} value={deptId}>
-                {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <TextField
+            placeholder="Cauta dupa nume..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            aria-label="Cauta dupa nume"
+            fullWidth
+            sx={{ maxWidth: { sm: 250 } }}
+          />
+          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 180 } }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={selectedLeaveStatus}
+              onChange={(e) => setSelectedLeaveStatus(e.target.value)}
+              label="Status"
+            >
+              <MenuItem value="ALL">Toate</MenuItem>
+              <MenuItem value="PENDING">In asteptare</MenuItem>
+              <MenuItem value="APPROVED">Aprobate</MenuItem>
+              <MenuItem value="REJECTED">Respinse</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 220 } }}>
+            <InputLabel>Departament</InputLabel>
+            <Select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              label="Departament"
+            >
+              <MenuItem value="ALL">Toate departamentele</MenuItem>
+              {departments.map((deptId) => (
+                <MenuItem key={deptId} value={deptId}>
+                  {users.find(u => u.departmentId === deptId)?.department?.name || deptId}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      </Box>
 
       {/* Sumar */}
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'grey.50' }}>
@@ -1976,36 +1977,37 @@ const ReportsPage: React.FC = () => {
   const renderSwapsTab = () => (
     <Stack spacing={3}>
       {/* Filtre */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+      <Box>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
           <FilterIcon color="action" fontSize="small" />
           <Typography variant="subtitle2" fontWeight="medium">Filtre:</Typography>
         </Stack>
-
-        <TextField
-          placeholder="Cauta dupa nume..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          size="small"
-          aria-label="Cauta dupa nume"
-          sx={{ minWidth: { xs: '100%', sm: 200 } }}
-        />
-
-        <FormControl sx={{ minWidth: { xs: '100%', sm: 150 } }} size="small">
-          <InputLabel>Status</InputLabel>
-          <Select
-            value={selectedSwapStatus}
-            onChange={(e) => setSelectedSwapStatus(e.target.value)}
-            label="Status"
-          >
-            <MenuItem value="ALL">Toate</MenuItem>
-            <MenuItem value="PENDING">In asteptare</MenuItem>
-            <MenuItem value="AWAITING_ADMIN">Asteapta admin</MenuItem>
-            <MenuItem value="APPROVED">Aprobate</MenuItem>
-            <MenuItem value="REJECTED">Respinse</MenuItem>
-          </Select>
-        </FormControl>
-      </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <TextField
+            placeholder="Cauta dupa nume..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            size="small"
+            aria-label="Cauta dupa nume"
+            fullWidth
+            sx={{ maxWidth: { sm: 250 } }}
+          />
+          <FormControl size="small" fullWidth sx={{ maxWidth: { sm: 180 } }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={selectedSwapStatus}
+              onChange={(e) => setSelectedSwapStatus(e.target.value)}
+              label="Status"
+            >
+              <MenuItem value="ALL">Toate</MenuItem>
+              <MenuItem value="PENDING">In asteptare</MenuItem>
+              <MenuItem value="AWAITING_ADMIN">Asteapta admin</MenuItem>
+              <MenuItem value="APPROVED">Aprobate</MenuItem>
+              <MenuItem value="REJECTED">Respinse</MenuItem>
+            </Select>
+          </FormControl>
+        </Stack>
+      </Box>
 
       {/* Sumar */}
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'grey.50' }}>
