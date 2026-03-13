@@ -699,7 +699,7 @@ const AdminDashboard = () => {
                               sx={{
                                 fontWeight: 800,
                                 my: 0.5,
-                                fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.75rem', lg: '2rem' },
+                                fontSize: { xs: '0.95rem', sm: '0.95rem', md: '1.75rem', lg: '2rem' },
                                 lineHeight: 1.2,
                               }}
                             >
