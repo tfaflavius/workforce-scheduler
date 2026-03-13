@@ -126,7 +126,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                   fontWeight: 800,
                   letterSpacing: '-0.02em',
                   my: 0.5,
-                  fontSize: { xs: '1.1rem', sm: '1.5rem', md: '2.5rem' },
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.75rem', lg: '2.5rem' },
                   lineHeight: 1.2,
                   wordBreak: 'break-word',
                 }}

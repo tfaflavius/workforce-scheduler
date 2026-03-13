@@ -53,7 +53,7 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 
 const AdminEditRequestsPage: React.FC = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const { notifyError } = useSnackbar();
 
@@ -306,16 +306,16 @@ const AdminEditRequestsPage: React.FC = () => {
         }}
       >
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
+          direction={{ xs: 'column', md: 'row' }}
           justifyContent="space-between"
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          spacing={{ xs: 1.5, sm: 2 }}
+          alignItems={{ xs: 'stretch', md: 'center' }}
+          spacing={{ xs: 1.5, md: 2 }}
         >
           <Button
             startIcon={<BackIcon />}
             onClick={() => navigate('/parking')}
             variant="outlined"
-            sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}
+            sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}
           >
             Inapoi la Parcari
           </Button>
@@ -330,9 +330,9 @@ const AdminEditRequestsPage: React.FC = () => {
               sx={{
                 minWidth: 0,
                 '& .MuiTab-root': {
-                  minWidth: { xs: 'auto', sm: 80 },
-                  px: { xs: 1, sm: 1.5 },
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  minWidth: { xs: 'auto', md: 80 },
+                  px: { xs: 1, md: 1.5 },
+                  fontSize: { xs: '0.75rem', md: '0.875rem' },
                 },
               }}
             >

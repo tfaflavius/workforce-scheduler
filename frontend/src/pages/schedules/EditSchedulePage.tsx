@@ -339,7 +339,7 @@ export const EditSchedulePage: React.FC = () => {
     <Container maxWidth="lg" sx={{ mt: { xs: 2, sm: 4 }, mb: { xs: 2, sm: 4 }, px: { xs: 1, sm: 3 } }}>
       <Stack spacing={3}>
         {/* Header */}
-        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={{ xs: 1, sm: 2 }} justifyContent="space-between">
+        <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'center' }} spacing={{ xs: 1, md: 2 }} justifyContent="space-between">
           <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} spacing={{ xs: 1, sm: 2 }}>
             <IconButton onClick={() => navigate('/')} color="primary">
               <HomeIcon />
@@ -352,7 +352,7 @@ export const EditSchedulePage: React.FC = () => {
               Back
             </Button>
             <Box>
-              <Typography variant="h4" sx={{ fontSize: { xs: '1.25rem', sm: '1.75rem' } }}>{monthYear}</Typography>
+              <Typography variant="h4" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' } }}>{monthYear}</Typography>
               <Typography variant="body2" color="text.secondary">
                 Status: <Chip label={schedule.status} size="small" />
               </Typography>
@@ -447,8 +447,8 @@ export const EditSchedulePage: React.FC = () => {
 
         {validationDetails && validationDetails.criticalViolations && validationDetails.criticalViolations.length > 0 && (
           <Paper sx={{ p: { xs: 2, sm: 3 }, bgcolor: 'error.lighter', border: '1px solid', borderColor: 'error.main' }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
-              <Typography variant="h6" color="error" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+            <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
+              <Typography variant="h6" color="error" sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}>
                 Incalcari ale Legii Muncii Detectate:
               </Typography>
               {schedule.status === 'DRAFT' ? (
@@ -531,7 +531,7 @@ export const EditSchedulePage: React.FC = () => {
 
         {/* Assignments */}
         <Paper sx={{ p: { xs: 2, sm: 3 } }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'center' }} justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
             <Typography variant="h6">Shift Assignments ({assignments.length})</Typography>
             {canEdit && (
               <Button
@@ -553,7 +553,7 @@ export const EditSchedulePage: React.FC = () => {
               {assignments.map((assignment, index) => (
                 <Card variant="outlined" key={index}>
                   <CardContent>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between" spacing={1}>
                       <Stack spacing={1} sx={{ minWidth: 0, width: '100%' }}>
                         <Typography variant="body2" noWrap>
                           <strong>Employee:</strong>{' '}
