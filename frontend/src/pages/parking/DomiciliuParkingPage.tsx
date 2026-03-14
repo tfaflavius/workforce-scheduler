@@ -965,13 +965,15 @@ const DomiciliuParkingPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<DomiciliuRequestStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<DomiciliuRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const hasHandledNotificationRef = React.useRef(false);
 
   const { user } = useAppSelector((state) => state.auth);
 
   // Handle navigation state from notifications
   useEffect(() => {
     const state = location.state as { openRequestId?: string } | null;
-    if (state?.openRequestId) {
+    if (state?.openRequestId && !hasHandledNotificationRef.current) {
+      hasHandledNotificationRef.current = true;
       setSelectedRequestId(state.openRequestId);
       // Clear the state after handling
       window.history.replaceState({}, document.title);
@@ -1016,11 +1018,13 @@ const DomiciliuParkingPage: React.FC = () => {
     },
   ];
 
-  // Auto-switch to correct tab based on request type (for notification deep linking)
+  // Auto-switch to correct tab based on request type (for notification deep linking) — run once
+  const hasAutoSwitchedTabRef = React.useRef(false);
   useEffect(() => {
-    if (selectedRequestId && requests.length > 0) {
+    if (selectedRequestId && !hasAutoSwitchedTabRef.current && requests.length > 0) {
       const target = requests.find((r) => r.id === selectedRequestId);
       if (target) {
+        hasAutoSwitchedTabRef.current = true;
         const tabIndex = tabConfig.findIndex((t) => t.type === target.requestType);
         if (tabIndex >= 0) {
           setTabValue(tabIndex);

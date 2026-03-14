@@ -264,7 +264,16 @@ const DailyReportsPage: React.FC = () => {
         return;
       }
     }
-  }, [highlightReportId, allReports, myReports]);
+
+    // If data is loaded but report not found, clean up to avoid infinite re-evaluations
+    const dataLoaded = canViewAll
+      ? (allReports !== undefined && !loadingAllReports)
+      : (myReports !== undefined && !loadingMyReports);
+    if (dataLoaded) {
+      hasHandledReportOpen.current = true;
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightReportId, allReports, myReports, canViewAll, loadingAllReports, loadingMyReports]);
 
   const todayIsSubmitted = todayReport?.status === 'SUBMITTED';
 
@@ -1188,9 +1197,9 @@ const DailyReportsPage: React.FC = () => {
                     </Paper>
                   )}
 
-                  {/* Admin comment input */}
+                  {/* Admin comment input — stopPropagation to prevent Card onClick */}
                   {isAdmin && (
-                    <Box>
+                    <Box onClick={(e) => e.stopPropagation()}>
                       {commentingReportId === report.id ? (
                         <Box sx={{ mt: 1 }}>
                           <TextField

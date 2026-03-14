@@ -1224,6 +1224,7 @@ const HandicapParkingPage: React.FC = () => {
   const [createDialogType, setCreateDialogType] = useState<HandicapRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [openLegitimationId, setOpenLegitimationId] = useState<string | null>(null);
+  const hasHandledNotificationRef = React.useRef(false);
   const [openRevolutionarLegitimationId, setOpenRevolutionarLegitimationId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
@@ -1233,7 +1234,8 @@ const HandicapParkingPage: React.FC = () => {
   // Handle navigation state from notifications
   useEffect(() => {
     const state = location.state as { openRequestId?: string; openLegitimationId?: string; tab?: number } | null;
-    if (state) {
+    if (state && !hasHandledNotificationRef.current) {
+      hasHandledNotificationRef.current = true;
       if (state.openRequestId) {
         setSelectedRequestId(state.openRequestId);
       }
@@ -1306,11 +1308,13 @@ const HandicapParkingPage: React.FC = () => {
     },
   ];
 
-  // Auto-switch to correct tab based on request type (for notification deep linking)
+  // Auto-switch to correct tab based on request type (for notification deep linking) — run once
+  const hasAutoSwitchedTabRef = React.useRef(false);
   useEffect(() => {
-    if (selectedRequestId && requests.length > 0) {
+    if (selectedRequestId && !hasAutoSwitchedTabRef.current && requests.length > 0) {
       const target = requests.find((r) => r.id === selectedRequestId);
       if (target) {
+        hasAutoSwitchedTabRef.current = true;
         const tabIndex = requestTabConfig.findIndex((t) => t.type === target.requestType);
         if (tabIndex >= 0) {
           setTabValue(tabIndex);

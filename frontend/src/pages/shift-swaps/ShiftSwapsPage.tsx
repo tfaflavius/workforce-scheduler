@@ -115,6 +115,7 @@ const ShiftSwapsPage = () => {
   const location = useLocation();
   const highlightSwapId = (location.state as any)?.highlightSwapId as string | undefined;
   const highlightRef = useRef<HTMLDivElement>(null);
+  const hasHandledNotificationRef = useRef(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const { user } = useAppSelector((state) => state.auth);
   const { notifySuccess, notifyError } = useSnackbar();
@@ -176,7 +177,8 @@ const ShiftSwapsPage = () => {
 
   // Highlight swap from notification + auto-open detail dialog
   useEffect(() => {
-    if (highlightSwapId && myRequests.length > 0) {
+    if (highlightSwapId && !hasHandledNotificationRef.current && myRequests.length > 0) {
+      hasHandledNotificationRef.current = true;
       const request = myRequests.find((r) => r.id === highlightSwapId);
       if (request) {
         // Switch to correct tab

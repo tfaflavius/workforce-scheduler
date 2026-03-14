@@ -107,6 +107,7 @@ export const AdminLeaveRequestsPage = () => {
   const location = useLocation();
   const highlightRequestId = (location.state as any)?.highlightRequestId as string | undefined;
   const highlightRef = useRef<HTMLDivElement>(null);
+  const hasHandledNotificationRef = useRef(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const { notifySuccess, notifyError } = useSnackbar();
@@ -140,7 +141,8 @@ export const AdminLeaveRequestsPage = () => {
 
   // Auto-switch to the correct tab, highlight, and open detail dialog from notification
   useEffect(() => {
-    if (highlightRequestId && allRequests.length > 0) {
+    if (highlightRequestId && !hasHandledNotificationRef.current && allRequests.length > 0) {
+      hasHandledNotificationRef.current = true;
       const request = allRequests.find((r) => r.id === highlightRequestId);
       if (request) {
         // Switch to the correct tab based on status
