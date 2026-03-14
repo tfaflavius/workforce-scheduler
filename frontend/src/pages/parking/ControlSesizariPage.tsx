@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -58,7 +58,7 @@ import {
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
 import {
@@ -948,12 +948,14 @@ const ControlSesizareCard: React.FC<SesizareCardProps> = ({ sesizare, onClick })
 const ControlSesizariPage: React.FC = () => {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState<ControlSesizareStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<ControlSesizareType | null>(null);
   const [selectedSesizareId, setSelectedSesizareId] = useState<string | null>(null);
+  const hasHandledNotificationRef = useRef(false);
 
   const { user } = useAppSelector((state) => state.auth);
 
@@ -973,6 +975,22 @@ const ControlSesizariPage: React.FC = () => {
   const { data: sesizari = [], isLoading } = useGetControlSesizariQuery(
     statusFilter ? { status: statusFilter } : undefined
   );
+
+  // Auto-open sesizare from notification deep link
+  useEffect(() => {
+    const openSesizareId = (location.state as any)?.openSesizareId;
+    if (openSesizareId && !hasHandledNotificationRef.current && !isLoading && sesizari.length > 0) {
+      hasHandledNotificationRef.current = true;
+      // Find the sesizare to determine its type and switch to correct tab
+      const target = sesizari.find((s) => s.id === openSesizareId);
+      if (target) {
+        const targetTabIndex = target.type === 'PANOU' ? 1 : 0;
+        setTabValue(targetTabIndex);
+      }
+      setSelectedSesizareId(openSesizareId);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, isLoading, sesizari]);
 
   const tabConfig: { type: ControlSesizareType; label: string; shortLabel: string; icon: React.ReactNode; color: string }[] = [
     { type: 'MARCAJ', label: 'Marcaje', shortLabel: 'Marcaje', icon: <MarkingIcon />, color: TYPE_COLORS.MARCAJ.main },

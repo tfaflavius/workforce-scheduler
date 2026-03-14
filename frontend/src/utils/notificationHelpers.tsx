@@ -11,6 +11,14 @@ import {
   LocalParking as ParkingIcon,
   Edit as EditIcon,
   Description as DailyReportIcon,
+  ReportProblem as ControlIcon,
+  Receipt as PvIcon,
+  Accessible as HandicapIcon,
+  Home as DomiciliuIcon,
+  Badge as LegitimationIcon,
+  CarCrash as DamageIcon,
+  GpsFixed as GpsIcon,
+  Timer as TimerIcon,
 } from '@mui/icons-material';
 import type { Notification, NotificationType } from '../store/api/notifications.api';
 import { isAdminOrAbove } from './roleHelpers';
@@ -51,12 +59,34 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
     case 'PARKING_ISSUE_ASSIGNED':
     case 'PARKING_ISSUE_RESOLVED':
       return <ParkingIcon color="primary" fontSize={fontSize} />;
+    case 'PARKING_DAMAGE_ASSIGNED':
+    case 'PARKING_DAMAGE_RESOLVED':
+      return <DamageIcon color="error" fontSize={fontSize} />;
+    case 'HANDICAP_REQUEST_ASSIGNED':
+    case 'HANDICAP_REQUEST_RESOLVED':
+      return <HandicapIcon color="info" fontSize={fontSize} />;
+    case 'DOMICILIU_REQUEST_ASSIGNED':
+    case 'DOMICILIU_REQUEST_RESOLVED':
+      return <DomiciliuIcon color="primary" fontSize={fontSize} />;
+    case 'LEGITIMATION_ASSIGNED':
+    case 'LEGITIMATION_RESOLVED':
+      return <LegitimationIcon color="secondary" fontSize={fontSize} />;
+    case 'CONTROL_SESIZARE_ASSIGNED':
+    case 'CONTROL_SESIZARE_RESOLVED':
+      return <ControlIcon color="warning" fontSize={fontSize} />;
+    case 'PV_SESSION_ASSIGNED':
+    case 'PV_SESSION_UPDATED':
+      return <PvIcon color="info" fontSize={fontSize} />;
     case 'EDIT_REQUEST_CREATED':
       return <EditIcon color="warning" fontSize={fontSize} />;
     case 'EDIT_REQUEST_APPROVED':
       return <EditIcon color="success" fontSize={fontSize} />;
     case 'EDIT_REQUEST_REJECTED':
       return <EditIcon color="error" fontSize={fontSize} />;
+    case 'TIME_ENTRY_MISMATCH':
+      return <TimerIcon color="warning" fontSize={fontSize} />;
+    case 'GPS_STATUS_ALERT':
+      return <GpsIcon color="error" fontSize={fontSize} />;
     case 'DAILY_REPORT_SUBMITTED':
       return <DailyReportIcon color="info" fontSize={fontSize} />;
     case 'DAILY_REPORT_COMMENTED':
@@ -104,29 +134,44 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     case 'LEAVE_REQUEST_REJECTED':
       return { path: '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
 
-    // Parking notifications - navigate to specific item
+    // Parking issue notifications
     case 'PARKING_ISSUE_ASSIGNED':
     case 'PARKING_ISSUE_RESOLVED':
-      if (data?.issueId) {
-        return { path: '/parking', state: { openIssueId: data.issueId } };
-      }
-      if (data?.damageId) {
-        return { path: '/parking', state: { openDamageId: data.damageId, tab: 1 } };
-      }
-      if (data?.handicapRequestId) {
-        return { path: '/parking/handicap', state: { openRequestId: data.handicapRequestId } };
-      }
-      if (data?.domiciliuRequestId) {
-        return { path: '/parking/domiciliu', state: { openRequestId: data.domiciliuRequestId } };
-      }
-      if (data?.handicapLegitimationId) {
-        return { path: '/parking/handicap', state: { openLegitimationId: data.handicapLegitimationId, tab: 3 } };
-      }
-      return { path: '/parking' };
+      return { path: '/parking', state: { openIssueId: data?.issueId } };
+
+    // Parking damage notifications
+    case 'PARKING_DAMAGE_ASSIGNED':
+    case 'PARKING_DAMAGE_RESOLVED':
+      return { path: '/parking', state: { openDamageId: data?.damageId, tab: 1 } };
+
+    // Handicap parking request notifications
+    case 'HANDICAP_REQUEST_ASSIGNED':
+    case 'HANDICAP_REQUEST_RESOLVED':
+      return { path: '/parking/handicap', state: { openRequestId: data?.handicapRequestId } };
+
+    // Domiciliu parking request notifications
+    case 'DOMICILIU_REQUEST_ASSIGNED':
+    case 'DOMICILIU_REQUEST_RESOLVED':
+      return { path: '/parking/domiciliu', state: { openRequestId: data?.domiciliuRequestId } };
+
+    // Handicap legitimation notifications
+    case 'LEGITIMATION_ASSIGNED':
+    case 'LEGITIMATION_RESOLVED':
+      return { path: '/parking/handicap', state: { openLegitimationId: data?.handicapLegitimationId, tab: 3 } };
+
+    // Control sesizari notifications
+    case 'CONTROL_SESIZARE_ASSIGNED':
+    case 'CONTROL_SESIZARE_RESOLVED':
+      return { path: '/control-sesizari', state: { openSesizareId: data?.controlSesizareId } };
+
+    // PV Display session notifications
+    case 'PV_SESSION_ASSIGNED':
+    case 'PV_SESSION_UPDATED':
+      return { path: '/procese-verbale', state: { openSessionId: data?.pvSessionId } };
 
     // Edit request notifications
     case 'EDIT_REQUEST_CREATED':
-      return { path: '/admin/edit-requests' };
+      return { path: '/admin/edit-requests', state: { openEditRequestId: data?.editRequestId } };
     case 'EDIT_REQUEST_APPROVED':
     case 'EDIT_REQUEST_REJECTED':
       return { path: '/parking' };
@@ -147,9 +192,12 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
       return { path: '/daily-reports', state: { highlightReportDate: data?.date } };
 
     default:
-      // PV Display notifications (use GENERAL type with pvSessionId/pvDayId in data)
+      // Fallback: check data for known entity IDs
       if (data?.pvSessionId || data?.pvDayId) {
-        return { path: '/procese-verbale' };
+        return { path: '/procese-verbale', state: { openSessionId: data?.pvSessionId } };
+      }
+      if (data?.controlSesizareId) {
+        return { path: '/control-sesizari', state: { openSesizareId: data.controlSesizareId } };
       }
       return null;
   }

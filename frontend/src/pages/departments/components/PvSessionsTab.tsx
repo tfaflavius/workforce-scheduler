@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Card,
@@ -59,7 +59,11 @@ import {
   PV_DAY_STATUS_COLORS,
 } from '../../../types/pv-display.types';
 
-const PvSessionsTab: React.FC = () => {
+interface PvSessionsTabProps {
+  initialExpandedSessionId?: string;
+}
+
+const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
@@ -74,6 +78,18 @@ const PvSessionsTab: React.FC = () => {
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+  const hasHandledInitialExpand = useRef(false);
+
+  // Auto-expand session from notification deep link
+  useEffect(() => {
+    if (initialExpandedSessionId && !hasHandledInitialExpand.current && !isLoading && sessions.length > 0) {
+      hasHandledInitialExpand.current = true;
+      const target = sessions.find((s) => s.id === initialExpandedSessionId);
+      if (target) {
+        setExpandedSessionId(initialExpandedSessionId);
+      }
+    }
+  }, [initialExpandedSessionId, isLoading, sessions]);
   const [detailsTab, setDetailsTab] = useState<'days' | 'comments' | 'history'>('days');
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;

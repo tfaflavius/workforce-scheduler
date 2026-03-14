@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Paper,
@@ -36,7 +36,7 @@ import {
   ArrowBack as BackIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   useGetEditRequestsQuery,
   useReviewEditRequestMutation,
@@ -55,7 +55,9 @@ const AdminEditRequestsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const location = useLocation();
   const { notifyError } = useSnackbar();
+  const hasHandledNotificationRef = useRef(false);
 
   const [statusFilter, setStatusFilter] = useState<'ALL' | EditRequestStatus>('PENDING');
   const [selectedRequest, setSelectedRequest] = useState<EditRequest | null>(null);
@@ -68,6 +70,20 @@ const AdminEditRequestsPage: React.FC = () => {
     statusFilter === 'ALL' ? undefined : statusFilter
   );
   const [reviewRequest, { isLoading: reviewing }] = useReviewEditRequestMutation();
+
+  // Auto-open edit request from notification deep link
+  useEffect(() => {
+    const openEditRequestId = (location.state as any)?.openEditRequestId;
+    if (openEditRequestId && !hasHandledNotificationRef.current && !isLoading && requests.length > 0) {
+      hasHandledNotificationRef.current = true;
+      const target = requests.find((r) => r.id === openEditRequestId);
+      if (target) {
+        setSelectedRequest(target);
+        setViewDialogOpen(true);
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, isLoading, requests]);
 
   const handleApprove = (request: EditRequest) => {
     setSelectedRequest(request);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -13,6 +13,7 @@ import {
 import {
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
 import PvSessionsTab from './components/PvSessionsTab';
@@ -48,13 +49,31 @@ function TabPanel(props: TabPanelProps) {
 const ProcesVerbalePage: React.FC = () => {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const { user } = useAppSelector((state) => state.auth);
+  const hasHandledNotificationRef = useRef(false);
+
+  // Read notification deep link state
+  const openSessionId = (location.state as any)?.openSessionId;
 
   const userDept = user?.department?.name || '';
   const isControl = userDept === CONTROL_DEPARTMENT_NAME;
   const isPvf = userDept === PROCESE_VERBALE_DEPARTMENT_NAME;
   const isAdmin = isAdminOrAbove(user?.role);
+
+  // Auto-switch to Sesiuni tab when arriving from notification
+  useEffect(() => {
+    if (openSessionId && !hasHandledNotificationRef.current) {
+      hasHandledNotificationRef.current = true;
+      // Sesiuni tab is first tab for non-Control users (index 0)
+      // For Control users, Sesiuni is not shown — fallback gracefully
+      if (!isControl) {
+        setTabValue(0); // Sesiuni is always tab 0 for PVF/admin
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, [openSessionId, isControl]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -94,7 +113,7 @@ const ProcesVerbalePage: React.FC = () => {
 
     switch (tab.label) {
       case 'Sesiuni':
-        return <PvSessionsTab />;
+        return <PvSessionsTab initialExpandedSessionId={openSessionId} />;
       case 'Marketplace':
         return <PvMarketplaceTab />;
       case 'Zilele Mele':

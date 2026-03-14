@@ -43,7 +43,6 @@ import {
   Error as RejectedIcon,
   Inbox as InboxIcon,
   WarningAmber as WarningAmberIcon,
-  Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard, FriendlyDialog } from '../../components/common';
 import { useAppSelector } from '../../store/hooks';
