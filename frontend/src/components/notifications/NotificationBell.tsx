@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { getTimeAgo } from '../../utils/getTimeAgo';
 import {
   Badge,
@@ -33,7 +33,7 @@ import {
 import { useAppSelector } from '../../store/hooks';
 import { getNotificationIcon, getNotificationPath, isNotificationNavigable } from '../../utils/notificationHelpers';
 
-export const NotificationBell: React.FC = () => {
+export const NotificationBell: React.FC = React.memo(() => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
@@ -53,15 +53,15 @@ export const NotificationBell: React.FC = () => {
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setAnchorEl(null);
-  };
+  }, []);
 
-  const handleNotificationClick = async (notification: Notification) => {
+  const handleNotificationClick = useCallback(async (notification: Notification) => {
     if (!notification.isRead) {
       await markAsRead(notification.id);
     }
@@ -73,11 +73,16 @@ export const NotificationBell: React.FC = () => {
     }
 
     handleClose();
-  };
+  }, [markAsRead, navigate, userRole, handleClose]);
 
-  const handleMarkAllRead = async () => {
+  const handleMarkAllRead = useCallback(async () => {
     await markAllAsRead();
-  };
+  }, [markAllAsRead]);
+
+  const handleViewAll = useCallback(() => {
+    handleClose();
+    navigate('/notifications');
+  }, [handleClose, navigate]);
 
   return (
     <>
@@ -284,15 +289,11 @@ export const NotificationBell: React.FC = () => {
               role="button"
               tabIndex={0}
               sx={{ textAlign: 'center', cursor: 'pointer', fontWeight: 600 }}
-              onClick={() => {
-                handleClose();
-                navigate('/notifications');
-              }}
+              onClick={handleViewAll}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handleClose();
-                  navigate('/notifications');
+                  handleViewAll();
                 }
               }}
             >
@@ -303,6 +304,8 @@ export const NotificationBell: React.FC = () => {
       </Menu>
     </>
   );
-};
+});
+
+NotificationBell.displayName = 'NotificationBell';
 
 export default NotificationBell;

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -103,6 +103,16 @@ const ManagerDashboard = () => {
   const dispatchersDISP = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'DISP'), [todayDispatchers]);
   const dispatchersCTRL = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'CTRL'), [todayDispatchers]);
 
+  // Memoized navigate callbacks for StatCard (prevents re-creating on every render)
+  const goToSchedules = useCallback(() => navigate('/schedules'), [navigate]);
+  const goToParking = useCallback(() => navigate('/parking'), [navigate]);
+
+  // Memoize today's date string (doesn't change during component lifetime)
+  const todayDateStr = useMemo(
+    () => new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' }),
+    [],
+  );
+
   // Loading state — show skeleton instead of spinner
   if (draftLoading || pendingLoading || approvedLoading || rejectedLoading || dispatchersLoading) {
     return <DashboardSkeleton />;
@@ -134,7 +144,7 @@ const ManagerDashboard = () => {
               <Button
                 color="inherit"
                 size="small"
-                onClick={() => navigate('/schedules')}
+                onClick={goToSchedules}
                 sx={{ fontWeight: 600 }}
               >
                 Vezi detalii
@@ -261,7 +271,7 @@ const ManagerDashboard = () => {
                   letterSpacing: '1px',
                 }}
               >
-                Dispecerat Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                Dispecerat Astazi - {todayDateStr}
               </Typography>
               <Grow in={true} timeout={600}>
                 <Card
@@ -379,7 +389,7 @@ const ManagerDashboard = () => {
                 icon={<ScheduleIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#64748b' }} />}
                 color="#64748b"
                 bgColor={alpha('#64748b', 0.12)}
-                onClick={() => navigate('/schedules')}
+                onClick={goToSchedules}
                 delay={0}
               />
             </Grid>
@@ -391,7 +401,7 @@ const ManagerDashboard = () => {
                 icon={<PendingIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                 color="#f59e0b"
                 bgColor={alpha('#f59e0b', 0.12)}
-                onClick={() => navigate('/schedules')}
+                onClick={goToSchedules}
                 delay={100}
               />
             </Grid>
@@ -403,7 +413,7 @@ const ManagerDashboard = () => {
                 icon={<ApprovedIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#10b981' }} />}
                 color="#10b981"
                 bgColor={alpha('#10b981', 0.12)}
-                onClick={() => navigate('/schedules')}
+                onClick={goToSchedules}
                 delay={200}
               />
             </Grid>
@@ -415,7 +425,7 @@ const ManagerDashboard = () => {
                 icon={<RejectedIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                 color="#ef4444"
                 bgColor={alpha('#ef4444', 0.12)}
-                onClick={() => navigate('/schedules')}
+                onClick={goToSchedules}
                 delay={300}
                 urgent={myRejected.length > 0}
               />
@@ -451,7 +461,7 @@ const ManagerDashboard = () => {
                 icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                 color="#ef4444"
                 bgColor={alpha('#ef4444', 0.12)}
-                onClick={() => navigate('/parking')}
+                onClick={goToParking}
                 delay={400}
                 urgent={urgentIssues.length > 0}
               />
@@ -464,7 +474,7 @@ const ManagerDashboard = () => {
                 icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                 color="#f59e0b"
                 bgColor={alpha('#f59e0b', 0.12)}
-                onClick={() => navigate('/parking')}
+                onClick={goToParking}
                 delay={500}
                 urgent={urgentDamages.length > 0}
               />
@@ -488,7 +498,7 @@ const ManagerDashboard = () => {
                       boxShadow: '0 12px 28px rgba(16, 185, 129, 0.35)',
                     },
                   }}
-                  onClick={() => navigate('/parking')}
+                  onClick={goToParking}
                 >
                   {/* Decorative circle */}
                   <Box

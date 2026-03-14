@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatRONCompact } from '../../utils/formatters';
 import {
@@ -58,6 +58,17 @@ import { getTimeAgo } from '../../utils/getTimeAgo';
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
+
+  // Memoized navigate callbacks to avoid re-creating on every render
+  const goToParking = useCallback(() => navigate('/parking'), [navigate]);
+  const goToParkingHandicap = useCallback(() => navigate('/parking/handicap'), [navigate]);
+  const goToSchedulesPending = useCallback(() => navigate('/schedules/pending'), [navigate]);
+  const goToSchedules = useCallback(() => navigate('/schedules'), [navigate]);
+  const goToSchedulesRejected = useCallback(() => navigate('/schedules/rejected'), [navigate]);
+  const goToUsers = useCallback(() => navigate('/users'), [navigate]);
+  const goToAdminShiftSwaps = useCallback(() => navigate('/admin/shift-swaps'), [navigate]);
+  const goToAdminLeaveRequests = useCallback(() => navigate('/admin/leave-requests'), [navigate]);
+  const goToAdminEditRequests = useCallback(() => navigate('/admin/edit-requests'), [navigate]);
 
   // Single consolidated API call replaces 18 separate queries
   const { data: stats, isLoading, isError } = useGetDashboardStatsQuery(undefined, {
@@ -473,7 +484,7 @@ const AdminDashboard = () => {
                     icon={<PendingIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                     color="#f59e0b"
                     bgColor={alpha('#f59e0b', 0.12)}
-                    onClick={() => navigate('/schedules/pending')}
+                    onClick={goToSchedulesPending}
                     delay={0}
                     urgent={pendingCount > 0}
                   />
@@ -486,7 +497,7 @@ const AdminDashboard = () => {
                     icon={<CalendarIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#10b981' }} />}
                     color="#10b981"
                     bgColor={alpha('#10b981', 0.12)}
-                    onClick={() => navigate('/schedules')}
+                    onClick={goToSchedules}
                     delay={100}
                   />
                 </Grid>
@@ -498,7 +509,7 @@ const AdminDashboard = () => {
                     icon={<RejectedIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                     color="#ef4444"
                     bgColor={alpha('#ef4444', 0.12)}
-                    onClick={() => navigate('/schedules/rejected')}
+                    onClick={goToSchedulesRejected}
                     delay={200}
                   />
                 </Grid>
@@ -510,7 +521,7 @@ const AdminDashboard = () => {
                     icon={<PeopleIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#2563eb' }} />}
                     color="#2563eb"
                     bgColor={alpha('#2563eb', 0.12)}
-                    onClick={() => navigate('/users')}
+                    onClick={goToUsers}
                     delay={300}
                   />
                 </Grid>
@@ -545,7 +556,7 @@ const AdminDashboard = () => {
                     icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#06b6d4' }} />}
                     color="#06b6d4"
                     bgColor={alpha('#06b6d4', 0.12)}
-                    onClick={() => navigate('/admin/shift-swaps')}
+                    onClick={goToAdminShiftSwaps}
                     delay={400}
                     urgent={pendingSwaps > 0}
                   />
@@ -558,7 +569,7 @@ const AdminDashboard = () => {
                     icon={<BeachIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
                     color="#8b5cf6"
                     bgColor={alpha('#8b5cf6', 0.12)}
-                    onClick={() => navigate('/admin/leave-requests')}
+                    onClick={goToAdminLeaveRequests}
                     delay={500}
                     urgent={pendingLeaves > 0}
                   />
@@ -571,7 +582,7 @@ const AdminDashboard = () => {
                     icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#64748b' }} />}
                     color="#64748b"
                     bgColor={alpha('#64748b', 0.12)}
-                    onClick={() => navigate('/admin/shift-swaps')}
+                    onClick={goToAdminShiftSwaps}
                     delay={600}
                   />
                 </Grid>
@@ -583,7 +594,7 @@ const AdminDashboard = () => {
                     icon={<BeachIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#64748b' }} />}
                     color="#64748b"
                     bgColor={alpha('#64748b', 0.12)}
-                    onClick={() => navigate('/admin/leave-requests')}
+                    onClick={goToAdminLeaveRequests}
                     delay={700}
                   />
                 </Grid>
@@ -618,7 +629,7 @@ const AdminDashboard = () => {
                     icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                     color="#ef4444"
                     bgColor={alpha('#ef4444', 0.12)}
-                    onClick={() => navigate('/parking')}
+                    onClick={goToParking}
                     delay={800}
                     urgent={(stats?.parking?.urgentIssues?.length || 0) > 0}
                   />
@@ -631,7 +642,7 @@ const AdminDashboard = () => {
                     icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                     color="#f59e0b"
                     bgColor={alpha('#f59e0b', 0.12)}
-                    onClick={() => navigate('/parking')}
+                    onClick={goToParking}
                     delay={900}
                     urgent={(stats?.parking?.urgentDamages?.length || 0) > 0}
                   />
@@ -644,7 +655,7 @@ const AdminDashboard = () => {
                     icon={<EditIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
                     color="#8b5cf6"
                     bgColor={alpha('#8b5cf6', 0.12)}
-                    onClick={() => navigate('/admin/edit-requests')}
+                    onClick={goToAdminEditRequests}
                     delay={950}
                     urgent={(stats?.parking?.pendingEditRequests || 0) > 0}
                   />
@@ -668,7 +679,7 @@ const AdminDashboard = () => {
                           boxShadow: '0 12px 28px rgba(16, 185, 129, 0.35)',
                         },
                       }}
-                      onClick={() => navigate('/parking')}
+                      onClick={goToParking}
                     >
                       {/* Decorative circle */}
                       <Box
@@ -771,7 +782,7 @@ const AdminDashboard = () => {
                     icon={<AmplasareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
                     color="#059669"
                     bgColor={alpha('#059669', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={1000}
                   />
                 </Grid>
@@ -783,7 +794,7 @@ const AdminDashboard = () => {
                     icon={<RevocareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#dc2626' }} />}
                     color="#dc2626"
                     bgColor={alpha('#dc2626', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={1100}
                   />
                 </Grid>
@@ -795,7 +806,7 @@ const AdminDashboard = () => {
                     icon={<MarcajeIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#0284c7' }} />}
                     color="#0284c7"
                     bgColor={alpha('#0284c7', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={1200}
                   />
                 </Grid>
@@ -830,7 +841,7 @@ const AdminDashboard = () => {
                     icon={<LegitimatiiIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
                     color="#059669"
                     bgColor={alpha('#059669', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={1300}
                     urgent={(stats?.handicap?.legitimationsCount || 0) > 0}
                   />
@@ -843,7 +854,7 @@ const AdminDashboard = () => {
                     icon={<RevolutionarIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#7c3aed' }} />}
                     color="#7c3aed"
                     bgColor={alpha('#7c3aed', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={1400}
                     urgent={(stats?.handicap?.revolutionarCount || 0) > 0}
                   />
@@ -997,7 +1008,7 @@ const AdminDashboard = () => {
                   fullWidth
                   variant="text"
                   endIcon={<ArrowIcon />}
-                  onClick={() => navigate('/parking')}
+                  onClick={goToParking}
                   sx={{
                     mt: 2,
                     textTransform: 'none',

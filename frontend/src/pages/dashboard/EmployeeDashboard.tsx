@@ -187,6 +187,22 @@ const EmployeeDashboard = () => {
   const lastCaptureTimeRef = useRef<number>(0);
   const isCapturingRef = useRef<boolean>(false);
 
+  // Memoized navigate callbacks for StatCard (prevents re-creating on every render)
+  const goToMySchedule = useCallback(() => navigate('/my-schedule'), [navigate]);
+  const goToLeaveRequests = useCallback(() => navigate('/leave-requests'), [navigate]);
+  const goToDailyReports = useCallback(() => navigate('/daily-reports'), [navigate]);
+  const goToParkingHandicap = useCallback(() => navigate('/parking/handicap'), [navigate]);
+
+  // Memoize date strings to avoid re-computing on every render
+  const todayDateShort = useMemo(
+    () => new Date().toLocaleDateString('ro-RO', { weekday: 'short', day: 'numeric', month: 'short' }),
+    [],
+  );
+  const todayDateLong = useMemo(
+    () => new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' }),
+    [],
+  );
+
   // GPS status for user feedback
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'success' | 'error' | 'unavailable' | 'denied'>('idle');
   const [gpsErrorMessage, setGpsErrorMessage] = useState<string>('');
@@ -708,7 +724,7 @@ const EmployeeDashboard = () => {
                   transition: 'all 0.3s',
                   '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.2)}` },
                 }}
-                onClick={() => navigate('/my-schedule')}
+                onClick={goToMySchedule}
               >
                 <CardContent sx={{ p: 2, textAlign: 'center' }}>
                   <TodayIcon sx={{ fontSize: 36, color: 'primary.main', mb: 1 }} />
@@ -732,7 +748,7 @@ const EmployeeDashboard = () => {
                   transition: 'all 0.3s',
                   '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha(theme.palette.success.main, 0.2)}` },
                 }}
-                onClick={() => navigate('/leave-requests')}
+                onClick={goToLeaveRequests}
               >
                 <CardContent sx={{ p: 2, textAlign: 'center' }}>
                   <TimeIcon sx={{ fontSize: 36, color: 'success.main', mb: 1 }} />
@@ -754,7 +770,7 @@ const EmployeeDashboard = () => {
                   transition: 'all 0.3s',
                   '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha(theme.palette.secondary.main, 0.2)}` },
                 }}
-                onClick={() => navigate('/daily-reports')}
+                onClick={goToDailyReports}
               >
                 <CardContent sx={{ p: 2, textAlign: 'center' }}>
                   <TomorrowIcon sx={{ fontSize: 36, color: 'secondary.main', mb: 1 }} />
@@ -848,11 +864,7 @@ const EmployeeDashboard = () => {
                       letterSpacing: '0.5px',
                     }}
                   >
-                    Azi, {new Date().toLocaleDateString('ro-RO', {
-                      weekday: isMobile ? 'short' : 'long',
-                      day: 'numeric',
-                      month: isMobile ? 'short' : 'long'
-                    })}
+                    Azi, {isMobile ? todayDateShort : todayDateLong}
                   </Typography>
                   {todayAssignment ? (
                     <>
@@ -1351,7 +1363,7 @@ const EmployeeDashboard = () => {
                   </Box>
                   <Box sx={{ minWidth: 0 }}>
                     <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
-                      Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      Astazi - {todayDateLong}
                     </Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       {colleaguesData.today.length > 0
@@ -1612,7 +1624,7 @@ const EmployeeDashboard = () => {
                     icon={<AmplasareIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#059669' }} />}
                     color="#059669"
                     bgColor={alpha('#059669', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={0}
                   />
                 </Grid>
@@ -1624,7 +1636,7 @@ const EmployeeDashboard = () => {
                     icon={<RevocareIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#dc2626' }} />}
                     color="#dc2626"
                     bgColor={alpha('#dc2626', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={100}
                   />
                 </Grid>
@@ -1636,7 +1648,7 @@ const EmployeeDashboard = () => {
                     icon={<MarcajeIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#0284c7' }} />}
                     color="#0284c7"
                     bgColor={alpha('#0284c7', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={200}
                   />
                 </Grid>
@@ -1670,7 +1682,7 @@ const EmployeeDashboard = () => {
                     icon={<LegitimatiiIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#059669' }} />}
                     color="#059669"
                     bgColor={alpha('#059669', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={300}
                   />
                 </Grid>
@@ -1682,7 +1694,7 @@ const EmployeeDashboard = () => {
                     icon={<RevolutionarIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: '#7c3aed' }} />}
                     color="#7c3aed"
                     bgColor={alpha('#7c3aed', 0.12)}
-                    onClick={() => navigate('/parking/handicap')}
+                    onClick={goToParkingHandicap}
                     delay={400}
                   />
                 </Grid>
