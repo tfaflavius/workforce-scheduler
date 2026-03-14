@@ -8,7 +8,7 @@ import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 import MainLayout from '../components/layout/MainLayout';
 import { RouteErrorBoundary } from '../components/RouteErrorBoundary';
 import { useAppSelector } from '../store/hooks';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, Skeleton, Stack } from '@mui/material';
 import {
   PROCESE_VERBALE_DEPARTMENT_NAME,
   CONTROL_DEPARTMENT_NAME,
@@ -48,9 +48,23 @@ const NotificationsPage = lazy(() => import('../pages/notifications/Notification
 const NotificationRedirectPage = lazy(() => import('../pages/notifications/NotificationRedirectPage'));
 const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
+/** Skeleton placeholder shown while lazy-loaded pages are being fetched */
 const PageLoader = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-    <CircularProgress />
+  <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
+    <Skeleton
+      variant="rounded"
+      sx={{
+        height: { xs: 70, sm: 90, md: 110 },
+        borderRadius: { xs: 2, sm: 3 },
+        mb: { xs: 2, sm: 3 },
+      }}
+    />
+    <Stack direction="row" spacing={2} sx={{ mb: { xs: 2, sm: 3 } }}>
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} variant="rounded" sx={{ flex: 1, height: { xs: 60, sm: 80 }, borderRadius: 2 }} />
+      ))}
+    </Stack>
+    <Skeleton variant="rounded" sx={{ height: { xs: 180, sm: 250 }, borderRadius: 2 }} />
   </Box>
 );
 

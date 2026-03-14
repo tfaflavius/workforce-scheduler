@@ -710,12 +710,12 @@ const EmployeeDashboard = () => {
                 sx={{
                   cursor: 'pointer',
                   transition: 'all 0.3s',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha('#3b82f6', 0.2)}` },
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.2)}` },
                 }}
                 onClick={() => navigate('/my-schedule')}
               >
                 <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                  <TodayIcon sx={{ fontSize: 36, color: '#3b82f6', mb: 1 }} />
+                  <TodayIcon sx={{ fontSize: 36, color: 'primary.main', mb: 1 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Programul Meu
                   </Typography>
@@ -734,12 +734,12 @@ const EmployeeDashboard = () => {
                 sx={{
                   cursor: 'pointer',
                   transition: 'all 0.3s',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha('#10b981', 0.2)}` },
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha(theme.palette.success.main, 0.2)}` },
                 }}
                 onClick={() => navigate('/leave-requests')}
               >
                 <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                  <TimeIcon sx={{ fontSize: 36, color: '#10b981', mb: 1 }} />
+                  <TimeIcon sx={{ fontSize: 36, color: 'success.main', mb: 1 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Concedii
                   </Typography>
@@ -756,12 +756,12 @@ const EmployeeDashboard = () => {
                 sx={{
                   cursor: 'pointer',
                   transition: 'all 0.3s',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha('#8b5cf6', 0.2)}` },
+                  '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 8px 20px ${alpha(theme.palette.secondary.main, 0.2)}` },
                 }}
                 onClick={() => navigate('/daily-reports')}
               >
                 <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                  <TomorrowIcon sx={{ fontSize: 36, color: '#8b5cf6', mb: 1 }} />
+                  <TomorrowIcon sx={{ fontSize: 36, color: 'secondary.main', mb: 1 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     Raport Zilnic
                   </Typography>

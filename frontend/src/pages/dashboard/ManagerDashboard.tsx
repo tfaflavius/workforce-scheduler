@@ -48,6 +48,7 @@ import {
 } from '../../store/api/parking.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { StatCard } from '../../components/common/StatCard';
+import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
 
@@ -99,13 +100,9 @@ const ManagerDashboard = () => {
     [rejectedSchedules, user?.id],
   );
 
-  // Loading state
+  // Loading state — show skeleton instead of spinner
   if (draftLoading || pendingLoading || approvedLoading || rejectedLoading || dispatchersLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress size={48} />
-      </Box>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -233,8 +230,8 @@ const ManagerDashboard = () => {
                         label={dispatcher.shiftCode || dispatcher.shiftType}
                         size="small"
                         sx={{
-                          bgcolor: dispatcher.shiftCode === 'Z' ? '#fbbf24' : dispatcher.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
-                          color: dispatcher.shiftCode === 'Z' ? '#000' : '#fff',
+                          bgcolor: dispatcher.shiftCode === 'Z' ? 'warning.main' : dispatcher.shiftCode === 'N' ? 'secondary.main' : 'success.main',
+                          color: dispatcher.shiftCode === 'Z' ? 'warning.contrastText' : '#fff',
                           fontWeight: 700,
                           height: { xs: 24, sm: 28 },
                           fontSize: { xs: '0.7rem', sm: '0.8rem' },

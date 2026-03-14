@@ -324,6 +324,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 transition: 'background-color 0.2s ease',
+                '&:nth-of-type(even)': {
+                  backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.015)' : 'rgba(255, 255, 255, 0.015)',
+                },
                 '&:hover': {
                   backgroundColor: mode === 'light' ? '#f8fafc' : '#1e293b',
                 },
