@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useScrollToTop } from '../../hooks/useScrollToTop';
 import {
@@ -23,6 +23,8 @@ import {
   Chip,
   alpha,
   Fade,
+  Fab,
+  Zoom,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -49,6 +51,7 @@ import {
   ReportProblem as ReportProblemIcon,
   Security as SecurityIcon,
   EditNote as EditRequestsIcon,
+  KeyboardArrowUp as ArrowUpIcon,
 } from '@mui/icons-material';
 import {
   Groups as GroupsIcon,
@@ -102,6 +105,19 @@ export const MainLayout = () => {
 
   // Scroll to top on route change
   useScrollToTop();
+
+  // Back-to-top FAB visibility
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const handleScrollCheck = useCallback(() => {
+    setShowScrollTop(window.scrollY > 300);
+  }, []);
+  useEffect(() => {
+    window.addEventListener('scroll', handleScrollCheck, { passive: true });
+    return () => window.removeEventListener('scroll', handleScrollCheck);
+  }, [handleScrollCheck]);
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -1071,6 +1087,32 @@ export const MainLayout = () => {
           </Box>
         </Fade>
       </Box>
+
+      {/* Back-to-top FAB */}
+      <Zoom in={showScrollTop}>
+        <Fab
+          size="small"
+          aria-label="Inapoi sus"
+          onClick={scrollToTop}
+          sx={{
+            position: 'fixed',
+            bottom: { xs: 24, sm: 32 },
+            right: { xs: 24, sm: 32 },
+            bgcolor: alpha(theme.palette.primary.main, 0.9),
+            color: 'white',
+            boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`,
+            '&:hover': {
+              bgcolor: theme.palette.primary.main,
+              boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.45)}`,
+              transform: 'translateY(-2px)',
+            },
+            transition: 'all 0.2s ease',
+            zIndex: 1100,
+          }}
+        >
+          <ArrowUpIcon />
+        </Fab>
+      </Zoom>
     </Box>
   );
 };
