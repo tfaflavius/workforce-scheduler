@@ -14,7 +14,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Avatar,
   Menu,
   MenuItem,
   Tooltip,
@@ -66,6 +65,7 @@ import { logoutAsync } from '../../store/slices/auth.slice';
 import type { UserRole } from '../../types/user.types';
 import NotificationBell from '../notifications/NotificationBell';
 import GlobalSearch from '../common/GlobalSearch';
+import { UserAvatar } from '../common/UserAvatar';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useThemeMode } from '../../contexts/ThemeContext';
@@ -478,18 +478,7 @@ export const MainLayout = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar
-            sx={{
-              width: { xs: 40, sm: 48 },
-              height: { xs: 40, sm: 48 },
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-              fontSize: { xs: '1rem', sm: '1.2rem' },
-              fontWeight: 600,
-              boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
-            }}
-          >
-            {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-          </Avatar>
+          <UserAvatar name={user?.fullName} size="large" />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               variant="subtitle2"
@@ -617,11 +606,14 @@ export const MainLayout = () => {
                         }}
                       />
                     )}
-                    {isSectionOpen ? (
-                      <ExpandLessIcon sx={{ fontSize: '1.2rem', color: alpha(group.color, 0.6) }} />
-                    ) : (
-                      <ExpandMoreIcon sx={{ fontSize: '1.2rem', color: alpha(group.color, 0.6) }} />
-                    )}
+                    <ExpandMoreIcon
+                      sx={{
+                        fontSize: '1.2rem',
+                        color: alpha(group.color, 0.6),
+                        transform: isSectionOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.25s ease',
+                      }}
+                    />
                   </ListItemButton>
                 </ListItem>
                 {/* Collapsible items */}
@@ -965,17 +957,7 @@ export const MainLayout = () => {
                 ml: { xs: 0.5, sm: 1 },
               }}
             >
-              <Avatar
-                sx={{
-                  width: { xs: 32, sm: 36 },
-                  height: { xs: 32, sm: 36 },
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                  fontSize: { xs: '0.875rem', sm: '1rem' },
-                  fontWeight: 600,
-                }}
-              >
-                {user?.fullName?.charAt(0).toUpperCase() || 'U'}
-              </Avatar>
+              <UserAvatar name={user?.fullName} size="small" sx={{ width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 } }} />
             </IconButton>
           </Tooltip>
 

@@ -207,6 +207,18 @@ img {
   }
 }
 
+/* Smooth theme transition on key surfaces when toggling dark/light mode */
+body {
+  transition: background-color 0.3s ease !important;
+}
+
+.MuiDrawer-paper,
+.MuiAppBar-root,
+.MuiPaper-root,
+.MuiCard-root {
+  transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease !important;
+}
+
 /* Brand selection color */
 ::selection {
   background: rgba(37, 99, 235, 0.2);
@@ -265,6 +277,82 @@ img {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  /* Hide navigation, sidebar, FABs, and non-essential UI */
+  .MuiDrawer-root,
+  .MuiAppBar-root,
+  .MuiFab-root,
+  .MuiSpeedDial-root,
+  .MuiBottomNavigation-root,
+  .MuiSnackbar-root {
+    display: none !important;
+  }
+
+  /* Make main content full width */
+  body, #root {
+    background: white !important;
+    color: black !important;
+  }
+
+  .MuiBox-root {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Cards and papers should be flat */
+  .MuiPaper-root,
+  .MuiCard-root {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid;
+  }
+
+  /* Ensure tables print properly */
+  .MuiTable-root {
+    font-size: 10pt !important;
+  }
+
+  .MuiTableCell-root {
+    border: 1px solid #e2e8f0 !important;
+    padding: 4px 8px !important;
+    font-size: 9pt !important;
+  }
+
+  .MuiTableCell-head {
+    background-color: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-weight: bold !important;
+  }
+
+  /* Hide interactive elements in print */
+  .MuiButton-root,
+  .MuiIconButton-root,
+  .MuiChip-deleteIcon,
+  .MuiTablePagination-root {
+    display: none !important;
+  }
+
+  /* Show links as text */
+  a[href]::after {
+    content: none;
+  }
+
+  /* Avoid page breaks inside important elements */
+  .MuiCard-root,
+  .MuiTableRow-root,
+  .MuiListItem-root {
+    break-inside: avoid;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 1.5cm;
   }
 }
 

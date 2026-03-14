@@ -87,7 +87,20 @@ export const NotificationBell: React.FC = () => {
           onClick={handleOpen}
           aria-label={`${unreadCount} notificari necitite`}
         >
-          <Badge badgeContent={unreadCount} color="error" max={99}>
+          <Badge
+            badgeContent={unreadCount}
+            color="error"
+            max={99}
+            sx={{
+              '& .MuiBadge-badge': unreadCount > 0 ? {
+                animation: 'badgePulse 2s ease-in-out infinite',
+                '@keyframes badgePulse': {
+                  '0%, 100%': { transform: 'scale(1) translate(50%, -50%)' },
+                  '50%': { transform: 'scale(1.15) translate(50%, -50%)' },
+                },
+              } : {},
+            }}
+          >
             {unreadCount > 0 ? <NotificationsIcon /> : <NotificationsNoneIcon />}
           </Badge>
         </IconButton>
