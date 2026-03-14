@@ -46,6 +46,7 @@ import {
 import { useAppSelector } from '../../store/hooks';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import type {
+  LeaveRequest,
   LeaveType,
   LeaveRequestStatus,
   CreateLeaveRequestDto,
@@ -99,6 +100,8 @@ export const LeaveRequestsPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailRequest, setDetailRequest] = useState<LeaveRequest | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -113,14 +116,19 @@ export const LeaveRequestsPage = () => {
   const [createRequest, { isLoading: creating, error: createError }] = useCreateLeaveRequestMutation();
   const [cancelRequest, { isLoading: canceling }] = useCancelLeaveRequestMutation();
 
-  // Highlight request from notification
+  // Highlight request from notification + auto-open detail dialog
   useEffect(() => {
     if (highlightRequestId && requests.length > 0) {
-      setHighlightedId(highlightRequestId);
-      setTimeout(() => {
-        highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-      setTimeout(() => setHighlightedId(null), 4000);
+      const request = requests.find(r => r.id === highlightRequestId);
+      if (request) {
+        setHighlightedId(highlightRequestId);
+        setDetailRequest(request);
+        setDetailDialogOpen(true);
+        setTimeout(() => {
+          highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+        setTimeout(() => setHighlightedId(null), 4000);
+      }
       window.history.replaceState({}, document.title);
     }
   }, [highlightRequestId, requests]);
@@ -446,8 +454,11 @@ export const LeaveRequestsPage = () => {
             <Card
               key={request.id}
               ref={request.id === highlightedId ? highlightRef : undefined}
+              onClick={() => { setDetailRequest(request); setDetailDialogOpen(true); }}
               sx={{
+                cursor: 'pointer',
                 transition: 'all 0.5s ease',
+                '&:hover': { boxShadow: theme.shadows[4] },
                 ...(request.id === highlightedId && {
                   border: '2px solid',
                   borderColor: 'primary.main',
@@ -505,7 +516,7 @@ export const LeaveRequestsPage = () => {
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => handleCancel(request.id)}
+                          onClick={(e) => { e.stopPropagation(); handleCancel(request.id); }}
                           disabled={canceling}
                         >
                           <CancelIcon fontSize="small" />
@@ -618,6 +629,71 @@ export const LeaveRequestsPage = () => {
             </Typography>
           </Alert>
         </Stack>
+      </FriendlyDialog>
+
+      {/* Detail View Dialog */}
+      <FriendlyDialog
+        open={detailDialogOpen}
+        onClose={() => setDetailDialogOpen(false)}
+        icon={<BeachIcon />}
+        variant="primary"
+        title="Detalii Cerere de Concediu"
+        actions={
+          <>
+            <Button onClick={() => setDetailDialogOpen(false)}>Inchide</Button>
+            {detailRequest?.status === 'PENDING' && (
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={() => {
+                  setDetailDialogOpen(false);
+                  handleCancel(detailRequest.id);
+                }}
+              >
+                Anuleaza Cererea
+              </Button>
+            )}
+          </>
+        }
+      >
+        {detailRequest && (
+          <Stack spacing={2}>
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+                <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'primary.lighter', color: 'primary.main' }}>
+                  {getLeaveTypeIcon(detailRequest.leaveType)}
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {LEAVE_TYPE_LABELS[detailRequest.leaveType]}
+                  </Typography>
+                  <Chip
+                    icon={getStatusIcon(detailRequest.status)}
+                    label={LEAVE_STATUS_LABELS[detailRequest.status]}
+                    color={getStatusColor(detailRequest.status)}
+                    size="small"
+                  />
+                </Box>
+              </Stack>
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                <strong>Perioada:</strong> {formatDate(detailRequest.startDate)} - {formatDate(detailRequest.endDate)}
+              </Typography>
+              {detailRequest.reason && (
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  <strong>Motiv:</strong> {detailRequest.reason}
+                </Typography>
+              )}
+            </Paper>
+            {detailRequest.adminMessage && (
+              <Alert severity={detailRequest.status === 'APPROVED' ? 'success' : 'error'}>
+                <Typography variant="body2">
+                  <strong>Mesaj de la admin:</strong> {detailRequest.adminMessage}
+                </Typography>
+              </Alert>
+            )}
+          </Stack>
+        )}
       </FriendlyDialog>
 
       <FriendlyDialog

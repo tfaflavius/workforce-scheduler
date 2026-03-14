@@ -43,6 +43,7 @@ import {
   Error as RejectedIcon,
   Inbox as InboxIcon,
   WarningAmber as WarningAmberIcon,
+  Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard, FriendlyDialog } from '../../components/common';
 import { useAppSelector } from '../../store/hooks';
@@ -121,6 +122,8 @@ const ShiftSwapsPage = () => {
   const [tabValue, setTabValue] = useState(0);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailRequest, setDetailRequest] = useState<ShiftSwapRequest | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<ShiftSwapRequest | null>(null);
   const [requesterDate, setRequesterDate] = useState('');
   const [targetDate, setTargetDate] = useState('');
@@ -172,7 +175,7 @@ const ShiftSwapsPage = () => {
   const sentRequests = myRequests.filter((r) => r.requesterId === user?.id);
   const receivedRequests = myRequests.filter((r) => r.requesterId !== user?.id);
 
-  // Highlight swap from notification
+  // Highlight swap from notification + auto-open detail dialog
   useEffect(() => {
     if (highlightSwapId && myRequests.length > 0) {
       const request = myRequests.find((r) => r.id === highlightSwapId);
@@ -181,6 +184,11 @@ const ShiftSwapsPage = () => {
         const isSent = request.requesterId === user?.id;
         setTabValue(isSent ? 0 : 1);
         setHighlightedId(highlightSwapId);
+
+        // Auto-open the detail dialog
+        setDetailRequest(request);
+        setDetailDialogOpen(true);
+
         setTimeout(() => {
           highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 300);
@@ -338,9 +346,12 @@ const ShiftSwapsPage = () => {
       <Card
         key={request.id}
         ref={request.id === highlightedId ? highlightRef : undefined}
+        onClick={() => { setDetailRequest(request); setDetailDialogOpen(true); }}
         sx={{
           mb: 2,
+          cursor: 'pointer',
           transition: 'all 0.5s ease',
+          '&:hover': { boxShadow: theme.shadows[4] },
           ...(request.id === highlightedId && {
             border: '2px solid',
             borderColor: 'primary.main',
@@ -423,7 +434,7 @@ const ShiftSwapsPage = () => {
                     color="success"
                     size="small"
                     startIcon={<CheckIcon />}
-                    onClick={() => handleOpenRespondDialog(request, true)}
+                    onClick={(e) => { e.stopPropagation(); handleOpenRespondDialog(request, true); }}
                   >
                     Accepta
                   </Button>
@@ -432,7 +443,7 @@ const ShiftSwapsPage = () => {
                     color="error"
                     size="small"
                     startIcon={<CloseIcon />}
-                    onClick={() => handleOpenRespondDialog(request, false)}
+                    onClick={(e) => { e.stopPropagation(); handleOpenRespondDialog(request, false); }}
                   >
                     Refuza
                   </Button>
@@ -454,7 +465,7 @@ const ShiftSwapsPage = () => {
                 <Tooltip title="Anuleaza cererea">
                   <IconButton
                     color="error"
-                    onClick={() => handleCancelSwap(request.id)}
+                    onClick={(e) => { e.stopPropagation(); handleCancelSwap(request.id); }}
                     disabled={cancelling}
                   >
                     <CancelIcon />
@@ -774,6 +785,134 @@ const ShiftSwapsPage = () => {
             placeholder={responseAccepted ? 'Adauga un mesaj...' : 'Explica de ce refuzi...'}
           />
         </Stack>
+      </FriendlyDialog>
+
+      {/* Detail View Dialog */}
+      <FriendlyDialog
+        open={detailDialogOpen}
+        onClose={() => setDetailDialogOpen(false)}
+        icon={<SwapIcon />}
+        variant="info"
+        title="Detalii Cerere de Schimb"
+        maxWidth="sm"
+        actions={
+          <>
+            <Button onClick={() => setDetailDialogOpen(false)}>Inchide</Button>
+            {detailRequest && detailRequest.requesterId !== user?.id &&
+              (detailRequest.status === 'PENDING' || detailRequest.status === 'AWAITING_ADMIN') &&
+              !detailRequest.responses?.find(r => r.responderId === user?.id) && (
+              <>
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  startIcon={<CheckIcon />}
+                  onClick={() => {
+                    setDetailDialogOpen(false);
+                    handleOpenRespondDialog(detailRequest, true);
+                  }}
+                >
+                  Accepta
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  startIcon={<CloseIcon />}
+                  onClick={() => {
+                    setDetailDialogOpen(false);
+                    handleOpenRespondDialog(detailRequest, false);
+                  }}
+                >
+                  Refuza
+                </Button>
+              </>
+            )}
+          </>
+        }
+      >
+        {detailRequest && (
+          <Stack spacing={2}>
+            <Box>
+              <Chip
+                icon={getStatusIcon(detailRequest.status)}
+                label={getStatusLabel(detailRequest.status)}
+                color={getStatusColor(detailRequest.status)}
+              />
+            </Box>
+
+            <Paper variant="outlined" sx={{ p: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                <strong>Schimb de ture:</strong>
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <CalendarIcon color="action" fontSize="small" />
+                <Typography variant="body1" fontWeight="medium">
+                  {formatDate(detailRequest.requesterDate)}
+                  <SwapIcon sx={{ mx: 1, verticalAlign: 'middle', fontSize: '1.2rem' }} />
+                  {formatDate(detailRequest.targetDate)}
+                </Typography>
+              </Stack>
+
+              {detailRequest.requester && (
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                  <PersonIcon color="action" fontSize="small" />
+                  <Typography variant="body2">
+                    Solicitant: <strong>{detailRequest.requester.fullName}</strong>
+                  </Typography>
+                </Stack>
+              )}
+
+              {detailRequest.responses?.find(r => r.response === 'ACCEPTED') && (
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                  <CheckIcon color="success" fontSize="small" />
+                  <Typography variant="body2" color="success.main">
+                    Acceptat de: <strong>{detailRequest.responses.find(r => r.response === 'ACCEPTED')?.responder?.fullName}</strong>
+                  </Typography>
+                </Stack>
+              )}
+            </Paper>
+
+            {detailRequest.reason && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">Motiv</Typography>
+                <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+                  &ldquo;{detailRequest.reason}&rdquo;
+                </Typography>
+              </Box>
+            )}
+
+            {detailRequest.responses && detailRequest.responses.length > 0 && (
+              <Box>
+                <Typography variant="caption" color="text.secondary">Raspunsuri</Typography>
+                <Stack spacing={1} sx={{ mt: 0.5 }}>
+                  {detailRequest.responses.map((response) => (
+                    <Paper key={response.id} variant="outlined" sx={{ p: 1.5 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography variant="body2">{response.responder?.fullName}</Typography>
+                        <Chip
+                          icon={response.response === 'ACCEPTED' ? <CheckIcon /> : <CloseIcon />}
+                          label={response.response === 'ACCEPTED' ? 'Acceptat' : 'Refuzat'}
+                          color={response.response === 'ACCEPTED' ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </Stack>
+                      {response.message && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                          &ldquo;{response.message}&rdquo;
+                        </Typography>
+                      )}
+                    </Paper>
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
+            <Typography variant="caption" color="text.secondary">
+              Creat la: {new Date(detailRequest.createdAt).toLocaleString('ro-RO')}
+            </Typography>
+          </Stack>
+        )}
       </FriendlyDialog>
 
       <FriendlyDialog

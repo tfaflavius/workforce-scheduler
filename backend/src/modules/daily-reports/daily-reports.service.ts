@@ -300,7 +300,7 @@ export class DailyReportsService {
         type: NotificationType.DAILY_REPORT_COMMENTED,
         title: 'Comentariu la raportul zilnic',
         message: `${adminName} a adaugat un comentariu la raportul tau din ${this.formatDate(report.date)}.`,
-        data: { dailyReportId: report.id },
+        data: { dailyReportId: report.id, reportDate: report.date },
         skipPush: true,
       });
 
@@ -308,7 +308,7 @@ export class DailyReportsService {
         report.userId,
         'Comentariu la raportul zilnic',
         `${adminName} a adaugat un comentariu la raportul tau.`,
-        { type: 'DAILY_REPORT_COMMENTED', dailyReportId: report.id },
+        { type: 'DAILY_REPORT_COMMENTED', dailyReportId: report.id, reportDate: report.date },
         NotificationType.DAILY_REPORT_COMMENTED,
       );
     } catch (error) {
@@ -506,7 +506,7 @@ export class DailyReportsService {
           type: NotificationType.DAILY_REPORT_SUBMITTED,
           title: 'Raport zilnic nou',
           message: `${user.fullName} a trimis raportul zilnic pentru ${this.formatDate(report.date)}.`,
-          data: { dailyReportId: report.id, reportUserId: user.id },
+          data: { dailyReportId: report.id, reportUserId: user.id, reportDate: report.date },
           skipPush: true,
         });
         pushUserIds.push(admin.id);
@@ -530,7 +530,7 @@ export class DailyReportsService {
             type: NotificationType.DAILY_REPORT_SUBMITTED,
             title: 'Raport zilnic nou',
             message: `${user.fullName} a trimis raportul zilnic pentru ${this.formatDate(report.date)}.`,
-            data: { dailyReportId: report.id, reportUserId: user.id },
+            data: { dailyReportId: report.id, reportUserId: user.id, reportDate: report.date },
             skipPush: true,
           });
           pushUserIds.push(manager.id);
@@ -548,7 +548,7 @@ export class DailyReportsService {
           pushUserIds,
           'Raport zilnic nou',
           `${user.fullName} a trimis raportul zilnic.`,
-          { type: 'DAILY_REPORT_SUBMITTED', dailyReportId: report.id },
+          { type: 'DAILY_REPORT_SUBMITTED', dailyReportId: report.id, reportDate: report.date },
           NotificationType.DAILY_REPORT_SUBMITTED,
         );
       }

@@ -118,6 +118,10 @@ export const AdminLeaveRequestsPage = () => {
   const [message, setMessage] = useState('');
   const [overlaps, setOverlaps] = useState<LeaveRequest[]>([]);
 
+  // View detail dialog state (auto-opened from notification)
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewRequest, setViewRequest] = useState<LeaveRequest | null>(null);
+
   // Edit / Delete state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -134,7 +138,7 @@ export const AdminLeaveRequestsPage = () => {
   const [adminEdit, { isLoading: editing }] = useAdminEditLeaveRequestMutation();
   const [adminDelete, { isLoading: deleting }] = useAdminDeleteLeaveRequestMutation();
 
-  // Auto-switch to the correct tab and highlight the request from notification
+  // Auto-switch to the correct tab, highlight, and open detail dialog from notification
   useEffect(() => {
     if (highlightRequestId && allRequests.length > 0) {
       const request = allRequests.find((r) => r.id === highlightRequestId);
@@ -144,12 +148,16 @@ export const AdminLeaveRequestsPage = () => {
         setTabValue(tabIndex);
         setHighlightedId(highlightRequestId);
 
+        // Auto-open the view dialog
+        setViewRequest(request);
+        setViewDialogOpen(true);
+
         // Scroll to the element after a short delay (to allow tab switch + render)
         setTimeout(() => {
           highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 300);
 
-        // Remove highlight after 3 seconds
+        // Remove highlight after 4 seconds
         setTimeout(() => setHighlightedId(null), 4000);
       }
 
@@ -428,8 +436,11 @@ export const AdminLeaveRequestsPage = () => {
             <Card
               key={request.id}
               ref={request.id === highlightedId ? highlightRef : undefined}
+              onClick={() => { setViewRequest(request); setViewDialogOpen(true); }}
               sx={{
+                cursor: 'pointer',
                 transition: 'all 0.5s ease',
+                '&:hover': { boxShadow: theme.shadows[4] },
                 ...(request.id === highlightedId && {
                   border: '2px solid',
                   borderColor: 'primary.main',
@@ -511,7 +522,7 @@ export const AdminLeaveRequestsPage = () => {
                         <Tooltip title="Aproba">
                           <IconButton
                             color="success"
-                            onClick={() => handleOpenDialog(request, 'APPROVED')}
+                            onClick={(e) => { e.stopPropagation(); handleOpenDialog(request, 'APPROVED'); }}
                             sx={{ minWidth: 36, minHeight: 36 }}
                           >
                             <ApproveIcon />
@@ -520,7 +531,7 @@ export const AdminLeaveRequestsPage = () => {
                         <Tooltip title="Respinge">
                           <IconButton
                             color="error"
-                            onClick={() => handleOpenDialog(request, 'REJECTED')}
+                            onClick={(e) => { e.stopPropagation(); handleOpenDialog(request, 'REJECTED'); }}
                             sx={{ minWidth: 36, minHeight: 36 }}
                           >
                             <RejectIcon />
@@ -538,7 +549,7 @@ export const AdminLeaveRequestsPage = () => {
                     <Tooltip title="Editeaza">
                       <IconButton
                         color="primary"
-                        onClick={() => handleOpenEdit(request)}
+                        onClick={(e) => { e.stopPropagation(); handleOpenEdit(request); }}
                         size="small"
                       >
                         <EditIcon fontSize="small" />
@@ -547,7 +558,7 @@ export const AdminLeaveRequestsPage = () => {
                     <Tooltip title="Sterge">
                       <IconButton
                         color="error"
-                        onClick={() => handleOpenDelete(request)}
+                        onClick={(e) => { e.stopPropagation(); handleOpenDelete(request); }}
                         size="small"
                       >
                         <DeleteIcon fontSize="small" />
@@ -571,6 +582,91 @@ export const AdminLeaveRequestsPage = () => {
           ))}
         </Stack>
       )}
+
+      {/* View Detail Dialog */}
+      <FriendlyDialog
+        open={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        icon={<BeachIcon />}
+        variant="primary"
+        title="Detalii Cerere de Concediu"
+        actions={
+          <>
+            <Button onClick={() => setViewDialogOpen(false)}>Inchide</Button>
+            {viewRequest?.status === 'PENDING' && (
+              <>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={() => {
+                    setViewDialogOpen(false);
+                    handleOpenDialog(viewRequest, 'APPROVED');
+                  }}
+                  startIcon={<ApproveIcon />}
+                >
+                  Aproba
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => {
+                    setViewDialogOpen(false);
+                    handleOpenDialog(viewRequest, 'REJECTED');
+                  }}
+                  startIcon={<RejectIcon />}
+                >
+                  Respinge
+                </Button>
+              </>
+            )}
+          </>
+        }
+      >
+        {viewRequest && (
+          <Stack spacing={2}>
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+                <Box sx={{ p: 1, borderRadius: 2, bgcolor: 'primary.lighter', color: 'primary.main' }}>
+                  {getLeaveTypeIcon(viewRequest.leaveType)}
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {LEAVE_TYPE_LABELS[viewRequest.leaveType]}
+                  </Typography>
+                  <Chip
+                    label={LEAVE_STATUS_LABELS[viewRequest.status]}
+                    color={getStatusColor(viewRequest.status)}
+                    size="small"
+                  />
+                </Box>
+              </Stack>
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                <strong>Angajat:</strong> {viewRequest.user?.fullName || 'N/A'}
+              </Typography>
+              {viewRequest.user?.department && (
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  <strong>Departament:</strong> {viewRequest.user.department.name}
+                </Typography>
+              )}
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                <strong>Perioada:</strong> {formatDate(viewRequest.startDate)} - {formatDate(viewRequest.endDate)} ({calculateDays(viewRequest.startDate, viewRequest.endDate)} zile)
+              </Typography>
+              {viewRequest.reason && (
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  <strong>Motiv:</strong> {viewRequest.reason}
+                </Typography>
+              )}
+            </Paper>
+            {viewRequest.adminMessage && (
+              <Alert severity={viewRequest.status === 'APPROVED' ? 'success' : 'error'}>
+                <Typography variant="body2">
+                  <strong>Mesaj:</strong> {viewRequest.adminMessage}
+                </Typography>
+              </Alert>
+            )}
+          </Stack>
+        )}
+      </FriendlyDialog>
 
       {/* Response Dialog */}
       <FriendlyDialog

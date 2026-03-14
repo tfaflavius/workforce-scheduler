@@ -146,11 +146,12 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     case 'EMPLOYEE_ABSENT':
       return { path: '/schedules' };
 
-    // Daily report notifications
+    // Daily report notifications — navigate to the correct date
     case 'DAILY_REPORT_SUBMITTED':
     case 'DAILY_REPORT_COMMENTED':
+      return { path: '/daily-reports', state: { highlightReportDate: data?.reportDate || data?.date } };
     case 'DAILY_REPORT_MISSING':
-      return { path: '/daily-reports' };
+      return { path: '/daily-reports', state: { highlightReportDate: data?.date } };
 
     default:
       // PV Display notifications (use GENERAL type with pvSessionId/pvDayId in data)

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -76,6 +77,9 @@ const getLast30DaysRange = () => {
 const DailyReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
+  const highlightReportDate = (location.state as any)?.highlightReportDate as string | undefined;
+  const hasHandledState = useRef(false);
   const user = useSelector((state: RootState) => state.auth.user);
   const isAdmin = isAdminOrAbove(user?.role);
   const isManager = user?.role === 'MANAGER';
@@ -202,6 +206,23 @@ const DailyReportsPage: React.FC = () => {
       setReportContent(todayReport.content || '');
     }
   }, [todayReport]);
+
+  // Handle notification navigation — set calendar to the correct date
+  useEffect(() => {
+    if (highlightReportDate && !hasHandledState.current) {
+      hasHandledState.current = true;
+      const date = new Date(highlightReportDate);
+      if (!isNaN(date.getTime())) {
+        setSelectedMonth({ year: date.getFullYear(), month: date.getMonth() });
+        setSelectedDay(date.getDate());
+        // Switch to "All Reports" tab for managers
+        if (canViewAll && !isAdmin) {
+          setActiveTab(1);
+        }
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightReportDate, canViewAll, isAdmin]);
 
   const todayIsSubmitted = todayReport?.status === 'SUBMITTED';
 

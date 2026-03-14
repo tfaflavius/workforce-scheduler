@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
 import { formatDateMedium } from '../../utils/dateFormatters';
 import {
@@ -100,6 +101,10 @@ const getStatusIcon = (status: ShiftSwapStatus) => {
 const AdminShiftSwapsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const location = useLocation();
+  const highlightSwapId = (location.state as any)?.highlightSwapId as string | undefined;
+  const highlightRef = useRef<HTMLDivElement>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [selectedRequest, setSelectedRequest] = useState<ShiftSwapRequest | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -123,6 +128,28 @@ const AdminShiftSwapsPage = () => {
   const [rejectSwap, { isLoading: rejecting }] = useRejectSwapRequestMutation();
   const [deleteSwap, { isLoading: deleting }] = useDeleteSwapRequestMutation();
   const [getUsersOnDate, { data: targetDateUsers = [], isLoading: loadingTargetUsers }] = useLazyGetUsersOnDateQuery();
+
+  // Auto-switch tab, highlight, and open detail dialog from notification
+  useEffect(() => {
+    if (highlightSwapId && allRequests.length > 0) {
+      const request = allRequests.find((r) => r.id === highlightSwapId);
+      if (request) {
+        // Switch to the correct tab
+        const tabIndex = request.status === 'AWAITING_ADMIN' ? 0 : request.status === 'PENDING' ? 1 : 2;
+        setTabValue(tabIndex);
+        setHighlightedId(highlightSwapId);
+
+        // Auto-open the details dialog
+        handleOpenDetails(request);
+
+        setTimeout(() => {
+          highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+        setTimeout(() => setHighlightedId(null), 4000);
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightSwapId, allRequests]);
 
   // Filter requests by status
   const awaitingAdminRequests = allRequests.filter((r) => r.status === 'AWAITING_ADMIN');
@@ -235,7 +262,27 @@ const AdminShiftSwapsPage = () => {
     const acceptedResponses = request.responses?.filter((r) => r.response === 'ACCEPTED') || [];
 
     return (
-      <Card key={request.id} sx={{ mb: 2 }}>
+      <Card
+        key={request.id}
+        ref={request.id === highlightedId ? highlightRef : undefined}
+        onClick={() => handleOpenDetails(request)}
+        sx={{
+          mb: 2,
+          cursor: 'pointer',
+          transition: 'all 0.5s ease',
+          '&:hover': { boxShadow: theme.shadows[4] },
+          ...(request.id === highlightedId && {
+            border: '2px solid',
+            borderColor: 'primary.main',
+            boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+            animation: 'highlightPulse 1s ease-in-out 3',
+            '@keyframes highlightPulse': {
+              '0%, 100%': { boxShadow: `0 0 8px ${alpha(theme.palette.primary.main, 0.3)}` },
+              '50%': { boxShadow: `0 0 20px ${alpha(theme.palette.primary.main, 0.6)}` },
+            },
+          }),
+        }}
+      >
         <CardContent>
           <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={2}>
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -300,14 +347,14 @@ const AdminShiftSwapsPage = () => {
 
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ flexShrink: 0 }}>
               <Tooltip title="Vezi detalii">
-                <IconButton onClick={() => handleOpenDetails(request)} size={isMobile ? 'small' : 'medium'}>
+                <IconButton onClick={(e) => { e.stopPropagation(); handleOpenDetails(request); }} size={isMobile ? 'small' : 'medium'}>
                   <ViewIcon />
                 </IconButton>
               </Tooltip>
 
               <Tooltip title="Sterge cererea">
                 <IconButton
-                  onClick={() => handleDeleteSwap(request)}
+                  onClick={(e) => { e.stopPropagation(); handleDeleteSwap(request); }}
                   size={isMobile ? 'small' : 'medium'}
                   color="error"
                   disabled={deleting}
@@ -323,7 +370,7 @@ const AdminShiftSwapsPage = () => {
                     color="success"
                     size="small"
                     startIcon={<CheckIcon />}
-                    onClick={() => handleOpenActionDialog(request, 'approve')}
+                    onClick={(e) => { e.stopPropagation(); handleOpenActionDialog(request, 'approve'); }}
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' } }}
                   >
                     {request.status === 'PENDING' ? 'Aloca' : 'Aproba'}
@@ -333,7 +380,7 @@ const AdminShiftSwapsPage = () => {
                     color="error"
                     size="small"
                     startIcon={<CloseIcon />}
-                    onClick={() => handleOpenActionDialog(request, 'reject')}
+                    onClick={(e) => { e.stopPropagation(); handleOpenActionDialog(request, 'reject'); }}
                     sx={{ fontSize: { xs: '0.75rem', sm: '0.8125rem' } }}
                   >
                     Respinge
@@ -515,10 +562,10 @@ const AdminShiftSwapsPage = () => {
                             </Typography>
                           </Box>
                           <Stack direction="row" spacing={0.5}>
-                            <IconButton size="small" onClick={() => handleOpenDetails(request)}>
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleOpenDetails(request); }}>
                               <ViewIcon fontSize="small" />
                             </IconButton>
-                            <IconButton size="small" color="error" onClick={() => handleDeleteSwap(request)} disabled={deleting}>
+                            <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); handleDeleteSwap(request); }} disabled={deleting}>
                               <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Stack>
