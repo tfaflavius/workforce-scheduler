@@ -45,6 +45,7 @@ import type {
   WorkPositionFilter,
   AssignmentInfo,
 } from './components';
+import type { HighlightScheduleState } from '../../types/navigation.types';
 
 const SchedulesPage: React.FC = () => {
   const theme = useTheme();
@@ -54,12 +55,12 @@ const SchedulesPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const hasHandledState = useRef(false);
-  const highlightMonthYear = (location.state as any)?.highlightMonthYear as string | undefined;
+  const highlightMonthYear = (location.state as HighlightScheduleState | null)?.highlightMonthYear;
   const { user } = useAppSelector((state) => state.auth);
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
     // If navigating from notification, use the notification's monthYear
-    const stateMonthYear = (location.state as any)?.highlightMonthYear as string | undefined;
+    const stateMonthYear = (location.state as HighlightScheduleState | null)?.highlightMonthYear;
     if (stateMonthYear && /^\d{4}-\d{2}$/.test(stateMonthYear)) {
       return stateMonthYear;
     }

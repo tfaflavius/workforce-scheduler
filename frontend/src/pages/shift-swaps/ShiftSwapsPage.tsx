@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import type { HighlightSwapState } from '../../types/navigation.types';
 import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
 import { formatDateFull } from '../../utils/dateFormatters';
 import {
@@ -114,7 +115,7 @@ const ShiftSwapsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  const highlightSwapId = (location.state as any)?.highlightSwapId as string | undefined;
+  const highlightSwapId = (location.state as HighlightSwapState | null)?.highlightSwapId;
   const highlightRef = useRef<HTMLDivElement>(null);
   const lastHandledIdRef = useRef<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);

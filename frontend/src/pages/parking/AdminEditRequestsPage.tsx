@@ -50,6 +50,7 @@ import GradientHeader from '../../components/common/GradientHeader';
 import { getStatusColor } from '../../utils/statusHelpers';
 import { formatDateTime } from '../../utils/dateFormatters';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import type { OpenEditRequestState } from '../../types/navigation.types';
 
 const AdminEditRequestsPage: React.FC = () => {
   const theme = useTheme();
@@ -60,7 +61,7 @@ const AdminEditRequestsPage: React.FC = () => {
   const lastHandledIdRef = useRef<string | null>(null);
 
   // When arriving from notification, show ALL so we can find the specific request
-  const notificationEditRequestId = (location.state as any)?.openEditRequestId;
+  const notificationEditRequestId = (location.state as OpenEditRequestState | null)?.openEditRequestId;
   const [statusFilter, setStatusFilter] = useState<'ALL' | EditRequestStatus>(notificationEditRequestId ? 'ALL' : 'PENDING');
   const [selectedRequest, setSelectedRequest] = useState<EditRequest | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -75,7 +76,7 @@ const AdminEditRequestsPage: React.FC = () => {
 
   // Auto-open edit request from notification deep link
   useEffect(() => {
-    const openEditRequestId = (location.state as any)?.openEditRequestId;
+    const openEditRequestId = (location.state as OpenEditRequestState | null)?.openEditRequestId;
     if (!openEditRequestId || openEditRequestId === lastHandledIdRef.current) return;
 
     // Reset filter to ALL so we can find the request regardless of status

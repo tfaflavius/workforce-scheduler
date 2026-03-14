@@ -58,6 +58,7 @@ import { LEAVE_TYPE_LABELS, LEAVE_STATUS_LABELS } from '../../types/leave-reques
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { getStatusColor } from '../../utils/statusHelpers';
 import { formatDateDayMonthShortYear } from '../../utils/dateFormatters';
+import type { HighlightLeaveRequestState } from '../../types/navigation.types';
 
 const LEAVE_TYPE_OPTIONS: { value: LeaveType; label: string }[] = [
   { value: 'VACATION', label: 'Concediu de Odihna' },
@@ -105,7 +106,7 @@ export const AdminLeaveRequestsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  const highlightRequestId = (location.state as any)?.highlightRequestId as string | undefined;
+  const highlightRequestId = (location.state as HighlightLeaveRequestState | null)?.highlightRequestId;
   const highlightRef = useRef<HTMLDivElement>(null);
   const lastHandledIdRef = useRef<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);

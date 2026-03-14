@@ -20,6 +20,7 @@ import PvSessionsTab from './components/PvSessionsTab';
 import PvMarketplaceTab from './components/PvMarketplaceTab';
 import PvMyDaysTab from './components/PvMyDaysTab';
 import { CONTROL_DEPARTMENT_NAME, PROCESE_VERBALE_DEPARTMENT_NAME } from '../../constants/departments';
+import type { OpenSessionState } from '../../types/navigation.types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -55,7 +56,7 @@ const ProcesVerbalePage: React.FC = () => {
   const lastHandledIdRef = useRef<string | null>(null);
 
   // Read notification deep link state
-  const openSessionId = (location.state as any)?.openSessionId;
+  const openSessionId = (location.state as OpenSessionState | null)?.openSessionId;
 
   const userDept = user?.department?.name || '';
   const isControl = userDept === CONTROL_DEPARTMENT_NAME;

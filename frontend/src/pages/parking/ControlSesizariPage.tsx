@@ -87,6 +87,7 @@ import {
   ZONE_COLORS,
 } from '../../types/control.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
+import type { OpenSesizareState } from '../../types/navigation.types';
 import FriendlyDialog from '../../components/common/FriendlyDialog';
 import { removeDiacritics } from '../../utils/removeDiacritics';
 import { useSnackbar } from '../../contexts/SnackbarContext';
@@ -978,7 +979,7 @@ const ControlSesizariPage: React.FC = () => {
 
   // Auto-open sesizare from notification deep link — dialog fetches its own data, open immediately
   useEffect(() => {
-    const openSesizareId = (location.state as any)?.openSesizareId;
+    const openSesizareId = (location.state as OpenSesizareState | null)?.openSesizareId;
     if (openSesizareId && openSesizareId !== lastHandledIdRef.current) {
       lastHandledIdRef.current = openSesizareId;
       setSelectedSesizareId(openSesizareId);

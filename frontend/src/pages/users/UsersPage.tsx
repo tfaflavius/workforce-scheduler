@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import type { HighlightUserState } from '../../types/navigation.types';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -77,7 +78,7 @@ const UsersPage: React.FC = () => {
   const currentUser = useAppSelector((state) => state.auth.user);
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const highlightUserId = (location.state as any)?.highlightUserId as string | undefined;
+  const highlightUserId = (location.state as HighlightUserState | null)?.highlightUserId;
   const lastHandledIdRef = useRef<string | null>(null);
   const { notifyError } = useSnackbar();
 

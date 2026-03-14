@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import type { HighlightLeaveRequestState } from '../../types/navigation.types';
 import {
   Box,
   Typography,
@@ -90,7 +91,7 @@ export const LeaveRequestsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  const highlightRequestId = (location.state as any)?.highlightRequestId as string | undefined;
+  const highlightRequestId = (location.state as HighlightLeaveRequestState | null)?.highlightRequestId;
   const highlightRef = useRef<HTMLDivElement>(null);
   const lastHandledIdRef = useRef<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);

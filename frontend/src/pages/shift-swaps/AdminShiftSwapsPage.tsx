@@ -61,6 +61,7 @@ import {
 } from '../../store/api/shiftSwaps.api';
 import type { ShiftSwapRequest, ShiftSwapStatus, UserOnDate } from '../../types/shift-swap.types';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import type { HighlightSwapState } from '../../types/navigation.types';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -102,7 +103,7 @@ const AdminShiftSwapsPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  const highlightSwapId = (location.state as any)?.highlightSwapId as string | undefined;
+  const highlightSwapId = (location.state as HighlightSwapState | null)?.highlightSwapId;
   const highlightRef = useRef<HTMLDivElement>(null);
   const lastHandledIdRef = useRef<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);

@@ -12,6 +12,7 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  Skeleton,
   Fade,
   Paper,
   useTheme,
@@ -58,6 +59,7 @@ import { isAdminOrAbove } from '../../utils/roleHelpers';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
 import { formatDateLong } from '../../utils/dateFormatters';
+import type { HighlightDailyReportState } from '../../types/navigation.types';
 
 // ============== HELPERS ==============
 
@@ -84,8 +86,8 @@ const DailyReportsPage: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
-  const highlightReportDate = (location.state as any)?.highlightReportDate as string | undefined;
-  const highlightReportId = (location.state as any)?.highlightReportId as string | undefined;
+  const highlightReportDate = (location.state as HighlightDailyReportState | null)?.highlightReportDate;
+  const highlightReportId = (location.state as HighlightDailyReportState | null)?.highlightReportId;
   const hasHandledState = useRef(false);
   const hasHandledReportOpen = useRef(false);
   const user = useSelector((state: RootState) => state.auth.user);
@@ -523,8 +525,10 @@ const DailyReportsPage: React.FC = () => {
 
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
             {loadingToday ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <CircularProgress />
+              <Box sx={{ py: 2 }}>
+                <Skeleton variant="text" width="40%" height={28} sx={{ mb: 1 }} />
+                <Skeleton variant="rounded" height={80} sx={{ mb: 1.5, borderRadius: 2 }} />
+                <Skeleton variant="rounded" width="30%" height={36} sx={{ borderRadius: 1 }} />
               </Box>
             ) : todayIsSubmitted && !isEditing ? (
               /* Report already submitted — show content */
@@ -634,8 +638,10 @@ const DailyReportsPage: React.FC = () => {
         </Typography>
 
         {loadingMyReports ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 1 }}>
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} variant="rounded" height={72} sx={{ borderRadius: 2 }} />
+            ))}
           </Box>
         ) : !myReports || myReports.length === 0 ? (
           <EmptyState
@@ -1120,8 +1126,10 @@ const DailyReportsPage: React.FC = () => {
             </Typography>
           </Paper>
         ) : loadingAllReports ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 1 }}>
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} variant="rounded" height={72} sx={{ borderRadius: 2 }} />
+            ))}
           </Box>
         ) : !allReports || allReports.length === 0 ? (
           <EmptyState

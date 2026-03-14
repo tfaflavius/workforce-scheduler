@@ -40,6 +40,7 @@ import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
+import type { HighlightScheduleState } from '../../types/navigation.types';
 
 // Helper function to parse shift info from notes
 const getShiftInfoFromNotes = (notes: string | undefined | null) => {
@@ -70,6 +71,14 @@ const getShiftInfoFromNotes = (notes: string | undefined | null) => {
   return { name: notes, isNightShift: false, startTime: '', endTime: '', hours: 0 };
 };
 
+// Constants extracted outside component to avoid re-creation per render
+const MONTH_NAMES = [
+  'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
+  'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
+];
+const DAY_NAMES = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
+const DAY_NAMES_FULL = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'];
+
 const MySchedulePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -77,7 +86,7 @@ const MySchedulePage = () => {
   const { user } = useAppSelector((state) => state.auth);
   const location = useLocation();
   const hasHandledState = useRef(false);
-  const highlightMonthYear = (location.state as any)?.highlightMonthYear as string | undefined;
+  const highlightMonthYear = (location.state as HighlightScheduleState | null)?.highlightMonthYear;
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -229,14 +238,19 @@ const MySchedulePage = () => {
   const dates = getDatesForView();
   const todayAssignment = getAssignmentForDate(new Date());
 
-  // Statistics - using notes to calculate
-  const totalHours = myAssignments.reduce((sum, a) => {
-    const info = getShiftInfoFromNotes(a.notes);
-    return sum + info.hours;
-  }, 0);
-  const totalShifts = myAssignments.length;
-  const dayShifts = myAssignments.filter((a) => !getShiftInfoFromNotes(a.notes).isNightShift).length;
-  const nightShifts = myAssignments.filter((a) => getShiftInfoFromNotes(a.notes).isNightShift).length;
+  // Statistics - memoized to avoid re-parsing notes on every render
+  const { totalHours, totalShifts, dayShifts, nightShifts } = useMemo(() => {
+    let hours = 0;
+    let day = 0;
+    let night = 0;
+    for (const a of myAssignments) {
+      const info = getShiftInfoFromNotes(a.notes);
+      hours += info.hours;
+      if (info.isNightShift) night++;
+      else day++;
+    }
+    return { totalHours: hours, totalShifts: myAssignments.length, dayShifts: day, nightShifts: night };
+  }, [myAssignments]);
 
   // Calculeaza zilele lucratoare si norma de ore pentru luna curenta
   const workingDaysInMonth = useMemo(() => {
@@ -256,14 +270,6 @@ const MySchedulePage = () => {
 
   const monthlyHoursNorm = workingDaysInMonth * 8;
   const hoursDifference = totalHours - monthlyHoursNorm;
-
-  const monthNames = [
-    'Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie',
-    'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie',
-  ];
-
-  const dayNames = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sam'];
-  const dayNamesFull = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata'];
 
   if (isLoading) {
     return (
@@ -388,7 +394,7 @@ const MySchedulePage = () => {
           <Grid size={{ xs: 12, md: 6 }}>
             <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'rgba(255,255,255,0.1)' }}>
               <Typography variant="subtitle2" sx={{ mb: 1.5, opacity: 0.8, fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>
-                Sumar Luna {monthNames[currentMonth - 1]}
+                Sumar Luna {MONTH_NAMES[currentMonth - 1]}
               </Typography>
               <Grid container spacing={{ xs: 1, sm: 2 }}>
                 <Grid size={{ xs: 6, sm: 2 }}>
@@ -456,8 +462,8 @@ const MySchedulePage = () => {
               }}
             >
               {viewMode === 'week'
-                ? `${dates[0]?.getDate()} - ${dates[6]?.getDate()} ${monthNames[dates[0]?.getMonth()]?.substring(0, 3)}`
-                : `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
+                ? `${dates[0]?.getDate()} - ${dates[6]?.getDate()} ${MONTH_NAMES[dates[0]?.getMonth()]?.substring(0, 3)}`
+                : `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
             </Typography>
             <Tooltip title="Perioada urmatoare" arrow>
               <IconButton onClick={() => navigatePeriod('next')} size={isMobile ? 'small' : 'medium'} aria-label="Perioada urmatoare">
@@ -488,7 +494,7 @@ const MySchedulePage = () => {
         {/* Week Day Headers (for month view) */}
         {viewMode === 'month' && (
           <Grid container sx={{ mb: 1 }}>
-            {dayNames.map((day, index) => (
+            {DAY_NAMES.map((day, index) => (
               <Grid size={{ xs: 12 / 7 }} key={day}>
                 <Typography
                   variant="caption"
@@ -619,13 +625,13 @@ const MySchedulePage = () => {
                     <Grid size={{ xs: 3, md: 2 }}>
                       <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="caption" color="text.secondary">
-                          {dayNamesFull[date.getDay()]}
+                          {DAY_NAMES_FULL[date.getDay()]}
                         </Typography>
                         <Typography variant="h4" fontWeight="bold" color={today ? 'primary.main' : 'text.primary'}>
                           {date.getDate()}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {monthNames[date.getMonth()]}
+                          {MONTH_NAMES[date.getMonth()]}
                         </Typography>
                       </Box>
                     </Grid>
@@ -749,7 +755,7 @@ const MySchedulePage = () => {
       {/* Monthly Summary */}
       <Paper sx={{ p: { xs: 2, sm: 3 }, mt: { xs: 2, sm: 3 } }}>
         <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' } }}>
-          Detalii Luna {monthNames[currentMonth - 1]} {currentYear}
+          Detalii Luna {MONTH_NAMES[currentMonth - 1]} {currentYear}
         </Typography>
 
         {myAssignments.length > 0 ? (
@@ -831,7 +837,7 @@ const MySchedulePage = () => {
           </Grid>
         ) : (
           <Alert severity="info" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-            Nu ai ture programate pentru luna {monthNames[currentMonth - 1]} {currentYear}.
+            Nu ai ture programate pentru luna {MONTH_NAMES[currentMonth - 1]} {currentYear}.
           </Alert>
         )}
       </Paper>
