@@ -53,6 +53,7 @@ import {
 } from '../../store/api/dailyReports.api';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
@@ -99,6 +100,9 @@ const DailyReportsPage: React.FC = () => {
   // My report state
   const [reportContent, setReportContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+
+  // Warn if user tries to close tab with unsaved report
+  useUnsavedChanges(reportContent.trim().length > 0 && isEditing);
 
   // Admin comment state
   const [commentingReportId, setCommentingReportId] = useState<string | null>(null);

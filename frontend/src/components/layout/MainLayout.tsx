@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useScrollToTop } from '../../hooks/useScrollToTop';
 import {
   Box,
   Drawer,
@@ -98,6 +99,9 @@ export const MainLayout = () => {
   const showPermanentDrawer = useMediaQuery(theme.breakpoints.up('lg'));
 
   const drawerWidth = getDrawerWidth(isTablet);
+
+  // Scroll to top on route change
+  useScrollToTop();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

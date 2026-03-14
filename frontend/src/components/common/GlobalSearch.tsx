@@ -72,7 +72,8 @@ const SearchResults: React.FC<{
   results: SearchResult[] | undefined;
   isFetching: boolean;
   onSelect: (result: SearchResult) => void;
-}> = ({ results, isFetching, onSelect }) => {
+  activeIndex?: number;
+}> = ({ results, isFetching, onSelect, activeIndex = -1 }) => {
   const theme = useTheme();
 
   if (isFetching) {
@@ -96,9 +97,10 @@ const SearchResults: React.FC<{
 
   return (
     <List dense disablePadding>
-      {results.map((r) => {
+      {results.map((r, index) => {
         const config = typeConfig[r.type] || typeConfig.user;
         const color = theme.palette[config.paletteColor].main;
+        const isActive = index === activeIndex;
         return (
           <ListItem
             key={`${r.type}-${r.id}`}
@@ -113,9 +115,11 @@ const SearchResults: React.FC<{
             }}
             sx={{
               cursor: 'pointer',
-              '&:hover': { bgcolor: 'action.hover' },
+              bgcolor: isActive ? 'action.selected' : 'transparent',
+              '&:hover': { bgcolor: isActive ? 'action.selected' : 'action.hover' },
               borderBottom: '1px solid',
               borderColor: 'divider',
+              transition: 'background-color 0.15s ease',
             }}
           >
             <ListItemIcon sx={{ minWidth: 36, color }}>
@@ -158,6 +162,7 @@ const GlobalSearch: React.FC = () => {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const anchorRef = useRef<HTMLDivElement>(null);
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const mobileInputRef = useRef<HTMLInputElement>(null);
@@ -167,6 +172,7 @@ const GlobalSearch: React.FC = () => {
 
   const handleSearch = useCallback((value: string) => {
     setQuery(value);
+    setActiveIndex(-1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (value.trim().length >= 2) {
       debounceRef.current = setTimeout(() => {
@@ -185,7 +191,23 @@ const GlobalSearch: React.FC = () => {
     setOpen(false);
     setMobileOpen(false);
     setQuery('');
+    setActiveIndex(-1);
   };
+
+  // Keyboard arrow navigation through search results
+  const handleInputKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!results || results.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
+    } else if (e.key === 'Enter' && activeIndex >= 0 && activeIndex < results.length) {
+      e.preventDefault();
+      handleSelect(results[activeIndex]);
+    }
+  }, [results, activeIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClear = () => {
     setQuery('');
@@ -270,6 +292,7 @@ const GlobalSearch: React.FC = () => {
               placeholder="Cauta pagini, utilizatori, parcari..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={handleInputKeyDown}
               autoFocus
               fullWidth
               inputProps={{ 'aria-label': 'Cauta pagini, utilizatori, parcari' }}
@@ -288,7 +311,7 @@ const GlobalSearch: React.FC = () => {
         </AppBar>
         <Box sx={{ flex: 1, overflow: 'auto' }}>
           {query.length >= 2 ? (
-            <SearchResults results={results} isFetching={isFetching} onSelect={handleSelect} />
+            <SearchResults results={results} isFetching={isFetching} onSelect={handleSelect} activeIndex={activeIndex} />
           ) : (
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <SearchIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
@@ -324,6 +347,7 @@ const GlobalSearch: React.FC = () => {
               placeholder="Cauta pagini, utilizatori, parcari..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={handleInputKeyDown}
               onFocus={() => query.length >= 2 && results && setOpen(true)}
               inputProps={{ 'aria-label': 'Cauta pagini, utilizatori, parcari' }}
               sx={{
@@ -378,7 +402,7 @@ const GlobalSearch: React.FC = () => {
                     borderRadius: 2,
                   }}
                 >
-                  <SearchResults results={results} isFetching={false} onSelect={handleSelect} />
+                  <SearchResults results={results} isFetching={false} onSelect={handleSelect} activeIndex={activeIndex} />
                 </Paper>
               </Fade>
             )}
