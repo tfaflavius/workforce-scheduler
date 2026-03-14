@@ -27,6 +27,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -51,6 +56,7 @@ import { getStatusColor } from '../../../utils/statusHelpers';
 import { formatDateTimeNoYear } from '../../../utils/dateFormatters';
 import {
   useGetParkingIssuesQuery,
+  useGetParkingLotsQuery,
   useGetMyAssignedIssuesQuery,
   useDeleteParkingIssueMutation,
 } from '../../../store/api/parking.api';
@@ -75,8 +81,10 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
 
-  // When opening from notification, show ALL issues so we can find the specific one
+  // Filters
   const [statusFilter, setStatusFilter] = useState<'ALL' | ParkingIssueStatus>(initialOpenId ? 'ALL' : 'ACTIVE');
+  const [parkingLotFilter, setParkingLotFilter] = useState<string>('');
+  const [monthFilter, setMonthFilter] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -94,6 +102,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   const { data: issues = [], isLoading, refetch } = useGetParkingIssuesQuery(
     statusFilter === 'ALL' ? undefined : statusFilter
   );
+  const { data: parkingLots = [] } = useGetParkingLotsQuery();
   const { data: myAssignedIssues = [] } = useGetMyAssignedIssuesQuery();
   const [deleteIssue] = useDeleteParkingIssueMutation();
 
@@ -158,11 +167,27 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
 
   const urgentCount = issues.filter(i => i.isUrgent && i.status === 'ACTIVE').length;
 
+  // Apply client-side filters (parking lot + month)
+  const filteredIssues = useMemo(() => {
+    let filtered = issues;
+    if (parkingLotFilter) {
+      filtered = filtered.filter(i => i.parkingLot?.id === parkingLotFilter);
+    }
+    if (monthFilter) {
+      filtered = filtered.filter(i => {
+        const date = new Date(i.createdAt);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return key === monthFilter;
+      });
+    }
+    return filtered;
+  }, [issues, parkingLotFilter, monthFilter]);
+
   // Group issues by month
   const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
   const issuesByMonth = useMemo(() => {
     const groups: Record<string, { label: string; items: ParkingIssue[]; urgentCount: number }> = {};
-    issues.forEach((issue) => {
+    filteredIssues.forEach((issue) => {
       const date = new Date(issue.createdAt);
       const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
       if (!groups[key]) {
@@ -174,7 +199,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
     return Object.entries(groups)
       .sort(([a], [b]) => b.localeCompare(a))
       .map(([key, group]) => ({ key, ...group }));
-  }, [issues]);
+  }, [filteredIssues]);
 
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()).padStart(2, '0')}`;
 
@@ -683,10 +708,50 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
         </Stack>
       </Paper>
 
+      {/* Filters */}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1.5}
+        sx={{ mb: { xs: 1.5, sm: 2 } }}
+      >
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
+          <InputLabel>Parcare</InputLabel>
+          <Select
+            value={parkingLotFilter}
+            onChange={(e) => setParkingLotFilter(e.target.value)}
+            label="Parcare"
+          >
+            <MenuItem value="">Toate parcarile</MenuItem>
+            {parkingLots.map((lot) => (
+              <MenuItem key={lot.id} value={lot.id}>{lot.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          type="month"
+          size="small"
+          label="Luna"
+          value={monthFilter}
+          onChange={(e) => setMonthFilter(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ minWidth: { xs: '100%', sm: 180 } }}
+        />
+        {(parkingLotFilter || monthFilter) && (
+          <Button
+            size="small"
+            variant="text"
+            onClick={() => { setParkingLotFilter(''); setMonthFilter(''); }}
+            sx={{ whiteSpace: 'nowrap', alignSelf: { xs: 'flex-start', sm: 'center' } }}
+          >
+            Reseteaza filtre
+          </Button>
+        )}
+      </Stack>
+
       {/* Content */}
       {isLoading ? (
         <TableSkeleton rows={5} columns={9} />
-      ) : issues.length === 0 ? (
+      ) : filteredIssues.length === 0 ? (
         <Alert
           severity="info"
           sx={{
@@ -694,7 +759,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
             fontSize: { xs: '0.8rem', sm: '0.875rem' },
           }}
         >
-          Nu exista probleme in aceasta categorie.
+          {parkingLotFilter || monthFilter ? 'Nu exista probleme cu filtrele selectate.' : 'Nu exista probleme in aceasta categorie.'}
         </Alert>
       ) : (
         issuesByMonth.map((group) => (
