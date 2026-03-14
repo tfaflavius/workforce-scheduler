@@ -1306,6 +1306,19 @@ const HandicapParkingPage: React.FC = () => {
     },
   ];
 
+  // Auto-switch to correct tab based on request type (for notification deep linking)
+  useEffect(() => {
+    if (selectedRequestId && requests.length > 0) {
+      const target = requests.find((r) => r.id === selectedRequestId);
+      if (target) {
+        const tabIndex = requestTabConfig.findIndex((t) => t.type === target.requestType);
+        if (tabIndex >= 0) {
+          setTabValue(tabIndex);
+        }
+      }
+    }
+  }, [selectedRequestId, requests]);
+
   // Numarul de tab-uri pentru solicitari (0, 1, 2) si tab-urile Legitimatii (3, 4) - daca sunt vizibile
   const handicapLegitimationsTabIndex = requestTabConfig.length; // index 3
   const revolutionarLegitimationsTabIndex = requestTabConfig.length + 1; // index 4

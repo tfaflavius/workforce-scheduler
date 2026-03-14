@@ -976,21 +976,25 @@ const ControlSesizariPage: React.FC = () => {
     statusFilter ? { status: statusFilter } : undefined
   );
 
-  // Auto-open sesizare from notification deep link
+  // Auto-open sesizare from notification deep link — dialog fetches its own data, open immediately
   useEffect(() => {
     const openSesizareId = (location.state as any)?.openSesizareId;
-    if (openSesizareId && !hasHandledNotificationRef.current && !isLoading && sesizari.length > 0) {
+    if (openSesizareId && !hasHandledNotificationRef.current) {
       hasHandledNotificationRef.current = true;
-      // Find the sesizare to determine its type and switch to correct tab
-      const target = sesizari.find((s) => s.id === openSesizareId);
-      if (target) {
-        const targetTabIndex = target.type === 'PANOU' ? 1 : 0;
-        setTabValue(targetTabIndex);
-      }
       setSelectedSesizareId(openSesizareId);
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, isLoading, sesizari]);
+  }, [location.state]);
+
+  // Switch to correct tab when data loads (so the item is visible in the list behind the dialog)
+  useEffect(() => {
+    if (selectedSesizareId && sesizari.length > 0) {
+      const target = sesizari.find((s) => s.id === selectedSesizareId);
+      if (target) {
+        setTabValue(target.type === 'PANOU' ? 1 : 0);
+      }
+    }
+  }, [selectedSesizareId, sesizari]);
 
   const tabConfig: { type: ControlSesizareType; label: string; shortLabel: string; icon: React.ReactNode; color: string }[] = [
     { type: 'MARCAJ', label: 'Marcaje', shortLabel: 'Marcaje', icon: <MarkingIcon />, color: TYPE_COLORS.MARCAJ.main },

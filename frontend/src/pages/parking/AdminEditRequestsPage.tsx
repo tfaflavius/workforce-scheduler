@@ -59,7 +59,9 @@ const AdminEditRequestsPage: React.FC = () => {
   const { notifyError } = useSnackbar();
   const hasHandledNotificationRef = useRef(false);
 
-  const [statusFilter, setStatusFilter] = useState<'ALL' | EditRequestStatus>('PENDING');
+  // When arriving from notification, show ALL so we can find the specific request
+  const notificationEditRequestId = (location.state as any)?.openEditRequestId;
+  const [statusFilter, setStatusFilter] = useState<'ALL' | EditRequestStatus>(notificationEditRequestId ? 'ALL' : 'PENDING');
   const [selectedRequest, setSelectedRequest] = useState<EditRequest | null>(null);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [approving, setApproving] = useState(false);
@@ -72,6 +74,14 @@ const AdminEditRequestsPage: React.FC = () => {
   const [reviewRequest, { isLoading: reviewing }] = useReviewEditRequestMutation();
 
   // Auto-open edit request from notification deep link
+  useEffect(() => {
+    const openEditRequestId = (location.state as any)?.openEditRequestId;
+    if (openEditRequestId && !hasHandledNotificationRef.current) {
+      // Reset filter to ALL so we can find the request regardless of status
+      setStatusFilter('ALL');
+    }
+  }, [location.state]);
+
   useEffect(() => {
     const openEditRequestId = (location.state as any)?.openEditRequestId;
     if (openEditRequestId && !hasHandledNotificationRef.current && !isLoading && requests.length > 0) {

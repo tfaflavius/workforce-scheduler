@@ -99,6 +99,13 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const deptName = user?.department?.name || '';
   const canComment = isAdminOrManager || [DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME].includes(deptName);
 
+  // When initialOpenId arrives (possibly after mount), reset filter to ALL so we can find the item
+  useEffect(() => {
+    if (initialOpenId) {
+      setStatusFilter('ALL');
+    }
+  }, [initialOpenId]);
+
   // Handle initial open from notification
   useEffect(() => {
     if (initialOpenId && damages.length > 0) {

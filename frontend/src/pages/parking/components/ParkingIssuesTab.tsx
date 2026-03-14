@@ -97,6 +97,13 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   const { data: myAssignedIssues = [] } = useGetMyAssignedIssuesQuery();
   const [deleteIssue] = useDeleteParkingIssueMutation();
 
+  // When initialOpenId arrives (possibly after mount), reset filter to ALL so we can find the item
+  useEffect(() => {
+    if (initialOpenId) {
+      setStatusFilter('ALL');
+    }
+  }, [initialOpenId]);
+
   // Handle opening specific issue from notification
   useEffect(() => {
     if (initialOpenId && issues.length > 0) {

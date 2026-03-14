@@ -1016,6 +1016,19 @@ const DomiciliuParkingPage: React.FC = () => {
     },
   ];
 
+  // Auto-switch to correct tab based on request type (for notification deep linking)
+  useEffect(() => {
+    if (selectedRequestId && requests.length > 0) {
+      const target = requests.find((r) => r.id === selectedRequestId);
+      if (target) {
+        const tabIndex = tabConfig.findIndex((t) => t.type === target.requestType);
+        if (tabIndex >= 0) {
+          setTabValue(tabIndex);
+        }
+      }
+    }
+  }, [selectedRequestId, requests]);
+
   // Filter requests by tab type and search
   const filteredRequests = useMemo(() => {
     const currentType = tabConfig[tabValue].type;
