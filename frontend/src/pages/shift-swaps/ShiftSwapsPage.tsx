@@ -14,6 +14,7 @@ import {
   Chip,
   Button,
   Avatar,
+  Skeleton,
   CircularProgress,
   Alert,
   TextField,
@@ -482,8 +483,23 @@ const ShiftSwapsPage = () => {
 
   if (loadingRequests) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
+      <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
+        {/* Header skeleton */}
+        <Skeleton variant="rounded" height={100} sx={{ mb: 3, borderRadius: 3 }} />
+        {/* Stats skeleton */}
+        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} variant="rounded" height={90} sx={{ flex: 1, borderRadius: 2 }} />
+          ))}
+        </Stack>
+        {/* Tabs skeleton */}
+        <Skeleton variant="rounded" height={48} sx={{ mb: 2, borderRadius: 2 }} />
+        {/* Cards skeleton */}
+        <Stack spacing={1.5}>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} variant="rounded" height={130} sx={{ borderRadius: 2 }} />
+          ))}
+        </Stack>
       </Box>
     );
   }
@@ -509,9 +525,9 @@ const ShiftSwapsPage = () => {
             title="Cererile Mele"
             value={sentRequests.length}
             subtitle={pendingRequestsCount > 0 ? `${pendingRequestsCount} in asteptare` : 'Nicio cerere activa'}
-            icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#6366f1' }} />}
-            color="#6366f1"
-            bgColor={alpha('#6366f1', 0.12)}
+            icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: 'secondary.main' }} />}
+            color={theme.palette.secondary.main}
+            bgColor={alpha(theme.palette.secondary.main, 0.12)}
             delay={0}
           />
         </Grid>
@@ -520,9 +536,9 @@ const ShiftSwapsPage = () => {
             title="Cereri Primite"
             value={receivedRequests.length}
             subtitle={unrespondedCount > 0 ? `${unrespondedCount} necesita raspuns` : 'Toate rezolvate'}
-            icon={<InboxIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: '#10b981' }} />}
-            color="#10b981"
-            bgColor={alpha('#10b981', 0.12)}
+            icon={<InboxIcon sx={{ fontSize: { xs: 22, sm: 26 }, color: 'success.main' }} />}
+            color={theme.palette.success.main}
+            bgColor={alpha(theme.palette.success.main, 0.12)}
             delay={100}
             urgent={unrespondedCount > 0}
           />
@@ -540,11 +556,11 @@ const ShiftSwapsPage = () => {
                 py: { xs: 1.5, sm: 2 },
                 fontWeight: 600,
                 borderRadius: 2,
-                bgcolor: '#6366f1',
-                boxShadow: `0 4px 14px ${alpha('#6366f1', 0.3)}`,
+                bgcolor: 'secondary.main',
+                boxShadow: `0 4px 14px ${alpha(theme.palette.secondary.main, 0.3)}`,
                 '&:hover': {
-                  bgcolor: '#4f46e5',
-                  boxShadow: `0 6px 20px ${alpha('#6366f1', 0.4)}`,
+                  bgcolor: 'secondary.dark',
+                  boxShadow: `0 6px 20px ${alpha(theme.palette.secondary.main, 0.4)}`,
                 },
               }}
             >

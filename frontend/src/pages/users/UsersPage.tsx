@@ -36,6 +36,7 @@ import {
   Fade,
   Grow,
   alpha,
+  Tooltip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -622,12 +623,15 @@ const UsersPage: React.FC = () => {
                             </Box>
                           </Stack>
                           {isAdminOrAbove && (
-                            <IconButton
-                              onClick={(e) => handleMenuOpen(e, user)}
-                              sx={{ ml: 1 }}
-                            >
-                              <MoreVertIcon />
-                            </IconButton>
+                            <Tooltip title="Actiuni" arrow>
+                              <IconButton
+                                onClick={(e) => handleMenuOpen(e, user)}
+                                sx={{ ml: 1 }}
+                                aria-label="Actiuni utilizator"
+                              >
+                                <MoreVertIcon />
+                              </IconButton>
+                            </Tooltip>
                           )}
                         </Stack>
 
@@ -695,17 +699,17 @@ const UsersPage: React.FC = () => {
               <TableSkeleton rows={5} columns={7} />
             ) : (
               <>
-                <TableContainer sx={{ overflowX: 'auto' }}>
-                  <Table size="small">
+                <TableContainer sx={{ overflowX: 'auto', maxHeight: 600 }}>
+                  <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ fontWeight: 700 }}>Utilizator</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Rol</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Departament</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Ultima Autentificare</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 700 }}>Actiuni</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'background.paper' }}>Utilizator</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'background.paper' }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'background.paper' }}>Rol</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'background.paper' }}>Departament</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'background.paper' }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 700, bgcolor: 'background.paper' }}>Ultima Autentificare</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, bgcolor: 'background.paper' }}>Actiuni</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -769,12 +773,15 @@ const UsersPage: React.FC = () => {
                             </TableCell>
                             <TableCell align="right">
                               {isAdminOrAbove && (
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => handleMenuOpen(e, user)}
-                                >
-                                  <MoreVertIcon />
-                                </IconButton>
+                                <Tooltip title="Actiuni" arrow>
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => handleMenuOpen(e, user)}
+                                    aria-label="Actiuni utilizator"
+                                  >
+                                    <MoreVertIcon />
+                                  </IconButton>
+                                </Tooltip>
                               )}
                             </TableCell>
                           </TableRow>

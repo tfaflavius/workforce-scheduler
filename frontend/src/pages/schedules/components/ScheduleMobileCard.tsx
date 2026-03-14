@@ -8,6 +8,7 @@ import {
   CardContent,
   Avatar,
   IconButton,
+  Tooltip,
   Grow,
   useTheme,
 } from '@mui/material';
@@ -155,13 +156,16 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
               </Box>
             </Stack>
             {canEdit && (
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={() => onEditClick(targetUser)}
-              >
-                <EditIcon fontSize="small" />
-              </IconButton>
+              <Tooltip title="Editeaza programul" arrow>
+                <IconButton
+                  size="small"
+                  color="primary"
+                  onClick={() => onEditClick(targetUser)}
+                  aria-label="Editeaza programul"
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
             )}
           </Stack>
 

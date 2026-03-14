@@ -6,8 +6,9 @@ import {
   Grid,
   Stack,
   Chip,
-  CircularProgress,
+  Skeleton,
   IconButton,
+  Tooltip,
   ToggleButton,
   ToggleButtonGroup,
   Card,
@@ -266,8 +267,14 @@ const MySchedulePage = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
+      <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
+        <Skeleton variant="rounded" height={80} sx={{ mb: 2, borderRadius: 3 }} />
+        <Skeleton variant="rounded" height={48} sx={{ mb: 2, borderRadius: 2, width: '60%' }} />
+        <Stack spacing={0.5}>
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} variant="rounded" height={52} sx={{ borderRadius: 1 }} />
+          ))}
+        </Stack>
       </Box>
     );
   }
@@ -434,9 +441,11 @@ const MySchedulePage = () => {
           sx={{ mb: { xs: 2, sm: 3 } }}
         >
           <Stack direction="row" alignItems="center" justifyContent="center" spacing={{ xs: 1, sm: 2 }}>
-            <IconButton onClick={() => navigatePeriod('prev')} size={isMobile ? 'small' : 'medium'} aria-label="Perioada anterioara">
-              <PrevIcon />
-            </IconButton>
+            <Tooltip title="Perioada anterioara" arrow>
+              <IconButton onClick={() => navigatePeriod('prev')} size={isMobile ? 'small' : 'medium'} aria-label="Perioada anterioara">
+                <PrevIcon />
+              </IconButton>
+            </Tooltip>
             <Typography
               variant="subtitle1"
               fontWeight="600"
@@ -450,9 +459,11 @@ const MySchedulePage = () => {
                 ? `${dates[0]?.getDate()} - ${dates[6]?.getDate()} ${monthNames[dates[0]?.getMonth()]?.substring(0, 3)}`
                 : `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
             </Typography>
-            <IconButton onClick={() => navigatePeriod('next')} size={isMobile ? 'small' : 'medium'} aria-label="Perioada urmatoare">
-              <NextIcon />
-            </IconButton>
+            <Tooltip title="Perioada urmatoare" arrow>
+              <IconButton onClick={() => navigatePeriod('next')} size={isMobile ? 'small' : 'medium'} aria-label="Perioada urmatoare">
+                <NextIcon />
+              </IconButton>
+            </Tooltip>
             <Button variant="text" onClick={goToToday} size="small">
               Azi
             </Button>

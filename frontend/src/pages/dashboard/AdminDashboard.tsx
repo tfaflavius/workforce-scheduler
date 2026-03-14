@@ -74,22 +74,22 @@ const AdminDashboard = () => {
   const recentNotifications = stats?.recentNotifications || [];
   const carStatus = stats?.carStatus;
 
-  // Quick summary items - items that need attention
+  // Quick summary items - items that need attention (using theme tokens)
   const summaryItems = [
-    { label: 'Programe', value: pendingCount, color: '#f59e0b', urgent: pendingCount > 0 },
-    { label: 'Schimburi', value: pendingSwaps, color: '#06b6d4', urgent: pendingSwaps > 0 },
-    { label: 'Concedii', value: pendingLeaves, color: '#8b5cf6', urgent: pendingLeaves > 0 },
-    { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
-    { label: 'Utilizatori', value: activeUsers, color: '#2563eb', urgent: false },
+    { label: 'Programe', value: pendingCount, color: theme.palette.warning.main, urgent: pendingCount > 0 },
+    { label: 'Schimburi', value: pendingSwaps, color: theme.palette.info.main, urgent: pendingSwaps > 0 },
+    { label: 'Concedii', value: pendingLeaves, color: theme.palette.secondary.main, urgent: pendingLeaves > 0 },
+    { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main, urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
+    { label: 'Utilizatori', value: activeUsers, color: theme.palette.primary.main, urgent: false },
   ];
 
-  // Quick actions
+  // Quick actions (using theme tokens)
   const quickActions = [
-    { label: 'Aproba Programe', path: '/schedules/pending', icon: <CalendarIcon />, color: '#f59e0b', count: pendingCount },
-    { label: 'Schimburi', path: '/admin/shift-swaps', icon: <SwapIcon />, color: '#06b6d4', count: pendingSwaps },
-    { label: 'Concedii', path: '/admin/leave-requests', icon: <BeachIcon />, color: '#8b5cf6', count: pendingLeaves },
-    { label: 'Utilizatori', path: '/users', icon: <PeopleIcon />, color: '#2563eb' },
-    { label: 'Rapoarte', path: '/reports', icon: <ReportIcon />, color: '#10b981' },
+    { label: 'Aproba Programe', path: '/schedules/pending', icon: <CalendarIcon />, color: theme.palette.warning.main, count: pendingCount },
+    { label: 'Schimburi', path: '/admin/shift-swaps', icon: <SwapIcon />, color: theme.palette.info.main, count: pendingSwaps },
+    { label: 'Concedii', path: '/admin/leave-requests', icon: <BeachIcon />, color: theme.palette.secondary.main, count: pendingLeaves },
+    { label: 'Utilizatori', path: '/users', icon: <PeopleIcon />, color: theme.palette.primary.main },
+    { label: 'Rapoarte', path: '/reports', icon: <ReportIcon />, color: theme.palette.success.main },
   ];
 
   // Loading state - show skeleton instead of spinner for better perceived performance
@@ -322,7 +322,7 @@ const AdminDashboard = () => {
                             label={dispatcher.shiftCode || dispatcher.shiftType}
                             size="small"
                             sx={{
-                              bgcolor: dispatcher.shiftCode === 'Z' ? '#fbbf24' : dispatcher.shiftCode === 'N' ? '#8b5cf6' : '#10b981',
+                              bgcolor: dispatcher.shiftCode === 'Z' ? theme.palette.warning.light : dispatcher.shiftCode === 'N' ? theme.palette.secondary.main : theme.palette.success.main,
                               color: dispatcher.shiftCode === 'Z' ? '#000' : '#fff',
                               fontWeight: 700,
                               height: { xs: 24, sm: 28 },
@@ -923,11 +923,11 @@ const AdminDashboard = () => {
           <StatusDistributionChart
             title="Distributie Cereri Active"
             data={[
-              { label: 'Probleme Parcari', value: stats?.parking?.activeIssues || 0, color: '#ef4444' },
-              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: '#f59e0b' },
-              { label: 'Schimburi Ture', value: pendingSwaps, color: '#06b6d4' },
-              { label: 'Concedii', value: pendingLeaves, color: '#8b5cf6' },
-              { label: 'Cereri Editare', value: stats?.parking?.pendingEditRequests || 0, color: '#2563eb' },
+              { label: 'Probleme Parcari', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
+              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
+              { label: 'Schimburi Ture', value: pendingSwaps, color: theme.palette.info.main },
+              { label: 'Concedii', value: pendingLeaves, color: theme.palette.secondary.main },
+              { label: 'Cereri Editare', value: stats?.parking?.pendingEditRequests || 0, color: theme.palette.primary.main },
             ]}
           />
 
@@ -935,11 +935,11 @@ const AdminDashboard = () => {
           <WeeklyOverviewChart
             title="Sumar Activitate"
             data={[
-              { label: 'Programe', value: pendingCount, color: '#f59e0b' },
-              { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: '#06b6d4' },
-              { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: '#8b5cf6' },
-              { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: '#ef4444' },
-              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: '#f59e0b' },
+              { label: 'Programe', value: pendingCount, color: theme.palette.warning.main },
+              { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: theme.palette.info.main },
+              { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: theme.palette.secondary.main },
+              { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
+              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
             ]}
           />
 
@@ -948,17 +948,17 @@ const AdminDashboard = () => {
             <Card>
               <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                  <IssuesIcon sx={{ color: '#ef4444', fontSize: 20 }} />
+                  <IssuesIcon sx={{ color: 'error.main', fontSize: 20 }} />
                   <Typography variant="subtitle2" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem' }}>
                     Parcari - Rezumat
                   </Typography>
                 </Stack>
                 <Stack spacing={1.5}>
                   {[
-                    { label: 'Probleme active', value: stats?.parking?.activeIssues || 0, color: '#ef4444', urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
-                    { label: 'Prejudicii active', value: stats?.parking?.activeDamages || 0, color: '#f59e0b', urgent: (stats?.parking?.urgentDamages?.length || 0) > 0 },
-                    { label: 'Cereri editare', value: stats?.parking?.pendingEditRequests || 0, color: '#8b5cf6', urgent: (stats?.parking?.pendingEditRequests || 0) > 0 },
-                    { label: 'Incasari automate', value: stats?.parking?.cashCollectionTotals?.count || 0, color: '#10b981', urgent: false },
+                    { label: 'Probleme active', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main, urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
+                    { label: 'Prejudicii active', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main, urgent: (stats?.parking?.urgentDamages?.length || 0) > 0 },
+                    { label: 'Cereri editare', value: stats?.parking?.pendingEditRequests || 0, color: theme.palette.secondary.main, urgent: (stats?.parking?.pendingEditRequests || 0) > 0 },
+                    { label: 'Incasari automate', value: stats?.parking?.cashCollectionTotals?.count || 0, color: theme.palette.success.main, urgent: false },
                   ].map((item) => (
                     <Stack
                       key={item.label}

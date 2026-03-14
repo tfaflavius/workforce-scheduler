@@ -411,9 +411,9 @@ const AchizitiiPage: React.FC = () => {
             <StatCard
               title="Total Bugetat"
               value={formatCurrency(categorySummary.totalBudgeted)}
-              icon={<MoneyIcon sx={{ color: '#10b981', fontSize: { xs: 24, sm: 28 } }} />}
-              color="#10b981"
-              bgColor={alpha('#10b981', 0.12)}
+              icon={<MoneyIcon sx={{ color: 'success.main', fontSize: { xs: 24, sm: 28 } }} />}
+              color={theme.palette.success.main}
+              bgColor={alpha(theme.palette.success.main, 0.12)}
               subtitle={`${categorySummary.count} pozitii`}
             />
           </Grid>
@@ -421,9 +421,9 @@ const AchizitiiPage: React.FC = () => {
             <StatCard
               title="Total Cheltuit"
               value={formatCurrency(categorySummary.totalSpent)}
-              icon={<TrendingIcon sx={{ color: '#f59e0b', fontSize: { xs: 24, sm: 28 } }} />}
-              color="#f59e0b"
-              bgColor={alpha('#f59e0b', 0.12)}
+              icon={<TrendingIcon sx={{ color: 'warning.main', fontSize: { xs: 24, sm: 28 } }} />}
+              color={theme.palette.warning.main}
+              bgColor={alpha(theme.palette.warning.main, 0.12)}
               subtitle={categorySummary.totalBudgeted > 0
                 ? `${Math.round((categorySummary.totalSpent / categorySummary.totalBudgeted) * 100)}% utilizat`
                 : '0%'}
@@ -433,9 +433,9 @@ const AchizitiiPage: React.FC = () => {
             <StatCard
               title="Ramas"
               value={formatCurrency(categorySummary.totalRemaining)}
-              icon={<SavingsIcon sx={{ color: '#3b82f6', fontSize: { xs: 24, sm: 28 } }} />}
-              color="#3b82f6"
-              bgColor={alpha('#3b82f6', 0.12)}
+              icon={<SavingsIcon sx={{ color: 'primary.main', fontSize: { xs: 24, sm: 28 } }} />}
+              color={theme.palette.primary.main}
+              bgColor={alpha(theme.palette.primary.main, 0.12)}
             />
           </Grid>
         </Grid>
@@ -483,8 +483,8 @@ const AchizitiiPage: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={() => handleOpenBpDialog()}
           sx={{
-            bgcolor: '#10b981',
-            '&:hover': { bgcolor: '#059669' },
+            bgcolor: 'success.main',
+            '&:hover': { bgcolor: 'success.dark' },
             textTransform: 'none',
             fontWeight: 600,
           }}
@@ -499,7 +499,7 @@ const AchizitiiPage: React.FC = () => {
       {/* Empty state */}
       {!isLoading && budgetPositions.length === 0 && (
         <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-          <ShoppingIcon sx={{ fontSize: 64, color: alpha('#10b981', 0.3), mb: 2 }} />
+          <ShoppingIcon sx={{ fontSize: 64, color: alpha(theme.palette.success.main, 0.3), mb: 2 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
             Nicio pozitie bugetara
           </Typography>
@@ -530,7 +530,7 @@ const AchizitiiPage: React.FC = () => {
             <CardContent
               sx={{
                 cursor: 'pointer',
-                '&:hover': { bgcolor: alpha('#10b981', 0.03) },
+                '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.03) },
                 pb: isExpanded ? 1 : undefined,
               }}
               onClick={() => togglePosition(bp.id)}
@@ -540,7 +540,7 @@ const AchizitiiPage: React.FC = () => {
                   sx={{
                     transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.3s',
-                    color: '#10b981',
+                    color: 'success.main',
                   }}
                 />
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -571,19 +571,19 @@ const AchizitiiPage: React.FC = () => {
               <Box sx={{ display: 'flex', gap: { xs: 1, sm: 3 }, flexWrap: 'wrap', ml: 4.5 }}>
                 <Box>
                   <Typography variant="caption" color="text.secondary">Total</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#10b981' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.main' }}>
                     {formatCurrency(bp.totalAmount)}
                   </Typography>
                 </Box>
                 <Box>
                   <Typography variant="caption" color="text.secondary">Cheltuit</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#f59e0b' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: 'warning.main' }}>
                     {formatCurrency(bp.spentAmount)}
                   </Typography>
                 </Box>
                 <Box>
                   <Typography variant="caption" color="text.secondary">Ramas</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#3b82f6' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
                     {formatCurrency(bp.remainingAmount)}
                   </Typography>
                 </Box>
@@ -597,10 +597,10 @@ const AchizitiiPage: React.FC = () => {
                   sx={{
                     height: 8,
                     borderRadius: 4,
-                    bgcolor: alpha('#10b981', 0.12),
+                    bgcolor: alpha(theme.palette.success.main, 0.12),
                     '& .MuiLinearProgress-bar': {
                       borderRadius: 4,
-                      bgcolor: usedPercent > 90 ? '#ef4444' : usedPercent > 70 ? '#f59e0b' : '#10b981',
+                      bgcolor: usedPercent > 90 ? theme.palette.error.main : usedPercent > 70 ? theme.palette.warning.main : theme.palette.success.main,
                     },
                   }}
                 />
@@ -622,7 +622,7 @@ const AchizitiiPage: React.FC = () => {
                     size="small"
                     startIcon={<AddIcon />}
                     onClick={() => handleOpenAcqDialog(bp.id)}
-                    sx={{ textTransform: 'none', color: '#10b981' }}
+                    sx={{ textTransform: 'none', color: 'success.main' }}
                   >
                     Adauga Achizitie
                   </Button>
@@ -636,7 +636,7 @@ const AchizitiiPage: React.FC = () => {
                   <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflowX: 'auto' }}>
                     <Table size="small">
                       <TableHead>
-                        <TableRow sx={{ bgcolor: alpha('#10b981', 0.06) }}>
+                        <TableRow sx={{ bgcolor: alpha(theme.palette.success.main, 0.06) }}>
                           <TableCell sx={{ fontWeight: 700 }}>Denumire</TableCell>
                           <TableCell sx={{ fontWeight: 700 }} align="right">Valoare</TableCell>
                           <TableCell sx={{ fontWeight: 700 }} align="right">Facturat</TableCell>
@@ -778,7 +778,7 @@ const AchizitiiPage: React.FC = () => {
             variant="contained"
             onClick={handleSaveBp}
             disabled={creatingBp || updatingBp || !bpForm.name || !bpForm.totalAmount}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
             {creatingBp || updatingBp ? <CircularProgress size={24} /> : editingBp ? 'Salveaza' : 'Creeaza'}
           </Button>
@@ -799,7 +799,7 @@ const AchizitiiPage: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#10b981' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'success.main' }}>
               Informatii Generale
             </Typography>
             <Grid container spacing={2}>
@@ -837,7 +837,7 @@ const AchizitiiPage: React.FC = () => {
             />
 
             <Divider />
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#10b981' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'success.main' }}>
               Documente
             </Typography>
             <Grid container spacing={2}>
@@ -909,7 +909,7 @@ const AchizitiiPage: React.FC = () => {
             </Grid>
 
             <Divider />
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#10b981' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'success.main' }}>
               Prestari Servicii
             </Typography>
             <FormControlLabel
@@ -977,7 +977,7 @@ const AchizitiiPage: React.FC = () => {
             variant="contained"
             onClick={handleSaveAcq}
             disabled={creatingAcq || updatingAcq || !acqForm.name || !acqForm.value}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
             {creatingAcq || updatingAcq ? <CircularProgress size={24} /> : editingAcq ? 'Salveaza' : 'Creeaza'}
           </Button>
@@ -1047,7 +1047,7 @@ const AchizitiiPage: React.FC = () => {
             variant="contained"
             onClick={handleSaveInv}
             disabled={creatingInv || updatingInv || !invForm.invoiceNumber || !invForm.invoiceDate || !invForm.amount}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
             {creatingInv || updatingInv ? <CircularProgress size={24} /> : editingInv ? 'Salveaza' : 'Adauga'}
           </Button>
@@ -1084,25 +1084,25 @@ const AchizitiiPage: React.FC = () => {
               {/* Summary cards */}
               <Grid container spacing={1.5} sx={{ mb: 2 }}>
                 <Grid size={{ xs: 4 }}>
-                  <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: alpha('#10b981', 0.06), borderRadius: 2 }}>
+                  <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: alpha(theme.palette.success.main, 0.06), borderRadius: 2 }}>
                     <Typography variant="caption" color="text.secondary">Valoare</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#10b981' }}>
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: 'success.main' }}>
                       {formatCurrency(selectedAcquisition.value)}
                     </Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 4 }}>
-                  <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: alpha('#f59e0b', 0.06), borderRadius: 2 }}>
+                  <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: alpha(theme.palette.warning.main, 0.06), borderRadius: 2 }}>
                     <Typography variant="caption" color="text.secondary">Facturat</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#f59e0b' }}>
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: 'warning.main' }}>
                       {formatCurrency(selectedAcquisition.invoicedAmount)}
                     </Typography>
                   </Paper>
                 </Grid>
                 <Grid size={{ xs: 4 }}>
-                  <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: alpha('#3b82f6', 0.06), borderRadius: 2 }}>
+                  <Paper sx={{ p: 1.5, textAlign: 'center', bgcolor: alpha(theme.palette.primary.main, 0.06), borderRadius: 2 }}>
                     <Typography variant="caption" color="text.secondary">Ramas</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#3b82f6' }}>
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: 'primary.main' }}>
                       {formatCurrency(selectedAcquisition.remainingAmount)}
                     </Typography>
                   </Paper>
@@ -1126,7 +1126,7 @@ const AchizitiiPage: React.FC = () => {
                       variant="outlined"
                       sx={{ p: 1, borderRadius: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}
                     >
-                      <DocIcon sx={{ fontSize: 18, color: doc.value ? '#10b981' : '#d1d5db' }} />
+                      <DocIcon sx={{ fontSize: 18, color: doc.value ? 'success.main' : 'text.disabled' }} />
                       <Box sx={{ minWidth: 0 }}>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.2 }}>
                           {doc.label}
@@ -1149,7 +1149,7 @@ const AchizitiiPage: React.FC = () => {
                   <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, borderRadius: 2, overflowX: 'auto' }}>
                     <Table size="small">
                       <TableHead>
-                        <TableRow sx={{ bgcolor: alpha('#3b82f6', 0.06) }}>
+                        <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.06) }}>
                           <TableCell sx={{ fontWeight: 700 }}>Luna</TableCell>
                           <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
                           <TableCell sx={{ fontWeight: 700 }} align="right">Suma asteptata</TableCell>
@@ -1211,7 +1211,7 @@ const AchizitiiPage: React.FC = () => {
                     setDetailsDialogOpen(false);
                     handleOpenInvDialog(selectedAcquisition.id);
                   }}
-                  sx={{ textTransform: 'none', color: '#10b981' }}
+                  sx={{ textTransform: 'none', color: 'success.main' }}
                 >
                   Adauga Factura
                 </Button>
@@ -1221,7 +1221,7 @@ const AchizitiiPage: React.FC = () => {
                 <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflowX: 'auto' }}>
                   <Table size="small">
                     <TableHead>
-                      <TableRow sx={{ bgcolor: alpha('#f59e0b', 0.06) }}>
+                      <TableRow sx={{ bgcolor: alpha(theme.palette.warning.main, 0.06) }}>
                         <TableCell sx={{ fontWeight: 700 }}>Nr. Factura</TableCell>
                         <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
                         <TableCell sx={{ fontWeight: 700 }} align="right">Suma</TableCell>

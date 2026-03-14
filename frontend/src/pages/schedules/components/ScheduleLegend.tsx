@@ -6,6 +6,7 @@ import {
   Chip,
   IconButton,
   Collapse,
+  Tooltip,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -43,9 +44,11 @@ const ScheduleLegend: React.FC<ScheduleLegendProps> = ({
           )}
         </Stack>
         {isMobile && (
-          <IconButton size="small">
-            {legendExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-          </IconButton>
+          <Tooltip title={legendExpanded ? 'Ascunde legenda' : 'Arata legenda'} arrow>
+            <IconButton size="small" aria-label="Comuta legenda">
+              {legendExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
         )}
       </Stack>
       <Collapse in={legendExpanded || !isMobile}>
