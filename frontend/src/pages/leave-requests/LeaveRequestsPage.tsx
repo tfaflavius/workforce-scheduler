@@ -11,7 +11,7 @@ import {
   TextField,
   MenuItem,
   Alert,
-  CircularProgress,
+  Skeleton,
   IconButton,
   Tooltip,
   useTheme,
@@ -21,6 +21,7 @@ import {
   alpha,
   LinearProgress,
   Grow,
+  CircularProgress,
 } from '@mui/material';
 import DatePickerField from '../../components/common/DatePickerField';
 import {
@@ -210,8 +211,27 @@ export const LeaveRequestsPage = () => {
 
   if (loadingRequests || loadingBalance) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
+      <Box sx={{ width: '100%' }}>
+        {/* Header skeleton */}
+        <Skeleton variant="rounded" height={100} sx={{ mb: 3, borderRadius: 3 }} />
+        {/* Button skeleton */}
+        <Skeleton variant="rounded" width={220} height={42} sx={{ mb: 3, borderRadius: 2 }} />
+        {/* Balance cards skeleton */}
+        <Skeleton variant="rounded" width={200} height={28} sx={{ mb: 2 }} />
+        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 4 }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Grid size={{ xs: 6, sm: 6, md: 2.4 }} key={i}>
+              <Skeleton variant="rounded" height={140} sx={{ borderRadius: 2 }} />
+            </Grid>
+          ))}
+        </Grid>
+        {/* Requests list skeleton */}
+        <Skeleton variant="rounded" width={160} height={28} sx={{ mb: 2 }} />
+        <Stack spacing={2}>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} variant="rounded" height={100} sx={{ borderRadius: 2 }} />
+          ))}
+        </Stack>
       </Box>
     );
   }

@@ -173,8 +173,8 @@ const ShiftSwapsPage = () => {
   }, [schedules, user]);
 
   // Separate my requests and requests where I'm a potential responder (I work on their target date)
-  const sentRequests = myRequests.filter((r) => r.requesterId === user?.id);
-  const receivedRequests = myRequests.filter((r) => r.requesterId !== user?.id);
+  const sentRequests = useMemo(() => myRequests.filter((r) => r.requesterId === user?.id), [myRequests, user?.id]);
+  const receivedRequests = useMemo(() => myRequests.filter((r) => r.requesterId !== user?.id), [myRequests, user?.id]);
 
   // Highlight swap from notification + auto-open detail dialog
   useEffect(() => {
@@ -264,7 +264,6 @@ const ShiftSwapsPage = () => {
       setReason('');
       notifySuccess('Cererea de schimb a fost trimisa cu succes!');
     } catch (error: unknown) {
-      console.error('Error creating swap request:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message || 'A aparut o eroare la crearea cererii.'
         : 'A aparut o eroare la crearea cererii.';
@@ -297,7 +296,6 @@ const ShiftSwapsPage = () => {
       setResponseMessage('');
       notifySuccess(responseAccepted ? 'Ai acceptat cererea de schimb!' : 'Ai refuzat cererea de schimb.');
     } catch (error: unknown) {
-      console.error('Error responding to swap:', error);
       const errorMsg = error && typeof error === 'object' && 'data' in error
         ? (error.data as { message?: string })?.message || 'A aparut o eroare la procesarea raspunsului.'
         : 'A aparut o eroare la procesarea raspunsului.';
@@ -317,7 +315,6 @@ const ShiftSwapsPage = () => {
           await cancelSwap(id).unwrap();
           notifySuccess('Cererea a fost anulata.');
         } catch (error: unknown) {
-          console.error('Error cancelling swap:', error);
           const errorMsg = error && typeof error === 'object' && 'data' in error
             ? (error.data as { message?: string })?.message || 'A aparut o eroare la anularea cererii.'
             : 'A aparut o eroare la anularea cererii.';

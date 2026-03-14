@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -99,6 +99,10 @@ const ManagerDashboard = () => {
     [rejectedSchedules, user?.id],
   );
 
+  // Memoize dispatcher filtering to avoid recalculation on every render
+  const dispatchersDISP = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'DISP'), [todayDispatchers]);
+  const dispatchersCTRL = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'CTRL'), [todayDispatchers]);
+
   // Loading state — show skeleton instead of spinner
   if (draftLoading || pendingLoading || approvedLoading || rejectedLoading || dispatchersLoading) {
     return <DashboardSkeleton />;
@@ -170,8 +174,6 @@ const ManagerDashboard = () => {
 
       {/* Today's Dispatchers Section */}
       {(() => {
-        const dispatchersDISP = todayDispatchers.filter(d => d.workPositionCode === 'DISP');
-        const dispatchersCTRL = todayDispatchers.filter(d => d.workPositionCode === 'CTRL');
         const renderDispatcherList = (dispatchers: typeof todayDispatchers) => (
           <List sx={{ py: 0 }}>
             {dispatchers.map((dispatcher, index) => (

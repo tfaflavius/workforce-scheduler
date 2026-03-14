@@ -25,7 +25,7 @@ export interface FriendlyTextFieldProps extends Omit<TextFieldProps, 'variant'> 
   variant?: 'outlined' | 'filled' | 'standard';
 }
 
-export const FriendlyTextField: React.FC<FriendlyTextFieldProps> = ({
+export const FriendlyTextField: React.FC<FriendlyTextFieldProps> = React.memo(({
   startIcon,
   endIcon,
   showSuccessState = false,
@@ -218,6 +218,8 @@ export const FriendlyTextField: React.FC<FriendlyTextFieldProps> = ({
       </Box>
     </Box>
   );
-};
+});
+
+FriendlyTextField.displayName = 'FriendlyTextField';
 
 export default FriendlyTextField;

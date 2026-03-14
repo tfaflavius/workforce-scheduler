@@ -16,6 +16,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   CircularProgress,
+  Skeleton,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -106,8 +107,18 @@ const NotificationsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress />
+      <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
+        {/* Header skeleton */}
+        <Skeleton variant="rounded" height={100} sx={{ mb: 3, borderRadius: 3 }} />
+        {/* Actions bar skeleton */}
+        <Skeleton variant="rounded" height={64} sx={{ mb: 3, borderRadius: 2 }} />
+        {/* Notification cards skeleton */}
+        <Skeleton variant="rounded" width={120} height={20} sx={{ mb: 1.5 }} />
+        <Stack spacing={1}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} variant="rounded" height={80} sx={{ borderRadius: 2 }} />
+          ))}
+        </Stack>
       </Box>
     );
   }

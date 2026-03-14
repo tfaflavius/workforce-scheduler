@@ -40,6 +40,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
       <Card
         role={onClick ? 'button' : undefined}
         tabIndex={onClick ? 0 : undefined}
+        aria-label={onClick ? `${title}: ${value}${subtitle ? ` — ${subtitle}` : ''}` : undefined}
         sx={{
           cursor: onClick ? 'pointer' : 'default',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -166,5 +167,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
     </Grow>
   );
 });
+
+StatCard.displayName = 'StatCard';
 
 export default StatCard;
