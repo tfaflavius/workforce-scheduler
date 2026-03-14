@@ -205,4 +205,6 @@ export const EmptyState: React.FC<EmptyStateProps> = React.memo(({
   );
 });
 
+EmptyState.displayName = 'EmptyState';
+
 export default EmptyState;

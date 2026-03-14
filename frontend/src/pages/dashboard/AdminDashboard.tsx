@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatRONCompact } from '../../utils/formatters';
 import {
@@ -74,23 +75,27 @@ const AdminDashboard = () => {
   const recentNotifications = stats?.recentNotifications || [];
   const carStatus = stats?.carStatus;
 
+  // Memoize dispatcher filtering
+  const dispatchersDISP = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'DISP'), [todayDispatchers]);
+  const dispatchersCTRL = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'CTRL'), [todayDispatchers]);
+
   // Quick summary items - items that need attention (using theme tokens)
-  const summaryItems = [
+  const summaryItems = useMemo(() => [
     { label: 'Programe', value: pendingCount, color: theme.palette.warning.main, urgent: pendingCount > 0 },
     { label: 'Schimburi', value: pendingSwaps, color: theme.palette.info.main, urgent: pendingSwaps > 0 },
     { label: 'Concedii', value: pendingLeaves, color: theme.palette.secondary.main, urgent: pendingLeaves > 0 },
     { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main, urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
     { label: 'Utilizatori', value: activeUsers, color: theme.palette.primary.main, urgent: false },
-  ];
+  ], [pendingCount, pendingSwaps, pendingLeaves, stats?.parking?.activeIssues, stats?.parking?.urgentIssues?.length, activeUsers, theme.palette]);
 
   // Quick actions (using theme tokens)
-  const quickActions = [
+  const quickActions = useMemo(() => [
     { label: 'Aproba Programe', path: '/schedules/pending', icon: <CalendarIcon />, color: theme.palette.warning.main, count: pendingCount },
     { label: 'Schimburi', path: '/admin/shift-swaps', icon: <SwapIcon />, color: theme.palette.info.main, count: pendingSwaps },
     { label: 'Concedii', path: '/admin/leave-requests', icon: <BeachIcon />, color: theme.palette.secondary.main, count: pendingLeaves },
     { label: 'Utilizatori', path: '/users', icon: <PeopleIcon />, color: theme.palette.primary.main },
     { label: 'Rapoarte', path: '/reports', icon: <ReportIcon />, color: theme.palette.success.main },
-  ];
+  ], [pendingCount, pendingSwaps, pendingLeaves, theme.palette]);
 
   // Loading state - show skeleton instead of spinner for better perceived performance
   if (isLoading) {
@@ -263,8 +268,6 @@ const AdminDashboard = () => {
         <Grid size={{ xs: 12, lg: 8 }}>
           {/* Today's Dispatchers Section */}
           {(() => {
-            const dispatchersDISP = todayDispatchers.filter(d => d.workPositionCode === 'DISP');
-            const dispatchersCTRL = todayDispatchers.filter(d => d.workPositionCode === 'CTRL');
             const renderDispatcherList = (dispatchers: typeof todayDispatchers) => (
               <List sx={{ py: 0 }}>
                 {dispatchers.map((dispatcher, index) => (

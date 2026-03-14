@@ -9,7 +9,7 @@ export interface GradientHeaderProps {
   children?: React.ReactNode;
 }
 
-export const GradientHeader: React.FC<GradientHeaderProps> = ({
+export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
   title,
   subtitle,
   icon,
@@ -176,6 +176,8 @@ export const GradientHeader: React.FC<GradientHeaderProps> = ({
       </Box>
     </Fade>
   );
-};
+});
+
+GradientHeader.displayName = 'GradientHeader';
 
 export default GradientHeader;

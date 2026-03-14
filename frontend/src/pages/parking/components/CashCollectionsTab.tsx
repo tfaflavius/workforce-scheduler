@@ -58,6 +58,9 @@ import CreateCollectionDialog from './CreateCollectionDialog';
 import { formatDateTime } from '../../../utils/dateFormatters';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
 
+// Constant outside component to avoid recreation on every render
+const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
+
 const CashCollectionsTab: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -101,7 +104,6 @@ const CashCollectionsTab: React.FC = () => {
   const isAdmin = isAdminOrAbove(user?.role);
 
   // Group collections by month
-  const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
   const collectionsByMonth = useMemo(() => {
     const groups: Record<string, { label: string; items: CashCollection[]; total: number }> = {};
     collections.forEach((c) => {

@@ -85,7 +85,7 @@ const getDialogColors = (
   };
 };
 
-export const FriendlyDialog: React.FC<FriendlyDialogProps> = ({
+export const FriendlyDialog: React.FC<FriendlyDialogProps> = React.memo(({
   open,
   onClose,
   title,
@@ -390,6 +390,8 @@ export const FriendlyDialog: React.FC<FriendlyDialogProps> = ({
       )}
     </Dialog>
   );
-};
+});
+
+FriendlyDialog.displayName = 'FriendlyDialog';
 
 export default FriendlyDialog;
