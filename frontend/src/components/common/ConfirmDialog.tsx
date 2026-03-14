@@ -16,7 +16,6 @@ import {
   Warning as WarningIcon,
   Delete as DeleteIcon,
   Info as InfoIcon,
-  CheckCircle as SuccessIcon,
 } from '@mui/icons-material';
 
 export interface ConfirmDialogProps {

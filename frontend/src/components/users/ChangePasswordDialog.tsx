@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Stack, Box, Typography, LinearProgress, alpha, useTheme } from '@mui/material';
+import { Stack, Box, Typography, alpha, useTheme } from '@mui/material';
 import {
   Lock as LockIcon,
   VpnKey as KeyIcon,
