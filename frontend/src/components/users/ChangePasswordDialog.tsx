@@ -1,5 +1,5 @@
-import React from 'react';
-import { Stack } from '@mui/material';
+import React, { useMemo } from 'react';
+import { Stack, Box, Typography, LinearProgress, alpha, useTheme } from '@mui/material';
 import {
   Lock as LockIcon,
   VpnKey as KeyIcon,
@@ -12,6 +12,69 @@ import {
   FriendlyButton,
 } from '../common';
 import { useChangePasswordMutation } from '../../store/api/users.api';
+
+/** Compute password strength 0-4 based on entropy criteria */
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  if (!password) return { score: 0, label: '', color: 'transparent' };
+
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 10) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  // Cap at 4
+  score = Math.min(score, 4);
+
+  const levels: Record<number, { label: string; color: string }> = {
+    0: { label: '', color: 'transparent' },
+    1: { label: 'Slaba', color: '#ef4444' },
+    2: { label: 'Medie', color: '#f59e0b' },
+    3: { label: 'Buna', color: '#22c55e' },
+    4: { label: 'Puternica', color: '#16a34a' },
+  };
+
+  return { score, ...levels[score] };
+}
+
+/** Password strength bar indicator */
+const PasswordStrengthBar: React.FC<{ password: string }> = ({ password }) => {
+  const theme = useTheme();
+  const { score, label, color } = useMemo(() => getPasswordStrength(password), [password]);
+
+  if (!password) return null;
+
+  return (
+    <Box sx={{ mt: -0.5, mb: 0.5, px: 0.5 }}>
+      <Box sx={{ display: 'flex', gap: 0.5, mb: 0.5 }}>
+        {[1, 2, 3, 4].map((level) => (
+          <Box
+            key={level}
+            sx={{
+              flex: 1,
+              height: 4,
+              borderRadius: 2,
+              bgcolor: level <= score ? color : alpha(theme.palette.text.disabled, 0.15),
+              transition: 'all 0.3s ease',
+            }}
+          />
+        ))}
+      </Box>
+      <Typography
+        variant="caption"
+        sx={{
+          fontSize: '0.65rem',
+          fontWeight: 600,
+          color,
+          transition: 'color 0.3s ease',
+        }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+};
 
 interface ChangePasswordDialogProps {
   open: boolean;
@@ -149,19 +212,22 @@ export const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
           />
         )}
 
-        <FriendlyTextField
-          label="Parola Noua"
-          type="password"
-          value={formData.newPassword}
-          onChange={handleChange('newPassword')}
-          error={!!formErrors.newPassword}
-          helperText={formErrors.newPassword}
-          fullWidth
-          required
-          autoFocus={isAdmin}
-          startIcon={<LockIcon />}
-          hint="Minim 6 caractere, o majuscula si o cifra"
-        />
+        <Box>
+          <FriendlyTextField
+            label="Parola Noua"
+            type="password"
+            value={formData.newPassword}
+            onChange={handleChange('newPassword')}
+            error={!!formErrors.newPassword}
+            helperText={formErrors.newPassword}
+            fullWidth
+            required
+            autoFocus={isAdmin}
+            startIcon={<LockIcon />}
+            hint="Minim 6 caractere, o majuscula si o cifra"
+          />
+          <PasswordStrengthBar password={formData.newPassword} />
+        </Box>
 
         <FriendlyTextField
           label="Confirma Parola Noua"

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { Snackbar, Alert, Slide } from '@mui/material';
+import { Snackbar, Alert, Slide, Button } from '@mui/material';
 import type { AlertColor } from '@mui/material';
 import type { SlideProps } from '@mui/material/Slide';
 
@@ -7,6 +7,11 @@ interface SnackbarMessage {
   message: string;
   severity: AlertColor;
   duration?: number;
+  /** Optional action button (e.g. "Undo", "Retry", "View") */
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 interface SnackbarContextType {
@@ -15,6 +20,13 @@ interface SnackbarContextType {
   notifyError: (message: string) => void;
   notifyWarning: (message: string) => void;
   notifyInfo: (message: string) => void;
+  /** Show notification with an action button (e.g. Undo) */
+  notifyWithAction: (
+    message: string,
+    action: { label: string; onClick: () => void },
+    severity?: AlertColor,
+    duration?: number,
+  ) => void;
 }
 
 const SnackbarContext = createContext<SnackbarContextType | null>(null);
@@ -36,6 +48,22 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, 100);
   }, []);
 
+  const notifyWithAction = useCallback(
+    (
+      message: string,
+      action: { label: string; onClick: () => void },
+      severity: AlertColor = 'info',
+      duration = 6000,
+    ) => {
+      setOpen(false);
+      setTimeout(() => {
+        setSnack({ message, severity, duration, action });
+        setOpen(true);
+      }, 100);
+    },
+    [],
+  );
+
   const notifySuccess = useCallback((message: string) => notify(message, 'success'), [notify]);
   const notifyError = useCallback((message: string) => notify(message, 'error', 6000), [notify]);
   const notifyWarning = useCallback((message: string) => notify(message, 'warning', 5000), [notify]);
@@ -46,8 +74,15 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setOpen(false);
   };
 
+  const handleActionClick = () => {
+    snack?.action?.onClick();
+    setOpen(false);
+  };
+
   return (
-    <SnackbarContext.Provider value={{ notify, notifySuccess, notifyError, notifyWarning, notifyInfo }}>
+    <SnackbarContext.Provider
+      value={{ notify, notifySuccess, notifyError, notifyWarning, notifyInfo, notifyWithAction }}
+    >
       {children}
       <Snackbar
         open={open}
@@ -63,6 +98,23 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           variant="filled"
           elevation={6}
           sx={{ width: '100%', borderRadius: 2, fontWeight: 500 }}
+          action={
+            snack?.action ? (
+              <Button
+                color="inherit"
+                size="small"
+                onClick={handleActionClick}
+                sx={{
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  mr: -0.5,
+                  minWidth: 'auto',
+                }}
+              >
+                {snack.action.label}
+              </Button>
+            ) : undefined
+          }
         >
           {snack?.message}
         </Alert>
