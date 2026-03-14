@@ -15,7 +15,6 @@ import {
   Tooltip,
   ToggleButton,
   ToggleButtonGroup,
-  CircularProgress,
   Skeleton,
 } from '@mui/material';
 import {
