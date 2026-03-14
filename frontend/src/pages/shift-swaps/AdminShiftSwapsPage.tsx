@@ -104,7 +104,7 @@ const AdminShiftSwapsPage = () => {
   const location = useLocation();
   const highlightSwapId = (location.state as any)?.highlightSwapId as string | undefined;
   const highlightRef = useRef<HTMLDivElement>(null);
-  const hasHandledNotificationRef = useRef(false);
+  const lastHandledIdRef = useRef<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [selectedRequest, setSelectedRequest] = useState<ShiftSwapRequest | null>(null);
@@ -132,8 +132,8 @@ const AdminShiftSwapsPage = () => {
 
   // Auto-switch tab, highlight, and open detail dialog from notification
   useEffect(() => {
-    if (highlightSwapId && !hasHandledNotificationRef.current && allRequests.length > 0) {
-      hasHandledNotificationRef.current = true;
+    if (highlightSwapId && highlightSwapId !== lastHandledIdRef.current && allRequests.length > 0) {
+      lastHandledIdRef.current = highlightSwapId;
       const request = allRequests.find((r) => r.id === highlightSwapId);
       if (request) {
         // Switch to the correct tab

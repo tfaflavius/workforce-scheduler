@@ -56,7 +56,7 @@ const getSearchNavigationState = (result: SearchResult): Record<string, unknown>
     case 'handicap_legitimation':
       return { openLegitimationId: result.id, tab: 3 };
     case 'revolutionar_legitimation':
-      return { openLegitimationId: result.id, tab: 4 };
+      return { openRevolutionarLegitimationId: result.id, tab: 4 };
     case 'domiciliu_request':
       return { openRequestId: result.id };
     case 'control_sesizare':

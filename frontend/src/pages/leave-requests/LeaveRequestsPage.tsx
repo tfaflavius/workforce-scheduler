@@ -91,7 +91,7 @@ export const LeaveRequestsPage = () => {
   const location = useLocation();
   const highlightRequestId = (location.state as any)?.highlightRequestId as string | undefined;
   const highlightRef = useRef<HTMLDivElement>(null);
-  const hasHandledNotificationRef = useRef(false);
+  const lastHandledIdRef = useRef<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const { user } = useAppSelector((state) => state.auth);
   const { notifySuccess, notifyError } = useSnackbar();
@@ -119,8 +119,8 @@ export const LeaveRequestsPage = () => {
 
   // Highlight request from notification + auto-open detail dialog
   useEffect(() => {
-    if (highlightRequestId && !hasHandledNotificationRef.current && requests.length > 0) {
-      hasHandledNotificationRef.current = true;
+    if (highlightRequestId && highlightRequestId !== lastHandledIdRef.current && requests.length > 0) {
+      lastHandledIdRef.current = highlightRequestId;
       const request = requests.find(r => r.id === highlightRequestId);
       if (request) {
         setHighlightedId(highlightRequestId);

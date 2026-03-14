@@ -1224,7 +1224,7 @@ const HandicapParkingPage: React.FC = () => {
   const [createDialogType, setCreateDialogType] = useState<HandicapRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [openLegitimationId, setOpenLegitimationId] = useState<string | null>(null);
-  const hasHandledNotificationRef = React.useRef(false);
+  const lastHandledIdRef = React.useRef<string | null>(null);
   const [openRevolutionarLegitimationId, setOpenRevolutionarLegitimationId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
@@ -1233,14 +1233,18 @@ const HandicapParkingPage: React.FC = () => {
 
   // Handle navigation state from notifications
   useEffect(() => {
-    const state = location.state as { openRequestId?: string; openLegitimationId?: string; tab?: number } | null;
-    if (state && !hasHandledNotificationRef.current) {
-      hasHandledNotificationRef.current = true;
+    const state = location.state as { openRequestId?: string; openLegitimationId?: string; openRevolutionarLegitimationId?: string; tab?: number } | null;
+    const deepLinkId = state?.openRequestId || state?.openLegitimationId || state?.openRevolutionarLegitimationId;
+    if (state && deepLinkId && deepLinkId !== lastHandledIdRef.current) {
+      lastHandledIdRef.current = deepLinkId;
       if (state.openRequestId) {
         setSelectedRequestId(state.openRequestId);
       }
       if (state.openLegitimationId) {
         setOpenLegitimationId(state.openLegitimationId);
+      }
+      if (state.openRevolutionarLegitimationId) {
+        setOpenRevolutionarLegitimationId(state.openRevolutionarLegitimationId);
       }
       if (state.tab !== undefined) {
         setTabValue(state.tab);

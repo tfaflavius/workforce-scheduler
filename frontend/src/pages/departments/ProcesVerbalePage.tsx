@@ -52,7 +52,7 @@ const ProcesVerbalePage: React.FC = () => {
   const location = useLocation();
   const [tabValue, setTabValue] = useState(0);
   const { user } = useAppSelector((state) => state.auth);
-  const hasHandledNotificationRef = useRef(false);
+  const lastHandledIdRef = useRef<string | null>(null);
 
   // Read notification deep link state
   const openSessionId = (location.state as any)?.openSessionId;
@@ -64,8 +64,8 @@ const ProcesVerbalePage: React.FC = () => {
 
   // Auto-switch to Sesiuni tab when arriving from notification
   useEffect(() => {
-    if (openSessionId && !hasHandledNotificationRef.current) {
-      hasHandledNotificationRef.current = true;
+    if (openSessionId && openSessionId !== lastHandledIdRef.current) {
+      lastHandledIdRef.current = openSessionId;
       // Sesiuni tab is first tab for non-Control users (index 0)
       // For Control users, Sesiuni is not shown — fallback gracefully
       if (!isControl) {

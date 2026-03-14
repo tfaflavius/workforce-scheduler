@@ -78,7 +78,7 @@ const UsersPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const highlightUserId = (location.state as any)?.highlightUserId as string | undefined;
-  const hasHandledSearchRef = useRef(false);
+  const lastHandledIdRef = useRef<string | null>(null);
   const { notifyError } = useSnackbar();
 
   const [page, setPage] = useState(0);
@@ -138,8 +138,8 @@ const UsersPage: React.FC = () => {
 
   // Deep linking from search — auto-open edit dialog for highlighted user
   useEffect(() => {
-    if (highlightUserId && !hasHandledSearchRef.current && allUsers && allUsers.length > 0) {
-      hasHandledSearchRef.current = true;
+    if (highlightUserId && highlightUserId !== lastHandledIdRef.current && allUsers && allUsers.length > 0) {
+      lastHandledIdRef.current = highlightUserId;
       const foundUser = allUsers.find((u) => u.id === highlightUserId);
       if (foundUser) {
         setEditUser(foundUser);

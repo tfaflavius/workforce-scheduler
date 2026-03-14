@@ -955,7 +955,7 @@ const ControlSesizariPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<ControlSesizareStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<ControlSesizareType | null>(null);
   const [selectedSesizareId, setSelectedSesizareId] = useState<string | null>(null);
-  const hasHandledNotificationRef = useRef(false);
+  const lastHandledIdRef = useRef<string | null>(null);
 
   const { user } = useAppSelector((state) => state.auth);
 
@@ -979,8 +979,8 @@ const ControlSesizariPage: React.FC = () => {
   // Auto-open sesizare from notification deep link — dialog fetches its own data, open immediately
   useEffect(() => {
     const openSesizareId = (location.state as any)?.openSesizareId;
-    if (openSesizareId && !hasHandledNotificationRef.current) {
-      hasHandledNotificationRef.current = true;
+    if (openSesizareId && openSesizareId !== lastHandledIdRef.current) {
+      lastHandledIdRef.current = openSesizareId;
       setSelectedSesizareId(openSesizareId);
       window.history.replaceState({}, document.title);
     }

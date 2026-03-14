@@ -57,7 +57,7 @@ const AdminEditRequestsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { notifyError } = useSnackbar();
-  const hasHandledNotificationRef = useRef(false);
+  const lastHandledIdRef = useRef<string | null>(null);
 
   // When arriving from notification, show ALL so we can find the specific request
   const notificationEditRequestId = (location.state as any)?.openEditRequestId;
@@ -76,13 +76,13 @@ const AdminEditRequestsPage: React.FC = () => {
   // Auto-open edit request from notification deep link
   useEffect(() => {
     const openEditRequestId = (location.state as any)?.openEditRequestId;
-    if (!openEditRequestId || hasHandledNotificationRef.current) return;
+    if (!openEditRequestId || openEditRequestId === lastHandledIdRef.current) return;
 
     // Reset filter to ALL so we can find the request regardless of status
     setStatusFilter('ALL');
 
     if (!isLoading && requests.length > 0) {
-      hasHandledNotificationRef.current = true;
+      lastHandledIdRef.current = openEditRequestId;
       const target = requests.find((r) => r.id === openEditRequestId);
       if (target) {
         setSelectedRequest(target);

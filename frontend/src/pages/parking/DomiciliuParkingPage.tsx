@@ -965,15 +965,15 @@ const DomiciliuParkingPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<DomiciliuRequestStatus | ''>('');
   const [createDialogType, setCreateDialogType] = useState<DomiciliuRequestType | null>(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
-  const hasHandledNotificationRef = React.useRef(false);
+  const lastHandledIdRef = React.useRef<string | null>(null);
 
   const { user } = useAppSelector((state) => state.auth);
 
   // Handle navigation state from notifications
   useEffect(() => {
     const state = location.state as { openRequestId?: string } | null;
-    if (state?.openRequestId && !hasHandledNotificationRef.current) {
-      hasHandledNotificationRef.current = true;
+    if (state?.openRequestId && state.openRequestId !== lastHandledIdRef.current) {
+      lastHandledIdRef.current = state.openRequestId;
       setSelectedRequestId(state.openRequestId);
       // Clear the state after handling
       window.history.replaceState({}, document.title);
