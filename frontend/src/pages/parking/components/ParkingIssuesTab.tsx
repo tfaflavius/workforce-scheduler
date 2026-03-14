@@ -721,11 +721,11 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
 
       {/* Filters */}
       <Stack
-        direction={{ xs: 'column', sm: 'row' }}
+        direction={{ xs: 'column', md: 'row' }}
         spacing={1.5}
         sx={{ mb: { xs: 1.5, sm: 2 } }}
       >
-        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 180 } }}>
           <InputLabel>Parcare</InputLabel>
           <Select
             value={parkingLotFilter}
@@ -738,7 +738,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
             ))}
           </Select>
         </FormControl>
-        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 180 } }}>
           <InputLabel>Echipament</InputLabel>
           <Select
             value={equipmentFilter}
@@ -758,14 +758,14 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           value={monthFilter}
           onChange={(e) => setMonthFilter(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: { xs: '100%', sm: 180 } }}
+          sx={{ minWidth: { xs: '100%', md: 180 } }}
         />
         {(parkingLotFilter || monthFilter || equipmentFilter) && (
           <Button
             size="small"
             variant="text"
             onClick={() => { setParkingLotFilter(''); setMonthFilter(''); setEquipmentFilter(''); }}
-            sx={{ whiteSpace: 'nowrap', alignSelf: { xs: 'flex-start', sm: 'center' } }}
+            sx={{ whiteSpace: 'nowrap', alignSelf: { xs: 'flex-start', md: 'center' } }}
           >
             Reseteaza filtre
           </Button>

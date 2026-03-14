@@ -172,7 +172,7 @@ const TicketsSection: React.FC = () => {
 
   return (
     <Box>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }} alignItems={{ sm: 'center' }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }} alignItems={{ md: 'center' }}>
         <ToggleButtonGroup
           value={viewMode}
           exclusive
@@ -185,7 +185,7 @@ const TicketsSection: React.FC = () => {
         </ToggleButtonGroup>
 
         {viewMode === 'daily' && (
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 220 } }}>
             <InputLabel>Ziua</InputLabel>
             <Select value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)} label="Ziua">
               {dayOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -193,7 +193,7 @@ const TicketsSection: React.FC = () => {
           </FormControl>
         )}
         {viewMode === 'weekly' && (
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 280 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 280 } }}>
             <InputLabel>Saptamana</InputLabel>
             <Select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} label="Saptamana">
               {weekOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -201,7 +201,7 @@ const TicketsSection: React.FC = () => {
           </FormControl>
         )}
         {viewMode === 'monthly' && (
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 220 } }}>
             <InputLabel>Luna</InputLabel>
             <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} label="Luna">
               {monthOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -384,8 +384,8 @@ const SubscriptionsSection: React.FC = () => {
 
   return (
     <Box>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }} alignItems={{ sm: 'center' }}>
-        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }} alignItems={{ md: 'center' }}>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 220 } }}>
           <InputLabel>Luna</InputLabel>
           <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} label="Luna">
             {monthOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -569,7 +569,7 @@ const OccupancySection: React.FC = () => {
 
   return (
     <Box>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }} alignItems={{ sm: 'center' }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 2 }} alignItems={{ md: 'center' }}>
         <ToggleButtonGroup
           value={viewMode}
           exclusive
@@ -581,7 +581,7 @@ const OccupancySection: React.FC = () => {
         </ToggleButtonGroup>
 
         {viewMode === 'weekly' && (
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 280 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 280 } }}>
             <InputLabel>Saptamana</InputLabel>
             <Select value={selectedWeek} onChange={(e) => setSelectedWeek(e.target.value)} label="Saptamana">
               {weekOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
@@ -589,7 +589,7 @@ const OccupancySection: React.FC = () => {
           </FormControl>
         )}
         {viewMode === 'monthly' && (
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 220 } }}>
             <InputLabel>Luna</InputLabel>
             <Select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} label="Luna">
               {monthOptions.map(o => <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>)}
