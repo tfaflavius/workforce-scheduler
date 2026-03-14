@@ -79,19 +79,12 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
   const isAdminOrManager = isAdmin || isManager;
 
   switch (type) {
-    // Schedule notifications
+    // Schedule notifications — navigate to correct month
     case 'SCHEDULE_CREATED':
     case 'SCHEDULE_UPDATED':
-      if (data?.scheduleId) {
-        return { path: `/schedules/${data.scheduleId}` };
-      }
-      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
     case 'SCHEDULE_APPROVED':
     case 'SCHEDULE_REJECTED':
-      if (data?.scheduleId) {
-        return { path: `/schedules/${data.scheduleId}` };
-      }
-      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
+      return { path: isAdminOrManager ? '/schedules' : '/my-schedule', state: { highlightMonthYear: data?.monthYear } };
 
     // Shift swap notifications
     case 'SHIFT_SWAP_REQUEST':

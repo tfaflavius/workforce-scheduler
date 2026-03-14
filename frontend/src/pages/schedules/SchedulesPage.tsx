@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -27,7 +27,7 @@ import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
 import {
@@ -52,12 +52,28 @@ const SchedulesPage: React.FC = () => {
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const isLandscape = useMediaQuery('(orientation: landscape)');
   const navigate = useNavigate();
+  const location = useLocation();
+  const hasHandledState = useRef(false);
+  const highlightMonthYear = (location.state as any)?.highlightMonthYear as string | undefined;
   const { user } = useAppSelector((state) => state.auth);
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
+    // If navigating from notification, use the notification's monthYear
+    const stateMonthYear = (location.state as any)?.highlightMonthYear as string | undefined;
+    if (stateMonthYear && /^\d{4}-\d{2}$/.test(stateMonthYear)) {
+      return stateMonthYear;
+    }
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
+
+  // Handle navigation from notification — clean up history state
+  useEffect(() => {
+    if (highlightMonthYear && !hasHandledState.current) {
+      hasHandledState.current = true;
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightMonthYear]);
 
   // Filtering state
   const [shiftFilter, setShiftFilter] = useState<ShiftFilter>('ALL');

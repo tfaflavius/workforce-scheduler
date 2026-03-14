@@ -257,6 +257,7 @@ export class NotificationsService {
     userId: string,
     monthYear: string,
     approverName: string,
+    scheduleId?: string,
   ): Promise<Notification | null> {
     const formatted = formatMonthYear(monthYear);
 
@@ -265,7 +266,7 @@ export class NotificationsService {
       type: NotificationType.SCHEDULE_APPROVED,
       title: 'Program aprobat',
       message: `Programul tau pentru ${formatted} a fost aprobat de ${approverName}.`,
-      data: { monthYear, approverName },
+      data: { monthYear, approverName, scheduleId },
     });
   }
 
@@ -274,6 +275,7 @@ export class NotificationsService {
     monthYear: string,
     reason: string,
     rejectorName: string,
+    scheduleId?: string,
   ): Promise<Notification | null> {
     const formatted = formatMonthYear(monthYear);
 
@@ -282,7 +284,7 @@ export class NotificationsService {
       type: NotificationType.SCHEDULE_REJECTED,
       title: 'Program respins',
       message: `Programul pentru ${formatted} a fost respins. Motiv: ${reason}`,
-      data: { monthYear, reason, rejectorName },
+      data: { monthYear, reason, rejectorName, scheduleId },
     });
   }
 
@@ -290,6 +292,7 @@ export class NotificationsService {
     userIds: string[],
     monthYear: string,
     creatorName: string,
+    scheduleId?: string,
   ): Promise<Notification[]> {
     const formatted = formatMonthYear(monthYear);
 
@@ -298,7 +301,7 @@ export class NotificationsService {
       type: NotificationType.SCHEDULE_CREATED,
       title: 'Program nou creat',
       message: `A fost creat un program nou pentru ${formatted} de catre ${creatorName}.`,
-      data: { monthYear, creatorName },
+      data: { monthYear, creatorName, scheduleId },
     }));
 
     return this.createMany(notifications);
@@ -308,6 +311,7 @@ export class NotificationsService {
     userIds: string[],
     monthYear: string,
     updaterName: string,
+    scheduleId?: string,
   ): Promise<Notification[]> {
     const formatted = formatMonthYear(monthYear);
 
@@ -316,7 +320,7 @@ export class NotificationsService {
       type: NotificationType.SCHEDULE_UPDATED,
       title: 'Program actualizat',
       message: `Programul pentru ${formatted} a fost actualizat de ${updaterName}.`,
-      data: { monthYear, updaterName },
+      data: { monthYear, updaterName, scheduleId },
     }));
 
     return this.createMany(notifications);

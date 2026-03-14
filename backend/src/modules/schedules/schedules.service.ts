@@ -143,7 +143,7 @@ export class SchedulesService {
     // Send in-app notifications to affected employees
     const userIds = [...new Set(finalSchedule.assignments.map(a => a.userId))];
     if (userIds.length > 0) {
-      this.notificationsService.notifyScheduleCreated(userIds, monthYear, creatorName).catch(err => {
+      this.notificationsService.notifyScheduleCreated(userIds, monthYear, creatorName, savedScheduleId).catch(err => {
         this.logger.error('Failed to send schedule creation notifications:', err);
       });
     }
@@ -332,7 +332,7 @@ export class SchedulesService {
           const updater = await this.userRepository.findOne({ where: { id: updaterUserId } });
           updaterName = updater?.fullName || 'Administrator';
         }
-        this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName).catch(err => {
+        this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName, id).catch(err => {
           this.logger.error('Failed to send schedule update notifications:', err);
         });
       }
@@ -373,7 +373,7 @@ export class SchedulesService {
     // Send in-app notifications to affected employees
     const userIds = [...new Set(approvedSchedule.assignments.map(a => a.userId))];
     for (const affectedUserId of userIds) {
-      this.notificationsService.notifyScheduleApproved(affectedUserId, monthYear, approverName).catch(err => {
+      this.notificationsService.notifyScheduleApproved(affectedUserId, monthYear, approverName, id).catch(err => {
         this.logger.error(`Failed to send approval notification to ${affectedUserId}:`, err);
       });
     }
@@ -408,7 +408,7 @@ export class SchedulesService {
     // Send in-app notifications to affected employees
     const userIds = [...new Set(rejectedSchedule.assignments.map(a => a.userId))];
     for (const affectedUserId of userIds) {
-      this.notificationsService.notifyScheduleRejected(affectedUserId, monthYear, reason, rejectorName).catch(err => {
+      this.notificationsService.notifyScheduleRejected(affectedUserId, monthYear, reason, rejectorName, id).catch(err => {
         this.logger.error(`Failed to send rejection notification to ${affectedUserId}:`, err);
       });
     }

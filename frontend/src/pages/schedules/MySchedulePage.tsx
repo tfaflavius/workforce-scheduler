@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -34,6 +34,7 @@ import {
   EventAvailable as ShiftIcon,
   LocationOn as LocationIcon,
 } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { useAppSelector } from '../../store/hooks';
@@ -73,8 +74,23 @@ const MySchedulePage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
+  const location = useLocation();
+  const hasHandledState = useRef(false);
+  const highlightMonthYear = (location.state as any)?.highlightMonthYear as string | undefined;
   const [viewMode, setViewMode] = useState<'week' | 'month'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Handle navigation from notification — set calendar to the correct month
+  useEffect(() => {
+    if (highlightMonthYear && !hasHandledState.current) {
+      hasHandledState.current = true;
+      const [y, m] = highlightMonthYear.split('-').map(Number);
+      if (y && m) {
+        setCurrentDate(new Date(y, m - 1, 1));
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightMonthYear]);
 
   const currentMonth = currentDate.getMonth() + 1;
   const currentYear = currentDate.getFullYear();
