@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -61,7 +61,7 @@ import {
 } from '../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useAppSelector } from '../../store/hooks';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { UserForm } from '../../components/users/UserForm';
 import { ChangePasswordDialog } from '../../components/users/ChangePasswordDialog';
 import { DeleteUserDialog } from '../../components/users/DeleteUserDialog';
@@ -76,6 +76,9 @@ const UsersPage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const currentUser = useAppSelector((state) => state.auth.user);
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const highlightUserId = (location.state as any)?.highlightUserId as string | undefined;
+  const hasHandledSearchRef = useRef(false);
   const { notifyError } = useSnackbar();
 
   const [page, setPage] = useState(0);
@@ -132,6 +135,19 @@ const UsersPage: React.FC = () => {
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [toggleStatus] = useToggleUserStatusMutation();
+
+  // Deep linking from search — auto-open edit dialog for highlighted user
+  useEffect(() => {
+    if (highlightUserId && !hasHandledSearchRef.current && allUsers && allUsers.length > 0) {
+      hasHandledSearchRef.current = true;
+      const foundUser = allUsers.find((u) => u.id === highlightUserId);
+      if (foundUser) {
+        setEditUser(foundUser);
+        setEditDialogOpen(true);
+      }
+      window.history.replaceState({}, document.title);
+    }
+  }, [highlightUserId, allUsers]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: User) => {
     setAnchorEl(event.currentTarget);

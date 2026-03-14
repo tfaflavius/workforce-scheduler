@@ -2123,33 +2123,35 @@ const ReportsPage: React.FC = () => {
             ))}
           </Box>
           <Divider sx={{ my: 1.5 }} />
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="center">
+          <Stack spacing={1.5} alignItems="center">
             <Chip
               label={`${Object.values(selectedSections).filter(Boolean).length} din ${REPORT_SECTIONS.length} sectiuni selectate`}
               color="primary"
               variant="outlined"
               size="small"
             />
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<PdfIcon />}
-              onClick={handleExportCustomPDF}
-              disabled={isLoading || Object.values(selectedSections).filter(Boolean).length === 0}
-              sx={{ minWidth: 160 }}
-            >
-              Descarca PDF
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<ExcelIcon />}
-              onClick={handleExportCustomExcel}
-              disabled={isLoading || Object.values(selectedSections).filter(Boolean).length === 0}
-              sx={{ minWidth: 160 }}
-            >
-              Descarca Excel
-            </Button>
+            <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<PdfIcon />}
+                onClick={handleExportCustomPDF}
+                disabled={isLoading || Object.values(selectedSections).filter(Boolean).length === 0}
+                sx={{ minWidth: { xs: 140, sm: 160 }, flex: { xs: '1 1 auto', sm: '0 0 auto' } }}
+              >
+                Descarca PDF
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<ExcelIcon />}
+                onClick={handleExportCustomExcel}
+                disabled={isLoading || Object.values(selectedSections).filter(Boolean).length === 0}
+                sx={{ minWidth: { xs: 140, sm: 160 }, flex: { xs: '1 1 auto', sm: '0 0 auto' } }}
+              >
+                Descarca Excel
+              </Button>
+            </Stack>
           </Stack>
         </Paper>
 

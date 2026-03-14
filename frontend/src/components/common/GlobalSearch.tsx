@@ -43,6 +43,35 @@ import { useNavigate } from 'react-router-dom';
 import { useLazySearchQuery } from '../../store/api/search.api';
 import type { SearchResult } from '../../store/api/search.api';
 
+// Maps search result type+id to the location state keys that target pages already read
+// (from notification deep linking). This enables auto-opening detail dialogs on navigation.
+const getSearchNavigationState = (result: SearchResult): Record<string, unknown> | undefined => {
+  switch (result.type) {
+    case 'parking_issue':
+      return { openIssueId: result.id };
+    case 'parking_damage':
+      return { openDamageId: result.id, tab: 1 };
+    case 'handicap_request':
+      return { openRequestId: result.id };
+    case 'handicap_legitimation':
+      return { openLegitimationId: result.id, tab: 3 };
+    case 'revolutionar_legitimation':
+      return { openLegitimationId: result.id, tab: 4 };
+    case 'domiciliu_request':
+      return { openRequestId: result.id };
+    case 'control_sesizare':
+      return { openSesizareId: result.id };
+    case 'leave_request':
+      return { highlightRequestId: result.id };
+    case 'shift_swap':
+      return { highlightSwapId: result.id };
+    case 'user':
+      return { highlightUserId: result.id };
+    default:
+      return undefined;
+  }
+};
+
 // Use semantic palette keys so colors follow the theme
 const typeConfig: Record<string, { icon: React.ReactElement; paletteColor: 'primary' | 'error' | 'success' | 'warning' | 'info'; label: string }> = {
   page: { icon: <OpenInNewIcon fontSize="small" />, paletteColor: 'info', label: 'Pagina' },
@@ -186,7 +215,8 @@ const GlobalSearch: React.FC = () => {
 
   const handleSelect = (result: SearchResult) => {
     if (result.url) {
-      navigate(result.url);
+      const state = getSearchNavigationState(result);
+      navigate(result.url, state ? { state } : undefined);
     }
     setOpen(false);
     setMobileOpen(false);
@@ -385,7 +415,7 @@ const GlobalSearch: React.FC = () => {
           </Box>
 
           <Popper
-            open={open && !!results}
+            open={open && !!results && !isMobile}
             anchorEl={anchorRef.current}
             placement="bottom-start"
             transition
