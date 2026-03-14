@@ -184,10 +184,10 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     case 'EMPLOYEE_ABSENT':
       return { path: '/schedules' };
 
-    // Daily report notifications — navigate to the correct date
+    // Daily report notifications — navigate to the correct date and open the report
     case 'DAILY_REPORT_SUBMITTED':
     case 'DAILY_REPORT_COMMENTED':
-      return { path: '/daily-reports', state: { highlightReportDate: data?.reportDate || data?.date } };
+      return { path: '/daily-reports', state: { highlightReportDate: data?.reportDate || data?.date, highlightReportId: data?.dailyReportId } };
     case 'DAILY_REPORT_MISSING':
       return { path: '/daily-reports', state: { highlightReportDate: data?.date } };
 

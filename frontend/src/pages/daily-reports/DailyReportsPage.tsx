@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Box,
@@ -23,6 +23,7 @@ import {
   alpha,
   Collapse,
   IconButton,
+  Divider,
 } from '@mui/material';
 import {
   Description as ReportIcon,
@@ -34,7 +35,10 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   WarningAmber as WarningIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
+import FriendlyDialog from '../../components/common/FriendlyDialog';
+import type { DailyReport } from '../../types/daily-report.types';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
 import {
@@ -79,7 +83,9 @@ const DailyReportsPage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const highlightReportDate = (location.state as any)?.highlightReportDate as string | undefined;
+  const highlightReportId = (location.state as any)?.highlightReportId as string | undefined;
   const hasHandledState = useRef(false);
+  const hasHandledReportOpen = useRef(false);
   const user = useSelector((state: RootState) => state.auth.user);
   const isAdmin = isAdminOrAbove(user?.role);
   const isManager = user?.role === 'MANAGER';
@@ -96,6 +102,10 @@ const DailyReportsPage: React.FC = () => {
   // Admin comment state
   const [commentingReportId, setCommentingReportId] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
+
+  // Report detail dialog state
+  const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   // Filter state for "Toate Rapoartele"
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -220,9 +230,41 @@ const DailyReportsPage: React.FC = () => {
           setActiveTab(1);
         }
       }
-      window.history.replaceState({}, document.title);
+      // Only clear history state if there's no report ID to handle
+      if (!highlightReportId) {
+        window.history.replaceState({}, document.title);
+      }
     }
-  }, [highlightReportDate, canViewAll, isAdmin]);
+  }, [highlightReportDate, highlightReportId, canViewAll, isAdmin]);
+
+  // Auto-open report detail dialog when arriving from notification
+  useEffect(() => {
+    if (!highlightReportId || hasHandledReportOpen.current) return;
+
+    // Check in allReports (admin/manager view)
+    if (allReports && allReports.length > 0) {
+      const target = allReports.find((r) => r.id === highlightReportId);
+      if (target) {
+        hasHandledReportOpen.current = true;
+        setSelectedReport(target);
+        setReportDialogOpen(true);
+        window.history.replaceState({}, document.title);
+        return;
+      }
+    }
+
+    // Check in myReports (user view)
+    if (myReports && myReports.length > 0) {
+      const target = myReports.find((r) => r.id === highlightReportId);
+      if (target) {
+        hasHandledReportOpen.current = true;
+        setSelectedReport(target);
+        setReportDialogOpen(true);
+        window.history.replaceState({}, document.title);
+        return;
+      }
+    }
+  }, [highlightReportId, allReports, myReports]);
 
   const todayIsSubmitted = todayReport?.status === 'SUBMITTED';
 
@@ -297,6 +339,136 @@ const DailyReportsPage: React.FC = () => {
       notifyError(err?.data?.message || 'Eroare la adaugarea comentariului.');
     }
   };
+
+  // Handler: open report detail dialog
+  const handleOpenReport = useCallback((report: DailyReport) => {
+    setSelectedReport(report);
+    setReportDialogOpen(true);
+  }, []);
+
+  const handleCloseReportDialog = useCallback(() => {
+    setReportDialogOpen(false);
+    setSelectedReport(null);
+  }, []);
+
+  // ============== RENDER: Report Detail Dialog ==============
+
+  const renderReportDetailDialog = () => (
+    <FriendlyDialog
+      open={reportDialogOpen}
+      onClose={handleCloseReportDialog}
+      title="Detalii Raport Zilnic"
+      subtitle={selectedReport ? formatDate(selectedReport.date) : ''}
+      icon={<ReportIcon />}
+      variant="info"
+      maxWidth="sm"
+    >
+      {selectedReport && (
+        <Box>
+          {/* User info */}
+          {selectedReport.user && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+              <Avatar
+                sx={{
+                  width: 40,
+                  height: 40,
+                  bgcolor: 'primary.main',
+                  fontSize: 14,
+                }}
+              >
+                {selectedReport.user.fullName
+                  ?.split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase() || '?'}
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+                  {selectedReport.user.fullName}
+                </Typography>
+                {selectedReport.user.department?.name && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {selectedReport.user.department.name}
+                  </Typography>
+                )}
+              </Box>
+              <Chip
+                label={getStatusLabel(selectedReport.status)}
+                color={getStatusColor(selectedReport.status)}
+                size="small"
+                sx={{ ml: 'auto' }}
+              />
+            </Box>
+          )}
+
+          {/* If no user info (own report), show status only */}
+          {!selectedReport.user && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                {formatDate(selectedReport.date)}
+              </Typography>
+              <Chip
+                label={getStatusLabel(selectedReport.status)}
+                color={getStatusColor(selectedReport.status)}
+                size="small"
+              />
+            </Box>
+          )}
+
+          <Divider sx={{ mb: 2 }} />
+
+          {/* Report content */}
+          <Paper
+            sx={{
+              p: 2.5,
+              bgcolor: 'grey.50',
+              borderRadius: 2,
+              whiteSpace: 'pre-line',
+              mb: 2,
+            }}
+          >
+            <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
+              {selectedReport.content}
+            </Typography>
+          </Paper>
+
+          {/* Admin comment */}
+          {selectedReport.adminComment && (
+            <Paper
+              sx={{
+                p: 2,
+                bgcolor: '#fef3c7',
+                borderLeft: '4px solid #f59e0b',
+                borderRadius: 2,
+                mb: 1,
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 600, color: '#92400e' }}>
+                Comentariu Admin
+                {selectedReport.adminCommentedBy ? ` (${selectedReport.adminCommentedBy.fullName})` : ''}:
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#78350f', mt: 0.5 }}>
+                {selectedReport.adminComment}
+              </Typography>
+            </Paper>
+          )}
+
+          {/* Timestamps */}
+          <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Creat: {new Date(selectedReport.createdAt).toLocaleString('ro-RO')}
+            </Typography>
+            {selectedReport.updatedAt !== selectedReport.createdAt && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Actualizat: {new Date(selectedReport.updatedAt).toLocaleString('ro-RO')}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      )}
+    </FriendlyDialog>
+  );
 
   // ============== RENDER: Raportul Meu ==============
 
@@ -463,9 +635,11 @@ const DailyReportsPage: React.FC = () => {
               .map((report) => (
                 <Card
                   key={report.id}
+                  onClick={() => handleOpenReport(report)}
                   sx={{
                     borderRadius: 2,
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    cursor: 'pointer',
                     '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
                     transition: 'box-shadow 0.2s',
                   }}
@@ -475,11 +649,14 @@ const DailyReportsPage: React.FC = () => {
                       <Typography variant="subtitle2" sx={{ fontWeight: 600, fontSize: { xs: '0.78rem', sm: '0.875rem' } }}>
                         {formatDate(report.date)}
                       </Typography>
-                      <Chip
-                        label={getStatusLabel(report.status)}
-                        color={getStatusColor(report.status)}
-                        size="small"
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Chip
+                          label={getStatusLabel(report.status)}
+                          color={getStatusColor(report.status)}
+                          size="small"
+                        />
+                        <OpenInNewIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                      </Box>
                     </Box>
 
                     <Typography
@@ -940,9 +1117,11 @@ const DailyReportsPage: React.FC = () => {
             {allReports.map((report) => (
               <Card
                 key={report.id}
+                onClick={() => handleOpenReport(report)}
                 sx={{
                   borderRadius: 2,
                   boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  cursor: 'pointer',
                   '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
                   transition: 'box-shadow 0.2s',
                 }}
@@ -965,7 +1144,7 @@ const DailyReportsPage: React.FC = () => {
                         .slice(0, 2)
                         .toUpperCase() || '?'}
                     </Avatar>
-                    <Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                         {report.user?.fullName || 'Necunoscut'}
                       </Typography>
@@ -973,6 +1152,7 @@ const DailyReportsPage: React.FC = () => {
                         {report.user?.department?.name || ''}
                       </Typography>
                     </Box>
+                    <OpenInNewIcon sx={{ fontSize: 16, color: 'text.disabled', flexShrink: 0 }} />
                   </Box>
 
                   {/* Content */}
@@ -1091,6 +1271,7 @@ const DailyReportsPage: React.FC = () => {
           </Typography>
         </Box>
         {renderAllReports()}
+        {renderReportDetailDialog()}
       </Box>
     );
   }
@@ -1124,6 +1305,7 @@ const DailyReportsPage: React.FC = () => {
 
       {activeTab === 0 && renderMyReport()}
       {activeTab === 1 && canViewAll && renderAllReports()}
+      {renderReportDetailDialog()}
     </Box>
   );
 };
