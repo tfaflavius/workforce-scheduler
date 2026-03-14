@@ -503,7 +503,7 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
         </Alert>
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
-          <Table size={isMobile ? 'small' : 'medium'}>
+          <Table size={isMobile ? 'small' : 'medium'} stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#6366f1', 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Tip</TableCell>

@@ -497,7 +497,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
         </Alert>
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
-          <Table size={isMobile ? 'small' : 'medium'}>
+          <Table size={isMobile ? 'small' : 'medium'} stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#059669', 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Tip</TableCell>

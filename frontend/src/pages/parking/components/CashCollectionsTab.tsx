@@ -239,7 +239,7 @@ const CashCollectionsTab: React.FC = () => {
         },
       }}
     >
-      <Table size="small">
+      <Table size="small" stickyHeader>
         <TableHead>
           <TableRow>
             <TableCell>Parcare</TableCell>

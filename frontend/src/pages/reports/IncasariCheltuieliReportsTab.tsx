@@ -469,7 +469,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
         </Alert>
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
-          <Table size="small" sx={{ minWidth: { xs: 700, sm: 900 } }}>
+          <Table size="small" stickyHeader sx={{ minWidth: { xs: 700, sm: 900 } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha(theme.palette.success.dark, 0.08) }}>
                 <TableCell sx={{ fontWeight: 600, minWidth: { xs: 120, sm: 150 }, position: 'sticky', left: 0, bgcolor: alpha(theme.palette.success.dark, 0.08), zIndex: 1, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>

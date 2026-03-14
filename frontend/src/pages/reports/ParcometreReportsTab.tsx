@@ -466,7 +466,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
         </Alert>
       ) : (
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
-          <Table size={isMobile ? 'small' : 'medium'}>
+          <Table size={isMobile ? 'small' : 'medium'} stickyHeader>
             <TableHead>
               <TableRow sx={{ bgcolor: alpha('#2563eb', 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Nume</TableCell>

@@ -580,7 +580,7 @@ const AdminShiftSwapsPage = () => {
             ) : (
               // Desktop view - table
               <TableContainer sx={{ overflowX: 'auto' }}>
-                <Table size="small">
+                <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
                       <TableCell>Data</TableCell>

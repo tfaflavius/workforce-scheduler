@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -232,9 +232,10 @@ const UsersPage: React.FC = () => {
   const isMasterAdmin = currentUser?.role === 'MASTER_ADMIN';
   const isAdminOrAbove = currentUser?.role === 'ADMIN' || isMasterAdmin;
 
-  const paginatedUsers = users
-    ? users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-    : [];
+  const paginatedUsers = useMemo(
+    () => users ? users.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : [],
+    [users, page, rowsPerPage],
+  );
 
   return (
     <Box sx={{ width: '100%', overflow: 'hidden', p: { xs: 0, sm: 1 } }}>

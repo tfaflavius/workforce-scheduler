@@ -648,7 +648,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                   </Stack>
                 ) : (
                 <Box sx={{ overflowX: 'auto', mb: 3 }}>
-                  <Table size="small">
+                  <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 600 }}>Nume</TableCell>
@@ -968,7 +968,7 @@ const AdminTimeTrackingPage: React.FC = () => {
                   </Stack>
                 ) : (
                 <Box sx={{ overflowX: 'auto', mb: 3 }}>
-                  <Table size="small">
+                  <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>
                         <TableCell sx={{ fontWeight: 600, width: 40 }} />

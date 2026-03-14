@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, lazy, Suspense } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -53,16 +53,17 @@ import {
   Fingerprint as PontajIcon,
   Tune as TuneIcon,
 } from '@mui/icons-material';
-import ParkingReportsTab from './ParkingReportsTab';
-import HandicapReportsTab from './HandicapReportsTab';
-import DomiciliuReportsTab from './DomiciliuReportsTab';
-import ParkingStatsReportsTab from './ParkingStatsReportsTab';
-import PvReportsTab from './PvReportsTab';
-import ParcometreReportsTab from './ParcometreReportsTab';
-import AchizitiiReportsTab from './AchizitiiReportsTab';
-import ControlSesizariReportsTab from './ControlSesizariReportsTab';
-import IncasariCheltuieliReportsTab from './IncasariCheltuieliReportsTab';
-import PontajReportsTab from './PontajReportsTab';
+// Lazy-loaded report tabs for better code splitting
+const ParkingReportsTab = lazy(() => import('./ParkingReportsTab'));
+const HandicapReportsTab = lazy(() => import('./HandicapReportsTab'));
+const DomiciliuReportsTab = lazy(() => import('./DomiciliuReportsTab'));
+const ParkingStatsReportsTab = lazy(() => import('./ParkingStatsReportsTab'));
+const PvReportsTab = lazy(() => import('./PvReportsTab'));
+const ParcometreReportsTab = lazy(() => import('./ParcometreReportsTab'));
+const AchizitiiReportsTab = lazy(() => import('./AchizitiiReportsTab'));
+const ControlSesizariReportsTab = lazy(() => import('./ControlSesizariReportsTab'));
+const IncasariCheltuieliReportsTab = lazy(() => import('./IncasariCheltuieliReportsTab'));
+const PontajReportsTab = lazy(() => import('./PontajReportsTab'));
 import { GradientHeader, StatCard } from '../../components/common';
 import { useAppSelector } from '../../store/hooks';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
@@ -2578,81 +2579,83 @@ const ReportsPage: React.FC = () => {
               {!isLoading && tabValue === 1 && renderLeavesTab()}
               {!isLoading && tabValue === 2 && renderSwapsTab()}
               {!isLoading && tabValue === 3 && renderTotalTab()}
-              {tabValue === 4 && (
-                <ParkingReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 5 && (
-                <HandicapReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 6 && (
-                <DomiciliuReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 7 && (
-                <PvReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 8 && (
-                <ParcometreReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 9 && (
-                <AchizitiiReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 10 && (
-                <ControlSesizariReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 11 && (
-                <IncasariCheltuieliReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
-              {tabValue === 12 && (
-                <ParkingStatsReportsTab />
-              )}
-              {isAdminOrManager && tabValue === 13 && (
-                <PontajReportsTab
-                  startDate={parkingStartDate}
-                  endDate={parkingEndDate}
-                  onStartDateChange={(date) => date && setParkingStartDate(date)}
-                  onEndDateChange={(date) => date && setParkingEndDate(date)}
-                />
-              )}
+              <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>}>
+                {tabValue === 4 && (
+                  <ParkingReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 5 && (
+                  <HandicapReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 6 && (
+                  <DomiciliuReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 7 && (
+                  <PvReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 8 && (
+                  <ParcometreReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 9 && (
+                  <AchizitiiReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 10 && (
+                  <ControlSesizariReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 11 && (
+                  <IncasariCheltuieliReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+                {tabValue === 12 && (
+                  <ParkingStatsReportsTab />
+                )}
+                {isAdminOrManager && tabValue === 13 && (
+                  <PontajReportsTab
+                    startDate={parkingStartDate}
+                    endDate={parkingEndDate}
+                    onStartDateChange={(date) => date && setParkingStartDate(date)}
+                    onEndDateChange={(date) => date && setParkingEndDate(date)}
+                  />
+                )}
+              </Suspense>
             </Stack>
           </CardContent>
         </Card>

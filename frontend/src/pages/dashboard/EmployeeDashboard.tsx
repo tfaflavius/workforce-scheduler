@@ -62,6 +62,7 @@ import {
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 import { StatCard } from '../../components/common/StatCard';
+import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import {
   DirectionsCar as CarIcon,
@@ -658,11 +659,7 @@ const EmployeeDashboard = () => {
   const isSimpleDepartment = SIMPLE_DEPARTMENTS.includes(user?.department?.name || '');
 
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress size={48} />
-      </Box>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Dashboard simplu pentru departamentele noi
