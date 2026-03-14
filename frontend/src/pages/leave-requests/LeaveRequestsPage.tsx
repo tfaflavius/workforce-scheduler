@@ -447,6 +447,7 @@ export const LeaveRequestsPage = () => {
           icon={<EventBusyIcon sx={{ fontSize: 64, color: '#10b981' }} />}
           title="Nicio cerere de concediu"
           description="Bucura-te de zilele tale libere! Apasa butonul de mai sus pentru a solicita concediu."
+          illustration="noSchedule"
           actionLabel="Solicita Concediu"
           onAction={handleOpenDialog}
         />

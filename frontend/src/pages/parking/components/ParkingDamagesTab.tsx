@@ -183,6 +183,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const renderDamageCard = (damage: ParkingDamage, index: number) => (
     <Grow in={true} timeout={300 + index * 50} key={damage.id}>
       <Card
+        onClick={() => handleShowDetails(damage)}
         sx={{
           mb: 2,
           borderLeft: damage.isUrgent ? '4px solid' : 'none',
@@ -261,7 +262,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
               </Alert>
             )}
 
-            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }} onClick={(e) => e.stopPropagation()}>
               <Button
                 size="small"
                 variant="outlined"

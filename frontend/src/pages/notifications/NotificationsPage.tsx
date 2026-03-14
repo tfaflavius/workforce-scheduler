@@ -26,6 +26,7 @@ import {
   OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { EmptyState } from '../../components/common';
 import {
   useGetNotificationsQuery,
   useMarkAsReadMutation,
@@ -181,14 +182,12 @@ const NotificationsPage: React.FC = () => {
 
       {/* Notifications List */}
       {notifications.length === 0 ? (
-        <Fade in={true} timeout={500}>
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <NotificationsIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary">
-              {filter === 'unread' ? 'Nu ai notificari necitite' : 'Nu ai notificari'}
-            </Typography>
-          </Box>
-        </Fade>
+        <EmptyState
+          icon={<NotificationsIcon />}
+          title={filter === 'unread' ? 'Nu ai notificari necitite' : 'Nu ai notificari'}
+          description={filter === 'unread' ? 'Toate notificarile tale au fost citite.' : 'Momentan nu ai nicio notificare.'}
+          illustration="noNotifications"
+        />
       ) : (
         Object.entries(grouped).map(([dateLabel, notifs], groupIdx) => (
           <Fade key={dateLabel} in={true} timeout={500 + groupIdx * 100}>

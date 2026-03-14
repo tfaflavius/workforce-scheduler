@@ -431,6 +431,7 @@ export const AdminLeaveRequestsPage = () => {
           icon={<EventBusyIcon sx={{ fontSize: 64, color: tabValue === 0 ? '#f59e0b' : tabValue === 1 ? '#10b981' : '#ef4444' }} />}
           title={tabValue === 0 ? 'Nicio cerere in asteptare' : tabValue === 1 ? 'Nicio cerere aprobata' : 'Nicio cerere respinsa'}
           description={tabValue === 0 ? 'Nu ai cereri de concediu de procesat momentan.' : 'Nu exista cereri in aceasta categorie.'}
+          illustration="noItems"
         />
       ) : (
         <Stack spacing={2}>

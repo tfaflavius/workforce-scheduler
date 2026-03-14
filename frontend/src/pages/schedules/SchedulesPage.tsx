@@ -550,6 +550,7 @@ const SchedulesPage: React.FC = () => {
                   icon={<EventBusyIcon />}
                   title="Nu s-au gasit angajati"
                   description="Incearca sa schimbi filtrele sau sa resetezi cautarea"
+                  illustration="noResults"
                   actionLabel={hasActiveFilters ? 'Reseteaza Filtrele' : undefined}
                   onAction={hasActiveFilters ? handleResetFilters : undefined}
                 />

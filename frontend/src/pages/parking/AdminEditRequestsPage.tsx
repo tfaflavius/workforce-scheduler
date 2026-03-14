@@ -76,15 +76,12 @@ const AdminEditRequestsPage: React.FC = () => {
   // Auto-open edit request from notification deep link
   useEffect(() => {
     const openEditRequestId = (location.state as any)?.openEditRequestId;
-    if (openEditRequestId && !hasHandledNotificationRef.current) {
-      // Reset filter to ALL so we can find the request regardless of status
-      setStatusFilter('ALL');
-    }
-  }, [location.state]);
+    if (!openEditRequestId || hasHandledNotificationRef.current) return;
 
-  useEffect(() => {
-    const openEditRequestId = (location.state as any)?.openEditRequestId;
-    if (openEditRequestId && !hasHandledNotificationRef.current && !isLoading && requests.length > 0) {
+    // Reset filter to ALL so we can find the request regardless of status
+    setStatusFilter('ALL');
+
+    if (!isLoading && requests.length > 0) {
       hasHandledNotificationRef.current = true;
       const target = requests.find((r) => r.id === openEditRequestId);
       if (target) {

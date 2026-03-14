@@ -122,7 +122,7 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     case 'SHIFT_SWAP_RESPONSE':
     case 'SHIFT_SWAP_ACCEPTED':
     case 'SHIFT_SWAP_REJECTED':
-      return { path: '/shift-swaps', state: { highlightSwapId: data?.swapRequestId } };
+      return { path: isAdmin ? '/admin/shift-swaps' : '/shift-swaps', state: { highlightSwapId: data?.swapRequestId } };
     case 'SHIFT_SWAP_APPROVED':
       return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
 

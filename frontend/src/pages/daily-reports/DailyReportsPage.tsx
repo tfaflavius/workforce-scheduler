@@ -38,6 +38,7 @@ import {
   OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import FriendlyDialog from '../../components/common/FriendlyDialog';
+import { EmptyState } from '../../components/common';
 import type { DailyReport } from '../../types/daily-report.types';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store/store';
@@ -633,10 +634,12 @@ const DailyReportsPage: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : !myReports || myReports.length === 0 ? (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
-            <ReportIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-            <Typography color="text.secondary">Nu exista rapoarte anterioare.</Typography>
-          </Paper>
+          <EmptyState
+            icon={<ReportIcon />}
+            title="Nu exista rapoarte anterioare"
+            description="Rapoartele tale zilnice vor aparea aici dupa ce le trimiti."
+            illustration="noReports"
+          />
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {myReports
@@ -1117,10 +1120,12 @@ const DailyReportsPage: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : !allReports || allReports.length === 0 ? (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
-            <ReportIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-            <Typography color="text.secondary">Nu exista rapoarte pentru aceasta zi.</Typography>
-          </Paper>
+          <EmptyState
+            icon={<ReportIcon />}
+            title="Nu exista rapoarte pentru aceasta zi"
+            description="Angajatii nu au trimis inca rapoarte zilnice."
+            illustration="noReports"
+          />
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {allReports.map((report) => (

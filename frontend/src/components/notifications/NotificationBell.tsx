@@ -81,15 +81,17 @@ export const NotificationBell: React.FC = () => {
 
   return (
     <>
-      <IconButton
-        color="inherit"
-        onClick={handleOpen}
-        aria-label={`${unreadCount} notificari necitite`}
-      >
-        <Badge badgeContent={unreadCount} color="error" max={99}>
-          {unreadCount > 0 ? <NotificationsIcon /> : <NotificationsNoneIcon />}
-        </Badge>
-      </IconButton>
+      <Tooltip title={unreadCount > 0 ? `${unreadCount} notificari necitite` : 'Notificari'}>
+        <IconButton
+          color="inherit"
+          onClick={handleOpen}
+          aria-label={`${unreadCount} notificari necitite`}
+        >
+          <Badge badgeContent={unreadCount} color="error" max={99}>
+            {unreadCount > 0 ? <NotificationsIcon /> : <NotificationsNoneIcon />}
+          </Badge>
+        </IconButton>
+      </Tooltip>
 
       <Menu
         anchorEl={anchorEl}
@@ -133,10 +135,27 @@ export const NotificationBell: React.FC = () => {
             <CircularProgress size={24} />
           </Box>
         ) : notifications.length === 0 ? (
-          <Box sx={{ py: 4, textAlign: 'center' }}>
-            <NotificationsNoneIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-            <Typography variant="body2" color="text.secondary">
-              Nu ai notificari
+          <Box sx={{ py: 4, px: 2, textAlign: 'center' }}>
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 1.5,
+              }}
+            >
+              <NotificationsNoneIcon sx={{ fontSize: 32, color: 'primary.main', opacity: 0.6 }} />
+            </Box>
+            <Typography variant="body2" fontWeight={600} color="text.secondary" gutterBottom>
+              Totul e in ordine!
+            </Typography>
+            <Typography variant="caption" color="text.disabled">
+              Nu ai notificari noi momentan.
             </Typography>
           </Box>
         ) : (

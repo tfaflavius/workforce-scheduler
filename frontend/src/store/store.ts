@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
 import authReducer from './slices/auth.slice';
 import { authApi } from './api/auth.api';
 import { schedulesApi } from './api/schedulesApi';
@@ -78,6 +79,10 @@ export const store = configureStore({
       tasksApi.middleware,
     ),
 });
+
+// Enable refetchOnFocus and refetchOnReconnect for all RTK Query APIs.
+// When the user returns to the browser tab, stale data is automatically refreshed.
+setupListeners(store.dispatch);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

@@ -22,7 +22,6 @@ import {
   Chip,
   alpha,
   Fade,
-  Slide,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -900,22 +899,24 @@ export const MainLayout = () => {
             px: { xs: 1.5, sm: 2, md: 3 },
           }}
         >
-          <IconButton
-            color="inherit"
-            aria-label="Deschide meniul"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{
-              mr: { xs: 1, sm: 2 },
-              display: { lg: 'none' },
-              bgcolor: alpha(theme.palette.primary.main, 0.08),
-              '&:hover': {
-                bgcolor: alpha(theme.palette.primary.main, 0.15),
-              },
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
+          <Tooltip title="Deschide meniul">
+            <IconButton
+              color="inherit"
+              aria-label="Deschide meniul"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{
+                mr: { xs: 1, sm: 2 },
+                display: { lg: 'none' },
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Tooltip>
 
           <Typography
             variant="h6"
@@ -1060,11 +1061,11 @@ export const MainLayout = () => {
           },
         }}
       >
-        <Slide direction="up" in={true} mountOnEnter unmountOnExit>
+        <Fade in={true} timeout={300} key={location.pathname}>
           <Box>
             <Outlet />
           </Box>
-        </Slide>
+        </Fade>
       </Box>
     </Box>
   );
