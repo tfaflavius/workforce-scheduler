@@ -19,20 +19,8 @@ import {
 import {
   Notifications as NotificationsIcon,
   NotificationsNone as NotificationsNoneIcon,
-  CheckCircle as ApprovedIcon,
-  Cancel as RejectedIcon,
-  Schedule as ScheduleIcon,
-  Update as UpdateIcon,
-  AccessTime as ReminderIcon,
-  SwapHoriz as SwapIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
   DoneAll as DoneAllIcon,
-  BeachAccess as LeaveIcon,
-  LocalParking as ParkingIcon,
-  Edit as EditIcon,
   OpenInNew as OpenInNewIcon,
-  Description as DailyReportIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -41,153 +29,9 @@ import {
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
   type Notification,
-  type NotificationType,
 } from '../../store/api/notifications.api';
 import { useAppSelector } from '../../store/hooks';
-import { isAdminOrAbove } from '../../utils/roleHelpers';
-
-const getNotificationIcon = (type: NotificationType) => {
-  switch (type) {
-    case 'SCHEDULE_APPROVED':
-      return <ApprovedIcon color="success" fontSize="small" />;
-    case 'SCHEDULE_REJECTED':
-      return <RejectedIcon color="error" fontSize="small" />;
-    case 'SCHEDULE_CREATED':
-      return <ScheduleIcon color="primary" fontSize="small" />;
-    case 'SCHEDULE_UPDATED':
-      return <UpdateIcon color="info" fontSize="small" />;
-    case 'SHIFT_REMINDER':
-      return <ReminderIcon color="warning" fontSize="small" />;
-    case 'SHIFT_SWAP_REQUEST':
-    case 'SHIFT_SWAP_RESPONSE':
-    case 'SHIFT_SWAP_ACCEPTED':
-    case 'SHIFT_SWAP_APPROVED':
-    case 'SHIFT_SWAP_REJECTED':
-      return <SwapIcon color="secondary" fontSize="small" />;
-    case 'EMPLOYEE_ABSENT':
-      return <WarningIcon color="error" fontSize="small" />;
-    case 'LEAVE_REQUEST_CREATED':
-      return <LeaveIcon color="info" fontSize="small" />;
-    case 'LEAVE_REQUEST_APPROVED':
-      return <LeaveIcon color="success" fontSize="small" />;
-    case 'LEAVE_REQUEST_REJECTED':
-      return <LeaveIcon color="error" fontSize="small" />;
-    case 'LEAVE_OVERLAP_WARNING':
-      return <WarningIcon color="warning" fontSize="small" />;
-    case 'PARKING_ISSUE_ASSIGNED':
-    case 'PARKING_ISSUE_RESOLVED':
-      return <ParkingIcon color="primary" fontSize="small" />;
-    case 'EDIT_REQUEST_CREATED':
-      return <EditIcon color="warning" fontSize="small" />;
-    case 'EDIT_REQUEST_APPROVED':
-      return <EditIcon color="success" fontSize="small" />;
-    case 'EDIT_REQUEST_REJECTED':
-      return <EditIcon color="error" fontSize="small" />;
-    case 'DAILY_REPORT_SUBMITTED':
-      return <DailyReportIcon color="info" fontSize="small" />;
-    case 'DAILY_REPORT_COMMENTED':
-      return <DailyReportIcon color="success" fontSize="small" />;
-    case 'DAILY_REPORT_MISSING':
-      return <DailyReportIcon color="error" fontSize="small" />;
-    default:
-      return <InfoIcon color="action" fontSize="small" />;
-  }
-};
-
-// Get navigation path based on notification type, data, and user role
-const getNotificationPath = (notification: Notification, userRole?: string): { path: string; state?: any } | null => {
-  const { type, data } = notification;
-  const isAdmin = isAdminOrAbove(userRole);
-  const isManager = userRole === 'MANAGER';
-  const isAdminOrManager = isAdmin || isManager;
-
-  switch (type) {
-    // Schedule notifications
-    case 'SCHEDULE_CREATED':
-    case 'SCHEDULE_UPDATED':
-      if (data?.scheduleId) {
-        return { path: `/schedules/${data.scheduleId}` };
-      }
-      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
-    case 'SCHEDULE_APPROVED':
-    case 'SCHEDULE_REJECTED':
-      if (data?.scheduleId) {
-        return { path: `/schedules/${data.scheduleId}` };
-      }
-      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
-
-    // Shift swap notifications
-    case 'SHIFT_SWAP_REQUEST':
-      return { path: isAdmin ? '/admin/shift-swaps' : '/shift-swaps', state: { highlightSwapId: data?.swapRequestId } };
-    case 'SHIFT_SWAP_RESPONSE':
-    case 'SHIFT_SWAP_ACCEPTED':
-    case 'SHIFT_SWAP_REJECTED':
-      return { path: '/shift-swaps', state: { highlightSwapId: data?.swapRequestId } };
-    case 'SHIFT_SWAP_APPROVED':
-      return { path: isAdminOrManager ? '/schedules' : '/my-schedule' };
-
-    // Leave request notifications
-    case 'LEAVE_REQUEST_CREATED':
-    case 'LEAVE_OVERLAP_WARNING':
-      return { path: isAdmin ? '/admin/leave-requests' : '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
-    case 'LEAVE_REQUEST_APPROVED':
-    case 'LEAVE_REQUEST_REJECTED':
-      return { path: '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
-
-    // Parking notifications - navigate to specific item
-    case 'PARKING_ISSUE_ASSIGNED':
-    case 'PARKING_ISSUE_RESOLVED':
-      if (data?.issueId) {
-        return { path: '/parking', state: { openIssueId: data.issueId } };
-      }
-      if (data?.damageId) {
-        return { path: '/parking', state: { openDamageId: data.damageId, tab: 1 } };
-      }
-      if (data?.handicapRequestId) {
-        return { path: '/parking/handicap', state: { openRequestId: data.handicapRequestId } };
-      }
-      if (data?.domiciliuRequestId) {
-        return { path: '/parking/domiciliu', state: { openRequestId: data.domiciliuRequestId } };
-      }
-      if (data?.handicapLegitimationId) {
-        return { path: '/parking/handicap', state: { openLegitimationId: data.handicapLegitimationId, tab: 3 } };
-      }
-      return { path: '/parking' };
-
-    // Edit request notifications
-    case 'EDIT_REQUEST_CREATED':
-      return { path: '/admin/edit-requests' };
-    case 'EDIT_REQUEST_APPROVED':
-    case 'EDIT_REQUEST_REJECTED':
-      return { path: '/parking' };
-
-    // Shift reminder
-    case 'SHIFT_REMINDER':
-      return { path: '/my-schedule' };
-
-    // Employee absent
-    case 'EMPLOYEE_ABSENT':
-      return { path: '/schedules' };
-
-    // Daily report notifications
-    case 'DAILY_REPORT_SUBMITTED':
-    case 'DAILY_REPORT_COMMENTED':
-    case 'DAILY_REPORT_MISSING':
-      return { path: '/daily-reports' };
-
-    default:
-      // PV Display notifications (use GENERAL type with pvSessionId/pvDayId in data)
-      if (data?.pvSessionId || data?.pvDayId) {
-        return { path: '/procese-verbale' };
-      }
-      return null;
-  }
-};
-
-// Check if notification is navigable
-const isNotificationNavigable = (notification: Notification, userRole?: string): boolean => {
-  return getNotificationPath(notification, userRole) !== null;
-};
+import { getNotificationIcon, getNotificationPath, isNotificationNavigable } from '../../utils/notificationHelpers';
 
 export const NotificationBell: React.FC = () => {
   const theme = useTheme();
@@ -329,7 +173,7 @@ export const NotificationBell: React.FC = () => {
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 36 }}>
-                    {getNotificationIcon(notification.type)}
+                    {getNotificationIcon(notification.type, 'small')}
                   </ListItemIcon>
                   <ListItemText
                     primary={

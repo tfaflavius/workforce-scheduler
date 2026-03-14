@@ -84,9 +84,9 @@ export class NotificationsService {
     const saved = await this.notificationRepository.save(notification);
     this.logger.log(`Created notification for user ${createNotificationDto.userId}: ${createNotificationDto.title}`);
 
-    // Auto-send push notification (unless explicitly skipped)
+    // Auto-send push notification (unless explicitly skipped) — pass saved ID for deep linking
     if (!createNotificationDto.skipPush) {
-      this.sendPushForNotification(createNotificationDto).catch(err => {
+      this.sendPushForNotification(createNotificationDto, saved.id).catch(err => {
         this.logger.warn(`Failed to auto-send push: ${err?.message}`);
       });
     }
@@ -140,14 +140,22 @@ export class NotificationsService {
         this.logger.log(`Created ${saved.length} notifications`);
       }
 
-      // Auto-send push notifications (fire-and-forget)
+      // Auto-send push notifications (fire-and-forget) — map saved IDs for deep linking
       if (pushCandidates.length > 0) {
+        // Build map from composite key to saved notification ID
+        const savedMap = new Map<string, string>();
+        for (const s of saved) {
+          savedMap.set(`${s.userId}:${s.type}:${s.title}`, s.id);
+        }
+
         Promise.all(
-          pushCandidates.map(dto =>
-            this.sendPushForNotification(dto).catch(err => {
+          pushCandidates.map(dto => {
+            const key = `${dto.userId}:${dto.type}:${dto.title}`;
+            const savedId = savedMap.get(key);
+            return this.sendPushForNotification(dto, savedId).catch(err => {
               this.logger.warn(`Failed to auto-send push: ${err?.message}`);
-            }),
-          ),
+            });
+          }),
         ).catch(() => {});
       }
 
@@ -159,15 +167,23 @@ export class NotificationsService {
       const saved = await this.notificationRepository.save(entities);
       this.logger.log(`Created ${saved.length} notifications`);
 
+      // Build map from composite key to saved notification ID
+      const savedMap = new Map<string, string>();
+      for (const s of saved) {
+        savedMap.set(`${s.userId}:${s.type}:${s.title}`, s.id);
+      }
+
       // Still try push for non-skipped
       const pushCandidates = notifications.filter(dto => !dto.skipPush);
       if (pushCandidates.length > 0) {
         Promise.all(
-          pushCandidates.map(dto =>
-            this.sendPushForNotification(dto).catch(err => {
+          pushCandidates.map(dto => {
+            const key = `${dto.userId}:${dto.type}:${dto.title}`;
+            const savedId = savedMap.get(key);
+            return this.sendPushForNotification(dto, savedId).catch(err => {
               this.logger.warn(`Failed to auto-send push: ${err?.message}`);
-            }),
-          ),
+            });
+          }),
         ).catch(() => {});
       }
 
@@ -189,6 +205,16 @@ export class NotificationsService {
     query.take(options?.limit ?? 200);
 
     return query.getMany();
+  }
+
+  async findOneById(id: string, userId: string): Promise<Notification> {
+    const notification = await this.notificationRepository.findOne({
+      where: { id, userId },
+    });
+    if (!notification) {
+      throw new NotFoundException(`Notificarea ${id} nu a fost gasita`);
+    }
+    return notification;
   }
 
   async getUnreadCount(userId: string): Promise<number> {
@@ -313,8 +339,12 @@ export class NotificationsService {
 
   // ============== PUSH NOTIFICATION HELPERS ==============
 
-  private async sendPushForNotification(dto: CreateNotificationDto): Promise<void> {
-    const url = NOTIFICATION_URL_MAP[dto.type] || '/notifications';
+  private async sendPushForNotification(dto: CreateNotificationDto, notificationId?: string): Promise<void> {
+    // If we have a saved notification ID, use the redirect page for deep linking
+    // Otherwise fall back to generic page URL
+    const url = notificationId
+      ? `/notification-redirect/${notificationId}`
+      : (NOTIFICATION_URL_MAP[dto.type] || '/notifications');
     await this.pushNotificationService.sendToUser(
       dto.userId,
       dto.title,

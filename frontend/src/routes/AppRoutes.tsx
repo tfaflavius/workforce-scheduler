@@ -45,6 +45,7 @@ const IncasariCheltuieliPage = lazy(() => import('../pages/departments/IncasariC
 const ControlSesizariPage = lazy(() => import('../pages/parking/ControlSesizariPage'));
 const PermissionsPage = lazy(() => import('../pages/permissions/PermissionsPage'));
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'));
+const NotificationRedirectPage = lazy(() => import('../pages/notifications/NotificationRedirectPage'));
 const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
 const PageLoader = () => (
@@ -199,6 +200,7 @@ export const AppRoutes = () => {
 
         {/* Notifications - all authenticated users */}
         <Route path="/notifications" element={<SafePage><NotificationsPage /></SafePage>} />
+        <Route path="/notification-redirect/:id" element={<SafePage><NotificationRedirectPage /></SafePage>} />
 
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<SafePage><ParkingPage /></SafePage>} />

@@ -4,7 +4,7 @@
 // API URL for backend communication
 const API_BASE = self.location.origin.includes('localhost')
   ? 'http://localhost:3000/api'
-  : 'https://workforce-scheduler.onrender.com/api';
+  : 'https://workforce-scheduler-mzgd.onrender.com/api';
 
 // Background GPS capture - triggered by silent push from backend
 async function captureGPSInBackground(pushData) {

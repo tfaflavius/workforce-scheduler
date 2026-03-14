@@ -19,23 +19,13 @@ import {
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
-  CheckCircle as ApprovedIcon,
-  Cancel as RejectedIcon,
-  Schedule as ScheduleIcon,
-  Update as UpdateIcon,
-  AccessTime as ReminderIcon,
-  SwapHoriz as SwapIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
   DoneAll as DoneAllIcon,
-  BeachAccess as LeaveIcon,
-  LocalParking as ParkingIcon,
-  Edit as EditIcon,
-  Description as DailyReportIcon,
   Delete as DeleteIcon,
   DeleteSweep as DeleteSweepIcon,
   FilterList as FilterIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import {
   useGetNotificationsQuery,
   useMarkAsReadMutation,
@@ -45,36 +35,9 @@ import {
   type Notification,
   type NotificationType,
 } from '../../store/api/notifications.api';
+import { useAppSelector } from '../../store/hooks';
 import { GradientHeader } from '../../components/common/GradientHeader';
-
-const getNotificationIcon = (type: NotificationType) => {
-  switch (type) {
-    case 'SCHEDULE_APPROVED': return <ApprovedIcon color="success" />;
-    case 'SCHEDULE_REJECTED': return <RejectedIcon color="error" />;
-    case 'SCHEDULE_CREATED': return <ScheduleIcon color="primary" />;
-    case 'SCHEDULE_UPDATED': return <UpdateIcon color="info" />;
-    case 'SHIFT_REMINDER': return <ReminderIcon color="warning" />;
-    case 'SHIFT_SWAP_REQUEST':
-    case 'SHIFT_SWAP_RESPONSE':
-    case 'SHIFT_SWAP_ACCEPTED':
-    case 'SHIFT_SWAP_APPROVED':
-    case 'SHIFT_SWAP_REJECTED': return <SwapIcon color="secondary" />;
-    case 'EMPLOYEE_ABSENT': return <WarningIcon color="error" />;
-    case 'LEAVE_REQUEST_CREATED': return <LeaveIcon color="info" />;
-    case 'LEAVE_REQUEST_APPROVED': return <LeaveIcon color="success" />;
-    case 'LEAVE_REQUEST_REJECTED': return <LeaveIcon color="error" />;
-    case 'LEAVE_OVERLAP_WARNING': return <WarningIcon color="warning" />;
-    case 'PARKING_ISSUE_ASSIGNED':
-    case 'PARKING_ISSUE_RESOLVED': return <ParkingIcon color="primary" />;
-    case 'EDIT_REQUEST_CREATED': return <EditIcon color="warning" />;
-    case 'EDIT_REQUEST_APPROVED': return <EditIcon color="success" />;
-    case 'EDIT_REQUEST_REJECTED': return <EditIcon color="error" />;
-    case 'DAILY_REPORT_SUBMITTED': return <DailyReportIcon color="info" />;
-    case 'DAILY_REPORT_COMMENTED': return <DailyReportIcon color="success" />;
-    case 'DAILY_REPORT_MISSING': return <DailyReportIcon color="error" />;
-    default: return <InfoIcon color="action" />;
-  }
-};
+import { getNotificationIcon, getNotificationPath, isNotificationNavigable } from '../../utils/notificationHelpers';
 
 const getCategoryFromType = (type: NotificationType): string => {
   if (type.startsWith('SCHEDULE')) return 'Programe';
@@ -88,6 +51,9 @@ const getCategoryFromType = (type: NotificationType): string => {
 
 const NotificationsPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.auth);
+  const userRole = user?.role;
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   const { data: notifications = [], isLoading } = useGetNotificationsQuery(
@@ -128,6 +94,12 @@ const NotificationsPage: React.FC = () => {
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.isRead) {
       await markAsRead(notification.id);
+    }
+
+    // Navigate to the relevant page based on notification type and user role
+    const navInfo = getNotificationPath(notification, userRole);
+    if (navInfo) {
+      navigate(navInfo.path, { state: navInfo.state });
     }
   };
 
@@ -237,6 +209,7 @@ const NotificationsPage: React.FC = () => {
               <Stack spacing={1}>
                 {notifs.map((notif) => {
                   const category = getCategoryFromType(notif.type);
+                  const navigable = isNotificationNavigable(notif, userRole);
                   return (
                     <Card
                       key={notif.id}
@@ -249,13 +222,13 @@ const NotificationsPage: React.FC = () => {
                         }
                       }}
                       sx={{
-                        cursor: 'pointer',
+                        cursor: navigable ? 'pointer' : 'default',
                         transition: 'all 0.2s ease',
                         bgcolor: notif.isRead ? 'background.paper' : alpha(theme.palette.primary.main, 0.04),
                         borderLeft: notif.isRead ? 'none' : `3px solid ${theme.palette.primary.main}`,
                         '&:hover': {
-                          boxShadow: theme.shadows[3],
-                          transform: 'translateX(2px)',
+                          boxShadow: navigable ? theme.shadows[3] : theme.shadows[1],
+                          transform: navigable ? 'translateX(2px)' : 'none',
                         },
                       }}
                       onClick={() => handleNotificationClick(notif)}
@@ -275,6 +248,9 @@ const NotificationsPage: React.FC = () => {
                               >
                                 {notif.title}
                               </Typography>
+                              {navigable && (
+                                <OpenInNewIcon sx={{ fontSize: 14, color: 'text.disabled', flexShrink: 0 }} />
+                              )}
                               <Chip
                                 label={category}
                                 size="small"
