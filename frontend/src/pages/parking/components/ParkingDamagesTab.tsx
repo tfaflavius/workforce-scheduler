@@ -82,6 +82,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const [statusFilter, setStatusFilter] = useState<'ALL' | ParkingDamageStatus>(initialOpenId ? 'ALL' : 'ACTIVE');
   const [parkingLotFilter, setParkingLotFilter] = useState<string>('');
   const [monthFilter, setMonthFilter] = useState<string>('');
+  const [equipmentFilter, setEquipmentFilter] = useState<string>('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
@@ -169,7 +170,14 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
 
   const urgentCount = damages.filter(d => d.isUrgent && d.status === 'ACTIVE').length;
 
-  // Apply client-side filters (parking lot + month)
+  // Unique equipment values for filter dropdown
+  const equipmentOptions = useMemo(() => {
+    const set = new Set<string>();
+    damages.forEach(d => { if (d.damagedEquipment) set.add(d.damagedEquipment); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'ro'));
+  }, [damages]);
+
+  // Apply client-side filters (parking lot + month + equipment)
   const filteredDamages = useMemo(() => {
     let filtered = damages;
     if (parkingLotFilter) {
@@ -182,8 +190,11 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
         return key === monthFilter;
       });
     }
+    if (equipmentFilter) {
+      filtered = filtered.filter(d => d.damagedEquipment === equipmentFilter);
+    }
     return filtered;
-  }, [damages, parkingLotFilter, monthFilter]);
+  }, [damages, parkingLotFilter, monthFilter, equipmentFilter]);
 
   // Group damages by month
   const MONTH_NAMES = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
@@ -587,6 +598,19 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
             ))}
           </Select>
         </FormControl>
+        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 180 } }}>
+          <InputLabel>Echipament</InputLabel>
+          <Select
+            value={equipmentFilter}
+            onChange={(e) => setEquipmentFilter(e.target.value)}
+            label="Echipament"
+          >
+            <MenuItem value="">Toate echipamentele</MenuItem>
+            {equipmentOptions.map((eq) => (
+              <MenuItem key={eq} value={eq}>{eq}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <TextField
           type="month"
           size="small"
@@ -596,11 +620,11 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
           InputLabelProps={{ shrink: true }}
           sx={{ minWidth: { xs: '100%', sm: 180 } }}
         />
-        {(parkingLotFilter || monthFilter) && (
+        {(parkingLotFilter || monthFilter || equipmentFilter) && (
           <Button
             size="small"
             variant="text"
-            onClick={() => { setParkingLotFilter(''); setMonthFilter(''); }}
+            onClick={() => { setParkingLotFilter(''); setMonthFilter(''); setEquipmentFilter(''); }}
             sx={{ whiteSpace: 'nowrap', alignSelf: { xs: 'flex-start', sm: 'center' } }}
           >
             Reseteaza filtre
@@ -614,7 +638,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
       ) : filteredDamages.length === 0 ? (
         <Fade in={true} timeout={600}>
           <Alert severity="info" sx={{ borderRadius: 2 }}>
-            {parkingLotFilter || monthFilter ? 'Nu exista prejudicii cu filtrele selectate.' : 'Nu exista prejudicii in aceasta categorie.'}
+            {parkingLotFilter || monthFilter || equipmentFilter ? 'Nu exista prejudicii cu filtrele selectate.' : 'Nu exista prejudicii in aceasta categorie.'}
           </Alert>
         </Fade>
       ) : (
