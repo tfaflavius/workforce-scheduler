@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import {
   Box,
   Paper,
@@ -414,4 +414,4 @@ const NotificationSettingsTab = () => {
   );
 };
 
-export default NotificationSettingsTab;
+export default memo(NotificationSettingsTab);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -76,9 +76,9 @@ const ProcesVerbalePage: React.FC = () => {
     }
   }, [openSessionId, isControl]);
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-  };
+  }, []);
 
   // Control vede: Marketplace + Zilele Mele
   // PVF vede: Sesiuni + Marketplace

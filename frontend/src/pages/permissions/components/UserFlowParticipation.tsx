@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import {
   Box,
   Paper,
@@ -203,4 +203,4 @@ const UserFlowParticipation = ({ user, onGrantAccess }: UserFlowParticipationPro
   );
 };
 
-export default UserFlowParticipation;
+export default memo(UserFlowParticipation);

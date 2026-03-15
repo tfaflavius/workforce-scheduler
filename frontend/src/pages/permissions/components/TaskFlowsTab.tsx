@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import {
   Box,
   Typography,
@@ -769,4 +769,4 @@ const TaskFlowsTab = () => {
   );
 };
 
-export default TaskFlowsTab;
+export default memo(TaskFlowsTab);

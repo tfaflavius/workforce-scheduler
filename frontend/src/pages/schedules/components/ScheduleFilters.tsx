@@ -250,4 +250,4 @@ const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
   );
 };
 
-export default ScheduleFilters;
+export default React.memo(ScheduleFilters);

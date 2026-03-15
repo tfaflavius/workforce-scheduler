@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import {
   Box,
   Paper,
@@ -351,4 +351,4 @@ const PermissionMatrixTab = () => {
   );
 };
 
-export default PermissionMatrixTab;
+export default memo(PermissionMatrixTab);

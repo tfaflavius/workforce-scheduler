@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   Box,
   Card,
@@ -163,4 +164,4 @@ const DepartmentFlowCard = ({ department, flows }: DepartmentFlowCardProps) => {
   );
 };
 
-export default DepartmentFlowCard;
+export default memo(DepartmentFlowCard);

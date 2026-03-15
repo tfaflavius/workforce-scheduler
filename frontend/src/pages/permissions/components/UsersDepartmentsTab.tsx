@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import {
   Box,
   Paper,
@@ -327,4 +327,4 @@ const UsersDepartmentsTab = () => {
   );
 };
 
-export default UsersDepartmentsTab;
+export default memo(UsersDepartmentsTab);

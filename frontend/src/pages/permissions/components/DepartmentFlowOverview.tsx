@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   Box,
   Typography,
@@ -39,4 +40,4 @@ const DepartmentFlowOverview = ({ departments, flows }: DepartmentFlowOverviewPr
   );
 };
 
-export default DepartmentFlowOverview;
+export default memo(DepartmentFlowOverview);

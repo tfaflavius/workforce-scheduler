@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import {
   Box,
   Typography,
@@ -473,4 +473,4 @@ const ContactFirmsTab = () => {
   );
 };
 
-export default ContactFirmsTab;
+export default memo(ContactFirmsTab);
