@@ -399,14 +399,93 @@ body {
   }
 }
 
-/* Touch-friendly scrollbar on mobile */
-@media (max-width: 768px) {
+/* Eliminate 300ms tap delay on touch devices */
+.MuiButton-root,
+.MuiIconButton-root,
+.MuiListItemButton-root,
+.MuiTab-root,
+.MuiChip-root,
+.MuiCardActionArea-root,
+.MuiFab-root {
+  touch-action: manipulation;
+}
+
+/* Smooth momentum scrolling on iOS for scroll containers */
+.MuiDrawer-paper,
+.MuiList-root {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Disable hover transforms on touch devices (prevents "sticky hover") */
+@media (hover: none) {
+  .MuiButton-root:hover,
+  .MuiIconButton-root:hover,
+  .MuiChip-root:hover,
+  .MuiFab-root:hover,
+  .MuiCard-root:hover {
+    transform: none !important;
+    box-shadow: inherit !important;
+  }
+}
+
+/* Better active/tap feedback on touch devices */
+@media (hover: none) {
+  .MuiButton-root:active {
+    transform: scale(0.97) !important;
+    transition: transform 0.1s ease !important;
+  }
+
+  .MuiIconButton-root:active {
+    transform: scale(0.9) !important;
+    transition: transform 0.1s ease !important;
+  }
+
+  .MuiCard-root:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s ease !important;
+  }
+
+  .MuiFab-root:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s ease !important;
+  }
+}
+
+/* Remove focus outlines on touch devices (only show on keyboard navigation) */
+@media (hover: none) and (pointer: coarse) {
+  *:focus-visible {
+    outline: none;
+  }
+}
+
+/* Hide scrollbar on touch devices — use native scroll */
+@media (hover: none) and (pointer: coarse) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+}
+
+/* Show thin scrollbar on desktop */
+@media (hover: hover) and (pointer: fine) {
   ::-webkit-scrollbar {
     width: 4px;
     height: 4px;
   }
+}
 
-  /* Table cells: smaller padding and text on mobile */
+/* Drawer safe area for notched phones in landscape */
+@supports (padding: env(safe-area-inset-left)) {
+  .MuiDrawer-paper {
+    padding-left: env(safe-area-inset-left);
+  }
+}
+
+/* Table cells: smaller padding and text on mobile */
+@media (max-width: 768px) {
   .MuiTableCell-root {
     padding: 6px 8px !important;
     font-size: 0.75rem !important;

@@ -181,12 +181,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 padding: '10px 20px',
                 fontSize: 'clamp(0.813rem, 1.5vw, 0.938rem)',
                 transition: 'all 0.2s ease-in-out',
+                willChange: 'transform',
                 '&:hover': {
                   transform: 'translateY(-1px)',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
                 },
                 '&:active': {
-                  transform: 'translateY(0)',
+                  transform: 'scale(0.98)',
                 },
               },
               contained: {
@@ -222,10 +223,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 boxShadow: mode === 'light'
                   ? '0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03)'
                   : '0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
-                transition: 'all 0.3s ease-in-out',
+                transition: 'all 0.2s ease-in-out',
                 // Hover lift only on interactive cards (with onClick or CardActionArea)
                 '&[role="button"], &:has(.MuiCardActionArea-root)': {
                   cursor: 'pointer',
+                  willChange: 'transform',
                   '&:hover': {
                     transform: 'translateY(-2px)',
                     boxShadow: mode === 'light'
@@ -295,7 +297,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiDialog: {
             styleOverrides: {
               paper: {
-                borderRadius: 20,
+                borderRadius: 16,
                 padding: '4px',
                 border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
                 boxShadow: mode === 'light'
@@ -360,6 +362,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 transition: 'all 0.2s ease',
+                willChange: 'transform',
                 '&:hover': {
                   transform: 'scale(1.1)',
                   backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)',
@@ -406,7 +409,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
-                transition: 'all 0.3s ease',
+                transition: 'all 0.2s ease',
+                willChange: 'transform',
                 '&:hover': {
                   transform: 'scale(1.05)',
                   boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
