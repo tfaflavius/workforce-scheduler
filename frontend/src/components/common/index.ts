@@ -48,8 +48,7 @@ export type { ConfirmDialogProps } from './ConfirmDialog';
 export { DashboardSkeleton } from './DashboardSkeleton';
 export { TableSkeleton } from './TableSkeleton';
 
-// Dashboard Charts
-export { StatusDistributionChart, WeeklyOverviewChart } from './DashboardCharts';
+// Dashboard Charts — lazy-loaded in AdminDashboard (not re-exported to avoid pulling Chart.js into main bundle)
 
 // Date Picker
 export { default as DatePickerField } from './DatePickerField';

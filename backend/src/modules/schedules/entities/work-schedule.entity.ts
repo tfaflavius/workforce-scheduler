@@ -16,6 +16,8 @@ import { ScheduleAssignment } from './schedule-assignment.entity';
 @Entity('work_schedules')
 @Index('IDX_work_schedules_year_month_status', ['year', 'month', 'status'])
 @Index('IDX_work_schedules_department_id', ['departmentId'])
+@Index('IDX_work_schedules_created_by', ['createdBy'])
+@Index('IDX_work_schedules_status', ['status'])
 export class WorkSchedule {
   @PrimaryGeneratedColumn('uuid')
   id: string;

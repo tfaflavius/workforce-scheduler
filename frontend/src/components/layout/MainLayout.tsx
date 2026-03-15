@@ -324,7 +324,7 @@ export const MainLayout = () => {
     },
   ];
 
-  const filteredMenuItems = menuItems.filter((item) => {
+  const filteredMenuItems = useMemo(() => menuItems.filter((item) => {
     if (!user) return false;
     // MASTER_ADMIN can see items marked for ADMIN (hierarchical)
     const roleMatches = item.roles.includes(user.role) ||
@@ -361,7 +361,7 @@ export const MainLayout = () => {
     }
 
     return true;
-  });
+  }), [user]);
 
   const getRoleColor = (role: UserRole) => {
     switch (role) {

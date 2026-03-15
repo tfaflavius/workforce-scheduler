@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatRONCompact } from '../../utils/formatters';
 import {
@@ -51,7 +51,13 @@ import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { StatCard } from '../../components/common/StatCard';
 import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
-import { StatusDistributionChart, WeeklyOverviewChart } from '../../components/common/DashboardCharts';
+// Lazy-load Chart.js (~100KB) — only admin/manager sees charts
+const StatusDistributionChart = React.lazy(() =>
+  import('../../components/common/DashboardCharts').then((m) => ({ default: m.StatusDistributionChart })),
+);
+const WeeklyOverviewChart = React.lazy(() =>
+  import('../../components/common/DashboardCharts').then((m) => ({ default: m.WeeklyOverviewChart })),
+);
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
 import { getTimeAgo } from '../../utils/getTimeAgo';
 
@@ -933,29 +939,33 @@ const AdminDashboard = () => {
             </Card>
           </Fade>
 
-          {/* Status Distribution Chart */}
-          <StatusDistributionChart
-            title="Distributie Cereri Active"
-            data={[
-              { label: 'Probleme Parcari', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
-              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
-              { label: 'Schimburi Ture', value: pendingSwaps, color: theme.palette.info.main },
-              { label: 'Concedii', value: pendingLeaves, color: theme.palette.secondary.main },
-              { label: 'Cereri Editare', value: stats?.parking?.pendingEditRequests || 0, color: theme.palette.primary.main },
-            ]}
-          />
+          {/* Status Distribution Chart — lazy-loaded */}
+          <Suspense fallback={null}>
+            <StatusDistributionChart
+              title="Distributie Cereri Active"
+              data={[
+                { label: 'Probleme Parcari', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
+                { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
+                { label: 'Schimburi Ture', value: pendingSwaps, color: theme.palette.info.main },
+                { label: 'Concedii', value: pendingLeaves, color: theme.palette.secondary.main },
+                { label: 'Cereri Editare', value: stats?.parking?.pendingEditRequests || 0, color: theme.palette.primary.main },
+              ]}
+            />
+          </Suspense>
 
-          {/* Weekly Overview Chart */}
-          <WeeklyOverviewChart
-            title="Sumar Activitate"
-            data={[
-              { label: 'Programe', value: pendingCount, color: theme.palette.warning.main },
-              { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: theme.palette.info.main },
-              { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: theme.palette.secondary.main },
-              { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
-              { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
-            ]}
-          />
+          {/* Weekly Overview Chart — lazy-loaded */}
+          <Suspense fallback={null}>
+            <WeeklyOverviewChart
+              title="Sumar Activitate"
+              data={[
+                { label: 'Programe', value: pendingCount, color: theme.palette.warning.main },
+                { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: theme.palette.info.main },
+                { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: theme.palette.secondary.main },
+                { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
+                { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
+              ]}
+            />
+          </Suspense>
 
           {/* Parking Quick Overview - visible on desktop sidebar */}
           <Fade in={true} timeout={900}>

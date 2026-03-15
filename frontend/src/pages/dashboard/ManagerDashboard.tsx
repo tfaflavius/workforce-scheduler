@@ -63,17 +63,15 @@ const ManagerDashboard = () => {
   const theme = useTheme();
   const { user } = useAppSelector((state) => state.auth);
 
-  const { data: draftSchedules, isLoading: draftLoading } = useGetSchedulesQuery({ status: 'DRAFT' });
-  const { data: pendingSchedules, isLoading: pendingLoading } = useGetSchedulesQuery({ status: 'PENDING_APPROVAL' });
-  const { data: approvedSchedules, isLoading: approvedLoading } = useGetSchedulesQuery({ status: 'APPROVED' });
-  const { data: rejectedSchedules, isLoading: rejectedLoading } = useGetSchedulesQuery({ status: 'REJECTED' });
+  // Single query for all schedules — 4x fewer HTTP requests, filter client-side
+  const { data: allSchedules, isLoading: schedulesLoading } = useGetSchedulesQuery({});
 
-  // Parking queries
-  const { data: activeIssues = [] } = useGetParkingIssuesQuery('ACTIVE');
+  // Parking queries — with error tracking
+  const { data: activeIssues = [], isError: issuesError } = useGetParkingIssuesQuery('ACTIVE');
   const { data: urgentIssues = [] } = useGetUrgentIssuesQuery();
-  const { data: activeDamages = [] } = useGetParkingDamagesQuery('ACTIVE');
+  const { data: activeDamages = [], isError: damagesError } = useGetParkingDamagesQuery('ACTIVE');
   const { data: urgentDamages = [] } = useGetUrgentDamagesQuery();
-  const { data: cashTotals } = useGetCashCollectionTotalsQuery({});
+  const { data: cashTotals, isError: cashError } = useGetCashCollectionTotalsQuery({});
 
   // Today's dispatchers query
   const { data: todayDispatchers = [], isLoading: dispatchersLoading } = useGetTodayDispatchersQuery();
@@ -81,23 +79,16 @@ const ManagerDashboard = () => {
   // PV Car status
   const { data: carStatus } = useGetCarStatusTodayQuery();
 
-  // Memoized schedule filters
-  const myDrafts = useMemo(
-    () => draftSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
-    [draftSchedules, user?.id],
-  );
-  const myPending = useMemo(
-    () => pendingSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
-    [pendingSchedules, user?.id],
-  );
-  const myApproved = useMemo(
-    () => approvedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
-    [approvedSchedules, user?.id],
-  );
-  const myRejected = useMemo(
-    () => rejectedSchedules?.filter((s: WorkSchedule) => s.createdBy === user?.id) || [],
-    [rejectedSchedules, user?.id],
-  );
+  // Client-side filtering by status + creator (single query feeds all 4 counters)
+  const { myDrafts, myPending, myApproved, myRejected } = useMemo(() => {
+    const mine = (allSchedules || []).filter((s: WorkSchedule) => s.createdBy === user?.id);
+    return {
+      myDrafts: mine.filter((s) => s.status === 'DRAFT'),
+      myPending: mine.filter((s) => s.status === 'PENDING_APPROVAL'),
+      myApproved: mine.filter((s) => s.status === 'APPROVED'),
+      myRejected: mine.filter((s) => s.status === 'REJECTED'),
+    };
+  }, [allSchedules, user?.id]);
 
   // Memoize dispatcher filtering to avoid recalculation on every render
   const dispatchersDISP = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'DISP'), [todayDispatchers]);
@@ -114,7 +105,7 @@ const ManagerDashboard = () => {
   );
 
   // Loading state — show skeleton instead of spinner
-  if (draftLoading || pendingLoading || approvedLoading || rejectedLoading || dispatchersLoading) {
+  if (schedulesLoading || dispatchersLoading) {
     return <DashboardSkeleton />;
   }
 
@@ -456,8 +447,8 @@ const ManagerDashboard = () => {
             <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               <StatCard
                 title="Probleme Active"
-                value={activeIssues.length}
-                subtitle={urgentIssues.length > 0 ? `${urgentIssues.length} urgente` : 'Niciuna urgenta'}
+                value={issuesError ? '—' : activeIssues.length}
+                subtitle={issuesError ? 'Eroare la incarcare' : (urgentIssues.length > 0 ? `${urgentIssues.length} urgente` : 'Niciuna urgenta')}
                 icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
                 color="#ef4444"
                 bgColor={alpha('#ef4444', 0.12)}
@@ -469,8 +460,8 @@ const ManagerDashboard = () => {
             <Grid size={{ xs: 6, sm: 6, md: 4 }}>
               <StatCard
                 title="Prejudicii Active"
-                value={activeDamages.length}
-                subtitle={urgentDamages.length > 0 ? `${urgentDamages.length} urgente` : 'Niciuna urgenta'}
+                value={damagesError ? '—' : activeDamages.length}
+                subtitle={damagesError ? 'Eroare la incarcare' : (urgentDamages.length > 0 ? `${urgentDamages.length} urgente` : 'Niciuna urgenta')}
                 icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
                 color="#f59e0b"
                 bgColor={alpha('#f59e0b', 0.12)}
@@ -536,9 +527,11 @@ const ManagerDashboard = () => {
                             lineHeight: 1.2,
                           }}
                         >
-                          {cashTotals
-                            ? RON_FORMATTER.format(cashTotals.totalAmount || 0)
-                            : '0 RON'}
+                          {cashError
+                            ? '—'
+                            : cashTotals
+                              ? RON_FORMATTER.format(cashTotals.totalAmount || 0)
+                              : '0 RON'}
                         </Typography>
                         <Typography
                           variant="body2"
@@ -549,7 +542,7 @@ const ManagerDashboard = () => {
                             lineHeight: 1.3,
                           }}
                         >
-                          {cashTotals ? `${cashTotals.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
+                          {cashError ? 'Eroare la incarcare' : cashTotals ? `${cashTotals.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
                         </Typography>
                       </Box>
                       <Box

@@ -16,6 +16,7 @@ import { WorkPosition } from './work-position.entity';
 @Entity('schedule_assignments')
 @Index('IDX_assignment_user_date', ['userId', 'shiftDate'])
 @Index('IDX_assignment_schedule', ['workScheduleId'])
+@Index('IDX_assignment_shift_date', ['shiftDate'])
 export class ScheduleAssignment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
