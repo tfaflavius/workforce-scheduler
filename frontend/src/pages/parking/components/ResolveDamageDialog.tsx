@@ -149,4 +149,4 @@ const ResolveDamageDialog: React.FC<ResolveDamageDialogProps> = ({ open, onClose
   );
 };
 
-export default ResolveDamageDialog;
+export default React.memo(ResolveDamageDialog);

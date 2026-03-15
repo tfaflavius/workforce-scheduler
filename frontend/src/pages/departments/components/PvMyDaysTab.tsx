@@ -385,4 +385,4 @@ const DayCard: React.FC<DayCardProps> = ({ day, userId, onUnclaim, onComplete, i
   );
 };
 
-export default PvMyDaysTab;
+export default React.memo(PvMyDaysTab);

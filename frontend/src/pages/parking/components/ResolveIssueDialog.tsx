@@ -111,4 +111,4 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
   );
 };
 
-export default ResolveIssueDialog;
+export default React.memo(ResolveIssueDialog);

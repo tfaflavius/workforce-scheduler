@@ -875,4 +875,4 @@ const HistorySection: React.FC<{ sessionId: string }> = ({ sessionId }) => {
   );
 };
 
-export default PvSessionsTab;
+export default React.memo(PvSessionsTab);

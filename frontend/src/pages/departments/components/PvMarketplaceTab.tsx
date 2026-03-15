@@ -323,4 +323,4 @@ const PvMarketplaceTab: React.FC = () => {
   );
 };
 
-export default PvMarketplaceTab;
+export default React.memo(PvMarketplaceTab);

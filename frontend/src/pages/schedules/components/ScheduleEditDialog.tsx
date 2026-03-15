@@ -70,4 +70,4 @@ const ScheduleEditDialog: React.FC<ScheduleEditDialogProps> = ({
   );
 };
 
-export default ScheduleEditDialog;
+export default React.memo(ScheduleEditDialog);

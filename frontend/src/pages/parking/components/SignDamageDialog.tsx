@@ -171,4 +171,4 @@ const SignDamageDialog: React.FC<SignDamageDialogProps> = ({ open, onClose, dama
   );
 };
 
-export default SignDamageDialog;
+export default React.memo(SignDamageDialog);

@@ -295,4 +295,4 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
   );
 };
 
-export default EditDamageDialog;
+export default React.memo(EditDamageDialog);

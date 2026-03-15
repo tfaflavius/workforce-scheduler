@@ -256,4 +256,4 @@ const DamageDetailsDialog: React.FC<DamageDetailsDialogProps> = ({
   );
 };
 
-export default DamageDetailsDialog;
+export default React.memo(DamageDetailsDialog);

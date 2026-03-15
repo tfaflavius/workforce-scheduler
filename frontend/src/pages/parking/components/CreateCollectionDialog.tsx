@@ -230,4 +230,4 @@ const CreateCollectionDialog: React.FC<CreateCollectionDialogProps> = ({ open, o
   );
 };
 
-export default CreateCollectionDialog;
+export default React.memo(CreateCollectionDialog);

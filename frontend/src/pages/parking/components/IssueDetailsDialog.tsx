@@ -250,4 +250,4 @@ const IssueDetailsDialog: React.FC<IssueDetailsDialogProps> = ({
   );
 };
 
-export default IssueDetailsDialog;
+export default React.memo(IssueDetailsDialog);

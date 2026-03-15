@@ -77,4 +77,4 @@ const ScheduleLegend: React.FC<ScheduleLegendProps> = ({
   );
 };
 
-export default ScheduleLegend;
+export default React.memo(ScheduleLegend);

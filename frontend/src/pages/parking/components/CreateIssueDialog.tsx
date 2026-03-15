@@ -175,4 +175,4 @@ const CreateIssueDialog: React.FC<CreateIssueDialogProps> = ({ open, onClose }) 
   );
 };
 
-export default CreateIssueDialog;
+export default React.memo(CreateIssueDialog);

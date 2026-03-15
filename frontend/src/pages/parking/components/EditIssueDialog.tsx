@@ -269,4 +269,4 @@ const EditIssueDialog: React.FC<EditIssueDialogProps> = ({
   );
 };
 
-export default EditIssueDialog;
+export default React.memo(EditIssueDialog);

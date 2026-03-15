@@ -284,4 +284,4 @@ const CreateDamageDialog: React.FC<CreateDamageDialogProps> = ({ open, onClose }
   );
 };
 
-export default CreateDamageDialog;
+export default React.memo(CreateDamageDialog);

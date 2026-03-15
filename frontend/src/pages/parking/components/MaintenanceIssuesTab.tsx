@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -49,23 +49,23 @@ const MaintenanceIssuesTab: React.FC = () => {
 
   const { data: myAssignedIssues = [], isLoading, refetch } = useGetMyAssignedIssuesQuery();
 
-  // Separate active and resolved issues
-  const activeIssues = myAssignedIssues.filter(i => i.status === 'ACTIVE');
-  const resolvedIssues = myAssignedIssues.filter(i => i.status === 'FINALIZAT');
+  // Separate active and resolved issues (memoized to avoid re-filtering on every render)
+  const activeIssues = useMemo(() => myAssignedIssues.filter(i => i.status === 'ACTIVE'), [myAssignedIssues]);
+  const resolvedIssues = useMemo(() => myAssignedIssues.filter(i => i.status === 'FINALIZAT'), [myAssignedIssues]);
 
-  const handleResolve = (issue: ParkingIssue) => {
+  const handleResolve = useCallback((issue: ParkingIssue) => {
     setSelectedIssue(issue);
     setResolveDialogOpen(true);
-  };
+  }, []);
 
-  const handleShowDetails = (issue: ParkingIssue) => {
+  const handleShowDetails = useCallback((issue: ParkingIssue) => {
     setSelectedIssue(issue);
     setDetailsDialogOpen(true);
-  };
+  }, []);
 
   const formatDateShort = formatDateTimeNoYear;
 
-  const urgentCount = activeIssues.filter(i => i.isUrgent).length;
+  const urgentCount = useMemo(() => activeIssues.filter(i => i.isUrgent).length, [activeIssues]);
 
   const renderIssueCard = (issue: ParkingIssue, index: number) => (
     <Grow in={true} key={issue.id} style={{ transformOrigin: '0 0 0', transitionDelay: `${index * 50}ms` }}>
@@ -436,4 +436,4 @@ const MaintenanceIssuesTab: React.FC = () => {
   );
 };
 
-export default MaintenanceIssuesTab;
+export default React.memo(MaintenanceIssuesTab);
