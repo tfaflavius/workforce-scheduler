@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import {
   Box,
   Paper,
@@ -113,4 +113,4 @@ const PermissionsPage = () => {
   );
 };
 
-export default PermissionsPage;
+export default memo(PermissionsPage);

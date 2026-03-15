@@ -66,7 +66,7 @@ const NotificationsPage: React.FC = () => {
   const [deleteNotification] = useDeleteNotificationMutation();
   const [deleteAllRead] = useDeleteAllReadMutation();
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);
 
   // Group notifications by date
   const grouped = useMemo(() => {
@@ -314,4 +314,4 @@ const NotificationsPage: React.FC = () => {
   );
 };
 
-export default NotificationsPage;
+export default React.memo(NotificationsPage);

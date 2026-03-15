@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -447,4 +447,4 @@ const PendingSchedulesPage = () => {
   );
 };
 
-export default PendingSchedulesPage;
+export default memo(PendingSchedulesPage);

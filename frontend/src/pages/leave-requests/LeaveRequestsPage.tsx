@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { HighlightLeaveRequestState } from '../../types/navigation.types';
 import {
@@ -739,4 +739,4 @@ export const LeaveRequestsPage = () => {
   );
 };
 
-export default LeaveRequestsPage;
+export default memo(LeaveRequestsPage);

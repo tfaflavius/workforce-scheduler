@@ -259,4 +259,4 @@ const RejectedSchedulesPage: React.FC = () => {
   );
 };
 
-export default RejectedSchedulesPage;
+export default React.memo(RejectedSchedulesPage);

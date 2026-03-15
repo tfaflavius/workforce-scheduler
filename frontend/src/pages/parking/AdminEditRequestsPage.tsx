@@ -571,4 +571,4 @@ const AdminEditRequestsPage: React.FC = () => {
   );
 };
 
-export default AdminEditRequestsPage;
+export default React.memo(AdminEditRequestsPage);

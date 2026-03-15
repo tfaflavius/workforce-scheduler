@@ -2184,4 +2184,4 @@ const HandicapParkingPage: React.FC = () => {
   );
 };
 
-export default HandicapParkingPage;
+export default React.memo(HandicapParkingPage);

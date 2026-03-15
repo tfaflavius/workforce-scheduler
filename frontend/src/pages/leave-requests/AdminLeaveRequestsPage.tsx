@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Box,
@@ -898,4 +898,4 @@ export const AdminLeaveRequestsPage = () => {
   );
 };
 
-export default AdminLeaveRequestsPage;
+export default memo(AdminLeaveRequestsPage);

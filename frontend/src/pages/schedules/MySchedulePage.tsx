@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, memo } from 'react';
 import {
   Box,
   Typography,
@@ -845,4 +845,4 @@ const MySchedulePage = () => {
   );
 };
 
-export default MySchedulePage;
+export default memo(MySchedulePage);

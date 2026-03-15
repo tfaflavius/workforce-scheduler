@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
 import { formatDateMedium } from '../../utils/dateFormatters';
@@ -929,4 +929,4 @@ const AdminShiftSwapsPage = () => {
   );
 };
 
-export default AdminShiftSwapsPage;
+export default memo(AdminShiftSwapsPage);

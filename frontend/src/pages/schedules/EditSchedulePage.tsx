@@ -810,4 +810,4 @@ export const EditSchedulePage: React.FC = () => {
   );
 };
 
-export default EditSchedulePage;
+export default React.memo(EditSchedulePage);

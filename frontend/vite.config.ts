@@ -71,6 +71,14 @@ export default defineConfig({
   build: {
     // Target modern browsers for smaller output
     target: 'es2020',
+    // Disable sourcemaps in production for smaller bundles
+    sourcemap: false,
+    // Enable CSS code splitting for smaller initial load
+    cssCodeSplit: true,
+    // Increase chunk size warning limit (vendor chunks are expected to be large)
+    chunkSizeWarningLimit: 800,
+    // Minification settings
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {

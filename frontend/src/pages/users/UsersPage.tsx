@@ -943,4 +943,4 @@ const UsersPage: React.FC = () => {
   );
 };
 
-export default UsersPage;
+export default React.memo(UsersPage);

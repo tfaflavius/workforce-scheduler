@@ -1346,4 +1346,4 @@ const AdminTimeTrackingPage: React.FC = () => {
   );
 };
 
-export default AdminTimeTrackingPage;
+export default React.memo(AdminTimeTrackingPage);

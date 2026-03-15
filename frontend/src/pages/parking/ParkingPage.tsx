@@ -385,4 +385,4 @@ const ParkingPage: React.FC = () => {
   );
 };
 
-export default ParkingPage;
+export default React.memo(ParkingPage);

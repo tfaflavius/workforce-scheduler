@@ -1309,4 +1309,4 @@ const DomiciliuParkingPage: React.FC = () => {
   );
 };
 
-export default DomiciliuParkingPage;
+export default React.memo(DomiciliuParkingPage);

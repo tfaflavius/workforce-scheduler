@@ -367,8 +367,8 @@ const SchedulesPage: React.FC = () => {
   };
 
   // Calculate stats for header
-  const pendingCount = schedules.filter(s => s.status === 'PENDING_APPROVAL').length;
-  const approvedCount = schedules.filter(s => s.status === 'APPROVED').length;
+  const pendingCount = useMemo(() => schedules.filter(s => s.status === 'PENDING_APPROVAL').length, [schedules]);
+  const approvedCount = useMemo(() => schedules.filter(s => s.status === 'APPROVED').length, [schedules]);
   const totalCount = schedules.length;
 
   // Check if any filters are active
@@ -575,4 +575,4 @@ const SchedulesPage: React.FC = () => {
   );
 };
 
-export default SchedulesPage;
+export default React.memo(SchedulesPage);

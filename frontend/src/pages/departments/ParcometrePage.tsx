@@ -921,4 +921,4 @@ const ParcometrePage: React.FC = () => {
   );
 };
 
-export default ParcometrePage;
+export default React.memo(ParcometrePage);

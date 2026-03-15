@@ -1336,4 +1336,4 @@ const DailyReportsPage: React.FC = () => {
   );
 };
 
-export default DailyReportsPage;
+export default React.memo(DailyReportsPage);

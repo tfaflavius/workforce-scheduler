@@ -1336,4 +1336,4 @@ const AchizitiiPage: React.FC = () => {
   );
 };
 
-export default AchizitiiPage;
+export default React.memo(AchizitiiPage);

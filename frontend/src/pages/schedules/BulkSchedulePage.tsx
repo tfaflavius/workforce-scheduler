@@ -1459,4 +1459,4 @@ const BulkSchedulePage: React.FC = () => {
   );
 };
 
-export default BulkSchedulePage;
+export default React.memo(BulkSchedulePage);

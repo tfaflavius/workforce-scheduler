@@ -1157,4 +1157,4 @@ const ControlSesizariPage: React.FC = () => {
   );
 };
 
-export default ControlSesizariPage;
+export default React.memo(ControlSesizariPage);

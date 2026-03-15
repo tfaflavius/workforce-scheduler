@@ -1371,4 +1371,4 @@ const CreateSchedulePage: React.FC = () => {
   );
 };
 
-export default CreateSchedulePage;
+export default React.memo(CreateSchedulePage);

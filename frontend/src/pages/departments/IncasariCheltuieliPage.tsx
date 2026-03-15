@@ -861,4 +861,4 @@ const IncasariCheltuieliPage: React.FC = () => {
   );
 };
 
-export default IncasariCheltuieliPage;
+export default React.memo(IncasariCheltuieliPage);

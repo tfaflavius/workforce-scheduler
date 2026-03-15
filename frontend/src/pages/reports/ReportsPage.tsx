@@ -2738,4 +2738,4 @@ const ReportsPage: React.FC = () => {
   );
 };
 
-export default ReportsPage;
+export default React.memo(ReportsPage);

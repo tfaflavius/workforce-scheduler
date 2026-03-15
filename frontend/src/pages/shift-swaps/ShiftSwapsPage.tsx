@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { HighlightSwapState } from '../../types/navigation.types';
 import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
@@ -949,4 +949,4 @@ const ShiftSwapsPage = () => {
   );
 };
 
-export default ShiftSwapsPage;
+export default memo(ShiftSwapsPage);
