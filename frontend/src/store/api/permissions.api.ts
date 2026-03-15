@@ -59,6 +59,7 @@ export const permissionsApi = createApi({
   reducerPath: 'permissionsApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary', 'EmailRule', 'NotificationSetting', 'Equipment', 'ContactFirm'],
+  keepUnusedDataFor: 600, // 10 min — config data changes rarely
   endpoints: (builder) => ({
     // Permission Matrix
     getMatrix: builder.query<PermissionMatrix, void>({

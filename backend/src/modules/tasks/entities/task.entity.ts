@@ -39,6 +39,8 @@ export enum TaskStatus {
 @Index('IDX_tasks_assigned_to', ['assignedTo'])
 @Index('IDX_tasks_assigned_by', ['assignedBy'])
 @Index('IDX_tasks_department_id', ['departmentId'])
+@Index('IDX_tasks_due_date', ['dueDate'])
+@Index('IDX_tasks_created_at', ['createdAt'])
 export class Task {
   @PrimaryGeneratedColumn('uuid')
   id: string;

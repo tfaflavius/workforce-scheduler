@@ -266,4 +266,4 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
   );
 };
 
-export default FriendlyCard;
+export default React.memo(FriendlyCard);

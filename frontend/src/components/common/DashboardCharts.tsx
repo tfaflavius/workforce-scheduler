@@ -28,7 +28,7 @@ interface StatusDistributionProps {
   title: string;
 }
 
-export const StatusDistributionChart: React.FC<StatusDistributionProps> = ({ data, title }) => {
+export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.memo(({ data, title }) => {
   const theme = useTheme();
 
   const chartData = useMemo(() => ({
@@ -114,14 +114,14 @@ export const StatusDistributionChart: React.FC<StatusDistributionProps> = ({ dat
       </Card>
     </Fade>
   );
-};
+});
 
 interface WeeklyOverviewProps {
   data: { label: string; value: number; color: string }[];
   title: string;
 }
 
-export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = ({ data, title }) => {
+export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = React.memo(({ data, title }) => {
   const theme = useTheme();
 
   const chartData = useMemo(() => ({
@@ -199,4 +199,4 @@ export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = ({ data, title
       </Card>
     </Fade>
   );
-};
+});

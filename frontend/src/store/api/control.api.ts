@@ -16,6 +16,7 @@ export const controlApi = createApi({
   reducerPath: 'controlApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['ControlSesizari', 'ControlComments', 'ControlHistory'],
+  keepUnusedDataFor: 180, // 3 min
   endpoints: (builder) => ({
     // Get all control sesizari
     getControlSesizari: builder.query<ControlSesizare[], { status?: ControlSesizareStatus; type?: ControlSesizareType } | void>({

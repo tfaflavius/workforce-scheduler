@@ -179,4 +179,4 @@ export const FriendlyButton: React.FC<FriendlyButtonProps> = ({
   );
 };
 
-export default FriendlyButton;
+export default React.memo(FriendlyButton);

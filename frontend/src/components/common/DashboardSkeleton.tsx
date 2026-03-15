@@ -55,4 +55,4 @@ export const DashboardSkeleton: React.FC = () => {
   );
 };
 
-export default DashboardSkeleton;
+export default React.memo(DashboardSkeleton);

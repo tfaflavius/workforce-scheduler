@@ -15,6 +15,7 @@ export const parkingStatsApi = createApi({
   reducerPath: 'parkingStatsApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['DailyTickets', 'MonthlySubscriptions', 'WeeklyOccupancy'],
+  keepUnusedDataFor: 300, // 5 min — stats data
   endpoints: (builder) => ({
 
     // ===== DAILY TICKETS =====

@@ -30,6 +30,7 @@ export const handicapApi = createApi({
   reducerPath: 'handicapApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['HandicapRequests', 'HandicapComments', 'HandicapHistory', 'HandicapLegitimations', 'HandicapLegitimationComments', 'HandicapLegitimationHistory', 'RevolutionarLegitimations', 'RevolutionarLegitimationComments', 'RevolutionarLegitimationHistory'],
+  keepUnusedDataFor: 180, // 3 min
   endpoints: (builder) => ({
     // Get all handicap requests
     getHandicapRequests: builder.query<HandicapRequest[], { status?: HandicapRequestStatus; type?: HandicapRequestType } | void>({

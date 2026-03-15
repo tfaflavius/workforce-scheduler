@@ -12,6 +12,7 @@ export const dailyReportsApi = createApi({
   reducerPath: 'dailyReportsApi',
   baseQuery: createAuthBaseQuery('/daily-reports'),
   tagTypes: ['DailyReports', 'MyDailyReports', 'TodayReport', 'MissingReports'],
+  keepUnusedDataFor: 120, // 2 min
   endpoints: (builder) => ({
     // Creaza sau actualizeaza raportul zilnic
     createDailyReport: builder.mutation<DailyReport, CreateDailyReportDto>({

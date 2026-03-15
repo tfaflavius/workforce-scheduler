@@ -38,6 +38,7 @@ export const auditApi = createApi({
   reducerPath: 'auditApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['AuditLog'],
+  keepUnusedDataFor: 60, // 1 min — audit data is time-sensitive
   endpoints: (builder) => ({
     getAuditLogs: builder.query<AuditLogResponse, AuditLogFilters>({
       query: (filters) => {

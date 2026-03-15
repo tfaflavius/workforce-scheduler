@@ -16,6 +16,7 @@ export const domiciliuApi = createApi({
   reducerPath: 'domiciliuApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['DomiciliuRequests', 'DomiciliuComments', 'DomiciliuHistory'],
+  keepUnusedDataFor: 180, // 3 min
   endpoints: (builder) => ({
     // Get all domiciliu requests
     getDomiciliuRequests: builder.query<DomiciliuRequest[], { status?: DomiciliuRequestStatus; type?: DomiciliuRequestType } | void>({

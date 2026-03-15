@@ -150,4 +150,4 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   );
 };
 
-export default ConfirmDialog;
+export default React.memo(ConfirmDialog);

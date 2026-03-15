@@ -23,6 +23,7 @@ export const acquisitionsApi = createApi({
   reducerPath: 'acquisitionsApi',
   baseQuery: createAuthBaseQuery('/acquisitions'),
   tagTypes: ['BudgetPositions', 'Acquisitions', 'Invoices', 'Summary', 'RevenueCategories', 'RevenueSummary'],
+  keepUnusedDataFor: 300, // 5 min
   endpoints: (builder) => ({
     // ===================== BUDGET POSITIONS =====================
 

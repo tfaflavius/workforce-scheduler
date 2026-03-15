@@ -262,4 +262,4 @@ export const FriendlyDatePicker: React.FC<FriendlyDatePickerProps> = ({
   );
 };
 
-export default FriendlyDatePicker;
+export default React.memo(FriendlyDatePicker);

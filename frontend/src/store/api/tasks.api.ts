@@ -6,6 +6,7 @@ export const tasksApi = createApi({
   reducerPath: 'tasksApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['Task'],
+  keepUnusedDataFor: 120, // 2 min
   endpoints: (builder) => ({
     getTasks: builder.query<Task[], {
       status?: string;

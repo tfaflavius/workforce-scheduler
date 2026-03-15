@@ -20,6 +20,7 @@ export const timeTrackingApi = createApi({
   reducerPath: 'timeTrackingApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['TimeEntry', 'ActiveTimer', 'LocationLog', 'AdminActiveTimer', 'AdminTimeEntry', 'AdminStats', 'AdminUsers', 'RouteData'],
+  keepUnusedDataFor: 120, // 2 min
   endpoints: (builder) => ({
     startTimer: builder.mutation<TimeEntry, StartTimerRequest | void>({
       query: (body = {}) => ({
