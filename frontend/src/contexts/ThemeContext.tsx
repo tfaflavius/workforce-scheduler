@@ -156,6 +156,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           borderRadius: 12,
         },
         components: {
+          MuiBackdrop: {
+            styleOverrides: {
+              root: {
+                backdropFilter: 'blur(4px)',
+                backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.6)',
+              },
+            },
+          },
           MuiCssBaseline: {
             styleOverrides: {
               '*': {
@@ -224,6 +232,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                   ? '0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03)'
                   : '0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
                 transition: 'all 0.2s ease-in-out',
+                ...(mode === 'dark' && {
+                  backdropFilter: 'blur(12px)',
+                  backgroundColor: 'rgba(30, 41, 59, 0.8)',
+                }),
                 // Hover lift only on interactive cards (with onClick or CardActionArea)
                 '&[role="button"], &:has(.MuiCardActionArea-root)': {
                   cursor: 'pointer',
@@ -242,7 +254,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 borderRadius: 12,
-                backgroundImage: 'none',
+                backgroundImage: mode === 'dark'
+                  ? 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)'
+                  : 'none',
               },
               elevation0: {
                 border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)',
@@ -261,6 +275,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 8,
                 fontWeight: 500,
                 backdropFilter: 'blur(4px)',
+                border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
                 transition: 'all 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.02)',
@@ -374,6 +389,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 borderRadius: 12,
+                borderLeft: '4px solid',
+                backdropFilter: 'blur(8px)',
               },
             },
           },

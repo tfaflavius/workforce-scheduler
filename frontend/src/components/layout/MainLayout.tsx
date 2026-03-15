@@ -639,7 +639,9 @@ export const MainLayout = () => {
                                   color: isActive ? 'text.primary' : 'text.primary',
                                   transition: 'all 0.2s ease-in-out',
                                   ...(isActive && {
-                                    boxShadow: `0 2px 8px ${alpha(group.color, 0.15)}`,
+                                    borderLeft: `3px solid ${group.color}`,
+                                    boxShadow: `0 2px 12px ${alpha(group.color, 0.2)}`,
+                                    background: `linear-gradient(90deg, ${alpha(group.color, 0.12)} 0%, ${alpha(group.color, 0.04)} 100%)`,
                                   }),
                                   '&:hover': {
                                     bgcolor: isActive
@@ -658,6 +660,9 @@ export const MainLayout = () => {
                                     minWidth: { xs: 36, sm: 40 },
                                     '& .MuiSvgIcon-root': {
                                       fontSize: { xs: '1.25rem', sm: '1.4rem' },
+                                      ...(isActive && {
+                                        filter: `drop-shadow(0 0 6px ${alpha(group.color, 0.4)})`,
+                                      }),
                                     },
                                   }}
                                 >

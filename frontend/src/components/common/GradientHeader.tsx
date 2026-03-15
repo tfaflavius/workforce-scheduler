@@ -95,6 +95,19 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
               transform: 'rotate(25deg)',
             }}
           />
+          {/* Blurred glow spot */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '30%',
+              right: '-5%',
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.06)',
+              filter: 'blur(40px)',
+            }}
+          />
         </Box>
 
         <Box sx={{ position: 'relative', zIndex: 1 }}>
@@ -114,6 +127,7 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
                   bgcolor: 'rgba(255, 255, 255, 0.15)',
                   backdropFilter: 'blur(8px)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

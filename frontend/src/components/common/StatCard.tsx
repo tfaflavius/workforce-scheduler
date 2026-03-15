@@ -87,7 +87,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
           }
         } : undefined}
       >
-        {/* Background decoration */}
+        {/* Background decorations */}
         <Box
           sx={{
             position: 'absolute',
@@ -97,6 +97,17 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
             height: 80,
             borderRadius: '50%',
             background: alpha(color, 0.04),
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: -25,
+            left: -10,
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            background: alpha(color, 0.03),
           }}
         />
         <CardContent sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, position: 'relative' }}>
@@ -123,12 +134,15 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
               <Typography
                 variant="h3"
                 sx={{
-                  color,
                   fontWeight: 800,
                   letterSpacing: '-0.02em',
                   my: 0.5,
                   fontSize: { xs: '0.95rem', sm: '1rem', md: '1.5rem', lg: '2rem' },
                   lineHeight: 1.2,
+                  background: `linear-gradient(135deg, ${color} 0%, ${alpha(color, 0.65)} 100%)`,
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
                 }}
               >
                 {value}
@@ -157,6 +171,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                 justifyContent: 'center',
                 flexShrink: 0,
                 boxShadow: `0 4px 14px ${alpha(color, 0.25)}`,
+                border: `2px solid ${alpha(color, 0.15)}`,
               }}
             >
               {icon}
