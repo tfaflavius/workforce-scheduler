@@ -166,9 +166,9 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
-              px: 3,
-              py: 2.5,
+              gap: { xs: 1.5, sm: 2 },
+              px: { xs: 2, sm: 3 },
+              py: { xs: 1.5, sm: 2.5 },
               ...(headerColor && {
                 background: `linear-gradient(135deg, ${headerColor} 0%, ${alpha(headerColor, 0.8)} 100%)`,
                 color: 'white',

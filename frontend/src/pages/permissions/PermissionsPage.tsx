@@ -5,6 +5,9 @@ import {
   Typography,
   Tabs,
   Tab,
+  useMediaQuery,
+  useTheme,
+  Tooltip,
 } from '@mui/material';
 import {
   Security as SecurityIcon,
@@ -38,7 +41,7 @@ const TabPanel = ({ children, value, index }: TabPanelProps) => (
   <Box
     role="tabpanel"
     hidden={value !== index}
-    sx={{ py: 2 }}
+    sx={{ py: { xs: 1, sm: 2 } }}
   >
     {value === index && children}
   </Box>
@@ -46,17 +49,31 @@ const TabPanel = ({ children, value, index }: TabPanelProps) => (
 
 const PermissionsPage = () => {
   const [tabIndex, setTabIndex] = useState(0);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const tabs = [
+    { icon: <MatrixIcon />, label: 'Matrice Permisiuni', short: 'Matrice' },
+    { icon: <PeopleIcon />, label: 'Utilizatori & Departamente', short: 'Utilizatori' },
+    { icon: <FlowIcon />, label: 'Fluxuri Task-uri', short: 'Fluxuri' },
+    { icon: <OverrideIcon />, label: 'Exceptii Utilizator', short: 'Exceptii' },
+    { icon: <EmailIcon />, label: 'Fluxuri Email', short: 'Email' },
+    { icon: <NotificationsIcon />, label: 'Setari Notificari', short: 'Notificari' },
+    { icon: <BuildIcon />, label: 'Echipamente Parcari', short: 'Echipamente' },
+    { icon: <BusinessIcon />, label: 'Firme Contact', short: 'Firme' },
+    { icon: <AuditIcon />, label: 'Audit & Istoric', short: 'Audit' },
+  ];
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, maxWidth: 1400, mx: 'auto' }}>
+    <Box sx={{ p: { xs: 0.5, sm: 2, md: 3 }, maxWidth: 1400, mx: 'auto' }}>
       {/* Page Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-        <SecurityIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-        <Box>
-          <Typography variant="h5" fontWeight="bold">
+        <SecurityIcon sx={{ fontSize: { xs: 24, sm: 32 }, color: 'primary.main' }} />
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
             Gestionare Permisiuni
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, display: { xs: 'none', sm: 'block' } }}>
             Administreaza permisiunile, fluxurile si accesul utilizatorilor
           </Typography>
         </Box>
@@ -72,18 +89,25 @@ const PermissionsPage = () => {
           sx={{
             borderBottom: 1,
             borderColor: 'divider',
-            '& .MuiTab-root': { minHeight: 48, textTransform: 'none', fontWeight: 600 },
+            '& .MuiTab-root': {
+              minHeight: { xs: 40, sm: 48 },
+              textTransform: 'none',
+              fontWeight: 600,
+              minWidth: { xs: 'auto', sm: 90 },
+              px: { xs: 1, sm: 2 },
+              fontSize: { xs: '0.75rem', sm: '0.85rem' },
+            },
           }}
         >
-          <Tab icon={<MatrixIcon />} iconPosition="start" label="Matrice Permisiuni" />
-          <Tab icon={<PeopleIcon />} iconPosition="start" label="Utilizatori & Departamente" />
-          <Tab icon={<FlowIcon />} iconPosition="start" label="Fluxuri Task-uri" />
-          <Tab icon={<OverrideIcon />} iconPosition="start" label="Exceptii Utilizator" />
-          <Tab icon={<EmailIcon />} iconPosition="start" label="Fluxuri Email" />
-          <Tab icon={<NotificationsIcon />} iconPosition="start" label="Setari Notificari" />
-          <Tab icon={<BuildIcon />} iconPosition="start" label="Echipamente Parcari" />
-          <Tab icon={<BusinessIcon />} iconPosition="start" label="Firme Contact" />
-          <Tab icon={<AuditIcon />} iconPosition="start" label="Audit & Istoric" />
+          {tabs.map((tab, index) => (
+            <Tab
+              key={index}
+              icon={tab.icon}
+              iconPosition="start"
+              label={isMobile ? tab.short : tab.label}
+              {...(isMobile ? { 'aria-label': tab.label } : {})}
+            />
+          ))}
         </Tabs>
       </Paper>
 

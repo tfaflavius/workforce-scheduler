@@ -223,10 +223,30 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
             },
           },
+          MuiTypography: {
+            styleOverrides: {
+              root: {
+                wordBreak: 'break-word' as const,
+                overflowWrap: 'break-word' as const,
+              },
+            },
+          },
+          MuiCardContent: {
+            styleOverrides: {
+              root: {
+                overflow: 'hidden',
+                '&:last-child': {
+                  paddingBottom: undefined, // Let component-level styles handle this
+                },
+              },
+            },
+          },
           MuiCard: {
             styleOverrides: {
               root: {
                 borderRadius: 16,
+                overflow: 'hidden',
+                maxWidth: '100%',
                 border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)',
                 boxShadow: mode === 'light'
                   ? '0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03)'
@@ -254,6 +274,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 borderRadius: 12,
+                maxWidth: '100%',
                 backgroundImage: mode === 'dark'
                   ? 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)'
                   : 'none',
@@ -274,6 +295,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 borderRadius: 8,
                 fontWeight: 500,
+                maxWidth: '100%',
                 backdropFilter: 'blur(4px)',
                 border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
                 transition: 'all 0.2s ease',
@@ -326,8 +348,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiTableCell: {
             styleOverrides: {
               root: {
-                padding: 'clamp(8px, 2vw, 16px)',
-                fontSize: 'clamp(0.75rem, 1.5vw, 0.875rem)',
+                padding: 'clamp(6px, 1.5vw, 16px)',
+                fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
+                wordBreak: 'break-word' as const,
+                overflow: 'hidden',
+              },
+              sizeSmall: {
+                padding: 'clamp(4px, 1vw, 10px)',
               },
               head: {
                 fontWeight: 600,
@@ -357,9 +384,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 textTransform: 'none',
                 fontWeight: 500,
-                fontSize: 'clamp(0.75rem, 1.5vw, 0.938rem)',
-                minHeight: 48,
-                padding: 'clamp(6px, 1.5vw, 12px) clamp(12px, 2vw, 24px)',
+                fontSize: 'clamp(0.8rem, 1.5vw, 0.938rem)',
+                minHeight: 44,
+                padding: 'clamp(6px, 1vw, 12px) clamp(8px, 1.5vw, 24px)',
                 transition: 'all 0.2s ease',
                 '&.Mui-selected': {
                   fontWeight: 600,

@@ -351,7 +351,7 @@ const CashCollectionsTab: React.FC = () => {
                   variant="h3"
                   fontWeight="bold"
                   sx={{
-                    fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.5rem' },
+                    fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
                     mb: 0.5,
                   }}
                 >
