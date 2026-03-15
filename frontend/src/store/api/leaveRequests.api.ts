@@ -29,6 +29,7 @@ export const leaveRequestsApi = createApi({
     getMyLeaveRequests: builder.query<LeaveRequest[], void>({
       query: () => '/my-requests',
       providesTags: ['MyLeaveRequests'],
+      keepUnusedDataFor: 120, // 2 min — invalidated on create/cancel anyway
     }),
 
     // Balanta mea de zile
@@ -38,6 +39,7 @@ export const leaveRequestsApi = createApi({
         params: year ? { year } : undefined,
       }),
       providesTags: ['LeaveBalance'],
+      keepUnusedDataFor: 300, // 5 min — balance rarely changes mid-session
     }),
 
     // Toate cererile (admin)

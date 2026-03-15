@@ -771,4 +771,4 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   );
 };
 
-export default ParkingDamagesTab;
+export default React.memo(ParkingDamagesTab);

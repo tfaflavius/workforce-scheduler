@@ -19,6 +19,7 @@ export enum DailyReportStatus {
 @Entity('daily_reports')
 @Unique(['userId', 'date'])
 @Index('IDX_daily_reports_status', ['status'])
+@Index('IDX_daily_reports_date', ['date'])
 export class DailyReport {
   @PrimaryGeneratedColumn('uuid')
   id: string;

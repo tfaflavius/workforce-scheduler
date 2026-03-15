@@ -25,6 +25,7 @@ export enum ShiftSwapStatus {
 @Index('IDX_shift_swap_requests_requester_id', ['requesterId'])
 @Index('IDX_shift_swap_requests_status', ['status'])
 @Index('IDX_shift_swap_requests_requester_date_target_date', ['requesterDate', 'targetDate'])
+@Index('IDX_shift_swap_requests_approved_responder', ['approvedResponderId'])
 export class ShiftSwapRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;

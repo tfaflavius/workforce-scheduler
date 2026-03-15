@@ -146,6 +146,7 @@ export const notificationsApi = createApi({
     // Push Notification Endpoints
     getVapidPublicKey: builder.query<VapidKeyResponse, void>({
       query: () => '/notifications/push/vapid-public-key',
+      keepUnusedDataFor: 3600, // 1 hour — VAPID key never changes
     }),
 
     getPushStatus: builder.query<PushSubscriptionStatus, void>({

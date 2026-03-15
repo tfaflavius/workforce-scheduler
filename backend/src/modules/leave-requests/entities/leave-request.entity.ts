@@ -22,6 +22,7 @@ export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 @Entity('leave_requests')
 @Index('IDX_leave_user_status', ['userId', 'status'])
 @Index('IDX_leave_status', ['status'])
+@Index('IDX_leave_start_end_date', ['startDate', 'endDate'])
 export class LeaveRequest {
   @PrimaryGeneratedColumn('uuid')
   id: string;

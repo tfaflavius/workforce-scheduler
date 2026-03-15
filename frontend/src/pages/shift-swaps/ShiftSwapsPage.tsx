@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { HighlightSwapState } from '../../types/navigation.types';
 import { getStatusColor, getStatusLabel } from '../../utils/statusHelpers';
@@ -201,16 +201,16 @@ const ShiftSwapsPage = () => {
     }
   }, [highlightSwapId, myRequests, user]);
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = useCallback((_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-  };
+  }, []);
 
-  const handleOpenCreateDialog = () => {
+  const handleOpenCreateDialog = useCallback(() => {
     setRequesterDate('');
     setTargetDate('');
     setReason('');
     setCreateDialogOpen(true);
-  };
+  }, []);
 
   const handleRequesterDateChange = async (date: string) => {
     setRequesterDate(date);

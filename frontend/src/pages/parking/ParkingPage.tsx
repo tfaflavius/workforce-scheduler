@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -96,9 +96,9 @@ const ParkingPage: React.FC = () => {
   // Fetch data for maintenance users
   const { data: myAssignedIssues = [] } = useGetMyAssignedIssuesQuery(undefined, { skip: !isMaintenanceUser });
 
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
-  };
+  }, []);
 
   // For maintenance users, show only assigned issues count
   const maintenanceActiveCount = myAssignedIssues.filter(i => i.status === 'ACTIVE').length;
@@ -113,7 +113,7 @@ const ParkingPage: React.FC = () => {
     }
   }, [tabValue, safeTabValue]);
 
-  const tabConfig = [
+  const tabConfig = useMemo(() => [
     {
       icon: <IssuesIcon />,
       label: 'Probleme Parcari',
@@ -146,7 +146,7 @@ const ParkingPage: React.FC = () => {
           },
         ]
       : []),
-  ];
+  ], [isAdminOrManager]);
 
   // If user is from Intretinere Parcari, show only their assigned issues
   if (isMaintenanceUser) {

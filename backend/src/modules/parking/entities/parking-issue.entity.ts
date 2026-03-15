@@ -20,6 +20,8 @@ export type ParkingIssueStatus = 'ACTIVE' | 'FINALIZAT';
 @Index('IDX_issue_parking_lot', ['parkingLotId'])
 @Index('IDX_issue_urgent', ['isUrgent'])
 @Index('IDX_issue_created_by', ['createdBy'])
+@Index('IDX_issue_assigned_to', ['assignedTo'])
+@Index('IDX_issue_created_at', ['createdAt'])
 export class ParkingIssue {
   @PrimaryGeneratedColumn('uuid')
   id: string;

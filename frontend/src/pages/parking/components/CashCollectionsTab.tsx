@@ -666,4 +666,4 @@ const CashCollectionsTab: React.FC = () => {
   );
 };
 
-export default CashCollectionsTab;
+export default React.memo(CashCollectionsTab);

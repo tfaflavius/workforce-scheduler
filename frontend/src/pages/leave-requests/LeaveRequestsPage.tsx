@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { HighlightLeaveRequestState } from '../../types/navigation.types';
 import {
@@ -137,17 +137,17 @@ export const LeaveRequestsPage = () => {
     }
   }, [highlightRequestId, requests]);
 
-  const handleOpenDialog = () => {
+  const handleOpenDialog = useCallback(() => {
     setLeaveType('VACATION');
     setStartDate('');
     setEndDate('');
     setReason('');
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setDialogOpen(false);
-  };
+  }, []);
 
   const handleSubmit = async () => {
     if (!startDate || !endDate) return;
@@ -202,13 +202,13 @@ export const LeaveRequestsPage = () => {
   // Check if user has birthDate set (needed for BIRTHDAY leave)
   const hasBirthDate = !!(user as any)?.birthDate;
 
-  const leaveTypeOptions: { value: LeaveType; label: string; disabled?: boolean }[] = [
+  const leaveTypeOptions = useMemo<{ value: LeaveType; label: string; disabled?: boolean }[]>(() => [
     { value: 'VACATION', label: LEAVE_TYPE_LABELS.VACATION },
     { value: 'MEDICAL', label: LEAVE_TYPE_LABELS.MEDICAL },
     { value: 'BIRTHDAY', label: LEAVE_TYPE_LABELS.BIRTHDAY, disabled: !hasBirthDate },
     { value: 'SPECIAL', label: LEAVE_TYPE_LABELS.SPECIAL },
     { value: 'EXTRA_DAYS', label: LEAVE_TYPE_LABELS.EXTRA_DAYS },
-  ];
+  ], [hasBirthDate]);
 
   if (loadingRequests || loadingBalance) {
     return (

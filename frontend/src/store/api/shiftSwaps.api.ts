@@ -30,6 +30,7 @@ export const shiftSwapsApi = createApi({
     getMySwapRequests: builder.query<ShiftSwapRequest[], void>({
       query: () => '/my-requests',
       providesTags: ['MySwapRequests'],
+      keepUnusedDataFor: 120, // 2 min — invalidated on create/respond/cancel
     }),
 
     // Lista tuturor cererilor (admin)
