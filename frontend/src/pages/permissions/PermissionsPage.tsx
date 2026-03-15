@@ -7,7 +7,6 @@ import {
   Tab,
   useMediaQuery,
   useTheme,
-  Tooltip,
 } from '@mui/material';
 import {
   Security as SecurityIcon,
