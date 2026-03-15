@@ -296,7 +296,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                   },
                   '&.Mui-focused': {
                     backgroundColor: mode === 'light' ? '#ffffff' : 'rgba(255, 255, 255, 0.05)',
-                    boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.12)',
+                    boxShadow: mode === 'light'
+                      ? '0 0 0 3px rgba(37, 99, 235, 0.12), 0 4px 12px rgba(37, 99, 235, 0.08)'
+                      : '0 0 0 3px rgba(96, 165, 250, 0.15), 0 4px 12px rgba(96, 165, 250, 0.1)',
                   },
                 },
               },
@@ -370,6 +372,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               indicator: {
                 height: 3,
                 borderRadius: '3px 3px 0 0',
+                backgroundImage: 'linear-gradient(90deg, #2563eb 0%, #7c3aed 100%)',
               },
             },
           },
@@ -397,9 +400,31 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiTooltip: {
             styleOverrides: {
               tooltip: {
-                borderRadius: 8,
+                borderRadius: 10,
                 fontSize: '0.813rem',
-                padding: '8px 12px',
+                padding: '8px 14px',
+                backdropFilter: 'blur(12px)',
+                backgroundColor: mode === 'light' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(30, 41, 59, 0.95)',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
+                border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
+              },
+              arrow: {
+                color: mode === 'light' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(30, 41, 59, 0.95)',
+              },
+            },
+          },
+          MuiMenu: {
+            styleOverrides: {
+              paper: {
+                borderRadius: 12,
+                backdropFilter: 'blur(12px)',
+                border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: mode === 'light'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
+                ...(mode === 'dark' && {
+                  backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                }),
               },
             },
           },

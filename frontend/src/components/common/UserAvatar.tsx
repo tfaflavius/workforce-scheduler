@@ -36,6 +36,12 @@ export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({ name, size = 
         fontWeight: 600,
         background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
         boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.25)}`,
+        border: `2px solid ${alpha(theme.palette.primary.light, 0.3)}`,
+        transition: 'all 0.25s ease',
+        '&:hover': {
+          boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.15)}, 0 4px 16px ${alpha(theme.palette.primary.main, 0.35)}`,
+          transform: 'scale(1.05)',
+        },
         ...sx,
       }}
     >

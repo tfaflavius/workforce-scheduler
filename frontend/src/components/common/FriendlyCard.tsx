@@ -253,8 +253,11 @@ export const FriendlyCard: React.FC<FriendlyCardProps> = ({
             sx={{
               px: 3,
               py: 2,
-              borderTop: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-              bgcolor: alpha(theme.palette.background.default, 0.5),
+              borderTop: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+              background: theme.palette.mode === 'light'
+                ? `linear-gradient(180deg, ${alpha(theme.palette.background.default, 0.3)} 0%, ${alpha(theme.palette.background.default, 0.6)} 100%)`
+                : `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 0.4)} 0%, ${alpha(theme.palette.background.paper, 0.6)} 100%)`,
+              backdropFilter: 'blur(8px)',
               gap: 1,
             }}
           >

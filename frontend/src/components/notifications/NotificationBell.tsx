@@ -99,6 +99,7 @@ export const NotificationBell: React.FC = React.memo(() => {
             sx={{
               '& .MuiBadge-badge': unreadCount > 0 ? {
                 animation: 'badgePulse 2s ease-in-out infinite',
+                boxShadow: `0 0 8px ${alpha(theme.palette.error.main, 0.5)}, 0 0 16px ${alpha(theme.palette.error.main, 0.2)}`,
                 '@keyframes badgePulse': {
                   '0%, 100%': { transform: 'scale(1) translate(50%, -50%)' },
                   '50%': { transform: 'scale(1.15) translate(50%, -50%)' },
@@ -120,9 +121,16 @@ export const NotificationBell: React.FC = React.memo(() => {
             width: { xs: '100vw', sm: 380 },
             maxWidth: { xs: '100vw', sm: 380 },
             maxHeight: { xs: '70vh', sm: 520 },
-            borderRadius: { xs: 0, sm: 2 },
+            borderRadius: { xs: 0, sm: 3 },
             mt: { xs: 0, sm: 1 },
-            boxShadow: theme.shadows[8],
+            boxShadow: theme.palette.mode === 'light'
+              ? '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)'
+              : '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
+            backdropFilter: 'blur(12px)',
+            border: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
+            ...(theme.palette.mode === 'dark' && {
+              backgroundColor: alpha(theme.palette.background.paper, 0.85),
+            }),
           },
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -266,6 +274,7 @@ export const NotificationBell: React.FC = React.memo(() => {
                         borderRadius: '50%',
                         bgcolor: 'primary.main',
                         ml: 1,
+                        boxShadow: `0 0 6px ${alpha(theme.palette.primary.main, 0.6)}`,
                         animation: 'pulse 2s infinite',
                         '@keyframes pulse': {
                           '0%, 100%': { opacity: 1 },
