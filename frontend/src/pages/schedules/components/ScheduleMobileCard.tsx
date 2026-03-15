@@ -9,7 +9,6 @@ import {
   Avatar,
   IconButton,
   Tooltip,
-  useTheme,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -86,7 +85,7 @@ const renderStatusChip = (status?: string) => {
 
 const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
   targetUser,
-  index,
+  index: _index,
   userAssignments,
   scheduleStatus,
   canEdit,
@@ -95,7 +94,6 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
   isLandscape,
   onEditClick,
 }) => {
-  const theme = useTheme();
 
   // Calculate summary for mobile
   const assignmentsList = Object.entries(userAssignments);
