@@ -35,7 +35,7 @@ export class UsersService {
     private readonly auditService: AuditService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto, requestingUserId?: string): Promise<User> {
     // Prevent creating MASTER_ADMIN users
     if ((createUserDto as any).role === UserRole.MASTER_ADMIN) {
       throw new ForbiddenException('Nu se pot crea utilizatori cu rolul MASTER_ADMIN');
@@ -63,6 +63,7 @@ export class UsersService {
 
     // Audit log
     this.auditService.log({
+      userId: requestingUserId,
       action: 'CREATE',
       entity: 'User',
       entityId: savedUser.id,

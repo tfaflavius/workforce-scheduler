@@ -56,10 +56,13 @@ export class AuditService {
       qb.andWhere('audit.action = :action', { action: filters.action });
     }
     if (filters.from) {
-      qb.andWhere('audit.createdAt >= :from', { from: filters.from });
+      qb.andWhere('audit.createdAt >= :from', { from: new Date(filters.from) });
     }
     if (filters.to) {
-      qb.andWhere('audit.createdAt <= :to', { to: filters.to });
+      // Add end-of-day to include the full "to" date
+      const toDate = new Date(filters.to);
+      toDate.setHours(23, 59, 59, 999);
+      qb.andWhere('audit.createdAt <= :to', { to: toDate });
     }
 
     const total = await qb.getCount();
