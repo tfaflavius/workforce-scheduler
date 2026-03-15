@@ -1149,4 +1149,4 @@ const HandicapLegitimatiiTab: React.FC<HandicapLegitimatiiTabProps> = ({
   );
 };
 
-export default HandicapLegitimatiiTab;
+export default React.memo(HandicapLegitimatiiTab);

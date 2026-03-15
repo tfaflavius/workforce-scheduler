@@ -1211,6 +1211,11 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
   );
 };
 
+// PDF export headers (module-scope to avoid re-creation)
+const REQUEST_HEADERS = [['Locatie', 'Persoana', 'Nr Auto', 'Nr Certificat', 'Status', 'Data', 'Rezolvat de']];
+const HANDICAP_LEGIT_HEADERS = [['Persoana', 'Nr Certificat', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
+const REVOLUTIONAR_LEGIT_HEADERS = [['Persoana', 'Nr Lege', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
+
 // ============== MAIN PAGE ==============
 const HandicapParkingPage: React.FC = () => {
   const theme = useTheme();
@@ -1509,10 +1514,6 @@ const HandicapParkingPage: React.FC = () => {
       l.resolver?.fullName || '-',
     ]);
   };
-
-  const REQUEST_HEADERS = [['Locatie', 'Persoana', 'Nr Auto', 'Nr Certificat', 'Status', 'Data', 'Rezolvat de']];
-  const HANDICAP_LEGIT_HEADERS = [['Persoana', 'Nr Certificat', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
-  const REVOLUTIONAR_LEGIT_HEADERS = [['Persoana', 'Nr Lege', 'Nr Auto', 'Telefon', 'Status', 'Data', 'Rezolvat de']];
 
   const exportCurrentSectionPDF = async () => {
     const { jsPDF, autoTable } = await loadPDFLibs();

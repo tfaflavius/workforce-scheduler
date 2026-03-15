@@ -616,4 +616,4 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
   );
 };
 
-export default DomiciliuReportsTab;
+export default React.memo(DomiciliuReportsTab);

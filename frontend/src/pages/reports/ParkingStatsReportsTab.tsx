@@ -858,4 +858,4 @@ const ParkingStatsReportsTab: React.FC = () => {
   );
 };
 
-export default ParkingStatsReportsTab;
+export default React.memo(ParkingStatsReportsTab);

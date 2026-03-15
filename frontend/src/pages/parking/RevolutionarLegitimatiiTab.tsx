@@ -1150,4 +1150,4 @@ const RevolutionarLegitimatiiTab: React.FC<RevolutionarLegitimatiiTabProps> = ({
   );
 };
 
-export default RevolutionarLegitimatiiTab;
+export default React.memo(RevolutionarLegitimatiiTab);

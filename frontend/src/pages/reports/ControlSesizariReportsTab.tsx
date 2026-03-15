@@ -632,4 +632,4 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
   );
 };
 
-export default ControlSesizariReportsTab;
+export default React.memo(ControlSesizariReportsTab);

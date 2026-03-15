@@ -591,4 +591,4 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
   );
 };
 
-export default AchizitiiReportsTab;
+export default React.memo(AchizitiiReportsTab);

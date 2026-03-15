@@ -637,4 +637,4 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
   );
 };
 
-export default IncasariCheltuieliReportsTab;
+export default React.memo(IncasariCheltuieliReportsTab);

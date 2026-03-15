@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useScrollToTop } from '../../hooks/useScrollToTop';
 import {
@@ -95,6 +95,11 @@ interface MenuItem {
   excludeDepartments?: string[];  // Departamente care NU vad acest meniu
 }
 
+// Departamente care nu au acces la Schimburi Ture si Programul Meu
+const PARKING_ONLY_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME];
+// Departamente care nu au acces la Schimburi Ture (dar vad Programul Meu)
+const NO_SHIFT_SWAP_DEPARTMENTS = [...PARKING_ONLY_DEPARTMENTS, PROCESE_VERBALE_DEPARTMENT_NAME, PARCOMETRE_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME];
+
 export const MainLayout = () => {
   const theme = useTheme();
   // Updated breakpoints for modern devices
@@ -179,12 +184,7 @@ export const MainLayout = () => {
     }
   };
 
-  // Departamente care nu au acces la Schimburi Ture si Programul Meu
-  const PARKING_ONLY_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME];
-  // Departamente care nu au acces la Schimburi Ture (dar vad Programul Meu)
-  const NO_SHIFT_SWAP_DEPARTMENTS = [...PARKING_ONLY_DEPARTMENTS, PROCESE_VERBALE_DEPARTMENT_NAME, PARCOMETRE_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME];
-
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItem[] = useMemo(() => [
     {
       text: 'Dashboard',
       icon: <DashboardIcon />,
@@ -322,7 +322,7 @@ export const MainLayout = () => {
       path: '/admin/permissions',
       roles: ['MASTER_ADMIN'],
     },
-  ];
+  ], []);
 
   const filteredMenuItems = useMemo(() => menuItems.filter((item) => {
     if (!user) return false;
@@ -1099,4 +1099,4 @@ export const MainLayout = () => {
   );
 };
 
-export default MainLayout;
+export default React.memo(MainLayout);

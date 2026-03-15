@@ -588,4 +588,4 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
   );
 };
 
-export default PontajReportsTab;
+export default React.memo(PontajReportsTab);

@@ -605,4 +605,4 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
   );
 };
 
-export default ParcometreReportsTab;
+export default React.memo(ParcometreReportsTab);

@@ -622,4 +622,4 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
   );
 };
 
-export default HandicapReportsTab;
+export default React.memo(HandicapReportsTab);

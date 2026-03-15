@@ -1090,4 +1090,4 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   );
 };
 
-export default ParkingReportsTab;
+export default React.memo(ParkingReportsTab);

@@ -611,4 +611,4 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
   );
 };
 
-export default PvReportsTab;
+export default React.memo(PvReportsTab);
