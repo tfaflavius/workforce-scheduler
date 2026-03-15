@@ -9,7 +9,6 @@ import {
   Avatar,
   IconButton,
   Tooltip,
-  Grow,
   useTheme,
 } from '@mui/material';
 import {
@@ -110,20 +109,11 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
   });
 
   return (
-    <Grow in={true} timeout={400} style={{ transitionDelay: `${index * 50}ms` }}>
       <Card
         variant="outlined"
         sx={{
-          touchAction: 'manipulation',
+          touchAction: 'pan-y',
           WebkitTapHighlightColor: 'transparent',
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            boxShadow: theme.shadows[4],
-            transform: 'translateY(-2px)',
-          },
-          '&:active': {
-            transform: 'scale(0.99)',
-          },
         }}
       >
         <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -210,6 +200,7 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
                 <Box sx={{
                   overflowX: 'auto',
                   WebkitOverflowScrolling: 'touch',
+                  touchAction: 'pan-x',
                   pb: 1,
                   '&::-webkit-scrollbar': { height: 6 },
                   '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 3 },
@@ -269,7 +260,6 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
           )}
         </CardContent>
       </Card>
-    </Grow>
   );
 };
 

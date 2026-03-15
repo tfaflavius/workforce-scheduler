@@ -517,7 +517,7 @@ const SchedulesPage: React.FC = () => {
                 <>
                   {/* Mobile/Tablet View - Card-based layout */}
                   {isTablet ? (
-                    <Stack spacing={2}>
+                    <Stack spacing={2} sx={{ touchAction: 'pan-y' }}>
                       {filteredUsers.map((targetUser, index) => (
                         <ScheduleMobileCard
                           key={targetUser.id}
