@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -64,9 +64,9 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
   const pickerOpenTo = isBirthDate ? 'year' : (openTo || 'day');
   const pickerViews = isBirthDate ? ['year', 'month', 'day'] as const : (views || ['year', 'month', 'day'] as const);
 
-  // Min/max dates
-  const minDateValue = minDate ? dayjs(minDate) : undefined;
-  const maxDateValue = maxDate ? dayjs(maxDate) : (isBirthDate ? dayjs() : undefined);
+  // Min/max dates (memoized to avoid recreating Dayjs objects every render)
+  const minDateValue = useMemo(() => minDate ? dayjs(minDate) : undefined, [minDate]);
+  const maxDateValue = useMemo(() => maxDate ? dayjs(maxDate) : (isBirthDate ? dayjs() : undefined), [maxDate, isBirthDate]);
 
   // Common props for both pickers
   const commonProps = {
@@ -108,4 +108,4 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
   );
 };
 
-export default DatePickerField;
+export default React.memo(DatePickerField);

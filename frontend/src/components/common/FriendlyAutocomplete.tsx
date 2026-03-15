@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Autocomplete,
   TextField,
@@ -61,10 +61,10 @@ export const FriendlyAutocomplete: React.FC<FriendlyAutocompleteProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
-  // Normalize options to AutocompleteOption format
-  const normalizedOptions: AutocompleteOption[] = options.map(opt =>
-    typeof opt === 'string' ? { value: opt, label: opt } : opt
-  );
+  // Normalize options to AutocompleteOption format (memoized to avoid re-creation)
+  const normalizedOptions = useMemo<AutocompleteOption[]>(() =>
+    options.map(opt => typeof opt === 'string' ? { value: opt, label: opt } : opt),
+  [options]);
 
   const getStateColor = () => {
     if (error) return theme.palette.error.main;
@@ -268,4 +268,4 @@ export const FriendlyAutocomplete: React.FC<FriendlyAutocompleteProps> = ({
   );
 };
 
-export default FriendlyAutocomplete;
+export default React.memo(FriendlyAutocomplete);

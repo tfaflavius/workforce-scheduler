@@ -21,13 +21,14 @@ const sizeMap = {
  * Reusable user avatar with gradient background and initial.
  * Replaces repeated `charAt(0).toUpperCase()` pattern across the app.
  */
-export const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = 'medium', sx }) => {
+export const UserAvatar: React.FC<UserAvatarProps> = React.memo(({ name, size = 'medium', sx }) => {
   const theme = useTheme();
   const dimensions = sizeMap[size];
   const initial = name?.charAt(0).toUpperCase() || 'U';
 
   return (
     <Avatar
+      aria-label={name ? `Avatar ${name}` : 'Avatar utilizator'}
       sx={{
         width: dimensions.width,
         height: dimensions.height,
@@ -41,6 +42,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ name, size = 'medium', s
       {initial}
     </Avatar>
   );
-};
+});
+
+UserAvatar.displayName = 'UserAvatar';
 
 export default UserAvatar;

@@ -190,4 +190,4 @@ export const FriendlyAlert: React.FC<FriendlyAlertProps> = ({
   );
 };
 
-export default FriendlyAlert;
+export default React.memo(FriendlyAlert);

@@ -263,4 +263,4 @@ export const FriendlySelect: React.FC<FriendlySelectProps> = ({
   );
 };
 
-export default FriendlySelect;
+export default React.memo(FriendlySelect);
