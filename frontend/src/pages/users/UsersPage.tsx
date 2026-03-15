@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import type { HighlightUserState } from '../../types/navigation.types';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
@@ -150,15 +150,15 @@ const UsersPage: React.FC = () => {
     }
   }, [highlightUserId, allUsers]);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: User) => {
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>, user: User) => {
     setAnchorEl(event.currentTarget);
     setSelectedUser(user);
-  };
+  }, []);
 
-  const handleMenuClose = () => {
+  const handleMenuClose = useCallback(() => {
     setAnchorEl(null);
     setSelectedUser(null);
-  };
+  }, []);
 
   const handleEdit = () => {
     if (selectedUser) {
@@ -221,14 +221,14 @@ const UsersPage: React.FC = () => {
     }
   };
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
+  const handleChangePage = useCallback((_event: unknown, newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
+  }, []);
 
   const isMasterAdmin = currentUser?.role === 'MASTER_ADMIN';
   const isAdminOrAbove = currentUser?.role === 'ADMIN' || isMasterAdmin;

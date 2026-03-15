@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Box, Chip, alpha, useTheme } from '@mui/material';
 
 export interface FilterOption {
@@ -16,7 +16,7 @@ export interface FilterChipsProps {
   size?: 'small' | 'medium';
 }
 
-export const FilterChips: React.FC<FilterChipsProps> = ({
+export const FilterChips: React.FC<FilterChipsProps> = React.memo(({
   options,
   selected,
   onChange,
@@ -32,7 +32,7 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
     return selected === value;
   };
 
-  const handleClick = (value: string) => {
+  const handleClick = useCallback((value: string) => {
     if (multiple) {
       const currentSelected = Array.isArray(selected) ? selected : [];
       if (currentSelected.includes(value)) {
@@ -43,7 +43,7 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
     } else {
       onChange(selected === value ? '' : value);
     }
-  };
+  }, [multiple, selected, onChange]);
 
   return (
     <Box
@@ -92,6 +92,7 @@ export const FilterChips: React.FC<FilterChipsProps> = ({
       })}
     </Box>
   );
-};
+});
 
+FilterChips.displayName = 'FilterChips';
 export default FilterChips;

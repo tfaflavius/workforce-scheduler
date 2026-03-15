@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -375,22 +375,22 @@ const SchedulesPage: React.FC = () => {
   const hasActiveFilters = searchQuery !== '' || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL';
 
   // Handle reset filters
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     setSearchQuery('');
     setDepartmentFilter('ALL');
     setShiftFilter('ALL');
     setWorkPositionFilter('ALL');
     setDayFilter('ALL');
-  };
+  }, []);
 
   // Get selected month label
   const selectedMonthLabel = monthOptions.find(m => m.value === selectedMonth)?.label || '';
 
   // Handle month change - also reset day filter
-  const handleMonthChange = (month: string) => {
+  const handleMonthChange = useCallback((month: string) => {
     setSelectedMonth(month);
     setDayFilter('ALL');
-  };
+  }, []);
 
   return (
     <Box sx={{ width: '100%' }}>

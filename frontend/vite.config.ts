@@ -69,9 +69,12 @@ export default defineConfig({
     }),
   ],
   build: {
+    // Target modern browsers for smaller output
+    target: 'es2020',
     rollupOptions: {
       output: {
         manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-mui': ['@mui/material', '@mui/icons-material'],
           'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
           'vendor-charts': ['chart.js', 'react-chartjs-2'],
