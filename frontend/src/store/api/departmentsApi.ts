@@ -15,6 +15,7 @@ export const departmentsApi = createApi({
   reducerPath: 'departmentsApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['Department'],
+  keepUnusedDataFor: 300, // 5 min — departments rarely change
   endpoints: (builder) => ({
     getDepartments: builder.query<Department[], void>({
       query: () => '/departments',

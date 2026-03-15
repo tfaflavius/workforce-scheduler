@@ -55,16 +55,18 @@ export const schedulesApi = createApi({
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['Schedule', 'ShiftType', 'WorkPosition'],
   endpoints: (builder) => ({
-    // Get all shift types
+    // Get all shift types (static data — cache 10 min)
     getShiftTypes: builder.query<ShiftType[], void>({
       query: () => '/schedules/shift-types',
       providesTags: ['ShiftType'],
+      keepUnusedDataFor: 600,
     }),
 
-    // Get all work positions
+    // Get all work positions (static data — cache 10 min)
     getWorkPositions: builder.query<WorkPosition[], void>({
       query: () => '/work-positions',
       providesTags: ['WorkPosition'],
+      keepUnusedDataFor: 600,
     }),
 
     // Get all schedules with optional filters

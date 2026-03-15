@@ -175,7 +175,7 @@ const ReportsPage: React.FC = () => {
 
   // Custom report dialog state
   const [customReportOpen, setCustomReportOpen] = useState(false);
-  const [selectedSections, setSelectedSections] = useState<Record<string, boolean>>({ ...DEFAULT_SELECTED_SECTIONS });
+  const [selectedSections, setSelectedSections] = useState<Record<string, boolean>>(() => ({ ...DEFAULT_SELECTED_SECTIONS }));
 
   // Lista de luni (generata o singura data)
   const monthOptions = useMemo(() => generateMonthOptions(), []);

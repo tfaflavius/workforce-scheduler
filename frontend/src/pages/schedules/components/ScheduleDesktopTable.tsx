@@ -326,4 +326,4 @@ const ScheduleDesktopTable: React.FC<ScheduleDesktopTableProps> = ({
   );
 };
 
-export default ScheduleDesktopTable;
+export default React.memo(ScheduleDesktopTable);

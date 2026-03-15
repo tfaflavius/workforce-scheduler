@@ -36,6 +36,7 @@ export const parkingApi = createApi({
     getParkingLots: builder.query<ParkingLot[], void>({
       query: () => '/parking-lots',
       providesTags: ['ParkingLots'],
+      keepUnusedDataFor: 300, // 5 min — parking lots rarely change
     }),
 
     getParkingLot: builder.query<ParkingLot, string>({
@@ -52,17 +53,20 @@ export const parkingApi = createApi({
       providesTags: ['PaymentMachines'],
     }),
 
-    // Constants
+    // Constants (static data — cache 10 min)
     getEquipmentList: builder.query<string[], void>({
       query: () => '/parking-lots/constants/equipment',
+      keepUnusedDataFor: 600,
     }),
 
     getDamageEquipmentList: builder.query<string[], void>({
       query: () => '/parking-lots/constants/damage-equipment',
+      keepUnusedDataFor: 600,
     }),
 
     getCompanyList: builder.query<string[], void>({
       query: () => '/parking-lots/constants/companies',
+      keepUnusedDataFor: 600,
     }),
 
     // Parking Issues

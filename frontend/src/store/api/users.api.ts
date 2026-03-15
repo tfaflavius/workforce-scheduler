@@ -66,6 +66,7 @@ export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['User', 'UserStats'],
+  keepUnusedDataFor: 120, // 2 min — user list doesn't change often
   endpoints: (builder) => ({
     // Queries
     getUsers: builder.query<User[], UserFilters | void>({

@@ -272,4 +272,4 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
   );
 };
 
-export default ScheduleMobileCard;
+export default React.memo(ScheduleMobileCard);
