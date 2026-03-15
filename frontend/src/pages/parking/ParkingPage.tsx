@@ -101,7 +101,7 @@ const ParkingPage: React.FC = () => {
   }, []);
 
   // For maintenance users, show only assigned issues count
-  const maintenanceActiveCount = myAssignedIssues.filter(i => i.status === 'ACTIVE').length;
+  const maintenanceActiveCount = useMemo(() => myAssignedIssues.filter(i => i.status === 'ACTIVE').length, [myAssignedIssues]);
 
   const isAdminOrManager = isAdminOrAbove(user?.role) || user?.role === 'MANAGER';
 

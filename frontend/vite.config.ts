@@ -68,6 +68,9 @@ export default defineConfig({
       },
     }),
   ],
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   build: {
     // Target modern browsers for smaller output
     target: 'es2020',
