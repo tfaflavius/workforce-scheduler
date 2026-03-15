@@ -226,8 +226,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiTypography: {
             styleOverrides: {
               root: {
-                wordBreak: 'break-word' as const,
-                overflowWrap: 'break-word' as const,
+                overflowWrap: 'anywhere' as const,
               },
             },
           },
@@ -350,8 +349,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 padding: 'clamp(6px, 1.5vw, 16px)',
                 fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
-                wordBreak: 'break-word' as const,
-                overflow: 'hidden',
+                overflowWrap: 'break-word' as const,
               },
               sizeSmall: {
                 padding: 'clamp(4px, 1vw, 10px)',

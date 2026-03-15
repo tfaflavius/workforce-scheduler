@@ -1616,7 +1616,7 @@ const EmployeeDashboard = () => {
                 Parcari Handicap - Solicitari
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Amplasare Panouri"
                     value={handicapRequests.filter(r => r.requestType === 'AMPLASARE_PANOU').length}
@@ -1628,7 +1628,7 @@ const EmployeeDashboard = () => {
                     delay={0}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Revocare Panouri"
                     value={handicapRequests.filter(r => r.requestType === 'REVOCARE_PANOU').length}
@@ -1640,7 +1640,7 @@ const EmployeeDashboard = () => {
                     delay={100}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Creare Marcaje"
                     value={handicapRequests.filter(r => r.requestType === 'CREARE_MARCAJ').length}

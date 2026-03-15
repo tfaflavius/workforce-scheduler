@@ -482,7 +482,7 @@ const AdminDashboard = () => {
                 Programe
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="In Asteptare"
                     value={pendingCount}
@@ -495,7 +495,7 @@ const AdminDashboard = () => {
                     urgent={pendingCount > 0}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="Aprobate"
                     value={stats?.schedules.approved || 0}
@@ -507,7 +507,7 @@ const AdminDashboard = () => {
                     delay={100}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="Respinse"
                     value={stats?.schedules.rejected || 0}
@@ -519,7 +519,7 @@ const AdminDashboard = () => {
                     delay={200}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="Utilizatori Activi"
                     value={activeUsers}
@@ -554,7 +554,7 @@ const AdminDashboard = () => {
                 Schimburi Ture & Concedii
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="Schimburi Pending"
                     value={pendingSwaps}
@@ -567,7 +567,7 @@ const AdminDashboard = () => {
                     urgent={pendingSwaps > 0}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="Concedii Pending"
                     value={pendingLeaves}
@@ -580,7 +580,7 @@ const AdminDashboard = () => {
                     urgent={pendingLeaves > 0}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="Total Schimburi"
                     value={stats?.shiftSwaps.total || 0}
@@ -592,7 +592,7 @@ const AdminDashboard = () => {
                     delay={600}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
                   <StatCard
                     title="Total Concedii"
                     value={stats?.leaveRequests.total || 0}
@@ -627,7 +627,7 @@ const AdminDashboard = () => {
                 Parcari Etajate
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Probleme Active"
                     value={stats?.parking?.activeIssues || 0}
@@ -640,7 +640,7 @@ const AdminDashboard = () => {
                     urgent={(stats?.parking?.urgentIssues?.length || 0) > 0}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Prejudicii Active"
                     value={stats?.parking?.activeDamages || 0}
@@ -653,7 +653,7 @@ const AdminDashboard = () => {
                     urgent={(stats?.parking?.urgentDamages?.length || 0) > 0}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Cereri Editare"
                     value={stats?.parking?.pendingEditRequests || 0}
@@ -780,7 +780,7 @@ const AdminDashboard = () => {
                 Parcari Handicap - Solicitari
               </Typography>
               <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Amplasare Panouri"
                     value={stats?.handicap?.requestsByType?.amplasare || 0}
@@ -792,7 +792,7 @@ const AdminDashboard = () => {
                     delay={1000}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Revocare Panouri"
                     value={stats?.handicap?.requestsByType?.revocare || 0}
@@ -804,7 +804,7 @@ const AdminDashboard = () => {
                     delay={1100}
                   />
                 </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
                   <StatCard
                     title="Creare Marcaje"
                     value={stats?.handicap?.requestsByType?.marcaje || 0}

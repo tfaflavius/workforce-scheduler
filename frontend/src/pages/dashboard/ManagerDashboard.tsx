@@ -372,7 +372,7 @@ const ManagerDashboard = () => {
             Programele Mele
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <StatCard
                 title="Draft-uri"
                 value={myDrafts.length}
@@ -384,7 +384,7 @@ const ManagerDashboard = () => {
                 delay={0}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <StatCard
                 title="In Asteptare"
                 value={myPending.length}
@@ -396,7 +396,7 @@ const ManagerDashboard = () => {
                 delay={100}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <StatCard
                 title="Aprobate"
                 value={myApproved.length}
@@ -408,7 +408,7 @@ const ManagerDashboard = () => {
                 delay={200}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <StatCard
                 title="Respinse"
                 value={myRejected.length}
@@ -444,7 +444,7 @@ const ManagerDashboard = () => {
             Parcari Etajate
           </Typography>
           <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
               <StatCard
                 title="Probleme Active"
                 value={issuesError ? '—' : activeIssues.length}
@@ -457,7 +457,7 @@ const ManagerDashboard = () => {
                 urgent={urgentIssues.length > 0}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 4 }}>
               <StatCard
                 title="Prejudicii Active"
                 value={damagesError ? '—' : activeDamages.length}

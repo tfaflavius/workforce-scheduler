@@ -142,6 +142,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                   my: 0.5,
                   fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem', lg: '2rem' },
                   lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
                   background: `linear-gradient(135deg, ${color} 0%, ${alpha(color, 0.65)} 100%)`,
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
@@ -158,6 +159,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                     fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                     mt: 0.5,
                     lineHeight: 1.3,
                   }}
@@ -168,13 +170,16 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
             </Box>
             <Box
               sx={{
-                p: { xs: 1, sm: 1.5, md: 2 },
+                p: { xs: 0.75, sm: 1, md: 2 },
                 borderRadius: '50%',
                 bgcolor: bgColor,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                '& > svg': {
+                  fontSize: { xs: 20, sm: 22, md: 28 },
+                },
                 boxShadow: `0 4px 14px ${alpha(color, 0.25)}`,
                 border: `2px solid ${alpha(color, 0.15)}`,
               }}
