@@ -38,6 +38,11 @@ export class AuditController {
     return this.auditService.findAll(filters);
   }
 
+  @Get('stats')
+  async getStats() {
+    return this.auditService.getStats();
+  }
+
   @Get('recent')
   async getRecent(@Query('limit') limit?: string) {
     return this.auditService.getRecentActivity(limit ? parseInt(limit, 10) : 20);

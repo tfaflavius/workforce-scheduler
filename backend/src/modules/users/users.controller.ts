@@ -132,7 +132,7 @@ export class UsersController {
 
   @Delete(':id')
   @Roles(UserRole.MASTER_ADMIN)
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  remove(@Param('id') id: string, @Request() req: any) {
+    return this.usersService.remove(id, req.user?.id);
   }
 }

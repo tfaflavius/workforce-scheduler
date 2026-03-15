@@ -103,6 +103,42 @@ export class AuditService {
     });
   }
 
+  async getStats(): Promise<{
+    total: number;
+    today: number;
+    thisWeek: number;
+    byAction: Record<string, number>;
+  }> {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1); // Monday
+
+    const total = await this.auditRepo.count();
+    const today = await this.auditRepo
+      .createQueryBuilder('audit')
+      .where('audit.createdAt >= :todayStart', { todayStart })
+      .getCount();
+    const thisWeek = await this.auditRepo
+      .createQueryBuilder('audit')
+      .where('audit.createdAt >= :weekStart', { weekStart })
+      .getCount();
+
+    const actionCounts = await this.auditRepo
+      .createQueryBuilder('audit')
+      .select('audit.action', 'action')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('audit.action')
+      .getRawMany();
+
+    const byAction: Record<string, number> = {};
+    for (const row of actionCounts) {
+      byAction[row.action] = parseInt(row.count, 10);
+    }
+
+    return { total, today, thisWeek, byAction };
+  }
+
   // Cleanup old audit logs (older than 6 months)
   async cleanupOldLogs(): Promise<number> {
     const sixMonthsAgo = new Date();

@@ -8,6 +8,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { PermissionsService } from './permissions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -30,8 +31,8 @@ export class PermissionsController {
   }
 
   @Put('bulk')
-  bulkUpdate(@Body() body: { updates: { id: string; allowed: boolean }[] }) {
-    return this.permissionsService.bulkUpdate(body.updates);
+  bulkUpdate(@Body() body: { updates: { id: string; allowed: boolean }[] }, @Request() req: any) {
+    return this.permissionsService.bulkUpdate(body.updates, req.user?.id);
   }
 
   @Patch(':id')
@@ -48,8 +49,9 @@ export class PermissionsController {
   setUserOverrides(
     @Param('userId') userId: string,
     @Body() body: { overrides: { resourceKey: string; action: string; allowed: boolean }[] },
+    @Request() req: any,
   ) {
-    return this.permissionsService.setUserOverrides(userId, body.overrides);
+    return this.permissionsService.setUserOverrides(userId, body.overrides, req.user?.id);
   }
 
   @Delete('users/:userId/:overrideId')
@@ -68,18 +70,18 @@ export class PermissionsController {
   }
 
   @Post('task-flows')
-  createTaskFlow(@Body() body: any) {
-    return this.permissionsService.createTaskFlow(body);
+  createTaskFlow(@Body() body: any, @Request() req: any) {
+    return this.permissionsService.createTaskFlow(body, req.user?.id);
   }
 
   @Patch('task-flows/:id')
-  updateTaskFlow(@Param('id') id: string, @Body() body: any) {
-    return this.permissionsService.updateTaskFlow(id, body);
+  updateTaskFlow(@Param('id') id: string, @Body() body: any, @Request() req: any) {
+    return this.permissionsService.updateTaskFlow(id, body, req.user?.id);
   }
 
   @Delete('task-flows/:id')
-  deleteTaskFlow(@Param('id') id: string) {
-    return this.permissionsService.deleteTaskFlow(id);
+  deleteTaskFlow(@Param('id') id: string, @Request() req: any) {
+    return this.permissionsService.deleteTaskFlow(id, req.user?.id);
   }
 
   @Get('email-rules')

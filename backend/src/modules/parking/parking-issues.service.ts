@@ -17,6 +17,7 @@ import { ContactFirm } from '../permissions/entities/contact-firm.entity';
 import { INTERNAL_MAINTENANCE_COMPANIES, MAINTENANCE_DEPARTMENT_NAME, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
 import { EmailService } from '../../common/email/email.service';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class ParkingIssuesService {
@@ -40,6 +41,7 @@ export class ParkingIssuesService {
     private readonly contactFirmRepo: Repository<ContactFirm>,
     private readonly notificationsService: NotificationsService,
     private readonly emailService: EmailService,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -95,6 +97,15 @@ export class ParkingIssuesService {
 
     // Notifica managerii si adminii
     await this.notifyManagersAndAdmins(fullIssue, 'CREATED', userId);
+
+    // Audit log
+    this.auditService.log({
+      userId,
+      action: 'CREATE',
+      entity: 'ParkingIssue',
+      entityId: fullIssue.id,
+      description: `Raportata problema parcare: ${fullIssue.equipment}`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return fullIssue;
   }

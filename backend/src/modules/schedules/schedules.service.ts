@@ -9,6 +9,7 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { EmailService, ScheduleEmailData } from '../../common/email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class SchedulesService {
@@ -26,6 +27,7 @@ export class SchedulesService {
     private readonly emailService: EmailService,
     private readonly notificationsService: NotificationsService,
     private dataSource: DataSource,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(userId: string, createScheduleDto: CreateScheduleDto): Promise<WorkSchedule> {
@@ -154,6 +156,15 @@ export class SchedulesService {
         this.logger.error('Failed to send schedule creation email notifications:', err);
       });
     }
+
+    // Audit log
+    this.auditService.log({
+      userId,
+      action: 'CREATE',
+      entity: 'Schedule',
+      entityId: savedScheduleId,
+      description: `Creat program: ${finalSchedule.name}`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return finalSchedule;
   }
@@ -383,6 +394,16 @@ export class SchedulesService {
       this.logger.error('Failed to send schedule approval notifications:', err);
     });
 
+    // Audit log
+    this.auditService.log({
+      userId,
+      action: 'UPDATE',
+      entity: 'Schedule',
+      entityId: id,
+      description: `Aprobat program: ${approvedSchedule.name}`,
+      changes: { status: { old: 'PENDING_APPROVAL', new: 'APPROVED' } },
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
     return approvedSchedule;
   }
 
@@ -549,12 +570,21 @@ export class SchedulesService {
     return this.findOne(savedScheduleId);
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId?: string): Promise<void> {
     const schedule = await this.findOne(id);
 
     if (schedule.status === 'APPROVED' || schedule.status === 'ACTIVE') {
       throw new BadRequestException('Nu se pot sterge programele aprobate sau active');
     }
+
+    // Audit log (before deletion)
+    this.auditService.log({
+      userId,
+      action: 'DELETE',
+      entity: 'Schedule',
+      entityId: id,
+      description: `Sters program: ${schedule.name}`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     await this.assignmentRepository.delete({ workScheduleId: id });
     await this.scheduleRepository.delete(id);

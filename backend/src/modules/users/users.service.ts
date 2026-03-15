@@ -20,6 +20,7 @@ import { SupabaseService } from '../../common/supabase/supabase.service';
 import { EmailService } from '../../common/email/email.service';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 import { BCRYPT_SALT_ROUNDS } from '../../common/constants/security';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class UsersService {
@@ -31,6 +32,7 @@ export class UsersService {
     private readonly supabaseService: SupabaseService,
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -58,6 +60,15 @@ export class UsersService {
     });
 
     const savedUser = await this.userRepository.save(user);
+
+    // Audit log
+    this.auditService.log({
+      action: 'CREATE',
+      entity: 'User',
+      entityId: savedUser.id,
+      description: `Creat utilizator: ${savedUser.fullName} (${savedUser.email})`,
+      changes: { role: { old: null, new: savedUser.role }, email: { old: null, new: savedUser.email } },
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     // Send welcome email
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
@@ -134,17 +145,49 @@ export class UsersService {
     if (updateUserDto.fullName) {
       updateUserDto.fullName = removeDiacritics(updateUserDto.fullName);
     }
+
+    // Capture changes for audit
+    const changes: Record<string, { old: any; new: any }> = {};
+    for (const key of Object.keys(updateUserDto)) {
+      if (key !== 'password' && (user as any)[key] !== (updateUserDto as any)[key]) {
+        changes[key] = { old: (user as any)[key], new: (updateUserDto as any)[key] };
+      }
+    }
+
     Object.assign(user, updateUserDto);
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    // Audit log
+    if (Object.keys(changes).length > 0) {
+      this.auditService.log({
+        userId: requestingUser?.id,
+        action: 'UPDATE',
+        entity: 'User',
+        entityId: id,
+        description: `Actualizat utilizator: ${savedUser.fullName}`,
+        changes,
+      }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    }
+
+    return savedUser;
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, requestingUserId?: string): Promise<void> {
     const user = await this.findOne(id);
 
     // MASTER_ADMIN cannot be deleted
     if (user.role === UserRole.MASTER_ADMIN) {
       throw new ForbiddenException('Contul MASTER_ADMIN nu poate fi sters');
     }
+
+    // Audit log (before deletion since userId will be SET NULL)
+    this.auditService.log({
+      userId: requestingUserId,
+      action: 'DELETE',
+      entity: 'User',
+      entityId: id,
+      description: `Sters utilizator: ${user.fullName} (${user.email}, ${user.role})`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     // Sterge din Supabase Auth (permite re-inregistrarea cu acelasi email)
     try {

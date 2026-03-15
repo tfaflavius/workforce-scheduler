@@ -15,6 +15,7 @@ import { Department } from '../departments/entities/department.entity';
 import { EmailService } from '../../common/email/email.service';
 import { MAINTENANCE_DEPARTMENT_NAME, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class ParkingDamagesService {
@@ -33,6 +34,7 @@ export class ParkingDamagesService {
     private readonly departmentRepository: Repository<Department>,
     private readonly notificationsService: NotificationsService,
     private readonly emailService: EmailService,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(userId: string, dto: CreateParkingDamageDto): Promise<ParkingDamage> {
@@ -60,6 +62,15 @@ export class ParkingDamagesService {
 
     // Notifica managerii si adminii
     await this.notifyManagersAndAdmins(fullDamage, 'CREATED', userId);
+
+    // Audit log
+    this.auditService.log({
+      userId,
+      action: 'CREATE',
+      entity: 'ParkingDamage',
+      entityId: fullDamage.id,
+      description: `Raportat prejudiciu parcare: ${fullDamage.damagedEquipment}`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return fullDamage;
   }

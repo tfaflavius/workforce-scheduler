@@ -58,7 +58,16 @@ export const auditApi = createApi({
       query: (limit = 20) => `/audit/recent?limit=${limit}`,
       providesTags: ['AuditLog'],
     }),
+    getAuditStats: builder.query<{
+      total: number;
+      today: number;
+      thisWeek: number;
+      byAction: Record<string, number>;
+    }, void>({
+      query: () => '/audit/stats',
+      providesTags: ['AuditLog'],
+    }),
   }),
 });
 
-export const { useGetAuditLogsQuery, useGetRecentActivityQuery } = auditApi;
+export const { useGetAuditLogsQuery, useGetRecentActivityQuery, useGetAuditStatsQuery } = auditApi;

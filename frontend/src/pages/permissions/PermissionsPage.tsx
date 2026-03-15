@@ -16,6 +16,7 @@ import {
   Notifications as NotificationsIcon,
   Build as BuildIcon,
   Business as BusinessIcon,
+  History as AuditIcon,
 } from '@mui/icons-material';
 import PermissionMatrixTab from './components/PermissionMatrixTab';
 import UsersDepartmentsTab from './components/UsersDepartmentsTab';
@@ -25,6 +26,7 @@ import EmailNotificationRulesTab from './components/EmailNotificationRulesTab';
 import NotificationSettingsTab from './components/NotificationSettingsTab';
 import EquipmentTab from './components/EquipmentTab';
 import ContactFirmsTab from './components/ContactFirmsTab';
+import AuditTab from './components/AuditTab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -81,6 +83,7 @@ const PermissionsPage = () => {
           <Tab icon={<NotificationsIcon />} iconPosition="start" label="Setari Notificari" />
           <Tab icon={<BuildIcon />} iconPosition="start" label="Echipamente Parcari" />
           <Tab icon={<BusinessIcon />} iconPosition="start" label="Firme Contact" />
+          <Tab icon={<AuditIcon />} iconPosition="start" label="Audit & Istoric" />
         </Tabs>
       </Paper>
 
@@ -108,6 +111,9 @@ const PermissionsPage = () => {
       </TabPanel>
       <TabPanel value={tabIndex} index={7}>
         <ContactFirmsTab />
+      </TabPanel>
+      <TabPanel value={tabIndex} index={8}>
+        <AuditTab />
       </TabPanel>
     </Box>
   );

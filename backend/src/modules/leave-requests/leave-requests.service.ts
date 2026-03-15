@@ -20,6 +20,7 @@ import { User } from '../users/entities/user.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { Department } from '../departments/entities/department.entity';
 import { EmailService } from '../../common/email/email.service';
+import { AuditService } from '../audit/audit.service';
 
 // Default days per leave type
 const DEFAULT_LEAVE_DAYS: Record<LeaveType, number> = {
@@ -75,6 +76,7 @@ export class LeaveRequestsService {
     private pushNotificationService: PushNotificationService,
     private emailService: EmailService,
     private dataSource: DataSource,
+    private readonly auditService: AuditService,
   ) {}
 
   async create(userId: string, dto: CreateLeaveRequestDto): Promise<LeaveRequest> {
@@ -189,6 +191,15 @@ export class LeaveRequestsService {
 
     // Notify admins
     await this.notifyAdminsAboutNewRequest(leaveRequest, user);
+
+    // Audit log
+    this.auditService.log({
+      userId,
+      action: 'CREATE',
+      entity: 'LeaveRequest',
+      entityId: leaveRequest.id,
+      description: `Cerere concediu: ${dto.leaveType} (${dto.startDate} - ${dto.endDate})`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return this.findOne(leaveRequest.id);
   }
@@ -402,6 +413,16 @@ export class LeaveRequestsService {
       // Notification failures should not affect the response
     }
 
+    // Audit log
+    this.auditService.log({
+      userId: adminId,
+      action: 'UPDATE',
+      entity: 'LeaveRequest',
+      entityId: id,
+      description: `${dto.status === 'APPROVED' ? 'Aprobata' : 'Respinsa'} cerere concediu`,
+      changes: { status: { old: 'PENDING', new: dto.status } },
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
     return this.findOne(id);
   }
 
@@ -561,6 +582,15 @@ export class LeaveRequestsService {
     } catch (err) {
       this.logger.error('Failed to notify user about leave deletion:', err?.message);
     }
+
+    // Audit log
+    this.auditService.log({
+      userId: adminId,
+      action: 'DELETE',
+      entity: 'LeaveRequest',
+      entityId: id,
+      description: `Stearsa cerere concediu: ${leaveType} (${startDate} - ${endDate})`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
   }
 
   // Private helper methods

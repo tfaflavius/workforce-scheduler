@@ -12,6 +12,7 @@ import { Department } from '../departments/entities/department.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { NotificationSettingCheckService } from '../notifications/notification-setting-check.service';
+import { AuditService } from '../audit/audit.service';
 import { RESOURCE_DEFINITIONS } from './constants/resources';
 
 @Injectable()
@@ -38,6 +39,7 @@ export class PermissionsService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly notificationSettingCheckService: NotificationSettingCheckService,
+    private readonly auditService: AuditService,
   ) {}
 
   // ─── Permission Matrix ───────────────────────────────────────────────
@@ -70,20 +72,35 @@ export class PermissionsService {
     return matrix;
   }
 
-  async bulkUpdate(updates: { id: string; allowed: boolean }[]) {
+  async bulkUpdate(updates: { id: string; allowed: boolean }[], userId?: string) {
     const ids = updates.map((u) => u.id);
     const permissions = await this.permissionRepo.find({ where: { id: In(ids) } });
 
     const permMap = new Map(permissions.map((p) => [p.id, p]));
+    const changesLog: Record<string, { old: any; new: any }> = {};
 
     for (const update of updates) {
       const perm = permMap.get(update.id);
       if (perm) {
+        changesLog[`${perm.resourceKey}.${perm.action}.${perm.role}`] = {
+          old: perm.allowed,
+          new: update.allowed,
+        };
         perm.allowed = update.allowed;
       }
     }
 
     await this.permissionRepo.save(permissions);
+
+    // Audit log
+    this.auditService.log({
+      userId,
+      action: 'UPDATE',
+      entity: 'Permission',
+      description: `Actualizare bulk ${permissions.length} permisiuni`,
+      changes: changesLog,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
     return { updated: permissions.length };
   }
 
@@ -108,11 +125,20 @@ export class PermissionsService {
   async setUserOverrides(
     userId: string,
     overrides: { resourceKey: string; action: string; allowed: boolean }[],
+    adminUserId?: string,
   ) {
     // Remove existing overrides for this user
     await this.overrideRepo.delete({ userId });
 
     if (overrides.length === 0) {
+      // Audit log
+      this.auditService.log({
+        userId: adminUserId,
+        action: 'DELETE',
+        entity: 'UserOverride',
+        entityId: userId,
+        description: `Sterse toate exceptiile pentru user ${userId}`,
+      }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
       return [];
     }
 
@@ -125,7 +151,21 @@ export class PermissionsService {
       }),
     );
 
-    return this.overrideRepo.save(entities);
+    const saved = await this.overrideRepo.save(entities);
+
+    // Audit log
+    this.auditService.log({
+      userId: adminUserId,
+      action: 'UPDATE',
+      entity: 'UserOverride',
+      entityId: userId,
+      description: `Setate ${overrides.length} exceptii pentru user ${userId}`,
+      changes: Object.fromEntries(
+        overrides.map((o) => [`${o.resourceKey}.${o.action}`, { old: null, new: o.allowed }]),
+      ),
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
+    return saved;
   }
 
   async removeUserOverride(id: string) {
@@ -219,26 +259,59 @@ export class PermissionsService {
     });
   }
 
-  async createTaskFlow(data: Partial<TaskFlowRule>) {
+  async createTaskFlow(data: Partial<TaskFlowRule>, userId?: string) {
     const rule = this.taskFlowRepo.create(data);
-    return this.taskFlowRepo.save(rule);
+    const saved = await this.taskFlowRepo.save(rule);
+
+    this.auditService.log({
+      userId,
+      action: 'CREATE',
+      entity: 'TaskFlowRule',
+      entityId: saved.id,
+      description: `Creat flux task: ${saved.taskType}`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
+    return saved;
   }
 
-  async updateTaskFlow(id: string, data: Partial<TaskFlowRule>) {
+  async updateTaskFlow(id: string, data: Partial<TaskFlowRule>, userId?: string) {
     const rule = await this.taskFlowRepo.findOne({ where: { id } });
     if (!rule) {
       throw new NotFoundException(`Regula TaskFlow ${id} nu a fost gasita`);
     }
+    const oldData = { ...rule };
     Object.assign(rule, data);
-    return this.taskFlowRepo.save(rule);
+    const saved = await this.taskFlowRepo.save(rule);
+
+    this.auditService.log({
+      userId,
+      action: 'UPDATE',
+      entity: 'TaskFlowRule',
+      entityId: id,
+      description: `Actualizat flux task: ${saved.taskType}`,
+      changes: Object.fromEntries(
+        Object.keys(data).map((key) => [key, { old: (oldData as any)[key], new: (data as any)[key] }]),
+      ),
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
+    return saved;
   }
 
-  async deleteTaskFlow(id: string) {
+  async deleteTaskFlow(id: string, userId?: string) {
     const rule = await this.taskFlowRepo.findOne({ where: { id } });
     if (!rule) {
       throw new NotFoundException(`Regula TaskFlow ${id} nu a fost gasita`);
     }
     await this.taskFlowRepo.remove(rule);
+
+    this.auditService.log({
+      userId,
+      action: 'DELETE',
+      entity: 'TaskFlowRule',
+      entityId: id,
+      description: `Sters flux task: ${rule.taskType}`,
+    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
     return { deleted: true };
   }
 
