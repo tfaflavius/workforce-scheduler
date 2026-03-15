@@ -170,7 +170,13 @@ const ScheduleDesktopTable: React.FC<ScheduleDesktopTableProps> = ({
   getScheduleStatus,
 }) => {
   return (
-    <TableContainer sx={{ maxHeight: 500, overflowX: 'auto' }}>
+    <TableContainer sx={{
+      maxHeight: { xs: 'calc(100vh - 300px)', sm: 'calc(100vh - 280px)', md: 'calc(100vh - 260px)' },
+      minHeight: { xs: 300, sm: 400 },
+      overflowX: 'auto',
+      overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
+    }}>
       <Table size="small" stickyHeader>
         <TableHead>
           <TableRow>

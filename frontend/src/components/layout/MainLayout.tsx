@@ -1054,7 +1054,7 @@ export const MainLayout = () => {
           width: { xs: '100%', lg: `calc(100% - ${drawerWidth}px)` },
           mt: { xs: '56px', sm: '64px' },
           minHeight: { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 64px)' },
-          overflowX: 'hidden',
+          overflowX: 'clip',
           overflowY: 'auto',
           maxWidth: '100%',
           // Smooth scrolling

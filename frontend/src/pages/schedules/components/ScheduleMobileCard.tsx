@@ -209,6 +209,7 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
                 </Typography>
                 <Box sx={{
                   overflowX: 'auto',
+                  WebkitOverflowScrolling: 'touch',
                   pb: 1,
                   '&::-webkit-scrollbar': { height: 6 },
                   '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 3 },

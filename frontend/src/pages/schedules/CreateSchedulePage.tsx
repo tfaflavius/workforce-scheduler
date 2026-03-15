@@ -1216,7 +1216,13 @@ const CreateSchedulePage: React.FC = () => {
               </Typography>
             </Stack>
 
-            <TableContainer sx={{ maxHeight: 400, overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <TableContainer sx={{
+              maxHeight: { xs: 'calc(100vh - 400px)', sm: 'calc(100vh - 350px)', md: 'calc(100vh - 300px)' },
+              minHeight: { xs: 250, sm: 300 },
+              overflowX: 'auto',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+            }}>
               <Table size="small" stickyHeader>
                 <TableHead>
                   <TableRow>
