@@ -70,8 +70,8 @@ const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
     dayFilter !== 'ALL';
 
   return (
-    <Paper sx={{ p: 2, width: '100%' }}>
-      <Stack spacing={2}>
+    <Paper sx={{ p: { xs: 1.5, sm: 2 }, width: '100%' }}>
+      <Stack spacing={{ xs: 1.5, sm: 2 }}>
         {/* Month Selector */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }}>
           <Stack direction="row" spacing={1} alignItems="center">
@@ -109,7 +109,7 @@ const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
               md: 'repeat(3, 1fr)',
               lg: 'repeat(6, 1fr)',
             },
-            gap: { xs: 1, sm: 1.5, md: 2 },
+            gap: { xs: 0.75, sm: 1.5, md: 2 },
           }}>
             {/* Search */}
             <TextField

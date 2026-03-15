@@ -908,7 +908,7 @@ export const MainLayout = () => {
         <Toolbar
           sx={{
             minHeight: { xs: 56, sm: 64 },
-            px: { xs: 1.5, sm: 2, md: 3 },
+            px: { xs: 1, sm: 1.5, md: 3 },
           }}
         >
           <Tooltip title="Deschide meniul">
@@ -1014,8 +1014,8 @@ export const MainLayout = () => {
             display: { xs: 'block', lg: 'none' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
-              width: { xs: '85vw', sm: drawerWidth },
-              maxWidth: 300,
+              width: { xs: '80vw', sm: drawerWidth },
+              maxWidth: 280,
               borderRight: 'none',
             },
           }}

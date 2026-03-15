@@ -356,6 +356,49 @@ body {
   }
 }
 
+/* ===== SAFE AREA INSETS for notched phones (iPhone X+, Android notch) ===== */
+@supports (padding: env(safe-area-inset-top)) {
+  /* AppBar respects top notch */
+  .MuiAppBar-root {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Fullscreen dialogs respect all safe areas */
+  .MuiDialog-root > .MuiDialog-container > .MuiDialog-paper.MuiDialog-paperFullScreen {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Bottom FAB respects bottom safe area */
+  .MuiFab-root[style*="fixed"],
+  .MuiFab-root {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Main content respects bottom safe area for scroll */
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch-friendly targets on mobile (Apple HIG recommends 44px) */
+@media (max-width: 768px) {
+  .MuiButton-root {
+    min-height: 44px;
+  }
+
+  .MuiIconButton-root {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .MuiListItemButton-root {
+    min-height: 44px;
+  }
+}
+
 /* Touch-friendly scrollbar on mobile */
 @media (max-width: 768px) {
   ::-webkit-scrollbar {
