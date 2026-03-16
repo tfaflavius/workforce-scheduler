@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback, Suspense } from 'react';
+import { useLazyRender } from '../../hooks/useLazyRender';
 import { useNavigate } from 'react-router-dom';
 import { formatRONCompact } from '../../utils/formatters';
 import {
@@ -91,6 +92,9 @@ const AdminDashboard = () => {
   const todayDispatchers = stats?.todayDispatchers || [];
   const recentNotifications = stats?.recentNotifications || [];
   const carStatus = stats?.carStatus;
+
+  // Lazy render for heavy below-fold sections (handicap, charts, parking summary)
+  const [belowFoldRef, shouldRenderBelowFold] = useLazyRender('300px');
 
   // Memoize dispatcher filtering
   const dispatchersDISP = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'DISP'), [todayDispatchers]);
@@ -763,6 +767,11 @@ const AdminDashboard = () => {
 
           <Divider sx={{ my: { xs: 2, sm: 3 } }} />
 
+          {/* Lazy-rendered below-fold sections — only mount when scrolled near viewport */}
+          <Box ref={belowFoldRef}>
+          {shouldRenderBelowFold ? (
+            <>
+
           {/* Parcari Handicap Section */}
           <Fade in={true} timeout={1300}>
             <Box>
@@ -868,6 +877,12 @@ const AdminDashboard = () => {
               </Grid>
             </Box>
           </Fade>
+
+            </>
+          ) : (
+            <Box sx={{ height: 400 }} /> /* Placeholder while below-fold sections load */
+          )}
+          </Box>
         </Grid>
 
         {/* Right Column - Activity Feed + Parking Summary */}

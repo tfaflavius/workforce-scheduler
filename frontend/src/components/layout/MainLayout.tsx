@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useScrollToTop } from '../../hooks/useScrollToTop';
+import { useScrollRestoration } from '../../hooks/useScrollRestoration';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import {
   Box,
@@ -113,8 +113,8 @@ export const MainLayout = () => {
 
   const drawerWidth = getDrawerWidth(isTablet);
 
-  // Scroll to top on route change
-  useScrollToTop();
+  // Smart scroll restoration — saves position on leave, restores on back
+  useScrollRestoration();
 
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
 

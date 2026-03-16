@@ -21,6 +21,12 @@ const routeImports: Record<string, () => Promise<unknown>> = {
   '/profile': () => import('../pages/users/UserProfilePage'),
   '/notifications': () => import('../pages/notifications/NotificationsPage'),
   '/admin/pontaj': () => import('../pages/time-tracking/AdminTimeTrackingPage'),
+  '/admin/permissions': () => import('../pages/permissions/PermissionsPage'),
+  '/procese-verbale': () => import('../pages/departments/ProcesVerbalePage'),
+  '/parcometre': () => import('../pages/departments/ParcometrePage'),
+  '/achizitii': () => import('../pages/departments/AchizitiiPage'),
+  '/incasari-cheltuieli': () => import('../pages/departments/IncasariCheltuieliPage'),
+  '/control-sesizari': () => import('../pages/parking/ControlSesizariPage'),
 };
 
 const preloadedRoutes = new Set<string>();

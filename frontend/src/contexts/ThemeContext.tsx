@@ -188,6 +188,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 10,
                 padding: '10px 20px',
                 fontSize: 'clamp(0.813rem, 1.5vw, 0.938rem)',
+                minHeight: 44, // Apple HIG: 44px minimum touch target
                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 '&:hover': {
                   transform: 'translateY(-1px)',
@@ -245,6 +246,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 16,
                 overflow: 'hidden',
                 maxWidth: '100%',
+                // CSS containment — tells browser card layout is independent, reduces reflows
+                contain: 'content',
                 border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.06)',
                 boxShadow: mode === 'light'
                   ? '0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03)'
@@ -339,12 +342,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiTableCell: {
             styleOverrides: {
               root: {
-                padding: 'clamp(6px, 1.5vw, 16px)',
+                padding: 'clamp(8px, 1.5vw, 16px)',
                 fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
                 overflowWrap: 'break-word' as const,
+                // Ensure minimum row height for touch on mobile
+                minHeight: 48,
               },
               sizeSmall: {
-                padding: 'clamp(4px, 1vw, 10px)',
+                padding: 'clamp(6px, 1vw, 10px)',
               },
               head: {
                 fontWeight: 600,
@@ -359,13 +364,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiTableRow: {
             styleOverrides: {
               root: {
-                transition: 'background-color 0.2s ease',
+                // CSS containment — row layout doesn't affect other rows
+                contain: 'layout style',
+                transition: 'background-color 0.15s ease',
                 '&:nth-of-type(even)': {
                   backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.015)' : 'rgba(255, 255, 255, 0.015)',
                 },
                 '&:hover': {
                   backgroundColor: mode === 'light' ? '#f8fafc' : '#1e293b',
                 },
+                // Better active state feedback for touch on mobile
+                '&:active': {
+                  backgroundColor: mode === 'light' ? 'rgba(37, 99, 235, 0.04)' : 'rgba(96, 165, 250, 0.06)',
+                },
+                // Disable tap highlight on mobile for custom feedback
+                WebkitTapHighlightColor: 'transparent',
               },
             },
           },
@@ -396,11 +409,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiIconButton: {
             styleOverrides: {
               root: {
+                minWidth: 44, // Apple HIG: 44px minimum touch target
+                minHeight: 44,
                 transition: 'transform 0.2s ease, background-color 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.1)',
                   backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)',
                 },
+              },
+              sizeSmall: {
+                minWidth: 36,
+                minHeight: 36,
               },
             },
           },
@@ -409,7 +428,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 borderRadius: 12,
                 borderLeft: '4px solid',
-                backdropFilter: 'blur(8px)',
+                // Removed backdropFilter: blur() — expensive on mobile GPU
               },
             },
           },
@@ -419,8 +438,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 10,
                 fontSize: '0.813rem',
                 padding: '8px 14px',
-                backdropFilter: 'blur(12px)',
-                backgroundColor: mode === 'light' ? 'rgba(15, 23, 42, 0.9)' : 'rgba(30, 41, 59, 0.95)',
+                // Solid bg instead of backdropFilter: blur() — saves GPU on mobile
+                backgroundColor: mode === 'light' ? '#0f172a' : '#334155',
                 boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
                 border: mode === 'dark' ? '1px solid rgba(255, 255, 255, 0.06)' : 'none',
               },
@@ -429,11 +448,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
             },
           },
+          MuiMenuItem: {
+            styleOverrides: {
+              root: {
+                minHeight: 44, // Apple HIG touch target
+                fontSize: 'clamp(0.85rem, 1.5vw, 0.938rem)',
+              },
+            },
+          },
           MuiMenu: {
             styleOverrides: {
               paper: {
                 borderRadius: 12,
-                backdropFilter: 'blur(12px)',
+                // Removed backdropFilter: blur() — expensive on mobile GPU
                 border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
                 boxShadow: mode === 'light'
                   ? '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)'
@@ -441,6 +468,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 ...(mode === 'dark' && {
                   backgroundColor: 'rgba(30, 41, 59, 0.9)',
                 }),
+              },
+            },
+          },
+          MuiListItemButton: {
+            styleOverrides: {
+              root: {
+                minHeight: 44, // Apple HIG touch target
+                WebkitTapHighlightColor: 'transparent',
               },
             },
           },
