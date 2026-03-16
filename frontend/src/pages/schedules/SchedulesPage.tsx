@@ -48,7 +48,7 @@ import type {
 } from './components';
 import type { HighlightScheduleState } from '../../types/navigation.types';
 import type { CalendarDay } from './components/scheduleHelpers';
-import type { User } from '../../types/user.types';
+import type { User } from '../../store/api/users.api';
 
 // Virtualized mobile card list — only renders visible cards
 const VirtualizedMobileCards = React.memo(({
