@@ -187,6 +187,8 @@ const EmployeeDashboard = () => {
   const lastCaptureTimeRef = useRef<number>(0);
   const isCapturingRef = useRef<boolean>(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const gpsWorkerRef = useRef<Worker | null>(null);
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Memoized navigate callbacks for StatCard (prevents re-creating on every render)
   const goToMySchedule = useCallback(() => navigate('/my-schedule'), [navigate]);
@@ -413,14 +415,96 @@ const EmployeeDashboard = () => {
     };
   }, [activeTimer]);
 
+  // === Web Worker: background timer that is NOT throttled by browser ===
+  useEffect(() => {
+    if (activeTimer && !activeTimer.endTime) {
+      try {
+        const worker = new Worker('/gps-worker.js');
+        gpsWorkerRef.current = worker;
+
+        worker.onmessage = (event) => {
+          if (event.data.type === 'TICK') {
+            // Worker tick received — check if GPS capture is needed
+            const elapsed = Date.now() - lastCaptureTimeRef.current;
+            if (lastCaptureTimeRef.current > 0 && elapsed >= LOCATION_TRACKING_INTERVAL_MS) {
+              console.log('[GPS-Worker] Tick triggered GPS capture');
+              captureLocation(activeTimer.id, true);
+            }
+          }
+        };
+
+        worker.postMessage({ type: 'START', interval: 30000 });
+        console.log('[GPS] Web Worker started for background timer');
+      } catch (err) {
+        console.warn('[GPS] Web Worker not available:', err);
+      }
+
+      return () => {
+        if (gpsWorkerRef.current) {
+          gpsWorkerRef.current.postMessage({ type: 'STOP' });
+          gpsWorkerRef.current.terminate();
+          gpsWorkerRef.current = null;
+        }
+      };
+    } else {
+      if (gpsWorkerRef.current) {
+        gpsWorkerRef.current.postMessage({ type: 'STOP' });
+        gpsWorkerRef.current.terminate();
+        gpsWorkerRef.current = null;
+      }
+    }
+  }, [activeTimer, captureLocation]);
+
+  // === Silent Audio: keeps iOS Safari alive in background ===
+  // iOS Safari suspends tabs in background UNLESS audio is playing.
+  // We loop a tiny silent WAV to trick it into keeping JS alive.
+  useEffect(() => {
+    if (activeTimer && !activeTimer.endTime) {
+      try {
+        const audio = new Audio('/silence.wav');
+        audio.loop = true;
+        audio.volume = 0.01; // Nearly silent
+        // Must be triggered by user interaction context — we rely on
+        // the fact that starting the timer was a user click
+        const playPromise = audio.play();
+        if (playPromise) {
+          playPromise
+            .then(() => {
+              console.log('[GPS] Silent audio playing - iOS will stay alive');
+              silentAudioRef.current = audio;
+            })
+            .catch((err) => {
+              console.log('[GPS] Silent audio autoplay blocked (expected on some browsers):', err.message);
+            });
+        }
+      } catch (err) {
+        console.warn('[GPS] Silent audio not available:', err);
+      }
+
+      return () => {
+        if (silentAudioRef.current) {
+          silentAudioRef.current.pause();
+          silentAudioRef.current.src = '';
+          silentAudioRef.current = null;
+        }
+      };
+    } else {
+      if (silentAudioRef.current) {
+        silentAudioRef.current.pause();
+        silentAudioRef.current.src = '';
+        silentAudioRef.current = null;
+      }
+    }
+  }, [activeTimer]);
+
   // === Periodic location tracking - robust for mobile browsers ===
-  // Mobile browsers KILL setInterval when screen is off or app is in background.
-  // Strategy:
-  //   1. setInterval every 30s as heartbeat (works when screen is on)
-  //   2. visibilitychange + focus + pageshow events: capture IMMEDIATELY when user returns
-  //   3. Main GPS interval: 10 minutes
-  //   4. On resume from background, check how long we were away and catch up
-  //   5. Register periodic-sync for true background GPS (when supported)
+  // Multiple layers of protection:
+  //   1. Web Worker tick every 30s (NOT throttled in background)
+  //   2. setInterval every 30s as fallback heartbeat
+  //   3. visibilitychange + focus + pageshow + online events
+  //   4. Silent audio keeps iOS Safari alive
+  //   5. Wake Lock prevents device sleep
+  //   6. Periodic Background Sync for true background (Chrome Android)
   useEffect(() => {
     if (activeTimer && !activeTimer.endTime) {
       const shouldCapture = (minInterval: number = LOCATION_TRACKING_INTERVAL_MS) => {
