@@ -174,6 +174,38 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   );
 });
 
+// Handle Periodic Background Sync (Chrome Android - true background GPS)
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'gps-capture') {
+    console.log('[SW] Periodic sync triggered for GPS capture');
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(allClients => {
+          if (allClients.length > 0) {
+            // Tell the open client to capture GPS
+            allClients[0].postMessage({ type: 'GPS_CAPTURE_REQUEST' });
+            console.log('[SW] Periodic sync: sent GPS request to client');
+          }
+        })
+    );
+  }
+});
+
+// Handle Background Sync (one-shot, for retrying failed GPS sends)
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'gps-retry') {
+    console.log('[SW] Background sync: retrying GPS capture');
+    event.waitUntil(
+      clients.matchAll({ type: 'window', includeUncontrolled: true })
+        .then(allClients => {
+          if (allClients.length > 0) {
+            allClients[0].postMessage({ type: 'GPS_CAPTURE_REQUEST' });
+          }
+        })
+    );
+  }
+});
+
 // Keep service worker active
 self.addEventListener('install', (event) => {
   console.log('[SW] Push service worker installing...');

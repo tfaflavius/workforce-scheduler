@@ -186,6 +186,7 @@ const EmployeeDashboard = () => {
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastCaptureTimeRef = useRef<number>(0);
   const isCapturingRef = useRef<boolean>(false);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
   // Memoized navigate callbacks for StatCard (prevents re-creating on every render)
   const goToMySchedule = useCallback(() => navigate('/my-schedule'), [navigate]);
@@ -368,13 +369,58 @@ const EmployeeDashboard = () => {
     }
   }, [activeTimer]);
 
-  // Periodic location tracking - robust for mobile browsers
+  // === Wake Lock: prevent device from sleeping while shift is active ===
+  useEffect(() => {
+    if (!activeTimer || activeTimer.endTime) {
+      // Release wake lock when timer stops
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+      return;
+    }
+
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLockRef.current = await navigator.wakeLock.request('screen');
+          console.log('[GPS] Wake Lock acquired - screen will stay on');
+          wakeLockRef.current.addEventListener('release', () => {
+            console.log('[GPS] Wake Lock released');
+          });
+        }
+      } catch (err) {
+        console.warn('[GPS] Wake Lock failed:', err);
+      }
+    };
+
+    requestWakeLock();
+
+    // Re-acquire wake lock when page becomes visible again (mobile resumes)
+    const handleVisibilityForWakeLock = () => {
+      if (!document.hidden && activeTimer && !activeTimer.endTime) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityForWakeLock);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityForWakeLock);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
+  }, [activeTimer]);
+
+  // === Periodic location tracking - robust for mobile browsers ===
   // Mobile browsers KILL setInterval when screen is off or app is in background.
   // Strategy:
-  //   1. setInterval every 60s as a best-effort timer (works when screen is on)
-  //   2. visibilitychange + focus events: capture IMMEDIATELY when user returns
-  //      (with min 2-minute gap to avoid spam)
-  //   3. Main interval: 10 minutes for better route tracking
+  //   1. setInterval every 30s as heartbeat (works when screen is on)
+  //   2. visibilitychange + focus + pageshow events: capture IMMEDIATELY when user returns
+  //   3. Main GPS interval: 10 minutes
+  //   4. On resume from background, check how long we were away and catch up
+  //   5. Register periodic-sync for true background GPS (when supported)
   useEffect(() => {
     if (activeTimer && !activeTimer.endTime) {
       const shouldCapture = (minInterval: number = LOCATION_TRACKING_INTERVAL_MS) => {
@@ -386,7 +432,7 @@ const EmployeeDashboard = () => {
         captureLocation(activeTimer.id, true);
       };
 
-      // Regular interval check (every 60s, trigger if 10 min elapsed)
+      // Regular heartbeat check (every 30s, trigger if 10 min elapsed)
       const checkInterval = () => {
         if (shouldCapture(LOCATION_TRACKING_INTERVAL_MS)) {
           doCapture();
@@ -410,27 +456,66 @@ const EmployeeDashboard = () => {
         checkResume();
       }
 
-      // Poll every 60s
-      locationIntervalRef.current = setInterval(checkInterval, 60_000);
+      // Heartbeat every 30s (more frequent = catches up faster after mobile resume)
+      locationIntervalRef.current = setInterval(checkInterval, 30_000);
 
-      // Visibility change (mobile: user opens app again)
+      // Visibility change (mobile: user opens app again after lock screen)
       const handleVisibilityChange = () => {
         if (!document.hidden) {
+          console.log('[GPS] Page became visible, checking for missed captures');
           checkResume();
         }
       };
+
       // Focus (desktop: user clicks window)
       const handleFocus = () => {
         checkResume();
       };
 
+      // pageshow fires when navigating back via bfcache (mobile back button)
+      const handlePageShow = (e: PageTransitionEvent) => {
+        if (e.persisted) {
+          console.log('[GPS] Page restored from bfcache, checking for missed captures');
+          checkResume();
+        }
+      };
+
+      // online: device reconnects after losing network
+      const handleOnline = () => {
+        console.log('[GPS] Device came online, checking for missed captures');
+        checkResume();
+      };
+
       document.addEventListener('visibilitychange', handleVisibilityChange);
       window.addEventListener('focus', handleFocus);
+      window.addEventListener('pageshow', handlePageShow);
+      window.addEventListener('online', handleOnline);
+
+      // Register Periodic Background Sync (Chrome Android)
+      if ('serviceWorker' in navigator && 'periodicSync' in (navigator.serviceWorker.ready || {})) {
+        navigator.serviceWorker.ready.then(async (registration) => {
+          try {
+            // @ts-expect-error - periodicSync not yet in TS types
+            const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+            if (status.state === 'granted') {
+              // @ts-expect-error - periodicSync not yet in TS types
+              await registration.periodicSync.register('gps-capture', {
+                minInterval: LOCATION_TRACKING_INTERVAL_MS, // 10 min
+              });
+              console.log('[GPS] Periodic Background Sync registered');
+            }
+          } catch (err) {
+            console.log('[GPS] Periodic Background Sync not available:', err);
+          }
+        });
+      }
 
       return () => {
         if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         window.removeEventListener('focus', handleFocus);
+        window.removeEventListener('pageshow', handlePageShow);
+        window.removeEventListener('online', handleOnline);
       };
     } else {
       if (locationIntervalRef.current) clearInterval(locationIntervalRef.current);
