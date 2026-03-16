@@ -227,6 +227,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 overflowWrap: 'anywhere' as const,
+                wordBreak: 'break-word' as const,
               },
             },
           },

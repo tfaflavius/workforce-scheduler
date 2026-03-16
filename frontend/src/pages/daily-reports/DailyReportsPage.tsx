@@ -441,7 +441,10 @@ const DailyReportsPage: React.FC = () => {
               bgcolor: 'grey.50',
               borderRadius: 2,
               whiteSpace: 'pre-line',
+              wordBreak: 'break-word',
               mb: 2,
+              overflow: 'auto',
+              maxHeight: { xs: '40vh', sm: '50vh' },
             }}
           >
             <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
@@ -547,7 +550,10 @@ const DailyReportsPage: React.FC = () => {
                     bgcolor: 'grey.50',
                     borderRadius: 2,
                     whiteSpace: 'pre-line',
+                    wordBreak: 'break-word',
                     mb: 2,
+                    overflow: 'auto',
+                    maxHeight: { xs: '40vh', sm: '50vh' },
                   }}
                 >
                   <Typography variant="body1">{todayReport?.content}</Typography>
@@ -686,9 +692,12 @@ const DailyReportsPage: React.FC = () => {
                       sx={{
                         whiteSpace: 'pre-line',
                         color: 'text.secondary',
-                        maxHeight: 100,
+                        maxHeight: 80,
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 4,
+                        WebkitBoxOrient: 'vertical',
+                        wordBreak: 'break-word',
                       }}
                     >
                       {report.content}
@@ -708,7 +717,7 @@ const DailyReportsPage: React.FC = () => {
                           Comentariu Admin
                           {report.adminCommentedBy ? ` (${report.adminCommentedBy.fullName})` : ''}:
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#78350f', mt: 0.3 }}>
+                        <Typography variant="body2" sx={{ color: '#78350f', mt: 0.3, wordBreak: 'break-word' }}>
                           {report.adminComment}
                         </Typography>
                       </Paper>
@@ -1085,9 +1094,10 @@ const DailyReportsPage: React.FC = () => {
                           </Avatar>
                         }
                         label={
-                          <Box>
+                          <Box sx={{ maxWidth: 150, overflow: 'hidden' }}>
                             <Typography
                               component="span"
+                              noWrap
                               sx={{ fontSize: '0.75rem', fontWeight: 600, display: 'block', lineHeight: 1.3 }}
                             >
                               {u.fullName}
@@ -1095,6 +1105,7 @@ const DailyReportsPage: React.FC = () => {
                             {u.department?.name && (
                               <Typography
                                 component="span"
+                                noWrap
                                 sx={{ fontSize: '0.6rem', color: 'text.secondary', display: 'block', lineHeight: 1.2 }}
                               >
                                 {u.department.name}
@@ -1171,10 +1182,10 @@ const DailyReportsPage: React.FC = () => {
                         .toUpperCase() || '?'}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
                         {report.user?.fullName || 'Necunoscut'}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block' }}>
                         {report.user?.department?.name || ''}
                       </Typography>
                     </Box>
@@ -1188,6 +1199,12 @@ const DailyReportsPage: React.FC = () => {
                       whiteSpace: 'pre-line',
                       color: 'text.primary',
                       mb: 1.5,
+                      maxHeight: 120,
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 6,
+                      WebkitBoxOrient: 'vertical',
+                      wordBreak: 'break-word',
                     }}
                   >
                     {report.content}
@@ -1208,7 +1225,7 @@ const DailyReportsPage: React.FC = () => {
                         Comentariu Admin
                         {report.adminCommentedBy ? ` (${report.adminCommentedBy.fullName})` : ''}:
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#78350f', mt: 0.3 }}>
+                      <Typography variant="body2" sx={{ color: '#78350f', mt: 0.3, wordBreak: 'break-word' }}>
                         {report.adminComment}
                       </Typography>
                     </Paper>

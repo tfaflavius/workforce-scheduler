@@ -1104,12 +1104,11 @@ export const MainLayout = () => {
         sx={{
           flexGrow: 1,
           p: { xs: 1.5, sm: 2, md: 3 },
-          pb: { xs: 'calc(12px + 56px + env(safe-area-inset-bottom))', lg: 3 }, // Extra padding for bottom nav on mobile
+          pb: { xs: 'calc(24px + 56px + env(safe-area-inset-bottom))', lg: 3 }, // Extra padding for bottom nav on mobile
           width: { xs: '100%', lg: `calc(100% - ${drawerWidth}px)` },
           mt: { xs: '56px', sm: '64px' },
-          minHeight: { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 64px)' },
+          minHeight: { xs: 'calc(100dvh - 56px)', sm: 'calc(100dvh - 64px)' },
           overflowX: 'clip',
-          overflowY: 'auto',
           maxWidth: '100%',
           // Smooth scrolling
           scrollBehavior: 'smooth',
