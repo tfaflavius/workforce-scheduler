@@ -183,7 +183,8 @@ export function ResponsiveTable<T extends Record<string, any> = Record<string, a
             } : undefined}
             sx={{
               cursor: onRowClick ? 'pointer' : 'default',
-              transition: 'all 0.2s ease',
+              borderLeft: `3px solid ${alpha(theme.palette.primary.main, 0.5)}`,
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
               '&:hover': onRowClick ? { boxShadow: theme.shadows[4], transform: 'translateY(-1px)' } : {},
               '&:active': onRowClick ? { transform: 'scale(0.99)' } : {},
             }}
@@ -215,8 +216,9 @@ export function ResponsiveTable<T extends Record<string, any> = Record<string, a
               )}
               {/* Main fields */}
               <Stack spacing={0.75}>
-                {mobileMainColumns.map((col) => {
+                {mobileMainColumns.map((col, colIdx) => {
                   const val = col.render ? col.render(row[col.key], row) : row[col.key];
+                  const isFirst = colIdx === 0;
                   return (
                     <Stack key={col.key} direction="row" justifyContent="space-between" alignItems="center">
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>
@@ -224,7 +226,15 @@ export function ResponsiveTable<T extends Record<string, any> = Record<string, a
                       </Typography>
                       <Box sx={{ maxWidth: '60%', textAlign: 'right' }}>
                         {typeof val === 'object' ? val : (
-                          <Typography variant="body2" sx={{ fontSize: '0.8rem' }} noWrap>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontSize: isFirst ? '0.85rem' : '0.8rem',
+                              fontWeight: isFirst ? 600 : 400,
+                              color: isFirst ? 'text.primary' : 'text.secondary',
+                            }}
+                            noWrap
+                          >
                             {val ?? '-'}
                           </Typography>
                         )}

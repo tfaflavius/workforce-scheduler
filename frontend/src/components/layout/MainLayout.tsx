@@ -68,7 +68,9 @@ import GlobalSearch from '../common/GlobalSearch';
 import { UserAvatar } from '../common/UserAvatar';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { useThemeMode } from '../../contexts/ThemeContext';
+import MobileBottomNav from './MobileBottomNav';
 import {
   MAINTENANCE_DEPARTMENT_NAME,
   HANDICAP_DEPARTMENT_NAME,
@@ -149,6 +151,21 @@ export const MainLayout = () => {
   const isAdmin = checkIsAdminOrAbove(user?.role);
   const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
   const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdmin });
+  const { data: dashboardStats } = useGetDashboardStatsQuery(undefined, {
+    skip: !isAdmin,
+    pollingInterval: 60000, // Refresh every 60s
+  });
+
+  // Badge counts for nav items (admin only)
+  const navBadges = useMemo(() => {
+    if (!dashboardStats) return {};
+    return {
+      '/admin/shift-swaps': dashboardStats.shiftSwaps?.pendingAdmin || 0,
+      '/admin/leave-requests': dashboardStats.leaveRequests?.pending || 0,
+      '/admin/edit-requests': dashboardStats.parking?.pendingEditRequests || 0,
+      '/schedules': dashboardStats.schedules?.pending || 0,
+    };
+  }, [dashboardStats]);
 
   // Count users per department (memoized)
   const deptUserCounts = useMemo(() =>
@@ -677,6 +694,21 @@ export const MainLayout = () => {
                                     color: isActive ? group.color : 'text.primary',
                                   }}
                                 />
+                                {navBadges[item.path] > 0 && (
+                                  <Chip
+                                    label={navBadges[item.path]}
+                                    size="small"
+                                    color="error"
+                                    sx={{
+                                      height: 20,
+                                      minWidth: 24,
+                                      fontSize: '0.65rem',
+                                      fontWeight: 700,
+                                      '& .MuiChip-label': { px: 0.5 },
+                                      boxShadow: `0 0 8px ${alpha(theme.palette.error.main, 0.3)}`,
+                                    }}
+                                  />
+                                )}
                               </ListItemButton>
                             </ListItem>
                           </Fade>
@@ -1050,7 +1082,8 @@ export const MainLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 0.75, sm: 1.5, md: 3 },
+          p: { xs: 1.5, sm: 2, md: 3 },
+          pb: { xs: 'calc(12px + 56px + env(safe-area-inset-bottom))', lg: 3 }, // Extra padding for bottom nav on mobile
           width: { xs: '100%', lg: `calc(100% - ${drawerWidth}px)` },
           mt: { xs: '56px', sm: '64px' },
           minHeight: { xs: 'calc(100vh - 56px)', sm: 'calc(100vh - 64px)' },
@@ -1075,6 +1108,9 @@ export const MainLayout = () => {
         </Fade>
       </Box>
 
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
+
       {/* Back-to-top FAB */}
       <Zoom in={showScrollTop}>
         <Fab
@@ -1083,8 +1119,8 @@ export const MainLayout = () => {
           onClick={scrollToTop}
           sx={{
             position: 'fixed',
-            bottom: { xs: 24, sm: 32 },
-            right: { xs: 24, sm: 32 },
+            bottom: { xs: 80, sm: 88, lg: 32 }, // Above bottom nav on mobile
+            right: { xs: 16, sm: 24, lg: 32 },
             bgcolor: alpha(theme.palette.primary.main, 0.9),
             color: 'white',
             boxShadow: `0 4px 14px ${alpha(theme.palette.primary.main, 0.35)}`,
