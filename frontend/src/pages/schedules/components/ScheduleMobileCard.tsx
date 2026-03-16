@@ -25,7 +25,7 @@ import { getExistingShiftInfo } from './scheduleHelpers';
 
 export interface ScheduleMobileCardProps {
   targetUser: User;
-  index: number;
+  index?: number;
   userAssignments: Record<string, AssignmentInfo[]>;
   scheduleStatus?: string;
   canEdit: boolean;
@@ -85,7 +85,6 @@ const renderStatusChip = (status?: string) => {
 
 const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
   targetUser,
-  index: _index,
   userAssignments,
   scheduleStatus,
   canEdit,

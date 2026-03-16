@@ -188,8 +188,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 10,
                 padding: '10px 20px',
                 fontSize: 'clamp(0.813rem, 1.5vw, 0.938rem)',
-                transition: 'all 0.2s ease-in-out',
-                willChange: 'transform',
+                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 '&:hover': {
                   transform: 'translateY(-1px)',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
@@ -250,15 +249,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 boxShadow: mode === 'light'
                   ? '0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.03)'
                   : '0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
-                transition: 'all 0.2s ease-in-out',
+                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 ...(mode === 'dark' && {
-                  backdropFilter: 'blur(12px)',
-                  backgroundColor: 'rgba(30, 41, 59, 0.8)',
+                  backgroundColor: 'rgba(30, 41, 59, 0.85)',
                 }),
                 // Hover lift only on interactive cards (with onClick or CardActionArea)
                 '&[role="button"], &:has(.MuiCardActionArea-root)': {
                   cursor: 'pointer',
-                  willChange: 'transform',
                   '&:hover': {
                     transform: 'translateY(-2px)',
                     boxShadow: mode === 'light'
@@ -295,12 +292,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 8,
                 fontWeight: 500,
                 maxWidth: '100%',
-                backdropFilter: 'blur(4px)',
                 border: mode === 'light' ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'scale(1.02)',
-                },
               },
             },
           },
@@ -310,7 +302,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 10,
                   backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
-                  transition: 'all 0.2s ease',
+                  transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
                   '&:hover': {
                     backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
@@ -385,7 +377,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 fontSize: 'clamp(0.8rem, 1.5vw, 0.938rem)',
                 minHeight: 44,
                 padding: 'clamp(6px, 1vw, 12px) clamp(8px, 1.5vw, 24px)',
-                transition: 'all 0.2s ease',
+                transition: 'color 0.2s ease, background-color 0.2s ease',
                 '&.Mui-selected': {
                   fontWeight: 600,
                 },
@@ -404,8 +396,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiIconButton: {
             styleOverrides: {
               root: {
-                transition: 'all 0.2s ease',
-                willChange: 'transform',
+                transition: 'transform 0.2s ease, background-color 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.1)',
                   backgroundColor: mode === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)',
@@ -476,8 +467,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
-                transition: 'all 0.2s ease',
-                willChange: 'transform',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.05)',
                   boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',

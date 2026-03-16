@@ -90,7 +90,6 @@ export default defineConfig({
           'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
           'vendor-charts': ['chart.js', 'react-chartjs-2'],
           'vendor-maps': ['leaflet', 'react-leaflet'],
-          'vendor-calendar': ['@fullcalendar/core', '@fullcalendar/react', '@fullcalendar/daygrid', '@fullcalendar/interaction'],
           'vendor-pdf': ['jspdf', 'jspdf-autotable'],
         },
       },

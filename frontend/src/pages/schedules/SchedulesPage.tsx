@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   Box,
@@ -46,6 +47,90 @@ import type {
   AssignmentInfo,
 } from './components';
 import type { HighlightScheduleState } from '../../types/navigation.types';
+import type { CalendarDay } from './components/scheduleHelpers';
+import type { User } from '../../types';
+
+// Virtualized mobile card list — only renders visible cards
+const VirtualizedMobileCards = React.memo(({
+  filteredUsers,
+  allUsersAssignments,
+  EMPTY_ASSIGNMENTS,
+  getScheduleStatus,
+  canEditSchedule,
+  calendarDays,
+  isMobile,
+  isLandscape,
+  onEditClick,
+}: {
+  filteredUsers: User[];
+  allUsersAssignments: Record<string, { assignments: Record<string, AssignmentInfo[]>; status?: string }>;
+  EMPTY_ASSIGNMENTS: Record<string, never>;
+  getScheduleStatus: (userId: string) => string | undefined;
+  canEditSchedule: (targetUser: User) => boolean;
+  calendarDays: CalendarDay[];
+  isMobile: boolean;
+  isLandscape: boolean;
+  onEditClick: (targetUser: User) => void;
+}) => {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: filteredUsers.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => isMobile ? 180 : 200,
+    overscan: 3,
+  });
+
+  return (
+    <Box
+      ref={parentRef}
+      sx={{
+        height: 'calc(100vh - 350px)',
+        minHeight: 300,
+        overflow: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        touchAction: 'pan-y',
+      }}
+    >
+      <Box
+        sx={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {rowVirtualizer.getVirtualItems().map((virtualItem) => {
+          const targetUser = filteredUsers[virtualItem.index];
+          return (
+            <Box
+              key={targetUser.id}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualItem.start}px)`,
+                paddingBottom: '8px',
+              }}
+              ref={rowVirtualizer.measureElement}
+              data-index={virtualItem.index}
+            >
+              <ScheduleMobileCard
+                targetUser={targetUser}
+                userAssignments={allUsersAssignments[targetUser.id]?.assignments || EMPTY_ASSIGNMENTS}
+                scheduleStatus={getScheduleStatus(targetUser.id)}
+                canEdit={canEditSchedule(targetUser)}
+                calendarDays={calendarDays}
+                isMobile={isMobile}
+                isLandscape={isLandscape}
+                onEditClick={onEditClick}
+              />
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+});
 
 const SchedulesPage: React.FC = () => {
   const theme = useTheme();
@@ -337,7 +422,7 @@ const SchedulesPage: React.FC = () => {
   };
 
   // Check if user can edit the schedule
-  const canEditSchedule = (targetUser: any) => {
+  const canEditSchedule = useCallback((targetUser: any) => {
     if (isAdmin) {
       return true;
     }
@@ -345,13 +430,13 @@ const SchedulesPage: React.FC = () => {
       return true;
     }
     return false;
-  };
+  }, [isAdmin, isManager]);
 
   // Handler for edit click
-  const handleEditClick = (targetUser: any) => {
+  const handleEditClick = useCallback((targetUser: any) => {
     setSelectedUser(targetUser);
     setEditDialogOpen(true);
-  };
+  }, []);
 
   // Navigate to edit page
   const handleConfirmEdit = () => {
@@ -362,9 +447,9 @@ const SchedulesPage: React.FC = () => {
   };
 
   // Get schedule status for a user
-  const getScheduleStatus = (userId: string) => {
+  const getScheduleStatus = useCallback((userId: string) => {
     return allUsersAssignments[userId]?.status;
-  };
+  }, [allUsersAssignments]);
 
   // Calculate stats for header
   const pendingCount = useMemo(() => schedules.filter(s => s.status === 'PENDING_APPROVAL').length, [schedules]);
@@ -373,6 +458,15 @@ const SchedulesPage: React.FC = () => {
 
   // Check if any filters are active
   const hasActiveFilters = searchQuery !== '' || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL';
+
+  // Toggle legend
+  const handleToggleLegend = useCallback(() => setLegendExpanded(prev => !prev), []);
+
+  // Close edit dialog
+  const handleCloseEditDialog = useCallback(() => setEditDialogOpen(false), []);
+
+  // Stable empty assignments reference
+  const EMPTY_ASSIGNMENTS = useMemo(() => ({}), []);
 
   // Handle reset filters
   const handleResetFilters = useCallback(() => {
@@ -486,7 +580,7 @@ const SchedulesPage: React.FC = () => {
         <ScheduleLegend
           isMobile={isMobile}
           legendExpanded={legendExpanded}
-          onToggleLegend={() => setLegendExpanded(!legendExpanded)}
+          onToggleLegend={handleToggleLegend}
         />
 
         {/* Loading/Error states */}
@@ -515,24 +609,19 @@ const SchedulesPage: React.FC = () => {
 
               {filteredUsers.length > 0 ? (
                 <>
-                  {/* Mobile/Tablet View - Card-based layout */}
+                  {/* Mobile/Tablet View - Virtualized card layout */}
                   {isTablet ? (
-                    <Stack spacing={2} sx={{ touchAction: 'pan-y' }}>
-                      {filteredUsers.map((targetUser, index) => (
-                        <ScheduleMobileCard
-                          key={targetUser.id}
-                          targetUser={targetUser}
-                          index={index}
-                          userAssignments={allUsersAssignments[targetUser.id]?.assignments || {}}
-                          scheduleStatus={getScheduleStatus(targetUser.id)}
-                          canEdit={canEditSchedule(targetUser)}
-                          calendarDays={calendarDays}
-                          isMobile={isMobile}
-                          isLandscape={isLandscape}
-                          onEditClick={handleEditClick}
-                        />
-                      ))}
-                    </Stack>
+                    <VirtualizedMobileCards
+                      filteredUsers={filteredUsers}
+                      allUsersAssignments={allUsersAssignments}
+                      EMPTY_ASSIGNMENTS={EMPTY_ASSIGNMENTS}
+                      getScheduleStatus={getScheduleStatus}
+                      canEditSchedule={canEditSchedule}
+                      calendarDays={calendarDays}
+                      isMobile={isMobile}
+                      isLandscape={isLandscape}
+                      onEditClick={handleEditClick}
+                    />
                   ) : (
                     /* Desktop View - Table layout */
                     <ScheduleDesktopTable
@@ -564,7 +653,7 @@ const SchedulesPage: React.FC = () => {
       {/* Edit confirmation dialog */}
       <ScheduleEditDialog
         open={editDialogOpen}
-        onClose={() => setEditDialogOpen(false)}
+        onClose={handleCloseEditDialog}
         onConfirm={handleConfirmEdit}
         selectedUser={selectedUser}
         selectedMonth={selectedMonth}
