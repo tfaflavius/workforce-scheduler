@@ -157,7 +157,7 @@ export const MainLayout = () => {
   });
 
   // Badge counts for nav items (admin only)
-  const navBadges = useMemo(() => {
+  const navBadges = useMemo((): Record<string, number> => {
     if (!dashboardStats) return {};
     return {
       '/admin/shift-swaps': dashboardStats.shiftSwaps?.pendingAdmin || 0,
