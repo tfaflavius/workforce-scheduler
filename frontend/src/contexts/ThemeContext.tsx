@@ -171,14 +171,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
               html: {
                 scrollBehavior: 'smooth',
+                // Prevent horizontal overflow at html level (safe for iOS scroll)
+                overflowX: 'clip',
               },
               body: {
-                overflowX: 'hidden',
-                // Safe area insets for phones with notch (iPhone, etc.)
-                paddingTop: 'env(safe-area-inset-top)',
-                paddingBottom: 'env(safe-area-inset-bottom)',
+                // Only horizontal safe-area insets on body — vertical handled by components
                 paddingLeft: 'env(safe-area-inset-left)',
                 paddingRight: 'env(safe-area-inset-right)',
+                // Ensure iOS Safari doesn't constrain body scroll
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorY: 'auto',
               },
             },
           },
