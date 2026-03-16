@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useScrollToTop } from '../../hooks/useScrollToTop';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import {
   Box,
   Drawer,
@@ -24,6 +25,7 @@ import {
   Fade,
   Fab,
   Zoom,
+  CircularProgress,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -83,6 +85,7 @@ import {
 } from '../../constants/departments';
 import { getRoleLabel } from '../../utils/roleHelpers';
 import { isAdminOrAbove as checkIsAdminOrAbove } from '../../utils/roleHelpers';
+import { preloadRoute } from '../../utils/routePreloader';
 
 // Responsive drawer width based on screen size
 const getDrawerWidth = (isTablet: boolean) => isTablet ? 220 : 260;
@@ -112,6 +115,22 @@ export const MainLayout = () => {
 
   // Scroll to top on route change
   useScrollToTop();
+
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+
+  // Pull-to-refresh on mobile
+  const handlePullRefresh = useCallback(async () => {
+    // Reload current page data by dispatching refetch
+    window.dispatchEvent(new CustomEvent('pull-to-refresh'));
+    // Small delay to show the spinner
+    await new Promise(resolve => setTimeout(resolve, 600));
+    window.location.reload();
+  }, []);
+
+  const { isRefreshing, pullDistance } = usePullToRefresh({
+    onRefresh: handlePullRefresh,
+    enabled: isMobile,
+  });
 
   // Back-to-top FAB visibility
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -645,6 +664,8 @@ export const MainLayout = () => {
                             <ListItem disablePadding sx={{ py: 0.25 }}>
                               <ListItemButton
                                 onClick={() => handleNavigate(item.path)}
+                                onMouseEnter={() => preloadRoute(item.path)}
+                                onFocus={() => preloadRoute(item.path)}
                                 sx={{
                                   borderRadius: 3,
                                   mx: 0.5,
@@ -1101,6 +1122,29 @@ export const MainLayout = () => {
           },
         }}
       >
+        {/* Pull-to-refresh indicator */}
+        {(pullDistance > 0 || isRefreshing) && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: isRefreshing ? 48 : pullDistance * 0.6,
+              overflow: 'hidden',
+              transition: isRefreshing ? 'height 0.3s ease' : 'none',
+            }}
+          >
+            <CircularProgress
+              size={24}
+              sx={{
+                opacity: isRefreshing ? 1 : Math.min(pullDistance / 80, 1),
+                transform: `rotate(${pullDistance * 3}deg)`,
+                color: theme.palette.primary.main,
+              }}
+            />
+          </Box>
+        )}
+
         <Fade in={true} timeout={300} key={location.pathname}>
           <Box>
             <Outlet />

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { preloadRoute } from '../../utils/routePreloader';
 import {
   Box,
   Badge,
@@ -108,7 +109,12 @@ const MobileBottomNav: React.FC = () => {
         return (
           <Box
             key={item.path}
-            onClick={() => navigate(item.path)}
+            onClick={() => {
+              // Haptic feedback on tap
+              if ('vibrate' in navigator) navigator.vibrate(10);
+              navigate(item.path);
+            }}
+            onTouchStart={() => preloadRoute(item.path)}
             sx={{
               display: 'flex',
               flexDirection: 'column',

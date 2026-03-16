@@ -9,6 +9,7 @@ import {
   alpha,
   useTheme,
 } from '@mui/material';
+import { useCountUp } from '../../hooks/useCountUp';
 
 export interface StatCardProps {
   title: string;
@@ -34,6 +35,10 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
   urgent,
 }) => {
   const theme = useTheme();
+  const numericValue = typeof value === 'number' ? value : parseInt(String(value), 10);
+  const isNumeric = !isNaN(numericValue);
+  const animatedValue = useCountUp(isNumeric ? numericValue : 0, 800, delay + 200);
+  const displayValue = isNumeric ? animatedValue : value;
 
   return (
     <Grow in={true} timeout={500 + delay}>
@@ -149,7 +154,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                {value}
+                {displayValue}
               </Typography>
               {subtitle && (
                 <Typography
