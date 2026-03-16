@@ -1103,7 +1103,10 @@ export const MainLayout = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 1.5, sm: 2, md: 3 },
+          // IMPORTANT: Do NOT use `p` shorthand — it generates CSS `padding` which
+          // overrides `padding-bottom` at sm/md breakpoints. Use pt/px/pb separately.
+          pt: { xs: 1.5, sm: 2, md: 3 },
+          px: { xs: 1.5, sm: 2, md: 3 },
           // Bottom padding must exceed MobileBottomNav height (56px + safe-area)
           pb: { xs: 'calc(32px + 56px + env(safe-area-inset-bottom, 0px))', lg: 3 },
           width: { xs: '100%', lg: `calc(100% - ${drawerWidth}px)` },
