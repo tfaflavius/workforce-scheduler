@@ -110,13 +110,10 @@ export class ParkingDamagesService {
 
     if (toNotify.length === 0) return;
 
-    // Foloseste relatiile deja incarcate (damage vine din findOne cu relations)
     const parkingName = damage.parkingLot?.name || 'parcare';
-    const actorName = damage.creator?.id === actorUserId
-      ? damage.creator.fullName
-      : damage.resolver?.id === actorUserId
-        ? damage.resolver.fullName
-        : damage.lastModifier?.fullName || 'Un utilizator';
+    // Cauta direct user-ul actor din DB (relatiile din entity pot fi stale dupa save)
+    const actorUser = await this.userRepository.findOne({ where: { id: actorUserId } });
+    const actorName = actorUser?.fullName || 'Un utilizator';
 
     let title: string;
     let message: string;

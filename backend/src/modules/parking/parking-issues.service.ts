@@ -223,14 +223,10 @@ export class ParkingIssuesService {
 
     if (toNotify.length === 0) return;
 
-    // Foloseste relatiile deja incarcate (issue vine din findOne cu relations)
     const parkingName = issue.parkingLot?.name || 'parcare';
-    // Determina numele actorului din relatiile existente
-    const actorName = issue.creator?.id === actorUserId
-      ? issue.creator.fullName
-      : issue.resolver?.id === actorUserId
-        ? issue.resolver.fullName
-        : issue.lastModifier?.fullName || 'Un utilizator';
+    // Cauta direct user-ul actor din DB (relatiile din entity pot fi stale dupa save)
+    const actorUser = await this.userRepository.findOne({ where: { id: actorUserId } });
+    const actorName = actorUser?.fullName || 'Un utilizator';
 
     let title: string;
     let message: string;
