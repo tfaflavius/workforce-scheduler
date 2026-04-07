@@ -623,13 +623,16 @@ export class ShiftSwapsService {
       // Gestioneaza assignment-urile CTRL pentru departamentul Control
       // Cel care preia DISP-ul nu mai merge la CTRL in ziua respectiva -> sterge CTRL
       // Cel care cedeaza DISP-ul merge la CTRL in ziua celuilalt (daca nu avea deja)
-      await this.handleControlAssignmentsAfterSwap(
-        swapRequest.requesterId,  // requester cedeaza DISP pe requesterDate, preia DISP pe targetDate
-        approvedResponderId,       // responder cedeaza DISP pe targetDate, preia DISP pe requesterDate
-        requesterDateStr,
-        targetDateStr,
-        manager,
-      );
+      // Skip CTRL handling for same-day swaps (day<->night) - CTRL assignments stay as they are
+      if (requesterDateStr !== targetDateStr) {
+        await this.handleControlAssignmentsAfterSwap(
+          swapRequest.requesterId,  // requester cedeaza DISP pe requesterDate, preia DISP pe targetDate
+          approvedResponderId,       // responder cedeaza DISP pe targetDate, preia DISP pe requesterDate
+          requesterDateStr,
+          targetDateStr,
+          manager,
+        );
+      }
 
       await queryRunner.commitTransaction();
       this.logger.log(`Swap executed: ${swapRequest.requesterId} <-> ${approvedResponderId}`);

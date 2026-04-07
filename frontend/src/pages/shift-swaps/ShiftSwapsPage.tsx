@@ -694,7 +694,6 @@ const ShiftSwapsPage = () => {
                 </MenuItem>
               ) : (
                 availableSwapDates
-                  .filter(d => d.date !== requesterDate) // Exclude requester date
                   .map((dateInfo) => (
                     <MenuItem key={dateInfo.date} value={dateInfo.date}>
                       {formatDate(dateInfo.date)} ({dateInfo.count} {dateInfo.count === 1 ? 'coleg' : 'colegi'} lucreaza)
