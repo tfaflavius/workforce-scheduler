@@ -186,7 +186,7 @@ const PermissionMatrixTab = () => {
       )}
 
       {!isEmpty && (
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 'calc(100vh - 280px)', overflowX: 'auto' }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: { xs: 'calc(100dvh - 200px)', lg: 'calc(100dvh - 200px)' }, overflowX: 'auto' }}>
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>

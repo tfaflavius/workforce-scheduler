@@ -1217,7 +1217,7 @@ const CreateSchedulePage: React.FC = () => {
             </Stack>
 
             <TableContainer sx={{
-              maxHeight: { xs: 'calc(100vh - 400px)', sm: 'calc(100vh - 350px)', md: 'calc(100vh - 300px)' },
+              maxHeight: { xs: 'calc(100dvh - 280px)', sm: 'calc(100dvh - 260px)', md: 'calc(100dvh - 240px)', lg: 'calc(100dvh - 220px)' },
               minHeight: { xs: 250, sm: 300 },
               overflowX: 'auto',
               overflowY: 'auto',

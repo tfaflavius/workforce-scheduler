@@ -476,7 +476,7 @@ const AuditTab = () => {
         </Alert>
       ) : (
         <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-          <TableContainer sx={{ maxHeight: 'calc(100vh - 400px)' }}>
+          <TableContainer sx={{ maxHeight: { xs: 'calc(100dvh - 280px)', lg: 'calc(100dvh - 260px)' } }}>
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>

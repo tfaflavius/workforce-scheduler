@@ -816,7 +816,7 @@ const BulkSchedulePage: React.FC = () => {
         {selectedUserIds.length > 0 ? (
           <Card sx={{ overflow: 'hidden' }}>
             <CardContent sx={{ p: 0 }}>
-              <TableContainer sx={{ overflowX: 'auto', maxHeight: { xs: 'calc(100vh - 500px)', sm: 'calc(100vh - 450px)' }, minHeight: { xs: 250, sm: 300 } }}>
+              <TableContainer sx={{ overflowX: 'auto', maxHeight: { xs: 'calc(100dvh - 340px)', sm: 'calc(100dvh - 320px)', lg: 'calc(100dvh - 300px)' }, minHeight: { xs: 250, sm: 300 } }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     {/* Rand cu statistici pe zi */}

@@ -24,8 +24,8 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const scrollY = useScrollPosition(20);
 
-  // Compact mode: on mobile, after scrolling 60px, shrink the header
-  const isCompact = !disableCompact && isMobile && scrollY > 60;
+  // Compact mode: on mobile, after scrolling 30px, shrink the header
+  const isCompact = !disableCompact && isMobile && scrollY > 30;
 
   // Build default gradient from theme palette
   const defaultGradient = `${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%`;

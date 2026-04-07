@@ -1177,7 +1177,7 @@ export const MainLayout = () => {
               transform: 'translateY(-2px)',
             },
             transition: 'all 0.2s ease',
-            zIndex: 1100,
+            zIndex: 1190,
           }}
         >
           <ArrowUpIcon />

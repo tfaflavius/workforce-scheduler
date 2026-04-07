@@ -206,7 +206,7 @@ const NotificationSettingsTab = () => {
       )}
 
       {!isEmpty && (
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 'calc(100vh - 340px)', overflowX: 'auto' }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: { xs: 'calc(100dvh - 240px)', lg: 'calc(100dvh - 220px)' }, overflowX: 'auto' }}>
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>

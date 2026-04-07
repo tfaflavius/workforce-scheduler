@@ -944,7 +944,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
       {/* Content Cards */}
       {!isLoading && (
-        <Box sx={{ maxHeight: isMobile ? 'calc(100vh - 420px)' : 400, overflowY: 'auto', pr: 0.5 }}>
+        <Box sx={{ maxHeight: isMobile ? 'calc(100dvh - 300px)' : 400, overflowY: 'auto', pr: 0.5 }}>
           {selectedReport === 'issues' && (
             filteredIssues.length === 0 ? (
               <Alert severity="info" sx={{ borderRadius: 2 }}>Nu exista probleme pentru perioada selectata.</Alert>

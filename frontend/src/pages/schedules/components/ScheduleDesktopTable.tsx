@@ -171,7 +171,7 @@ const ScheduleDesktopTable: React.FC<ScheduleDesktopTableProps> = ({
 }) => {
   return (
     <TableContainer sx={{
-      maxHeight: { xs: 'calc(100vh - 300px)', sm: 'calc(100vh - 280px)', md: 'calc(100vh - 260px)' },
+      maxHeight: { xs: 'calc(100dvh - 200px)', sm: 'calc(100dvh - 200px)', md: 'calc(100dvh - 220px)', lg: 'calc(100dvh - 200px)' },
       minHeight: { xs: 300, sm: 400 },
       overflowX: 'auto',
       overflowY: 'auto',

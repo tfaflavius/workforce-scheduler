@@ -353,7 +353,7 @@ const UserOverridesTab = () => {
 
       {/* Permission table */}
       {selectedUser && effective && !isDataLoading && (
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 'calc(100vh - 400px)', overflowX: 'auto' }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: { xs: 'calc(100dvh - 280px)', lg: 'calc(100dvh - 260px)' }, overflowX: 'auto' }}>
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>

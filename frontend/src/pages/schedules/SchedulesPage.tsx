@@ -84,7 +84,7 @@ const VirtualizedMobileCards = React.memo(({
     <Box
       ref={parentRef}
       sx={{
-        height: 'calc(100vh - 350px)',
+        height: { xs: 'calc(100dvh - 220px)', sm: 'calc(100dvh - 230px)', md: 'calc(100dvh - 240px)', lg: 'calc(100dvh - 200px)' },
         minHeight: 300,
         overflow: 'auto',
         WebkitOverflowScrolling: 'touch',
