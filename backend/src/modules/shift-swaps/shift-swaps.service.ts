@@ -825,7 +825,9 @@ export class ShiftSwapsService {
         userId: user.id,
         type: 'SHIFT_SWAP_REQUEST' as any,
         title: 'Cerere de schimb de tura',
-        message: `${requester.fullName} doreste sa schimbe tura din ${requesterDateFormatted} cu tura ta din ${targetDateFormatted}. Motiv: ${request.reason}`,
+        message: requesterDateFormatted === targetDateFormatted
+          ? `${requester.fullName} doreste sa schimbe tura (${request.requesterShiftType}) cu tura ta (${request.targetShiftType}) din ${targetDateFormatted}. Motiv: ${request.reason}`
+          : `${requester.fullName} doreste sa schimbe tura din ${requesterDateFormatted} cu tura ta din ${targetDateFormatted}. Motiv: ${request.reason}`,
         data: { swapRequestId: request.id },
         skipPush: true,
       });
@@ -961,7 +963,9 @@ export class ShiftSwapsService {
       userId: request.requesterId,
       type: 'SHIFT_SWAP_APPROVED' as any,
       title: 'Schimb de tura aprobat!',
-      message: `Schimbul tau a fost aprobat! Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}.`,
+      message: requesterDateFormatted === targetDateFormatted
+        ? `Schimbul tau a fost aprobat! Acum lucrezi tura ${request.targetShiftType} in ${targetDateFormatted}.`
+        : `Schimbul tau a fost aprobat! Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}.`,
       data: { swapRequestId: request.id },
       skipPush: true,
     });
@@ -970,7 +974,9 @@ export class ShiftSwapsService {
     await this.pushNotificationService.sendToUser(
       request.requesterId,
       '🎉 Schimb Aprobat!',
-      `Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}`,
+      requesterDateFormatted === targetDateFormatted
+        ? `Acum lucrezi tura ${request.targetShiftType} in ${targetDateFormatted}`
+        : `Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}`,
       { url: '/my-schedule' },
       NotificationType.SHIFT_SWAP_APPROVED,
     );
@@ -993,7 +999,9 @@ export class ShiftSwapsService {
       userId: approvedResponderId,
       type: 'SHIFT_SWAP_APPROVED' as any,
       title: 'Schimb de tura aprobat!',
-      message: `Schimbul a fost aprobat! Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}.`,
+      message: requesterDateFormatted === targetDateFormatted
+        ? `Schimbul a fost aprobat! Acum lucrezi tura ${request.requesterShiftType} in ${requesterDateFormatted}.`
+        : `Schimbul a fost aprobat! Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}.`,
       data: { swapRequestId: request.id },
       skipPush: true,
     });
@@ -1002,7 +1010,9 @@ export class ShiftSwapsService {
     await this.pushNotificationService.sendToUser(
       approvedResponderId,
       '🎉 Schimb Aprobat!',
-      `Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}`,
+      requesterDateFormatted === targetDateFormatted
+        ? `Acum lucrezi tura ${request.requesterShiftType} in ${requesterDateFormatted}`
+        : `Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}`,
       { url: '/my-schedule' },
       NotificationType.SHIFT_SWAP_APPROVED,
     );

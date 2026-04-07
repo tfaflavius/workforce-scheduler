@@ -769,19 +769,34 @@ const ShiftSwapsPage = () => {
             <>
               <Alert severity={responseAccepted ? 'success' : 'warning'}>
                 {responseAccepted
-                  ? `Vei accepta sa faci schimb cu ${selectedRequest.requester?.fullName}. Tu vei lucra in ${formatDateShort(selectedRequest.requesterDate)} in loc de ${formatDateShort(selectedRequest.targetDate)}.`
+                  ? formatDateShort(selectedRequest.requesterDate) === formatDateShort(selectedRequest.targetDate)
+                    ? `Vei accepta sa faci schimb de tura cu ${selectedRequest.requester?.fullName} in ${formatDateShort(selectedRequest.targetDate)}. Tu vei lucra tura ${selectedRequest.requesterShiftType}, iar ${selectedRequest.requester?.fullName} va lucra tura ${selectedRequest.targetShiftType}.`
+                    : `Vei accepta sa faci schimb cu ${selectedRequest.requester?.fullName}. Tu vei lucra in ${formatDateShort(selectedRequest.requesterDate)} in loc de ${formatDateShort(selectedRequest.targetDate)}.`
                   : `Vei refuza cererea de schimb de la ${selectedRequest.requester?.fullName}.`}
               </Alert>
               <Paper variant="outlined" sx={{ p: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   <strong>Detalii schimb:</strong>
                 </Typography>
-                <Typography variant="body2">
-                  • {selectedRequest.requester?.fullName} vrea sa lucreze in: <strong>{formatDateShort(selectedRequest.targetDate)}</strong>
-                </Typography>
-                <Typography variant="body2">
-                  • In schimb, tu vei lucra in: <strong>{formatDateShort(selectedRequest.requesterDate)}</strong>
-                </Typography>
+                {formatDateShort(selectedRequest.requesterDate) === formatDateShort(selectedRequest.targetDate) ? (
+                  <>
+                    <Typography variant="body2">
+                      • {selectedRequest.requester?.fullName} are tura: <strong>{selectedRequest.requesterShiftType}</strong> si vrea tura: <strong>{selectedRequest.targetShiftType}</strong>
+                    </Typography>
+                    <Typography variant="body2">
+                      • Data: <strong>{formatDateShort(selectedRequest.targetDate)}</strong>
+                    </Typography>
+                  </>
+                ) : (
+                  <>
+                    <Typography variant="body2">
+                      • {selectedRequest.requester?.fullName} vrea sa lucreze in: <strong>{formatDateShort(selectedRequest.targetDate)}</strong>
+                    </Typography>
+                    <Typography variant="body2">
+                      • In schimb, tu vei lucra in: <strong>{formatDateShort(selectedRequest.requesterDate)}</strong>
+                    </Typography>
+                  </>
+                )}
               </Paper>
             </>
           )}
