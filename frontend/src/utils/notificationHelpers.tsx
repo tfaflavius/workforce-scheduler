@@ -76,6 +76,8 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
       return <ControlIcon color="warning" fontSize={fontSize} />;
     case 'PV_SESSION_ASSIGNED':
     case 'PV_SESSION_UPDATED':
+    case 'PV_SIGNING_ASSIGNED':
+    case 'PV_SIGNING_UPDATED':
       return <PvIcon color="info" fontSize={fontSize} />;
     case 'EDIT_REQUEST_CREATED':
       return <EditIcon color="warning" fontSize={fontSize} />;
@@ -167,6 +169,11 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     // PV Display session notifications
     case 'PV_SESSION_ASSIGNED':
     case 'PV_SESSION_UPDATED':
+      return { path: '/procese-verbale', state: { openSessionId: data?.pvSessionId } };
+
+    // PV Signing session notifications
+    case 'PV_SIGNING_ASSIGNED':
+    case 'PV_SIGNING_UPDATED':
       return { path: '/procese-verbale', state: { openSessionId: data?.pvSessionId } };
 
     // Edit request notifications

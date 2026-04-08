@@ -5,13 +5,13 @@ import { User, UserRole } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
 import {
   PROCESE_VERBALE_DEPARTMENT_NAME,
-  CONTROL_DEPARTMENT_NAME,
+  MAINTENANCE_DEPARTMENT_NAME,
 } from '../constants/parking.constants';
 import { removeDiacritics } from '../../../common/utils/remove-diacritics';
 import { isAdminOrAbove } from '../../../common/utils/role-hierarchy';
 
 @Injectable()
-export class PvDisplayAccessGuard implements CanActivate {
+export class PvSigningAccessGuard implements CanActivate {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -39,10 +39,10 @@ export class PvDisplayAccessGuard implements CanActivate {
       });
 
       if (department) {
-        // Permite acces pentru Procese Verbale/Facturare si Control
+        // Permite acces pentru Procese Verbale/Facturare si Intretinere Parcari
         const allowedDepartments = [
           PROCESE_VERBALE_DEPARTMENT_NAME,
-          CONTROL_DEPARTMENT_NAME,
+          MAINTENANCE_DEPARTMENT_NAME,
         ];
         if (allowedDepartments.includes(removeDiacritics(department.name))) {
           return true;

@@ -15,6 +15,7 @@ import { dailyReportsApi } from './api/dailyReports.api';
 import { timeTrackingApi } from './api/time-tracking.api';
 import { acquisitionsApi } from './api/acquisitions.api';
 import { pvDisplayApi } from './api/pvDisplay.api';
+import { pvSigningApi } from './api/pvSigning.api';
 import { parkingStatsApi } from './api/parkingStats.api';
 import { controlApi } from './api/control.api';
 import { permissionsApi } from './api/permissions.api';
@@ -42,6 +43,7 @@ export const store = configureStore({
     [timeTrackingApi.reducerPath]: timeTrackingApi.reducer,
     [acquisitionsApi.reducerPath]: acquisitionsApi.reducer,
     [pvDisplayApi.reducerPath]: pvDisplayApi.reducer,
+    [pvSigningApi.reducerPath]: pvSigningApi.reducer,
     [parkingStatsApi.reducerPath]: parkingStatsApi.reducer,
     [controlApi.reducerPath]: controlApi.reducer,
     [permissionsApi.reducerPath]: permissionsApi.reducer,
@@ -68,6 +70,7 @@ export const store = configureStore({
       timeTrackingApi.middleware,
       acquisitionsApi.middleware,
       pvDisplayApi.middleware,
+      pvSigningApi.middleware,
       parkingStatsApi.middleware,
       controlApi.middleware,
       permissionsApi.middleware,

@@ -39,31 +39,31 @@ import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import { PROCESE_VERBALE_DEPARTMENT_NAME } from '../../../constants/departments';
 import { formatDateShort } from '../../../utils/dateFormatters';
 import {
-  useGetPvSessionsQuery,
-  useCreatePvSessionMutation,
-  useDeletePvSessionMutation,
-  useGetPvSessionCommentsQuery,
-  useAddPvSessionCommentMutation,
-  useGetPvSessionHistoryQuery,
-} from '../../../store/api/pvDisplay.api';
+  useGetPvSigningSessionsQuery,
+  useCreatePvSigningSessionMutation,
+  useDeletePvSigningSessionMutation,
+  useGetPvSigningSessionCommentsQuery,
+  useAddPvSigningSessionCommentMutation,
+  useGetPvSigningSessionHistoryQuery,
+} from '../../../store/api/pvSigning.api';
 import type {
-  PvDisplaySession,
-  PvDisplayDay,
-  CreatePvDisplaySessionDto,
-  PvDisplayDayDto,
-} from '../../../types/pv-display.types';
+  PvSigningSession,
+  PvSigningDay,
+  CreatePvSigningSessionDto,
+  PvSigningDayDto,
+} from '../../../types/pv-signing.types';
 import {
   PV_SESSION_STATUS_LABELS,
   PV_SESSION_STATUS_COLORS,
   PV_DAY_STATUS_LABELS,
   PV_DAY_STATUS_COLORS,
-} from '../../../types/pv-display.types';
+} from '../../../types/pv-signing.types';
 
-interface PvSessionsTabProps {
+interface PvSigningSessionsTabProps {
   initialExpandedSessionId?: string;
 }
 
-const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId }) => {
+const PvSigningSessionsTab: React.FC<PvSigningSessionsTabProps> = ({ initialExpandedSessionId }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
@@ -72,9 +72,9 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
   const isPvf = user?.department?.name === PROCESE_VERBALE_DEPARTMENT_NAME;
   const canCreate = isAdmin || isPvf;
 
-  const { data: sessions = [], isLoading, error } = useGetPvSessionsQuery();
-  const [createSession, { isLoading: isCreating }] = useCreatePvSessionMutation();
-  const [deleteSession] = useDeletePvSessionMutation();
+  const { data: sessions = [], isLoading, error } = useGetPvSigningSessionsQuery();
+  const [createSession, { isLoading: isCreating }] = useCreatePvSigningSessionMutation();
+  const [deleteSession] = useDeletePvSigningSessionMutation();
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
@@ -105,7 +105,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
   const [description, setDescription] = useState('');
   const [daysCount, setDaysCount] = useState(5);
   const [startDate, setStartDate] = useState('');
-  const [generatedDays, setGeneratedDays] = useState<PvDisplayDayDto[]>([]);
+  const [generatedDays, setGeneratedDays] = useState<PvSigningDayDto[]>([]);
 
   const handleOpenCreate = () => {
     const now = new Date();
@@ -118,8 +118,8 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
     setCreateDialogOpen(true);
   };
 
-  const generateConsecutiveDays = (start: string, count: number): PvDisplayDayDto[] => {
-    const days: PvDisplayDayDto[] = [];
+  const generateConsecutiveDays = (start: string, count: number): PvSigningDayDto[] => {
+    const days: PvSigningDayDto[] = [];
     const date = new Date(start);
 
     let dayOrder = 1;
@@ -127,7 +127,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
       const dayOfWeek = date.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         days.push({
-          displayDate: date.toISOString().split('T')[0],
+          signingDate: date.toISOString().split('T')[0],
           dayOrder,
           noticeCount: 30,
           firstNoticeSeries: '',
@@ -162,7 +162,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
     }
   };
 
-  const updateDay = (index: number, field: keyof PvDisplayDayDto, value: string | number) => {
+  const updateDay = (index: number, field: keyof PvSigningDayDto, value: string | number) => {
     setGeneratedDays(prev => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -184,7 +184,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
         noticesDateTo: day.noticesDateTo || undefined,
       }));
 
-      const dto: CreatePvDisplaySessionDto = {
+      const dto: CreatePvSigningSessionDto = {
         monthYear,
         description: description || undefined,
         days: cleanDays,
@@ -258,7 +258,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
         <Card sx={{ borderRadius: 3, p: 4, textAlign: 'center' }}>
           <CalendarIcon sx={{ fontSize: 64, color: alpha('#3b82f6', 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
-            Nu exista sesiuni de afisare
+            Nu exista sesiuni de semnare
           </Typography>
           {canCreate && (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -292,7 +292,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
         PaperProps={{ sx: { maxHeight: '90vh' } }}
       >
         <DialogTitle sx={{ fontWeight: 700 }}>
-          Creare Sesiune Afisare PV
+          Creare Sesiune Semnare PV
         </DialogTitle>
         <DialogContent dividers>
           <Stack spacing={2.5} sx={{ mt: 0.5 }}>
@@ -345,7 +345,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
                 </Typography>
 
                 {generatedDays.map((day, index) => {
-                  const dateObj = new Date(day.displayDate);
+                  const dateObj = new Date(day.signingDate);
                   const dayLabel = dateObj.toLocaleDateString('ro-RO', {
                     weekday: 'short',
                     day: '2-digit',
@@ -508,7 +508,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
 // ===== Session Card Component =====
 
 interface SessionCardProps {
-  session: PvDisplaySession;
+  session: PvSigningSession;
   isExpanded: boolean;
   onToggle: () => void;
   onDelete?: () => void;
@@ -528,7 +528,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
   const totalDays = session.days?.length || 0;
   const completedDays = session.days?.filter(d => d.status === 'COMPLETED').length || 0;
   const fullyAssignedDays = session.days?.filter(d =>
-    d.controlUser1Id && d.controlUser2Id
+    d.maintenanceUser1Id && d.maintenanceUser2Id
   ).length || 0;
 
   return (
@@ -636,7 +636,7 @@ const formatDateRo = (date: string | Date | undefined): string => {
   return formatDateShort(str);
 };
 
-const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
+const DaysSection: React.FC<{ days: PvSigningDay[] }> = ({ days }) => {
   if (days.length === 0) {
     return <Typography variant="body2" color="text.secondary">Nicio zi adaugata.</Typography>;
   }
@@ -645,7 +645,7 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
     <Stack spacing={1}>
       {days.map((day) => {
         const statusColor = PV_DAY_STATUS_COLORS[day.status];
-        const assignedCount = (day.controlUser1Id ? 1 : 0) + (day.controlUser2Id ? 1 : 0);
+        const assignedCount = (day.maintenanceUser1Id ? 1 : 0) + (day.maintenanceUser2Id ? 1 : 0);
         const hasPvDetails = day.firstNoticeSeries || day.firstNoticeNumber || day.noticesDateFrom;
 
         return (
@@ -663,7 +663,7 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
                 <Box>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', sm: '0.95rem' } }}>
-                      Ziua {day.dayOrder} — {new Date(day.displayDate).toLocaleDateString('ro-RO', { weekday: 'long', day: '2-digit', month: 'long' })}
+                      Ziua {day.dayOrder} — {new Date(day.signingDate).toLocaleDateString('ro-RO', { weekday: 'long', day: '2-digit', month: 'long' })}
                     </Typography>
                     <Chip
                       label={PV_DAY_STATUS_LABELS[day.status]}
@@ -678,7 +678,7 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
                     />
                   </Stack>
                   <Typography variant="caption" color="text.secondary">
-                    {day.noticeCount} procese verbale • {assignedCount}/2 Control asignati
+                    {day.noticeCount} procese verbale • {assignedCount}/2 Intretinere asignati
                   </Typography>
                 </Box>
                 <Chip
@@ -720,21 +720,21 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
                 </Box>
               )}
 
-              {(day.controlUser1 || day.controlUser2) && (
+              {(day.maintenanceUser1 || day.maintenanceUser2) && (
                 <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                  {day.controlUser1 && (
+                  {day.maintenanceUser1 && (
                     <Chip
-                      avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.controlUser1.fullName[0]}</Avatar>}
-                      label={day.controlUser1.fullName}
+                      avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser1.fullName[0]}</Avatar>}
+                      label={day.maintenanceUser1.fullName}
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: '0.7rem' }}
                     />
                   )}
-                  {day.controlUser2 && (
+                  {day.maintenanceUser2 && (
                     <Chip
-                      avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.controlUser2.fullName[0]}</Avatar>}
-                      label={day.controlUser2.fullName}
+                      avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser2.fullName[0]}</Avatar>}
+                      label={day.maintenanceUser2.fullName}
                       size="small"
                       variant="outlined"
                       sx={{ fontSize: '0.7rem' }}
@@ -758,8 +758,8 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
 // ===== Comments Section =====
 
 const CommentsSection: React.FC<{ sessionId: string }> = ({ sessionId }) => {
-  const { data: comments = [], isLoading } = useGetPvSessionCommentsQuery(sessionId);
-  const [addComment, { isLoading: isAdding }] = useAddPvSessionCommentMutation();
+  const { data: comments = [], isLoading } = useGetPvSigningSessionCommentsQuery(sessionId);
+  const [addComment, { isLoading: isAdding }] = useAddPvSigningSessionCommentMutation();
   const [newComment, setNewComment] = useState('');
   const { notifyError } = useSnackbar();
 
@@ -833,7 +833,7 @@ const CommentsSection: React.FC<{ sessionId: string }> = ({ sessionId }) => {
 // ===== History Section =====
 
 const HistorySection: React.FC<{ sessionId: string }> = ({ sessionId }) => {
-  const { data: history = [], isLoading } = useGetPvSessionHistoryQuery(sessionId);
+  const { data: history = [], isLoading } = useGetPvSigningSessionHistoryQuery(sessionId);
 
   if (isLoading) {
     return <CircularProgress size={24} />;
@@ -875,4 +875,4 @@ const HistorySection: React.FC<{ sessionId: string }> = ({ sessionId }) => {
   );
 };
 
-export default React.memo(PvSessionsTab);
+export default React.memo(PvSigningSessionsTab);

@@ -8,19 +8,19 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { PvDisplaySession } from './entities/pv-display-session.entity';
-import { PvDisplayDay } from './entities/pv-display-day.entity';
-import { PvDisplaySessionComment } from './entities/pv-display-session-comment.entity';
+import { PvSigningSession } from './entities/pv-signing-session.entity';
+import { PvSigningDay } from './entities/pv-signing-day.entity';
+import { PvSigningSessionComment } from './entities/pv-signing-session-comment.entity';
 import { ParkingHistory } from './entities/parking-history.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
-import { CreatePvDisplaySessionDto } from './dto/create-pv-display-session.dto';
-import { UpdatePvDisplaySessionDto } from './dto/update-pv-display-session.dto';
-import { CompletePvDisplayDayDto } from './dto/complete-pv-display-day.dto';
-import { AdminAssignPvDayDto } from './dto/admin-assign-pv-day.dto';
+import { CreatePvSigningSessionDto } from './dto/create-pv-signing-session.dto';
+import { UpdatePvSigningSessionDto } from './dto/update-pv-signing-session.dto';
+import { CompletePvSigningDayDto } from './dto/complete-pv-signing-day.dto';
+import { AdminAssignPvSigningDayDto } from './dto/admin-assign-pv-signing-day.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import {
   PvSessionStatus,
@@ -28,21 +28,21 @@ import {
   PV_SESSION_STATUS,
   PV_DAY_STATUS,
   PROCESE_VERBALE_DEPARTMENT_NAME,
-  CONTROL_DEPARTMENT_NAME,
+  MAINTENANCE_DEPARTMENT_NAME,
 } from './constants/parking.constants';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
 @Injectable()
-export class PvDisplayService {
-  private readonly logger = new Logger(PvDisplayService.name);
+export class PvSigningService {
+  private readonly logger = new Logger(PvSigningService.name);
 
   constructor(
-    @InjectRepository(PvDisplaySession)
-    private readonly sessionRepository: Repository<PvDisplaySession>,
-    @InjectRepository(PvDisplayDay)
-    private readonly dayRepository: Repository<PvDisplayDay>,
-    @InjectRepository(PvDisplaySessionComment)
-    private readonly commentRepository: Repository<PvDisplaySessionComment>,
+    @InjectRepository(PvSigningSession)
+    private readonly sessionRepository: Repository<PvSigningSession>,
+    @InjectRepository(PvSigningDay)
+    private readonly dayRepository: Repository<PvSigningDay>,
+    @InjectRepository(PvSigningSessionComment)
+    private readonly commentRepository: Repository<PvSigningSessionComment>,
     @InjectRepository(ParkingHistory)
     private readonly historyRepository: Repository<ParkingHistory>,
     @InjectRepository(User)
@@ -54,7 +54,7 @@ export class PvDisplayService {
 
   // ===== SESSIONS =====
 
-  async createSession(userId: string, dto: CreatePvDisplaySessionDto, user: any): Promise<PvDisplaySession> {
+  async createSession(userId: string, dto: CreatePvSigningSessionDto, user: any): Promise<PvSigningSession> {
     // Doar PVF si Admin pot crea sesiuni
     const userDeptName = removeDiacritics(user.department?.name || '');
     const canCreate = isAdminOrAbove(user.role) || userDeptName === PROCESE_VERBALE_DEPARTMENT_NAME;
@@ -65,12 +65,12 @@ export class PvDisplayService {
 
     // Validare: trebuie sa aiba cel putin 1 zi
     if (!dto.days || dto.days.length === 0) {
-      throw new BadRequestException('Sesiunea trebuie sa aiba cel putin o zi de afisare');
+      throw new BadRequestException('Sesiunea trebuie sa aiba cel putin o zi de semnare');
     }
 
     // Validare: maxim 5 zile
     if (dto.days.length > 5) {
-      throw new BadRequestException('Sesiunea poate avea maxim 5 zile de afisare');
+      throw new BadRequestException('Sesiunea poate avea maxim 5 zile de semnare');
     }
 
     // Creeaza sesiunea
@@ -88,7 +88,7 @@ export class PvDisplayService {
     const days = dto.days.map((dayDto) =>
       this.dayRepository.create({
         sessionId: savedSession.id,
-        displayDate: dayDto.displayDate,
+        signingDate: dayDto.signingDate,
         dayOrder: dayDto.dayOrder,
         noticeCount: dayDto.noticeCount,
         firstNoticeSeries: dayDto.firstNoticeSeries || null,
@@ -109,21 +109,21 @@ export class PvDisplayService {
       daysCount: dto.days.length,
     });
 
-    // Notifica Control + Admin + Manager
+    // Notifica Intretinere Parcari + Admin + Manager
     await this.notifySessionCreated(savedSession, userId);
 
-    this.logger.log(`PV Display session created: ${savedSession.id} for ${dto.monthYear}`);
+    this.logger.log(`PV Signing session created: ${savedSession.id} for ${dto.monthYear}`);
 
     return this.findOneSession(savedSession.id);
   }
 
-  async findAllSessions(status?: PvSessionStatus): Promise<PvDisplaySession[]> {
+  async findAllSessions(status?: PvSessionStatus): Promise<PvSigningSession[]> {
     const query = this.sessionRepository.createQueryBuilder('session')
       .leftJoinAndSelect('session.creator', 'creator')
       .leftJoinAndSelect('session.lastModifier', 'lastModifier')
       .leftJoinAndSelect('session.days', 'days')
-      .leftJoinAndSelect('days.controlUser1', 'controlUser1')
-      .leftJoinAndSelect('days.controlUser2', 'controlUser2');
+      .leftJoinAndSelect('days.maintenanceUser1', 'maintenanceUser1')
+      .leftJoinAndSelect('days.maintenanceUser2', 'maintenanceUser2');
 
     if (status) {
       query.andWhere('session.status = :status', { status });
@@ -132,15 +132,15 @@ export class PvDisplayService {
     return query.orderBy('session.createdAt', 'DESC').addOrderBy('days.dayOrder', 'ASC').getMany();
   }
 
-  async findOneSession(id: string): Promise<PvDisplaySession> {
+  async findOneSession(id: string): Promise<PvSigningSession> {
     const session = await this.sessionRepository.findOne({
       where: { id },
       relations: [
         'creator',
         'lastModifier',
         'days',
-        'days.controlUser1',
-        'days.controlUser2',
+        'days.maintenanceUser1',
+        'days.maintenanceUser2',
         'days.completedByUser',
         'comments',
         'comments.user',
@@ -159,7 +159,7 @@ export class PvDisplayService {
     return session;
   }
 
-  async updateSession(id: string, userId: string, dto: UpdatePvDisplaySessionDto, user: any): Promise<PvDisplaySession> {
+  async updateSession(id: string, userId: string, dto: UpdatePvSigningSessionDto, user: any): Promise<PvSigningSession> {
     // Doar Admin poate edita sesiuni
     if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot modifica sesiunile');
@@ -185,7 +185,7 @@ export class PvDisplayService {
     if (dto.days && dto.days.length > 0) {
       // Sterge zilele vechi care nu au useri asignati
       const existingDays = await this.dayRepository.find({ where: { sessionId: id } });
-      const daysToDelete = existingDays.filter(d => !d.controlUser1Id && !d.controlUser2Id);
+      const daysToDelete = existingDays.filter(d => !d.maintenanceUser1Id && !d.maintenanceUser2Id);
       if (daysToDelete.length > 0) {
         await this.dayRepository.remove(daysToDelete);
       }
@@ -194,7 +194,7 @@ export class PvDisplayService {
       const newDays = dto.days.map((dayDto) =>
         this.dayRepository.create({
           sessionId: id,
-          displayDate: dayDto.displayDate,
+          signingDate: dayDto.signingDate,
           dayOrder: dayDto.dayOrder,
           noticeCount: dayDto.noticeCount,
           firstNoticeSeries: dayDto.firstNoticeSeries || null,
@@ -233,54 +233,54 @@ export class PvDisplayService {
     // CASCADE va sterge si zilele si comentariile
     await this.sessionRepository.remove(session);
 
-    this.logger.log(`PV Display session deleted: ${id}`);
+    this.logger.log(`PV Signing session deleted: ${id}`);
   }
 
   // ===== MARKETPLACE (Claim/Unclaim Days) =====
 
-  async getAvailableDays(): Promise<PvDisplayDay[]> {
+  async getAvailableDays(): Promise<PvSigningDay[]> {
     // Returneaza zilele cu status OPEN (au sloturi libere)
     const days = await this.dayRepository.createQueryBuilder('day')
       .leftJoinAndSelect('day.session', 'session')
-      .leftJoinAndSelect('day.controlUser1', 'controlUser1')
-      .leftJoinAndSelect('day.controlUser2', 'controlUser2')
+      .leftJoinAndSelect('day.maintenanceUser1', 'maintenanceUser1')
+      .leftJoinAndSelect('day.maintenanceUser2', 'maintenanceUser2')
       .where('day.status IN (:...statuses)', { statuses: [PV_DAY_STATUS.OPEN, PV_DAY_STATUS.ASSIGNED] })
       .andWhere('session.status IN (:...sessionStatuses)', {
         sessionStatuses: [PV_SESSION_STATUS.DRAFT, PV_SESSION_STATUS.READY],
       })
-      .andWhere('day.displayDate >= CURRENT_DATE')
-      .orderBy('day.displayDate', 'ASC')
+      .andWhere('day.signingDate >= CURRENT_DATE')
+      .orderBy('day.signingDate', 'ASC')
       .getMany();
 
     return days;
   }
 
-  async getMyClaimedDays(userId: string): Promise<PvDisplayDay[]> {
+  async getMyClaimedDays(userId: string): Promise<PvSigningDay[]> {
     const days = await this.dayRepository.createQueryBuilder('day')
       .leftJoinAndSelect('day.session', 'session')
-      .leftJoinAndSelect('day.controlUser1', 'controlUser1')
-      .leftJoinAndSelect('day.controlUser2', 'controlUser2')
+      .leftJoinAndSelect('day.maintenanceUser1', 'maintenanceUser1')
+      .leftJoinAndSelect('day.maintenanceUser2', 'maintenanceUser2')
       .leftJoinAndSelect('day.completedByUser', 'completedByUser')
-      .where('(day.controlUser1Id = :userId OR day.controlUser2Id = :userId)', { userId })
-      .orderBy('day.displayDate', 'DESC')
+      .where('(day.maintenanceUser1Id = :userId OR day.maintenanceUser2Id = :userId)', { userId })
+      .orderBy('day.signingDate', 'DESC')
       .getMany();
 
     return days;
   }
 
-  async claimDay(dayId: string, userId: string, user: any): Promise<PvDisplayDay> {
-    // Doar Control si Admin pot revendica
+  async claimDay(dayId: string, userId: string, user: any): Promise<PvSigningDay> {
+    // Doar Intretinere Parcari si Admin pot revendica
     const userDeptName = removeDiacritics(user.department?.name || '');
-    const isControl = userDeptName === CONTROL_DEPARTMENT_NAME;
+    const isMaintenance = userDeptName === MAINTENANCE_DEPARTMENT_NAME;
     const isAdmin = isAdminOrAbove(user.role);
 
-    if (!isControl && !isAdmin) {
-      throw new ForbiddenException('Doar departamentul Control si administratorii pot revendica zile');
+    if (!isMaintenance && !isAdmin) {
+      throw new ForbiddenException('Doar departamentul Intretinere Parcari si administratorii pot revendica zile');
     }
 
     const day = await this.dayRepository.findOne({
       where: { id: dayId },
-      relations: ['session', 'controlUser1', 'controlUser2'],
+      relations: ['session', 'maintenanceUser1', 'maintenanceUser2'],
     });
 
     if (!day) {
@@ -293,27 +293,27 @@ export class PvDisplayService {
     }
 
     // Verificare: userul nu e deja asignat
-    if (day.controlUser1Id === userId || day.controlUser2Id === userId) {
+    if (day.maintenanceUser1Id === userId || day.maintenanceUser2Id === userId) {
       throw new BadRequestException('Esti deja asignat pe aceasta zi');
     }
 
     // Verificare: mai sunt sloturi libere
-    if (day.controlUser1Id && day.controlUser2Id) {
+    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
       throw new BadRequestException('Toate sloturile sunt ocupate pe aceasta zi');
     }
 
     // Asigneaza pe primul slot liber
     const now = new Date();
-    if (!day.controlUser1Id) {
-      day.controlUser1Id = userId;
-      day.controlUser1ClaimedAt = now;
+    if (!day.maintenanceUser1Id) {
+      day.maintenanceUser1Id = userId;
+      day.maintenanceUser1ClaimedAt = now;
     } else {
-      day.controlUser2Id = userId;
-      day.controlUser2ClaimedAt = now;
+      day.maintenanceUser2Id = userId;
+      day.maintenanceUser2ClaimedAt = now;
     }
 
     // Recalculeaza status
-    if (day.controlUser1Id && day.controlUser2Id) {
+    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
       day.status = PV_DAY_STATUS.ASSIGNED as PvDayStatus;
     }
 
@@ -321,14 +321,14 @@ export class PvDisplayService {
 
     // History
     await this.recordDayHistory(dayId, 'CLAIMED', userId, {
-      slot: day.controlUser1Id === userId ? 1 : 2,
+      slot: day.maintenanceUser1Id === userId ? 1 : 2,
     });
 
     // Recalculeaza statusul sesiunii
     await this.recalculateSessionStatus(day.sessionId);
 
     // Notifica daca ziua e complet asignata (2/2)
-    if (day.controlUser1Id && day.controlUser2Id) {
+    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
       await this.notifyDayFullyAssigned(day);
     }
 
@@ -337,7 +337,7 @@ export class PvDisplayService {
     return this.findOneDay(dayId);
   }
 
-  async unclaimDay(dayId: string, userId: string, user: any): Promise<PvDisplayDay> {
+  async unclaimDay(dayId: string, userId: string, user: any): Promise<PvSigningDay> {
     const day = await this.dayRepository.findOne({
       where: { id: dayId },
       relations: ['session'],
@@ -355,20 +355,20 @@ export class PvDisplayService {
     const isAdmin = isAdminOrAbove(user.role);
 
     // Doar userul asignat sau admin pot face unclaim
-    if (day.controlUser1Id === userId) {
-      day.controlUser1Id = null;
-      day.controlUser1ClaimedAt = null;
-    } else if (day.controlUser2Id === userId) {
-      day.controlUser2Id = null;
-      day.controlUser2ClaimedAt = null;
+    if (day.maintenanceUser1Id === userId) {
+      day.maintenanceUser1Id = null;
+      day.maintenanceUser1ClaimedAt = null;
+    } else if (day.maintenanceUser2Id === userId) {
+      day.maintenanceUser2Id = null;
+      day.maintenanceUser2ClaimedAt = null;
     } else if (isAdmin) {
       // Admin poate face unclaim ultimului user asignat
-      if (day.controlUser2Id) {
-        day.controlUser2Id = null;
-        day.controlUser2ClaimedAt = null;
-      } else if (day.controlUser1Id) {
-        day.controlUser1Id = null;
-        day.controlUser1ClaimedAt = null;
+      if (day.maintenanceUser2Id) {
+        day.maintenanceUser2Id = null;
+        day.maintenanceUser2ClaimedAt = null;
+      } else if (day.maintenanceUser1Id) {
+        day.maintenanceUser1Id = null;
+        day.maintenanceUser1ClaimedAt = null;
       } else {
         throw new BadRequestException('Nu exista utilizatori asignati pe aceasta zi');
       }
@@ -392,7 +392,7 @@ export class PvDisplayService {
     return this.findOneDay(dayId);
   }
 
-  async adminAssignDay(dayId: string, adminId: string, dto: AdminAssignPvDayDto): Promise<PvDisplayDay> {
+  async adminAssignDay(dayId: string, adminId: string, dto: AdminAssignPvSigningDayDto): Promise<PvSigningDay> {
     const day = await this.dayRepository.findOne({
       where: { id: dayId },
       relations: ['session'],
@@ -402,7 +402,7 @@ export class PvDisplayService {
       throw new NotFoundException(`Ziua cu ID ${dayId} nu a fost gasita`);
     }
 
-    // Verificare: userul exista si e din Control
+    // Verificare: userul exista si e din Intretinere Parcari
     const targetUser = await this.userRepository.findOne({
       where: { id: dto.userId },
       relations: ['department'],
@@ -413,24 +413,24 @@ export class PvDisplayService {
     }
 
     // Verificare: slotul nu e deja ocupat
-    if (dto.slot === '1' && day.controlUser1Id) {
+    if (dto.slot === '1' && day.maintenanceUser1Id) {
       throw new BadRequestException('Slotul 1 este deja ocupat');
     }
-    if (dto.slot === '2' && day.controlUser2Id) {
+    if (dto.slot === '2' && day.maintenanceUser2Id) {
       throw new BadRequestException('Slotul 2 este deja ocupat');
     }
 
     const now = new Date();
     if (dto.slot === '1') {
-      day.controlUser1Id = dto.userId;
-      day.controlUser1ClaimedAt = now;
+      day.maintenanceUser1Id = dto.userId;
+      day.maintenanceUser1ClaimedAt = now;
     } else {
-      day.controlUser2Id = dto.userId;
-      day.controlUser2ClaimedAt = now;
+      day.maintenanceUser2Id = dto.userId;
+      day.maintenanceUser2ClaimedAt = now;
     }
 
     // Recalculeaza status
-    if (day.controlUser1Id && day.controlUser2Id) {
+    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
       day.status = PV_DAY_STATUS.ASSIGNED as PvDayStatus;
     } else {
       day.status = PV_DAY_STATUS.OPEN as PvDayStatus;
@@ -452,12 +452,12 @@ export class PvDisplayService {
     await this.notificationsService.createMany([{
       userId: dto.userId,
       type: NotificationType.PV_SESSION_ASSIGNED,
-      title: 'Asignat pe zi afisare PV',
-      message: `Ai fost asignat de administrator pe o zi de afisare procese verbale (${this.formatDate(day.displayDate)}).`,
+      title: 'Asignat pe zi semnare PV',
+      message: `Ai fost asignat de administrator pe o zi de semnare procese verbale (${this.formatDate(day.signingDate)}).`,
       data: { pvDayId: dayId, pvSessionId: day.sessionId },
     }]);
 
-    if (day.controlUser1Id && day.controlUser2Id) {
+    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
       await this.notifyDayFullyAssigned(day);
     }
 
@@ -466,7 +466,7 @@ export class PvDisplayService {
 
   // ===== COMPLETE DAY =====
 
-  async completeDay(dayId: string, userId: string, dto: CompletePvDisplayDayDto, user: any): Promise<PvDisplayDay> {
+  async completeDay(dayId: string, userId: string, dto: CompletePvSigningDayDto, user: any): Promise<PvSigningDay> {
     const day = await this.dayRepository.findOne({
       where: { id: dayId },
       relations: ['session'],
@@ -477,7 +477,7 @@ export class PvDisplayService {
     }
 
     const isAdmin = isAdminOrAbove(user.role);
-    const isAssigned = day.controlUser1Id === userId || day.controlUser2Id === userId;
+    const isAssigned = day.maintenanceUser1Id === userId || day.maintenanceUser2Id === userId;
 
     if (!isAdmin && !isAssigned) {
       throw new ForbiddenException('Doar utilizatorii asignati pe aceasta zi sau administratorii pot finaliza');
@@ -512,7 +512,7 @@ export class PvDisplayService {
 
   // ===== COMMENTS =====
 
-  async addComment(sessionId: string, userId: string, dto: CreateCommentDto): Promise<PvDisplaySessionComment> {
+  async addComment(sessionId: string, userId: string, dto: CreateCommentDto): Promise<PvSigningSessionComment> {
     // Verifica ca sesiunea exista
     await this.findOneSession(sessionId);
 
@@ -534,7 +534,7 @@ export class PvDisplayService {
     return savedComment;
   }
 
-  async getComments(sessionId: string): Promise<PvDisplaySessionComment[]> {
+  async getComments(sessionId: string): Promise<PvSigningSessionComment[]> {
     return this.commentRepository.find({
       where: { sessionId },
       relations: ['user'],
@@ -546,7 +546,7 @@ export class PvDisplayService {
 
   async getSessionHistory(sessionId: string): Promise<ParkingHistory[]> {
     return this.historyRepository.find({
-      where: { entityType: 'PV_DISPLAY_SESSION', entityId: sessionId },
+      where: { entityType: 'PV_SIGNING_SESSION', entityId: sessionId },
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
@@ -554,7 +554,7 @@ export class PvDisplayService {
 
   async getDayHistory(dayId: string): Promise<ParkingHistory[]> {
     return this.historyRepository.find({
-      where: { entityType: 'PV_DISPLAY_DAY', entityId: dayId },
+      where: { entityType: 'PV_SIGNING_DAY', entityId: dayId },
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
@@ -562,10 +562,10 @@ export class PvDisplayService {
 
   // ===== HELPERS =====
 
-  async findOneDay(dayId: string): Promise<PvDisplayDay> {
+  async findOneDay(dayId: string): Promise<PvSigningDay> {
     const day = await this.dayRepository.findOne({
       where: { id: dayId },
-      relations: ['session', 'controlUser1', 'controlUser2', 'completedByUser'],
+      relations: ['session', 'maintenanceUser1', 'maintenanceUser2', 'completedByUser'],
     });
 
     if (!day) {
@@ -615,29 +615,29 @@ export class PvDisplayService {
 
   // ===== NOTIFICATION HELPERS =====
 
-  private async notifySessionCreated(session: PvDisplaySession, creatorId: string): Promise<void> {
+  private async notifySessionCreated(session: PvSigningSession, creatorId: string): Promise<void> {
     try {
-      // Notifica departamentul Control
-      const controlDept = await this.departmentRepository.findOne({
-        where: { name: CONTROL_DEPARTMENT_NAME },
+      // Notifica departamentul Intretinere Parcari
+      const maintenanceDept = await this.departmentRepository.findOne({
+        where: { name: MAINTENANCE_DEPARTMENT_NAME },
       });
 
       const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
 
-      if (controlDept) {
-        const controlUsers = await this.userRepository.find({
-          where: { departmentId: controlDept.id, isActive: true },
+      if (maintenanceDept) {
+        const maintenanceUsers = await this.userRepository.find({
+          where: { departmentId: maintenanceDept.id, isActive: true },
         });
 
-        controlUsers.forEach(u => {
+        maintenanceUsers.forEach(u => {
           if (u.id !== creatorId && !notifiedUserIds.has(u.id)) {
             notifiedUserIds.add(u.id);
             notifications.push({
               userId: u.id,
               type: NotificationType.PV_SESSION_ASSIGNED,
-              title: 'Sesiune noua afisare PV',
-              message: `O noua sesiune de afisare procese verbale a fost creata pentru ${session.monthYear}. Verifica zilele disponibile in marketplace.`,
+              title: 'Sesiune noua semnare PV',
+              message: `O noua sesiune de semnare procese verbale a fost creata pentru ${session.monthYear}. Verifica zilele disponibile in marketplace.`,
               data: { pvSessionId: session.id },
             });
           }
@@ -659,8 +659,8 @@ export class PvDisplayService {
           notifications.push({
             userId: u.id,
             type: NotificationType.PV_SESSION_ASSIGNED,
-            title: 'Sesiune noua afisare PV',
-            message: `O noua sesiune de afisare procese verbale a fost creata pentru ${session.monthYear}.`,
+            title: 'Sesiune noua semnare PV',
+            message: `O noua sesiune de semnare procese verbale a fost creata pentru ${session.monthYear}.`,
             data: { pvSessionId: session.id },
           });
         }
@@ -674,7 +674,7 @@ export class PvDisplayService {
     }
   }
 
-  private async notifyDayFullyAssigned(day: PvDisplayDay): Promise<void> {
+  private async notifyDayFullyAssigned(day: PvSigningDay): Promise<void> {
     try {
       // Notifica PVF ca o zi e complet asignata
       const pvfDept = await this.departmentRepository.findOne({
@@ -695,8 +695,8 @@ export class PvDisplayService {
             notifications.push({
               userId: u.id,
               type: NotificationType.PV_SESSION_UPDATED,
-              title: 'Zi afisare PV - complet asignata',
-              message: `Ziua ${this.formatDate(day.displayDate)} are acum 2/2 utilizatori Control asignati.`,
+              title: 'Zi semnare PV - complet asignata',
+              message: `Ziua ${this.formatDate(day.signingDate)} are acum 2/2 utilizatori Intretinere Parcari asignati.`,
               data: { pvDayId: day.id, pvSessionId: day.sessionId },
             });
           }
@@ -714,8 +714,8 @@ export class PvDisplayService {
           notifications.push({
             userId: u.id,
             type: NotificationType.PV_SESSION_UPDATED,
-            title: 'Zi afisare PV - complet asignata',
-            message: `Ziua ${this.formatDate(day.displayDate)} are acum 2/2 utilizatori Control asignati.`,
+            title: 'Zi semnare PV - complet asignata',
+            message: `Ziua ${this.formatDate(day.signingDate)} are acum 2/2 utilizatori Intretinere Parcari asignati.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },
           });
         }
@@ -729,7 +729,7 @@ export class PvDisplayService {
     }
   }
 
-  private async notifyDayCompleted(day: PvDisplayDay, completedByUserId: string): Promise<void> {
+  private async notifyDayCompleted(day: PvSigningDay, completedByUserId: string): Promise<void> {
     try {
       const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
@@ -750,8 +750,8 @@ export class PvDisplayService {
             notifications.push({
               userId: u.id,
               type: NotificationType.PV_SESSION_UPDATED,
-              title: 'Zi afisare PV finalizata',
-              message: `Ziua ${this.formatDate(day.displayDate)} a fost finalizata.`,
+              title: 'Zi semnare PV finalizata',
+              message: `Ziua ${this.formatDate(day.signingDate)} a fost finalizata.`,
               data: { pvDayId: day.id, pvSessionId: day.sessionId },
             });
           }
@@ -769,8 +769,8 @@ export class PvDisplayService {
           notifications.push({
             userId: u.id,
             type: NotificationType.PV_SESSION_UPDATED,
-            title: 'Zi afisare PV finalizata',
-            message: `Ziua ${this.formatDate(day.displayDate)} a fost finalizata.`,
+            title: 'Zi semnare PV finalizata',
+            message: `Ziua ${this.formatDate(day.signingDate)} a fost finalizata.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },
           });
         }
@@ -793,7 +793,7 @@ export class PvDisplayService {
     changes?: Record<string, any>,
   ): Promise<void> {
     const history = this.historyRepository.create({
-      entityType: 'PV_DISPLAY_SESSION' as any,
+      entityType: 'PV_SIGNING_SESSION' as any,
       entityId,
       action: action as any,
       userId,
@@ -809,7 +809,7 @@ export class PvDisplayService {
     changes?: Record<string, any>,
   ): Promise<void> {
     const history = this.historyRepository.create({
-      entityType: 'PV_DISPLAY_DAY' as any,
+      entityType: 'PV_SIGNING_DAY' as any,
       entityId,
       action: action as any,
       userId,
@@ -823,46 +823,17 @@ export class PvDisplayService {
     return d.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
-  // ===== CONTROL USERS (for admin picker) =====
+  // ===== MAINTENANCE USERS (for admin picker) =====
 
-  // ===== CAR STATUS (public for all authenticated users) =====
-
-  async getCarStatusToday(): Promise<{
-    carInUse: boolean;
-    days: { id: string; dayOrder: number; displayDate: string; controlUser1Name: string | null; controlUser2Name: string | null; estimatedReturn: string }[];
-  }> {
-    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
-
-    const activeDays = await this.dayRepository.createQueryBuilder('day')
-      .leftJoinAndSelect('day.controlUser1', 'cu1')
-      .leftJoinAndSelect('day.controlUser2', 'cu2')
-      .leftJoinAndSelect('day.session', 'session')
-      .where('day.displayDate = :today', { today: todayStr })
-      .andWhere('day.status IN (:...statuses)', { statuses: [PV_DAY_STATUS.ASSIGNED, PV_DAY_STATUS.IN_PROGRESS] })
-      .getMany();
-
-    return {
-      carInUse: activeDays.length > 0,
-      days: activeDays.map(d => ({
-        id: d.id,
-        dayOrder: d.dayOrder,
-        displayDate: this.formatDate(d.displayDate),
-        controlUser1Name: d.controlUser1?.fullName || null,
-        controlUser2Name: d.controlUser2?.fullName || null,
-        estimatedReturn: '~15:00',
-      })),
-    };
-  }
-
-  async getControlUsers(): Promise<User[]> {
-    const controlDept = await this.departmentRepository.findOne({
-      where: { name: CONTROL_DEPARTMENT_NAME },
+  async getMaintenanceUsers(): Promise<User[]> {
+    const maintenanceDept = await this.departmentRepository.findOne({
+      where: { name: MAINTENANCE_DEPARTMENT_NAME },
     });
 
-    if (!controlDept) return [];
+    if (!maintenanceDept) return [];
 
     return this.userRepository.find({
-      where: { departmentId: controlDept.id, isActive: true },
+      where: { departmentId: maintenanceDept.id, isActive: true },
       order: { fullName: 'ASC' },
     });
   }

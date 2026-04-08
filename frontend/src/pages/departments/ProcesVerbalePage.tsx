@@ -19,7 +19,10 @@ import { isAdminOrAbove } from '../../utils/roleHelpers';
 import PvSessionsTab from './components/PvSessionsTab';
 import PvMarketplaceTab from './components/PvMarketplaceTab';
 import PvMyDaysTab from './components/PvMyDaysTab';
-import { CONTROL_DEPARTMENT_NAME, PROCESE_VERBALE_DEPARTMENT_NAME } from '../../constants/departments';
+import PvSigningSessionsTab from './components/PvSigningSessionsTab';
+import PvSigningMarketplaceTab from './components/PvSigningMarketplaceTab';
+import PvSigningMyDaysTab from './components/PvSigningMyDaysTab';
+import { CONTROL_DEPARTMENT_NAME, PROCESE_VERBALE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import type { OpenSessionState } from '../../types/navigation.types';
 
 interface TabPanelProps {
@@ -60,6 +63,7 @@ const ProcesVerbalePage: React.FC = () => {
 
   const userDept = user?.department?.name || '';
   const isControl = userDept === CONTROL_DEPARTMENT_NAME;
+  const isMaintenance = userDept === MAINTENANCE_DEPARTMENT_NAME;
   const isPvf = userDept === PROCESE_VERBALE_DEPARTMENT_NAME;
   const isAdmin = isAdminOrAbove(user?.role);
 
@@ -67,43 +71,77 @@ const ProcesVerbalePage: React.FC = () => {
   useEffect(() => {
     if (openSessionId && openSessionId !== lastHandledIdRef.current) {
       lastHandledIdRef.current = openSessionId;
-      // Sesiuni tab is first tab for non-Control users (index 0)
-      // For Control users, Sesiuni is not shown — fallback gracefully
-      if (!isControl) {
-        setTabValue(0); // Sesiuni is always tab 0 for PVF/admin
+      // Sesiuni tab is first tab for non-Control/non-Maintenance users (index 0)
+      if (!isControl && !isMaintenance) {
+        setTabValue(0); // Sesiuni Afisare is always tab 0 for PVF/admin
       }
       window.history.replaceState({}, document.title);
     }
-  }, [openSessionId, isControl]);
+  }, [openSessionId, isControl, isMaintenance]);
 
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   }, []);
 
-  // Control vede: Marketplace + Zilele Mele
-  // PVF vede: Sesiuni + Marketplace
-  // Admin/Manager vede: Sesiuni + Marketplace
-  const tabConfig: Array<{ label: string; shortLabel: string; color: string }> = [];
+  // Build tab configuration based on user role/department
+  // Admin/Manager/PVF: Sesiuni Afisare, Marketplace Afisare, Sesiuni Semnare, Marketplace Semnare
+  // Control: Marketplace (Afisare), Zilele Mele (Afisare)
+  // Intretinere Parcari: Marketplace (Semnare), Zilele Mele (Semnare)
+  const tabConfig: Array<{ label: string; shortLabel: string; color: string; component: string }> = [];
 
-  if (!isControl) {
+  if (isAdmin || isPvf) {
+    // Admin/PVF see both Afisare and Semnare sessions + marketplaces
     tabConfig.push({
-      label: 'Sesiuni',
-      shortLabel: 'Sesiuni',
+      label: 'Sesiuni Afisare',
+      shortLabel: 'Ses. Afisare',
       color: '#3b82f6',
+      component: 'sessions-afisare',
     });
-  }
-
-  tabConfig.push({
-    label: 'Marketplace',
-    shortLabel: 'Marketplace',
-    color: '#f59e0b',
-  });
-
-  if (isControl || isAdmin) {
+    tabConfig.push({
+      label: 'Marketplace Afisare',
+      shortLabel: 'Mkt. Afisare',
+      color: '#f59e0b',
+      component: 'marketplace-afisare',
+    });
+    tabConfig.push({
+      label: 'Sesiuni Semnare',
+      shortLabel: 'Ses. Semnare',
+      color: '#8b5cf6',
+      component: 'sessions-semnare',
+    });
+    tabConfig.push({
+      label: 'Marketplace Semnare',
+      shortLabel: 'Mkt. Semnare',
+      color: '#e879f9',
+      component: 'marketplace-semnare',
+    });
+  } else if (isControl) {
+    // Control users see only Afisare marketplace + their days
+    tabConfig.push({
+      label: 'Marketplace',
+      shortLabel: 'Marketplace',
+      color: '#f59e0b',
+      component: 'marketplace-afisare',
+    });
     tabConfig.push({
       label: 'Zilele Mele',
       shortLabel: 'Zilele Mele',
       color: '#10b981',
+      component: 'mydays-afisare',
+    });
+  } else if (isMaintenance) {
+    // Intretinere Parcari users see only Semnare marketplace + their days
+    tabConfig.push({
+      label: 'Marketplace',
+      shortLabel: 'Marketplace',
+      color: '#f59e0b',
+      component: 'marketplace-semnare',
+    });
+    tabConfig.push({
+      label: 'Zilele Mele',
+      shortLabel: 'Zilele Mele',
+      color: '#10b981',
+      component: 'mydays-semnare',
     });
   }
 
@@ -112,17 +150,51 @@ const ProcesVerbalePage: React.FC = () => {
     const tab = tabConfig[index];
     if (!tab) return null;
 
-    switch (tab.label) {
-      case 'Sesiuni':
+    switch (tab.component) {
+      case 'sessions-afisare':
         return <PvSessionsTab initialExpandedSessionId={openSessionId} />;
-      case 'Marketplace':
+      case 'marketplace-afisare':
         return <PvMarketplaceTab />;
-      case 'Zilele Mele':
+      case 'mydays-afisare':
         return <PvMyDaysTab />;
+      case 'sessions-semnare':
+        return <PvSigningSessionsTab initialExpandedSessionId={openSessionId} />;
+      case 'marketplace-semnare':
+        return <PvSigningMarketplaceTab />;
+      case 'mydays-semnare':
+        return <PvSigningMyDaysTab />;
       default:
         return null;
     }
   };
+
+  // Determine page title and subtitle based on user department
+  const getPageInfo = () => {
+    if (isControl) {
+      return {
+        title: 'Afisare Procese Verbale',
+        subtitle: 'Alege zilele disponibile si finalizeaza afisarile',
+      };
+    }
+    if (isMaintenance) {
+      return {
+        title: 'Semnare Procese Verbale',
+        subtitle: 'Alege zilele disponibile si finalizeaza semnarile',
+      };
+    }
+    if (isPvf) {
+      return {
+        title: 'Procese Verbale',
+        subtitle: 'Creeaza si gestioneaza sesiunile de afisare si semnare procese verbale',
+      };
+    }
+    return {
+      title: 'Procese Verbale',
+      subtitle: 'Gestioneaza sesiunile de afisare si semnare procese verbale',
+    };
+  };
+
+  const pageInfo = getPageInfo();
 
   return (
     <Box
@@ -183,7 +255,7 @@ const ProcesVerbalePage: React.FC = () => {
                   mb: 0.5,
                 }}
               >
-                Afisare Procese Verbale
+                {pageInfo.title}
               </Typography>
               <Typography
                 variant="body2"
@@ -192,11 +264,7 @@ const ProcesVerbalePage: React.FC = () => {
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                 }}
               >
-                {isControl
-                  ? 'Alege zilele disponibile si finalizeaza afisarile'
-                  : isPvf
-                    ? 'Creeaza si gestioneaza sesiunile de afisare procese verbale'
-                    : 'Gestioneaza sesiunile de afisare procese verbale'}
+                {pageInfo.subtitle}
               </Typography>
             </Box>
           </Box>
@@ -227,10 +295,10 @@ const ProcesVerbalePage: React.FC = () => {
             },
             '& .MuiTab-root': {
               minHeight: { xs: 44, md: 72 },
-              fontSize: { xs: '0.8rem', md: '0.875rem' },
+              fontSize: { xs: '0.7rem', md: '0.875rem' },
               fontWeight: 500,
               textTransform: 'none',
-              px: { xs: 1, md: 2 },
+              px: { xs: 0.5, md: 2 },
               minWidth: 0,
               '&.Mui-selected': {
                 fontWeight: 700,

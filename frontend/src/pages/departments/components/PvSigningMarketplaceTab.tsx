@@ -28,33 +28,33 @@ import {
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import {
-  useGetAvailableDaysQuery,
-  useClaimDayMutation,
-  useAdminAssignDayMutation,
-  useGetControlUsersQuery,
-} from '../../../store/api/pvDisplay.api';
-import type { PvDisplayDay, AdminAssignPvDayDto } from '../../../types/pv-display.types';
-import { PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
-import { CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
+  useGetSigningAvailableDaysQuery,
+  useClaimSigningDayMutation,
+  useAdminAssignSigningDayMutation,
+  useGetMaintenanceUsersQuery,
+} from '../../../store/api/pvSigning.api';
+import type { PvSigningDay, AdminAssignPvSigningDayDto } from '../../../types/pv-signing.types';
+import { PV_DAY_STATUS_COLORS } from '../../../types/pv-signing.types';
+import { MAINTENANCE_DEPARTMENT_NAME } from '../../../constants/departments';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
 
-const PvMarketplaceTab: React.FC = () => {
+const PvSigningMarketplaceTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
   const isAdmin = isAdminOrAbove(user?.role);
-  const isControl = user?.department?.name === CONTROL_DEPARTMENT_NAME;
-  const canClaim = isControl || isAdmin;
+  const isMaintenance = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
+  const canClaim = isMaintenance || isAdmin;
 
-  const { data: days = [], isLoading, error } = useGetAvailableDaysQuery();
-  const [claimDay, { isLoading: isClaiming }] = useClaimDayMutation();
-  const [adminAssignDay] = useAdminAssignDayMutation();
+  const { data: days = [], isLoading, error } = useGetSigningAvailableDaysQuery();
+  const [claimDay, { isLoading: isClaiming }] = useClaimSigningDayMutation();
+  const [adminAssignDay] = useAdminAssignSigningDayMutation();
 
   // Admin assign dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignDayId, setAssignDayId] = useState<string | null>(null);
   const [assignSlot, setAssignSlot] = useState<'1' | '2'>('1');
   const [assignUserId, setAssignUserId] = useState('');
-  const { data: controlUsers = [] } = useGetControlUsersQuery(undefined, { skip: !isAdmin });
+  const { data: maintenanceUsers = [] } = useGetMaintenanceUsersQuery(undefined, { skip: !isAdmin });
 
   const handleClaim = async (dayId: string) => {
     try {
@@ -74,7 +74,7 @@ const PvMarketplaceTab: React.FC = () => {
   const handleAdminAssign = async () => {
     if (!assignDayId || !assignUserId) return;
     try {
-      const dto: AdminAssignPvDayDto = { userId: assignUserId, slot: assignSlot };
+      const dto: AdminAssignPvSigningDayDto = { userId: assignUserId, slot: assignSlot };
       await adminAssignDay({ dayId: assignDayId, data: dto }).unwrap();
       setAssignDialogOpen(false);
     } catch (err: any) {
@@ -100,7 +100,7 @@ const PvMarketplaceTab: React.FC = () => {
     if (!acc[sessionKey]) acc[sessionKey] = [];
     acc[sessionKey].push(day);
     return acc;
-  }, {} as Record<string, PvDisplayDay[]>);
+  }, {} as Record<string, PvSigningDay[]>);
 
   return (
     <Box>
@@ -131,10 +131,10 @@ const PvMarketplaceTab: React.FC = () => {
               </Typography>
               <Stack spacing={1.5}>
                 {sessionDays.map((day) => {
-                  const assignedCount = (day.controlUser1Id ? 1 : 0) + (day.controlUser2Id ? 1 : 0);
+                  const assignedCount = (day.maintenanceUser1Id ? 1 : 0) + (day.maintenanceUser2Id ? 1 : 0);
                   const statusColor = PV_DAY_STATUS_COLORS[day.status];
                   const isFullyAssigned = assignedCount === 2;
-                  const alreadyClaimed = day.controlUser1Id === user?.id || day.controlUser2Id === user?.id;
+                  const alreadyClaimed = day.maintenanceUser1Id === user?.id || day.maintenanceUser2Id === user?.id;
 
                   return (
                     <Card
@@ -158,7 +158,7 @@ const PvMarketplaceTab: React.FC = () => {
                           <Box sx={{ flex: 1 }}>
                             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                               <Typography variant="body1" sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                                {new Date(day.displayDate).toLocaleDateString('ro-RO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+                                {new Date(day.signingDate).toLocaleDateString('ro-RO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
                               </Typography>
                               <Chip
                                 label={`${assignedCount}/2`}
@@ -181,10 +181,10 @@ const PvMarketplaceTab: React.FC = () => {
                             {/* Assigned users */}
                             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                               {/* Slot 1 */}
-                              {day.controlUser1 ? (
+                              {day.maintenanceUser1 ? (
                                 <Chip
-                                  avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.controlUser1.fullName[0]}</Avatar>}
-                                  label={day.controlUser1.fullName}
+                                  avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser1.fullName[0]}</Avatar>}
+                                  label={day.maintenanceUser1.fullName}
                                   size="small"
                                   color="primary"
                                   variant="outlined"
@@ -202,17 +202,17 @@ const PvMarketplaceTab: React.FC = () => {
                                 )
                               )}
                               {/* Slot 2 */}
-                              {day.controlUser2 ? (
+                              {day.maintenanceUser2 ? (
                                 <Chip
-                                  avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.controlUser2.fullName[0]}</Avatar>}
-                                  label={day.controlUser2.fullName}
+                                  avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser2.fullName[0]}</Avatar>}
+                                  label={day.maintenanceUser2.fullName}
                                   size="small"
                                   color="primary"
                                   variant="outlined"
                                   sx={{ fontSize: '0.7rem' }}
                                 />
                               ) : (
-                                isAdmin && day.controlUser1Id && (
+                                isAdmin && day.maintenanceUser1Id && (
                                   <Chip
                                     label="Slot 2 - Liber"
                                     size="small"
@@ -291,13 +291,13 @@ const PvMarketplaceTab: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 1 }}>
-            <InputLabel>Utilizator</InputLabel>
+            <InputLabel>Utilizator Intretinere</InputLabel>
             <Select
               value={assignUserId}
               onChange={(e) => setAssignUserId(e.target.value)}
-              label="Utilizator"
+              label="Utilizator Intretinere"
             >
-              {controlUsers.map((u) => (
+              {maintenanceUsers.map((u) => (
                 <MenuItem key={u.id} value={u.id}>
                   {u.fullName}
                 </MenuItem>
@@ -323,4 +323,4 @@ const PvMarketplaceTab: React.FC = () => {
   );
 };
 
-export default React.memo(PvMarketplaceTab);
+export default React.memo(PvSigningMarketplaceTab);
