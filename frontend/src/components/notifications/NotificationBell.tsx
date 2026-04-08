@@ -120,7 +120,7 @@ export const NotificationBell: React.FC = React.memo(() => {
           sx: {
             width: { xs: '100vw', sm: 380 },
             maxWidth: { xs: '100vw', sm: 380 },
-            maxHeight: { xs: '70vh', sm: 520 },
+            maxHeight: { xs: '70dvh', sm: 520 },
             borderRadius: { xs: 0, sm: 3 },
             mt: { xs: 0, sm: 1 },
             boxShadow: theme.palette.mode === 'light'

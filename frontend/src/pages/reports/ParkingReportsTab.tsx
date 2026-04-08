@@ -1066,7 +1066,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
             onClick={() => setExportDrawerOpen(true)}
             sx={{
               position: 'fixed',
-              bottom: 16,
+              bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
               bgcolor: selectedReport === 'issues' ? '#ef4444' : selectedReport === 'damages' ? '#f97316' : '#10b981',
               '&:hover': {

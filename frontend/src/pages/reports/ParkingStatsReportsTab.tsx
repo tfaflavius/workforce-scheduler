@@ -480,7 +480,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       const total = ticketsData.reduce((sum, d) => sum + d.value, 0);
       return (
         <>
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: { xs: 'calc(100dvh - 300px)', sm: 'calc(100dvh - 250px)' }, overflowX: 'auto' }}>
           <Table size="small" stickyHeader sx={{ minWidth: { xs: 250, sm: 300 } }}>
             <TableHead>
               <TableRow>
@@ -559,7 +559,7 @@ const ParkingStatsReportsTab: React.FC = () => {
       const totalSpots = subscriptionsData.reduce((sum, d) => sum + d.spots, 0);
       return (
         <>
-        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: { xs: 'calc(100dvh - 300px)', sm: 'calc(100dvh - 250px)' }, overflowX: 'auto' }}>
           <Table size="small" stickyHeader sx={{ minWidth: { xs: 320, sm: 400 } }}>
             <TableHead>
               <TableRow>
@@ -630,7 +630,7 @@ const ParkingStatsReportsTab: React.FC = () => {
     const totalWeeklyCoeff = TOTAL_PARKING_SPOTS > 0 ? Number(((totalAvg / TOTAL_PARKING_SPOTS) * 100).toFixed(2)) : 0;
     return (
       <>
-      <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 500, overflowX: 'auto' }}>
+      <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: { xs: 'calc(100dvh - 300px)', sm: 'calc(100dvh - 250px)' }, overflowX: 'auto' }}>
         <Table size="small" stickyHeader sx={{ minWidth: { xs: 450, sm: 560 } }}>
           <TableHead>
             <TableRow>

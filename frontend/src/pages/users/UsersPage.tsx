@@ -717,7 +717,7 @@ const UsersPage: React.FC = () => {
               <TableSkeleton rows={5} columns={7} />
             ) : (
               <>
-                <TableContainer sx={{ overflowX: 'auto', maxHeight: 600 }}>
+                <TableContainer sx={{ overflowX: 'auto', maxHeight: { xs: 'calc(100dvh - 280px)', sm: 'calc(100dvh - 250px)' } }}>
                   <Table size="small" stickyHeader>
                     <TableHead>
                       <TableRow>

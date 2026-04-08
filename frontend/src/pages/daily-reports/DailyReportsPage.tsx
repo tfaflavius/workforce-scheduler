@@ -444,7 +444,7 @@ const DailyReportsPage: React.FC = () => {
               wordBreak: 'break-word',
               mb: 2,
               overflow: 'auto',
-              maxHeight: { xs: '40vh', sm: '50vh' },
+              maxHeight: { xs: '40dvh', sm: '50dvh' },
             }}
           >
             <Typography variant="body1" sx={{ lineHeight: 1.7 }}>
@@ -553,7 +553,7 @@ const DailyReportsPage: React.FC = () => {
                     wordBreak: 'break-word',
                     mb: 2,
                     overflow: 'auto',
-                    maxHeight: { xs: '40vh', sm: '50vh' },
+                    maxHeight: { xs: '40dvh', sm: '50dvh' },
                   }}
                 >
                   <Typography variant="body1">{todayReport?.content}</Typography>

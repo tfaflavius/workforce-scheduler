@@ -315,7 +315,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
           )}
 
           {/* Detalii parcari */}
-          <Stack direction="row" spacing={2}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <TextField
               label="Cate locuri"
               value={formData.numberOfSpots ?? ''}

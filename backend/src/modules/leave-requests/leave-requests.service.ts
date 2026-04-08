@@ -6,7 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, DataSource } from 'typeorm';
+import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, In, DataSource } from 'typeorm';
 import { LeaveRequest, LeaveType, LeaveRequestStatus } from './entities/leave-request.entity';
 import { LeaveBalance } from './entities/leave-balance.entity';
 import { CreateLeaveRequestDto } from './dto/create-leave-request.dto';
@@ -16,7 +16,7 @@ import { AdminEditLeaveRequestDto } from './dto/admin-edit-leave-request.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { Department } from '../departments/entities/department.entity';
 import { EmailService } from '../../common/email/email.service';
@@ -392,10 +392,18 @@ export class LeaveRequestsService {
           .andWhere('year = :year', { year })
           .execute();
 
-        await this.createLeaveAssignments(request);
       }
 
       await queryRunner.commitTransaction();
+
+      // Create leave assignments after commit (non-critical, uses own connection)
+      if (dto.status === 'APPROVED') {
+        try {
+          await this.createLeaveAssignments(request);
+        } catch (err) {
+          this.logger.error(`Failed to create leave assignments for request ${id}: ${err?.message}`);
+        }
+      }
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;
@@ -527,10 +535,18 @@ export class LeaveRequestsService {
           .andWhere('year = :year', { year: newYear })
           .execute();
 
-        await this.createLeaveAssignments(request);
       }
 
       await queryRunner.commitTransaction();
+
+      // Re-create leave assignments after commit (non-critical, uses own connection)
+      if (wasApproved) {
+        try {
+          await this.createLeaveAssignments(request);
+        } catch (err) {
+          this.logger.error(`Failed to create leave assignments for request ${id}: ${err?.message}`);
+        }
+      }
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;
@@ -785,7 +801,7 @@ export class LeaveRequestsService {
     user: User,
   ): Promise<void> {
     const admins = await this.userRepository.find({
-      where: { role: 'ADMIN' as any, isActive: true },
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]) as any, isActive: true },
     });
 
     const startDate = new Date(request.startDate).toLocaleDateString('ro-RO');

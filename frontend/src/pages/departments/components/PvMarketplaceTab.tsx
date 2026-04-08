@@ -46,7 +46,8 @@ const PvMarketplaceTab: React.FC = () => {
   const canClaim = isControl || isAdmin;
 
   const { data: days = [], isLoading, error } = useGetAvailableDaysQuery();
-  const [claimDay, { isLoading: isClaiming }] = useClaimDayMutation();
+  const [claimDay] = useClaimDayMutation();
+  const [claimingDayId, setClaimingDayId] = useState<string | null>(null);
   const [adminAssignDay] = useAdminAssignDayMutation();
 
   // Admin assign dialog
@@ -57,10 +58,13 @@ const PvMarketplaceTab: React.FC = () => {
   const { data: controlUsers = [] } = useGetControlUsersQuery(undefined, { skip: !isAdmin });
 
   const handleClaim = async (dayId: string) => {
+    setClaimingDayId(dayId);
     try {
       await claimDay(dayId).unwrap();
     } catch (err: any) {
       notifyError(err?.data?.message || 'Eroare la revendicare');
+    } finally {
+      setClaimingDayId(null);
     }
   };
 
@@ -96,7 +100,7 @@ const PvMarketplaceTab: React.FC = () => {
 
   // Group days by session
   const daysBySession = days.reduce((acc, day) => {
-    const sessionKey = day.session?.monthYear || 'unknown';
+    const sessionKey = day.session?.id || 'unknown';
     if (!acc[sessionKey]) acc[sessionKey] = [];
     acc[sessionKey].push(day);
     return acc;
@@ -127,7 +131,7 @@ const PvMarketplaceTab: React.FC = () => {
                   fontSize: { xs: '0.85rem', sm: '0.95rem' },
                 }}
               >
-                Sesiune: {sessionMonth}
+                Sesiune: {sessionDays[0]?.session?.monthYear || sessionMonth}
               </Typography>
               <Stack spacing={1.5}>
                 {sessionDays.map((day) => {
@@ -233,7 +237,7 @@ const PvMarketplaceTab: React.FC = () => {
                                 size="small"
                                 startIcon={<ClaimIcon />}
                                 onClick={() => handleClaim(day.id)}
-                                disabled={isClaiming}
+                                disabled={claimingDayId === day.id}
                                 sx={{
                                   borderRadius: 2,
                                   textTransform: 'none',
