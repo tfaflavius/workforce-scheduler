@@ -53,6 +53,7 @@ import {
   Security as SecurityIcon,
   EditNote as EditRequestsIcon,
   KeyboardArrowUp as ArrowUpIcon,
+  Inventory as InventoryIcon,
 } from '@mui/icons-material';
 import {
   Groups as GroupsIcon,
@@ -341,6 +342,13 @@ export const MainLayout = () => {
       requiresDepartments: [CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
     },
     {
+      text: 'Stoc Echipamente',
+      icon: <InventoryIcon />,
+      path: '/stoc-echipamente',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: [PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
+    },
+    {
       text: 'Monitorizare Pontaj',
       icon: <TimerIcon />,
       path: '/admin/pontaj',
@@ -570,7 +578,7 @@ export const MainLayout = () => {
             { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: theme.palette.primary.main },
             { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: theme.palette.info.main },
             { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/admin/edit-requests', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: theme.palette.secondary.main },
-            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari'], color: theme.palette.success.main },
+            { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari', '/stoc-echipamente'], color: theme.palette.success.main },
           ];
 
           // Group filtered menu items into sections

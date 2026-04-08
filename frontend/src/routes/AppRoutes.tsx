@@ -46,6 +46,7 @@ const ControlSesizariPage = lazy(() => import('../pages/parking/ControlSesizariP
 const PermissionsPage = lazy(() => import('../pages/permissions/PermissionsPage'));
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'));
 const NotificationRedirectPage = lazy(() => import('../pages/notifications/NotificationRedirectPage'));
+const EquipmentStockPage = lazy(() => import('../pages/equipment-stock/EquipmentStockPage'));
 const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
 /** Skeleton placeholder shown while lazy-loaded pages are being fetched */
@@ -284,6 +285,16 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['MASTER_ADMIN']}>
               <SafePage><PermissionsPage /></SafePage>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Equipment Stock - Parcometre, Intretinere Parcari, Admin, Manager */}
+        <Route
+          path="/stoc-echipamente"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME]}>
+              <SafePage><EquipmentStockPage /></SafePage>
             </ProtectedRoute>
           }
         />
