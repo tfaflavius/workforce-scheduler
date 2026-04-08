@@ -68,41 +68,50 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
   const minDateValue = useMemo(() => minDate ? dayjs(minDate) : undefined, [minDate]);
   const maxDateValue = useMemo(() => maxDate ? dayjs(maxDate) : (isBirthDate ? dayjs() : undefined), [maxDate, isBirthDate]);
 
-  // Common props for both pickers
-  const commonProps = {
-    label,
-    value: dateValue,
-    onChange: handleChange,
-    openTo: pickerOpenTo,
-    views: pickerViews,
-    minDate: minDateValue,
-    maxDate: maxDateValue,
-    disabled,
-    slotProps: {
-      textField: {
-        fullWidth,
-        size,
-        required,
-        error,
-        helperText,
-      },
-      // Enable year/month selection in toolbar
-      toolbar: {
-        hidden: false,
-      },
+  // Shared slot props
+  const slotProps = {
+    textField: {
+      fullWidth,
+      size,
+      required,
+      error,
+      helperText,
     },
-    // Format for Romanian
-    format: 'DD.MM.YYYY',
-    // Show year first in header for easier navigation
-    yearsPerRow: 3 as const,
+    toolbar: {
+      hidden: false,
+    },
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ro">
       {isMobile ? (
-        <MobileDatePicker {...commonProps} />
+        <MobileDatePicker
+          label={label}
+          value={dateValue}
+          onChange={(newValue) => handleChange(newValue as Dayjs | null)}
+          openTo={pickerOpenTo}
+          views={pickerViews as ('year' | 'month' | 'day')[]}
+          minDate={minDateValue}
+          maxDate={maxDateValue}
+          disabled={disabled}
+          slotProps={slotProps}
+          format="DD.MM.YYYY"
+          yearsPerRow={3}
+        />
       ) : (
-        <DatePicker {...commonProps} />
+        <DatePicker
+          label={label}
+          value={dateValue}
+          onChange={(newValue) => handleChange(newValue as Dayjs | null)}
+          openTo={pickerOpenTo}
+          views={pickerViews as ('year' | 'month' | 'day')[]}
+          minDate={minDateValue}
+          maxDate={maxDateValue}
+          disabled={disabled}
+          slotProps={slotProps}
+          format="DD.MM.YYYY"
+          yearsPerRow={3}
+        />
       )}
     </LocalizationProvider>
   );
