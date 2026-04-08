@@ -12,7 +12,7 @@ import { Inventory as InventoryIcon } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import { isAdminOrAbove, isMasterAdmin } from '../../utils/roleHelpers';
 import { PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
-import { STOCK_CATEGORIES, STOCK_CATEGORY_LABELS } from '../../constants/equipmentStock';
+import { STOCK_CATEGORY_LABELS } from '../../constants/equipmentStock';
 import type { StockCategory } from '../../constants/equipmentStock';
 import GradientHeader from '../../components/common/GradientHeader';
 import StockCategoryTab from './components/StockCategoryTab';

@@ -71,7 +71,7 @@ export const FriendlyDatePicker: React.FC<FriendlyDatePickerProps> = ({
   const commonProps = {
     label,
     value,
-    onChange,
+    onChange: ((value: unknown) => onChange(value as Dayjs | null)) as any,
     minDate,
     maxDate,
     disabled,

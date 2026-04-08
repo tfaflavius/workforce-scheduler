@@ -46,7 +46,7 @@ import {
   useUpdateEntryMutation,
   useDeleteEntryMutation,
 } from '../../../store/api/equipmentStock.api';
-import type { StockEntryItem, StockDefinitionItem } from '../../../store/api/equipmentStock.api';
+import type { StockEntryItem } from '../../../store/api/equipmentStock.api';
 import type { StockCategory } from '../../../constants/equipmentStock';
 
 interface StockCategoryTabProps {
