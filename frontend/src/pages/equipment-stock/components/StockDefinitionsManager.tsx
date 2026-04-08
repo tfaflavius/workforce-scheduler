@@ -75,7 +75,7 @@ const StockDefinitionsManager: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingDefId, setDeletingDefId] = useState<string | null>(null);
 
-  const { data: definitions = [], isLoading, error } = useGetDefinitionsQuery();
+  const { data: definitions = [], isLoading, error } = useGetDefinitionsQuery({ includeInactive: true });
   const [createDefinition, { isLoading: isCreating }] = useCreateDefinitionMutation();
   const [updateDefinition, { isLoading: isUpdating }] = useUpdateDefinitionMutation();
   const [deleteDefinition, { isLoading: isDeleting }] = useDeleteDefinitionMutation();
@@ -142,11 +142,11 @@ const StockDefinitionsManager: React.FC = () => {
     try {
       await deleteDefinition(deletingDefId).unwrap();
       notifySuccess('Definitie stearsa cu succes');
+      setDeleteConfirmOpen(false);
+      setDeletingDefId(null);
     } catch {
       notifyError('Eroare la stergere');
     }
-    setDeleteConfirmOpen(false);
-    setDeletingDefId(null);
   };
 
   const getCategoryLabel = (category: string) => {

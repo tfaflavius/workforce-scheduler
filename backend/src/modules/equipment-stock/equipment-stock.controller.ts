@@ -34,8 +34,14 @@ export class EquipmentStockController {
 
   @Get('definitions')
   @Roles(UserRole.USER)
-  async findAllDefinitions(@Query('category') category?: string) {
-    return this.equipmentStockService.findAllDefinitions(category);
+  async findAllDefinitions(
+    @Query('category') category?: string,
+    @Query('includeInactive') includeInactive?: string,
+  ) {
+    return this.equipmentStockService.findAllDefinitions(
+      category,
+      includeInactive === 'true',
+    );
   }
 
   @Post('definitions')

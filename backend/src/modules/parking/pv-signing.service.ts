@@ -412,6 +412,12 @@ export class PvSigningService {
       throw new NotFoundException('Utilizatorul nu a fost gasit');
     }
 
+    // Verificare: userul e din departamentul Intretinere Parcari
+    const targetDeptName = removeDiacritics(targetUser.department?.name || '');
+    if (targetDeptName !== MAINTENANCE_DEPARTMENT_NAME) {
+      throw new BadRequestException('Utilizatorul nu face parte din departamentul Intretinere Parcari');
+    }
+
     // Verificare: slotul nu e deja ocupat
     if (dto.slot === '1' && day.maintenanceUser1Id) {
       throw new BadRequestException('Slotul 1 este deja ocupat');

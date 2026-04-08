@@ -50,6 +50,7 @@ export interface UpdateDefinitionDto {
 
 export interface CreateEntryDto {
   definitionId: string;
+  category: string;
   quantity: number;
   location?: string;
   notes?: string;
@@ -74,10 +75,13 @@ export const equipmentStockApi = createApi({
 
     // ===== DEFINITIONS =====
 
-    getDefinitions: builder.query<StockDefinitionItem[], { category?: string } | void>({
+    getDefinitions: builder.query<StockDefinitionItem[], { category?: string; includeInactive?: boolean } | void>({
       query: (params) => ({
         url: '/equipment-stock/definitions',
-        params: params || undefined,
+        params: params ? {
+          ...params,
+          includeInactive: params.includeInactive ? 'true' : undefined,
+        } : undefined,
       }),
       providesTags: (result) =>
         result

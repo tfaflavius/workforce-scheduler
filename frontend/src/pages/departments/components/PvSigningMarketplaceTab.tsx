@@ -46,7 +46,8 @@ const PvSigningMarketplaceTab: React.FC = () => {
   const canClaim = isMaintenance || isAdmin;
 
   const { data: days = [], isLoading, error } = useGetSigningAvailableDaysQuery();
-  const [claimDay, { isLoading: isClaiming }] = useClaimSigningDayMutation();
+  const [claimDay] = useClaimSigningDayMutation();
+  const [claimingDayId, setClaimingDayId] = useState<string | null>(null);
   const [adminAssignDay] = useAdminAssignSigningDayMutation();
 
   // Admin assign dialog
@@ -58,9 +59,12 @@ const PvSigningMarketplaceTab: React.FC = () => {
 
   const handleClaim = async (dayId: string) => {
     try {
+      setClaimingDayId(dayId);
       await claimDay(dayId).unwrap();
     } catch (err: any) {
       notifyError(err?.data?.message || 'Eroare la revendicare');
+    } finally {
+      setClaimingDayId(null);
     }
   };
 
@@ -96,7 +100,7 @@ const PvSigningMarketplaceTab: React.FC = () => {
 
   // Group days by session
   const daysBySession = days.reduce((acc, day) => {
-    const sessionKey = day.session?.monthYear || 'unknown';
+    const sessionKey = day.session?.id || 'unknown';
     if (!acc[sessionKey]) acc[sessionKey] = [];
     acc[sessionKey].push(day);
     return acc;
@@ -116,8 +120,8 @@ const PvSigningMarketplaceTab: React.FC = () => {
         </Card>
       ) : (
         <Stack spacing={3}>
-          {Object.entries(daysBySession).map(([sessionMonth, sessionDays]) => (
-            <Box key={sessionMonth}>
+          {Object.entries(daysBySession).map(([sessionKey, sessionDays]) => (
+            <Box key={sessionKey}>
               <Typography
                 variant="subtitle2"
                 sx={{
@@ -127,7 +131,7 @@ const PvSigningMarketplaceTab: React.FC = () => {
                   fontSize: { xs: '0.85rem', sm: '0.95rem' },
                 }}
               >
-                Sesiune: {sessionMonth}
+                Sesiune: {sessionDays[0]?.session?.monthYear || sessionKey}
               </Typography>
               <Stack spacing={1.5}>
                 {sessionDays.map((day) => {
@@ -233,7 +237,7 @@ const PvSigningMarketplaceTab: React.FC = () => {
                                 size="small"
                                 startIcon={<ClaimIcon />}
                                 onClick={() => handleClaim(day.id)}
-                                disabled={isClaiming}
+                                disabled={claimingDayId === day.id}
                                 sx={{
                                   borderRadius: 2,
                                   textTransform: 'none',

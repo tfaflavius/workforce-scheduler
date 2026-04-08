@@ -34,14 +34,18 @@ export class EquipmentStockService {
 
   // ===== DEFINITIONS =====
 
-  async findAllDefinitions(category?: string): Promise<EquipmentStockDefinition[]> {
+  async findAllDefinitions(category?: string, includeInactive?: boolean): Promise<EquipmentStockDefinition[]> {
     const qb = this.definitionRepository
-      .createQueryBuilder('def')
-      .where('def.isActive = :isActive', { isActive: true });
+      .createQueryBuilder('def');
+
+    if (!includeInactive) {
+      qb.where('def.isActive = :isActive', { isActive: true });
+    }
 
     if (category) {
       // Returneaza definitiile din categoria specificata + cele cu categoria 'ALL'
-      qb.andWhere('(def.category = :category OR def.category = :all)', {
+      const method = includeInactive ? 'where' : 'andWhere';
+      qb[method]('(def.category = :category OR def.category = :all)', {
         category,
         all: 'ALL',
       });

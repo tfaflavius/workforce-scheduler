@@ -133,10 +133,13 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
     try {
       const payload = {
         definitionId: formData.definitionId,
+        category,
         quantity: formData.quantity,
         location: formData.location || undefined,
         notes: formData.notes || undefined,
-        dateAdded: formData.dateAdded ? formData.dateAdded.toISOString().split('T')[0] : undefined,
+        dateAdded: formData.dateAdded
+          ? formData.dateAdded.toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0],
       };
 
       if (editingEntry) {
@@ -162,11 +165,11 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
     try {
       await deleteEntry(deletingEntryId).unwrap();
       notifySuccess('Intrare stearsa cu succes');
+      setDeleteConfirmOpen(false);
+      setDeletingEntryId(null);
     } catch {
       notifyError('Eroare la stergere');
     }
-    setDeleteConfirmOpen(false);
-    setDeletingEntryId(null);
   };
 
   if (isLoading) {

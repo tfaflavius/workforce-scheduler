@@ -120,14 +120,17 @@ const PvSigningSessionsTab: React.FC<PvSigningSessionsTabProps> = ({ initialExpa
 
   const generateConsecutiveDays = (start: string, count: number): PvSigningDayDto[] => {
     const days: PvSigningDayDto[] = [];
-    const date = new Date(start);
+    const date = new Date(start + 'T00:00:00');
 
     let dayOrder = 1;
     while (days.length < count) {
       const dayOfWeek = date.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
         days.push({
-          signingDate: date.toISOString().split('T')[0],
+          signingDate: `${yyyy}-${mm}-${dd}`,
           dayOrder,
           noticeCount: 30,
           firstNoticeSeries: '',

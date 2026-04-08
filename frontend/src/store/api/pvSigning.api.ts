@@ -133,6 +133,7 @@ export const pvSigningApi = createApi({
         { type: 'PvSigningDays', id: 'AVAILABLE' },
         { type: 'PvSigningDays', id: 'MY_CLAIMED' },
         { type: 'PvSigningSessions', id: 'LIST' },
+        { type: 'PvSigningHistory', id: 'LIST' },
       ],
     }),
 
@@ -145,6 +146,7 @@ export const pvSigningApi = createApi({
         { type: 'PvSigningDays', id: 'AVAILABLE' },
         { type: 'PvSigningDays', id: 'MY_CLAIMED' },
         { type: 'PvSigningSessions', id: 'LIST' },
+        { type: 'PvSigningHistory', id: 'LIST' },
       ],
     }),
 
@@ -158,6 +160,7 @@ export const pvSigningApi = createApi({
         { type: 'PvSigningDays', id: 'MY_CLAIMED' },
         { type: 'PvSigningDays', id: 'AVAILABLE' },
         { type: 'PvSigningSessions', id: 'LIST' },
+        { type: 'PvSigningHistory', id: 'LIST' },
       ],
     }),
 
@@ -171,6 +174,7 @@ export const pvSigningApi = createApi({
         { type: 'PvSigningDays', id: 'AVAILABLE' },
         { type: 'PvSigningDays', id: 'MY_CLAIMED' },
         { type: 'PvSigningSessions', id: 'LIST' },
+        { type: 'PvSigningHistory', id: 'LIST' },
       ],
     }),
 
