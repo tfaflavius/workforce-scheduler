@@ -507,7 +507,7 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
             <DatePicker
               label="Data"
               value={formData.dateAdded}
-              onChange={(date) => setFormData((prev) => ({ ...prev, dateAdded: date }))}
+              onChange={(date) => setFormData((prev) => ({ ...prev, dateAdded: date as Date | null }))}
               slotProps={{
                 textField: {
                   size: 'small',
