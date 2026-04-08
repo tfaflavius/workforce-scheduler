@@ -310,7 +310,7 @@ export const MainLayout = () => {
       icon: <ReceiptIcon />,
       path: '/procese-verbale',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: [PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME],
+      requiresDepartments: [PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
     },
     {
       text: 'Parcometre',

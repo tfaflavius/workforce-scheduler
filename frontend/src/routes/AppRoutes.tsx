@@ -245,11 +245,11 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Procese Verbale - PVF, Control, Admin, Manager */}
+        {/* Procese Verbale - PVF, Control, Intretinere Parcari, Admin, Manager */}
         <Route
           path="/procese-verbale"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME]}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME]}>
               <SafePage><ProcesVerbalePage /></SafePage>
             </ProtectedRoute>
           }

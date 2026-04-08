@@ -29,6 +29,7 @@ import {
   PV_DAY_STATUS,
   PROCESE_VERBALE_DEPARTMENT_NAME,
   CONTROL_DEPARTMENT_NAME,
+  MAINTENANCE_DEPARTMENT_NAME,
 } from './constants/parking.constants';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
@@ -269,13 +270,14 @@ export class PvDisplayService {
   }
 
   async claimDay(dayId: string, userId: string, user: any): Promise<PvDisplayDay> {
-    // Doar Control si Admin pot revendica
+    // Doar Control, Intretinere Parcari si Admin pot revendica
     const userDeptName = removeDiacritics(user.department?.name || '');
     const isControl = userDeptName === CONTROL_DEPARTMENT_NAME;
+    const isMaintenance = userDeptName === MAINTENANCE_DEPARTMENT_NAME;
     const isAdmin = isAdminOrAbove(user.role);
 
-    if (!isControl && !isAdmin) {
-      throw new ForbiddenException('Doar departamentul Control si administratorii pot revendica zile');
+    if (!isControl && !isMaintenance && !isAdmin) {
+      throw new ForbiddenException('Doar departamentele Control, Intretinere Parcari si administratorii pot revendica zile');
     }
 
     const day = await this.dayRepository.findOne({
@@ -617,27 +619,30 @@ export class PvDisplayService {
 
   private async notifySessionCreated(session: PvDisplaySession, creatorId: string): Promise<void> {
     try {
-      // Notifica departamentul Control
-      const controlDept = await this.departmentRepository.findOne({
-        where: { name: CONTROL_DEPARTMENT_NAME },
-      });
-
+      // Notifica departamentele Control si Intretinere Parcari
       const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
 
-      if (controlDept) {
-        const controlUsers = await this.userRepository.find({
-          where: { departmentId: controlDept.id, isActive: true },
+      const targetDepts = await this.departmentRepository.find({
+        where: [
+          { name: CONTROL_DEPARTMENT_NAME },
+          { name: MAINTENANCE_DEPARTMENT_NAME },
+        ],
+      });
+
+      for (const dept of targetDepts) {
+        const deptUsers = await this.userRepository.find({
+          where: { departmentId: dept.id, isActive: true },
         });
 
-        controlUsers.forEach(u => {
+        deptUsers.forEach(u => {
           if (u.id !== creatorId && !notifiedUserIds.has(u.id)) {
             notifiedUserIds.add(u.id);
             notifications.push({
               userId: u.id,
               type: NotificationType.PV_SESSION_ASSIGNED,
-              title: 'Sesiune noua afisare PV',
-              message: `O noua sesiune de afisare procese verbale a fost creata pentru ${session.monthYear}. Verifica zilele disponibile in marketplace.`,
+              title: 'Sesiune noua semnare PV',
+              message: `O noua sesiune de semnare procese verbale a fost creata pentru ${session.monthYear}. Verifica zilele disponibile in marketplace.`,
               data: { pvSessionId: session.id },
             });
           }
@@ -659,8 +664,8 @@ export class PvDisplayService {
           notifications.push({
             userId: u.id,
             type: NotificationType.PV_SESSION_ASSIGNED,
-            title: 'Sesiune noua afisare PV',
-            message: `O noua sesiune de afisare procese verbale a fost creata pentru ${session.monthYear}.`,
+            title: 'Sesiune noua semnare PV',
+            message: `O noua sesiune de semnare procese verbale a fost creata pentru ${session.monthYear}.`,
             data: { pvSessionId: session.id },
           });
         }
@@ -855,14 +860,20 @@ export class PvDisplayService {
   }
 
   async getControlUsers(): Promise<User[]> {
-    const controlDept = await this.departmentRepository.findOne({
-      where: { name: CONTROL_DEPARTMENT_NAME },
+    // Returneaza useri din Control SI Intretinere Parcari (ambele pot semna PV)
+    const departments = await this.departmentRepository.find({
+      where: [
+        { name: CONTROL_DEPARTMENT_NAME },
+        { name: MAINTENANCE_DEPARTMENT_NAME },
+      ],
     });
 
-    if (!controlDept) return [];
+    if (departments.length === 0) return [];
+
+    const deptIds = departments.map(d => d.id);
 
     return this.userRepository.find({
-      where: { departmentId: controlDept.id, isActive: true },
+      where: deptIds.map(id => ({ departmentId: id, isActive: true })),
       order: { fullName: 'ASC' },
     });
   }

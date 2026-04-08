@@ -35,7 +35,7 @@ import {
 } from '../../../store/api/pvDisplay.api';
 import type { PvDisplayDay, AdminAssignPvDayDto } from '../../../types/pv-display.types';
 import { PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
-import { CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
+import { CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../../constants/departments';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 const PvMarketplaceTab: React.FC = () => {
@@ -43,7 +43,8 @@ const PvMarketplaceTab: React.FC = () => {
   const { notifyError } = useSnackbar();
   const isAdmin = isAdminOrAbove(user?.role);
   const isControl = user?.department?.name === CONTROL_DEPARTMENT_NAME;
-  const canClaim = isControl || isAdmin;
+  const isMaintenance = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
+  const canClaim = isControl || isMaintenance || isAdmin;
 
   const { data: days = [], isLoading, error } = useGetAvailableDaysQuery();
   const [claimDay, { isLoading: isClaiming }] = useClaimDayMutation();
@@ -291,11 +292,11 @@ const PvMarketplaceTab: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 1 }}>
-            <InputLabel>Utilizator Control</InputLabel>
+            <InputLabel>Utilizator</InputLabel>
             <Select
               value={assignUserId}
               onChange={(e) => setAssignUserId(e.target.value)}
-              label="Utilizator Control"
+              label="Utilizator"
             >
               {controlUsers.map((u) => (
                 <MenuItem key={u.id} value={u.id}>

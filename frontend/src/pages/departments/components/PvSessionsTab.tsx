@@ -678,7 +678,7 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
                     />
                   </Stack>
                   <Typography variant="caption" color="text.secondary">
-                    {day.noticeCount} procese verbale • {assignedCount}/2 Control asignati
+                    {day.noticeCount} procese verbale • {assignedCount}/2 asignati
                   </Typography>
                 </Box>
                 <Chip
