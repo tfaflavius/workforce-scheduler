@@ -112,7 +112,34 @@ export class DailyReportsScheduler {
       );
     }
 
-    this.logger.log(`Notificari lipsa raport trimise la ${notifications.length} utilizatori`);
+    // Notifica si userii insisi ca nu au trimis raportul
+    const userNotifications = missingUsers.map(u => ({
+      userId: u.id,
+      type: NotificationType.DAILY_REPORT_MISSING,
+      title: 'Raport zilnic netrimis',
+      message: 'Nu ai trimis raportul zilnic pentru astazi. Te rugam sa il completezi.',
+      data: {
+        date: today,
+        isSelfNotification: true,
+      },
+      skipPush: true, // Push trimis separat cu mesaj personalizat
+    }));
+
+    if (userNotifications.length > 0) {
+      await this.notificationsService.createMany(userNotifications);
+
+      await this.pushNotificationService.sendToUsers(
+        missingUsers.map(u => u.id),
+        'Raport zilnic netrimis',
+        'Nu ai trimis raportul zilnic pentru astazi. Te rugam sa il completezi.',
+        { type: 'DAILY_REPORT_MISSING', date: today, isSelfNotification: true },
+        NotificationType.DAILY_REPORT_MISSING,
+      );
+    }
+
+    this.logger.log(
+      `Notificari lipsa raport trimise: ${notifications.length} la admini/manageri, ${userNotifications.length} la userii fara raport`,
+    );
   }
 
   // Rezumatul saptamanal email pentru manageri a fost mutat in AdminConsolidatedScheduler
