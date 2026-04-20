@@ -399,6 +399,40 @@ export class TimeTrackingService {
       } catch (err) {
         this.logger.error(`[GPS Status] Failed to send notifications: ${err?.message}`);
       }
+
+      // Notify the user themselves so they know to restart location services
+      try {
+        const userMessage = `${statusLabels[dto.status] || dto.status}. Te rugam sa repornesti locatia de pe dispozitiv.`;
+        await this.notificationsService.create({
+          userId,
+          type: NotificationType.GPS_STATUS_ALERT,
+          title: 'Locatia ta nu poate fi verificata',
+          message: userMessage,
+          data: {
+            gpsStatus: dto.status,
+            errorMessage: dto.errorMessage,
+            timeEntryId,
+            isSelfNotification: true,
+          },
+          skipPush: true, // Push sent separately below
+        });
+
+        await this.pushNotificationService.sendToUser(
+          userId,
+          'Locatia ta nu poate fi verificata',
+          userMessage,
+          {
+            type: 'GPS_STATUS_ALERT',
+            gpsStatus: dto.status,
+            timeEntryId,
+            isSelfNotification: true,
+          },
+          NotificationType.GPS_STATUS_ALERT,
+        );
+        this.logger.log(`[GPS Status] Self-notification sent to ${employeeName}`);
+      } catch (err) {
+        this.logger.error(`[GPS Status] Failed to send self-notification: ${err?.message}`);
+      }
     }
 
     return { ok: true };
@@ -1012,6 +1046,38 @@ export class TimeTrackingService {
         }
       } catch (err) {
         this.logger.error(`[GPS Alert] Failed to send alert notifications: ${err?.message}`);
+      }
+
+      // Notify the user themselves with in-app + push so they know to restart location
+      try {
+        const userMessage = `Locatia ta nu a putut fi verificata de ${minutesWithout} min. Te rugam sa repornesti locatia de pe dispozitiv.`;
+        await this.notificationsService.create({
+          userId: entry.userId,
+          type: NotificationType.GPS_STATUS_ALERT,
+          title: 'Locatia ta nu poate fi verificata',
+          message: userMessage,
+          data: {
+            timeEntryId: entry.id,
+            minutesWithoutGps: minutesWithout,
+            isSelfNotification: true,
+          },
+          skipPush: true, // Push sent separately below
+        });
+
+        await this.pushNotificationService.sendToUser(
+          entry.userId,
+          'Locatia ta nu poate fi verificata',
+          userMessage,
+          {
+            type: 'GPS_STATUS_ALERT',
+            timeEntryId: entry.id,
+            minutesWithoutGps: minutesWithout,
+            isSelfNotification: true,
+          },
+          NotificationType.GPS_STATUS_ALERT,
+        );
+      } catch (err) {
+        this.logger.error(`[GPS Alert] Failed to send self-notification to ${employeeName}: ${err?.message}`);
       }
     }
 
