@@ -240,13 +240,19 @@ export class PvSigningService {
 
   async getAvailableDays(): Promise<PvSigningDay[]> {
     // Returneaza zilele cu status OPEN (au sloturi libere)
+    // Include si sesiunile IN_PROGRESS (unele zile au inceput, dar altele
+    // din aceeasi sesiune pot fi inca libere si in viitor).
     const days = await this.dayRepository.createQueryBuilder('day')
       .leftJoinAndSelect('day.session', 'session')
       .leftJoinAndSelect('day.maintenanceUser1', 'maintenanceUser1')
       .leftJoinAndSelect('day.maintenanceUser2', 'maintenanceUser2')
       .where('day.status IN (:...statuses)', { statuses: [PV_DAY_STATUS.OPEN, PV_DAY_STATUS.ASSIGNED] })
       .andWhere('session.status IN (:...sessionStatuses)', {
-        sessionStatuses: [PV_SESSION_STATUS.DRAFT, PV_SESSION_STATUS.READY],
+        sessionStatuses: [
+          PV_SESSION_STATUS.DRAFT,
+          PV_SESSION_STATUS.READY,
+          PV_SESSION_STATUS.IN_PROGRESS,
+        ],
       })
       .andWhere('day.signingDate >= CURRENT_DATE')
       .orderBy('day.signingDate', 'ASC')

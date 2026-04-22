@@ -120,14 +120,19 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
 
   const generateConsecutiveDays = (start: string, count: number): PvDisplayDayDto[] => {
     const days: PvDisplayDayDto[] = [];
-    const date = new Date(start);
+    // Parse as local time (append T00:00:00) to avoid timezone off-by-one
+    const date = new Date(start + 'T00:00:00');
 
     let dayOrder = 1;
     while (days.length < count) {
       const dayOfWeek = date.getDay();
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        // Use local date components (not toISOString which converts to UTC)
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
         days.push({
-          displayDate: date.toISOString().split('T')[0],
+          displayDate: `${yyyy}-${mm}-${dd}`,
           dayOrder,
           noticeCount: 30,
           firstNoticeSeries: '',
