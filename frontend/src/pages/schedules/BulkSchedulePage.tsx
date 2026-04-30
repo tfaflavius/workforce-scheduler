@@ -397,6 +397,7 @@ const BulkSchedulePage: React.FC = () => {
       setSavingProgress({ current: 0, total: selectedUserIds.length });
       let savedCount = 0;
       let failedCount = 0;
+      const errorDetails: string[] = [];
 
       for (const userId of selectedUserIds) {
         const userAssignments = bulkAssignments[userId] || {};
@@ -453,13 +454,27 @@ const BulkSchedulePage: React.FC = () => {
           savedCount++;
         } catch (err: any) {
           const userName = eligibleUsers.find(u => u.id === userId)?.fullName || userId;
-          const errorMsg = err?.data?.message || err?.message || JSON.stringify(err);
-          console.error(`Failed to save schedule for ${userName}:`, errorMsg, err);
+          const status = err?.status || err?.originalStatus;
+          const backendMsg = err?.data?.message;
+          const friendlyMsg = status === 429
+            ? 'Prea multe cereri — asteapta cateva secunde si reincearca'
+            : status === 403
+            ? 'Nu ai permisiunea sa creezi acest program'
+            : Array.isArray(backendMsg)
+            ? backendMsg.join('; ')
+            : backendMsg || err?.message || `Eroare necunoscuta (status: ${status || 'N/A'})`;
+          console.error(`Failed to save schedule for ${userName}:`, friendlyMsg, err);
           failedCount++;
-          notifyError(`Eroare la ${userName}: ${errorMsg}`);
+          errorDetails.push(`${userName}: ${friendlyMsg}`);
+          notifyError(`Eroare la ${userName}: ${friendlyMsg}`);
         }
 
         setSavingProgress(prev => prev ? { ...prev, current: prev.current + 1 } : null);
+
+        // Small delay between saves to avoid hitting rate limits
+        if (selectedUserIds.indexOf(userId) < selectedUserIds.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 150));
+        }
       }
 
       setSavingProgress(null);
@@ -467,7 +482,10 @@ const BulkSchedulePage: React.FC = () => {
       if (failedCount === 0) {
         notifySuccess(`Toate cele ${savedCount} programe au fost salvate cu succes!`);
       } else {
-        notifyError(`${savedCount} programe salvate, ${failedCount} erori.`);
+        const summary = `${savedCount} programe salvate, ${failedCount} erori.`;
+        notifyError(summary);
+        // Log all error details for easy debugging
+        console.warn('Bulk save errors:', errorDetails);
       }
 
       // Reincarca datele
