@@ -168,15 +168,32 @@ export class SchedulesService {
       await queryRunner.release();
     }
 
-    const finalSchedule = await this.findOne(savedScheduleId);
+    // Reload + post-save side effects. The transaction already committed, so
+    // failures here must NOT propagate as 500. Schedule was saved successfully.
+    let finalSchedule: WorkSchedule;
+    try {
+      finalSchedule = await this.findOne(savedScheduleId);
+    } catch (err: any) {
+      this.logger.error(
+        `Schedule was saved (id=${savedScheduleId}) but reload failed: ${err?.message || err}`,
+        err?.stack,
+      );
+      // Return a minimal schedule object so the client still gets a success response
+      return { id: savedScheduleId, name, month, year, status: createScheduleDto.status || 'DRAFT' } as WorkSchedule;
+    }
 
-    // Get creator name
-    const creator = await this.userRepository.findOne({ where: { id: userId } });
-    const creatorName = creator?.fullName || 'Administrator';
+    // Get creator name (best-effort)
+    let creatorName = 'Administrator';
+    try {
+      const creator = await this.userRepository.findOne({ where: { id: userId } });
+      creatorName = creator?.fullName || 'Administrator';
+    } catch (err: any) {
+      this.logger.warn(`Could not fetch creator name: ${err?.message}`);
+    }
     const monthYear = `${year}-${String(month).padStart(2, '0')}`;
 
-    // Send in-app notifications to affected employees
-    const userIds = [...new Set(finalSchedule.assignments.map(a => a.userId))];
+    // Send in-app notifications to affected employees (fire-and-forget)
+    const userIds = [...new Set(finalSchedule.assignments?.map(a => a.userId) || [])];
     if (userIds.length > 0) {
       this.notificationsService.notifyScheduleCreated(userIds, monthYear, creatorName, savedScheduleId).catch(err => {
         this.logger.error('Failed to send schedule creation notifications:', err);
@@ -388,32 +405,41 @@ export class SchedulesService {
       await queryRunner.release();
     }
 
-    // Reload schedule to get fresh data after transaction
-    const updatedSchedule = await this.findOne(id);
+    // Reload schedule. Transaction already committed — failures here MUST NOT propagate as 500.
+    let updatedSchedule: WorkSchedule;
+    try {
+      updatedSchedule = await this.findOne(id);
+    } catch (err: any) {
+      this.logger.error(
+        `Schedule was updated (id=${id}) but reload failed: ${err?.message || err}`,
+        err?.stack,
+      );
+      return { id, status: updateScheduleDto.status || 'DRAFT' } as WorkSchedule;
+    }
 
-    // Send notifications OUTSIDE the transaction
+    // Send notifications OUTSIDE the transaction (best-effort)
     if (updateScheduleDto.assignments) {
-      const monthYear = `${updatedSchedule.year}-${String(updatedSchedule.month).padStart(2, '0')}`;
-
-      // Send in-app notifications to affected employees about the update
-      const userIds = [...new Set(updatedSchedule.assignments.map(a => a.userId))];
-      if (userIds.length > 0) {
-        // Get the actual updater's name
-        let updaterName = 'Administrator';
-        if (updaterUserId) {
-          const updater = await this.userRepository.findOne({ where: { id: updaterUserId } });
-          updaterName = updater?.fullName || 'Administrator';
+      try {
+        const monthYear = `${updatedSchedule.year}-${String(updatedSchedule.month).padStart(2, '0')}`;
+        const userIds = [...new Set(updatedSchedule.assignments?.map(a => a.userId) || [])];
+        if (userIds.length > 0) {
+          let updaterName = 'Administrator';
+          if (updaterUserId) {
+            const updater = await this.userRepository.findOne({ where: { id: updaterUserId } });
+            updaterName = updater?.fullName || 'Administrator';
+          }
+          this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName, id).catch(err => {
+            this.logger.error('Failed to send schedule update notifications:', err);
+          });
         }
-        this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName, id).catch(err => {
-          this.logger.error('Failed to send schedule update notifications:', err);
-        });
-      }
 
-      // Send email notifications if schedule is approved (meaning changes are effective)
-      if (updatedSchedule.status === 'APPROVED') {
-        this.sendScheduleNotifications(updatedSchedule.id, 'updated').catch(err => {
-          this.logger.error('Failed to send schedule update email notifications:', err);
-        });
+        if (updatedSchedule.status === 'APPROVED') {
+          this.sendScheduleNotifications(updatedSchedule.id, 'updated').catch(err => {
+            this.logger.error('Failed to send schedule update email notifications:', err);
+          });
+        }
+      } catch (err: any) {
+        this.logger.warn(`Post-update side effects failed (schedule still saved): ${err?.message}`);
       }
     }
 
