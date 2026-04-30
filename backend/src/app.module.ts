@@ -95,7 +95,7 @@ import { envValidationSchema } from './config/env.validation';
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 10,
+      limit: 200, // 200 requests per 60s — accommodates dashboard pages that fire many parallel requests
     }]),
     KeepAliveModule,
     SupabaseModule,
