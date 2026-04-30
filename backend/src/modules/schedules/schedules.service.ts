@@ -112,11 +112,16 @@ export class SchedulesService {
               throw new NotFoundException(`Tipul de tura ${assignmentDto.shiftTypeId} nu a fost gasit`);
             }
 
+            // Normalize shiftDate to YYYY-MM-DD string so PG stores it without TZ conversion
+            const shiftDateStr = typeof assignmentDto.shiftDate === 'string'
+              ? assignmentDto.shiftDate.slice(0, 10)
+              : new Date(assignmentDto.shiftDate).toISOString().slice(0, 10);
+
             return queryRunner.manager.getRepository(ScheduleAssignment).create({
               workScheduleId: savedScheduleId,
               userId: assignmentDto.userId,
               shiftTypeId: assignmentDto.shiftTypeId,
-              shiftDate: new Date(assignmentDto.shiftDate),
+              shiftDate: shiftDateStr as any,
               isRestDay: false,
               notes: assignmentDto.notes,
               workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
@@ -327,6 +332,11 @@ export class SchedulesService {
             continue;
           }
 
+          // Normalize shiftDate to YYYY-MM-DD string so PG stores it without TZ conversion
+          const shiftDateStr = typeof assignmentDto.shiftDate === 'string'
+            ? assignmentDto.shiftDate.slice(0, 10)
+            : new Date(assignmentDto.shiftDate).toISOString().slice(0, 10);
+
           await queryRunner.manager
             .createQueryBuilder()
             .insert()
@@ -335,7 +345,7 @@ export class SchedulesService {
               workScheduleId: id,
               userId: assignmentDto.userId,
               shiftTypeId: assignmentDto.shiftTypeId,
-              shiftDate: new Date(assignmentDto.shiftDate),
+              shiftDate: shiftDateStr,
               isRestDay: false,
               notes: assignmentDto.notes || null,
               workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001',
