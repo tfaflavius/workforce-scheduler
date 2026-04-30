@@ -128,8 +128,36 @@ export class SchedulesService {
       }
 
       await queryRunner.commitTransaction();
-    } catch (err) {
+    } catch (err: any) {
       await queryRunner.rollbackTransaction();
+      this.logger.error(
+        `Schedule create failed for month ${month}/${year}, user ${userId}: ${err?.message || err}`,
+        err?.stack,
+      );
+      // Convert DB constraint errors into user-friendly messages.
+      // TypeORM wraps pg errors in QueryFailedError — check both the wrapper and driverError.
+      const pgCode = err?.code || err?.driverError?.code;
+      const pgDetail = err?.detail || err?.driverError?.detail;
+      const pgColumn = err?.column || err?.driverError?.column;
+      if (pgCode === '23505') {
+        throw new BadRequestException(
+          `Exista deja o asignare pentru aceeasi data si utilizator. Detalii: ${pgDetail || err.message}`,
+        );
+      }
+      if (pgCode === '23503') {
+        throw new BadRequestException(
+          `Referinta invalida (FK constraint): ${pgDetail || err.message}`,
+        );
+      }
+      if (pgCode === '23502') {
+        throw new BadRequestException(
+          `Camp obligatoriu lipsa: ${pgColumn || err.message}`,
+        );
+      }
+      // Re-throw with more context if it's a TypeORM/Postgres error
+      if (pgCode && err?.message) {
+        throw new BadRequestException(`Eroare baza de date (${pgCode}): ${err.message}`);
+      }
       throw err;
     } finally {
       await queryRunner.release();
@@ -320,8 +348,31 @@ export class SchedulesService {
       }
 
       await queryRunner.commitTransaction();
-    } catch (err) {
+    } catch (err: any) {
       await queryRunner.rollbackTransaction();
+      this.logger.error(
+        `Schedule update failed for ${id}: ${err?.message || err}`,
+        err?.stack,
+      );
+      // Convert DB constraint errors into user-friendly messages
+      if (err?.code === '23505') {
+        throw new BadRequestException(
+          `Exista deja o asignare pentru aceeasi data si utilizator. Detalii: ${err.detail || err.message}`,
+        );
+      }
+      if (err?.code === '23503') {
+        throw new BadRequestException(
+          `Referinta invalida (FK constraint): ${err.detail || err.message}`,
+        );
+      }
+      if (err?.code === '23502') {
+        throw new BadRequestException(
+          `Camp obligatoriu lipsa: ${err.column || err.message}`,
+        );
+      }
+      if (err?.code && err?.message) {
+        throw new BadRequestException(`Eroare baza de date (${err.code}): ${err.message}`);
+      }
       throw err;
     } finally {
       await queryRunner.release();
