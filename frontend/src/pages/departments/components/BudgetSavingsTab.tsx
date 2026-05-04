@@ -42,6 +42,9 @@ import {
   AttachMoney as MoneyIcon,
   Edit as EditIcon,
   Wallet as WalletIcon,
+  History as HistoryIcon,
+  ArrowDownward as DownIcon,
+  ArrowUpward as UpIcon,
 } from '@mui/icons-material';
 import {
   useGetBudgetPositionsQuery,
@@ -50,6 +53,7 @@ import {
 import {
   useGetInvestmentAnnualBudgetQuery,
   useUpsertInvestmentAnnualBudgetMutation,
+  useGetInvestmentAnnualBudgetHistoryQuery,
 } from '../../../store/api/investments.api';
 import type { BudgetCategory, BudgetPosition } from '../../../types/acquisitions.types';
 import { StatCard } from '../../../components/common';
@@ -83,6 +87,13 @@ const BudgetSavingsTab: React.FC = () => {
   const [annualDialogOpen, setAnnualDialogOpen] = useState(false);
   const [annualInput, setAnnualInput] = useState('');
   const [annualNotes, setAnnualNotes] = useState('');
+
+  // History dialog
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const { data: historyEntries = [] } = useGetInvestmentAnnualBudgetHistoryQuery(
+    year,
+    { skip: !historyDialogOpen },
+  );
 
   const openAnnualDialog = () => {
     setAnnualInput(annualBudget?.totalAmount ? String(annualBudget.totalAmount) : '');
@@ -359,17 +370,29 @@ const BudgetSavingsTab: React.FC = () => {
                 )}
               </Box>
             </Stack>
-            {canEditAnnual && (
+            <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: 'stretch', md: 'center' } }}>
               <Button
-                variant="outlined"
-                color="success"
-                startIcon={<EditIcon />}
-                onClick={openAnnualDialog}
-                sx={{ textTransform: 'none', borderRadius: 2, alignSelf: { xs: 'stretch', md: 'center' } }}
+                variant="text"
+                color="primary"
+                size="small"
+                startIcon={<HistoryIcon />}
+                onClick={() => setHistoryDialogOpen(true)}
+                sx={{ textTransform: 'none', borderRadius: 2 }}
               >
-                {annualBudget?.totalAmount ? 'Modifica' : 'Seteaza valoare anuala'}
+                Istoric
               </Button>
-            )}
+              {canEditAnnual && (
+                <Button
+                  variant="outlined"
+                  color="success"
+                  startIcon={<EditIcon />}
+                  onClick={openAnnualDialog}
+                  sx={{ textTransform: 'none', borderRadius: 2 }}
+                >
+                  {annualBudget?.totalAmount ? 'Modifica' : 'Seteaza valoare anuala'}
+                </Button>
+              )}
+            </Stack>
           </Stack>
 
           {Number(annualBudget?.totalAmount || 0) > 0 && (
@@ -462,6 +485,131 @@ const BudgetSavingsTab: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* History dialog */}
+      <Dialog
+        open={historyDialogOpen}
+        onClose={() => setHistoryDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <HistoryIcon /> Istoric modificari valoare anuala — {year}
+        </DialogTitle>
+        <DialogContent dividers>
+          {historyEntries.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <HistoryIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+              <Typography color="text.secondary">
+                Nicio modificare inregistrata pentru anul {year}
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={1.5}>
+              {historyEntries.map((entry, idx) => {
+                const oldAmt = entry.oldAmount;
+                const newAmt = entry.newAmount;
+                const isIncrease = oldAmt !== null && newAmt > oldAmt;
+                const isDecrease = oldAmt !== null && newAmt < oldAmt;
+                const delta = oldAmt !== null ? newAmt - oldAmt : null;
+                const isFirst = idx === historyEntries.length - 1; // oldest = first creation
+
+                return (
+                  <Card
+                    key={entry.id}
+                    variant="outlined"
+                    sx={{
+                      borderRadius: 2,
+                      borderLeft: `4px solid ${
+                        isIncrease
+                          ? theme.palette.success.main
+                          : isDecrease
+                          ? theme.palette.warning.main
+                          : theme.palette.primary.main
+                      }`,
+                    }}
+                  >
+                    <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={1}
+                        justifyContent="space-between"
+                        alignItems={{ xs: 'flex-start', sm: 'center' }}
+                      >
+                        <Box>
+                          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                            {isFirst ? (
+                              <Chip label="Setare initiala" size="small" color="primary" />
+                            ) : isIncrease ? (
+                              <Chip
+                                icon={<UpIcon sx={{ fontSize: 14 }} />}
+                                label="Marit"
+                                size="small"
+                                color="success"
+                              />
+                            ) : isDecrease ? (
+                              <Chip
+                                icon={<DownIcon sx={{ fontSize: 14 }} />}
+                                label="Redus"
+                                size="small"
+                                color="warning"
+                              />
+                            ) : (
+                              <Chip label="Modificare note" size="small" variant="outlined" />
+                            )}
+                            <Typography variant="body2" fontWeight={600}>
+                              {formatCurrency(newAmt)}
+                            </Typography>
+                            {oldAmt !== null && (
+                              <Typography variant="caption" color="text.secondary">
+                                (de la {formatCurrency(oldAmt)})
+                              </Typography>
+                            )}
+                            {delta !== null && delta !== 0 && (
+                              <Typography
+                                variant="caption"
+                                fontWeight={700}
+                                color={isIncrease ? 'success.main' : 'warning.dark'}
+                              >
+                                {delta > 0 ? '+' : ''}
+                                {formatCurrency(delta)}
+                              </Typography>
+                            )}
+                          </Stack>
+                          {entry.newNotes && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                              Note: {entry.newNotes}
+                            </Typography>
+                          )}
+                        </Box>
+                        <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                            {entry.changedBy?.fullName || 'Utilizator necunoscut'}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(entry.createdAt).toLocaleString('ro-RO', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setHistoryDialogOpen(false)} sx={{ textTransform: 'none' }}>
+            Inchide
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Edit annual budget dialog */}
       <Dialog open={annualDialogOpen} onClose={() => setAnnualDialogOpen(false)} maxWidth="xs" fullWidth>

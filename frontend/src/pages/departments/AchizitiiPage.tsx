@@ -55,6 +55,7 @@ import {
 } from '@mui/icons-material';
 import InvestmentsTab from './components/InvestmentsTab';
 import BudgetSavingsTab from './components/BudgetSavingsTab';
+import InvestmentAnnualBudgetCard from './components/InvestmentAnnualBudgetCard';
 import { GradientHeader, StatCard } from '../../components/common';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { formatDateOrDash } from '../../utils/dateFormatters';
@@ -406,6 +407,9 @@ const AchizitiiPage: React.FC = () => {
         icon={<ShoppingIcon />}
         gradient="#10b981 0%, #059669 100%"
       />
+
+      {/* Annual investment envelope — visible only on Investitii tab */}
+      {tabValue === 0 && <InvestmentAnnualBudgetCard year={selectedYear} />}
 
       {/* Stats — only on Investitii / Cheltuieli Curente tabs */}
       {categorySummary && tabValue < 2 && (

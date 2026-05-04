@@ -29,10 +29,21 @@ export interface UpsertAnnualBudgetDto {
   notes?: string;
 }
 
+export interface InvestmentAnnualBudgetHistoryEntry {
+  id: string;
+  year: number;
+  oldAmount: number | null;
+  newAmount: number;
+  oldNotes: string | null;
+  newNotes: string | null;
+  changedBy: { id: string; fullName: string } | null;
+  createdAt: string;
+}
+
 export const investmentsApi = createApi({
   reducerPath: 'investmentsApi',
   baseQuery: createAuthBaseQuery(),
-  tagTypes: ['InvestmentDocument', 'InvestmentAnnualBudget'],
+  tagTypes: ['InvestmentDocument', 'InvestmentAnnualBudget', 'InvestmentAnnualBudgetHistory'],
   endpoints: (builder) => ({
     getInvestmentDocument: builder.query<InvestmentDocumentMetadata | null, void>({
       query: () => '/investments/document',
@@ -91,6 +102,17 @@ export const investmentsApi = createApi({
       invalidatesTags: (_r, _e, dto) => [
         { type: 'InvestmentAnnualBudget', id: dto.year },
         { type: 'InvestmentAnnualBudget', id: 'CURRENT' },
+        { type: 'InvestmentAnnualBudgetHistory', id: dto.year },
+      ],
+    }),
+
+    getInvestmentAnnualBudgetHistory: builder.query<InvestmentAnnualBudgetHistoryEntry[], number | void>({
+      query: (year) => ({
+        url: '/investments/annual-budget/history',
+        params: year ? { year } : undefined,
+      }),
+      providesTags: (_r, _e, year) => [
+        { type: 'InvestmentAnnualBudgetHistory', id: year ?? 'CURRENT' },
       ],
     }),
   }),
@@ -102,4 +124,5 @@ export const {
   useUploadInvestmentDocumentMutation,
   useGetInvestmentAnnualBudgetQuery,
   useUpsertInvestmentAnnualBudgetMutation,
+  useGetInvestmentAnnualBudgetHistoryQuery,
 } = investmentsApi;

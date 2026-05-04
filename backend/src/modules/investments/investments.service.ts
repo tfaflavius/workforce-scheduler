@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InvestmentDocument } from './entities/investment-document.entity';
 import { InvestmentAnnualBudget } from './entities/investment-annual-budget.entity';
+import { InvestmentAnnualBudgetHistory } from './entities/investment-annual-budget-history.entity';
 import { BudgetPosition } from '../acquisitions/entities/budget-position.entity';
 import { UpsertAnnualBudgetDto } from './dto/upsert-annual-budget.dto';
 
@@ -44,6 +45,8 @@ export class InvestmentsService {
     private readonly documentRepository: Repository<InvestmentDocument>,
     @InjectRepository(InvestmentAnnualBudget)
     private readonly annualBudgetRepository: Repository<InvestmentAnnualBudget>,
+    @InjectRepository(InvestmentAnnualBudgetHistory)
+    private readonly annualBudgetHistoryRepository: Repository<InvestmentAnnualBudgetHistory>,
     @InjectRepository(BudgetPosition)
     private readonly budgetPositionRepository: Repository<BudgetPosition>,
   ) {}
@@ -213,6 +216,9 @@ export class InvestmentsService {
       where: { year: dto.year },
     });
 
+    const oldAmount = existing ? Number(existing.totalAmount) : null;
+    const oldNotes = existing?.notes ?? null;
+
     if (existing) {
       existing.totalAmount = dto.totalAmount;
       existing.notes = dto.notes ?? null;
@@ -228,9 +234,58 @@ export class InvestmentsService {
       await this.annualBudgetRepository.save(created);
     }
 
+    // Record history only when something actually changed (skip identical re-saves)
+    const changed =
+      oldAmount === null ||
+      Number(oldAmount) !== Number(dto.totalAmount) ||
+      (oldNotes ?? '') !== (dto.notes ?? '');
+    if (changed) {
+      const historyRow = this.annualBudgetHistoryRepository.create({
+        year: dto.year,
+        oldAmount,
+        newAmount: dto.totalAmount,
+        oldNotes,
+        newNotes: dto.notes ?? null,
+        changedById: userId,
+      });
+      await this.annualBudgetHistoryRepository.save(historyRow);
+    }
+
     this.logger.log(
       `Annual investment budget for ${dto.year} set to ${dto.totalAmount} by ${userId}`,
     );
     return this.getAnnualBudget(dto.year);
+  }
+
+  /**
+   * Returns the change history for a specific year, newest first.
+   */
+  async getAnnualBudgetHistory(year: number): Promise<Array<{
+    id: string;
+    year: number;
+    oldAmount: number | null;
+    newAmount: number;
+    oldNotes: string | null;
+    newNotes: string | null;
+    changedBy: { id: string; fullName: string } | null;
+    createdAt: Date;
+  }>> {
+    const rows = await this.annualBudgetHistoryRepository.find({
+      where: { year },
+      relations: ['changedBy'],
+      order: { createdAt: 'DESC' },
+    });
+    return rows.map(r => ({
+      id: r.id,
+      year: r.year,
+      oldAmount: r.oldAmount !== null ? Number(r.oldAmount) : null,
+      newAmount: Number(r.newAmount),
+      oldNotes: r.oldNotes,
+      newNotes: r.newNotes,
+      changedBy: r.changedBy
+        ? { id: r.changedBy.id, fullName: r.changedBy.fullName }
+        : null,
+      createdAt: r.createdAt,
+    }));
   }
 }

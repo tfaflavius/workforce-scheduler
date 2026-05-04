@@ -93,4 +93,16 @@ export class InvestmentsController {
   async upsertAnnualBudget(@Request() req, @Body() dto: UpsertAnnualBudgetDto) {
     return this.investmentsService.upsertAnnualBudget(req.user.id, dto);
   }
+
+  /**
+   * Audit history of changes to the annual investment envelope for the year.
+   * Anyone with auth can view.
+   */
+  @Get('annual-budget/history')
+  async getAnnualBudgetHistory(
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+  ) {
+    const targetYear = year ?? new Date().getFullYear();
+    return this.investmentsService.getAnnualBudgetHistory(targetYear);
+  }
 }
