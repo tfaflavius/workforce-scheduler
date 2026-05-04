@@ -4,6 +4,7 @@ import type { UserReference, ParkingComment } from './parking.types';
 export type DomiciliuRequestType = 'TRASARE_LOCURI' | 'REVOCARE_LOCURI';
 export type DomiciliuRequestStatus = 'ACTIVE' | 'FINALIZAT';
 export type ParkingLayoutType = 'PARALEL' | 'PERPENDICULAR' | 'SPIC';
+export type DomiciliuRequestPriority = 'URGENT' | 'MEDIU' | 'SCAZUT';
 
 export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
   TRASARE_LOCURI: 'Trasare locuri de parcare',
@@ -13,6 +14,18 @@ export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string>
 export const DOMICILIU_REQUEST_STATUS_LABELS: Record<DomiciliuRequestStatus, string> = {
   ACTIVE: 'Activ',
   FINALIZAT: 'Finalizat',
+};
+
+export const DOMICILIU_REQUEST_PRIORITY_LABELS: Record<DomiciliuRequestPriority, string> = {
+  URGENT: 'Urgent',
+  MEDIU: 'Mediu',
+  SCAZUT: 'Scazut',
+};
+
+export const DOMICILIU_REQUEST_PRIORITY_COLORS: Record<DomiciliuRequestPriority, string> = {
+  URGENT: '#ef4444',
+  MEDIU: '#f59e0b',
+  SCAZUT: '#10b981',
 };
 
 export const PARKING_LAYOUT_LABELS: Record<ParkingLayoutType, string> = {
@@ -25,6 +38,8 @@ export interface DomiciliuRequest {
   id: string;
   requestType: DomiciliuRequestType;
   status: DomiciliuRequestStatus;
+  priority?: DomiciliuRequestPriority;
+  deadline?: string | null;
   location: string;
   googleMapsLink?: string;
   description: string;
@@ -57,6 +72,8 @@ export interface DomiciliuRequestComment extends ParkingComment {
 
 export interface CreateDomiciliuRequestDto {
   requestType: DomiciliuRequestType;
+  priority?: DomiciliuRequestPriority;
+  deadline?: string | null;
   location: string;
   googleMapsLink?: string;
   description: string;
@@ -74,6 +91,8 @@ export interface CreateDomiciliuRequestDto {
 
 export interface UpdateDomiciliuRequestDto {
   requestType?: DomiciliuRequestType;
+  priority?: DomiciliuRequestPriority;
+  deadline?: string | null;
   location?: string;
   googleMapsLink?: string;
   description?: string;

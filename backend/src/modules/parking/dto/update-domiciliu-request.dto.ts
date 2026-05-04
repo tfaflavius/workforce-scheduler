@@ -1,11 +1,20 @@
-import { IsString, IsOptional, IsIn, IsEmail, IsInt, Min } from 'class-validator';
-import { DOMICILIU_REQUEST_TYPES, PARKING_LAYOUT_TYPES } from '../constants/parking.constants';
+import { IsString, IsOptional, IsIn, IsEmail, IsInt, Min, IsDateString } from 'class-validator';
+import { DOMICILIU_REQUEST_TYPES, PARKING_LAYOUT_TYPES, DOMICILIU_REQUEST_PRIORITY } from '../constants/parking.constants';
 
 export class UpdateDomiciliuRequestDto {
   @IsString()
   @IsOptional()
   @IsIn(Object.values(DOMICILIU_REQUEST_TYPES))
   requestType?: string;
+
+  @IsString()
+  @IsOptional()
+  @IsIn(Object.values(DOMICILIU_REQUEST_PRIORITY))
+  priority?: string;
+
+  @IsDateString()
+  @IsOptional()
+  deadline?: string | null;
 
   @IsString()
   @IsOptional()

@@ -68,6 +68,8 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
     case 'DOMICILIU_REQUEST_ASSIGNED':
     case 'DOMICILIU_REQUEST_RESOLVED':
       return <DomiciliuIcon color="primary" fontSize={fontSize} />;
+    case 'DOMICILIU_REQUEST_DEADLINE_APPROACHING':
+      return <DomiciliuIcon color="error" fontSize={fontSize} />;
     case 'LEGITIMATION_ASSIGNED':
     case 'LEGITIMATION_RESOLVED':
       return <LegitimationIcon color="secondary" fontSize={fontSize} />;
@@ -154,6 +156,7 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     // Domiciliu parking request notifications
     case 'DOMICILIU_REQUEST_ASSIGNED':
     case 'DOMICILIU_REQUEST_RESOLVED':
+    case 'DOMICILIU_REQUEST_DEADLINE_APPROACHING':
       return { path: '/parking/domiciliu', state: { openRequestId: data?.domiciliuRequestId } };
 
     // Handicap legitimation notifications

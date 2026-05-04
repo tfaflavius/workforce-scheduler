@@ -18,8 +18,10 @@ import {
   HANDICAP_PARKING_DEPARTMENT_NAME,
   DOMICILIU_PARKING_DEPARTMENT_NAME,
   DOMICILIU_REQUEST_TYPE_LABELS,
+  DOMICILIU_REQUEST_PRIORITY_LABELS,
   DomiciliuRequestType,
   DomiciliuRequestStatus,
+  DomiciliuRequestPriority,
 } from './constants/parking.constants';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
@@ -54,6 +56,8 @@ export class DomiciliuRequestsService {
 
     const request = this.domiciliuRequestRepository.create({
       requestType: dto.requestType as DomiciliuRequestType,
+      priority: (dto.priority || 'MEDIU') as DomiciliuRequestPriority,
+      deadline: dto.deadline ? new Date(dto.deadline) : null,
       location: removeDiacritics(dto.location),
       googleMapsLink: dto.googleMapsLink,
       description: removeDiacritics(dto.description),
@@ -138,6 +142,21 @@ export class DomiciliuRequestsService {
     if (dto.contractNumber !== undefined && dto.contractNumber !== request.contractNumber) {
       changes.contractNumber = { from: request.contractNumber, to: dto.contractNumber };
       request.contractNumber = dto.contractNumber;
+    }
+    if (dto.priority !== undefined && dto.priority !== request.priority) {
+      changes.priority = { from: request.priority, to: dto.priority };
+      request.priority = dto.priority as DomiciliuRequestPriority;
+    }
+    if (dto.deadline !== undefined) {
+      const newDeadline = dto.deadline ? new Date(dto.deadline) : null;
+      const oldStr = request.deadline ? new Date(request.deadline).toISOString() : null;
+      const newStr = newDeadline ? newDeadline.toISOString() : null;
+      if (oldStr !== newStr) {
+        changes.deadline = { from: oldStr, to: newStr };
+        request.deadline = newDeadline;
+        // Reset deadlineNotifiedAt cand se schimba deadline-ul, ca sa primeasca o noua avertizare
+        request.deadlineNotifiedAt = null;
+      }
     }
 
     request.lastModifiedBy = userId;

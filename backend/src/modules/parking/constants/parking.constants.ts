@@ -219,6 +219,21 @@ export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string>
   REVOCARE_LOCURI: 'Revocare locuri de parcare',
 };
 
+// Prioritate pentru solicitari domiciliu (folosita pentru cron de deadline si UX)
+export const DOMICILIU_REQUEST_PRIORITY = {
+  URGENT: 'URGENT',
+  MEDIU: 'MEDIU',
+  SCAZUT: 'SCAZUT',
+} as const;
+
+export type DomiciliuRequestPriority = typeof DOMICILIU_REQUEST_PRIORITY[keyof typeof DOMICILIU_REQUEST_PRIORITY];
+
+export const DOMICILIU_REQUEST_PRIORITY_LABELS: Record<DomiciliuRequestPriority, string> = {
+  URGENT: 'Urgent',
+  MEDIU: 'Mediu',
+  SCAZUT: 'Scazut',
+};
+
 // ============== LEGITIMATII HANDICAP ==============
 
 // Status pentru legitimatii handicap

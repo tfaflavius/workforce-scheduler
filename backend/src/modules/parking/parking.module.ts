@@ -73,6 +73,7 @@ import { ControlSesizariController } from './control-sesizari.controller';
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
 import { PvDisplayScheduler } from './pv-display.scheduler';
+import { DomiciliuDeadlineScheduler } from './domiciliu-deadline.scheduler';
 
 // Guards
 import { ParkingAccessGuard } from './guards/parking-access.guard';
@@ -165,6 +166,7 @@ import { EmailModule } from '../../common/email/email.module';
     ControlSesizareAccessGuard,
     ParkingUrgentScheduler,
     PvDisplayScheduler,
+    DomiciliuDeadlineScheduler,
   ],
   exports: [
     ParkingLotsService,

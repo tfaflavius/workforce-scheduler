@@ -144,6 +144,8 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
 
   const [formData, setFormData] = useState<CreateDomiciliuRequestDto>({
     requestType,
+    priority: 'MEDIU',
+    deadline: null,
     location: '',
     googleMapsLink: '',
     description: '',
@@ -268,6 +270,42 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
               {error}
             </Alert>
           )}
+
+          {/* Prioritate + Deadline */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <FormControl fullWidth>
+              <InputLabel>Prioritate</InputLabel>
+              <Select
+                value={formData.priority ?? 'MEDIU'}
+                label="Prioritate"
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'URGENT' | 'MEDIU' | 'SCAZUT' })}
+              >
+                <MenuItem value="URGENT">
+                  <Box component="span" sx={{ color: '#ef4444', fontWeight: 600 }}>Urgent</Box>
+                </MenuItem>
+                <MenuItem value="MEDIU">
+                  <Box component="span" sx={{ color: '#f59e0b', fontWeight: 600 }}>Mediu</Box>
+                </MenuItem>
+                <MenuItem value="SCAZUT">
+                  <Box component="span" sx={{ color: '#10b981', fontWeight: 600 }}>Scazut</Box>
+                </MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              label="Data limita (deadline)"
+              type="datetime-local"
+              value={formData.deadline ? String(formData.deadline).slice(0, 16) : ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                // datetime-local returns "YYYY-MM-DDTHH:MM" — append seconds + Z so backend interprets it consistently.
+                setFormData({ ...formData, deadline: val ? new Date(val).toISOString() : null });
+              }}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              helperText="Cu 24h inainte de deadline se trimite notificare push daca solicitarea nu este finalizata"
+            />
+          </Stack>
 
           {/* Locatie */}
           <TextField

@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { DomiciliuRequestComment } from './domiciliu-request-comment.entity';
-import { DomiciliuRequestType, DomiciliuRequestStatus, ParkingLayoutType } from '../constants/parking.constants';
+import { DomiciliuRequestType, DomiciliuRequestStatus, ParkingLayoutType, DomiciliuRequestPriority } from '../constants/parking.constants';
 
 @Entity('domiciliu_requests')
 @Index('IDX_domiciliu_requests_status', ['status'])
@@ -25,6 +25,19 @@ export class DomiciliuRequest {
 
   @Column({ length: 20, default: 'ACTIVE' })
   status: DomiciliuRequestStatus;
+
+  // Prioritate pentru deadline tracking si UX
+  @Column({ length: 10, default: 'MEDIU' })
+  priority: DomiciliuRequestPriority;
+
+  // Data limita pana la care trebuie finalizata procedura
+  @Column({ name: 'deadline', type: 'timestamptz', nullable: true })
+  deadline: Date;
+
+  // Marcheaza daca s-a trimis deja notificarea de "deadline approaching" (24h)
+  // pentru a evita notificari duplicate de la cron-ul care ruleaza periodic
+  @Column({ name: 'deadline_notified_at', type: 'timestamptz', nullable: true })
+  deadlineNotifiedAt: Date;
 
   // Campuri comune pentru toate tipurile
   @Column({ type: 'text' })
