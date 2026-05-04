@@ -21,7 +21,7 @@ export const domiciliuApi = createApi({
     // Get all domiciliu requests
     getDomiciliuRequests: builder.query<DomiciliuRequest[], { status?: DomiciliuRequestStatus; type?: DomiciliuRequestType } | void>({
       query: (params) => ({
-        url: '/domiciliu-requests',
+        url: '/parking/domiciliu-requests',
         params: params || undefined,
       }),
       providesTags: (result) =>
@@ -35,14 +35,14 @@ export const domiciliuApi = createApi({
 
     // Get single domiciliu request
     getDomiciliuRequest: builder.query<DomiciliuRequest, string>({
-      query: (id) => `/domiciliu-requests/${id}`,
+      query: (id) => `/parking/domiciliu-requests/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'DomiciliuRequests', id }],
     }),
 
     // Create domiciliu request
     createDomiciliuRequest: builder.mutation<DomiciliuRequest, CreateDomiciliuRequestDto>({
       query: (body) => ({
-        url: '/domiciliu-requests',
+        url: '/parking/domiciliu-requests',
         method: 'POST',
         body,
       }),
@@ -52,7 +52,7 @@ export const domiciliuApi = createApi({
     // Update domiciliu request (Admin only)
     updateDomiciliuRequest: builder.mutation<DomiciliuRequest, { id: string; data: UpdateDomiciliuRequestDto }>({
       query: ({ id, data }) => ({
-        url: `/domiciliu-requests/${id}`,
+        url: `/parking/domiciliu-requests/${id}`,
         method: 'PATCH',
         body: data,
       }),
@@ -65,7 +65,7 @@ export const domiciliuApi = createApi({
     // Resolve domiciliu request
     resolveDomiciliuRequest: builder.mutation<DomiciliuRequest, { id: string; data: ResolveDomiciliuRequestDto }>({
       query: ({ id, data }) => ({
-        url: `/domiciliu-requests/${id}/resolve`,
+        url: `/parking/domiciliu-requests/${id}/resolve`,
         method: 'PATCH',
         body: data,
       }),
@@ -78,7 +78,7 @@ export const domiciliuApi = createApi({
     // Delete domiciliu request (Admin only)
     deleteDomiciliuRequest: builder.mutation<void, string>({
       query: (id) => ({
-        url: `/domiciliu-requests/${id}`,
+        url: `/parking/domiciliu-requests/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: [{ type: 'DomiciliuRequests', id: 'LIST' }],
@@ -86,14 +86,14 @@ export const domiciliuApi = createApi({
 
     // Get comments for a request
     getDomiciliuComments: builder.query<DomiciliuRequestComment[], string>({
-      query: (requestId) => `/domiciliu-requests/${requestId}/comments`,
+      query: (requestId) => `/parking/domiciliu-requests/${requestId}/comments`,
       providesTags: (_result, _error, requestId) => [{ type: 'DomiciliuComments', id: requestId }],
     }),
 
     // Add comment to a request
     addDomiciliuComment: builder.mutation<DomiciliuRequestComment, { requestId: string; data: CreateCommentDto }>({
       query: ({ requestId, data }) => ({
-        url: `/domiciliu-requests/${requestId}/comments`,
+        url: `/parking/domiciliu-requests/${requestId}/comments`,
         method: 'POST',
         body: data,
       }),
@@ -105,14 +105,14 @@ export const domiciliuApi = createApi({
 
     // Get history for a request
     getDomiciliuHistory: builder.query<ParkingHistory[], string>({
-      query: (requestId) => `/domiciliu-requests/${requestId}/history`,
+      query: (requestId) => `/parking/domiciliu-requests/${requestId}/history`,
       providesTags: (_result, _error, requestId) => [{ type: 'DomiciliuHistory', id: requestId }],
     }),
 
     // Get requests for reports
     getDomiciliuRequestsForReports: builder.query<DomiciliuRequest[], DomiciliuReportFilters>({
       query: (params) => ({
-        url: '/domiciliu-requests/reports/export',
+        url: '/parking/domiciliu-requests/reports/export',
         params,
       }),
     }),
