@@ -54,6 +54,7 @@ import {
   TableChart as ExcelTableIcon,
 } from '@mui/icons-material';
 import InvestmentsTab from './components/InvestmentsTab';
+import BudgetSavingsTab from './components/BudgetSavingsTab';
 import { GradientHeader, StatCard } from '../../components/common';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { formatDateOrDash } from '../../utils/dateFormatters';
@@ -406,8 +407,8 @@ const AchizitiiPage: React.FC = () => {
         gradient="#10b981 0%, #059669 100%"
       />
 
-      {/* Stats */}
-      {categorySummary && tabValue !== 2 && (
+      {/* Stats — only on Investitii / Cheltuieli Curente tabs */}
+      {categorySummary && tabValue < 2 && (
         <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
           <Grid size={{ xs: 6, sm: 6, md: 4 }}>
             <StatCard
@@ -466,6 +467,12 @@ const AchizitiiPage: React.FC = () => {
             sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
           />
           <Tab
+            icon={<SavingsIcon sx={{ fontSize: 20 }} />}
+            iconPosition="start"
+            label="Rest Bugetar"
+            sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
+          />
+          <Tab
             icon={<ExcelTableIcon sx={{ fontSize: 20 }} />}
             iconPosition="start"
             label="Lista Excel"
@@ -473,7 +480,7 @@ const AchizitiiPage: React.FC = () => {
           />
         </Tabs>
 
-        {tabValue !== 2 && (
+        {tabValue < 2 && (
           <>
             <TextField
               select
@@ -505,11 +512,14 @@ const AchizitiiPage: React.FC = () => {
         )}
       </Box>
 
+      {/* Budget savings / remainder tracking tab */}
+      {tabValue === 2 && <BudgetSavingsTab />}
+
       {/* Excel viewer tab — preserves the source spreadsheet 1:1 */}
-      {tabValue === 2 && <InvestmentsTab />}
+      {tabValue === 3 && <InvestmentsTab />}
 
       {/* Budget positions content — only when on Investitii / Cheltuieli Curente tabs */}
-      {tabValue !== 2 && (<>
+      {tabValue < 2 && (<>
       {/* Loading */}
       {isLoading && <LinearProgress sx={{ mb: 2 }} color="success" />}
 
