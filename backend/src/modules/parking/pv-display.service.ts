@@ -239,23 +239,21 @@ export class PvDisplayService {
   // ===== MARKETPLACE (Claim/Unclaim Days) =====
 
   async getAvailableDays(): Promise<PvDisplayDay[]> {
-    // Returneaza zilele cu status OPEN (au sloturi libere)
-    // Include si sesiunile IN_PROGRESS (unele zile au inceput, dar altele
-    // din aceeasi sesiune pot fi inca libere si in viitor).
+    // Returneaza TOATE zilele din sesiunile active si recent finalizate.
+    // Include atat zilele viitoare (claimable/assigned) cat si trecutul recent
+    // (in progress, completed) — pentru ca Control sa vada si istoricul de afisare.
+    // Limitam la 90 de zile in trecut pentru a evita un dataset prea mare.
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const cutoffStr = ninetyDaysAgo.toISOString().slice(0, 10);
+
     const days = await this.dayRepository.createQueryBuilder('day')
       .leftJoinAndSelect('day.session', 'session')
       .leftJoinAndSelect('day.controlUser1', 'controlUser1')
       .leftJoinAndSelect('day.controlUser2', 'controlUser2')
-      .where('day.status IN (:...statuses)', { statuses: [PV_DAY_STATUS.OPEN, PV_DAY_STATUS.ASSIGNED] })
-      .andWhere('session.status IN (:...sessionStatuses)', {
-        sessionStatuses: [
-          PV_SESSION_STATUS.DRAFT,
-          PV_SESSION_STATUS.READY,
-          PV_SESSION_STATUS.IN_PROGRESS,
-        ],
-      })
-      .andWhere('day.displayDate >= CURRENT_DATE')
-      .orderBy('day.displayDate', 'ASC')
+      .leftJoinAndSelect('day.completedByUser', 'completedByUser')
+      .where('day.displayDate >= :cutoff', { cutoff: cutoffStr })
+      .orderBy('day.displayDate', 'DESC')
       .getMany();
 
     return days;

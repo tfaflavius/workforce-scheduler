@@ -145,6 +145,11 @@ const PvMarketplaceTab: React.FC = () => {
                   const statusColor = PV_DAY_STATUS_COLORS[day.status];
                   const isFullyAssigned = assignedCount === 2;
                   const alreadyClaimed = day.controlUser1Id === user?.id || day.controlUser2Id === user?.id;
+                  // Past day: cannot be claimed any more, mark as history
+                  const todayStr = new Date().toISOString().slice(0, 10);
+                  const dayDateStr = String(day.displayDate).slice(0, 10);
+                  const isPast = dayDateStr < todayStr;
+                  const isCompleted = day.status === 'COMPLETED';
 
                   return (
                     <Card
@@ -154,8 +159,8 @@ const PvMarketplaceTab: React.FC = () => {
                         border: `1px solid ${alpha(statusColor, 0.3)}`,
                         overflow: 'hidden',
                         transition: 'all 0.2s',
-                        opacity: isFullyAssigned ? 0.7 : 1,
-                        '&:hover': !isFullyAssigned ? { boxShadow: `0 4px 16px ${alpha(statusColor, 0.15)}` } : {},
+                        opacity: isPast || isCompleted ? 0.55 : isFullyAssigned ? 0.85 : 1,
+                        '&:hover': !isFullyAssigned && !isPast ? { boxShadow: `0 4px 16px ${alpha(statusColor, 0.15)}` } : {},
                       }}
                     >
                       <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
@@ -237,7 +242,7 @@ const PvMarketplaceTab: React.FC = () => {
 
                           {/* Action buttons */}
                           <Stack direction="row" spacing={1}>
-                            {canClaim && !isFullyAssigned && !alreadyClaimed && (
+                            {canClaim && !isFullyAssigned && !alreadyClaimed && !isPast && (
                               <Button
                                 variant="contained"
                                 size="small"
@@ -259,8 +264,8 @@ const PvMarketplaceTab: React.FC = () => {
                             {alreadyClaimed && (
                               <Chip
                                 icon={<AssignedIcon />}
-                                label="Revendicat"
-                                color="success"
+                                label={isCompleted ? 'Finalizat' : 'Revendicat'}
+                                color={isCompleted ? 'default' : 'success'}
                                 size="small"
                                 sx={{ fontWeight: 600 }}
                               />
@@ -268,11 +273,22 @@ const PvMarketplaceTab: React.FC = () => {
                             {isFullyAssigned && !alreadyClaimed && (
                               <Chip
                                 icon={<AssignedIcon />}
-                                label="Complet"
+                                label={isCompleted ? 'Finalizat' : 'Complet'}
                                 size="small"
                                 sx={{
-                                  bgcolor: alpha('#10b981', 0.1),
-                                  color: '#10b981',
+                                  bgcolor: alpha(isCompleted ? '#6b7280' : '#10b981', 0.1),
+                                  color: isCompleted ? '#6b7280' : '#10b981',
+                                  fontWeight: 600,
+                                }}
+                              />
+                            )}
+                            {isPast && !isFullyAssigned && !alreadyClaimed && (
+                              <Chip
+                                label="Trecut"
+                                size="small"
+                                sx={{
+                                  bgcolor: alpha('#6b7280', 0.1),
+                                  color: '#6b7280',
                                   fontWeight: 600,
                                 }}
                               />
