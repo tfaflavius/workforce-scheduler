@@ -39,6 +39,28 @@ function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   return outputArray.buffer;
 }
 
+// Detect iOS (iPhone/iPad) — needs PWA installed before web push works
+function isIOS(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  // iPad on iOS 13+ reports as Mac, so we also check touch points
+  const ua = navigator.userAgent || '';
+  const iOSDevice = /iPad|iPhone|iPod/.test(ua);
+  const iPadOnDesktopUA =
+    ua.includes('Mac') && typeof document !== 'undefined' && 'ontouchend' in document;
+  return iOSDevice || iPadOnDesktopUA;
+}
+
+// Detect if running as installed PWA (standalone display mode)
+function isStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  // iOS uses navigator.standalone; other browsers use display-mode media query
+  const iosStandalone = (window.navigator as any).standalone === true;
+  const standaloneMatch =
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(display-mode: standalone)').matches;
+  return iosStandalone || standaloneMatch;
+}
+
 export const PushNotificationSettings: React.FC = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -46,6 +68,7 @@ export const PushNotificationSettings: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [iosNeedsInstall, setIosNeedsInstall] = useState(false);
 
   const { data: vapidData, refetch: refetchVapid } = useGetVapidPublicKeyQuery();
   const { data: pushStatus, refetch: refetchStatus } = useGetPushStatusQuery();
@@ -59,6 +82,11 @@ export const PushNotificationSettings: React.FC = () => {
     const checkSupport = async () => {
       const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
       setIsSupported(supported);
+
+      // iOS-specific: web push only works inside an installed PWA
+      if (isIOS() && !isStandalone()) {
+        setIosNeedsInstall(true);
+      }
 
       if (supported) {
         setPermission(Notification.permission);
@@ -286,6 +314,22 @@ export const PushNotificationSettings: React.FC = () => {
           {/* Alerts */}
           {error && <Alert severity="error">{error}</Alert>}
           {success && <Alert severity="success">{success}</Alert>}
+
+          {iosNeedsInstall && (
+            <Alert severity="warning">
+              <strong>iPhone / iPad:</strong> Pe Apple, notificarile push functioneaza
+              doar dupa ce instalezi aplicatia ca PWA. Pentru a o instala:
+              <ol style={{ marginBottom: 0 }}>
+                <li>Apasa butonul <strong>Share</strong> (patrat cu sageata in sus) din Safari</li>
+                <li>Selecteaza <strong>"Add to Home Screen"</strong> / <strong>"Adauga la Ecranul Principal"</strong></li>
+                <li>Deschide aplicatia direct din icoana de pe ecranul principal</li>
+                <li>Activeaza notificarile din aceasta pagina</li>
+              </ol>
+              <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                Necesar iOS 16.4 sau mai nou.
+              </Typography>
+            </Alert>
+          )}
 
           {permission === 'denied' && (
             <Alert severity="warning">

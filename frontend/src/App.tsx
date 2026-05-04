@@ -55,7 +55,7 @@ function AppBootstrapLoader() {
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { isLoading } = useAppSelector((state) => state.auth);
+  const { isLoading, token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(initializeAuth());
@@ -79,6 +79,39 @@ function AppContent() {
       subscription.unsubscribe();
     };
   }, [dispatch]);
+
+  // Listen for service worker messages — currently used to renew push subscriptions
+  // when they expire (the SW cannot POST to /push/subscribe directly because it has
+  // no JWT, so it forwards the new subscription here for us to register with auth).
+  useEffect(() => {
+    if (!('serviceWorker' in navigator) || !token) return;
+
+    const handler = async (event: MessageEvent) => {
+      if (event.data?.type === 'PUSH_SUBSCRIPTION_RENEWED' && event.data.subscription) {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+          const resp = await fetch(`${apiUrl}/notifications/push/subscribe`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(event.data.subscription),
+          });
+          if (resp.ok) {
+            console.log('[App] Push subscription renewed and registered with server');
+          } else {
+            console.warn('[App] Failed to register renewed subscription:', resp.status);
+          }
+        } catch (err) {
+          console.error('[App] Error registering renewed subscription:', err);
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
+  }, [token]);
 
   if (isLoading) {
     return <AppBootstrapLoader />;
