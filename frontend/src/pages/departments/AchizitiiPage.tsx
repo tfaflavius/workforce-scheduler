@@ -449,49 +449,71 @@ const AchizitiiPage: React.FC = () => {
       )}
 
       {/* Tabs + Year selector */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', alignItems: { xs: 'stretch', md: 'center' }, gap: { xs: 1, md: 2 }, mb: 2, flexWrap: 'wrap', flexDirection: { xs: 'column', md: 'row' } }}>
         <Tabs
           value={tabValue}
           onChange={(_, v) => setTabValue(v)}
-          variant={isMobile ? 'scrollable' : 'standard'}
-          scrollButtons="auto"
-          allowScrollButtonsMobile
-          sx={{ flex: 1, minWidth: 0 }}
+          variant="fullWidth"
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            // Compact 2x2 grid look on small screens — every tab is visible
+            // at once without scrolling and labels stay readable.
+            '& .MuiTabs-flexContainer': {
+              flexWrap: { xs: 'wrap', md: 'nowrap' },
+            },
+            '& .MuiTab-root': {
+              flex: { xs: '1 1 50%', md: 1 },
+              maxWidth: { xs: '50%', md: 'none' },
+              minHeight: { xs: 56, md: 48 },
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: { xs: '0.72rem', sm: '0.8rem', md: '0.875rem' },
+              px: { xs: 0.5, sm: 1, md: 2 },
+              gap: { xs: 0.25, sm: 0.5 },
+              flexDirection: { xs: 'column', sm: 'row' },
+              '& .MuiTab-iconWrapper': { mb: { xs: 0, sm: 0 }, mr: { xs: 0, sm: 0.75 } },
+            },
+          }}
         >
           <Tab
-            icon={<InvestmentsIcon sx={{ fontSize: 20 }} />}
-            iconPosition="start"
+            icon={<InvestmentsIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? 'top' : 'start'}
             label="Investitii"
-            sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
           />
           <Tab
-            icon={<ExpensesIcon sx={{ fontSize: 20 }} />}
-            iconPosition="start"
-            label="Cheltuieli Curente"
-            sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
+            icon={<ExpensesIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? 'top' : 'start'}
+            label={isMobile ? 'Cheltuieli' : 'Cheltuieli Curente'}
           />
           <Tab
-            icon={<SavingsIcon sx={{ fontSize: 20 }} />}
-            iconPosition="start"
-            label="Rest Bugetar"
-            sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
+            icon={<SavingsIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? 'top' : 'start'}
+            label={isMobile ? 'Rest' : 'Rest Bugetar'}
           />
           <Tab
-            icon={<ExcelTableIcon sx={{ fontSize: 20 }} />}
-            iconPosition="start"
-            label="Lista Excel"
-            sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
+            icon={<ExcelTableIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+            iconPosition={isMobile ? 'top' : 'start'}
+            label="Excel"
           />
         </Tabs>
 
         {tabValue < 2 && (
-          <>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              width: { xs: '100%', md: 'auto' },
+            }}
+          >
             <TextField
               select
               size="small"
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              sx={{ minWidth: 100 }}
+              sx={{ minWidth: 100, flex: { xs: '0 0 110px', md: '0 0 auto' } }}
               label="An"
             >
               {yearOptions.map((y) => (
@@ -508,11 +530,13 @@ const AchizitiiPage: React.FC = () => {
                 '&:hover': { bgcolor: 'success.dark' },
                 textTransform: 'none',
                 fontWeight: 600,
+                flex: { xs: 1, md: '0 0 auto' },
+                whiteSpace: 'nowrap',
               }}
             >
-              {isMobile ? 'Pozitie' : 'Adauga Pozitie'}
+              {isMobile ? 'Adauga' : 'Adauga Pozitie'}
             </Button>
-          </>
+          </Box>
         )}
       </Box>
 
