@@ -55,7 +55,7 @@ function AppBootstrapLoader() {
 
 function AppContent() {
   const dispatch = useAppDispatch();
-  const { isLoading, token } = useAppSelector((state) => state.auth);
+  const { isLoading, isInitialized, token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(initializeAuth());
@@ -69,8 +69,17 @@ function AppContent() {
           // Update the token in Redux when Supabase refreshes it
           dispatch(updateToken(session.access_token));
         } else if (event === 'SIGNED_IN' && session) {
-          // Re-initialize auth if signed in
-          dispatch(initializeAuth());
+          // Supabase fires SIGNED_IN on initial restore AND on tab refocus
+          // when it re-detects the session. Re-initializing the entire auth
+          // flow here would unmount AppRoutes and reset form state every
+          // time the user switches tabs. Read fresh state from the store to
+          // decide: if already initialized, just sync the token.
+          const alreadyInitialized = store.getState().auth.isInitialized;
+          if (!alreadyInitialized) {
+            dispatch(initializeAuth());
+          } else if (session.access_token) {
+            dispatch(updateToken(session.access_token));
+          }
         }
       }
     );
@@ -113,7 +122,10 @@ function AppContent() {
     return () => navigator.serviceWorker.removeEventListener('message', handler);
   }, [token]);
 
-  if (isLoading) {
+  // Only show the global loader during the FIRST auth initialization.
+  // After that, even if isLoading flips again (e.g. token refresh), keep
+  // AppRoutes mounted so the user's current page state is preserved.
+  if (isLoading && !isInitialized) {
     return <AppBootstrapLoader />;
   }
 

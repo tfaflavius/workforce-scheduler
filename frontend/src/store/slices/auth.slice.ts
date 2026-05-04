@@ -9,6 +9,12 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  /**
+   * True after the FIRST initializeAuth() call completes (success or fail).
+   * Used so subsequent re-init events (e.g. supabase SIGNED_IN on tab focus)
+   * don't flip isLoading and unmount the route tree.
+   */
+  isInitialized: boolean;
 }
 
 const initialState: AuthState = {
@@ -16,6 +22,7 @@ const initialState: AuthState = {
   token: null,
   isAuthenticated: false,
   isLoading: true,
+  isInitialized: false,
 };
 
 // Check for existing session on app load
@@ -96,7 +103,13 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(initializeAuth.pending, (state) => {
-        state.isLoading = true;
+        // Only show the global loader on the FIRST initialization. Subsequent
+        // calls (e.g. on tab refocus when supabase fires SIGNED_IN) must not
+        // flip isLoading — that would unmount AppRoutes and reset all forms,
+        // scroll positions and component state across the app.
+        if (!state.isInitialized) {
+          state.isLoading = true;
+        }
       })
       .addCase(initializeAuth.fulfilled, (state, action) => {
         if (action.payload) {
@@ -105,14 +118,17 @@ const authSlice = createSlice({
           state.isAuthenticated = true;
         }
         state.isLoading = false;
+        state.isInitialized = true;
       })
       .addCase(initializeAuth.rejected, (state) => {
         state.isLoading = false;
+        state.isInitialized = true;
       })
       .addCase(logoutAsync.fulfilled, (state) => {
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
+        // Keep isInitialized = true so the loader doesn't show on logout
       });
   },
 });
