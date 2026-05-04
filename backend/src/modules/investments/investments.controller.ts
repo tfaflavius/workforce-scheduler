@@ -2,6 +2,10 @@ import {
   Controller,
   Get,
   Post,
+  Put,
+  Body,
+  Query,
+  ParseIntPipe,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -16,6 +20,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { InvestmentsService } from './investments.service';
+import { UpsertAnnualBudgetDto } from './dto/upsert-annual-budget.dto';
 
 @ApiTags('Investments')
 @ApiBearerAuth('JWT')
@@ -63,5 +68,29 @@ export class InvestmentsController {
     @UploadedFile() file: { originalname: string; mimetype: string; size: number; buffer: Buffer },
   ) {
     return this.investmentsService.upload(req.user.id, file);
+  }
+
+  // ===== Annual investment budget envelope =====
+
+  /**
+   * Get the yearly investment budget summary (envelope + allocations + remainders).
+   * Anyone with auth can view.
+   */
+  @Get('annual-budget')
+  async getAnnualBudget(
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+  ) {
+    const targetYear = year ?? new Date().getFullYear();
+    return this.investmentsService.getAnnualBudget(targetYear);
+  }
+
+  /**
+   * Set / update the yearly investment envelope. Admin + Manager only.
+   */
+  @Put('annual-budget')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async upsertAnnualBudget(@Request() req, @Body() dto: UpsertAnnualBudgetDto) {
+    return this.investmentsService.upsertAnnualBudget(req.user.id, dto);
   }
 }

@@ -2,6 +2,9 @@ import { Injectable, BadRequestException, NotFoundException, Logger } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InvestmentDocument } from './entities/investment-document.entity';
+import { InvestmentAnnualBudget } from './entities/investment-annual-budget.entity';
+import { BudgetPosition } from '../acquisitions/entities/budget-position.entity';
+import { UpsertAnnualBudgetDto } from './dto/upsert-annual-budget.dto';
 
 const ALLOWED_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
@@ -20,6 +23,18 @@ export interface InvestmentDocumentMetadata {
   updatedAt: Date;
 }
 
+export interface InvestmentAnnualBudgetSummary {
+  year: number;
+  totalAmount: number;       // user-set yearly investment envelope
+  allocatedToPositions: number; // sum of INVESTMENT budget positions' totalAmount
+  spentOnAcquisitions: number; // sum of acquisitions values across investments
+  remainingInPositions: number; // allocated - spent (already on positions, not yet on acquisitions)
+  availableForNewPositions: number; // totalAmount - allocatedToPositions
+  notes: string | null;
+  lastModifiedBy: { id: string; fullName: string } | null;
+  updatedAt: Date | null;
+}
+
 @Injectable()
 export class InvestmentsService {
   private readonly logger = new Logger(InvestmentsService.name);
@@ -27,6 +42,10 @@ export class InvestmentsService {
   constructor(
     @InjectRepository(InvestmentDocument)
     private readonly documentRepository: Repository<InvestmentDocument>,
+    @InjectRepository(InvestmentAnnualBudget)
+    private readonly annualBudgetRepository: Repository<InvestmentAnnualBudget>,
+    @InjectRepository(BudgetPosition)
+    private readonly budgetPositionRepository: Repository<BudgetPosition>,
   ) {}
 
   /**
@@ -131,5 +150,87 @@ export class InvestmentsService {
       createdAt: reloaded.createdAt,
       updatedAt: reloaded.updatedAt,
     };
+  }
+
+  // ===== Annual investment budget envelope =====
+
+  /**
+   * Returns the yearly investment envelope + all its derived breakdowns
+   * (allocated to positions, spent on acquisitions, available for new positions).
+   * If no row exists for the year, returns zeros — the UI then prompts the user
+   * to set the total.
+   */
+  async getAnnualBudget(year: number): Promise<InvestmentAnnualBudgetSummary> {
+    const budget = await this.annualBudgetRepository.findOne({
+      where: { year },
+      relations: ['lastModifiedBy'],
+    });
+
+    // Pull all INVESTMENTS positions for this year and their acquisitions so
+    // we can compute the allocations without a second round-trip.
+    const positions = await this.budgetPositionRepository.find({
+      where: { year, category: 'INVESTMENTS' },
+      relations: ['acquisitions'],
+    });
+
+    const allocatedToPositions = positions.reduce(
+      (s, p) => s + Number(p.totalAmount || 0),
+      0,
+    );
+    const spentOnAcquisitions = positions.reduce(
+      (s, p) =>
+        s + (p.acquisitions || []).reduce((acc, a) => acc + Number(a.value || 0), 0),
+      0,
+    );
+    const remainingInPositions = allocatedToPositions - spentOnAcquisitions;
+    const totalAmount = budget ? Number(budget.totalAmount) : 0;
+    const availableForNewPositions = totalAmount - allocatedToPositions;
+
+    return {
+      year,
+      totalAmount,
+      allocatedToPositions: Math.round(allocatedToPositions * 100) / 100,
+      spentOnAcquisitions: Math.round(spentOnAcquisitions * 100) / 100,
+      remainingInPositions: Math.round(remainingInPositions * 100) / 100,
+      availableForNewPositions: Math.round(availableForNewPositions * 100) / 100,
+      notes: budget?.notes ?? null,
+      lastModifiedBy: budget?.lastModifiedBy
+        ? { id: budget.lastModifiedBy.id, fullName: budget.lastModifiedBy.fullName }
+        : null,
+      updatedAt: budget?.updatedAt ?? null,
+    };
+  }
+
+  /**
+   * Set / update the yearly investment envelope (one row per year).
+   * Restricted via controller-level role guard.
+   */
+  async upsertAnnualBudget(
+    userId: string,
+    dto: UpsertAnnualBudgetDto,
+  ): Promise<InvestmentAnnualBudgetSummary> {
+    const existing = await this.annualBudgetRepository.findOne({
+      where: { year: dto.year },
+    });
+
+    if (existing) {
+      existing.totalAmount = dto.totalAmount;
+      existing.notes = dto.notes ?? null;
+      existing.lastModifiedById = userId;
+      await this.annualBudgetRepository.save(existing);
+    } else {
+      const created = this.annualBudgetRepository.create({
+        year: dto.year,
+        totalAmount: dto.totalAmount,
+        notes: dto.notes ?? null,
+        lastModifiedById: userId,
+      });
+      await this.annualBudgetRepository.save(created);
+    }
+
+    this.logger.log(
+      `Annual investment budget for ${dto.year} set to ${dto.totalAmount} by ${userId}`,
+    );
+    return this.getAnnualBudget(dto.year);
   }
 }

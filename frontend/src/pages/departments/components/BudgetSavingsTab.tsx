@@ -23,6 +23,11 @@ import {
   IconButton,
   Tooltip,
   Alert,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   alpha,
   useTheme,
 } from '@mui/material';
@@ -35,13 +40,22 @@ import {
   ExpandLess as ExpandLessIcon,
   Info as InfoIcon,
   AttachMoney as MoneyIcon,
+  Edit as EditIcon,
+  Wallet as WalletIcon,
 } from '@mui/icons-material';
 import {
   useGetBudgetPositionsQuery,
   useGetSummaryQuery,
 } from '../../../store/api/acquisitions.api';
+import {
+  useGetInvestmentAnnualBudgetQuery,
+  useUpsertInvestmentAnnualBudgetMutation,
+} from '../../../store/api/investments.api';
 import type { BudgetCategory, BudgetPosition } from '../../../types/acquisitions.types';
 import { StatCard } from '../../../components/common';
+import { useAppSelector } from '../../../store/hooks';
+import { isAdminOrAbove } from '../../../utils/roleHelpers';
+import { useSnackbar } from '../../../contexts/SnackbarContext';
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('ro-RO', {
@@ -52,10 +66,49 @@ const formatCurrency = (n: number) =>
 
 const BudgetSavingsTab: React.FC = () => {
   const theme = useTheme();
+  const { user } = useAppSelector((s) => s.auth);
+  const { notifySuccess, notifyError } = useSnackbar();
+  const isAdmin = isAdminOrAbove(user?.role);
+  const isManager = user?.role === 'MANAGER';
+  const canEditAnnual = isAdmin || isManager;
+
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState<number>(currentYear);
-  const [category, setCategory] = useState<BudgetCategory | 'ALL'>('ALL');
+  const [category, setCategory] = useState<BudgetCategory | 'ALL'>('INVESTMENTS');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Annual investment envelope (user-set total + computed allocations)
+  const { data: annualBudget } = useGetInvestmentAnnualBudgetQuery(year);
+  const [upsertAnnualBudget, { isLoading: savingAnnual }] = useUpsertInvestmentAnnualBudgetMutation();
+  const [annualDialogOpen, setAnnualDialogOpen] = useState(false);
+  const [annualInput, setAnnualInput] = useState('');
+  const [annualNotes, setAnnualNotes] = useState('');
+
+  const openAnnualDialog = () => {
+    setAnnualInput(annualBudget?.totalAmount ? String(annualBudget.totalAmount) : '');
+    setAnnualNotes(annualBudget?.notes || '');
+    setAnnualDialogOpen(true);
+  };
+
+  const saveAnnual = async () => {
+    const parsed = Number(annualInput.replace(',', '.'));
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      notifyError('Introdu o suma valida (numar pozitiv)');
+      return;
+    }
+    try {
+      await upsertAnnualBudget({
+        year,
+        totalAmount: parsed,
+        notes: annualNotes || undefined,
+      }).unwrap();
+      notifySuccess(`Buget anual ${year} setat la ${parsed.toLocaleString('ro-RO')} lei`);
+      setAnnualDialogOpen(false);
+    } catch (err: any) {
+      const msg = err?.data?.message || err?.message || 'Eroare la salvarea bugetului';
+      notifyError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
+  };
 
   const yearOptions = useMemo(() => {
     const out: number[] = [];
@@ -269,10 +322,189 @@ const BudgetSavingsTab: React.FC = () => {
         icon={<InfoIcon />}
         sx={{ mb: 2, borderRadius: 2 }}
       >
-        Aici vezi <strong>cat a ramas</strong> de cheltuit din fiecare pozitie bugetara,
-        sortat de la cea mai mare suma ramasa la cea mai mica. Foloseste aceste sume
-        ca sa planifici rectificarile bugetare si sa creezi pozitii noi pentru economii.
+        Aici vezi <strong>cat a ramas</strong> de cheltuit din fiecare pozitie bugetara
+        si <strong>cat din valoarea anuala totala</strong> mai poti aloca la pozitii noi
+        prin rectificari bugetare. Sortarea e de la cea mai mare suma ramasa la cea mai mica.
       </Alert>
+
+      {/* Annual investment envelope banner — visible regardless of category filter */}
+      <Card
+        sx={{
+          mb: 2,
+          borderRadius: 2,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.success.main, 0.12)}, ${alpha(theme.palette.primary.main, 0.08)})`,
+          border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
+        }}
+      >
+        <CardContent>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+            justifyContent="space-between"
+          >
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <WalletIcon sx={{ fontSize: 36, color: 'success.main' }} />
+              <Box>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  VALOARE ANUALA TOTALA INVESTITII — {year}
+                </Typography>
+                <Typography variant="h5" fontWeight={800} color="success.dark">
+                  {formatCurrency(Number(annualBudget?.totalAmount || 0))}
+                </Typography>
+                {annualBudget?.notes && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    {annualBudget.notes}
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+            {canEditAnnual && (
+              <Button
+                variant="outlined"
+                color="success"
+                startIcon={<EditIcon />}
+                onClick={openAnnualDialog}
+                sx={{ textTransform: 'none', borderRadius: 2, alignSelf: { xs: 'stretch', md: 'center' } }}
+              >
+                {annualBudget?.totalAmount ? 'Modifica' : 'Seteaza valoare anuala'}
+              </Button>
+            )}
+          </Stack>
+
+          {Number(annualBudget?.totalAmount || 0) > 0 && (
+            <Grid container spacing={1.5} sx={{ mt: 1.5 }}>
+              <Grid size={{ xs: 6, md: 3 }}>
+                <Box sx={{ p: 1.25, bgcolor: 'background.paper', borderRadius: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Alocat la pozitii
+                  </Typography>
+                  <Typography variant="body1" fontWeight={700} color="primary.main">
+                    {formatCurrency(Number(annualBudget?.allocatedToPositions || 0))}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 6, md: 3 }}>
+                <Box sx={{ p: 1.25, bgcolor: 'background.paper', borderRadius: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Cheltuit pe achizitii
+                  </Typography>
+                  <Typography variant="body1" fontWeight={700} color="warning.dark">
+                    {formatCurrency(Number(annualBudget?.spentOnAcquisitions || 0))}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 6, md: 3 }}>
+                <Box sx={{ p: 1.25, bgcolor: 'background.paper', borderRadius: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Ramas in pozitii
+                  </Typography>
+                  <Typography variant="body1" fontWeight={700} color="info.main">
+                    {formatCurrency(Number(annualBudget?.remainingInPositions || 0))}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid size={{ xs: 6, md: 3 }}>
+                <Box
+                  sx={{
+                    p: 1.25,
+                    bgcolor: alpha(theme.palette.success.main, 0.12),
+                    borderRadius: 1.5,
+                    border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    Disponibil pt pozitii noi
+                  </Typography>
+                  <Typography variant="body1" fontWeight={800} color="success.main">
+                    {formatCurrency(Number(annualBudget?.availableForNewPositions || 0))}
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* Progress bar showing how much of annual envelope is used */}
+              <Grid size={12}>
+                <Tooltip
+                  title={`${(((Number(annualBudget?.allocatedToPositions || 0) / (Number(annualBudget?.totalAmount) || 1)) * 100) || 0).toFixed(1)}% din buget alocat la pozitii`}
+                  arrow
+                >
+                  <LinearProgress
+                    variant="determinate"
+                    value={Math.min(
+                      100,
+                      Number(annualBudget?.totalAmount)
+                        ? (Number(annualBudget.allocatedToPositions) / Number(annualBudget.totalAmount)) * 100
+                        : 0,
+                    )}
+                    sx={{
+                      height: 10,
+                      borderRadius: 5,
+                      bgcolor: alpha(theme.palette.success.main, 0.15),
+                      '& .MuiLinearProgress-bar': {
+                        bgcolor:
+                          Number(annualBudget?.availableForNewPositions || 0) < 0
+                            ? theme.palette.error.main
+                            : theme.palette.success.main,
+                        borderRadius: 5,
+                      },
+                    }}
+                  />
+                </Tooltip>
+              </Grid>
+            </Grid>
+          )}
+
+          {Number(annualBudget?.availableForNewPositions || 0) < 0 && (
+            <Alert severity="warning" sx={{ mt: 2, borderRadius: 1.5 }}>
+              Atentie: ai alocat la pozitii mai mult decat valoarea anuala totala. Modifica
+              valoarea anuala sau redu sumele unor pozitii.
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Edit annual budget dialog */}
+      <Dialog open={annualDialogOpen} onClose={() => setAnnualDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>
+          Valoare anuala investitii — {year}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Suma totala anuala (lei)"
+              type="number"
+              value={annualInput}
+              onChange={(e) => setAnnualInput(e.target.value)}
+              fullWidth
+              inputProps={{ min: 0, step: '0.01' }}
+              autoFocus
+            />
+            <TextField
+              label="Note (optional)"
+              value={annualNotes}
+              onChange={(e) => setAnnualNotes(e.target.value)}
+              fullWidth
+              multiline
+              rows={2}
+              placeholder="Ex: hotarare consiliu nr X / data Y"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setAnnualDialogOpen(false)} sx={{ textTransform: 'none' }}>
+            Anuleaza
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={saveAnnual}
+            disabled={savingAnnual}
+            sx={{ textTransform: 'none' }}
+          >
+            {savingAnnual ? 'Se salveaza...' : 'Salveaza'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Filters */}
       <Card sx={{ mb: 2, borderRadius: 2 }}>
