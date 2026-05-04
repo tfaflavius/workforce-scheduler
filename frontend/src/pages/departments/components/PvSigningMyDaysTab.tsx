@@ -39,7 +39,11 @@ const PvSigningMyDaysTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
 
-  const { data: myDays = [], isLoading, error } = useGetSigningMyClaimedDaysQuery();
+  const { data: myDays = [], isLoading, error } = useGetSigningMyClaimedDaysQuery(undefined, {
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: 30,
+    refetchOnReconnect: true,
+  });
   const [unclaimDay, { isLoading: isUnclaiming }] = useUnclaimSigningDayMutation();
   const [completeDay, { isLoading: isCompleting }] = useCompleteSigningDayMutation();
 

@@ -39,7 +39,11 @@ const PvMyDaysTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { notifyError } = useSnackbar();
 
-  const { data: myDays = [], isLoading, error } = useGetMyClaimedDaysQuery();
+  const { data: myDays = [], isLoading, error } = useGetMyClaimedDaysQuery(undefined, {
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: 30,
+    refetchOnReconnect: true,
+  });
   const [unclaimDay, { isLoading: isUnclaiming }] = useUnclaimDayMutation();
   const [completeDay, { isLoading: isCompleting }] = useCompleteDayMutation();
 

@@ -45,7 +45,13 @@ const PvMarketplaceTab: React.FC = () => {
   const isControl = user?.department?.name === CONTROL_DEPARTMENT_NAME;
   const canClaim = isControl || isAdmin;
 
-  const { data: days = [], isLoading, error } = useGetAvailableDaysQuery();
+  // Refetch on tab focus and on mount if cache is older than 30s — so Control
+  // users see newly created sessions without needing to manually refresh.
+  const { data: days = [], isLoading, error } = useGetAvailableDaysQuery(undefined, {
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: 30,
+    refetchOnReconnect: true,
+  });
   const [claimDay] = useClaimDayMutation();
   const [claimingDayId, setClaimingDayId] = useState<string | null>(null);
   const [adminAssignDay] = useAdminAssignDayMutation();

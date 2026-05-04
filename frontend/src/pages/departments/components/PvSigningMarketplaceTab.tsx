@@ -45,7 +45,13 @@ const PvSigningMarketplaceTab: React.FC = () => {
   const isMaintenance = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const canClaim = isMaintenance || isAdmin;
 
-  const { data: days = [], isLoading, error } = useGetSigningAvailableDaysQuery();
+  // Refetch on tab focus and on mount if cache is older than 30s — so Maintenance
+  // users see newly created sessions without needing to manually refresh.
+  const { data: days = [], isLoading, error } = useGetSigningAvailableDaysQuery(undefined, {
+    refetchOnFocus: true,
+    refetchOnMountOrArgChange: 30,
+    refetchOnReconnect: true,
+  });
   const [claimDay] = useClaimSigningDayMutation();
   const [claimingDayId, setClaimingDayId] = useState<string | null>(null);
   const [adminAssignDay] = useAdminAssignSigningDayMutation();
