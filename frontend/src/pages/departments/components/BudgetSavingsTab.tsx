@@ -456,7 +456,7 @@ const BudgetSavingsTab: React.FC = () => {
                     value={Math.min(
                       100,
                       Number(annualBudget?.totalAmount)
-                        ? (Number(annualBudget.allocatedToPositions) / Number(annualBudget.totalAmount)) * 100
+                        ? (Number(annualBudget?.allocatedToPositions) / Number(annualBudget?.totalAmount)) * 100
                         : 0,
                     )}
                     sx={{
