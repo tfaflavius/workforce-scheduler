@@ -347,37 +347,65 @@ const BudgetSavingsTab: React.FC = () => {
           border: `1px solid ${alpha(theme.palette.success.main, 0.3)}`,
         }}
       >
-        <CardContent>
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={2}
-            alignItems={{ xs: 'flex-start', md: 'center' }}
-            justifyContent="space-between"
+        <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              mb: { xs: 1.25, md: 1.5 },
+              flexWrap: 'wrap',
+            }}
           >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <WalletIcon sx={{ fontSize: 36, color: 'success.main' }} />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  VALOARE ANUALA TOTALA INVESTITII — {year}
+            <WalletIcon sx={{ fontSize: { xs: 28, sm: 36 }, color: 'success.main', flexShrink: 0 }} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  fontWeight: 600,
+                  display: 'block',
+                  fontSize: { xs: '0.65rem', sm: '0.72rem' },
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Valoare anuala totala investitii — {year}
+              </Typography>
+              <Typography
+                variant="h5"
+                fontWeight={800}
+                color="success.dark"
+                sx={{
+                  fontSize: { xs: '1.15rem', sm: '1.5rem' },
+                  lineHeight: 1.2,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {formatCurrency(Number(annualBudget?.totalAmount || 0))}
+              </Typography>
+              {annualBudget?.notes && (
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', mt: 0.5, wordBreak: 'break-word' }}
+                >
+                  {annualBudget.notes}
                 </Typography>
-                <Typography variant="h5" fontWeight={800} color="success.dark">
-                  {formatCurrency(Number(annualBudget?.totalAmount || 0))}
-                </Typography>
-                {annualBudget?.notes && (
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                    {annualBudget.notes}
-                  </Typography>
-                )}
-              </Box>
-            </Stack>
-            <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: 'stretch', md: 'center' } }}>
+              )}
+            </Box>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={0.75}
+              sx={{ flexShrink: 0, ml: 'auto' }}
+            >
               <Button
                 variant="text"
                 color="primary"
                 size="small"
                 startIcon={<HistoryIcon />}
                 onClick={() => setHistoryDialogOpen(true)}
-                sx={{ textTransform: 'none', borderRadius: 2 }}
+                sx={{ textTransform: 'none', borderRadius: 2, minWidth: 0 }}
               >
                 Istoric
               </Button>
@@ -385,44 +413,72 @@ const BudgetSavingsTab: React.FC = () => {
                 <Button
                   variant="outlined"
                   color="success"
+                  size="small"
                   startIcon={<EditIcon />}
                   onClick={openAnnualDialog}
-                  sx={{ textTransform: 'none', borderRadius: 2 }}
+                  sx={{ textTransform: 'none', borderRadius: 2, whiteSpace: 'nowrap' }}
                 >
-                  {annualBudget?.totalAmount ? 'Modifica' : 'Seteaza valoare anuala'}
+                  {annualBudget?.totalAmount ? 'Modifica' : 'Seteaza'}
                 </Button>
               )}
             </Stack>
-          </Stack>
+          </Box>
 
           {Number(annualBudget?.totalAmount || 0) > 0 && (
-            <Grid container spacing={1.5} sx={{ mt: 1.5 }}>
+            <Grid container spacing={{ xs: 1, sm: 1.5 }} sx={{ mt: { xs: 0.5, sm: 1 } }}>
               <Grid size={{ xs: 6, md: 3 }}>
-                <Box sx={{ p: 1.25, bgcolor: 'background.paper', borderRadius: 1.5 }}>
-                  <Typography variant="caption" color="text.secondary">
+                <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: 'background.paper', borderRadius: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                     Alocat la pozitii
                   </Typography>
-                  <Typography variant="body1" fontWeight={700} color="primary.main">
+                  <Typography
+                    variant="body1"
+                    fontWeight={700}
+                    color="primary.main"
+                    sx={{
+                      fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     {formatCurrency(Number(annualBudget?.allocatedToPositions || 0))}
                   </Typography>
                 </Box>
               </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
-                <Box sx={{ p: 1.25, bgcolor: 'background.paper', borderRadius: 1.5 }}>
-                  <Typography variant="caption" color="text.secondary">
+                <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: 'background.paper', borderRadius: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                     Cheltuit pe achizitii
                   </Typography>
-                  <Typography variant="body1" fontWeight={700} color="warning.dark">
+                  <Typography
+                    variant="body1"
+                    fontWeight={700}
+                    color="warning.dark"
+                    sx={{
+                      fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     {formatCurrency(Number(annualBudget?.spentOnAcquisitions || 0))}
                   </Typography>
                 </Box>
               </Grid>
               <Grid size={{ xs: 6, md: 3 }}>
-                <Box sx={{ p: 1.25, bgcolor: 'background.paper', borderRadius: 1.5 }}>
-                  <Typography variant="caption" color="text.secondary">
+                <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: 'background.paper', borderRadius: 1.5 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                     Ramas in pozitii
                   </Typography>
-                  <Typography variant="body1" fontWeight={700} color="info.main">
+                  <Typography
+                    variant="body1"
+                    fontWeight={700}
+                    color="info.main"
+                    sx={{
+                      fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     {formatCurrency(Number(annualBudget?.remainingInPositions || 0))}
                   </Typography>
                 </Box>
@@ -430,16 +486,25 @@ const BudgetSavingsTab: React.FC = () => {
               <Grid size={{ xs: 6, md: 3 }}>
                 <Box
                   sx={{
-                    p: 1.25,
+                    p: { xs: 1, sm: 1.25 },
                     bgcolor: alpha(theme.palette.success.main, 0.12),
                     borderRadius: 1.5,
                     border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
                   }}
                 >
-                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                     Disponibil pt pozitii noi
                   </Typography>
-                  <Typography variant="body1" fontWeight={800} color="success.main">
+                  <Typography
+                    variant="body1"
+                    fontWeight={800}
+                    color="success.main"
+                    sx={{
+                      fontSize: { xs: '0.8rem', sm: '0.95rem' },
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     {formatCurrency(Number(annualBudget?.availableForNewPositions || 0))}
                   </Typography>
                 </Box>

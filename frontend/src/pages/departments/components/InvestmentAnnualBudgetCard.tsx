@@ -15,6 +15,7 @@ import {
   Tooltip,
   alpha,
   useTheme,
+  IconButton,
 } from '@mui/material';
 import {
   Wallet as WalletIcon,
@@ -40,12 +41,9 @@ const formatCurrency = (n: number) =>
   }).format(n) + ' lei';
 
 /**
- * Compact annual investment budget envelope card. Designed to live on the
- * main Investitii tab so the user always sees the yearly total + how much is
- * still uncommitted while they work with budget positions and acquisitions.
- *
- * For the full breakdown / per-position remainders / change history, the user
- * goes to the dedicated "Rest Bugetar" tab.
+ * Compact annual investment budget envelope card.
+ * Mobile-first layout: each section stacks vertically and titles can wrap
+ * normally. Desktop arranges Total, Alocat and Disponibil in a row.
  */
 const InvestmentAnnualBudgetCard: React.FC<Props> = ({ year }) => {
   const theme = useTheme();
@@ -100,100 +98,175 @@ const InvestmentAnnualBudgetCard: React.FC<Props> = ({ year }) => {
           border: `1px solid ${alpha(theme.palette.success.main, 0.25)}`,
         }}
       >
-        <CardContent sx={{ py: { xs: 1.5, sm: 2 } }}>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
+        <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+          {/* Title row — responsive: stack on mobile, side-by-side on tablet+ */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'row', sm: 'row' },
+              alignItems: 'center',
+              gap: 1.25,
+              mb: { xs: 1.5, sm: 1.5 },
+            }}
           >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <WalletIcon sx={{ fontSize: 32, color: 'success.main' }} />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  BUGET ANUAL TOTAL INVESTITII — {year}
-                </Typography>
-                <Typography variant="h6" fontWeight={800} color="success.dark">
-                  {totalAmount > 0 ? formatCurrency(totalAmount) : 'Nesetat'}
-                </Typography>
-              </Box>
-            </Stack>
+            <WalletIcon sx={{ fontSize: { xs: 28, sm: 32 }, color: 'success.main', flexShrink: 0 }} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  fontWeight: 600,
+                  display: 'block',
+                  fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Buget anual investitii — {year}
+              </Typography>
+              <Typography
+                variant="h6"
+                fontWeight={800}
+                color="success.dark"
+                sx={{
+                  fontSize: { xs: '1.05rem', sm: '1.25rem' },
+                  lineHeight: 1.2,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {totalAmount > 0 ? formatCurrency(totalAmount) : 'Nesetat'}
+              </Typography>
+            </Box>
+            {canEdit && (
+              <Tooltip title={totalAmount > 0 ? 'Modifica suma' : 'Seteaza suma'}>
+                <IconButton
+                  size="small"
+                  color="success"
+                  onClick={openDialog}
+                  sx={{
+                    flexShrink: 0,
+                    border: `1px solid ${alpha(theme.palette.success.main, 0.5)}`,
+                    bgcolor: alpha(theme.palette.success.main, 0.08),
+                    '&:hover': { bgcolor: alpha(theme.palette.success.main, 0.18) },
+                  }}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
 
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              alignItems={{ xs: 'flex-start', sm: 'center' }}
-            >
-              {totalAmount > 0 && (
-                <>
-                  <Box sx={{ minWidth: 110 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Alocat la pozitii
-                    </Typography>
-                    <Typography variant="body2" fontWeight={700} color="primary.main">
-                      {formatCurrency(allocated)}
-                    </Typography>
-                  </Box>
-                  <Box
+          {/* Stats — full width on mobile, two columns on tablet+ */}
+          {totalAmount > 0 && (
+            <>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' },
+                  gap: { xs: 1, sm: 1.5 },
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: 1.5,
+                    bgcolor: alpha(theme.palette.primary.main, 0.06),
+                    border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}
+                  >
+                    Alocat la pozitii
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    fontWeight={700}
+                    color="primary.main"
                     sx={{
-                      minWidth: 130,
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1.5,
-                      bgcolor: overAllocated
-                        ? alpha(theme.palette.error.main, 0.12)
-                        : alpha(theme.palette.success.main, 0.12),
-                      border: `1px solid ${alpha(
-                        overAllocated ? theme.palette.error.main : theme.palette.success.main,
-                        0.4,
-                      )}`,
+                      fontSize: { xs: '0.85rem', sm: '1rem' },
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
                     }}
                   >
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      Disponibil pt rectificari
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      fontWeight={800}
-                      color={overAllocated ? 'error.main' : 'success.main'}
-                    >
-                      {formatCurrency(available)}
-                    </Typography>
-                  </Box>
-                </>
-              )}
-              {canEdit && (
-                <Button
-                  variant="outlined"
-                  color="success"
-                  size="small"
-                  startIcon={<EditIcon />}
-                  onClick={openDialog}
-                  sx={{ textTransform: 'none', borderRadius: 2 }}
-                >
-                  {totalAmount > 0 ? 'Modifica' : 'Seteaza'}
-                </Button>
-              )}
-            </Stack>
-          </Stack>
+                    {formatCurrency(allocated)}
+                  </Typography>
+                </Box>
 
-          {totalAmount > 0 && (
-            <Tooltip title={`${usedPct.toFixed(1)}% alocat la pozitii`} arrow>
-              <LinearProgress
-                variant="determinate"
-                value={usedPct}
-                sx={{
-                  mt: 1.5,
-                  height: 8,
-                  borderRadius: 4,
-                  bgcolor: alpha(theme.palette.success.main, 0.15),
-                  '& .MuiLinearProgress-bar': {
-                    bgcolor: overAllocated ? theme.palette.error.main : theme.palette.success.main,
+                <Box
+                  sx={{
+                    p: 1,
+                    borderRadius: 1.5,
+                    bgcolor: overAllocated
+                      ? alpha(theme.palette.error.main, 0.12)
+                      : alpha(theme.palette.success.main, 0.12),
+                    border: `1px solid ${alpha(
+                      overAllocated ? theme.palette.error.main : theme.palette.success.main,
+                      0.4,
+                    )}`,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      display: 'block',
+                      fontWeight: 600,
+                      fontSize: { xs: '0.65rem', sm: '0.72rem' },
+                    }}
+                  >
+                    Disponibil pt rectificari
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    fontWeight={800}
+                    color={overAllocated ? 'error.main' : 'success.main'}
+                    sx={{
+                      fontSize: { xs: '0.85rem', sm: '1rem' },
+                      lineHeight: 1.25,
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {formatCurrency(available)}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Tooltip title={`${usedPct.toFixed(1)}% alocat la pozitii`} arrow>
+                <LinearProgress
+                  variant="determinate"
+                  value={usedPct}
+                  sx={{
+                    mt: 1.25,
+                    height: 8,
                     borderRadius: 4,
-                  },
-                }}
-              />
-            </Tooltip>
+                    bgcolor: alpha(theme.palette.success.main, 0.15),
+                    '& .MuiLinearProgress-bar': {
+                      bgcolor: overAllocated ? theme.palette.error.main : theme.palette.success.main,
+                      borderRadius: 4,
+                    },
+                  }}
+                />
+              </Tooltip>
+            </>
+          )}
+
+          {/* Setup CTA when no amount yet */}
+          {totalAmount === 0 && canEdit && (
+            <Stack alignItems="center" sx={{ mt: 1 }}>
+              <Button
+                variant="outlined"
+                color="success"
+                size="small"
+                startIcon={<EditIcon />}
+                onClick={openDialog}
+                sx={{ textTransform: 'none', borderRadius: 2 }}
+              >
+                Seteaza valoare anuala
+              </Button>
+            </Stack>
           )}
         </CardContent>
       </Card>

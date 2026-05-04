@@ -305,32 +305,41 @@ const ControlNotesReportsTab: React.FC = () => {
     <Box sx={{ pb: { xs: 10, sm: 0 } }}>
       {/* Header */}
       <Card sx={{ mb: 2, borderRadius: 2 }}>
-        <CardContent>
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={2}
-            justifyContent="space-between"
-            alignItems={{ xs: 'stretch', md: 'center' }}
+        <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              flexWrap: 'wrap',
+            }}
           >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <NotesIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  RAPORT CONTROL PARCARI — NOTE DE CONSTATARE
-                </Typography>
-                <Typography variant="h6" fontWeight={700}>
-                  Anul {year}
-                </Typography>
-              </Box>
-            </Stack>
-
+            <NotesIcon sx={{ fontSize: { xs: 26, sm: 32 }, color: 'primary.main', flexShrink: 0 }} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: 'block',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.65rem', sm: '0.72rem' },
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Raport Control Parcari — Note de constatare
+              </Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                Anul {year}
+              </Typography>
+            </Box>
             <TextField
               select
               size="small"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
               label="An"
-              sx={{ minWidth: 110 }}
+              sx={{ minWidth: 100, flexShrink: 0 }}
             >
               {yearOptions.map((y) => (
                 <MenuItem key={y} value={y}>
@@ -338,7 +347,7 @@ const ControlNotesReportsTab: React.FC = () => {
                 </MenuItem>
               ))}
             </TextField>
-          </Stack>
+          </Box>
         </CardContent>
       </Card>
 
@@ -360,42 +369,56 @@ const ControlNotesReportsTab: React.FC = () => {
       {!isLoading && matrix && matrix.users.length > 0 && (
         <>
           {/* Summary stats */}
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            sx={{ mb: 2 }}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+              gap: { xs: 1, sm: 2 },
+              mb: 2,
+            }}
           >
-            <Card sx={{ flex: 1, borderRadius: 2, borderLeft: `4px solid ${theme.palette.primary.main}` }}>
-              <CardContent sx={{ py: 1.5 }}>
-                <Typography variant="caption" color="text.secondary">
+            <Card sx={{ borderRadius: 2, borderLeft: `4px solid ${theme.palette.primary.main}` }}>
+              <CardContent sx={{ p: { xs: 1.25, sm: 1.5 }, '&:last-child': { pb: { xs: 1.25, sm: 1.5 } } }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                   Total note an
                 </Typography>
-                <Typography variant="h5" fontWeight={800} color="primary.main">
+                <Typography
+                  variant="h5"
+                  fontWeight={800}
+                  color="primary.main"
+                  sx={{ fontSize: { xs: '1rem', sm: '1.4rem' }, wordBreak: 'break-word' }}
+                >
                   {matrix.totals.grandTotal.toLocaleString('ro-RO')}
                 </Typography>
               </CardContent>
             </Card>
-            <Card sx={{ flex: 1, borderRadius: 2, borderLeft: `4px solid ${theme.palette.warning.main}` }}>
-              <CardContent sx={{ py: 1.5 }}>
-                <Typography variant="caption" color="text.secondary">
+            <Card sx={{ borderRadius: 2, borderLeft: `4px solid ${theme.palette.warning.main}` }}>
+              <CardContent sx={{ p: { xs: 1.25, sm: 1.5 }, '&:last-child': { pb: { xs: 1.25, sm: 1.5 } } }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                   Zile lucratoare cu date
                 </Typography>
-                <Typography variant="h5" fontWeight={800} color="warning.dark">
+                <Typography variant="h5" fontWeight={800} color="warning.dark" sx={{ fontSize: { xs: '1rem', sm: '1.4rem' } }}>
                   {matrix.totals.totalWorkingDays}
                 </Typography>
               </CardContent>
             </Card>
-            <Card sx={{ flex: 1, borderRadius: 2, borderLeft: `4px solid ${theme.palette.success.main}` }}>
-              <CardContent sx={{ py: 1.5 }}>
-                <Typography variant="caption" color="text.secondary">
+            <Card
+              sx={{
+                borderRadius: 2,
+                borderLeft: `4px solid ${theme.palette.success.main}`,
+                gridColumn: { xs: '1 / -1', sm: 'auto' },
+              }}
+            >
+              <CardContent sx={{ p: { xs: 1.25, sm: 1.5 }, '&:last-child': { pb: { xs: 1.25, sm: 1.5 } } }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                   Media / zi lucratoare
                 </Typography>
-                <Typography variant="h5" fontWeight={800} color="success.main">
+                <Typography variant="h5" fontWeight={800} color="success.main" sx={{ fontSize: { xs: '1rem', sm: '1.4rem' } }}>
                   {matrix.totals.averagePerWorkingDay.toFixed(2)}
                 </Typography>
               </CardContent>
             </Card>
-          </Stack>
+          </Box>
 
           {/* Bar chart: Total per month */}
           <Card sx={{ mb: 2, borderRadius: 2 }}>

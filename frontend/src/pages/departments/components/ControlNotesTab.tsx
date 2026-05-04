@@ -219,80 +219,136 @@ const ControlNotesTab: React.FC = () => {
 
       {/* Top filter + summary */}
       <Card sx={{ mb: 2, borderRadius: 2 }}>
-        <CardContent sx={{ py: 2 }}>
-          <Stack
-            direction={{ xs: 'column', md: 'row' }}
-            spacing={2}
-            justifyContent="space-between"
-            alignItems={{ xs: 'stretch', md: 'center' }}
+        <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+          {/* Title + year selector */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              mb: { xs: 1.5, sm: 2 },
+              flexWrap: 'wrap',
+            }}
           >
-            <Stack direction="row" spacing={1.5} alignItems="center">
-              <NotesIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  CONTROL PARCARI — NOTE DE CONSTATARE
+            <NotesIcon sx={{ fontSize: { xs: 26, sm: 32 }, color: 'primary.main', flexShrink: 0 }} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{
+                  display: 'block',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.65rem', sm: '0.72rem' },
+                  letterSpacing: 0.5,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Control Parcari — note de constatare
+              </Typography>
+              <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                Anul {year}
+              </Typography>
+            </Box>
+            <TextField
+              select
+              size="small"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              label="An"
+              sx={{ minWidth: 100, flexShrink: 0 }}
+            >
+              {yearOptions.map((y) => (
+                <MenuItem key={y} value={y}>
+                  {y}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+
+          {matrix && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+                gap: { xs: 1, sm: 1.5 },
+              }}
+            >
+              <Box
+                sx={{
+                  p: { xs: 1, sm: 1.25 },
+                  bgcolor: alpha(theme.palette.primary.main, 0.06),
+                  borderRadius: 1.5,
+                  border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`,
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}
+                >
+                  Total an
                 </Typography>
-                <Typography variant="h6" fontWeight={700}>
-                  {year}
+                <Typography
+                  variant="body1"
+                  fontWeight={800}
+                  color="primary.main"
+                  sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}
+                >
+                  {matrix.totals.grandTotal.toLocaleString('ro-RO')}
                 </Typography>
               </Box>
-            </Stack>
 
-            <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
-              <TextField
-                select
-                size="small"
-                value={year}
-                onChange={(e) => setYear(Number(e.target.value))}
-                label="An"
-                sx={{ minWidth: 110 }}
+              <Box
+                sx={{
+                  p: { xs: 1, sm: 1.25 },
+                  bgcolor: alpha(theme.palette.warning.main, 0.06),
+                  borderRadius: 1.5,
+                  border: `1px solid ${alpha(theme.palette.warning.main, 0.18)}`,
+                }}
               >
-                {yearOptions.map((y) => (
-                  <MenuItem key={y} value={y}>
-                    {y}
-                  </MenuItem>
-                ))}
-              </TextField>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}
+                >
+                  Zile lucratoare cu date
+                </Typography>
+                <Typography
+                  variant="body1"
+                  fontWeight={700}
+                  sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}
+                >
+                  {matrix.totals.totalWorkingDays}
+                </Typography>
+              </Box>
 
-              {matrix && (
-                <>
-                  <Box sx={{ minWidth: 110 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Total an
-                    </Typography>
-                    <Typography variant="body1" fontWeight={800} color="primary.main">
-                      {matrix.totals.grandTotal.toLocaleString('ro-RO')}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ minWidth: 130 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Zile lucratoare cu date
-                    </Typography>
-                    <Typography variant="body1" fontWeight={700}>
-                      {matrix.totals.totalWorkingDays}
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      minWidth: 130,
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: 1.5,
-                      bgcolor: alpha(theme.palette.success.main, 0.12),
-                      border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
-                    }}
-                  >
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      Media / zi lucratoare
-                    </Typography>
-                    <Typography variant="body1" fontWeight={800} color="success.main">
-                      {matrix.totals.averagePerWorkingDay.toFixed(2)}
-                    </Typography>
-                  </Box>
-                </>
-              )}
-            </Stack>
-          </Stack>
+              <Box
+                sx={{
+                  p: { xs: 1, sm: 1.25 },
+                  borderRadius: 1.5,
+                  bgcolor: alpha(theme.palette.success.main, 0.12),
+                  border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
+                  gridColumn: { xs: '1 / -1', sm: 'auto' },
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.72rem' } }}
+                >
+                  Media / zi lucratoare
+                </Typography>
+                <Typography
+                  variant="body1"
+                  fontWeight={800}
+                  color="success.main"
+                  sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem' } }}
+                >
+                  {matrix.totals.averagePerWorkingDay.toFixed(2)}
+                </Typography>
+              </Box>
+            </Box>
+          )}
         </CardContent>
       </Card>
 
