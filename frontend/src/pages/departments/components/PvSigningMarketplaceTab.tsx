@@ -45,12 +45,13 @@ const PvSigningMarketplaceTab: React.FC = () => {
   const isMaintenance = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const canClaim = isMaintenance || isAdmin;
 
-  // Refetch on tab focus and on mount if cache is older than 30s — so Maintenance
-  // users see newly created sessions without needing to manually refresh.
-  const { data: days = [], isLoading, error } = useGetSigningAvailableDaysQuery(undefined, {
+  // Refetch on tab focus, on mount if cache is older than 30s, and poll every
+  // 60s so newly created sessions show up automatically without manual refresh.
+  const { data: days = [], isLoading, error, refetch } = useGetSigningAvailableDaysQuery(undefined, {
     refetchOnFocus: true,
     refetchOnMountOrArgChange: 30,
     refetchOnReconnect: true,
+    pollingInterval: 60000,
   });
   const [claimDay] = useClaimSigningDayMutation();
   const [claimingDayId, setClaimingDayId] = useState<string | null>(null);
@@ -114,6 +115,18 @@ const PvSigningMarketplaceTab: React.FC = () => {
 
   return (
     <Box>
+      {/* Manual refresh button */}
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 1.5 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => refetch()}
+          sx={{ textTransform: 'none', borderRadius: 2 }}
+        >
+          Reincarca
+        </Button>
+      </Stack>
+
       {days.length === 0 ? (
         <Card sx={{ borderRadius: 3, p: 4, textAlign: 'center' }}>
           <MarketplaceIcon sx={{ fontSize: 64, color: alpha('#f59e0b', 0.3), mb: 2 }} />
