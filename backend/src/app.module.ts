@@ -81,6 +81,8 @@ import { AuditModule } from './modules/audit/audit.module';
 import { EquipmentStockModule } from './modules/equipment-stock/equipment-stock.module';
 import { EquipmentStockDefinition } from './modules/equipment-stock/entities/equipment-stock-definition.entity';
 import { EquipmentStockEntry } from './modules/equipment-stock/entities/equipment-stock-entry.entity';
+import { InvestmentsModule } from './modules/investments/investments.module';
+import { InvestmentDocument } from './modules/investments/entities/investment-document.entity';
 import { AuditLog } from './modules/audit/entities/audit-log.entity';
 import { envValidationSchema } from './config/env.validation';
 
@@ -107,7 +109,7 @@ import { envValidationSchema } from './config/env.validation';
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'workforce_db',
-      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport, PvDisplaySession, PvDisplayDay, PvDisplaySessionComment, ParkingDailyTicket, ParkingMonthlySubscription, ParkingWeeklyOccupancy, ParkingMeter, ControlSesizare, ControlSesizareComment, Permission, UserPermissionOverride, TaskFlowRule, EmailNotificationRule, NotificationSetting, AuditLog, EquipmentStockDefinition, EquipmentStockEntry],
+      entities: [User, Department, WorkSchedule, ScheduleAssignment, ShiftType, WorkPosition, Notification, PushSubscription, ShiftSwapRequest, ShiftSwapResponse, LeaveRequest, LeaveBalance, ParkingLot, PaymentMachine, ParkingIssue, ParkingDamage, CashCollection, ParkingIssueComment, ParkingDamageComment, ParkingHistory, EditRequest, HandicapRequest, HandicapRequestComment, DomiciliuRequest, DomiciliuRequestComment, HandicapLegitimation, HandicapLegitimationComment, RevolutionarLegitimation, RevolutionarLegitimationComment, DailyReport, TimeEntry, LocationLog, Task, TaskHistory, BudgetPosition, Acquisition, AcquisitionInvoice, RevenueCategory, MonthlyRevenue, GeneratedReport, PvDisplaySession, PvDisplayDay, PvDisplaySessionComment, ParkingDailyTicket, ParkingMonthlySubscription, ParkingWeeklyOccupancy, ParkingMeter, ControlSesizare, ControlSesizareComment, Permission, UserPermissionOverride, TaskFlowRule, EmailNotificationRule, NotificationSetting, AuditLog, EquipmentStockDefinition, EquipmentStockEntry, InvestmentDocument],
       autoLoadEntities: true,
       synchronize: process.env.TYPEORM_SYNC === 'true' || process.env.NODE_ENV !== 'production',
       migrationsRun: process.env.NODE_ENV === 'production',
@@ -132,6 +134,7 @@ import { envValidationSchema } from './config/env.validation';
     PermissionsModule,
     AuditModule,
     EquipmentStockModule,
+    InvestmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

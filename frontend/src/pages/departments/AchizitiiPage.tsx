@@ -51,7 +51,9 @@ import {
   Close as CloseIcon,
   TrendingUp as TrendingIcon,
   Savings as SavingsIcon,
+  TableChart as ExcelTableIcon,
 } from '@mui/icons-material';
+import InvestmentsTab from './components/InvestmentsTab';
 import { GradientHeader, StatCard } from '../../components/common';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { formatDateOrDash } from '../../utils/dateFormatters';
@@ -405,7 +407,7 @@ const AchizitiiPage: React.FC = () => {
       />
 
       {/* Stats */}
-      {categorySummary && (
+      {categorySummary && tabValue !== 2 && (
         <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
           <Grid size={{ xs: 6, sm: 6, md: 4 }}>
             <StatCard
@@ -463,36 +465,51 @@ const AchizitiiPage: React.FC = () => {
             label="Cheltuieli Curente"
             sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
           />
+          <Tab
+            icon={<ExcelTableIcon sx={{ fontSize: 20 }} />}
+            iconPosition="start"
+            label="Lista Excel"
+            sx={{ minHeight: 48, textTransform: 'none', fontWeight: 600 }}
+          />
         </Tabs>
 
-        <TextField
-          select
-          size="small"
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          sx={{ minWidth: 100 }}
-          label="An"
-        >
-          {yearOptions.map((y) => (
-            <MenuItem key={y} value={y}>{y}</MenuItem>
-          ))}
-        </TextField>
+        {tabValue !== 2 && (
+          <>
+            <TextField
+              select
+              size="small"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              sx={{ minWidth: 100 }}
+              label="An"
+            >
+              {yearOptions.map((y) => (
+                <MenuItem key={y} value={y}>{y}</MenuItem>
+              ))}
+            </TextField>
 
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenBpDialog()}
-          sx={{
-            bgcolor: 'success.main',
-            '&:hover': { bgcolor: 'success.dark' },
-            textTransform: 'none',
-            fontWeight: 600,
-          }}
-        >
-          {isMobile ? 'Pozitie' : 'Adauga Pozitie'}
-        </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenBpDialog()}
+              sx={{
+                bgcolor: 'success.main',
+                '&:hover': { bgcolor: 'success.dark' },
+                textTransform: 'none',
+                fontWeight: 600,
+              }}
+            >
+              {isMobile ? 'Pozitie' : 'Adauga Pozitie'}
+            </Button>
+          </>
+        )}
       </Box>
 
+      {/* Excel viewer tab — preserves the source spreadsheet 1:1 */}
+      {tabValue === 2 && <InvestmentsTab />}
+
+      {/* Budget positions content — only when on Investitii / Cheltuieli Curente tabs */}
+      {tabValue !== 2 && (<>
       {/* Loading */}
       {isLoading && <LinearProgress sx={{ mb: 2 }} color="success" />}
 
@@ -726,6 +743,7 @@ const AchizitiiPage: React.FC = () => {
           </Card>
         );
       })}
+      </>)}
 
       {/* ===================== DIALOGS ===================== */}
 
