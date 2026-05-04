@@ -344,23 +344,36 @@ const AdminEditRequestsPage: React.FC = () => {
             Inapoi la Parcari
           </Button>
 
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ overflow: 'hidden' }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={1}
+            alignItems={{ xs: 'stretch', md: 'center' }}
+            sx={{ width: '100%' }}
+          >
             <Tabs
               value={statusFilter}
               onChange={(_, v) => setStatusFilter(v)}
-              variant="scrollable"
-              scrollButtons="auto"
-              allowScrollButtonsMobile
+              variant="fullWidth"
               sx={{
+                flex: 1,
                 minWidth: 0,
+                width: '100%',
+                '& .MuiTabs-flexContainer': {
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                },
                 '& .MuiTab-root': {
-                  minWidth: { xs: 'auto', md: 80 },
-                  px: { xs: 1, md: 1.5 },
-                  fontSize: { xs: '0.75rem', md: '0.875rem' },
+                  flex: { xs: '1 1 50%', md: 1 },
+                  maxWidth: { xs: '50%', md: 'none' },
+                  minWidth: 0,
+                  minHeight: { xs: 44, md: 48 },
+                  px: { xs: 0.5, sm: 1, md: 1.5 },
+                  fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
+                  textTransform: 'none',
+                  fontWeight: 600,
                 },
               }}
             >
-              <Tab label={`In asteptare (${pendingCount})`} value="PENDING" />
+              <Tab label={isMobile ? `Asteapta (${pendingCount})` : `In asteptare (${pendingCount})`} value="PENDING" />
               <Tab label="Aprobate" value="APPROVED" />
               <Tab label="Respinse" value="REJECTED" />
               <Tab label="Toate" value="ALL" />
@@ -371,6 +384,7 @@ const AdminEditRequestsPage: React.FC = () => {
               sx={{
                 bgcolor: alpha(theme.palette.primary.main, 0.1),
                 flexShrink: 0,
+                alignSelf: { xs: 'flex-end', md: 'center' },
               }}
             >
               <RefreshIcon />

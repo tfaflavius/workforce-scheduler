@@ -2461,7 +2461,46 @@ const ReportsPage: React.FC = () => {
                 </FormControl>
               </Stack>
 
-              {/* Tabs */}
+              {/* Mobile: Select dropdown — 14+ tabs would never fit cleanly as a tab strip */}
+              {isMobile && (() => {
+                // Mirror the same order and admin gating as the Tabs below
+                const reportOptions = [
+                  { value: 0, label: 'Program de lucru' },
+                  { value: 1, label: 'Concedii' },
+                  { value: 2, label: 'Schimburi' },
+                  { value: 3, label: 'Raport total' },
+                  { value: 4, label: 'Parcari Etajate' },
+                  { value: 5, label: HANDICAP_DEPARTMENT_NAME },
+                  { value: 6, label: DOMICILIU_DEPARTMENT_NAME },
+                  { value: 7, label: 'PV / Facturare' },
+                  { value: 8, label: 'Parcometre' },
+                  { value: 9, label: 'Achizitii' },
+                  { value: 10, label: 'Control Sesizari' },
+                  { value: 11, label: 'Incasari / Cheltuieli' },
+                  { value: 12, label: 'Statistici Parcari' },
+                  { value: 13, label: 'Control Parcari (note)' },
+                  ...(isAdminOrManager ? [{ value: 14, label: 'Pontaj' }] : []),
+                ];
+                return (
+                  <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+                    <InputLabel>Sectiune raport</InputLabel>
+                    <Select
+                      value={tabValue}
+                      label="Sectiune raport"
+                      onChange={(e) => setTabValue(Number(e.target.value))}
+                      MenuProps={{ PaperProps: { sx: { maxHeight: 380 } } }}
+                    >
+                      {reportOptions.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                );
+              })()}
+
+              {/* Desktop / tablet: full tab strip */}
               <Tabs
                 value={tabValue}
                 onChange={(_, newValue) => setTabValue(newValue)}
@@ -2469,13 +2508,14 @@ const ReportsPage: React.FC = () => {
                 scrollButtons="auto"
                 allowScrollButtonsMobile
                 sx={{
+                  display: { xs: 'none', md: 'flex' },
                   '& .MuiTabs-scrollButtons': {
                     '&.Mui-disabled': { opacity: 0.3 },
                   },
                   '& .MuiTab-root': {
-                    minWidth: { xs: 'auto', sm: 'auto' },
-                    px: { xs: 1, sm: 1.5, md: 2 },
-                    fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
+                    minWidth: { sm: 'auto' },
+                    px: { sm: 1.5, md: 2 },
+                    fontSize: { sm: '0.8rem', md: '0.875rem' },
                     whiteSpace: 'nowrap',
                   },
                 }}

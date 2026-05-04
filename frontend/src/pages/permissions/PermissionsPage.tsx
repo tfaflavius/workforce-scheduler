@@ -7,6 +7,9 @@ import {
   Tab,
   useMediaQuery,
   useTheme,
+  TextField,
+  MenuItem,
+  Stack,
 } from '@mui/material';
 import {
   Security as SecurityIcon,
@@ -78,37 +81,64 @@ const PermissionsPage = () => {
         </Box>
       </Box>
 
-      {/* Tabs */}
-      <Paper variant="outlined" sx={{ mb: 0 }}>
-        <Tabs
-          value={tabIndex}
-          onChange={(_e, newVal) => setTabIndex(newVal)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            borderBottom: 1,
-            borderColor: 'divider',
-            '& .MuiTab-root': {
-              minHeight: { xs: 40, sm: 48 },
-              textTransform: 'none',
-              fontWeight: 600,
-              minWidth: { xs: 'auto', sm: 90 },
-              px: { xs: 1, sm: 2 },
-              fontSize: { xs: '0.75rem', sm: '0.85rem' },
-            },
-          }}
-        >
-          {tabs.map((tab, index) => (
-            <Tab
-              key={index}
-              icon={tab.icon}
-              iconPosition="start"
-              label={isMobile ? tab.short : tab.label}
-              {...(isMobile ? { 'aria-label': tab.label } : {})}
-            />
-          ))}
-        </Tabs>
-      </Paper>
+      {/* Tabs — Select dropdown on phones (9 tabs is too crowded for a tab strip),
+          full Tabs on tablet+ */}
+      {isMobile ? (
+        <Paper variant="outlined" sx={{ mb: 0, p: 1 }}>
+          <TextField
+            select
+            fullWidth
+            size="small"
+            value={tabIndex}
+            onChange={(e) => setTabIndex(Number(e.target.value))}
+            label="Sectiune"
+            SelectProps={{
+              MenuProps: {
+                PaperProps: { sx: { maxHeight: 360 } },
+              },
+            }}
+          >
+            {tabs.map((tab, index) => (
+              <MenuItem key={index} value={index}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box sx={{ display: 'flex', '& svg': { fontSize: 20 } }}>{tab.icon}</Box>
+                  <span>{tab.label}</span>
+                </Stack>
+              </MenuItem>
+            ))}
+          </TextField>
+        </Paper>
+      ) : (
+        <Paper variant="outlined" sx={{ mb: 0 }}>
+          <Tabs
+            value={tabIndex}
+            onChange={(_e, newVal) => setTabIndex(newVal)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              borderBottom: 1,
+              borderColor: 'divider',
+              '& .MuiTab-root': {
+                minHeight: 48,
+                textTransform: 'none',
+                fontWeight: 600,
+                minWidth: 90,
+                px: 2,
+                fontSize: '0.85rem',
+              },
+            }}
+          >
+            {tabs.map((tab, index) => (
+              <Tab
+                key={index}
+                icon={tab.icon}
+                iconPosition="start"
+                label={tab.label}
+              />
+            ))}
+          </Tabs>
+        </Paper>
+      )}
 
       {/* Tab Content */}
       <TabPanel value={tabIndex} index={0}>

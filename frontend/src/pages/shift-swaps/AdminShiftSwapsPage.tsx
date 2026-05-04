@@ -486,26 +486,36 @@ const AdminShiftSwapsPage = () => {
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
-          variant={isMobile ? 'scrollable' : 'standard'}
-          scrollButtons="auto"
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
+          variant="fullWidth"
+          sx={{
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTab-root': {
+              minHeight: { xs: 48, md: 48 },
+              fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' },
+              textTransform: 'none',
+              fontWeight: 600,
+              px: { xs: 0.5, sm: 1, md: 2 },
+              minWidth: 0,
+            },
+          }}
         >
           <Tab
             label={
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <span>Asteapta Aprobare</span>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+                <span>{isMobile ? 'Asteapta' : 'Asteapta Aprobare'}</span>
                 {awaitingAdminRequests.length > 0 && (
-                  <Chip label={awaitingAdminRequests.length} size="small" color="info" />
+                  <Chip label={awaitingAdminRequests.length} size="small" color="info" sx={{ height: 18, fontSize: '0.65rem' }} />
                 )}
               </Stack>
             }
           />
           <Tab
             label={
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ flexWrap: 'wrap', justifyContent: 'center' }}>
                 <span>In Curs</span>
                 {pendingRequests.length > 0 && (
-                  <Chip label={pendingRequests.length} size="small" color="warning" />
+                  <Chip label={pendingRequests.length} size="small" color="warning" sx={{ height: 18, fontSize: '0.65rem' }} />
                 )}
               </Stack>
             }
