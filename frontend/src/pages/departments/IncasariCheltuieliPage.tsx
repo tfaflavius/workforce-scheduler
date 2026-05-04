@@ -25,6 +25,8 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -34,7 +36,9 @@ import {
   BarChart as RevenueIcon,
   Category as CategoryIcon,
   Lock as LockIcon,
+  AssignmentTurnedIn as ControlNotesIcon,
 } from '@mui/icons-material';
+import ControlNotesTab from './components/ControlNotesTab';
 import { GradientHeader } from '../../components/common';
 import {
   useGetRevenueSummaryQuery,
@@ -70,6 +74,7 @@ const IncasariCheltuieliPage: React.FC = () => {
 
   // State
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [activeTab, setActiveTab] = useState<number>(0);
 
   // Revenue section states
   const [revCatDialogOpen, setRevCatDialogOpen] = useState(false);
@@ -528,6 +533,39 @@ const IncasariCheltuieliPage: React.FC = () => {
         gradient="#8b5cf6 0%, #7c3aed 100%"
       />
 
+      {/* Tabs */}
+      <Paper sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
+        <Tabs
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          variant={isMobile ? 'fullWidth' : 'standard'}
+          sx={{
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 600,
+              minHeight: 48,
+            },
+          }}
+        >
+          <Tab
+            icon={<RevenueIcon sx={{ fontSize: 18 }} />}
+            iconPosition="start"
+            label={isMobile ? 'Incasari' : 'Incasari / Cheltuieli'}
+          />
+          <Tab
+            icon={<ControlNotesIcon sx={{ fontSize: 18 }} />}
+            iconPosition="start"
+            label={isMobile ? 'Control' : 'Control Parcari'}
+          />
+        </Tabs>
+      </Paper>
+
+      {/* Tab 1: Control Parcari notes */}
+      {activeTab === 1 && <ControlNotesTab />}
+
+      {/* Tab 0: existing Incasari/Cheltuieli — wrapped so it only renders when active */}
+      {activeTab === 0 && (<>
+
       {/* Year selector + Add button */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
         <Box sx={{ flex: 1 }} />
@@ -646,6 +684,8 @@ const IncasariCheltuieliPage: React.FC = () => {
           </Button>
         </Card>
       ) : null}
+
+      </>)}
 
       {/* ===================== DIALOGS ===================== */}
 

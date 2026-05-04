@@ -27,6 +27,7 @@ import { reportsApi } from './api/reportsApi';
 import { tasksApi } from './api/tasks.api';
 import { equipmentStockApi } from './api/equipmentStock.api';
 import { investmentsApi } from './api/investments.api';
+import { controlNotesApi } from './api/controlNotes.api';
 
 export const store = configureStore({
   reducer: {
@@ -57,6 +58,7 @@ export const store = configureStore({
     [tasksApi.reducerPath]: tasksApi.reducer,
     [equipmentStockApi.reducerPath]: equipmentStockApi.reducer,
     [investmentsApi.reducerPath]: investmentsApi.reducer,
+    [controlNotesApi.reducerPath]: controlNotesApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -86,6 +88,7 @@ export const store = configureStore({
       tasksApi.middleware,
       equipmentStockApi.middleware,
       investmentsApi.middleware,
+      controlNotesApi.middleware,
     ),
 });
 
