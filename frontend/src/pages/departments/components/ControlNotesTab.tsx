@@ -31,12 +31,36 @@ import {
   CalendarMonth as CalendarIcon,
   Info as InfoIcon,
   Edit as EditIcon,
+  BarChart as ChartIcon,
 } from '@mui/icons-material';
+import { Bar, Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip as ChartTooltip,
+  Legend,
+} from 'chart.js';
 import {
   useGetControlNotesMatrixQuery,
   useUpsertControlNoteMutation,
   useDeleteControlNoteCellMutation,
 } from '../../../store/api/controlNotes.api';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Title,
+  ChartTooltip,
+  Legend,
+);
 import { useAppSelector } from '../../../store/hooks';
 import { isAdminOrAbove } from '../../../utils/roleHelpers';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
@@ -503,6 +527,124 @@ const ControlNotesTab: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+
+      {/* Charts */}
+      {!isLoading && matrix && matrix.users.length > 0 && (
+        <Stack spacing={2} sx={{ mt: 2 }}>
+          {/* Monthly totals bar chart */}
+          <Card sx={{ borderRadius: 2 }}>
+            <CardContent>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                <ChartIcon color="primary" />
+                <Typography variant="subtitle1" fontWeight={700}>
+                  Total note pe luna
+                </Typography>
+              </Stack>
+              <Box sx={{ position: 'relative', height: { xs: 240, sm: 300 } }}>
+                <Bar
+                  data={{
+                    labels: matrix.months.map((m) => m.label),
+                    datasets: [
+                      {
+                        label: 'Note de constatare',
+                        data: matrix.months.map((m) => m.totalCount),
+                        backgroundColor: alpha(theme.palette.primary.main, 0.7),
+                        borderColor: theme.palette.primary.main,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                      },
+                      {
+                        label: 'Zile lucratoare',
+                        data: matrix.months.map((m) => m.workingDays),
+                        backgroundColor: alpha(theme.palette.warning.main, 0.5),
+                        borderColor: theme.palette.warning.main,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        yAxisID: 'y1',
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index' as const, intersect: false },
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        position: 'left' as const,
+                        title: { display: true, text: 'Note de constatare' },
+                      },
+                      y1: {
+                        beginAtZero: true,
+                        position: 'right' as const,
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'Zile lucratoare' },
+                      },
+                    },
+                    plugins: {
+                      legend: { position: 'top' as const },
+                    },
+                  }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Per-user trend (top 5 by total) — line chart */}
+          {(() => {
+            const top = [...matrix.users]
+              .filter((u) => u.total > 0)
+              .sort((a, b) => b.total - a.total)
+              .slice(0, 5);
+            if (top.length === 0) return null;
+            const palette = [
+              theme.palette.primary.main,
+              theme.palette.success.main,
+              theme.palette.warning.main,
+              theme.palette.info.main,
+              theme.palette.error.main,
+            ];
+            return (
+              <Card sx={{ borderRadius: 2 }}>
+                <CardContent>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                    <ChartIcon color="success" />
+                    <Typography variant="subtitle1" fontWeight={700}>
+                      Trend lunar — top 5 agenti
+                    </Typography>
+                  </Stack>
+                  <Box sx={{ position: 'relative', height: { xs: 240, sm: 320 } }}>
+                    <Line
+                      data={{
+                        labels: matrix.months.map((m) => m.label),
+                        datasets: top.map((u, idx) => ({
+                          label: u.fullName,
+                          data: u.monthlyCounts.map((c) => c ?? 0),
+                          borderColor: palette[idx],
+                          backgroundColor: alpha(palette[idx], 0.1),
+                          tension: 0.3,
+                          fill: false,
+                        })),
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index' as const, intersect: false },
+                        scales: {
+                          y: { beginAtZero: true },
+                        },
+                        plugins: {
+                          legend: { position: 'top' as const, labels: { boxWidth: 12 } },
+                        },
+                      }}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            );
+          })()}
+        </Stack>
       )}
 
       {/* Edit dialog */}

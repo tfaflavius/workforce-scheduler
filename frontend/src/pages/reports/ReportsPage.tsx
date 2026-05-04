@@ -63,6 +63,7 @@ const ParcometreReportsTab = lazy(() => import('./ParcometreReportsTab'));
 const AchizitiiReportsTab = lazy(() => import('./AchizitiiReportsTab'));
 const ControlSesizariReportsTab = lazy(() => import('./ControlSesizariReportsTab'));
 const IncasariCheltuieliReportsTab = lazy(() => import('./IncasariCheltuieliReportsTab'));
+const ControlNotesReportsTab = lazy(() => import('./ControlNotesReportsTab'));
 const PontajReportsTab = lazy(() => import('./PontajReportsTab'));
 import { GradientHeader, StatCard } from '../../components/common';
 import { useAppSelector } from '../../store/hooks';
@@ -2557,6 +2558,12 @@ const ReportsPage: React.FC = () => {
                   label={isMobile ? 'Stat. Parcari' : 'Statistici Parcari'}
                   sx={{ minHeight: 48 }}
                 />
+                <Tab
+                  icon={<SesizariIcon />}
+                  iconPosition="start"
+                  label={isMobile ? 'Control note' : 'Control Parcari (note)'}
+                  sx={{ minHeight: 48 }}
+                />
                 {isAdminOrManager && (
                   <Tab
                     icon={<PontajIcon />}
@@ -2647,7 +2654,10 @@ const ReportsPage: React.FC = () => {
                 {tabValue === 12 && (
                   <ParkingStatsReportsTab />
                 )}
-                {isAdminOrManager && tabValue === 13 && (
+                {tabValue === 13 && (
+                  <ControlNotesReportsTab />
+                )}
+                {isAdminOrManager && tabValue === 14 && (
                   <PontajReportsTab
                     startDate={parkingStartDate}
                     endDate={parkingEndDate}
