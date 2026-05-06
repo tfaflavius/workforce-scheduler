@@ -652,3 +652,240 @@ export function drawColoredDivider(
   resetDocStyle(doc);
   return y + 3;
 }
+
+// ─── Pie / Doughnut charts ────────────────────────────────────────────
+
+/**
+ * Draws a single pie segment as a filled polygon — fan-triangulation around
+ * the centre, approximated with ~24 steps per segment for a smooth look.
+ */
+function drawPieSegment(
+  doc: jsPDF,
+  cx: number,
+  cy: number,
+  radius: number,
+  startRad: number,
+  endRad: number,
+  color: RGB,
+): void {
+  doc.setFillColor(color[0], color[1], color[2]);
+  doc.setDrawColor(255, 255, 255);
+  doc.setLineWidth(0.3);
+
+  const arcSpan = Math.abs(endRad - startRad);
+  const steps = Math.max(8, Math.ceil(arcSpan * 24)); // smoother for larger segments
+
+  // Build the polygon as a sequence of relative line segments forming a fan
+  // from the centre out to the arc and back. lines() expects relative deltas
+  // from a starting (x, y) and (with closed=true) draws a closed shape.
+  let prevX = cx;
+  let prevY = cy;
+  const segs: number[][] = [];
+
+  for (let i = 0; i <= steps; i++) {
+    const t = startRad + (endRad - startRad) * (i / steps);
+    const x = cx + Math.cos(t) * radius;
+    const y = cy + Math.sin(t) * radius;
+    segs.push([x - prevX, y - prevY]);
+    prevX = x;
+    prevY = y;
+  }
+
+  // closes the shape back to the starting (cx, cy) which produces the slice
+  doc.lines(segs, cx, cy, [1, 1], 'F', true);
+}
+
+export interface PieChartItem {
+  label: string;
+  value: number;
+  color: RGB;
+}
+
+/**
+ * Draw a Pie/Doughnut chart with an inline legend below.
+ * Returns the Y position after the chart for flow layout.
+ */
+export function drawPieChart(
+  doc: jsPDF,
+  items: PieChartItem[],
+  x: number,
+  y: number,
+  containerWidth: number,
+  options: {
+    title?: string;
+    radius?: number;
+    /** 0 = pie, e.g. 0.55 = doughnut (inner hole takes 55% of radius) */
+    innerRadiusRatio?: number;
+  } = {},
+  checkPageBreak?: CheckPageBreakFn,
+): number {
+  const { title, radius = 22, innerRadiusRatio = 0 } = options;
+
+  // Filter out zero/negative values — they don't contribute to the pie
+  const visible = items.filter(it => Number(it.value) > 0);
+  const total = visible.reduce((s, it) => s + Number(it.value), 0);
+
+  // Estimate vertical space: title (6) + chart (radius*2 + 4) + legend rows
+  const legendCols = 3;
+  const legendRows = Math.ceil(items.length / legendCols);
+  const legendHeight = legendRows * 5 + 2;
+  const titleHeight = title ? 6 : 0;
+  const totalHeight = titleHeight + radius * 2 + 6 + legendHeight + 4;
+
+  if (checkPageBreak) {
+    y = checkPageBreak(y, totalHeight);
+  }
+
+  if (title) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(title, x, y);
+    y += 5;
+  }
+
+  if (total <= 0) {
+    // Nothing to draw — show a subtle placeholder
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text('(fara date)', x + radius, y + radius);
+    resetDocStyle(doc);
+    return y + radius * 2 + legendHeight + 4;
+  }
+
+  const cx = x + radius + 2;
+  const cy = y + radius;
+
+  // Draw segments starting at -90° so the first slice begins at the top
+  let cursor = -Math.PI / 2;
+  for (const item of visible) {
+    const sweep = (Number(item.value) / total) * Math.PI * 2;
+    if (sweep > 0) {
+      drawPieSegment(doc, cx, cy, radius, cursor, cursor + sweep, item.color);
+    }
+    cursor += sweep;
+  }
+
+  // Doughnut hole — overlay a white circle scaled by innerRadiusRatio
+  if (innerRadiusRatio > 0) {
+    const innerR = radius * innerRadiusRatio;
+    doc.setFillColor(255, 255, 255);
+    doc.circle(cx, cy, innerR, 'F');
+    // Show total in centre
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(String(Math.round(total)), cx, cy + 1.5, { align: 'center' });
+  }
+
+  // Outer outline ring for crispness
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.3);
+  doc.circle(cx, cy, radius, 'S');
+
+  // Legend on the right of the pie — three columns when many items
+  const legendStartX = x + radius * 2 + 12;
+  const legendCellWidth = (containerWidth - (radius * 2 + 16)) / legendCols;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(60, 60, 60);
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    const col = i % legendCols;
+    const row = Math.floor(i / legendCols);
+    const lx = legendStartX + col * legendCellWidth;
+    const ly = y + 4 + row * 5;
+    if (lx + legendCellWidth > x + containerWidth) continue; // overflow — skip
+    // Color square
+    doc.setFillColor(item.color[0], item.color[1], item.color[2]);
+    doc.roundedRect(lx, ly - 2.5, 3, 3, 0.5, 0.5, 'F');
+    // Label
+    const pct = total > 0 ? Math.round((Number(item.value) / total) * 100) : 0;
+    const text = `${item.label}: ${item.value} (${pct}%)`;
+    const truncated = doc.splitTextToSize(text, legendCellWidth - 5)[0];
+    doc.text(truncated, lx + 4, ly);
+  }
+
+  resetDocStyle(doc);
+  return y + Math.max(radius * 2, legendRows * 5) + 6;
+}
+
+// ─── Cylindrical bar chart ────────────────────────────────────────────
+
+/**
+ * Draws a vertical bar chart with rounded tops + bottoms — gives the bars a
+ * cylinder-ish 3D look in print.
+ */
+export function drawCylinderBarChart(
+  doc: jsPDF,
+  items: BarItem[],
+  x: number,
+  y: number,
+  containerWidth: number,
+  options: { title?: string; height?: number } = {},
+  checkPageBreak?: CheckPageBreakFn,
+): number {
+  const { title, height = 50 } = options;
+  if (checkPageBreak) {
+    y = checkPageBreak(y, height + 20);
+  }
+
+  if (title) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.text(title, x, y);
+    y += 5;
+  }
+
+  if (items.length === 0) return y + 4;
+
+  const barAreaY = y;
+  const barAreaH = height;
+  const labelH = 12;
+  const valueH = 5;
+  const max = Math.max(...items.map(it => Number(it.value) || 0), 1);
+  const gap = 4;
+  const barW = Math.min(20, (containerWidth - gap * (items.length + 1)) / items.length);
+
+  let bx = x + gap;
+  for (const item of items) {
+    const ratio = Math.max(0, Number(item.value)) / max;
+    const bh = ratio * (barAreaH - valueH);
+    const by = barAreaY + (barAreaH - bh);
+
+    // Cylinder body — rounded rectangle
+    doc.setFillColor(item.color[0], item.color[1], item.color[2]);
+    doc.roundedRect(bx, by, barW, bh, barW * 0.3, barW * 0.3, 'F');
+
+    // Glossy highlight on the top — overlay a smaller lightened ellipse
+    const lighter = lightenColor(item.color, 0.5);
+    doc.setFillColor(lighter[0], lighter[1], lighter[2]);
+    if (bh > 4) {
+      doc.ellipse(bx + barW / 2, by + 1.2, barW / 2 - 0.5, 0.9, 'F');
+    }
+
+    // Value above
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    doc.text(String(item.value), bx + barW / 2, by - 1, { align: 'center' });
+
+    bx += barW + gap;
+  }
+
+  // Labels under the bars
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(80, 80, 80);
+  bx = x + gap;
+  for (const item of items) {
+    const truncated = doc.splitTextToSize(item.label, barW + gap)[0];
+    doc.text(truncated, bx + barW / 2, barAreaY + barAreaH + 4, { align: 'center' });
+    bx += barW + gap;
+  }
+
+  resetDocStyle(doc);
+  return barAreaY + barAreaH + labelH;
+}

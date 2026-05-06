@@ -95,6 +95,8 @@ import {
   drawProgressBar,
   drawStatusDistributionBar,
   drawColoredDivider,
+  drawPieChart,
+  drawCylinderBarChart,
   type RGB,
 } from '../../utils/pdfCharts';
 
@@ -1032,11 +1034,11 @@ const ReportsPage: React.FC = () => {
         { label: 'Ture de Zi', value: totalDayShifts, color: ORANGE },
         { label: 'Ture de Noapte', value: totalNightShifts, color: INDIGO },
       ], 14, yPos, pageWidth, checkPageBreak);
-      yPos = drawHorizontalBarChart(doc, [
-        { label: 'Ture de zi', value: totalDayShifts, color: ORANGE },
-        { label: 'Ture de noapte', value: totalNightShifts, color: INDIGO },
-        { label: 'Zile concediu', value: totalVacationDays, color: GREEN },
-      ], 14, yPos, pageWidth - 28, { title: 'Distributie ture si concedii' }, checkPageBreak);
+      yPos = drawCylinderBarChart(doc, [
+        { label: 'Ture zi', value: totalDayShifts, color: ORANGE },
+        { label: 'Ture noapte', value: totalNightShifts, color: INDIGO },
+        { label: 'Concediu', value: totalVacationDays, color: GREEN },
+      ], 14, yPos, pageWidth - 28, { title: 'Distributie ture si concedii (cilindru)', height: 40 }, checkPageBreak);
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, BLUE);
     }
 
@@ -1058,11 +1060,11 @@ const ReportsPage: React.FC = () => {
         { label: 'Zile Aprobate', value: totalLeaveDays, color: GREEN },
         { label: 'In Asteptare', value: pendingLeaves.length, color: ORANGE },
       ], 14, yPos, pageWidth, checkPageBreak);
-      yPos = drawStatusDistributionBar(doc, [
+      yPos = drawPieChart(doc, [
         { label: 'Aprobate', value: approvedLeaves.length, color: GREEN },
         { label: 'In asteptare', value: pendingLeaves.length, color: ORANGE },
         { label: 'Respinse', value: rejectedLeaves.length, color: RED },
-      ], 14, yPos, pageWidth - 28, { title: 'Status cereri concediu' }, checkPageBreak);
+      ], 14, yPos, pageWidth - 28, { title: 'Status cereri concediu (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
       const leaveBarItems = Object.entries(leavesByType).map(([type, days]) => ({
         label: LEAVE_TYPE_LABELS[type as LeaveType] || type,
         value: days as number,
@@ -1087,11 +1089,11 @@ const ReportsPage: React.FC = () => {
         { label: 'Aprobate', value: approvedSwaps.length, color: GREEN },
         { label: 'Respinse', value: rejectedSwaps.length, color: RED },
       ], 14, yPos, pageWidth, checkPageBreak);
-      yPos = drawStatusDistributionBar(doc, [
+      yPos = drawPieChart(doc, [
         { label: 'Aprobate', value: approvedSwaps.length, color: GREEN },
         { label: 'In asteptare', value: pendingSwaps.length, color: ORANGE },
         { label: 'Respinse', value: rejectedSwaps.length, color: RED },
-      ], 14, yPos, pageWidth - 28, { title: 'Status cereri schimb' }, checkPageBreak);
+      ], 14, yPos, pageWidth - 28, { title: 'Status cereri schimb (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, TEAL);
     }
 
@@ -1107,10 +1109,10 @@ const ReportsPage: React.FC = () => {
         { label: 'Finalizate', value: finishedIssues, color: GREEN },
         { label: 'Prejudicii', value: totalParkingDamages.length, color: RED },
       ], 14, yPos, pageWidth, checkPageBreak);
-      yPos = drawStatusDistributionBar(doc, [
+      yPos = drawPieChart(doc, [
         { label: 'Active', value: activeIssues, color: ORANGE },
         { label: 'Finalizate', value: finishedIssues, color: GREEN },
-      ], 14, yPos, pageWidth - 28, { title: 'Status probleme parcari' }, checkPageBreak);
+      ], 14, yPos, pageWidth - 28, { title: 'Status probleme parcari (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, BLUE);
     }
 
@@ -1126,10 +1128,10 @@ const ReportsPage: React.FC = () => {
         { label: 'Active', value: activeHand, color: ORANGE },
         { label: 'Finalizate', value: finalizatHand, color: GREEN },
       ], 14, yPos, pageWidth, checkPageBreak);
-      yPos = drawStatusDistributionBar(doc, [
+      yPos = drawPieChart(doc, [
         { label: 'Active', value: activeHand, color: ORANGE },
         { label: 'Finalizate', value: finalizatHand, color: GREEN },
-      ], 14, yPos, pageWidth - 28, { title: 'Status solicitari handicap' }, checkPageBreak);
+      ], 14, yPos, pageWidth - 28, { title: 'Status solicitari handicap (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, INDIGO);
     }
 
@@ -1197,10 +1199,10 @@ const ReportsPage: React.FC = () => {
         { label: 'Active', value: activeSesizari, color: ORANGE },
         { label: 'Finalizate', value: finalizatSesizari, color: GREEN },
       ], 14, yPos, pageWidth, checkPageBreak);
-      yPos = drawStatusDistributionBar(doc, [
+      yPos = drawPieChart(doc, [
         { label: 'Active', value: activeSesizari, color: ORANGE },
         { label: 'Finalizate', value: finalizatSesizari, color: GREEN },
-      ], 14, yPos, pageWidth - 28, { title: 'Status sesizari' }, checkPageBreak);
+      ], 14, yPos, pageWidth - 28, { title: 'Status sesizari (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, INDIGO);
     }
 
