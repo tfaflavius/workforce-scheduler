@@ -37,32 +37,10 @@ import {
   Download as DownloadIcon,
   BarChart as ChartIcon,
 } from '@mui/icons-material';
-import { Bar, Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip as ChartTooltip,
-  Legend,
-} from 'chart.js';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetControlNotesMatrixQuery } from '../../store/api/controlNotes.api';
 import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { format } from 'date-fns';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Title,
-  ChartTooltip,
-  Legend,
-);
 
 const ControlNotesReportsTab: React.FC = () => {
   const theme = useTheme();
@@ -420,99 +398,37 @@ const ControlNotesReportsTab: React.FC = () => {
             </Card>
           </Box>
 
-          {/* Bar chart: Total per month */}
-          <Card sx={{ mb: 2, borderRadius: 2 }}>
-            <CardContent>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                <ChartIcon color="primary" />
-                <Typography variant="subtitle1" fontWeight={700}>
-                  Total note pe luna vs zile lucratoare
-                </Typography>
-              </Stack>
-              <Box sx={{ position: 'relative', height: { xs: 240, sm: 320 } }}>
-                <Bar
-                  data={{
-                    labels: matrix.months.map((m) => m.label),
-                    datasets: [
-                      {
-                        label: 'Note de constatare',
-                        data: matrix.months.map((m) => m.totalCount),
-                        backgroundColor: alpha(theme.palette.primary.main, 0.7),
-                        borderColor: theme.palette.primary.main,
-                        borderWidth: 1,
-                        borderRadius: 6,
-                      },
-                      {
-                        label: 'Zile lucratoare',
-                        data: matrix.months.map((m) => m.workingDays),
-                        backgroundColor: alpha(theme.palette.warning.main, 0.5),
-                        borderColor: theme.palette.warning.main,
-                        borderWidth: 1,
-                        borderRadius: 6,
-                        yAxisID: 'y1',
-                      },
-                    ],
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index' as const, intersect: false },
-                    scales: {
-                      y: {
-                        beginAtZero: true,
-                        position: 'left' as const,
-                        title: { display: true, text: 'Note de constatare' },
-                      },
-                      y1: {
-                        beginAtZero: true,
-                        position: 'right' as const,
-                        grid: { drawOnChartArea: false },
-                        title: { display: true, text: 'Zile lucratoare' },
-                      },
-                    },
-                    plugins: { legend: { position: 'top' as const } },
-                  }}
-                />
-              </Box>
-            </CardContent>
-          </Card>
+          {/* Total per month — switchable chart type */}
+          <Box sx={{ mb: 2 }}>
+            <ChartCard
+              title="Total note pe luna"
+              subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+              icon={<ChartIcon color="primary" />}
+              labels={matrix.months.map((m) => m.label)}
+              series={[{ label: 'Note de constatare', data: matrix.months.map((m) => m.totalCount), color: theme.palette.primary.main }]}
+              defaultType="bar"
+              height={320}
+            />
+          </Box>
 
-          {/* Trend chart: top 5 agents */}
+          {/* Trend per top 5 agents — switchable chart type */}
           {top5.length > 0 && (
-            <Card sx={{ mb: 2, borderRadius: 2 }}>
-              <CardContent>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                  <ChartIcon color="success" />
-                  <Typography variant="subtitle1" fontWeight={700}>
-                    Trend lunar — top 5 agenti
-                  </Typography>
-                </Stack>
-                <Box sx={{ position: 'relative', height: { xs: 240, sm: 340 } }}>
-                  <Line
-                    data={{
-                      labels: matrix.months.map((m) => m.label),
-                      datasets: top5.map((u, idx) => ({
-                        label: u.fullName,
-                        data: u.monthlyCounts.map((c) => c ?? 0),
-                        borderColor: palette[idx],
-                        backgroundColor: alpha(palette[idx], 0.1),
-                        tension: 0.3,
-                        fill: false,
-                      })),
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      interaction: { mode: 'index' as const, intersect: false },
-                      scales: { y: { beginAtZero: true } },
-                      plugins: {
-                        legend: { position: 'top' as const, labels: { boxWidth: 12 } },
-                      },
-                    }}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
+            <Box sx={{ mb: 2 }}>
+              <ChartCard
+                title="Trend lunar — top 5 agenti"
+                subtitle="Schimba forma graficului dupa preferinta"
+                icon={<ChartIcon color="success" />}
+                labels={matrix.months.map((m) => m.label)}
+                series={top5.map((u, idx) => ({
+                  label: u.fullName,
+                  data: u.monthlyCounts.map((c) => c ?? 0),
+                  color: palette[idx],
+                }))}
+                defaultType="line"
+                allowedTypes={['line', 'bar', 'radar']}
+                height={340}
+              />
+            </Box>
           )}
 
           {/* Mini-table for visual reference */}

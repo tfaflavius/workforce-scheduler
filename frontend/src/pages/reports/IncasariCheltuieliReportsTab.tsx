@@ -44,6 +44,7 @@ import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetRevenueSummaryQuery } from '../../store/api/acquisitions.api';
 import type { RevenueSummaryCategory } from '../../types/acquisitions.types';
 import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
@@ -468,6 +469,52 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
           Nu exista date de incasari/cheltuieli pentru anul selectat.
         </Alert>
       ) : (
+        <>
+          {/* Switchable charts: monthly trend + category breakdown */}
+          <Stack spacing={2} sx={{ mb: 2 }}>
+            {revenueSummary && (
+              <ChartCard
+                title="Incasari vs Cheltuieli pe luna"
+                subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+                labels={MONTH_LABELS}
+                series={[
+                  {
+                    label: 'Incasari',
+                    data: MONTH_LABELS.map((_, i) => Number(revenueSummary.monthTotals?.[i + 1]?.incasari || 0)),
+                    color: '#10b981',
+                  },
+                  {
+                    label: 'Cheltuieli',
+                    data: MONTH_LABELS.map((_, i) => Number(revenueSummary.monthTotals?.[i + 1]?.cheltuieli || 0)),
+                    color: '#ef4444',
+                  },
+                ]}
+                defaultType="bar"
+                height={320}
+              />
+            )}
+            <ChartCard
+              title="Total anual pe categorii (top 10)"
+              subtitle="Cerc / Sfera evidentiaza distributia"
+              labels={flatCategories
+                .filter((c: RevenueSummaryCategory) => !c.children || c.children.length === 0)
+                .slice(0, 10)
+                .map((c: RevenueSummaryCategory) => c.name.length > 18 ? c.name.slice(0, 16) + '...' : c.name)}
+              series={[
+                {
+                  label: 'Total an',
+                  data: flatCategories
+                    .filter((c: RevenueSummaryCategory) => !c.children || c.children.length === 0)
+                    .slice(0, 10)
+                    .map((c: RevenueSummaryCategory) => Number(c.totals?.total || 0)),
+                },
+              ]}
+              defaultType="doughnut"
+              allowedTypes={['doughnut', 'pie', 'polar', 'bar']}
+              height={340}
+            />
+          </Stack>
+
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size="small" stickyHeader sx={{ minWidth: { xs: 700, sm: 900 } }}>
             <TableHead>
@@ -579,6 +626,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
             </Box>
           )}
         </TableContainer>
+        </>
       )}
 
       {/* Export FAB (Mobile) */}

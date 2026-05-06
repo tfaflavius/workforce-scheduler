@@ -45,6 +45,7 @@ import {
   Close as CloseIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetBudgetPositionsQuery } from '../../store/api/acquisitions.api';
 import { BUDGET_CATEGORY_LABELS } from '../../types/acquisitions.types';
 import type { BudgetCategory, BudgetPosition } from '../../types/acquisitions.types';
@@ -460,6 +461,25 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
           Nu exista pozitii bugetare pentru filtrele selectate.
         </Alert>
       ) : (
+        <>
+          {/* Switchable chart — Buget vs Cheltuit per pozitie */}
+          <Box sx={{ mb: 2 }}>
+            <ChartCard
+              title="Buget vs Cheltuit pe pozitii"
+              subtitle="Comuta intre Coloane / Cerc / Sfera / Polar / Radar"
+              labels={filteredPositions.slice(0, 12).map((p: BudgetPosition) =>
+                p.name.length > 24 ? p.name.slice(0, 22) + '...' : p.name,
+              )}
+              series={[
+                { label: 'Buget Total', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.totalAmount || 0)), color: '#ea580c' },
+                { label: 'Cheltuit', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.spentAmount || 0)), color: '#ef4444' },
+                { label: 'Ramas', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.remainingAmount || 0)), color: '#10b981' },
+              ]}
+              defaultType="bar"
+              height={340}
+            />
+          </Box>
+
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'} stickyHeader>
             <TableHead>
@@ -533,6 +553,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
             </Box>
           )}
         </TableContainer>
+        </>
       )}
 
       {/* Export FAB (Mobile) */}

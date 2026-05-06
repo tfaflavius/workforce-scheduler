@@ -422,7 +422,7 @@ const AchizitiiPage: React.FC = () => {
       {/* Stats — only on Investitii / Cheltuieli Curente tabs */}
       {categorySummary && tabValue < 2 && (
         <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
-          <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 4 }}>
             <StatCard
               title="Total Bugetat"
               value={formatCurrency(categorySummary.totalBudgeted)}
@@ -432,7 +432,7 @@ const AchizitiiPage: React.FC = () => {
               subtitle={`${categorySummary.count} pozitii`}
             />
           </Grid>
-          <Grid size={{ xs: 6, sm: 6, md: 4 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 4 }}>
             <StatCard
               title="Total Cheltuit"
               value={formatCurrency(categorySummary.totalSpent)}
@@ -444,7 +444,7 @@ const AchizitiiPage: React.FC = () => {
                 : '0%'}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 12, md: 4 }}>
+          <Grid size={{ xs: 12, sm: 4, md: 4 }}>
             <StatCard
               title="Ramas"
               value={formatCurrency(categorySummary.totalRemaining)}
