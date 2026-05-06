@@ -54,6 +54,8 @@ import {
   RemoveCircle as RevokeIcon,
   FormatListNumbered as SpotsIcon,
   ViewColumn as LayoutIcon,
+  AccessTime as DeadlineIcon,
+  PriorityHigh as PriorityIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
 import { isAdminOrAbove } from '../../utils/roleHelpers';
@@ -76,7 +78,13 @@ import type {
   ParkingLayoutType,
   CreateDomiciliuRequestDto,
 } from '../../types/domiciliu.types';
-import { DOMICILIU_REQUEST_TYPE_LABELS, DOMICILIU_REQUEST_STATUS_LABELS, PARKING_LAYOUT_LABELS } from '../../types/domiciliu.types';
+import {
+  DOMICILIU_REQUEST_TYPE_LABELS,
+  DOMICILIU_REQUEST_STATUS_LABELS,
+  PARKING_LAYOUT_LABELS,
+  DOMICILIU_REQUEST_PRIORITY_LABELS,
+  DOMICILIU_REQUEST_PRIORITY_COLORS,
+} from '../../types/domiciliu.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import { removeDiacritics } from '../../utils/removeDiacritics';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
@@ -559,6 +567,84 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
 
             <DialogContent sx={{ pt: 3 }}>
               <Stack spacing={3}>
+                {/* Priority + Deadline banner — visible to all roles when set */}
+                {(request.priority || request.deadline) && (
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    {request.priority && (
+                      <Card
+                        variant="outlined"
+                        sx={{
+                          flex: 1,
+                          borderRadius: 2,
+                          borderLeft: `4px solid ${DOMICILIU_REQUEST_PRIORITY_COLORS[request.priority]}`,
+                          bgcolor: alpha(DOMICILIU_REQUEST_PRIORITY_COLORS[request.priority], 0.06),
+                        }}
+                      >
+                        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <PriorityIcon sx={{ color: DOMICILIU_REQUEST_PRIORITY_COLORS[request.priority] }} />
+                            <Box>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                Prioritate
+                              </Typography>
+                              <Typography
+                                variant="body1"
+                                fontWeight={800}
+                                sx={{ color: DOMICILIU_REQUEST_PRIORITY_COLORS[request.priority] }}
+                              >
+                                {DOMICILIU_REQUEST_PRIORITY_LABELS[request.priority]}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        </CardContent>
+                      </Card>
+                    )}
+                    {request.deadline && (() => {
+                      const deadlineDate = new Date(request.deadline);
+                      const now = new Date();
+                      const hoursUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+                      const isOverdue = hoursUntil < 0 && request.status === 'ACTIVE';
+                      const isUrgent = !isOverdue && hoursUntil <= 24 && request.status === 'ACTIVE';
+                      const color = isOverdue ? '#ef4444' : isUrgent ? '#f59e0b' : '#3b82f6';
+                      return (
+                        <Card
+                          variant="outlined"
+                          sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                            borderLeft: `4px solid ${color}`,
+                            bgcolor: alpha(color, 0.06),
+                          }}
+                        >
+                          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                            <Stack direction="row" spacing={1} alignItems="center">
+                              <DeadlineIcon sx={{ color }} />
+                              <Box>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                  Termen limita
+                                </Typography>
+                                <Typography variant="body1" fontWeight={700} sx={{ color }}>
+                                  {format(deadlineDate, 'dd MMM yyyy, HH:mm', { locale: ro })}
+                                </Typography>
+                                {isOverdue && (
+                                  <Typography variant="caption" color="error.main" sx={{ fontWeight: 700 }}>
+                                    DEPASIT
+                                  </Typography>
+                                )}
+                                {isUrgent && (
+                                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#f59e0b' }}>
+                                    Sub 24h ramase
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Stack>
+                          </CardContent>
+                        </Card>
+                      );
+                    })()}
+                  </Stack>
+                )}
+
                 {/* Info Card */}
                 <Card variant="outlined" sx={{ borderRadius: 2 }}>
                   <CardContent>
@@ -933,23 +1019,75 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
               {DOMICILIU_REQUEST_TYPE_LABELS[request.requestType]}
             </Typography>
           </Box>
-          <Chip
-            label={isMobile ? (request.status === 'ACTIVE' ? 'Activ' : 'Final') : DOMICILIU_REQUEST_STATUS_LABELS[request.status]}
-            size="small"
-            sx={{
-              bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-              color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
-              fontWeight: 600,
-              fontSize: { xs: '0.65rem', sm: '0.75rem' },
-              height: { xs: 22, sm: 24 },
-            }}
-          />
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {request.priority && request.priority !== 'MEDIU' && (
+              <Chip
+                icon={<PriorityIcon sx={{ fontSize: 12 }} />}
+                label={DOMICILIU_REQUEST_PRIORITY_LABELS[request.priority]}
+                size="small"
+                sx={{
+                  bgcolor: alpha(DOMICILIU_REQUEST_PRIORITY_COLORS[request.priority], 0.15),
+                  color: DOMICILIU_REQUEST_PRIORITY_COLORS[request.priority],
+                  borderColor: DOMICILIU_REQUEST_PRIORITY_COLORS[request.priority],
+                  border: `1px solid`,
+                  fontWeight: 700,
+                  fontSize: { xs: '0.62rem', sm: '0.7rem' },
+                  height: { xs: 20, sm: 22 },
+                  '& .MuiChip-icon': { color: 'inherit', ml: 0.5 },
+                }}
+              />
+            )}
+            <Chip
+              label={isMobile ? (request.status === 'ACTIVE' ? 'Activ' : 'Final') : DOMICILIU_REQUEST_STATUS_LABELS[request.status]}
+              size="small"
+              sx={{
+                bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
+                color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                fontWeight: 600,
+                fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                height: { xs: 22, sm: 24 },
+              }}
+            />
+          </Stack>
         </Box>
 
         <Typography variant="body2" sx={{ mb: 0.5, display: 'flex', alignItems: 'flex-start', gap: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' }, lineHeight: 1.4, wordBreak: 'break-word' }}>
           <PlaceIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary', flexShrink: 0, mt: 0.2 }} />
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{request.location}</span>
         </Typography>
+
+        {/* Deadline (termen limita) — visible to ALL roles when set, including
+            Maintenance team who needs to know when the work must be done. */}
+        {request.deadline && request.status === 'ACTIVE' && (() => {
+          const deadlineDate = new Date(request.deadline);
+          const now = new Date();
+          const hoursUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+          const isOverdue = hoursUntil < 0;
+          const isUrgent = !isOverdue && hoursUntil <= 24;
+          const color = isOverdue ? '#ef4444' : isUrgent ? '#f59e0b' : '#3b82f6';
+          return (
+            <Typography
+              variant="body2"
+              sx={{
+                mb: 0.5,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                color,
+                fontWeight: 700,
+              }}
+            >
+              <DeadlineIcon sx={{ fontSize: { xs: 14, sm: 16 }, flexShrink: 0 }} />
+              <span>
+                Termen limita:{' '}
+                {format(deadlineDate, isMobile ? 'dd MMM, HH:mm' : 'dd MMM yyyy, HH:mm', { locale: ro })}
+                {isOverdue && ' (DEPASIT)'}
+                {isUrgent && ' (sub 24h)'}
+              </span>
+            </Typography>
+          );
+        })()}
 
         {(request.numberOfSpots || request.parkingLayout) && (
           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: { xs: '0.7rem', sm: '0.875rem' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
