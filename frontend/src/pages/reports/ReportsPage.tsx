@@ -91,9 +91,6 @@ import { useSnackbar } from '../../contexts/SnackbarContext';
 import {
   drawSectionHeader,
   drawStatCards,
-  drawHorizontalBarChart,
-  drawProgressBar,
-  drawStatusDistributionBar,
   drawColoredDivider,
   drawPieChart,
   drawCylinderBarChart,
