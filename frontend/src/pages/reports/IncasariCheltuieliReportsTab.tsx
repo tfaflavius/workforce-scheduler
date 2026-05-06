@@ -493,26 +493,36 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
                 height={320}
               />
             )}
-            <ChartCard
-              title="Total anual pe categorii (top 10)"
-              subtitle="Cerc / Sfera evidentiaza distributia"
-              labels={flatCategories
+            {(() => {
+              const leafCategories = flatCategories
                 .filter((c: RevenueSummaryCategory) => !c.children || c.children.length === 0)
-                .slice(0, 10)
-                .map((c: RevenueSummaryCategory) => c.name.length > 18 ? c.name.slice(0, 16) + '...' : c.name)}
-              series={[
-                {
-                  label: 'Total an',
-                  data: flatCategories
-                    .filter((c: RevenueSummaryCategory) => !c.children || c.children.length === 0)
-                    .slice(0, 10)
-                    .map((c: RevenueSummaryCategory) => Number(c.totals?.total || 0)),
-                },
-              ]}
-              defaultType="doughnut"
-              allowedTypes={['doughnut', 'pie', 'polar', 'bar']}
-              height={340}
-            />
+                .slice(0, 10);
+              const labels = leafCategories.map((c: RevenueSummaryCategory) =>
+                c.categoryName.length > 18 ? c.categoryName.slice(0, 16) + '...' : c.categoryName,
+              );
+              return (
+                <ChartCard
+                  title="Total anual pe categorii (top 10)"
+                  subtitle="Cerc / Sfera evidentiaza distributia"
+                  labels={labels}
+                  series={[
+                    {
+                      label: 'Incasari',
+                      data: leafCategories.map((c: RevenueSummaryCategory) => Number(c.totalIncasari || 0)),
+                      color: '#10b981',
+                    },
+                    {
+                      label: 'Cheltuieli',
+                      data: leafCategories.map((c: RevenueSummaryCategory) => Number(c.totalCheltuieli || 0)),
+                      color: '#ef4444',
+                    },
+                  ]}
+                  defaultType="doughnut"
+                  allowedTypes={['doughnut', 'pie', 'polar', 'bar']}
+                  height={340}
+                />
+              );
+            })()}
           </Stack>
 
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
