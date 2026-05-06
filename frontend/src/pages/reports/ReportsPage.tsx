@@ -1065,13 +1065,14 @@ const ReportsPage: React.FC = () => {
         { label: 'In asteptare', value: pendingLeaves.length, color: ORANGE },
         { label: 'Respinse', value: rejectedLeaves.length, color: RED },
       ], 14, yPos, pageWidth - 28, { title: 'Status cereri concediu (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
-      const leaveBarItems = Object.entries(leavesByType).map(([type, days]) => ({
+      const leavePalette: RGB[] = [GREEN, BLUE, ORANGE, INDIGO, VIOLET, TEAL, EMERALD, RED];
+      const leaveBarItems = Object.entries(leavesByType).map(([type, days], i) => ({
         label: LEAVE_TYPE_LABELS[type as LeaveType] || type,
         value: days as number,
-        color: GREEN as RGB,
+        color: leavePalette[i % leavePalette.length] as RGB,
       }));
       if (leaveBarItems.length > 0) {
-        yPos = drawHorizontalBarChart(doc, leaveBarItems, 14, yPos, pageWidth - 28, { title: 'Zile concediu per tip' }, checkPageBreak);
+        yPos = drawCylinderBarChart(doc, leaveBarItems, 14, yPos, pageWidth - 28, { title: 'Zile concediu per tip (cilindru)', height: 40 }, checkPageBreak);
       }
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, GREEN);
     }
@@ -1138,7 +1139,7 @@ const ReportsPage: React.FC = () => {
     // ─── 6. Parcari Domiciliu ───
     if (selectedSections.parkingDomiciliu) {
       sn++;
-      yPos = checkPageBreak(yPos, 50);
+      yPos = checkPageBreak(yPos, 80);
       yPos = drawSectionHeader(doc, 'Parcari Domiciliu', 14, yPos, pageWidth, EMERALD, sn);
       const activeDom = totalDomiciliuRequests.filter((r: any) => r.status === 'ACTIVE').length;
       const finalizatDom = totalDomiciliuRequests.filter((r: any) => r.status === 'FINALIZAT').length;
@@ -1147,6 +1148,12 @@ const ReportsPage: React.FC = () => {
         { label: 'Active', value: activeDom, color: ORANGE },
         { label: 'Finalizate', value: finalizatDom, color: GREEN },
       ], 14, yPos, pageWidth, checkPageBreak);
+      if (totalDomiciliuRequests.length > 0) {
+        yPos = drawPieChart(doc, [
+          { label: 'Active', value: activeDom, color: ORANGE },
+          { label: 'Finalizate', value: finalizatDom, color: GREEN },
+        ], 14, yPos, pageWidth - 28, { title: 'Status solicitari domiciliu (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
+      }
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, EMERALD);
     }
 
@@ -1163,7 +1170,12 @@ const ReportsPage: React.FC = () => {
         { label: 'In Desfasurare', value: inProgressPv, color: ORANGE },
       ], 14, yPos, pageWidth, checkPageBreak);
       if (totalPvSessions.length > 0) {
-        yPos = drawProgressBar(doc, 'Progres finalizare', completedPv, totalPvSessions.length, 14, yPos, pageWidth - 28, VIOLET, undefined, checkPageBreak);
+        const pendingPv = totalPvSessions.length - completedPv - inProgressPv;
+        yPos = drawPieChart(doc, [
+          { label: 'Finalizate', value: completedPv, color: GREEN },
+          { label: 'In desfasurare', value: inProgressPv, color: ORANGE },
+          { label: 'In asteptare', value: pendingPv > 0 ? pendingPv : 0, color: VIOLET },
+        ], 14, yPos, pageWidth - 28, { title: 'Progres finalizare PV (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
       }
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, VIOLET);
     }
@@ -1180,10 +1192,10 @@ const ReportsPage: React.FC = () => {
         { label: 'Total Parcometre', value: totalParkingMeters.length, color: BLUE },
         { label: 'Active', value: activeMeters, color: GREEN },
       ], 14, yPos, pageWidth, checkPageBreak);
-      yPos = drawHorizontalBarChart(doc, [
+      yPos = drawPieChart(doc, [
         { label: 'Zona Rosu', value: rosuMeters, color: RED },
         { label: 'Zona Galben', value: galbenMeters, color: ORANGE },
-      ], 14, yPos, pageWidth - 28, { title: 'Distributie pe zone' }, checkPageBreak);
+      ], 14, yPos, pageWidth - 28, { title: 'Distributie parcometre pe zone (sfera)', radius: 22, innerRadiusRatio: 0.5 }, checkPageBreak);
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, RED);
     }
 
@@ -1220,7 +1232,11 @@ const ReportsPage: React.FC = () => {
         { label: 'Ramas', value: `${(totalBuget - totalCheltuit).toLocaleString('ro-RO')} lei`, color: GREEN },
       ], 14, yPos, pageWidth, checkPageBreak);
       if (totalBuget > 0) {
-        yPos = drawProgressBar(doc, 'Executie bugetara', totalCheltuit, totalBuget, 14, yPos, pageWidth - 28, ORANGE, undefined, checkPageBreak);
+        const totalRamas = Math.max(0, totalBuget - totalCheltuit);
+        yPos = drawPieChart(doc, [
+          { label: 'Cheltuit', value: totalCheltuit, color: ORANGE },
+          { label: 'Ramas', value: totalRamas, color: GREEN },
+        ], 14, yPos, pageWidth - 28, { title: 'Executie bugetara (sfera)', radius: 24, innerRadiusRatio: 0.55 }, checkPageBreak);
       }
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, ORANGE);
     }
@@ -1246,6 +1262,20 @@ const ReportsPage: React.FC = () => {
           cats.forEach((cat: any) => { flatCats.push(cat); if (cat.children?.length > 0) flattenCats(cat.children); });
         };
         flattenCats(totalRevenueSummary.categories);
+
+        // Distribution sphere of top 8 leaf categories by incasari
+        const leafCats = flatCats.filter((c: any) => !c.children || c.children.length === 0)
+          .filter((c: any) => Number(c.totalIncasari || 0) > 0)
+          .sort((a: any, b: any) => Number(b.totalIncasari || 0) - Number(a.totalIncasari || 0))
+          .slice(0, 8);
+        if (leafCats.length > 0) {
+          const palette: RGB[] = [GREEN, BLUE, ORANGE, INDIGO, VIOLET, TEAL, EMERALD, RED];
+          yPos = drawPieChart(doc, leafCats.map((c: any, i: number) => ({
+            label: c.categoryName || 'N/A',
+            value: Number(c.totalIncasari || 0),
+            color: palette[i % palette.length],
+          })), 14, yPos, pageWidth - 28, { title: 'Top 8 categorii Incasari (sfera)', radius: 26, innerRadiusRatio: 0.5 }, checkPageBreak);
+        }
         const incRows = flatCats.map((cat: any) => [
           cat.categoryName || 'N/A',
           (cat.totalIncasari || 0).toLocaleString('ro-RO'),
@@ -1275,7 +1305,7 @@ const ReportsPage: React.FC = () => {
     // ─── 12. Monitorizare Pontaj ───
     if (selectedSections.pontaj && isAdminOrManager && totalTimeEntries.length > 0) {
       sn++;
-      yPos = checkPageBreak(yPos, 55);
+      yPos = checkPageBreak(yPos, 90);
       yPos = drawSectionHeader(doc, 'Monitorizare Pontaj', 14, yPos, pageWidth, BLUE, sn);
       const totalOre = (totalTimeEntries.reduce((sum: number, e: any) => sum + (e.durationMinutes || 0), 0) / 60).toFixed(1);
       const angajatiUnici = new Set(totalTimeEntries.map((e: any) => e.userId)).size;
@@ -1284,6 +1314,28 @@ const ReportsPage: React.FC = () => {
         { label: 'Total Ore', value: `${totalOre}h`, color: GREEN },
         { label: 'Angajati Unici', value: angajatiUnici, color: INDIGO },
       ], 14, yPos, pageWidth, checkPageBreak);
+
+      // Top 8 angajati dupa ore lucrate — cilindri
+      const hoursPerUser = new Map<string, number>();
+      const userNames = new Map<string, string>();
+      for (const e of totalTimeEntries as any[]) {
+        const uid = e.userId;
+        if (!uid) continue;
+        hoursPerUser.set(uid, (hoursPerUser.get(uid) || 0) + (e.durationMinutes || 0) / 60);
+        if (e.user?.fullName) userNames.set(uid, e.user.fullName);
+      }
+      const topByHours = Array.from(hoursPerUser.entries())
+        .map(([uid, h]) => ({ uid, name: userNames.get(uid) || 'N/A', hours: Math.round(h * 10) / 10 }))
+        .sort((a, b) => b.hours - a.hours)
+        .slice(0, 8);
+      if (topByHours.length > 0) {
+        const palette: RGB[] = [BLUE, GREEN, ORANGE, INDIGO, VIOLET, TEAL, EMERALD, RED];
+        yPos = drawCylinderBarChart(doc, topByHours.map((u, i) => ({
+          label: u.name.split(' ')[0], // first name keeps cylinders readable
+          value: u.hours,
+          color: palette[i % palette.length],
+        })), 14, yPos, pageWidth - 28, { title: 'Top 8 angajati dupa ore (cilindri)', height: 45 }, checkPageBreak);
+      }
       yPos = drawColoredDivider(doc, 14, yPos, pageWidth - 28, BLUE);
     }
 
@@ -1300,16 +1352,17 @@ const ReportsPage: React.FC = () => {
         { label: 'Parcari Ocupare', value: totalMonthlyOccupancy.length, color: BLUE },
       ], 14, yPos, pageWidth, checkPageBreak);
 
-      // Bar chart for tickets per location
+      // Distribution chart for tickets per location — sfera-style for the share view
       if (totalMonthlyTickets.length > 0) {
         const ticketMap = new Map(totalMonthlyTickets.map((t: any) => [t.locationKey, t.totalTickets || 0]));
-        const ticketBarItems = PARKING_STAT_LOCATIONS.map(loc => ({
+        const palette: RGB[] = [VIOLET, BLUE, GREEN, ORANGE, RED, INDIGO, TEAL, EMERALD, [236, 72, 153], [6, 182, 212], [168, 85, 247], [34, 197, 94]];
+        const ticketBarItems = PARKING_STAT_LOCATIONS.map((loc, i) => ({
           label: getLocationFullName(loc.key),
-          value: ticketMap.get(loc.key) || 0,
-          color: VIOLET as RGB,
+          value: (ticketMap.get(loc.key) || 0) as number,
+          color: palette[i % palette.length] as RGB,
         })).filter(item => item.value > 0);
         if (ticketBarItems.length > 0) {
-          yPos = drawHorizontalBarChart(doc, ticketBarItems, 14, yPos, pageWidth - 28, { title: 'Tichete zilnice per parcare' }, checkPageBreak);
+          yPos = drawPieChart(doc, ticketBarItems, 14, yPos, pageWidth - 28, { title: 'Tichete zilnice per parcare (sfera)', radius: 26, innerRadiusRatio: 0.5 }, checkPageBreak);
         }
       }
 
