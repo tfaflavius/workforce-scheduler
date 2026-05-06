@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -96,6 +96,14 @@ const AchizitiiPage: React.FC = () => {
 
   // State
   const [tabValue, setTabValue] = useState(0);
+
+  // Mount tabs lazily on first visit, then keep them alive for instant switching
+  const [visitedTabs, setVisitedTabs] = useState<Set<number>>(new Set([0]));
+  useEffect(() => {
+    if (!visitedTabs.has(tabValue)) {
+      setVisitedTabs(prev => new Set(prev).add(tabValue));
+    }
+  }, [tabValue, visitedTabs]);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [expandedPositions, setExpandedPositions] = useState<string[]>([]);
 
@@ -540,11 +548,20 @@ const AchizitiiPage: React.FC = () => {
         )}
       </Box>
 
-      {/* Budget savings / remainder tracking tab */}
-      {tabValue === 2 && <BudgetSavingsTab />}
+      {/* Budget savings / remainder tracking tab — kept mounted after first
+          visit so switching tabs is instant and component state is preserved. */}
+      {visitedTabs.has(2) && (
+        <Box sx={{ display: tabValue === 2 ? 'block' : 'none' }}>
+          <BudgetSavingsTab />
+        </Box>
+      )}
 
-      {/* Excel viewer tab — preserves the source spreadsheet 1:1 */}
-      {tabValue === 3 && <InvestmentsTab />}
+      {/* Excel viewer tab — same keep-mounted strategy. */}
+      {visitedTabs.has(3) && (
+        <Box sx={{ display: tabValue === 3 ? 'block' : 'none' }}>
+          <InvestmentsTab />
+        </Box>
+      )}
 
       {/* Budget positions content — only when on Investitii / Cheltuieli Curente tabs */}
       {tabValue < 2 && (<>

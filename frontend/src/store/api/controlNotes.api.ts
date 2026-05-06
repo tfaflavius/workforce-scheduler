@@ -46,6 +46,7 @@ export interface UpsertControlNoteDto {
 export const controlNotesApi = createApi({
   reducerPath: 'controlNotesApi',
   baseQuery: createAuthBaseQuery(),
+  keepUnusedDataFor: 300, // 5 min — keep matrix warm so switching tabs is instant
   tagTypes: ['ControlNotesMatrix'],
   endpoints: (builder) => ({
     getControlNotesMatrix: builder.query<ControlNotesMatrix, number | void>({

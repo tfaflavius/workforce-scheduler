@@ -76,6 +76,15 @@ const IncasariCheltuieliPage: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [activeTab, setActiveTab] = useState<number>(0);
 
+  // Lazy-mount tabs on first visit; keep them alive afterwards so switching
+  // is instant and child state (form drafts, expanded rows) is preserved.
+  const [visitedTabs, setVisitedTabs] = React.useState<Set<number>>(new Set([0]));
+  React.useEffect(() => {
+    if (!visitedTabs.has(activeTab)) {
+      setVisitedTabs(prev => new Set(prev).add(activeTab));
+    }
+  }, [activeTab, visitedTabs]);
+
   // Revenue section states
   const [revCatDialogOpen, setRevCatDialogOpen] = useState(false);
   const [editingRevCat, setEditingRevCat] = useState<RevenueCategory | null>(null);
@@ -560,11 +569,16 @@ const IncasariCheltuieliPage: React.FC = () => {
         </Tabs>
       </Paper>
 
-      {/* Tab 1: Control Parcari notes */}
-      {activeTab === 1 && <ControlNotesTab />}
+      {/* Tab 1: Control Parcari notes — kept mounted after first visit */}
+      {visitedTabs.has(1) && (
+        <Box sx={{ display: activeTab === 1 ? 'block' : 'none' }}>
+          <ControlNotesTab />
+        </Box>
+      )}
 
-      {/* Tab 0: existing Incasari/Cheltuieli — wrapped so it only renders when active */}
-      {activeTab === 0 && (<>
+      {/* Tab 0: existing Incasari/Cheltuieli — kept mounted after first visit */}
+      {visitedTabs.has(0) && (
+        <Box sx={{ display: activeTab === 0 ? 'block' : 'none' }}><>
 
       {/* Year selector + Add button */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
@@ -685,7 +699,8 @@ const IncasariCheltuieliPage: React.FC = () => {
         </Card>
       ) : null}
 
-      </>)}
+      </></Box>
+      )}
 
       {/* ===================== DIALOGS ===================== */}
 

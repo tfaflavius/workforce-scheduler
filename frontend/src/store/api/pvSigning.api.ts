@@ -16,6 +16,7 @@ import type {
 export const pvSigningApi = createApi({
   reducerPath: 'pvSigningApi',
   baseQuery: createAuthBaseQuery(),
+  keepUnusedDataFor: 180, // 3 min
   tagTypes: ['PvSigningSessions', 'PvSigningDays', 'PvSigningComments', 'PvSigningHistory', 'PvMaintenanceUsers'],
   endpoints: (builder) => ({
 

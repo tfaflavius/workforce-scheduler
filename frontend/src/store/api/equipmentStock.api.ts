@@ -70,6 +70,7 @@ export interface UpdateEntryDto {
 export const equipmentStockApi = createApi({
   reducerPath: 'equipmentStockApi',
   baseQuery: createAuthBaseQuery(),
+  keepUnusedDataFor: 300, // 5 min — definitions/entries change rarely
   tagTypes: ['StockDefinition', 'StockEntry'],
   endpoints: (builder) => ({
 

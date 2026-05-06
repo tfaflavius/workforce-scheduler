@@ -119,13 +119,17 @@ export const MainLayout = () => {
 
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
 
-  // Pull-to-refresh on mobile
+  // Pull-to-refresh on mobile — silent background refresh, no full page reload.
+  // Triggers the same code path as tab focus (RTK Query refetchOnFocus) so all
+  // queries that opt in will refetch in the background. The user sees a small
+  // spinner from usePullToRefresh, never a full page jump or scroll reset.
   const handlePullRefresh = useCallback(async () => {
-    // Reload current page data by dispatching refetch
+    // Notify any custom listeners
     window.dispatchEvent(new CustomEvent('pull-to-refresh'));
-    // Small delay to show the spinner
-    await new Promise(resolve => setTimeout(resolve, 600));
-    window.location.reload();
+    // Trigger RTK Query refetchOnFocus for all subscribed queries
+    window.dispatchEvent(new Event('focus'));
+    // Small delay so the pull-to-refresh UI doesn't flash off instantly
+    await new Promise(resolve => setTimeout(resolve, 400));
   }, []);
 
   const { isRefreshing, pullDistance } = usePullToRefresh({

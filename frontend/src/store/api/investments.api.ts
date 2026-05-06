@@ -43,6 +43,7 @@ export interface InvestmentAnnualBudgetHistoryEntry {
 export const investmentsApi = createApi({
   reducerPath: 'investmentsApi',
   baseQuery: createAuthBaseQuery(),
+  keepUnusedDataFor: 300, // 5 min
   tagTypes: ['InvestmentDocument', 'InvestmentAnnualBudget', 'InvestmentAnnualBudgetHistory'],
   endpoints: (builder) => ({
     getInvestmentDocument: builder.query<InvestmentDocumentMetadata | null, void>({

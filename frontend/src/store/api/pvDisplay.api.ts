@@ -16,6 +16,7 @@ import type {
 export const pvDisplayApi = createApi({
   reducerPath: 'pvDisplayApi',
   baseQuery: createAuthBaseQuery(),
+  keepUnusedDataFor: 180, // 3 min
   tagTypes: ['PvSessions', 'PvDays', 'PvComments', 'PvHistory', 'PvControlUsers'],
   endpoints: (builder) => ({
 

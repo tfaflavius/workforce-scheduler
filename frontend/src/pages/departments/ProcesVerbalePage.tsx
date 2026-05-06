@@ -7,7 +7,6 @@ import {
   Tab,
   useTheme,
   useMediaQuery,
-  Fade,
   Grow,
 } from '@mui/material';
 import {
@@ -29,23 +28,28 @@ interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
+  /** Keep the panel mounted with display:none when inactive — preserves
+   *  child component state (scroll, expanded items, form drafts, RTK
+   *  Query cache) across tab switches. */
+  keepMounted?: boolean;
 }
 
 function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+  const { children, value, index, keepMounted, ...other } = props;
+  const isActive = value === index;
 
-  if (value !== index) return null;
+  if (!isActive && !keepMounted) return null;
 
   return (
     <div
       role="tabpanel"
       id={`pv-tabpanel-${index}`}
       aria-labelledby={`pv-tab-${index}`}
+      hidden={!isActive}
+      style={isActive ? undefined : { display: 'none' }}
       {...other}
     >
-      <Fade in={true} timeout={400}>
-        <Box sx={{ pt: { xs: 1.5, sm: 2 } }}>{children}</Box>
-      </Fade>
+      <Box sx={{ pt: { xs: 1.5, sm: 2 } }}>{children}</Box>
     </div>
   );
 }
@@ -57,6 +61,16 @@ const ProcesVerbalePage: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const { user } = useAppSelector((state) => state.auth);
   const lastHandledIdRef = useRef<string | null>(null);
+
+  // Track which tabs have been visited so we mount each tab only once and then
+  // keep it alive (display:none) — eliminates the re-fetch + scroll-reset that
+  // happens when MUI unmounts inactive panels.
+  const [visitedTabs, setVisitedTabs] = useState<Set<number>>(new Set([0]));
+  useEffect(() => {
+    if (!visitedTabs.has(tabValue)) {
+      setVisitedTabs(prev => new Set(prev).add(tabValue));
+    }
+  }, [tabValue, visitedTabs]);
 
   // Read notification deep link state
   const openSessionId = (location.state as OpenSessionState | null)?.openSessionId;
@@ -321,12 +335,17 @@ const ProcesVerbalePage: React.FC = () => {
         </Tabs>
       </Paper>
 
-      {/* Tab Panels */}
-      {tabConfig.map((_, index) => (
-        <TabPanel key={index} value={tabValue} index={index}>
-          {getTabContent(index)}
-        </TabPanel>
-      ))}
+      {/* Tab Panels — only render tabs that have been visited; once mounted
+          they stay mounted (keepMounted) so switching between them is instant
+          and child state (scroll, filters, drafts) is preserved. */}
+      {tabConfig.map((_, index) => {
+        if (!visitedTabs.has(index)) return null;
+        return (
+          <TabPanel key={index} value={tabValue} index={index} keepMounted>
+            {getTabContent(index)}
+          </TabPanel>
+        );
+      })}
     </Box>
   );
 };
