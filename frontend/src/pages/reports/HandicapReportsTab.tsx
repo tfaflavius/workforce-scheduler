@@ -47,6 +47,7 @@ import {
   FormatPaint as MarkingIcon,
 } from '@mui/icons-material';
 import DatePickerField from '../../components/common/DatePickerField';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetHandicapRequestsQuery } from '../../store/api/handicap.api';
 import { HANDICAP_REQUEST_TYPE_LABELS, HANDICAP_REQUEST_STATUS_LABELS } from '../../types/handicap.types';
 import type { HandicapRequestType, HandicapRequestStatus } from '../../types/handicap.types';
@@ -426,6 +427,36 @@ const HandicapReportsTab: React.FC<HandicapReportsTabProps> = ({
           </Stack>
         </Paper>
       </Grow>
+
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Solicitari handicap pe tip si status"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={['Amplasare panou', 'Revocare panou', 'Creare marcaj']}
+          series={[
+            {
+              label: 'Active',
+              data: [
+                stats.byType.AMPLASARE_PANOU.active,
+                stats.byType.REVOCARE_PANOU.active,
+                stats.byType.CREARE_MARCAJ.active,
+              ],
+              color: '#f59e0b',
+            },
+            {
+              label: 'Finalizate',
+              data: [
+                stats.byType.AMPLASARE_PANOU.resolved,
+                stats.byType.REVOCARE_PANOU.resolved,
+                stats.byType.CREARE_MARCAJ.resolved,
+              ],
+              color: '#10b981',
+            },
+          ]}
+          defaultType="bar"
+        />
+      </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

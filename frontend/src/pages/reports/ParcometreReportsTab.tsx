@@ -44,6 +44,7 @@ import {
   Place as ZoneIcon,
 } from '@mui/icons-material';
 import { useGetParkingMetersQuery } from '../../store/api/parking.api';
+import ChartCard from '../../components/charts/ChartCard';
 import type { ParkingMeter, ParkingZone, PowerSource, MeterCondition } from '../../types/parking.types';
 import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
 import { drawStatCards, drawHorizontalBarChart, type RGB } from '../../utils/pdfCharts';
@@ -389,6 +390,36 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
           </Stack>
         </Paper>
       </Grow>
+
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Parcometre dupa zona si stare"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={['Zona Rosu', 'Zona Galben', 'Zona Alb']}
+          series={[
+            {
+              label: 'Active',
+              data: [
+                filteredMeters.filter((m: ParkingMeter) => m.zone === 'ROSU' && m.isActive).length,
+                filteredMeters.filter((m: ParkingMeter) => m.zone === 'GALBEN' && m.isActive).length,
+                filteredMeters.filter((m: ParkingMeter) => m.zone === 'ALB' && m.isActive).length,
+              ],
+              color: '#10b981',
+            },
+            {
+              label: 'Inactive',
+              data: [
+                filteredMeters.filter((m: ParkingMeter) => m.zone === 'ROSU' && !m.isActive).length,
+                filteredMeters.filter((m: ParkingMeter) => m.zone === 'GALBEN' && !m.isActive).length,
+                filteredMeters.filter((m: ParkingMeter) => m.zone === 'ALB' && !m.isActive).length,
+              ],
+              color: '#ef4444',
+            },
+          ]}
+          defaultType="bar"
+        />
+      </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

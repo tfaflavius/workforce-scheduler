@@ -46,6 +46,7 @@ import {
   RemoveCircle as RevokeIcon,
 } from '@mui/icons-material';
 import DatePickerField from '../../components/common/DatePickerField';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetDomiciliuRequestsQuery } from '../../store/api/domiciliu.api';
 import { DOMICILIU_REQUEST_TYPE_LABELS, DOMICILIU_REQUEST_STATUS_LABELS } from '../../types/domiciliu.types';
 import type { DomiciliuRequestType, DomiciliuRequestStatus } from '../../types/domiciliu.types';
@@ -420,6 +421,34 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
           </Stack>
         </Paper>
       </Grow>
+
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Solicitari domiciliu pe tip si status"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={['Trasare locuri', 'Revocare locuri']}
+          series={[
+            {
+              label: 'Active',
+              data: [
+                stats.byType.TRASARE_LOCURI.active,
+                stats.byType.REVOCARE_LOCURI.active,
+              ],
+              color: '#f59e0b',
+            },
+            {
+              label: 'Finalizate',
+              data: [
+                stats.byType.TRASARE_LOCURI.resolved,
+                stats.byType.REVOCARE_LOCURI.resolved,
+              ],
+              color: '#10b981',
+            },
+          ]}
+          defaultType="bar"
+        />
+      </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

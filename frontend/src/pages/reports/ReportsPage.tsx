@@ -66,6 +66,7 @@ const IncasariCheltuieliReportsTab = lazy(() => import('./IncasariCheltuieliRepo
 const ControlNotesReportsTab = lazy(() => import('./ControlNotesReportsTab'));
 const PontajReportsTab = lazy(() => import('./PontajReportsTab'));
 import { GradientHeader, StatCard } from '../../components/common';
+import ChartCard from '../../components/charts/ChartCard';
 import { useAppSelector } from '../../store/hooks';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
@@ -1767,8 +1768,30 @@ const ReportsPage: React.FC = () => {
   };
 
   // Tab content renderers
-  const renderScheduleTab = () => (
+  const renderScheduleTab = () => {
+    const draftCount = schedules.filter(s => s.status === 'DRAFT').length;
+    const pendingCount = schedules.filter(s => s.status === 'PENDING_APPROVAL').length;
+    const approvedCount = schedules.filter(s => s.status === 'APPROVED').length;
+    const activeCount = schedules.filter(s => s.status === 'ACTIVE').length;
+    const rejectedCount = schedules.filter(s => s.status === 'REJECTED').length;
+
+    return (
     <Stack spacing={3}>
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Distributia programelor pe status"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={['Ciorna', 'In asteptare', 'Aprobate', 'Active', 'Respinse']}
+          series={[{
+            label: 'Programe',
+            data: [draftCount, pendingCount, approvedCount, activeCount, rejectedCount],
+            color: '#3b82f6',
+          }]}
+          defaultType="doughnut"
+        />
+      </Box>
+
       {/* Filtre */}
       <Box>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
@@ -1852,10 +1875,38 @@ const ReportsPage: React.FC = () => {
         </Button>
       </Stack>
     </Stack>
-  );
+    );
+  };
 
-  const renderLeavesTab = () => (
+  const renderLeavesTab = () => {
+    const leaveTypeKeys = Array.from(new Set(filteredLeaveRequests.map(r => r.leaveType))) as LeaveType[];
+    const typeLabels = leaveTypeKeys.length > 0
+      ? leaveTypeKeys.map(t => LEAVE_TYPE_LABELS[t] || t)
+      : ['Fara date'];
+    const typeData = leaveTypeKeys.length > 0
+      ? leaveTypeKeys.map(t => filteredLeaveRequests.filter(r => r.leaveType === t).length)
+      : [0];
+    const pendingCount = filteredLeaveRequests.filter(r => r.status === 'PENDING').length;
+    const approvedCount = filteredLeaveRequests.filter(r => r.status === 'APPROVED').length;
+    const rejectedCount = filteredLeaveRequests.filter(r => r.status === 'REJECTED').length;
+
+    return (
     <Stack spacing={3}>
+      {/* Charts */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Concedii pe tip si status"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={[...typeLabels, 'In asteptare', 'Aprobate', 'Respinse']}
+          series={[{
+            label: 'Cereri',
+            data: [...typeData, pendingCount, approvedCount, rejectedCount],
+            color: '#f59e0b',
+          }]}
+          defaultType="bar"
+        />
+      </Box>
+
       {/* Filtre */}
       <Box>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
@@ -1972,10 +2023,32 @@ const ReportsPage: React.FC = () => {
         </Button>
       </Stack>
     </Stack>
-  );
+    );
+  };
 
-  const renderSwapsTab = () => (
+  const renderSwapsTab = () => {
+    const pendingSwaps = filteredSwapRequests.filter(r => r.status === 'PENDING').length;
+    const awaitingAdmin = filteredSwapRequests.filter(r => r.status === 'AWAITING_ADMIN').length;
+    const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED').length;
+    const rejectedSwaps = filteredSwapRequests.filter(r => r.status === 'REJECTED').length;
+
+    return (
     <Stack spacing={3}>
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Schimburi de tura pe status"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={['In asteptare', 'Asteapta admin', 'Aprobate', 'Respinse']}
+          series={[{
+            label: 'Cereri',
+            data: [pendingSwaps, awaitingAdmin, approvedSwaps, rejectedSwaps],
+            color: '#3b82f6',
+          }]}
+          defaultType="doughnut"
+        />
+      </Box>
+
       {/* Filtre */}
       <Box>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
@@ -2076,7 +2149,8 @@ const ReportsPage: React.FC = () => {
         </Button>
       </Stack>
     </Stack>
-  );
+    );
+  };
 
   const renderTotalTab = () => {
     const totalHours = filteredUsers.reduce((sum, user) => sum + getUserStats(user.id).totalHours, 0);
@@ -2084,8 +2158,29 @@ const ReportsPage: React.FC = () => {
     const totalLeaveDays = approvedLeaves.reduce((sum, r) => sum + calculateWorkingDays(r.startDate, r.endDate), 0);
     const approvedSwaps = filteredSwapRequests.filter(r => r.status === 'APPROVED').length;
 
+    const totalSchedules = schedules.length;
+    const totalLeaves = filteredLeaveRequests.length;
+    const totalSwaps = filteredSwapRequests.length;
+    const totalIssuesCombined = totalParkingIssues.length;
+    const totalDamagesCombined = totalParkingDamages.length;
+
     return (
       <Stack spacing={3}>
+        {/* Chart */}
+        <Box sx={{ mb: 2 }}>
+          <ChartCard
+            title="Sumar combinat al sectiunilor"
+            subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+            labels={['Programe', 'Concedii', 'Schimburi', 'Probleme', 'Prejudicii']}
+            series={[{
+              label: 'Total',
+              data: [totalSchedules, totalLeaves, totalSwaps, totalIssuesCombined, totalDamagesCombined],
+              color: '#3b82f6',
+            }]}
+            defaultType="bar"
+          />
+        </Box>
+
         {/* Selecteaza sectiuni pentru raport */}
         <Paper sx={{ p: 2, bgcolor: alpha(theme.palette.primary.main, 0.04), border: '1px solid', borderColor: 'primary.light', borderRadius: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>

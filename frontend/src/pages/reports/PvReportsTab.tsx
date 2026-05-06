@@ -45,6 +45,7 @@ import {
   CalendarMonth as DaysIcon,
 } from '@mui/icons-material';
 import DatePickerField from '../../components/common/DatePickerField';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetPvSessionsQuery } from '../../store/api/pvDisplay.api';
 import type { PvDisplaySession, PvSessionStatus } from '../../types/pv-display.types';
 import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
@@ -407,6 +408,28 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
           </Stack>
         </Paper>
       </Grow>
+
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Sesiuni si zile pe status"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={['Ciorna', 'Pregatit', 'In desfasurare', 'Finalizat']}
+          series={[
+            {
+              label: 'Sesiuni',
+              data: [
+                filteredSessions.filter((s: PvDisplaySession) => s.status === 'DRAFT').length,
+                filteredSessions.filter((s: PvDisplaySession) => s.status === 'READY').length,
+                filteredSessions.filter((s: PvDisplaySession) => s.status === 'IN_PROGRESS').length,
+                filteredSessions.filter((s: PvDisplaySession) => s.status === 'COMPLETED').length,
+              ],
+              color: '#8b5cf6',
+            },
+          ]}
+          defaultType="bar"
+        />
+      </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

@@ -46,6 +46,7 @@ import {
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import DatePickerField from '../../components/common/DatePickerField';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetAdminTimeEntriesQuery } from '../../store/api/time-tracking.api';
 import type { AdminTimeEntry } from '../../types/time-tracking.types';
 import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
@@ -121,6 +122,25 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
     const gpsActiveCount = filteredEntries.filter((e: AdminTimeEntry) => e.gpsStatus === 'active').length;
 
     return { totalEntries, totalHours, uniqueUsers, gpsActiveCount };
+  }, [filteredEntries]);
+
+  // Top 10 users by hours worked for chart
+  const topUsersByHours = useMemo(() => {
+    const map = new Map<string, { name: string; hours: number }>();
+    filteredEntries.forEach((e: AdminTimeEntry) => {
+      const id = e.userId;
+      const name = e.user ? `${e.user.lastName} ${e.user.firstName}` : '-';
+      const hours = (e.durationMinutes || 0) / 60;
+      const existing = map.get(id);
+      if (existing) {
+        existing.hours += hours;
+      } else {
+        map.set(id, { name, hours });
+      }
+    });
+    return Array.from(map.values())
+      .sort((a, b) => b.hours - a.hours)
+      .slice(0, 10);
   }, [filteredEntries]);
 
   // Export to PDF
@@ -393,6 +413,21 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
           </Stack>
         </Paper>
       </Grow>
+
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Top 10 angajati dupa ore lucrate"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={topUsersByHours.length > 0 ? topUsersByHours.map(u => u.name) : ['Fara date']}
+          series={[{
+            label: 'Ore',
+            data: topUsersByHours.length > 0 ? topUsersByHours.map(u => Number(u.hours.toFixed(1))) : [0],
+            color: '#06b6d4',
+          }]}
+          defaultType="bar"
+        />
+      </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

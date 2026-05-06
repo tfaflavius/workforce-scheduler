@@ -45,6 +45,7 @@ import {
   FormatPaint as MarcajIcon,
 } from '@mui/icons-material';
 import DatePickerField from '../../components/common/DatePickerField';
+import ChartCard from '../../components/charts/ChartCard';
 import { useGetControlSesizariQuery } from '../../store/api/control.api';
 import type { ControlSesizare, ControlSesizareType, ControlSesizareStatus, ControlSesizareZone } from '../../types/control.types';
 import { loadPDFLibs, loadXLSXLib } from '../../utils/lazyExportLibs';
@@ -427,6 +428,34 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
           </Stack>
         </Paper>
       </Grow>
+
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        <ChartCard
+          title="Sesizari pe tip si status"
+          subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+          labels={['Marcaj', 'Panou']}
+          series={[
+            {
+              label: 'Active',
+              data: [
+                filteredSesizari.filter((s: ControlSesizare) => s.type === 'MARCAJ' && s.status === 'ACTIVE').length,
+                filteredSesizari.filter((s: ControlSesizare) => s.type === 'PANOU' && s.status === 'ACTIVE').length,
+              ],
+              color: '#f59e0b',
+            },
+            {
+              label: 'Finalizate',
+              data: [
+                filteredSesizari.filter((s: ControlSesizare) => s.type === 'MARCAJ' && s.status === 'FINALIZAT').length,
+                filteredSesizari.filter((s: ControlSesizare) => s.type === 'PANOU' && s.status === 'FINALIZAT').length,
+              ],
+              color: '#10b981',
+            },
+          ]}
+          defaultType="bar"
+        />
+      </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>

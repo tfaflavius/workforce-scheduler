@@ -46,6 +46,7 @@ import {
   CalendarMonth as CalendarIcon,
 } from '@mui/icons-material';
 import DatePickerField from '../../components/common/DatePickerField';
+import ChartCard from '../../components/charts/ChartCard';
 import {
   useGetParkingIssuesQuery,
   useGetParkingDamagesQuery,
@@ -906,6 +907,49 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
           </Grid>
         ))}
       </Grid>
+
+      {/* Chart */}
+      <Box sx={{ mb: 2 }}>
+        {selectedReport === 'issues' && (
+          <ChartCard
+            title="Probleme dupa status"
+            subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+            labels={['Active', 'Finalizate', 'Urgente']}
+            series={[{
+              label: 'Probleme',
+              data: [issueStats.active, issueStats.resolved, issueStats.urgent],
+              color: '#ef4444',
+            }]}
+            defaultType="bar"
+          />
+        )}
+        {selectedReport === 'damages' && (
+          <ChartCard
+            title="Prejudicii dupa tip"
+            subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+            labels={['Active', 'Recuperate', 'La juridic', 'Finalizate']}
+            series={[{
+              label: 'Prejudicii',
+              data: [damageStats.active, damageStats.recuperat, damageStats.juridic, damageStats.resolved],
+              color: '#f97316',
+            }]}
+            defaultType="bar"
+          />
+        )}
+        {selectedReport === 'collections' && collectionTotals?.byParkingLot && collectionTotals.byParkingLot.length > 0 && (
+          <ChartCard
+            title="Ridicari numerar pe parcari"
+            subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
+            labels={collectionTotals.byParkingLot.slice(0, 12).map((item: any) => item.parkingLotName)}
+            series={[{
+              label: 'Suma (RON)',
+              data: collectionTotals.byParkingLot.slice(0, 12).map((item: any) => Number(item.totalAmount) || 0),
+              color: '#10b981',
+            }]}
+            defaultType="bar"
+          />
+        )}
+      </Box>
 
       {/* Stats Row */}
       <Fade in timeout={500}>
