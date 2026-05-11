@@ -73,6 +73,7 @@ import { ControlSesizariController } from './control-sesizari.controller';
 // Schedulers
 import { ParkingUrgentScheduler } from './parking-urgent.scheduler';
 import { PvDisplayScheduler } from './pv-display.scheduler';
+import { PvSigningScheduler } from './pv-signing.scheduler';
 import { DomiciliuDeadlineScheduler } from './domiciliu-deadline.scheduler';
 
 // Guards
@@ -166,6 +167,7 @@ import { EmailModule } from '../../common/email/email.module';
     ControlSesizareAccessGuard,
     ParkingUrgentScheduler,
     PvDisplayScheduler,
+    PvSigningScheduler,
     DomiciliuDeadlineScheduler,
   ],
   exports: [
