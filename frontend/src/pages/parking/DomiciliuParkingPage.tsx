@@ -1302,6 +1302,24 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
           </Typography>
         )}
 
+        {/* Sign placement status chip */}
+        {request.requestType === 'TRASARE_LOCURI' && request.signPlacementStatus && request.signPlacementStatus !== 'NONE' && (
+          <Chip
+            icon={<ApproveLocationIcon sx={{ fontSize: 14 }} />}
+            label={`Panou: ${SIGN_PLACEMENT_STATUS_LABELS[request.signPlacementStatus]}`}
+            size="small"
+            sx={{
+              mt: 0.5,
+              bgcolor: alpha(SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus], 0.15),
+              color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus],
+              fontWeight: 600,
+              fontSize: { xs: '0.65rem', sm: '0.72rem' },
+              height: { xs: 22, sm: 24 },
+              '& .MuiChip-icon': { color: 'inherit' },
+            }}
+          />
+        )}
+
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider', flexWrap: 'wrap', gap: 0.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
             {request.creator?.fullName} • {format(new Date(request.createdAt), isMobile ? 'dd/MM/yy' : 'dd MMM yyyy', { locale: ro })}
