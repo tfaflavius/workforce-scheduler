@@ -1168,7 +1168,32 @@ interface RequestCardProps {
 const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { user } = useAppSelector((state) => state.auth);
+  const { notifyError } = useSnackbar();
+  const isAdmin = isAdminOrAbove(user?.role);
+  const isMaintenanceUser = user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const colors = REQUEST_TYPE_COLORS[request.requestType];
+
+  const [requestSignPlacement] = useRequestSignPlacementMutation();
+  const [claimSignPlacement] = useClaimSignPlacementMutation();
+
+  const handleRequestSign = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await requestSignPlacement(request.id).unwrap();
+    } catch (err: any) {
+      notifyError(err?.data?.message || 'Eroare la solicitarea amplasarii panoului');
+    }
+  };
+
+  const handleClaimSign = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await claimSignPlacement(request.id).unwrap();
+    } catch (err: any) {
+      notifyError(err?.data?.message || 'Eroare la revendicarea amplasarii panoului');
+    }
+  };
 
   return (
     <Card
@@ -1302,22 +1327,68 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
           </Typography>
         )}
 
-        {/* Sign placement status chip */}
-        {request.requestType === 'TRASARE_LOCURI' && request.signPlacementStatus && request.signPlacementStatus !== 'NONE' && (
-          <Chip
-            icon={<ApproveLocationIcon sx={{ fontSize: 14 }} />}
-            label={`Panou: ${SIGN_PLACEMENT_STATUS_LABELS[request.signPlacementStatus]}`}
-            size="small"
-            sx={{
-              mt: 0.5,
-              bgcolor: alpha(SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus], 0.15),
-              color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus],
-              fontWeight: 600,
-              fontSize: { xs: '0.65rem', sm: '0.72rem' },
-              height: { xs: 22, sm: 24 },
-              '& .MuiChip-icon': { color: 'inherit' },
-            }}
-          />
+        {/* Sign placement */}
+        {request.requestType === 'TRASARE_LOCURI' && (
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.75 }}>
+            <ApproveLocationIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'] }} />
+            {request.signPlacementStatus && request.signPlacementStatus !== 'NONE' ? (
+              <Chip
+                label={`Panou: ${SIGN_PLACEMENT_STATUS_LABELS[request.signPlacementStatus]}`}
+                size="small"
+                sx={{
+                  bgcolor: alpha(SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus], 0.15),
+                  color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus],
+                  fontWeight: 600,
+                  fontSize: { xs: '0.65rem', sm: '0.72rem' },
+                  height: { xs: 22, sm: 24 },
+                }}
+              />
+            ) : (
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                Panou: nesolicitata
+              </Typography>
+            )}
+            {(!request.signPlacementStatus || request.signPlacementStatus === 'NONE') && !isMaintenanceUser && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleRequestSign}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.6rem', sm: '0.68rem' },
+                  py: 0,
+                  px: 1,
+                  minHeight: 22,
+                  borderColor: '#f59e0b',
+                  color: '#f59e0b',
+                  '&:hover': { borderColor: '#d97706', bgcolor: alpha('#f59e0b', 0.08) },
+                }}
+              >
+                Solicita amplasare
+              </Button>
+            )}
+            {request.signPlacementStatus === 'REQUESTED' && (isMaintenanceUser || isAdmin) && (
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={handleClaimSign}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: { xs: '0.6rem', sm: '0.68rem' },
+                  py: 0,
+                  px: 1,
+                  minHeight: 22,
+                  borderColor: '#3b82f6',
+                  color: '#3b82f6',
+                  '&:hover': { borderColor: '#2563eb', bgcolor: alpha('#3b82f6', 0.08) },
+                }}
+              >
+                Revendica
+              </Button>
+            )}
+          </Stack>
         )}
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.5, pt: 1, borderTop: '1px solid', borderColor: 'divider', flexWrap: 'wrap', gap: 0.5 }}>
