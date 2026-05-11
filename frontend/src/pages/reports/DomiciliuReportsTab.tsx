@@ -65,11 +65,13 @@ interface DomiciliuReportsTabProps {
 const REQUEST_TYPE_COLORS: Record<DomiciliuRequestType, string> = {
   TRASARE_LOCURI: '#059669',
   REVOCARE_LOCURI: '#dc2626',
+  AMPLASARE_PANOU: '#2563eb',
 };
 
 const REQUEST_TYPE_ICONS: Record<DomiciliuRequestType, React.ReactNode> = {
   TRASARE_LOCURI: <ApproveLocationIcon />,
   REVOCARE_LOCURI: <RevokeIcon />,
+  AMPLASARE_PANOU: <ApproveLocationIcon />,
 };
 
 const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
@@ -115,6 +117,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
     const byType: Record<DomiciliuRequestType, { active: number; resolved: number }> = {
       TRASARE_LOCURI: { active: 0, resolved: 0 },
       REVOCARE_LOCURI: { active: 0, resolved: 0 },
+      AMPLASARE_PANOU: { active: 0, resolved: 0 },
     };
 
     filteredRequests.forEach(r => {
@@ -304,6 +307,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             <MenuItem value="ALL">Toate tipurile</MenuItem>
             <MenuItem value="TRASARE_LOCURI">Trasare locuri</MenuItem>
             <MenuItem value="REVOCARE_LOCURI">Revocare locuri</MenuItem>
+            <MenuItem value="AMPLASARE_PANOU">Amplasare panou</MenuItem>
           </Select>
         </FormControl>
 
@@ -427,13 +431,14 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
         <ChartCard
           title="Solicitari domiciliu pe tip si status"
           subtitle="Comuta intre Coloane / Linie / Cerc / Sfera / Polar / Radar"
-          labels={['Trasare locuri', 'Revocare locuri']}
+          labels={['Trasare locuri', 'Revocare locuri', 'Amplasare panou']}
           series={[
             {
               label: 'Active',
               data: [
                 stats.byType.TRASARE_LOCURI.active,
                 stats.byType.REVOCARE_LOCURI.active,
+                stats.byType.AMPLASARE_PANOU.active,
               ],
               color: '#f59e0b',
             },
@@ -442,6 +447,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
               data: [
                 stats.byType.TRASARE_LOCURI.resolved,
                 stats.byType.REVOCARE_LOCURI.resolved,
+                stats.byType.AMPLASARE_PANOU.resolved,
               ],
               color: '#10b981',
             },
