@@ -70,6 +70,9 @@ import {
   useDeleteDomiciliuRequestMutation,
   useAddDomiciliuCommentMutation,
   useGetDomiciliuHistoryQuery,
+  useRequestSignPlacementMutation,
+  useClaimSignPlacementMutation,
+  useCompleteSignPlacementMutation,
 } from '../../store/api/domiciliu.api';
 import type {
   DomiciliuRequest,
@@ -84,6 +87,8 @@ import {
   PARKING_LAYOUT_LABELS,
   DOMICILIU_REQUEST_PRIORITY_LABELS,
   DOMICILIU_REQUEST_PRIORITY_COLORS,
+  SIGN_PLACEMENT_STATUS_LABELS,
+  SIGN_PLACEMENT_STATUS_COLORS,
 } from '../../types/domiciliu.types';
 import { HISTORY_ACTION_LABELS } from '../../types/parking.types';
 import { removeDiacritics } from '../../utils/removeDiacritics';
@@ -455,11 +460,16 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
   const [addComment] = useAddDomiciliuCommentMutation();
   const [resolveRequest] = useResolveDomiciliuRequestMutation();
   const [deleteRequest] = useDeleteDomiciliuRequestMutation();
+  const [requestSignPlacement] = useRequestSignPlacementMutation();
+  const [claimSignPlacement] = useClaimSignPlacementMutation();
+  const [completeSignPlacement] = useCompleteSignPlacementMutation();
 
   const [showHistory, setShowHistory] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [showResolveDialog, setShowResolveDialog] = useState(false);
   const [resolutionDescription, setResolutionDescription] = useState('');
+  const [showSignCompleteDialog, setShowSignCompleteDialog] = useState(false);
+  const [signObservations, setSignObservations] = useState('');
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -515,6 +525,35 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
         }
       },
     });
+  };
+
+  const handleRequestSignPlacement = async () => {
+    if (!requestId) return;
+    try {
+      await requestSignPlacement(requestId).unwrap();
+    } catch (err: any) {
+      notifyError(err?.data?.message || 'Eroare la solicitarea amplasarii panoului');
+    }
+  };
+
+  const handleClaimSignPlacement = async () => {
+    if (!requestId) return;
+    try {
+      await claimSignPlacement(requestId).unwrap();
+    } catch (err: any) {
+      notifyError(err?.data?.message || 'Eroare la revendicarea amplasarii panoului');
+    }
+  };
+
+  const handleCompleteSignPlacement = async () => {
+    if (!requestId) return;
+    try {
+      await completeSignPlacement({ id: requestId, observations: signObservations || undefined }).unwrap();
+      setShowSignCompleteDialog(false);
+      setSignObservations('');
+    } catch (err: any) {
+      notifyError(err?.data?.message || 'Eroare la finalizarea amplasarii panoului');
+    }
   };
 
   if (!requestId) return null;
@@ -775,6 +814,119 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
                         </>
                       )}
 
+                      {/* Amplasare Panou Section */}
+                      {request.requestType === 'TRASARE_LOCURI' && (
+                        <>
+                          <Divider />
+                          <Card
+                            variant="outlined"
+                            sx={{
+                              borderRadius: 2,
+                              borderLeft: `4px solid ${SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE']}`,
+                              bgcolor: alpha(SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'], 0.04),
+                            }}
+                          >
+                            <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
+                              <Stack spacing={1.5}>
+                                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                                  <Stack direction="row" alignItems="center" spacing={1}>
+                                    <ApproveLocationIcon sx={{ color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'] }} />
+                                    <Typography variant="subtitle2" fontWeight={700}>
+                                      Amplasare Panou
+                                    </Typography>
+                                    <Chip
+                                      label={SIGN_PLACEMENT_STATUS_LABELS[request.signPlacementStatus || 'NONE']}
+                                      size="small"
+                                      sx={{
+                                        bgcolor: alpha(SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'], 0.15),
+                                        color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'],
+                                        fontWeight: 600,
+                                        fontSize: '0.7rem',
+                                      }}
+                                    />
+                                  </Stack>
+
+                                  {/* Action buttons */}
+                                  {(!request.signPlacementStatus || request.signPlacementStatus === 'NONE') && (canResolve || !isMaintenanceUser) && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={handleRequestSignPlacement}
+                                      sx={{
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        bgcolor: '#f59e0b',
+                                        '&:hover': { bgcolor: '#d97706' },
+                                        borderRadius: 2,
+                                      }}
+                                    >
+                                      Solicita amplasare
+                                    </Button>
+                                  )}
+                                  {request.signPlacementStatus === 'REQUESTED' && (isMaintenanceUser || isAdmin) && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={handleClaimSignPlacement}
+                                      sx={{
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        bgcolor: '#3b82f6',
+                                        '&:hover': { bgcolor: '#2563eb' },
+                                        borderRadius: 2,
+                                      }}
+                                    >
+                                      Revendica
+                                    </Button>
+                                  )}
+                                  {request.signPlacementStatus === 'CLAIMED' && (isMaintenanceUser || isAdmin) && (
+                                    <Button
+                                      size="small"
+                                      variant="contained"
+                                      onClick={() => setShowSignCompleteDialog(true)}
+                                      sx={{
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        bgcolor: '#10b981',
+                                        '&:hover': { bgcolor: '#059669' },
+                                        borderRadius: 2,
+                                      }}
+                                    >
+                                      Finalizeaza
+                                    </Button>
+                                  )}
+                                </Stack>
+
+                                {/* Details */}
+                                {request.signPlacementRequester && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    Solicitata de {request.signPlacementRequester.fullName}
+                                    {request.signPlacementRequestedAt && ` la ${format(new Date(request.signPlacementRequestedAt), 'dd MMM yyyy, HH:mm', { locale: ro })}`}
+                                  </Typography>
+                                )}
+                                {request.signPlacementClaimer && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    Revendicata de {request.signPlacementClaimer.fullName}
+                                    {request.signPlacementClaimedAt && ` la ${format(new Date(request.signPlacementClaimedAt), 'dd MMM yyyy, HH:mm', { locale: ro })}`}
+                                  </Typography>
+                                )}
+                                {request.signPlacementCompleter && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    Finalizata de {request.signPlacementCompleter.fullName}
+                                    {request.signPlacementCompletedAt && ` la ${format(new Date(request.signPlacementCompletedAt), 'dd MMM yyyy, HH:mm', { locale: ro })}`}
+                                  </Typography>
+                                )}
+                                {request.signPlacementObservations && (
+                                  <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                    Observatii: {request.signPlacementObservations}
+                                  </Typography>
+                                )}
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </>
+                      )}
+
                       <Divider />
                       <Stack direction="row" spacing={2} sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                         <Box>
@@ -943,6 +1095,45 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
             color="success"
             onClick={handleResolve}
             disabled={!resolutionDescription.trim()}
+          >
+            Finalizeaza
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Sign Placement Complete Dialog */}
+      <Dialog
+        open={showSignCompleteDialog}
+        onClose={() => setShowSignCompleteDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Finalizare amplasare panou</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="Observatii (optional)"
+            value={signObservations}
+            onChange={(e) => setSignObservations(e.target.value)}
+            placeholder="Adauga observatii despre amplasarea panoului..."
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setShowSignCompleteDialog(false)} sx={{ textTransform: 'none' }}>
+            Anuleaza
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCompleteSignPlacement}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              bgcolor: '#10b981',
+              '&:hover': { bgcolor: '#059669' },
+            }}
           >
             Finalizeaza
           </Button>

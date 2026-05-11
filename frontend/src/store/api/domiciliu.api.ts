@@ -109,6 +109,41 @@ export const domiciliuApi = createApi({
       providesTags: (_result, _error, requestId) => [{ type: 'DomiciliuHistory', id: requestId }],
     }),
 
+    // Sign placement
+    requestSignPlacement: builder.mutation<DomiciliuRequest, string>({
+      query: (id) => ({
+        url: `/parking/domiciliu-requests/${id}/request-sign-placement`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'DomiciliuRequests', id },
+        { type: 'DomiciliuRequests', id: 'LIST' },
+      ],
+    }),
+
+    claimSignPlacement: builder.mutation<DomiciliuRequest, string>({
+      query: (id) => ({
+        url: `/parking/domiciliu-requests/${id}/claim-sign-placement`,
+        method: 'POST',
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'DomiciliuRequests', id },
+        { type: 'DomiciliuRequests', id: 'LIST' },
+      ],
+    }),
+
+    completeSignPlacement: builder.mutation<DomiciliuRequest, { id: string; observations?: string }>({
+      query: ({ id, observations }) => ({
+        url: `/parking/domiciliu-requests/${id}/complete-sign-placement`,
+        method: 'POST',
+        body: { observations },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'DomiciliuRequests', id },
+        { type: 'DomiciliuRequests', id: 'LIST' },
+      ],
+    }),
+
     // Get requests for reports
     getDomiciliuRequestsForReports: builder.query<DomiciliuRequest[], DomiciliuReportFilters>({
       query: (params) => ({
@@ -130,4 +165,7 @@ export const {
   useAddDomiciliuCommentMutation,
   useGetDomiciliuHistoryQuery,
   useGetDomiciliuRequestsForReportsQuery,
+  useRequestSignPlacementMutation,
+  useClaimSignPlacementMutation,
+  useCompleteSignPlacementMutation,
 } = domiciliuApi;

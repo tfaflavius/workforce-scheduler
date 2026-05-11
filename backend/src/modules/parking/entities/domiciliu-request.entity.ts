@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { DomiciliuRequestComment } from './domiciliu-request-comment.entity';
-import { DomiciliuRequestType, DomiciliuRequestStatus, ParkingLayoutType, DomiciliuRequestPriority } from '../constants/parking.constants';
+import { DomiciliuRequestType, DomiciliuRequestStatus, ParkingLayoutType, DomiciliuRequestPriority, SignPlacementStatus } from '../constants/parking.constants';
 
 @Entity('domiciliu_requests')
 @Index('IDX_domiciliu_requests_status', ['status'])
@@ -82,6 +82,31 @@ export class DomiciliuRequest {
   @Column({ name: 'contract_number', length: 100, nullable: true })
   contractNumber: string;
 
+  // Amplasare panou
+  @Column({ name: 'sign_placement_status', length: 20, default: 'NONE' })
+  signPlacementStatus: SignPlacementStatus;
+
+  @Column({ name: 'sign_placement_requested_at', type: 'timestamptz', nullable: true })
+  signPlacementRequestedAt: Date;
+
+  @Column({ name: 'sign_placement_requested_by', nullable: true })
+  signPlacementRequestedBy: string;
+
+  @Column({ name: 'sign_placement_claimed_by', nullable: true })
+  signPlacementClaimedBy: string;
+
+  @Column({ name: 'sign_placement_claimed_at', type: 'timestamptz', nullable: true })
+  signPlacementClaimedAt: Date;
+
+  @Column({ name: 'sign_placement_completed_by', nullable: true })
+  signPlacementCompletedBy: string;
+
+  @Column({ name: 'sign_placement_completed_at', type: 'timestamptz', nullable: true })
+  signPlacementCompletedAt: Date;
+
+  @Column({ name: 'sign_placement_observations', type: 'text', nullable: true })
+  signPlacementObservations: string;
+
   // Audit fields
   @Column({ name: 'created_by' })
   createdBy: string;
@@ -116,6 +141,18 @@ export class DomiciliuRequest {
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'last_modified_by' })
   lastModifier: User;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'sign_placement_requested_by' })
+  signPlacementRequester: User;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'sign_placement_claimed_by' })
+  signPlacementClaimer: User;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'sign_placement_completed_by' })
+  signPlacementCompleter: User;
 
   @OneToMany(() => DomiciliuRequestComment, (comment) => comment.request)
   comments: DomiciliuRequestComment[];

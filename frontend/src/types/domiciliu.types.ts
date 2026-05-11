@@ -5,6 +5,7 @@ export type DomiciliuRequestType = 'TRASARE_LOCURI' | 'REVOCARE_LOCURI';
 export type DomiciliuRequestStatus = 'ACTIVE' | 'FINALIZAT';
 export type ParkingLayoutType = 'PARALEL' | 'PERPENDICULAR' | 'SPIC';
 export type DomiciliuRequestPriority = 'URGENT' | 'MEDIU' | 'SCAZUT';
+export type SignPlacementStatus = 'NONE' | 'REQUESTED' | 'CLAIMED' | 'COMPLETED';
 
 export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
   TRASARE_LOCURI: 'Trasare locuri de parcare',
@@ -26,6 +27,20 @@ export const DOMICILIU_REQUEST_PRIORITY_COLORS: Record<DomiciliuRequestPriority,
   URGENT: '#ef4444',
   MEDIU: '#f59e0b',
   SCAZUT: '#10b981',
+};
+
+export const SIGN_PLACEMENT_STATUS_LABELS: Record<SignPlacementStatus, string> = {
+  NONE: 'Nesolicitata',
+  REQUESTED: 'Solicitata',
+  CLAIMED: 'Revendicata',
+  COMPLETED: 'Finalizata',
+};
+
+export const SIGN_PLACEMENT_STATUS_COLORS: Record<SignPlacementStatus, string> = {
+  NONE: '#6b7280',
+  REQUESTED: '#f59e0b',
+  CLAIMED: '#3b82f6',
+  COMPLETED: '#10b981',
 };
 
 export const PARKING_LAYOUT_LABELS: Record<ParkingLayoutType, string> = {
@@ -53,6 +68,17 @@ export interface DomiciliuRequest {
   phone?: string;
   email?: string;
   contractNumber?: string;
+  signPlacementStatus?: SignPlacementStatus;
+  signPlacementRequestedAt?: string;
+  signPlacementRequestedBy?: string;
+  signPlacementRequester?: UserReference;
+  signPlacementClaimedBy?: string;
+  signPlacementClaimedAt?: string;
+  signPlacementClaimer?: UserReference;
+  signPlacementCompletedBy?: string;
+  signPlacementCompletedAt?: string;
+  signPlacementCompleter?: UserReference;
+  signPlacementObservations?: string;
   createdBy: string;
   resolvedBy?: string;
   lastModifiedBy?: string;

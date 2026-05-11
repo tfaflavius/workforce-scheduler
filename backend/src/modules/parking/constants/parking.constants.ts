@@ -234,6 +234,23 @@ export const DOMICILIU_REQUEST_PRIORITY_LABELS: Record<DomiciliuRequestPriority,
   SCAZUT: 'Scazut',
 };
 
+// Status amplasare panou pe solicitari domiciliu
+export const SIGN_PLACEMENT_STATUS = {
+  NONE: 'NONE',
+  REQUESTED: 'REQUESTED',
+  CLAIMED: 'CLAIMED',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export type SignPlacementStatus = typeof SIGN_PLACEMENT_STATUS[keyof typeof SIGN_PLACEMENT_STATUS];
+
+export const SIGN_PLACEMENT_STATUS_LABELS: Record<SignPlacementStatus, string> = {
+  NONE: 'Nesolicitata',
+  REQUESTED: 'Solicitata',
+  CLAIMED: 'Revendicata',
+  COMPLETED: 'Finalizata',
+};
+
 // ============== LEGITIMATII HANDICAP ==============
 
 // Status pentru legitimatii handicap

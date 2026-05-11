@@ -22,6 +22,8 @@ import {
   DomiciliuRequestType,
   DomiciliuRequestStatus,
   DomiciliuRequestPriority,
+  SIGN_PLACEMENT_STATUS,
+  SignPlacementStatus,
 } from './constants/parking.constants';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 
@@ -306,7 +308,10 @@ export class DomiciliuRequestsService {
     const query = this.domiciliuRequestRepository.createQueryBuilder('request')
       .leftJoinAndSelect('request.creator', 'creator')
       .leftJoinAndSelect('request.resolver', 'resolver')
-      .leftJoinAndSelect('request.lastModifier', 'lastModifier');
+      .leftJoinAndSelect('request.lastModifier', 'lastModifier')
+      .leftJoinAndSelect('request.signPlacementRequester', 'signPlacementRequester')
+      .leftJoinAndSelect('request.signPlacementClaimer', 'signPlacementClaimer')
+      .leftJoinAndSelect('request.signPlacementCompleter', 'signPlacementCompleter');
 
     if (status) {
       query.andWhere('request.status = :status', { status });
@@ -322,7 +327,7 @@ export class DomiciliuRequestsService {
   async findOne(id: string): Promise<DomiciliuRequest> {
     const request = await this.domiciliuRequestRepository.findOne({
       where: { id },
-      relations: ['creator', 'resolver', 'lastModifier', 'comments', 'comments.user'],
+      relations: ['creator', 'resolver', 'lastModifier', 'signPlacementRequester', 'signPlacementClaimer', 'signPlacementCompleter', 'comments', 'comments.user'],
     });
 
     if (!request) {
@@ -461,6 +466,198 @@ export class DomiciliuRequestsService {
     });
 
     await this.domiciliuRequestRepository.remove(request);
+  }
+
+  // ===== AMPLASARE PANOU =====
+
+  async requestSignPlacement(id: string, userId: string): Promise<DomiciliuRequest> {
+    const request = await this.findOne(id);
+
+    if (request.signPlacementStatus !== SIGN_PLACEMENT_STATUS.NONE) {
+      throw new ForbiddenException('Amplasarea panoului a fost deja solicitata');
+    }
+
+    request.signPlacementStatus = SIGN_PLACEMENT_STATUS.REQUESTED as SignPlacementStatus;
+    request.signPlacementRequestedAt = new Date();
+    request.signPlacementRequestedBy = userId;
+    request.lastModifiedBy = userId;
+
+    await this.domiciliuRequestRepository.save(request);
+
+    await this.recordHistory(id, 'UPDATED', userId, {
+      signPlacementStatus: { from: 'NONE', to: 'REQUESTED' },
+    });
+
+    await this.notifyMaintenanceSignPlacement(request, userId, 'requested');
+
+    return this.findOne(id);
+  }
+
+  async claimSignPlacement(id: string, userId: string, user: any): Promise<DomiciliuRequest> {
+    const userDeptName = removeDiacritics(user.department?.name || '');
+    const isMaintenance = userDeptName === MAINTENANCE_DEPARTMENT_NAME;
+    const isAdmin = isAdminOrAbove(user.role);
+
+    if (!isMaintenance && !isAdmin) {
+      throw new ForbiddenException('Doar departamentul Intretinere Parcari si administratorii pot revendica amplasarea panoului');
+    }
+
+    const request = await this.findOne(id);
+
+    if (request.signPlacementStatus !== SIGN_PLACEMENT_STATUS.REQUESTED) {
+      throw new ForbiddenException('Amplasarea panoului nu este in starea corecta pentru revendicare');
+    }
+
+    request.signPlacementStatus = SIGN_PLACEMENT_STATUS.CLAIMED as SignPlacementStatus;
+    request.signPlacementClaimedBy = userId;
+    request.signPlacementClaimedAt = new Date();
+    request.lastModifiedBy = userId;
+
+    await this.domiciliuRequestRepository.save(request);
+
+    await this.recordHistory(id, 'UPDATED', userId, {
+      signPlacementStatus: { from: 'REQUESTED', to: 'CLAIMED' },
+    });
+
+    await this.notifyMaintenanceSignPlacement(request, userId, 'claimed');
+
+    return this.findOne(id);
+  }
+
+  async completeSignPlacement(id: string, userId: string, observations: string | null, user: any): Promise<DomiciliuRequest> {
+    const userDeptName = removeDiacritics(user.department?.name || '');
+    const isMaintenance = userDeptName === MAINTENANCE_DEPARTMENT_NAME;
+    const isAdmin = isAdminOrAbove(user.role);
+
+    if (!isMaintenance && !isAdmin) {
+      throw new ForbiddenException('Doar departamentul Intretinere Parcari si administratorii pot finaliza amplasarea panoului');
+    }
+
+    const request = await this.findOne(id);
+
+    if (request.signPlacementStatus !== SIGN_PLACEMENT_STATUS.CLAIMED) {
+      throw new ForbiddenException('Amplasarea panoului nu este in starea corecta pentru finalizare');
+    }
+
+    request.signPlacementStatus = SIGN_PLACEMENT_STATUS.COMPLETED as SignPlacementStatus;
+    request.signPlacementCompletedBy = userId;
+    request.signPlacementCompletedAt = new Date();
+    request.signPlacementObservations = observations || null;
+    request.lastModifiedBy = userId;
+
+    await this.domiciliuRequestRepository.save(request);
+
+    await this.recordHistory(id, 'UPDATED', userId, {
+      signPlacementStatus: { from: 'CLAIMED', to: 'COMPLETED' },
+      signPlacementObservations: observations,
+    });
+
+    await this.notifyMaintenanceSignPlacement(request, userId, 'completed');
+
+    return this.findOne(id);
+  }
+
+  private async notifyMaintenanceSignPlacement(
+    request: DomiciliuRequest,
+    actorUserId: string,
+    action: 'requested' | 'claimed' | 'completed',
+  ): Promise<void> {
+    try {
+      const actor = await this.userRepository.findOne({ where: { id: actorUserId } });
+      const actorName = actor?.fullName || 'Un utilizator';
+      const notifiedUserIds = new Set<string>();
+      const notifications: any[] = [];
+
+      const titles: Record<string, string> = {
+        requested: 'Solicitare amplasare panou domiciliu',
+        claimed: 'Amplasare panou domiciliu - revendicata',
+        completed: 'Amplasare panou domiciliu - finalizata',
+      };
+
+      const messages: Record<string, string> = {
+        requested: `${actorName} a solicitat amplasarea panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
+        claimed: `${actorName} a revendicat amplasarea panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
+        completed: `${actorName} a finalizat amplasarea panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
+      };
+
+      // Notifica Intretinere Parcari
+      const maintenanceDept = await this.departmentRepository.findOne({
+        where: { name: MAINTENANCE_DEPARTMENT_NAME },
+      });
+      if (maintenanceDept) {
+        const maintenanceUsers = await this.userRepository.find({
+          where: { departmentId: maintenanceDept.id, isActive: true },
+        });
+        maintenanceUsers.forEach(u => {
+          if (u.id !== actorUserId && !notifiedUserIds.has(u.id)) {
+            notifiedUserIds.add(u.id);
+            notifications.push({
+              userId: u.id,
+              type: NotificationType.DOMICILIU_SIGN_PLACEMENT,
+              title: titles[action],
+              message: messages[action],
+              data: { domiciliuRequestId: request.id },
+            });
+          }
+        });
+      }
+
+      // Notifica Parcari Domiciliu
+      const domiciliuDept = await this.departmentRepository.findOne({
+        where: { name: DOMICILIU_PARKING_DEPARTMENT_NAME },
+      });
+      if (domiciliuDept) {
+        const domiciliuUsers = await this.userRepository.find({
+          where: { departmentId: domiciliuDept.id, isActive: true },
+        });
+        domiciliuUsers.forEach(u => {
+          if (u.id !== actorUserId && !notifiedUserIds.has(u.id)) {
+            notifiedUserIds.add(u.id);
+            notifications.push({
+              userId: u.id,
+              type: NotificationType.DOMICILIU_SIGN_PLACEMENT,
+              title: titles[action],
+              message: messages[action],
+              data: { domiciliuRequestId: request.id },
+            });
+          }
+        });
+      }
+
+      // Notifica Admin
+      const admins = await this.userRepository.find({
+        where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
+      });
+      admins.forEach(u => {
+        if (u.id !== actorUserId && !notifiedUserIds.has(u.id)) {
+          notifiedUserIds.add(u.id);
+          notifications.push({
+            userId: u.id,
+            type: NotificationType.DOMICILIU_SIGN_PLACEMENT,
+            title: titles[action],
+            message: messages[action],
+            data: { domiciliuRequestId: request.id },
+          });
+        }
+      });
+
+      // Notifica creatorul cererii
+      if (request.createdBy !== actorUserId && !notifiedUserIds.has(request.createdBy)) {
+        notifications.push({
+          userId: request.createdBy,
+          type: NotificationType.DOMICILIU_SIGN_PLACEMENT,
+          title: titles[action],
+          message: messages[action],
+          data: { domiciliuRequestId: request.id },
+        });
+      }
+
+      if (notifications.length > 0) {
+        await this.notificationsService.createMany(notifications);
+      }
+    } catch (error) {
+      this.logger.error(`Error notifying sign placement: ${error.message}`);
+    }
   }
 
   // Pentru rapoarte

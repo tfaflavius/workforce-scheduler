@@ -83,6 +83,21 @@ export class DomiciliuRequestsController {
     return this.domiciliuRequestsService.getComments(id);
   }
 
+  @Post(':id/request-sign-placement')
+  async requestSignPlacement(@Param('id') id: string, @Request() req) {
+    return this.domiciliuRequestsService.requestSignPlacement(id, req.user.id);
+  }
+
+  @Post(':id/claim-sign-placement')
+  async claimSignPlacement(@Param('id') id: string, @Request() req) {
+    return this.domiciliuRequestsService.claimSignPlacement(id, req.user.id, req.user);
+  }
+
+  @Post(':id/complete-sign-placement')
+  async completeSignPlacement(@Param('id') id: string, @Request() req, @Body() body: { observations?: string }) {
+    return this.domiciliuRequestsService.completeSignPlacement(id, req.user.id, body.observations || null, req.user);
+  }
+
   @Delete(':id')
   async delete(@Param('id') id: string, @Request() req) {
     return this.domiciliuRequestsService.delete(id, req.user);
