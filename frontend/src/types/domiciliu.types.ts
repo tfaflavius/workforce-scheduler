@@ -1,7 +1,7 @@
 import type { UserReference, ParkingComment } from './parking.types';
 
 // Domiciliu Request Types
-export type DomiciliuRequestType = 'TRASARE_LOCURI' | 'REVOCARE_LOCURI';
+export type DomiciliuRequestType = 'TRASARE_LOCURI' | 'REVOCARE_LOCURI' | 'AMPLASARE_PANOU';
 export type DomiciliuRequestStatus = 'ACTIVE' | 'FINALIZAT';
 export type ParkingLayoutType = 'PARALEL' | 'PERPENDICULAR' | 'SPIC';
 export type DomiciliuRequestPriority = 'URGENT' | 'MEDIU' | 'SCAZUT';
@@ -10,6 +10,7 @@ export type SignPlacementStatus = 'NONE' | 'REQUESTED' | 'CLAIMED' | 'COMPLETED'
 export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
   TRASARE_LOCURI: 'Trasare locuri de parcare',
   REVOCARE_LOCURI: 'Revocare locuri de parcare',
+  AMPLASARE_PANOU: 'Amplasare panou',
 };
 
 export const DOMICILIU_REQUEST_STATUS_LABELS: Record<DomiciliuRequestStatus, string> = {

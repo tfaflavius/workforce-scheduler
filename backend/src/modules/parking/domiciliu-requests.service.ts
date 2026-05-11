@@ -74,6 +74,11 @@ export class DomiciliuRequestsService {
       createdBy: userId,
       lastModifiedBy: userId,
       status: 'ACTIVE' as DomiciliuRequestStatus,
+      signPlacementStatus: (dto.requestType === 'AMPLASARE_PANOU'
+        ? SIGN_PLACEMENT_STATUS.REQUESTED
+        : SIGN_PLACEMENT_STATUS.NONE) as SignPlacementStatus,
+      signPlacementRequestedAt: dto.requestType === 'AMPLASARE_PANOU' ? new Date() : null,
+      signPlacementRequestedBy: dto.requestType === 'AMPLASARE_PANOU' ? userId : null,
     });
 
     const savedRequest = await this.domiciliuRequestRepository.save(request);

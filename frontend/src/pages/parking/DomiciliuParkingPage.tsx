@@ -109,12 +109,14 @@ const ALLOWED_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NA
 const REQUEST_TYPE_COLORS: Record<DomiciliuRequestType, { main: string; bg: string }> = {
   TRASARE_LOCURI: { main: '#059669', bg: '#05966915' },
   REVOCARE_LOCURI: { main: '#dc2626', bg: '#dc262615' },
+  AMPLASARE_PANOU: { main: '#2563eb', bg: '#2563eb15' },
 };
 
 // Icons pentru tipuri
 const REQUEST_TYPE_ICONS: Record<DomiciliuRequestType, React.ReactNode> = {
   TRASARE_LOCURI: <ApproveLocationIcon />,
   REVOCARE_LOCURI: <RevokeIcon />,
+  AMPLASARE_PANOU: <ApproveLocationIcon />,
 };
 
 interface TabPanelProps {
@@ -815,7 +817,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
                       )}
 
                       {/* Amplasare Panou Section */}
-                      {request.requestType === 'TRASARE_LOCURI' && (
+                      {(request.requestType === 'TRASARE_LOCURI' || request.requestType === 'AMPLASARE_PANOU') && (
                         <>
                           <Divider />
                           <Card
@@ -1328,7 +1330,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
         )}
 
         {/* Sign placement */}
-        {request.requestType === 'TRASARE_LOCURI' && (
+        {(request.requestType === 'TRASARE_LOCURI' || request.requestType === 'AMPLASARE_PANOU') && (
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.75 }}>
             <ApproveLocationIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'] }} />
             {request.signPlacementStatus && request.signPlacementStatus !== 'NONE' ? (
@@ -1471,6 +1473,13 @@ const DomiciliuParkingPage: React.FC = () => {
       shortLabel: 'Revocare',
       icon: <RevokeIcon />,
       color: REQUEST_TYPE_COLORS.REVOCARE_LOCURI.main,
+    },
+    {
+      type: 'AMPLASARE_PANOU',
+      label: 'Amplasare Panou',
+      shortLabel: 'Panou',
+      icon: <ApproveLocationIcon />,
+      color: REQUEST_TYPE_COLORS.AMPLASARE_PANOU.main,
     },
   ];
 
