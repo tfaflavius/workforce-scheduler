@@ -237,7 +237,7 @@ interface DayCardProps {
   isUnclaiming?: boolean;
 }
 
-const DayCard: React.FC<DayCardProps> = ({ day, userId, onUnclaim, onComplete, isUnclaiming }) => {
+const DayCard: React.FC<DayCardProps> = ({ day, onUnclaim, onComplete, isUnclaiming }) => {
   const statusColor = PV_DAY_STATUS_COLORS[day.status];
   const isCompleted = day.status === 'COMPLETED';
   const canUnclaim = !isCompleted && day.status !== 'IN_PROGRESS';
