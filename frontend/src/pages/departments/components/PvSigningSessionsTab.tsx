@@ -531,7 +531,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
   const totalDays = session.days?.length || 0;
   const completedDays = session.days?.filter(d => d.status === 'COMPLETED').length || 0;
   const fullyAssignedDays = session.days?.filter(d =>
-    d.maintenanceUser1Id && d.maintenanceUser2Id
+    d.maintenanceUser1Id
   ).length || 0;
 
   return (
@@ -648,7 +648,7 @@ const DaysSection: React.FC<{ days: PvSigningDay[] }> = ({ days }) => {
     <Stack spacing={1}>
       {days.map((day) => {
         const statusColor = PV_DAY_STATUS_COLORS[day.status];
-        const assignedCount = (day.maintenanceUser1Id ? 1 : 0) + (day.maintenanceUser2Id ? 1 : 0);
+        const isAssigned = !!day.maintenanceUser1Id;
         const hasPvDetails = day.firstNoticeSeries || day.firstNoticeNumber || day.noticesDateFrom;
 
         return (
@@ -681,15 +681,15 @@ const DaysSection: React.FC<{ days: PvSigningDay[] }> = ({ days }) => {
                     />
                   </Stack>
                   <Typography variant="caption" color="text.secondary">
-                    {day.noticeCount} procese verbale • {assignedCount}/2 Intretinere asignati
+                    {day.noticeCount} procese verbale • {isAssigned ? '1/1' : '0/1'} Intretinere asignat
                   </Typography>
                 </Box>
                 <Chip
-                  label={`${assignedCount}/2`}
+                  label={isAssigned ? '1/1' : '0/1'}
                   size="small"
                   sx={{
-                    bgcolor: assignedCount === 2 ? alpha('#10b981', 0.15) : alpha('#f59e0b', 0.15),
-                    color: assignedCount === 2 ? '#10b981' : '#f59e0b',
+                    bgcolor: isAssigned ? alpha('#10b981', 0.15) : alpha('#f59e0b', 0.15),
+                    color: isAssigned ? '#10b981' : '#f59e0b',
                     fontWeight: 700,
                   }}
                 />
@@ -723,26 +723,15 @@ const DaysSection: React.FC<{ days: PvSigningDay[] }> = ({ days }) => {
                 </Box>
               )}
 
-              {(day.maintenanceUser1 || day.maintenanceUser2) && (
+              {day.maintenanceUser1 && (
                 <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                  {day.maintenanceUser1 && (
-                    <Chip
-                      avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser1.fullName[0]}</Avatar>}
-                      label={day.maintenanceUser1.fullName}
-                      size="small"
-                      variant="outlined"
-                      sx={{ fontSize: '0.7rem' }}
-                    />
-                  )}
-                  {day.maintenanceUser2 && (
-                    <Chip
-                      avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser2.fullName[0]}</Avatar>}
-                      label={day.maintenanceUser2.fullName}
-                      size="small"
-                      variant="outlined"
-                      sx={{ fontSize: '0.7rem' }}
-                    />
-                  )}
+                  <Chip
+                    avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser1.fullName[0]}</Avatar>}
+                    label={day.maintenanceUser1.fullName}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem' }}
+                  />
                 </Stack>
               )}
               {day.completionObservations && (

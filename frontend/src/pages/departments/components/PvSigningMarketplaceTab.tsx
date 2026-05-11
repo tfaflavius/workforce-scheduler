@@ -60,7 +60,6 @@ const PvSigningMarketplaceTab: React.FC = () => {
   // Admin assign dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignDayId, setAssignDayId] = useState<string | null>(null);
-  const [assignSlot, setAssignSlot] = useState<'1' | '2'>('1');
   const [assignUserId, setAssignUserId] = useState('');
   const { data: maintenanceUsers = [] } = useGetMaintenanceUsersQuery(undefined, { skip: !isAdmin });
 
@@ -75,9 +74,8 @@ const PvSigningMarketplaceTab: React.FC = () => {
     }
   };
 
-  const handleOpenAssign = (dayId: string, slot: '1' | '2') => {
+  const handleOpenAssign = (dayId: string) => {
     setAssignDayId(dayId);
-    setAssignSlot(slot);
     setAssignUserId('');
     setAssignDialogOpen(true);
   };
@@ -85,7 +83,7 @@ const PvSigningMarketplaceTab: React.FC = () => {
   const handleAdminAssign = async () => {
     if (!assignDayId || !assignUserId) return;
     try {
-      const dto: AdminAssignPvSigningDayDto = { userId: assignUserId, slot: assignSlot };
+      const dto: AdminAssignPvSigningDayDto = { userId: assignUserId };
       await adminAssignDay({ dayId: assignDayId, data: dto }).unwrap();
       setAssignDialogOpen(false);
     } catch (err: any) {
@@ -154,10 +152,10 @@ const PvSigningMarketplaceTab: React.FC = () => {
               </Typography>
               <Stack spacing={1.5}>
                 {sessionDays.map((day) => {
-                  const assignedCount = (day.maintenanceUser1Id ? 1 : 0) + (day.maintenanceUser2Id ? 1 : 0);
+                  const isAssigned = !!day.maintenanceUser1Id;
                   const statusColor = PV_DAY_STATUS_COLORS[day.status];
-                  const isFullyAssigned = assignedCount === 2;
-                  const alreadyClaimed = day.maintenanceUser1Id === user?.id || day.maintenanceUser2Id === user?.id;
+                  const isFullyAssigned = isAssigned;
+                  const alreadyClaimed = day.maintenanceUser1Id === user?.id;
                   // Past day: cannot be claimed any more, mark as history
                   const todayStr = new Date().toISOString().slice(0, 10);
                   const dayDateStr = String(day.signingDate).slice(0, 10);
@@ -189,11 +187,11 @@ const PvSigningMarketplaceTab: React.FC = () => {
                                 {new Date(day.signingDate).toLocaleDateString('ro-RO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
                               </Typography>
                               <Chip
-                                label={`${assignedCount}/2`}
+                                label={isAssigned ? '1/1' : '0/1'}
                                 size="small"
                                 sx={{
-                                  bgcolor: isFullyAssigned ? alpha('#10b981', 0.15) : alpha('#f59e0b', 0.15),
-                                  color: isFullyAssigned ? '#10b981' : '#f59e0b',
+                                  bgcolor: isAssigned ? alpha('#10b981', 0.15) : alpha('#f59e0b', 0.15),
+                                  color: isAssigned ? '#10b981' : '#f59e0b',
                                   fontWeight: 700,
                                   fontSize: '0.7rem',
                                 }}
@@ -206,9 +204,8 @@ const PvSigningMarketplaceTab: React.FC = () => {
                               {day.noticesDateFrom && ` • din ${new Date(day.noticesDateFrom).toLocaleDateString('ro-RO')}`}
                             </Typography>
 
-                            {/* Assigned users */}
+                            {/* Assigned user */}
                             <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                              {/* Slot 1 */}
                               {day.maintenanceUser1 ? (
                                 <Chip
                                   avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser1.fullName[0]}</Avatar>}
@@ -221,31 +218,10 @@ const PvSigningMarketplaceTab: React.FC = () => {
                               ) : (
                                 isAdmin && (
                                   <Chip
-                                    label="Slot 1 - Liber"
+                                    label="Neasignat"
                                     size="small"
                                     variant="outlined"
-                                    onClick={() => handleOpenAssign(day.id, '1')}
-                                    sx={{ fontSize: '0.7rem', borderStyle: 'dashed', cursor: 'pointer' }}
-                                  />
-                                )
-                              )}
-                              {/* Slot 2 */}
-                              {day.maintenanceUser2 ? (
-                                <Chip
-                                  avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser2.fullName[0]}</Avatar>}
-                                  label={day.maintenanceUser2.fullName}
-                                  size="small"
-                                  color="primary"
-                                  variant="outlined"
-                                  sx={{ fontSize: '0.7rem' }}
-                                />
-                              ) : (
-                                isAdmin && day.maintenanceUser1Id && (
-                                  <Chip
-                                    label="Slot 2 - Liber"
-                                    size="small"
-                                    variant="outlined"
-                                    onClick={() => handleOpenAssign(day.id, '2')}
+                                    onClick={() => handleOpenAssign(day.id)}
                                     sx={{ fontSize: '0.7rem', borderStyle: 'dashed', cursor: 'pointer' }}
                                   />
                                 )
@@ -326,7 +302,7 @@ const PvSigningMarketplaceTab: React.FC = () => {
         fullWidth
       >
         <DialogTitle sx={{ fontWeight: 700 }}>
-          Asignare manuala - Slot {assignSlot}
+          Asignare manuala
         </DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 1 }}>

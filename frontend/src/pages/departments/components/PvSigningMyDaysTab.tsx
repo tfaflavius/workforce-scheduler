@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Alert,
   alpha,
-  Avatar,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -243,7 +242,7 @@ const DayCard: React.FC<DayCardProps> = ({ day, userId, onUnclaim, onComplete, i
   const isCompleted = day.status === 'COMPLETED';
   const canUnclaim = !isCompleted && day.status !== 'IN_PROGRESS';
   const canComplete = day.status === 'ASSIGNED' || day.status === 'IN_PROGRESS';
-  const assignedCount = (day.maintenanceUser1Id ? 1 : 0) + (day.maintenanceUser2Id ? 1 : 0);
+  const isAssigned = !!day.maintenanceUser1Id;
 
   return (
     <Card
@@ -293,35 +292,16 @@ const DayCard: React.FC<DayCardProps> = ({ day, userId, onUnclaim, onComplete, i
               </Typography>
             )}
 
-            {/* Partner */}
-            <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-              {day.maintenanceUser1 && day.maintenanceUser1.id !== userId && (
-                <Chip
-                  avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser1.fullName[0]}</Avatar>}
-                  label={`Partener: ${day.maintenanceUser1.fullName}`}
-                  size="small"
-                  variant="outlined"
-                  sx={{ fontSize: '0.7rem' }}
-                />
-              )}
-              {day.maintenanceUser2 && day.maintenanceUser2.id !== userId && (
-                <Chip
-                  avatar={<Avatar sx={{ width: 20, height: 20, fontSize: '0.7rem' }}>{day.maintenanceUser2.fullName[0]}</Avatar>}
-                  label={`Partener: ${day.maintenanceUser2.fullName}`}
-                  size="small"
-                  variant="outlined"
-                  sx={{ fontSize: '0.7rem' }}
-                />
-              )}
-              {assignedCount < 2 && (
-                <Chip
-                  label="Se asteapta al 2-lea coleg"
-                  size="small"
-                  variant="outlined"
-                  sx={{ fontSize: '0.7rem', borderStyle: 'dashed', color: '#f59e0b' }}
-                />
-              )}
-            </Stack>
+            {/* Status asignare */}
+            {isAssigned && (
+              <Chip
+                label="Revendicat"
+                size="small"
+                color="success"
+                variant="outlined"
+                sx={{ fontSize: '0.7rem', mt: 1 }}
+              />
+            )}
 
             {/* Completion observations */}
             {day.completionObservations && (

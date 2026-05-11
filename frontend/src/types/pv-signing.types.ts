@@ -139,7 +139,6 @@ export interface CompletePvSigningDayDto {
 
 export interface AdminAssignPvSigningDayDto {
   userId: string;
-  slot: '1' | '2';
 }
 
 // ===== HISTORY (reuse parking type) =====

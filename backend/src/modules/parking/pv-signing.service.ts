@@ -185,7 +185,7 @@ export class PvSigningService {
     if (dto.days && dto.days.length > 0) {
       // Sterge zilele vechi care nu au useri asignati
       const existingDays = await this.dayRepository.find({ where: { sessionId: id } });
-      const daysToDelete = existingDays.filter(d => !d.maintenanceUser1Id && !d.maintenanceUser2Id);
+      const daysToDelete = existingDays.filter(d => !d.maintenanceUser1Id);
       if (daysToDelete.length > 0) {
         await this.dayRepository.remove(daysToDelete);
       }
@@ -265,7 +265,7 @@ export class PvSigningService {
       .leftJoinAndSelect('day.maintenanceUser1', 'maintenanceUser1')
       .leftJoinAndSelect('day.maintenanceUser2', 'maintenanceUser2')
       .leftJoinAndSelect('day.completedByUser', 'completedByUser')
-      .where('(day.maintenanceUser1Id = :userId OR day.maintenanceUser2Id = :userId)', { userId })
+      .where('day.maintenanceUser1Id = :userId', { userId })
       .orderBy('day.signingDate', 'DESC')
       .getMany();
 
@@ -297,44 +297,33 @@ export class PvSigningService {
     }
 
     // Verificare: userul nu e deja asignat
-    if (day.maintenanceUser1Id === userId || day.maintenanceUser2Id === userId) {
+    if (day.maintenanceUser1Id === userId) {
       throw new BadRequestException('Esti deja asignat pe aceasta zi');
     }
 
-    // Verificare: mai sunt sloturi libere
-    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
-      throw new BadRequestException('Toate sloturile sunt ocupate pe aceasta zi');
+    // Verificare: slotul e deja ocupat (semnare necesita doar 1 user)
+    if (day.maintenanceUser1Id) {
+      throw new BadRequestException('Aceasta zi este deja revendicata');
     }
 
-    // Asigneaza pe primul slot liber
+    // Asigneaza userul
     const now = new Date();
-    if (!day.maintenanceUser1Id) {
-      day.maintenanceUser1Id = userId;
-      day.maintenanceUser1ClaimedAt = now;
-    } else {
-      day.maintenanceUser2Id = userId;
-      day.maintenanceUser2ClaimedAt = now;
-    }
+    day.maintenanceUser1Id = userId;
+    day.maintenanceUser1ClaimedAt = now;
 
-    // Recalculeaza status
-    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
-      day.status = PV_DAY_STATUS.ASSIGNED as PvDayStatus;
-    }
+    // Semnare: 1 user e suficient => ASSIGNED
+    day.status = PV_DAY_STATUS.ASSIGNED as PvDayStatus;
 
     await this.dayRepository.save(day);
 
     // History
-    await this.recordDayHistory(dayId, 'CLAIMED', userId, {
-      slot: day.maintenanceUser1Id === userId ? 1 : 2,
-    });
+    await this.recordDayHistory(dayId, 'CLAIMED', userId, {});
 
     // Recalculeaza statusul sesiunii
     await this.recalculateSessionStatus(day.sessionId);
 
-    // Notifica daca ziua e complet asignata (2/2)
-    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
-      await this.notifyDayFullyAssigned(day);
-    }
+    // Notifica ca ziua e asignata (semnare: 1 user e suficient)
+    await this.notifyDayFullyAssigned(day);
 
     this.logger.log(`Day ${dayId} claimed by user ${userId}`);
 
@@ -359,23 +348,12 @@ export class PvSigningService {
     const isAdmin = isAdminOrAbove(user.role);
 
     // Doar userul asignat sau admin pot face unclaim
-    if (day.maintenanceUser1Id === userId) {
-      day.maintenanceUser1Id = null;
-      day.maintenanceUser1ClaimedAt = null;
-    } else if (day.maintenanceUser2Id === userId) {
-      day.maintenanceUser2Id = null;
-      day.maintenanceUser2ClaimedAt = null;
-    } else if (isAdmin) {
-      // Admin poate face unclaim ultimului user asignat
-      if (day.maintenanceUser2Id) {
-        day.maintenanceUser2Id = null;
-        day.maintenanceUser2ClaimedAt = null;
-      } else if (day.maintenanceUser1Id) {
-        day.maintenanceUser1Id = null;
-        day.maintenanceUser1ClaimedAt = null;
-      } else {
+    if (day.maintenanceUser1Id === userId || isAdmin) {
+      if (!day.maintenanceUser1Id) {
         throw new BadRequestException('Nu exista utilizatori asignati pe aceasta zi');
       }
+      day.maintenanceUser1Id = null;
+      day.maintenanceUser1ClaimedAt = null;
     } else {
       throw new ForbiddenException('Nu esti asignat pe aceasta zi');
     }
@@ -422,29 +400,17 @@ export class PvSigningService {
       throw new BadRequestException('Utilizatorul nu face parte din departamentul Intretinere Parcari');
     }
 
-    // Verificare: slotul nu e deja ocupat
-    if (dto.slot === '1' && day.maintenanceUser1Id) {
-      throw new BadRequestException('Slotul 1 este deja ocupat');
-    }
-    if (dto.slot === '2' && day.maintenanceUser2Id) {
-      throw new BadRequestException('Slotul 2 este deja ocupat');
+    // Verificare: ziua nu e deja ocupata (semnare: 1 user)
+    if (day.maintenanceUser1Id) {
+      throw new BadRequestException('Aceasta zi este deja asignata');
     }
 
     const now = new Date();
-    if (dto.slot === '1') {
-      day.maintenanceUser1Id = dto.userId;
-      day.maintenanceUser1ClaimedAt = now;
-    } else {
-      day.maintenanceUser2Id = dto.userId;
-      day.maintenanceUser2ClaimedAt = now;
-    }
+    day.maintenanceUser1Id = dto.userId;
+    day.maintenanceUser1ClaimedAt = now;
 
-    // Recalculeaza status
-    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
-      day.status = PV_DAY_STATUS.ASSIGNED as PvDayStatus;
-    } else {
-      day.status = PV_DAY_STATUS.OPEN as PvDayStatus;
-    }
+    // Semnare: 1 user e suficient => ASSIGNED
+    day.status = PV_DAY_STATUS.ASSIGNED as PvDayStatus;
 
     await this.dayRepository.save(day);
 
@@ -452,7 +418,6 @@ export class PvSigningService {
     await this.recordDayHistory(dayId, 'ADMIN_ASSIGNED', adminId, {
       userId: dto.userId,
       userName: targetUser.fullName,
-      slot: dto.slot,
     });
 
     // Recalculeaza statusul sesiunii
@@ -467,9 +432,7 @@ export class PvSigningService {
       data: { pvDayId: dayId, pvSessionId: day.sessionId },
     }]);
 
-    if (day.maintenanceUser1Id && day.maintenanceUser2Id) {
-      await this.notifyDayFullyAssigned(day);
-    }
+    await this.notifyDayFullyAssigned(day);
 
     return this.findOneDay(dayId);
   }
@@ -487,7 +450,7 @@ export class PvSigningService {
     }
 
     const isAdmin = isAdminOrAbove(user.role);
-    const isAssigned = day.maintenanceUser1Id === userId || day.maintenanceUser2Id === userId;
+    const isAssigned = day.maintenanceUser1Id === userId;
 
     if (!isAdmin && !isAssigned) {
       throw new ForbiddenException('Doar utilizatorii asignati pe aceasta zi sau administratorii pot finaliza');
@@ -706,7 +669,7 @@ export class PvSigningService {
               userId: u.id,
               type: NotificationType.PV_SESSION_UPDATED,
               title: 'Zi semnare PV - complet asignata',
-              message: `Ziua ${this.formatDate(day.signingDate)} are acum 2/2 utilizatori Intretinere Parcari asignati.`,
+              message: `Ziua ${this.formatDate(day.signingDate)} a fost revendicata de un utilizator Intretinere Parcari.`,
               data: { pvDayId: day.id, pvSessionId: day.sessionId },
             });
           }
@@ -724,8 +687,8 @@ export class PvSigningService {
           notifications.push({
             userId: u.id,
             type: NotificationType.PV_SESSION_UPDATED,
-            title: 'Zi semnare PV - complet asignata',
-            message: `Ziua ${this.formatDate(day.signingDate)} are acum 2/2 utilizatori Intretinere Parcari asignati.`,
+            title: 'Zi semnare PV - asignata',
+            message: `Ziua ${this.formatDate(day.signingDate)} a fost revendicata de un utilizator Intretinere Parcari.`,
             data: { pvDayId: day.id, pvSessionId: day.sessionId },
           });
         }

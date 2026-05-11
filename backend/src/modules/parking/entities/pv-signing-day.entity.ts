@@ -54,13 +54,14 @@ export class PvSigningDay {
   @Column({ name: 'notices_date_to', type: 'date', nullable: true })
   noticesDateTo: Date;
 
-  // Useri Intretinere Parcari asignati (marketplace - max 2)
+  // Userul Intretinere Parcari asignat (semnare necesita doar 1 user)
   @Column({ name: 'maintenance_user1_id', nullable: true })
   maintenanceUser1Id: string;
 
   @Column({ name: 'maintenance_user1_claimed_at', type: 'timestamptz', nullable: true })
   maintenanceUser1ClaimedAt: Date;
 
+  // Pastrat pentru compatibilitate DB (nu se mai foloseste)
   @Column({ name: 'maintenance_user2_id', nullable: true })
   maintenanceUser2Id: string;
 
@@ -100,11 +101,7 @@ export class PvSigningDay {
   @JoinColumn({ name: 'completed_by' })
   completedByUser: User;
 
-  // Helper computed: cate sloturi sunt ocupate
-  get assignedCount(): number {
-    let count = 0;
-    if (this.maintenanceUser1Id) count++;
-    if (this.maintenanceUser2Id) count++;
-    return count;
+  get isAssigned(): boolean {
+    return !!this.maintenanceUser1Id;
   }
 }
