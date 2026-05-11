@@ -74,11 +74,11 @@ export class DomiciliuRequestsService {
       createdBy: userId,
       lastModifiedBy: userId,
       status: 'ACTIVE' as DomiciliuRequestStatus,
-      signPlacementStatus: (dto.requestType === 'AMPLASARE_PANOU'
+      signPlacementStatus: (dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU'
         ? SIGN_PLACEMENT_STATUS.REQUESTED
         : SIGN_PLACEMENT_STATUS.NONE) as SignPlacementStatus,
-      signPlacementRequestedAt: dto.requestType === 'AMPLASARE_PANOU' ? new Date() : null,
-      signPlacementRequestedBy: dto.requestType === 'AMPLASARE_PANOU' ? userId : null,
+      signPlacementRequestedAt: (dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU') ? new Date() : null,
+      signPlacementRequestedBy: (dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU') ? userId : null,
     });
 
     const savedRequest = await this.domiciliuRequestRepository.save(request);
@@ -573,16 +573,20 @@ export class DomiciliuRequestsService {
       const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
 
+      const isRevocare = request.requestType === 'REVOCARE_PANOU' || request.requestType === 'REVOCARE_LOCURI';
+      const panouLabel = isRevocare ? 'revocare panou' : 'amplasare panou';
+      const panouAction = isRevocare ? 'revocarea' : 'amplasarea';
+
       const titles: Record<string, string> = {
-        requested: 'Solicitare amplasare panou domiciliu',
-        claimed: 'Amplasare panou domiciliu - revendicata',
-        completed: 'Amplasare panou domiciliu - finalizata',
+        requested: `Solicitare ${panouLabel} domiciliu`,
+        claimed: `${isRevocare ? 'Revocare' : 'Amplasare'} panou domiciliu - revendicata`,
+        completed: `${isRevocare ? 'Revocare' : 'Amplasare'} panou domiciliu - finalizata`,
       };
 
       const messages: Record<string, string> = {
-        requested: `${actorName} a solicitat amplasarea panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
-        claimed: `${actorName} a revendicat amplasarea panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
-        completed: `${actorName} a finalizat amplasarea panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
+        requested: `${actorName} a solicitat ${panouAction} panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
+        claimed: `${actorName} a revendicat ${panouAction} panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
+        completed: `${actorName} a finalizat ${panouAction} panoului pentru ${request.personName || 'N/A'} la ${request.location}.`,
       };
 
       // Notifica Intretinere Parcari

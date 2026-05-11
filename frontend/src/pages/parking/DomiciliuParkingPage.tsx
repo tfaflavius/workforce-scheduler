@@ -110,6 +110,7 @@ const REQUEST_TYPE_COLORS: Record<DomiciliuRequestType, { main: string; bg: stri
   TRASARE_LOCURI: { main: '#059669', bg: '#05966915' },
   REVOCARE_LOCURI: { main: '#dc2626', bg: '#dc262615' },
   AMPLASARE_PANOU: { main: '#2563eb', bg: '#2563eb15' },
+  REVOCARE_PANOU: { main: '#9333ea', bg: '#9333ea15' },
 };
 
 // Icons pentru tipuri
@@ -117,6 +118,7 @@ const REQUEST_TYPE_ICONS: Record<DomiciliuRequestType, React.ReactNode> = {
   TRASARE_LOCURI: <ApproveLocationIcon />,
   REVOCARE_LOCURI: <RevokeIcon />,
   AMPLASARE_PANOU: <ApproveLocationIcon />,
+  REVOCARE_PANOU: <RevokeIcon />,
 };
 
 interface TabPanelProps {
@@ -529,7 +531,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
     });
   };
 
-  const isRevocareType = request?.requestType === 'REVOCARE_LOCURI';
+  const isRevocareType = request?.requestType === 'REVOCARE_LOCURI' || request?.requestType === 'REVOCARE_PANOU';
 
   const handleRequestSignPlacement = async () => {
     if (!requestId) return;
@@ -819,7 +821,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
                       )}
 
                       {/* Amplasare/Revocare Panou Section */}
-                      {(request.requestType === 'TRASARE_LOCURI' || request.requestType === 'AMPLASARE_PANOU' || request.requestType === 'REVOCARE_LOCURI') && (
+                      {(request.requestType === 'TRASARE_LOCURI' || request.requestType === 'AMPLASARE_PANOU' || request.requestType === 'REVOCARE_LOCURI' || request.requestType === 'REVOCARE_PANOU') && (
                         <>
                           <Divider />
                           <Card
@@ -836,7 +838,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
                                   <Stack direction="row" alignItems="center" spacing={1}>
                                     <ApproveLocationIcon sx={{ color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'] }} />
                                     <Typography variant="subtitle2" fontWeight={700}>
-                                      {request.requestType === 'REVOCARE_LOCURI' ? 'Revocare Panou' : 'Amplasare Panou'}
+                                      {isRevocareType ? 'Revocare Panou' : 'Amplasare Panou'}
                                     </Typography>
                                     <Chip
                                       label={SIGN_PLACEMENT_STATUS_LABELS[request.signPlacementStatus || 'NONE']}
@@ -864,7 +866,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
                                         borderRadius: 2,
                                       }}
                                     >
-                                      {request.requestType === 'REVOCARE_LOCURI' ? 'Solicita revocare' : 'Solicita amplasare'}
+                                      {isRevocareType ? 'Solicita revocare' : 'Solicita amplasare'}
                                     </Button>
                                   )}
                                   {request.signPlacementStatus === 'REQUESTED' && (isMaintenanceUser || isAdmin) && (
@@ -1113,7 +1115,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
         fullWidth
       >
         <DialogTitle sx={{ fontWeight: 700 }}>
-          {request?.requestType === 'REVOCARE_LOCURI' ? 'Finalizare revocare panou' : 'Finalizare amplasare panou'}
+          {isRevocareType ? 'Finalizare revocare panou' : 'Finalizare amplasare panou'}
         </DialogTitle>
         <DialogContent>
           <TextField
@@ -1123,7 +1125,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
             label="Observatii (optional)"
             value={signObservations}
             onChange={(e) => setSignObservations(e.target.value)}
-            placeholder={request?.requestType === 'REVOCARE_LOCURI' ? 'Adauga observatii despre revocarea panoului...' : 'Adauga observatii despre amplasarea panoului...'}
+            placeholder={isRevocareType ? 'Adauga observatii despre revocarea panoului...' : 'Adauga observatii despre amplasarea panoului...'}
             sx={{ mt: 1 }}
           />
         </DialogContent>
@@ -1183,7 +1185,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
   const [requestSignPlacement] = useRequestSignPlacementMutation();
   const [claimSignPlacement] = useClaimSignPlacementMutation();
 
-  const isRevocareType = request.requestType === 'REVOCARE_LOCURI';
+  const isRevocareType = request.requestType === 'REVOCARE_LOCURI' || request.requestType === 'REVOCARE_PANOU';
 
   const handleRequestSign = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -1336,7 +1338,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
         )}
 
         {/* Sign placement */}
-        {(request.requestType === 'TRASARE_LOCURI' || request.requestType === 'AMPLASARE_PANOU' || request.requestType === 'REVOCARE_LOCURI') && (
+        {(request.requestType === 'TRASARE_LOCURI' || request.requestType === 'AMPLASARE_PANOU' || request.requestType === 'REVOCARE_LOCURI' || request.requestType === 'REVOCARE_PANOU') && (
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.75 }}>
             <ApproveLocationIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: SIGN_PLACEMENT_STATUS_COLORS[request.signPlacementStatus || 'NONE'] }} />
             {request.signPlacementStatus && request.signPlacementStatus !== 'NONE' ? (
@@ -1353,7 +1355,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
               />
             ) : (
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
-                {request.requestType === 'REVOCARE_LOCURI' ? 'Revocare panou: nesolicitata' : 'Panou: nesolicitata'}
+                {isRevocareType ? 'Revocare panou: nesolicitata' : 'Panou: nesolicitata'}
               </Typography>
             )}
             {(!request.signPlacementStatus || request.signPlacementStatus === 'NONE') && !isMaintenanceUser && (
@@ -1373,7 +1375,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
                   '&:hover': { borderColor: '#d97706', bgcolor: alpha('#f59e0b', 0.08) },
                 }}
               >
-                {request.requestType === 'REVOCARE_LOCURI' ? 'Solicita revocare panou' : 'Solicita amplasare'}
+                {isRevocareType ? 'Solicita revocare panou' : 'Solicita amplasare'}
               </Button>
             )}
             {request.signPlacementStatus === 'REQUESTED' && (isMaintenanceUser || isAdmin) && (
@@ -1483,9 +1485,16 @@ const DomiciliuParkingPage: React.FC = () => {
     {
       type: 'AMPLASARE_PANOU',
       label: 'Amplasare Panou',
-      shortLabel: 'Panou',
+      shortLabel: 'Amplasare',
       icon: <ApproveLocationIcon />,
       color: REQUEST_TYPE_COLORS.AMPLASARE_PANOU.main,
+    },
+    {
+      type: 'REVOCARE_PANOU',
+      label: 'Revocare Panou',
+      shortLabel: 'Rev. Panou',
+      icon: <RevokeIcon />,
+      color: REQUEST_TYPE_COLORS.REVOCARE_PANOU.main,
     },
   ];
 

@@ -187,6 +187,7 @@ export const DOMICILIU_REQUEST_TYPES = {
   TRASARE_LOCURI: 'TRASARE_LOCURI',       // Trasare locuri de parcare
   REVOCARE_LOCURI: 'REVOCARE_LOCURI',     // Revocare locuri de parcare
   AMPLASARE_PANOU: 'AMPLASARE_PANOU',     // Amplasare panou domiciliu
+  REVOCARE_PANOU: 'REVOCARE_PANOU',       // Revocare panou domiciliu
 } as const;
 
 export type DomiciliuRequestType = typeof DOMICILIU_REQUEST_TYPES[keyof typeof DOMICILIU_REQUEST_TYPES];
@@ -219,6 +220,7 @@ export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string>
   TRASARE_LOCURI: 'Trasare locuri de parcare',
   REVOCARE_LOCURI: 'Revocare locuri de parcare',
   AMPLASARE_PANOU: 'Amplasare panou',
+  REVOCARE_PANOU: 'Revocare panou',
 };
 
 // Prioritate pentru solicitari domiciliu (folosita pentru cron de deadline si UX)
