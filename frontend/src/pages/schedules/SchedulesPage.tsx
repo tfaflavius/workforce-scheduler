@@ -27,7 +27,6 @@ import { GradientHeader, EmptyState } from '../../components/common';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
-import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
@@ -186,11 +185,12 @@ const SchedulesPage: React.FC = () => {
   const { data: users = [] } = useGetUsersQuery({ isActive: true });
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(selectedMonth);
 
-  // Global pending count (all months) — used to show banner when pending schedules exist in other months
-  const { data: dashboardStats } = useGetDashboardStatsQuery(undefined, {
-    skip: !isAdminOrAbove(user?.role),
-  });
-  const globalPendingCount = dashboardStats?.schedules?.pending || 0;
+  // Pending schedules (all months) — used to show banner with creator info
+  const { data: pendingSchedules = [] } = useGetSchedulesQuery(
+    { status: 'PENDING_APPROVAL' },
+    { skip: !isAdminOrAbove(user?.role) },
+  );
+  const globalPendingCount = pendingSchedules.length;
 
   // Check if current user is admin
   const isAdmin = isAdminOrAbove(user?.role);
@@ -545,6 +545,11 @@ const SchedulesPage: React.FC = () => {
             <Typography variant="body2" fontWeight={600}>
               {globalPendingCount} {globalPendingCount === 1 ? 'program asteapta' : 'programe asteapta'} aprobare
             </Typography>
+            {pendingSchedules.map(s => (
+              <Typography key={s.id} variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                {s.name} — creat de {s.creator?.fullName || 'N/A'} ({s.month}/{s.year})
+              </Typography>
+            ))}
           </Alert>
         )}
 
