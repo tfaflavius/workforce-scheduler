@@ -67,6 +67,39 @@ export interface DashboardStatsResponse {
       estimatedReturn: string;
     }[];
   };
+  revenue: {
+    incasari: number;
+    incasariCard: number;
+    cheltuieli: number;
+    month: number;
+    year: number;
+  };
+  controlSesizari: {
+    active: number;
+    finalizat: number;
+    byZone: { rosu: number; galben: number; alb: number };
+  };
+  domiciliu: {
+    active: number;
+    finalizat: number;
+    byType: { trasareLocuri: number; revocareLocuri: number; amplasarePanou: number; revocarePanou: number };
+  };
+  achizitii: {
+    totalBudget: number;
+    totalSpent: number;
+    acquisitionsCount: number;
+    investments: number;
+    currentExpenses: number;
+  };
+  equipmentStock: {
+    definitionsCount: number;
+    totalQuantity: number;
+    categoriesCount: number;
+  };
+  dailyReports: {
+    submittedToday: number;
+    draftToday: number;
+  };
 }
 
 export const dashboardApi = createApi({

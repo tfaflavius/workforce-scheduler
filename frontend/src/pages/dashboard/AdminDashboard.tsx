@@ -39,6 +39,12 @@ import {
   DirectionsCar as CarIcon,
   Accessible as AccessibleIcon,
   Assessment as ReportIcon,
+  AccountBalance as AccountBalanceIcon,
+  Home as HomeIcon,
+  Gavel as GavelIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Inventory as InventoryIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material';
 import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
@@ -231,6 +237,73 @@ const AdminDashboard = () => {
               />
             </Suspense>
           </Box>
+
+          {/* Row 3: Incasari/Cheltuieli + Control Sesizari */}
+          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Suspense fallback={null}>
+                <WeeklyOverviewChart
+                  title={`Incasari / Cheltuieli — ${stats?.revenue?.month || ''}/${stats?.revenue?.year || ''}`}
+                  icon={<AccountBalanceIcon sx={{ color: theme.palette.success.main, fontSize: 20 }} />}
+                  height={{ xs: 160, sm: 200 }}
+                  data={[
+                    { label: 'Incasari', value: stats?.revenue?.incasari || 0, color: theme.palette.success.main },
+                    { label: 'Incasari Card', value: stats?.revenue?.incasariCard || 0, color: theme.palette.info.main },
+                    { label: 'Cheltuieli', value: stats?.revenue?.cheltuieli || 0, color: theme.palette.error.main },
+                  ]}
+                />
+              </Suspense>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Suspense fallback={null}>
+                <StatusDistributionChart
+                  title="Control Sesizari"
+                  icon={<GavelIcon sx={{ color: theme.palette.warning.main, fontSize: 20 }} />}
+                  height={{ xs: 160, sm: 200 }}
+                  data={[
+                    { label: 'Zona Rosu', value: stats?.controlSesizari?.byZone?.rosu || 0, color: theme.palette.error.main },
+                    { label: 'Zona Galben', value: stats?.controlSesizari?.byZone?.galben || 0, color: '#f59e0b' },
+                    { label: 'Zona Alb', value: stats?.controlSesizari?.byZone?.alb || 0, color: theme.palette.grey[500] },
+                    { label: 'Finalizate', value: stats?.controlSesizari?.finalizat || 0, color: theme.palette.success.main },
+                  ]}
+                />
+              </Suspense>
+            </Grid>
+          </Grid>
+
+          {/* Row 4: Domiciliu + Achizitii */}
+          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Suspense fallback={null}>
+                <StatusDistributionChart
+                  title="Parcari Domiciliu"
+                  icon={<HomeIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />}
+                  height={{ xs: 160, sm: 200 }}
+                  data={[
+                    { label: 'Trasare Locuri', value: stats?.domiciliu?.byType?.trasareLocuri || 0, color: theme.palette.primary.main },
+                    { label: 'Revocare Locuri', value: stats?.domiciliu?.byType?.revocareLocuri || 0, color: theme.palette.error.main },
+                    { label: 'Amplasare Panou', value: stats?.domiciliu?.byType?.amplasarePanou || 0, color: theme.palette.success.main },
+                    { label: 'Revocare Panou', value: stats?.domiciliu?.byType?.revocarePanou || 0, color: theme.palette.secondary.main },
+                    { label: 'Finalizate', value: stats?.domiciliu?.finalizat || 0, color: theme.palette.grey[400] },
+                  ]}
+                />
+              </Suspense>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Suspense fallback={null}>
+                <WeeklyOverviewChart
+                  title={`Achizitii ${new Date().getFullYear()}`}
+                  icon={<ShoppingCartIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />}
+                  height={{ xs: 160, sm: 200 }}
+                  data={[
+                    { label: 'Investitii', value: stats?.achizitii?.investments || 0, color: theme.palette.primary.main },
+                    { label: 'Cheltuieli Curente', value: stats?.achizitii?.currentExpenses || 0, color: theme.palette.warning.main },
+                    { label: 'Total Cheltuit', value: stats?.achizitii?.totalSpent || 0, color: theme.palette.error.main },
+                  ]}
+                />
+              </Suspense>
+            </Grid>
+          </Grid>
 
           {/* Today's Dispatchers */}
           {(() => {
@@ -489,6 +562,106 @@ const AdminDashboard = () => {
                 >
                   Vezi toate parcarile
                 </Button>
+              </CardContent>
+            </Card>
+          </Fade>
+
+          {/* Equipment Stock & Daily Reports */}
+          <Fade in={true} timeout={950}>
+            <Card sx={{ mb: { xs: 2, sm: 3 } }}>
+              <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                <Stack spacing={2.5}>
+                  {/* Equipment Stock */}
+                  <Box>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                      <InventoryIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />
+                      <Typography variant="subtitle2" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem' }}>
+                        Stoc Echipamente
+                      </Typography>
+                    </Stack>
+                    <Stack spacing={1}>
+                      {[
+                        { label: 'Definitii', value: stats?.equipmentStock?.definitionsCount || 0, color: theme.palette.primary.main },
+                        { label: 'Cantitate totala', value: stats?.equipmentStock?.totalQuantity || 0, color: theme.palette.success.main },
+                        { label: 'Categorii', value: stats?.equipmentStock?.categoriesCount || 0, color: theme.palette.info.main },
+                      ].map((item) => (
+                        <Stack
+                          key={item.label}
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          sx={{
+                            p: 1.25,
+                            borderRadius: 1.5,
+                            bgcolor: alpha(item.color, 0.06),
+                            borderLeft: `3px solid ${item.color}`,
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                            {item.label}
+                          </Typography>
+                          <Chip
+                            label={item.value}
+                            size="small"
+                            sx={{
+                              fontWeight: 700,
+                              bgcolor: alpha(item.color, 0.15),
+                              color: item.color,
+                              height: 24,
+                              minWidth: 32,
+                              '& .MuiChip-label': { px: 1 },
+                            }}
+                          />
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </Box>
+
+                  {/* Daily Reports */}
+                  <Box>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                      <DescriptionIcon sx={{ color: theme.palette.warning.main, fontSize: 20 }} />
+                      <Typography variant="subtitle2" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem' }}>
+                        Rapoarte Zilnice — Azi
+                      </Typography>
+                    </Stack>
+                    <Stack spacing={1}>
+                      {[
+                        { label: 'Trimise', value: stats?.dailyReports?.submittedToday || 0, color: theme.palette.success.main },
+                        { label: 'Draft', value: stats?.dailyReports?.draftToday || 0, color: theme.palette.grey[500] },
+                      ].map((item) => (
+                        <Stack
+                          key={item.label}
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                          sx={{
+                            p: 1.25,
+                            borderRadius: 1.5,
+                            bgcolor: alpha(item.color, 0.06),
+                            borderLeft: `3px solid ${item.color}`,
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                            {item.label}
+                          </Typography>
+                          <Chip
+                            label={item.value}
+                            size="small"
+                            sx={{
+                              fontWeight: 700,
+                              bgcolor: alpha(item.color, 0.15),
+                              color: item.color,
+                              height: 24,
+                              minWidth: 32,
+                              '& .MuiChip-label': { px: 1 },
+                            }}
+                          />
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </Box>
+                </Stack>
               </CardContent>
             </Card>
           </Fade>

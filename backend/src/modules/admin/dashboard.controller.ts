@@ -22,6 +22,13 @@ import { ShiftSwapRequest, ShiftSwapStatus } from '../shift-swaps/entities/shift
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
+import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
+import { DomiciliuRequest } from '../parking/entities/domiciliu-request.entity';
+import { DailyReport, DailyReportStatus } from '../daily-reports/entities/daily-report.entity';
+import { Acquisition } from '../acquisitions/entities/acquisition.entity';
+import { BudgetPosition } from '../acquisitions/entities/budget-position.entity';
+import { MonthlyRevenue } from '../acquisitions/entities/monthly-revenue.entity';
+import { EquipmentStockEntry } from '../equipment-stock/entities/equipment-stock-entry.entity';
 import { PV_DAY_STATUS } from '../parking/constants/parking.constants';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminConsolidatedScheduler } from './admin-consolidated.scheduler';
@@ -91,6 +98,39 @@ interface DashboardStatsResponse {
       estimatedReturn: string;
     }[];
   };
+  revenue: {
+    incasari: number;
+    incasariCard: number;
+    cheltuieli: number;
+    month: number;
+    year: number;
+  };
+  controlSesizari: {
+    active: number;
+    finalizat: number;
+    byZone: { rosu: number; galben: number; alb: number };
+  };
+  domiciliu: {
+    active: number;
+    finalizat: number;
+    byType: { trasareLocuri: number; revocareLocuri: number; amplasarePanou: number; revocarePanou: number };
+  };
+  achizitii: {
+    totalBudget: number;
+    totalSpent: number;
+    acquisitionsCount: number;
+    investments: number;
+    currentExpenses: number;
+  };
+  equipmentStock: {
+    definitionsCount: number;
+    totalQuantity: number;
+    categoriesCount: number;
+  };
+  dailyReports: {
+    submittedToday: number;
+    draftToday: number;
+  };
 }
 
 @ApiTags('Admin')
@@ -129,6 +169,20 @@ export class DashboardController {
     private readonly notificationRepo: Repository<Notification>,
     @InjectRepository(PvDisplayDay)
     private readonly pvDisplayDayRepo: Repository<PvDisplayDay>,
+    @InjectRepository(ControlSesizare)
+    private readonly controlSesizareRepo: Repository<ControlSesizare>,
+    @InjectRepository(DomiciliuRequest)
+    private readonly domiciliuRequestRepo: Repository<DomiciliuRequest>,
+    @InjectRepository(DailyReport)
+    private readonly dailyReportRepo: Repository<DailyReport>,
+    @InjectRepository(Acquisition)
+    private readonly acquisitionRepo: Repository<Acquisition>,
+    @InjectRepository(BudgetPosition)
+    private readonly budgetPositionRepo: Repository<BudgetPosition>,
+    @InjectRepository(MonthlyRevenue)
+    private readonly monthlyRevenueRepo: Repository<MonthlyRevenue>,
+    @InjectRepository(EquipmentStockEntry)
+    private readonly equipmentStockEntryRepo: Repository<EquipmentStockEntry>,
     private readonly adminConsolidatedScheduler: AdminConsolidatedScheduler,
   ) {}
 
@@ -191,6 +245,38 @@ export class DashboardController {
 
       // PV Car status
       pvActiveDays,
+
+      // Revenue (current month)
+      revenueTotals,
+
+      // Control sesizari
+      controlActive,
+      controlFinalizat,
+      controlRosu,
+      controlGalben,
+      controlAlb,
+
+      // Domiciliu requests
+      domiciliuActive,
+      domiciliuFinalizat,
+      domiciliuTrasare,
+      domiciliuRevocare,
+      domiciliuAmplasare,
+      domiciliuRevocarePanou,
+
+      // Achizitii
+      budgetTotals,
+      acquisitionsTotals,
+      acquisitionsCount,
+
+      // Equipment stock
+      equipmentDefsCount,
+      equipmentTotalQty,
+      equipmentCategories,
+
+      // Daily reports today
+      dailyReportsSubmitted,
+      dailyReportsDraft,
     ] = await Promise.all([
       // Schedule counts
       this.scheduleRepo.count({ where: { status: 'PENDING_APPROVAL' } }),
@@ -278,6 +364,69 @@ export class DashboardController {
           statuses: [PV_DAY_STATUS.ASSIGNED, PV_DAY_STATUS.IN_PROGRESS],
         })
         .getMany(),
+
+      // Revenue — current month totals
+      this.monthlyRevenueRepo
+        .createQueryBuilder('mr')
+        .select('COALESCE(SUM(mr.incasari), 0)', 'incasari')
+        .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
+        .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
+        .where('mr.year = :year AND mr.month = :month', { year: romaniaTime.getFullYear(), month: romaniaTime.getMonth() + 1 })
+        .getRawOne(),
+
+      // Control sesizari counts
+      this.controlSesizareRepo.count({ where: { status: 'ACTIVE' } }),
+      this.controlSesizareRepo.count({ where: { status: 'FINALIZAT' } }),
+      this.controlSesizareRepo.count({ where: { zone: 'ROSU', status: 'ACTIVE' } }),
+      this.controlSesizareRepo.count({ where: { zone: 'GALBEN', status: 'ACTIVE' } }),
+      this.controlSesizareRepo.count({ where: { zone: 'ALB', status: 'ACTIVE' } }),
+
+      // Domiciliu requests
+      this.domiciliuRequestRepo.count({ where: { status: 'ACTIVE' } }),
+      this.domiciliuRequestRepo.count({ where: { status: 'FINALIZAT' } }),
+      this.domiciliuRequestRepo.count({ where: { requestType: 'TRASARE_LOCURI', status: 'ACTIVE' } }),
+      this.domiciliuRequestRepo.count({ where: { requestType: 'REVOCARE_LOCURI', status: 'ACTIVE' } }),
+      this.domiciliuRequestRepo.count({ where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' } }),
+      this.domiciliuRequestRepo.count({ where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' } }),
+
+      // Achizitii — current year budget and spending
+      this.budgetPositionRepo
+        .createQueryBuilder('bp')
+        .select('COALESCE(SUM(CASE WHEN bp.category = :inv THEN bp.totalAmount ELSE 0 END), 0)', 'investments')
+        .addSelect('COALESCE(SUM(CASE WHEN bp.category = :cur THEN bp.totalAmount ELSE 0 END), 0)', 'currentExpenses')
+        .addSelect('COALESCE(SUM(bp.totalAmount), 0)', 'totalBudget')
+        .where('bp.year = :year', { year: romaniaTime.getFullYear(), inv: 'INVESTMENTS', cur: 'CURRENT_EXPENSES' })
+        .getRawOne(),
+      this.acquisitionRepo
+        .createQueryBuilder('a')
+        .select('COALESCE(SUM(a.value), 0)', 'totalSpent')
+        .leftJoin('a.budgetPosition', 'bp')
+        .where('bp.year = :year', { year: romaniaTime.getFullYear() })
+        .getRawOne(),
+      this.acquisitionRepo
+        .createQueryBuilder('a')
+        .select('COUNT(a.id)', 'count')
+        .leftJoin('a.budgetPosition', 'bp')
+        .where('bp.year = :year', { year: romaniaTime.getFullYear() })
+        .getRawOne(),
+
+      // Equipment stock
+      this.equipmentStockEntryRepo
+        .createQueryBuilder('e')
+        .select('COUNT(DISTINCT e.definitionId)', 'defsCount')
+        .getRawOne(),
+      this.equipmentStockEntryRepo
+        .createQueryBuilder('e')
+        .select('COALESCE(SUM(e.quantity), 0)', 'totalQty')
+        .getRawOne(),
+      this.equipmentStockEntryRepo
+        .createQueryBuilder('e')
+        .select('COUNT(DISTINCT e.category)', 'catCount')
+        .getRawOne(),
+
+      // Daily reports today
+      this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.SUBMITTED } }),
+      this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.DRAFT } }),
     ]);
 
     // Format today's dispatchers
@@ -361,6 +510,44 @@ export class DashboardController {
             estimatedReturn: '~15:00',
           };
         }),
+      },
+      revenue: {
+        incasari: parseFloat(revenueTotals?.incasari || '0'),
+        incasariCard: parseFloat(revenueTotals?.incasariCard || '0'),
+        cheltuieli: parseFloat(revenueTotals?.cheltuieli || '0'),
+        month: romaniaTime.getMonth() + 1,
+        year: romaniaTime.getFullYear(),
+      },
+      controlSesizari: {
+        active: controlActive,
+        finalizat: controlFinalizat,
+        byZone: { rosu: controlRosu, galben: controlGalben, alb: controlAlb },
+      },
+      domiciliu: {
+        active: domiciliuActive,
+        finalizat: domiciliuFinalizat,
+        byType: {
+          trasareLocuri: domiciliuTrasare,
+          revocareLocuri: domiciliuRevocare,
+          amplasarePanou: domiciliuAmplasare,
+          revocarePanou: domiciliuRevocarePanou,
+        },
+      },
+      achizitii: {
+        totalBudget: parseFloat(budgetTotals?.totalBudget || '0'),
+        totalSpent: parseFloat(acquisitionsTotals?.totalSpent || '0'),
+        acquisitionsCount: parseInt(acquisitionsCount?.count || '0', 10),
+        investments: parseFloat(budgetTotals?.investments || '0'),
+        currentExpenses: parseFloat(budgetTotals?.currentExpenses || '0'),
+      },
+      equipmentStock: {
+        definitionsCount: parseInt(equipmentDefsCount?.defsCount || '0', 10),
+        totalQuantity: parseInt(equipmentTotalQty?.totalQty || '0', 10),
+        categoriesCount: parseInt(equipmentCategories?.catCount || '0', 10),
+      },
+      dailyReports: {
+        submittedToday: dailyReportsSubmitted,
+        draftToday: dailyReportsDraft,
       },
     };
   }
