@@ -174,8 +174,8 @@ const SearchResults: React.FC<{
             </ListItemIcon>
             <ListItemText
               primary={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" fontWeight="medium" noWrap>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+                  <Typography variant="body2" fontWeight="medium" noWrap sx={{ flexShrink: 1, minWidth: 0 }}>
                     {r.title}
                   </Typography>
                   <Chip
@@ -183,7 +183,8 @@ const SearchResults: React.FC<{
                     size="small"
                     sx={{
                       height: 18,
-                      fontSize: '0.65rem',
+                      fontSize: '0.6rem',
+                      flexShrink: 0,
                       bgcolor: alpha(color, 0.1),
                       color,
                     }}
@@ -337,13 +338,13 @@ const GlobalSearch: React.FC = () => {
             </IconButton>
             <InputBase
               inputRef={mobileInputRef}
-              placeholder="Cauta pagini, utilizatori, parcari..."
+              placeholder="Cauta in toata aplicatia..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={handleInputKeyDown}
               autoFocus
               fullWidth
-              inputProps={{ 'aria-label': 'Cauta pagini, utilizatori, parcari' }}
+              inputProps={{ 'aria-label': 'Cauta in toata aplicatia' }}
               sx={{
                 fontSize: '1rem',
                 '& input::placeholder': { opacity: 0.6 },
@@ -382,7 +383,7 @@ const GlobalSearch: React.FC = () => {
               borderRadius: 2,
               px: 1.5,
               py: 0.5,
-              width: { md: 250, lg: 320 },
+              width: { md: 220, lg: 300 },
               '&:hover': {
                 bgcolor: alpha(theme.palette.common.white, 0.25),
               },
@@ -392,12 +393,12 @@ const GlobalSearch: React.FC = () => {
             <SearchIcon sx={{ color: 'inherit', opacity: 0.7, mr: 1, fontSize: 20 }} />
             <InputBase
               inputRef={desktopInputRef}
-              placeholder="Cauta pagini, utilizatori, parcari..."
+              placeholder="Cauta in toata aplicatia..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={handleInputKeyDown}
               onFocus={() => query.length >= 2 && results && setOpen(true)}
-              inputProps={{ 'aria-label': 'Cauta pagini, utilizatori, parcari' }}
+              inputProps={{ 'aria-label': 'Cauta in toata aplicatia' }}
               sx={{
                 color: 'inherit',
                 flex: 1,
@@ -437,7 +438,7 @@ const GlobalSearch: React.FC = () => {
             anchorEl={anchorRef.current}
             placement="bottom-start"
             transition
-            style={{ zIndex: 1300, width: anchorRef.current?.offsetWidth || 320 }}
+            style={{ zIndex: 1300 }}
           >
             {({ TransitionProps }) => (
               <Fade {...TransitionProps} timeout={200}>
@@ -445,7 +446,9 @@ const GlobalSearch: React.FC = () => {
                   elevation={8}
                   sx={{
                     mt: 0.5,
-                    maxHeight: 400,
+                    width: { md: 380, lg: 460 },
+                    maxWidth: 'calc(100vw - 32px)',
+                    maxHeight: 480,
                     overflow: 'auto',
                     borderRadius: 2,
                   }}
