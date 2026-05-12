@@ -88,7 +88,8 @@ const renderStatusChip = (status?: string) => {
 
 const renderDayCellContent = (existingAssignments: AssignmentInfo[] | undefined, isWeekend: boolean) => {
   let cellContent: React.ReactNode = '-';
-  let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
+  // Subtle slate tint for weekends; light slate for weekdays — visible on dark theme without being harsh
+  let cellBgColor = isWeekend ? 'rgba(239, 68, 68, 0.10)' : 'rgba(255, 255, 255, 0.03)';
 
   if (existingAssignments && existingAssignments.length > 0) {
     if (existingAssignments.length === 1) {
@@ -201,16 +202,19 @@ const ScheduleDesktopTable: React.FC<ScheduleDesktopTableProps> = ({
                   p: 0.3,
                   minWidth: 32,
                   maxWidth: 38,
-                  bgcolor: isWeekend ? 'grey.200' : 'background.paper',
+                  // Dark slate variants — distinct but never bright white
+                  bgcolor: isWeekend ? 'rgba(239, 68, 68, 0.12)' : '#475569',
                   fontWeight: 'bold',
                   fontSize: '0.65rem',
+                  color: '#f8fafc',
+                  borderBottom: '2px solid rgba(255, 255, 255, 0.14)',
                 }}
               >
                 <Box>
-                  <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? 'error.main' : 'text.secondary' }}>
+                  <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? '#fca5a5' : '#cbd5e1', fontWeight: 600 }}>
                     {dayOfWeek}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: '#f8fafc' }}>
                     {day}
                   </Typography>
                 </Box>
@@ -286,11 +290,10 @@ const ScheduleDesktopTable: React.FC<ScheduleDesktopTableProps> = ({
                       sx={{
                         p: isMultipleAssignments ? 0 : 0.2,
                         bgcolor: cellBgColor,
-                        color: existingAssignments ? 'white' : 'text.secondary',
+                        color: existingAssignments ? 'white' : '#cbd5e1',
                         fontWeight: 'bold',
                         fontSize: '0.65rem',
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
                       }}
                     >
                       {cellContent}

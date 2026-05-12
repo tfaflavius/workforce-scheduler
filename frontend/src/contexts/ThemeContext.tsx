@@ -85,6 +85,25 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             light: '#22d3ee',
             dark: '#0891b2',
           },
+          // Inverted grey scale for dark theme: low numbers stay subtle (close to bg),
+          // high numbers become bright (contrast text). Code that uses bgcolor: 'grey.50'
+          // for subtle panels and color: 'grey.500' for neutral icons now works correctly.
+          grey: {
+            50: '#1e293b',
+            100: '#293548',
+            200: '#334155',
+            300: '#475569',
+            400: '#64748b',
+            500: '#94a3b8',
+            600: '#cbd5e1',
+            700: '#e2e8f0',
+            800: '#f1f5f9',
+            900: '#f8fafc',
+            A100: '#293548',
+            A200: '#334155',
+            A400: '#64748b',
+            A700: '#475569',
+          },
           background: {
             // Page bg: medium-dark, warm slate for "light" mode; deeper navy for "dark"
             default: mode === 'light' ? '#1e293b' : '#0f172a',
