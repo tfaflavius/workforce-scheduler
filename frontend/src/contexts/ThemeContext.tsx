@@ -33,7 +33,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     document.documentElement.setAttribute('data-theme', mode);
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', mode === 'light' ? '#111827' : '#0f172a');
+      metaThemeColor.setAttribute('content', mode === 'light' ? '#1e293b' : '#111827');
     }
   }, [mode]);
 
@@ -61,38 +61,42 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             dark: '#1d4ed8',
           },
           secondary: {
-            main: '#64748b',
-            light: '#94a3b8',
-            dark: '#475569',
+            main: '#94a3b8',
+            light: '#cbd5e1',
+            dark: '#64748b',
           },
           success: {
-            main: '#059669',
-            light: '#10b981',
-            dark: '#047857',
+            main: '#10b981',
+            light: '#34d399',
+            dark: '#059669',
           },
           warning: {
-            main: '#d97706',
-            light: '#f59e0b',
-            dark: '#b45309',
+            main: '#f59e0b',
+            light: '#fbbf24',
+            dark: '#d97706',
           },
           error: {
-            main: '#dc2626',
-            light: '#ef4444',
-            dark: '#b91c1c',
+            main: '#ef4444',
+            light: '#f87171',
+            dark: '#dc2626',
           },
           info: {
-            main: '#0891b2',
-            light: '#06b6d4',
-            dark: '#155e75',
+            main: '#06b6d4',
+            light: '#22d3ee',
+            dark: '#0891b2',
           },
           background: {
-            default: mode === 'light' ? '#111827' : '#0f172a',
-            paper: mode === 'light' ? '#1f2937' : '#1e293b',
+            // Page bg: medium-dark, warm slate for "light" mode; deeper navy for "dark"
+            default: mode === 'light' ? '#1e293b' : '#0f172a',
+            // Card/paper bg: clearly lighter than page so cards stand out
+            paper: mode === 'light' ? '#334155' : '#1e293b',
           },
           text: {
-            primary: '#f1f5f9',
-            secondary: '#94a3b8',
+            primary: '#f8fafc',
+            // Brighter secondary for better readability
+            secondary: '#cbd5e1',
           },
+          divider: 'rgba(255, 255, 255, 0.14)',
         },
         typography: {
           fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -143,7 +147,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 backdropFilter: 'blur(4px)',
-                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                backgroundColor: 'rgba(0, 0, 0, 0.55)',
               },
             },
           },
@@ -183,16 +187,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               contained: {
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
                 '&.MuiButton-containedPrimary': {
-                  backgroundImage: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+                  backgroundImage: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                 },
                 '&.MuiButton-containedSecondary': {
-                  backgroundImage: 'linear-gradient(135deg, #475569 0%, #334155 100%)',
+                  backgroundImage: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
                 },
                 '&.MuiButton-containedSuccess': {
                   backgroundImage: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 },
                 '&.MuiButton-containedError': {
                   backgroundImage: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                },
+              },
+              outlined: {
+                borderColor: 'rgba(255, 255, 255, 0.18)',
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.32)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
                 },
               },
               sizeSmall: {
@@ -230,15 +241,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 overflow: 'hidden',
                 maxWidth: '100%',
                 contain: 'content',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.10)',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.18)',
                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                backgroundColor: 'rgba(30, 41, 59, 0.85)',
+                // Solid lighter card surface for clear contrast against page bg
+                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
+                backgroundImage: 'none',
                 '&[role="button"], &:has(.MuiCardActionArea-root)': {
                   cursor: 'pointer',
                   '&:hover': {
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25)',
+                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.25)',
+                    borderColor: 'rgba(255, 255, 255, 0.16)',
                   },
                 },
               },
@@ -249,14 +263,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 borderRadius: 12,
                 maxWidth: '100%',
-                backgroundImage: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)',
+                backgroundImage: 'none',
+                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
               },
               elevation0: {
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
               },
               elevation1: {
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15)',
               },
             },
           },
@@ -266,7 +281,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 8,
                 fontWeight: 500,
                 maxWidth: '100%',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              },
+              outlined: {
+                borderColor: 'rgba(255, 255, 255, 0.18)',
               },
             },
           },
@@ -275,16 +294,35 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 10,
-                  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                  // Clearly visible input surface against card bg
+                  backgroundColor: 'rgba(15, 23, 42, 0.5)',
                   transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255, 255, 255, 0.18)',
+                  },
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+                    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.28)',
+                    },
                   },
                   '&.Mui-focused': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(59, 130, 246, 0.1)',
+                    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+                    boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.18), 0 4px 12px rgba(59, 130, 246, 0.12)',
                   },
+                },
+              },
+            },
+          },
+          MuiOutlinedInput: {
+            styleOverrides: {
+              root: {
+                backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.18)',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.28)',
                 },
               },
             },
@@ -301,8 +339,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               paper: {
                 borderRadius: 16,
                 padding: '4px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.10)',
                 boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3)',
+                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
+                backgroundImage: 'none',
               },
             },
           },
@@ -313,15 +353,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
                 overflowWrap: 'break-word' as const,
                 minHeight: 48,
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
               },
               sizeSmall: {
                 padding: 'clamp(6px, 1vw, 10px)',
               },
               head: {
                 fontWeight: 600,
-                backgroundColor: '#334155',
-                backgroundImage: 'linear-gradient(180deg, #3b4252 0%, #334155 100%)',
-                borderBottom: '2px solid #475569',
+                color: '#f8fafc',
+                backgroundColor: mode === 'light' ? '#475569' : '#334155',
+                backgroundImage: 'none',
+                borderBottom: '2px solid rgba(255, 255, 255, 0.12)',
               },
             },
           },
@@ -331,13 +373,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 contain: 'layout style',
                 transition: 'background-color 0.15s ease',
                 '&:nth-of-type(even)': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.015)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.025)',
                 },
                 '&:hover': {
-                  backgroundColor: '#1e293b',
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
                 },
                 '&:active': {
-                  backgroundColor: 'rgba(96, 165, 250, 0.06)',
+                  backgroundColor: 'rgba(96, 165, 250, 0.08)',
                 },
                 WebkitTapHighlightColor: 'transparent',
               },
@@ -352,8 +394,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 minHeight: 44,
                 padding: 'clamp(6px, 1vw, 12px) clamp(8px, 1.5vw, 24px)',
                 transition: 'color 0.2s ease, background-color 0.2s ease',
+                color: '#cbd5e1',
                 '&.Mui-selected': {
                   fontWeight: 600,
+                  color: '#f8fafc',
                 },
               },
             },
@@ -363,7 +407,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               indicator: {
                 height: 3,
                 borderRadius: '3px 3px 0 0',
-                backgroundImage: 'linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%)',
+                backgroundImage: 'linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%)',
               },
             },
           },
@@ -374,8 +418,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 minHeight: 44,
                 transition: 'transform 0.2s ease, background-color 0.2s ease',
                 '&:hover': {
-                  transform: 'scale(1.1)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  transform: 'scale(1.08)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.10)',
                 },
               },
               sizeSmall: {
@@ -389,6 +433,28 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 borderRadius: 12,
                 borderLeft: '4px solid',
+                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                color: '#f8fafc',
+              },
+              standardSuccess: {
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                color: '#d1fae5',
+                borderColor: '#10b981',
+              },
+              standardError: {
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                color: '#fecaca',
+                borderColor: '#ef4444',
+              },
+              standardWarning: {
+                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                color: '#fde68a',
+                borderColor: '#f59e0b',
+              },
+              standardInfo: {
+                backgroundColor: 'rgba(6, 182, 212, 0.15)',
+                color: '#cffafe',
+                borderColor: '#06b6d4',
               },
             },
           },
@@ -398,12 +464,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 10,
                 fontSize: '0.813rem',
                 padding: '8px 14px',
-                backgroundColor: '#334155',
+                backgroundColor: '#475569',
+                color: '#f8fafc',
                 boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
               },
               arrow: {
-                color: 'rgba(30, 41, 59, 0.95)',
+                color: '#475569',
               },
             },
           },
@@ -412,6 +479,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 minHeight: 44,
                 fontSize: 'clamp(0.85rem, 1.5vw, 0.938rem)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                },
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(59, 130, 246, 0.16)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(59, 130, 246, 0.22)',
+                  },
+                },
               },
             },
           },
@@ -419,9 +495,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               paper: {
                 borderRadius: 12,
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.10)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
-                backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
+                backgroundImage: 'none',
               },
             },
           },
@@ -430,6 +507,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 minHeight: 44,
                 WebkitTapHighlightColor: 'transparent',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                },
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(59, 130, 246, 0.14)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(59, 130, 246, 0.20)',
+                  },
+                },
               },
             },
           },
@@ -438,6 +524,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               paper: {
                 borderRight: 'none',
                 boxShadow: '2px 0 12px rgba(0, 0, 0, 0.3)',
+                backgroundColor: mode === 'light' ? '#1e293b' : '#0f172a',
+                backgroundImage: 'none',
               },
             },
           },
@@ -445,6 +533,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+                backgroundImage: 'none',
               },
             },
           },
@@ -457,6 +546,30 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                   transform: 'scale(1.05)',
                   boxShadow: '0 6px 20px rgba(0, 0, 0, 0.35)',
                 },
+              },
+            },
+          },
+          MuiDivider: {
+            styleOverrides: {
+              root: {
+                borderColor: 'rgba(255, 255, 255, 0.10)',
+              },
+            },
+          },
+          MuiInputLabel: {
+            styleOverrides: {
+              root: {
+                color: '#cbd5e1',
+                '&.Mui-focused': {
+                  color: '#60a5fa',
+                },
+              },
+            },
+          },
+          MuiFormHelperText: {
+            styleOverrides: {
+              root: {
+                color: '#94a3b8',
               },
             },
           },
