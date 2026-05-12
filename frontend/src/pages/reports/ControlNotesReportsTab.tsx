@@ -521,7 +521,7 @@ const ControlNotesReportsTab: React.FC = () => {
                 variant="contained"
                 startIcon={<PdfIcon />}
                 onClick={exportToPDF}
-                sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+                sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
               >
                 Exporta PDF
               </Button>
@@ -529,7 +529,7 @@ const ControlNotesReportsTab: React.FC = () => {
                 variant="contained"
                 startIcon={<ExcelIcon />}
                 onClick={exportToExcel}
-                sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+                sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
               >
                 Exporta Excel
               </Button>
@@ -570,7 +570,7 @@ const ControlNotesReportsTab: React.FC = () => {
                 <ListItem disablePadding>
                   <ListItemButton onClick={exportToPDF}>
                     <ListItemIcon>
-                      <PdfIcon sx={{ color: '#ef4444' }} />
+                      <PdfIcon sx={{ color: '#dc2626' }} />
                     </ListItemIcon>
                     <ListItemText primary="Exporta PDF" secondary="Fisier .pdf — cu sumar si tabel complet" />
                   </ListItemButton>
@@ -578,7 +578,7 @@ const ControlNotesReportsTab: React.FC = () => {
                 <ListItem disablePadding>
                   <ListItemButton onClick={exportToExcel}>
                     <ListItemIcon>
-                      <ExcelIcon sx={{ color: '#10b981' }} />
+                      <ExcelIcon sx={{ color: '#059669' }} />
                     </ListItemIcon>
                     <ListItemText primary="Exporta Excel" secondary="Fisier .xlsx — 2 sheet-uri (matrice + zile lucr.)" />
                   </ListItemButton>

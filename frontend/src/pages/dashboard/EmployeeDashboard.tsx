@@ -536,7 +536,7 @@ const EmployeeDashboard = () => {
         title={`Buna, ${user?.fullName?.split(' ')[0] || 'User'}!`}
         subtitle={`${new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} — ${departmentName}`}
         icon={<TrendingIcon />}
-        gradient={deptGradients[departmentName] || '#3b82f6 0%, #8b5cf6 100%'}
+        gradient={deptGradients[departmentName] || '#3b82f6 0%, #64748b 100%'}
       />
 
       {/* Car Status Banner */}
@@ -828,7 +828,7 @@ const EmployeeDashboard = () => {
                   height={{ xs: 180, sm: 220 }}
                   data={[
                     { label: 'Zona Rosu', value: deptStats.controlSesizari.byZone.rosu, color: theme.palette.error.main },
-                    { label: 'Zona Galben', value: deptStats.controlSesizari.byZone.galben, color: '#f59e0b' },
+                    { label: 'Zona Galben', value: deptStats.controlSesizari.byZone.galben, color: '#d97706' },
                     { label: 'Zona Alb', value: deptStats.controlSesizari.byZone.alb, color: theme.palette.grey[500] },
                     { label: 'Finalizate', value: deptStats.controlSesizari.finalizat, color: theme.palette.success.main },
                   ]}
@@ -975,7 +975,7 @@ const EmployeeDashboard = () => {
                             secondary={
                               <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
                                 <Chip icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />} label={`${colleague.startTime} - ${colleague.endTime}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' }, '& .MuiChip-icon': { color: 'white' } }} />
-                                <Chip label={colleague.shiftCode || colleague.shiftType} size="small" sx={{ bgcolor: colleague.shiftCode === 'Z' ? '#fbbf24' : colleague.shiftCode === 'N' ? '#8b5cf6' : '#10b981', color: colleague.shiftCode === 'Z' ? '#000' : '#fff', fontWeight: 700, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }} />
+                                <Chip label={colleague.shiftCode || colleague.shiftType} size="small" sx={{ bgcolor: colleague.shiftCode === 'Z' ? '#d97706' : colleague.shiftCode === 'N' ? '#64748b' : '#059669', color: colleague.shiftCode === 'Z' ? '#000' : '#fff', fontWeight: 700, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }} />
                               </Stack>
                             }
                           />
@@ -1021,7 +1021,7 @@ const EmployeeDashboard = () => {
                               secondary={
                                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
                                   <Chip icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />} label={`${colleague.startTime} - ${colleague.endTime}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' }, '& .MuiChip-icon': { color: 'white' } }} />
-                                  <Chip label={colleague.shiftCode || colleague.shiftType} size="small" sx={{ bgcolor: colleague.shiftCode === 'Z' ? '#fbbf24' : colleague.shiftCode === 'N' ? '#8b5cf6' : '#10b981', color: colleague.shiftCode === 'Z' ? '#000' : '#fff', fontWeight: 700, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }} />
+                                  <Chip label={colleague.shiftCode || colleague.shiftType} size="small" sx={{ bgcolor: colleague.shiftCode === 'Z' ? '#d97706' : colleague.shiftCode === 'N' ? '#64748b' : '#059669', color: colleague.shiftCode === 'Z' ? '#000' : '#fff', fontWeight: 700, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }} />
                                 </Stack>
                               }
                             />

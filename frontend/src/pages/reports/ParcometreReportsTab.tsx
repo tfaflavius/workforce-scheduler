@@ -320,7 +320,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
           onClick={exportToPDF}
           disabled={filteredMeters.length === 0}
           sx={{
-            bgcolor: '#ef4444',
+            bgcolor: '#dc2626',
             '&:hover': { bgcolor: '#dc2626' },
             py: 1.5,
           }}
@@ -336,7 +336,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
           onClick={exportToExcel}
           disabled={filteredMeters.length === 0}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
             py: 1.5,
           }}
@@ -405,7 +405,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
                 filteredMeters.filter((m: ParkingMeter) => m.zone === 'GALBEN' && m.isActive).length,
                 filteredMeters.filter((m: ParkingMeter) => m.zone === 'ALB' && m.isActive).length,
               ],
-              color: '#10b981',
+              color: '#059669',
             },
             {
               label: 'Inactive',
@@ -414,7 +414,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
                 filteredMeters.filter((m: ParkingMeter) => m.zone === 'GALBEN' && !m.isActive).length,
                 filteredMeters.filter((m: ParkingMeter) => m.zone === 'ALB' && !m.isActive).length,
               ],
-              color: '#ef4444',
+              color: '#dc2626',
             },
           ]}
           defaultType="bar"
@@ -436,7 +436,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
             title="Active"
             value={stats.active}
             icon={<ActiveMeterIcon />}
-            color="#10b981"
+            color="#059669"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -444,7 +444,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
             title="Zona Rosu"
             value={stats.zoneRosu}
             icon={<ZoneIcon />}
-            color="#ef4444"
+            color="#dc2626"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -452,7 +452,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
             title="Zona Galben"
             value={stats.zoneGalben}
             icon={<ZoneIcon />}
-            color="#f59e0b"
+            color="#d97706"
           />
         </Grid>
       </Grid>
@@ -522,8 +522,8 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
                       label={isMobile ? meter.zone : ZONE_LABELS[meter.zone]}
                       size="small"
                       sx={{
-                        bgcolor: meter.zone === 'ROSU' ? '#ef444420' : meter.zone === 'GALBEN' ? '#f59e0b20' : '#64748b20',
-                        color: meter.zone === 'ROSU' ? '#ef4444' : meter.zone === 'GALBEN' ? '#f59e0b' : '#64748b',
+                        bgcolor: meter.zone === 'ROSU' ? '#dc262620' : meter.zone === 'GALBEN' ? '#d9770620' : '#64748b20',
+                        color: meter.zone === 'ROSU' ? '#dc2626' : meter.zone === 'GALBEN' ? '#d97706' : '#64748b',
                       }}
                     />
                   </TableCell>
@@ -537,8 +537,8 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
                       label={CONDITION_LABELS[meter.condition]}
                       size="small"
                       sx={{
-                        bgcolor: meter.condition === 'NOU' ? '#10b98120' : '#f59e0b20',
-                        color: meter.condition === 'NOU' ? '#10b981' : '#f59e0b',
+                        bgcolor: meter.condition === 'NOU' ? '#05966920' : '#d9770620',
+                        color: meter.condition === 'NOU' ? '#059669' : '#d97706',
                         fontWeight: 600,
                       }}
                     />
@@ -555,8 +555,8 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
                       label={meter.isActive ? 'Da' : 'Nu'}
                       size="small"
                       sx={{
-                        bgcolor: meter.isActive ? '#10b98120' : '#ef444420',
-                        color: meter.isActive ? '#10b981' : '#ef4444',
+                        bgcolor: meter.isActive ? '#05966920' : '#dc262620',
+                        color: meter.isActive ? '#059669' : '#dc2626',
                         fontWeight: 600,
                       }}
                     />
@@ -605,7 +605,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
             variant="contained"
             startIcon={<PdfIcon />}
             onClick={exportToPDF}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
           >
             Exporta PDF
           </Button>
@@ -613,7 +613,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
             variant="contained"
             startIcon={<ExcelIcon />}
             onClick={exportToExcel}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             Exporta Excel
           </Button>

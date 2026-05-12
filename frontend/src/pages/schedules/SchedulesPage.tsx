@@ -511,7 +511,7 @@ const SchedulesPage: React.FC = () => {
           title="Programe de Lucru"
           subtitle={`${selectedMonthLabel}${isAdmin ? ' • Admin' : isManager ? ' • Manager' : ''}`}
           icon={<CalendarMonthIcon />}
-          gradient="#2563eb 0%, #7c3aed 100%"
+          gradient="#1d4ed8 0%, #475569 100%"
         >
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip

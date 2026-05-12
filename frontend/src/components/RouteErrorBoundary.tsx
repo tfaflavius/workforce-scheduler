@@ -16,10 +16,10 @@ const ErrorIllustration = () => (
     <rect x="39" y="44" width="10" height="8" rx="2" fill="#e2e8f0" />
     <rect x="81" y="44" width="10" height="8" rx="2" fill="#e2e8f0" />
     {/* Warning triangle */}
-    <path d="M100 30 L120 65 L80 65 Z" fill="#fff7ed" stroke="#f97316" strokeWidth="2" strokeLinejoin="round" />
-    <text x="100" y="58" fontSize="18" fontWeight="bold" fill="#f97316" textAnchor="middle" fontFamily="sans-serif">!</text>
+    <path d="M100 30 L120 65 L80 65 Z" fill="#1e293b" stroke="#ea580c" strokeWidth="2" strokeLinejoin="round" />
+    <text x="100" y="58" fontSize="18" fontWeight="bold" fill="#ea580c" textAnchor="middle" fontFamily="sans-serif">!</text>
     {/* Lightning bolt crack */}
-    <path d="M55 38 L60 45 L56 45 L62 55" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.6" />
+    <path d="M55 38 L60 45 L56 45 L62 55" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.6" />
     {/* Decorative dots */}
     <circle cx="30" cy="35" r="2" fill="#e2e8f0" />
     <circle cx="130" cy="40" r="2.5" fill="#e2e8f0" />

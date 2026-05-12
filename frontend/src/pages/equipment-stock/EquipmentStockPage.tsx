@@ -84,14 +84,14 @@ const EquipmentStockPage: React.FC = () => {
       {
         label: STOCK_CATEGORY_LABELS.PARCARI_STRADALE,
         shortLabel: 'Stradale',
-        color: '#10b981',
+        color: '#059669',
         component: 'category',
         category: 'PARCARI_STRADALE',
       },
       {
         label: STOCK_CATEGORY_LABELS.PARCOMETRE,
         shortLabel: 'Parcometre',
-        color: '#f59e0b',
+        color: '#d97706',
         component: 'category',
         category: 'PARCOMETRE',
       },
@@ -101,7 +101,7 @@ const EquipmentStockPage: React.FC = () => {
       tabs.push({
         label: 'Definitii',
         shortLabel: 'Definitii',
-        color: '#8b5cf6',
+        color: '#64748b',
         component: 'definitions',
       });
     }
@@ -138,7 +138,7 @@ const EquipmentStockPage: React.FC = () => {
         title="Stoc Echipamente"
         subtitle="Gestioneaza stocul de echipamente pe categorii"
         icon={<InventoryIcon />}
-        gradient="#3b82f6 0%, #10b981 100%"
+        gradient="#3b82f6 0%, #059669 100%"
       />
 
       {/* Tabs */}

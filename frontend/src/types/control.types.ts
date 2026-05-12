@@ -30,8 +30,8 @@ export const CONTROL_PARKING_LAYOUT_LABELS: Record<ControlParkingLayoutType, str
 
 // Zone color mapping
 export const ZONE_COLORS: Record<ControlSesizareZone, { main: string; bg: string }> = {
-  ROSU: { main: '#ef4444', bg: '#ef444415' },
-  GALBEN: { main: '#f59e0b', bg: '#f59e0b15' },
+  ROSU: { main: '#dc2626', bg: '#dc262615' },
+  GALBEN: { main: '#d97706', bg: '#d9770615' },
   ALB: { main: '#64748b', bg: '#64748b15' },
 };
 

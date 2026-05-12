@@ -101,7 +101,7 @@ const ALLOWED_DEPARTMENTS = [CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAM
 
 // Culori pentru tipuri de sesizari
 const TYPE_COLORS: Record<ControlSesizareType, { main: string; bg: string }> = {
-  MARCAJ: { main: '#8b5cf6', bg: '#8b5cf615' },
+  MARCAJ: { main: '#64748b', bg: '#64748b15' },
   PANOU: { main: '#2563eb', bg: '#2563eb15' },
 };
 
@@ -179,12 +179,12 @@ const OrientationChipSelector: React.FC<OrientationChipSelectorProps> = React.me
             label={CONTROL_PARKING_LAYOUT_LABELS[o]}
             onClick={() => onChange(o)}
             sx={{
-              bgcolor: value === o ? '#7c3aed' : 'transparent',
-              color: value === o ? 'white' : '#7c3aed',
-              border: '2px solid #7c3aed',
+              bgcolor: value === o ? '#475569' : 'transparent',
+              color: value === o ? 'white' : '#475569',
+              border: '2px solid #475569',
               fontWeight: 600,
               cursor: 'pointer',
-              '&:hover': { bgcolor: value === o ? '#7c3aed' : '#7c3aed15' },
+              '&:hover': { bgcolor: value === o ? '#475569' : '#47556915' },
             }}
           />
         ))}
@@ -622,8 +622,8 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
                 <Chip label={CONTROL_SESIZARE_STATUS_LABELS[sesizare.status]} size="small"
                   sx={{
                     ml: 1,
-                    bgcolor: sesizare.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-                    color: sesizare.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                    bgcolor: sesizare.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+                    color: sesizare.status === 'ACTIVE' ? '#dc2626' : '#059669',
                     fontWeight: 600,
                   }}
                 />
@@ -682,7 +682,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
                             />
                             {sesizare.orientation && (
                               <Chip label={CONTROL_PARKING_LAYOUT_LABELS[sesizare.orientation]}
-                                sx={{ bgcolor: '#7c3aed', color: 'white', fontWeight: 600 }}
+                                sx={{ bgcolor: '#475569', color: 'white', fontWeight: 600 }}
                               />
                             )}
                           </Stack>
@@ -713,7 +713,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
                       {sesizare.status === 'FINALIZAT' && sesizare.resolutionDescription && (
                         <>
                           <Divider />
-                          <Box sx={{ bgcolor: '#10b98115', p: 2, borderRadius: 2 }}>
+                          <Box sx={{ bgcolor: '#05966915', p: 2, borderRadius: 2 }}>
                             <Typography variant="body2" color="success.main" fontWeight={600}>
                               Rezolvat de {sesizare.resolver?.fullName} la {format(new Date(sesizare.resolvedAt!), 'dd MMM yyyy, HH:mm', { locale: ro })}
                             </Typography>
@@ -896,14 +896,14 @@ const ControlSesizareCard: React.FC<SesizareCardProps> = React.memo(({ sesizare,
             />
             {sesizare.orientation && (
               <Chip label={CONTROL_PARKING_LAYOUT_LABELS[sesizare.orientation]} size="small"
-                sx={{ bgcolor: '#7c3aed', color: 'white', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.7rem' }, height: { xs: 22, sm: 24 } }}
+                sx={{ bgcolor: '#475569', color: 'white', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.7rem' }, height: { xs: 22, sm: 24 } }}
               />
             )}
           </Stack>
           <Chip label={CONTROL_SESIZARE_STATUS_LABELS[sesizare.status]} size="small"
             sx={{
-              bgcolor: sesizare.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-              color: sesizare.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+              bgcolor: sesizare.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+              color: sesizare.status === 'ACTIVE' ? '#dc2626' : '#059669',
               fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.7rem' }, height: { xs: 22, sm: 24 }, flexShrink: 0,
             }}
           />
@@ -1022,7 +1022,7 @@ const ControlSesizariPage: React.FC = () => {
         <Box sx={{
           mb: { xs: 2, sm: 3 }, p: { xs: 2, sm: 2.5, md: 3 },
           background: theme.palette.mode === 'light'
-            ? 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'
+            ? 'linear-gradient(135deg, #ea580c 0%, #ea580c 100%)'
             : 'linear-gradient(135deg, #c2410c 0%, #9a3412 100%)',
           borderRadius: { xs: 2, sm: 3 }, color: 'white', position: 'relative', overflow: 'hidden',
           boxShadow: '0 4px 20px rgba(249, 115, 22, 0.3)',

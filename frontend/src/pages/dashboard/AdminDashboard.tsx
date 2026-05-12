@@ -232,7 +232,7 @@ const AdminDashboard = () => {
                   { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: theme.palette.info.main },
                   { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: theme.palette.secondary.main },
                   { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
-                  { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: '#f59e0b' },
+                  { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: '#d97706' },
                 ]}
               />
             </Suspense>
@@ -262,7 +262,7 @@ const AdminDashboard = () => {
                   height={{ xs: 160, sm: 200 }}
                   data={[
                     { label: 'Zona Rosu', value: stats?.controlSesizari?.byZone?.rosu || 0, color: theme.palette.error.main },
-                    { label: 'Zona Galben', value: stats?.controlSesizari?.byZone?.galben || 0, color: '#f59e0b' },
+                    { label: 'Zona Galben', value: stats?.controlSesizari?.byZone?.galben || 0, color: '#d97706' },
                     { label: 'Zona Alb', value: stats?.controlSesizari?.byZone?.alb || 0, color: theme.palette.grey[500] },
                     { label: 'Finalizate', value: stats?.controlSesizari?.finalizat || 0, color: theme.palette.success.main },
                   ]}

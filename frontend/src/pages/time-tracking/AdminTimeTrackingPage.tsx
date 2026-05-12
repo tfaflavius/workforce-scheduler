@@ -92,13 +92,13 @@ const getGpsAlertInfo = (row: {
 
   // Use reported GPS status if available
   if (row.gpsStatus === 'denied') {
-    return { label: 'GPS Blocat', color: '#ef4444', icon: 'off', tooltip: 'Angajatul a blocat accesul la GPS' };
+    return { label: 'GPS Blocat', color: '#dc2626', icon: 'off', tooltip: 'Angajatul a blocat accesul la GPS' };
   }
   if (row.gpsStatus === 'error') {
-    return { label: 'Eroare GPS', color: '#f59e0b', icon: 'warning', tooltip: 'Eroare la capturarea pozitiei GPS' };
+    return { label: 'Eroare GPS', color: '#d97706', icon: 'warning', tooltip: 'Eroare la capturarea pozitiei GPS' };
   }
   if (row.gpsStatus === 'unavailable') {
-    return { label: 'GPS Indisponibil', color: '#f59e0b', icon: 'warning', tooltip: 'GPS-ul nu este disponibil pe dispozitiv' };
+    return { label: 'GPS Indisponibil', color: '#d97706', icon: 'warning', tooltip: 'GPS-ul nu este disponibil pe dispozitiv' };
   }
 
   // Even if gpsStatus is 'active', check if locations are actually arriving
@@ -109,7 +109,7 @@ const getGpsAlertInfo = (row: {
       // Recent location = GPS works fine
       return {
         label: 'GPS OK',
-        color: '#10b981',
+        color: '#059669',
         icon: 'ok',
         tooltip: `Ultima locatie acum ${Math.floor(minutesSinceLastLocation)} min - ${row.locationCount} locatii total`,
       };
@@ -117,7 +117,7 @@ const getGpsAlertInfo = (row: {
       // Has locations but last one is old = GPS stopped working
       return {
         label: 'GPS Intrerupt',
-        color: '#f59e0b',
+        color: '#d97706',
         icon: 'warning',
         tooltip: `Ultima locatie acum ${Math.floor(minutesSinceLastLocation)} min - GPS-ul pare sa nu mai functioneze`,
       };
@@ -126,7 +126,7 @@ const getGpsAlertInfo = (row: {
 
   // If gpsStatus is 'active' but no locations at all (edge case)
   if (row.gpsStatus === 'active') {
-    return { label: 'GPS OK', color: '#10b981', icon: 'ok', tooltip: 'GPS-ul functioneaza normal' };
+    return { label: 'GPS OK', color: '#059669', icon: 'ok', tooltip: 'GPS-ul functioneaza normal' };
   }
 
   // No locations at all - check how long on shift
@@ -136,7 +136,7 @@ const getGpsAlertInfo = (row: {
     if (minutesActive > GPS_STALE_THRESHOLD_MIN) {
       return {
         label: 'Fara GPS',
-        color: '#ef4444',
+        color: '#dc2626',
         icon: 'off',
         tooltip: `Pe tura de ${Math.floor(minutesActive)} min fara nicio locatie GPS`,
       };
@@ -455,7 +455,7 @@ const AdminTimeTrackingPage: React.FC = () => {
         title="Monitorizare Pontaj"
         subtitle="Vizualizare pontaj si locatii GPS angajati"
         icon={<TimerIcon />}
-        gradient="#f59e0b 0%, #ea580c 100%"
+        gradient="#d97706 0%, #ea580c 100%"
       >
         <Chip
           icon={<PersonIcon sx={{ fontSize: 16 }} />}
@@ -471,9 +471,9 @@ const AdminTimeTrackingPage: React.FC = () => {
           <StatCard
             title="Ture Active"
             value={statsLoading ? '...' : (stats?.activeCount ?? 0)}
-            icon={<TimerIcon sx={{ color: '#f59e0b', fontSize: { xs: 24, sm: 28 } }} />}
-            color="#f59e0b"
-            bgColor={alpha('#f59e0b', 0.12)}
+            icon={<TimerIcon sx={{ color: '#d97706', fontSize: { xs: 24, sm: 28 } }} />}
+            color="#d97706"
+            bgColor={alpha('#d97706', 0.12)}
             subtitle="Acum pe tura"
             delay={0}
           />
@@ -493,9 +493,9 @@ const AdminTimeTrackingPage: React.FC = () => {
           <StatCard
             title="Locatii GPS Azi"
             value={statsLoading ? '...' : (stats?.locationLogsToday ?? 0)}
-            icon={<LocationIcon sx={{ color: '#10b981', fontSize: { xs: 24, sm: 28 } }} />}
-            color="#10b981"
-            bgColor={alpha('#10b981', 0.12)}
+            icon={<LocationIcon sx={{ color: '#059669', fontSize: { xs: 24, sm: 28 } }} />}
+            color="#059669"
+            bgColor={alpha('#059669', 0.12)}
             subtitle="Inregistrari locatie"
             delay={200}
           />
@@ -507,9 +507,9 @@ const AdminTimeTrackingPage: React.FC = () => {
               const info = getGpsAlertInfo(r);
               return info.icon === 'off' || info.icon === 'warning';
             }).length}
-            icon={<GpsOffIcon sx={{ color: '#ef4444', fontSize: { xs: 24, sm: 28 } }} />}
-            color="#ef4444"
-            bgColor={alpha('#ef4444', 0.12)}
+            icon={<GpsOffIcon sx={{ color: '#dc2626', fontSize: { xs: 24, sm: 28 } }} />}
+            color="#dc2626"
+            bgColor={alpha('#dc2626', 0.12)}
             subtitle="Angajati cu probleme GPS"
             delay={300}
           />

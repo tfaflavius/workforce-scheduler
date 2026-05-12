@@ -776,13 +776,13 @@ export const MainLayout = () => {
                   px: { xs: 1.5, sm: 2 },
                   transition: 'all 0.2s ease-in-out',
                   '&:hover': {
-                    bgcolor: alpha('#f59e0b', 0.06),
+                    bgcolor: alpha('#64748b', 0.06),
                   },
                 }}
               >
                 <ListItemIcon
                   sx={{
-                    color: '#f59e0b',
+                    color: '#64748b',
                     minWidth: { xs: 36, sm: 40 },
                     '& .MuiSvgIcon-root': {
                       fontSize: { xs: '1.25rem', sm: '1.4rem' },
@@ -795,7 +795,7 @@ export const MainLayout = () => {
                   primary="Departamente"
                   primaryTypographyProps={{
                     fontWeight: 700,
-                    color: alpha('#f59e0b', 0.8),
+                    color: alpha('#64748b', 0.8),
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
                     fontSize: '0.65rem',
@@ -828,7 +828,7 @@ export const MainLayout = () => {
                               minHeight: 0,
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
-                                bgcolor: alpha('#f59e0b', 0.08),
+                                bgcolor: alpha('#64748b', 0.08),
                                 transform: 'translateX(4px)',
                               },
                             }}
@@ -836,7 +836,7 @@ export const MainLayout = () => {
                             <DotIcon
                               sx={{
                                 fontSize: 8,
-                                color: alpha('#f59e0b', 0.5),
+                                color: alpha('#64748b', 0.5),
                                 mr: 1.5,
                               }}
                             />
@@ -857,8 +857,8 @@ export const MainLayout = () => {
                                 minWidth: 28,
                                 fontSize: '0.65rem',
                                 fontWeight: 700,
-                                bgcolor: alpha('#f59e0b', 0.1),
-                                color: '#f59e0b',
+                                bgcolor: alpha('#64748b', 0.1),
+                                color: '#64748b',
                                 '& .MuiChip-label': { px: 0.75 },
                               }}
                             />

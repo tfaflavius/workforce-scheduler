@@ -129,7 +129,7 @@ const PvMarketplaceTab: React.FC = () => {
 
       {days.length === 0 ? (
         <Card sx={{ borderRadius: 3, p: 4, textAlign: 'center' }}>
-          <MarketplaceIcon sx={{ fontSize: 64, color: alpha('#f59e0b', 0.3), mb: 2 }} />
+          <MarketplaceIcon sx={{ fontSize: 64, color: alpha('#d97706', 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             Nu exista zile disponibile
           </Typography>
@@ -192,8 +192,8 @@ const PvMarketplaceTab: React.FC = () => {
                                 label={`${assignedCount}/2`}
                                 size="small"
                                 sx={{
-                                  bgcolor: isFullyAssigned ? alpha('#10b981', 0.15) : alpha('#f59e0b', 0.15),
-                                  color: isFullyAssigned ? '#10b981' : '#f59e0b',
+                                  bgcolor: isFullyAssigned ? alpha('#059669', 0.15) : alpha('#d97706', 0.15),
+                                  color: isFullyAssigned ? '#059669' : '#d97706',
                                   fontWeight: 700,
                                   fontSize: '0.7rem',
                                 }}
@@ -266,7 +266,7 @@ const PvMarketplaceTab: React.FC = () => {
                                   borderRadius: 2,
                                   textTransform: 'none',
                                   fontWeight: 600,
-                                  bgcolor: '#f59e0b',
+                                  bgcolor: '#d97706',
                                   '&:hover': { bgcolor: '#d97706' },
                                   whiteSpace: 'nowrap',
                                 }}
@@ -289,8 +289,8 @@ const PvMarketplaceTab: React.FC = () => {
                                 label={isCompleted ? 'Finalizat' : 'Complet'}
                                 size="small"
                                 sx={{
-                                  bgcolor: alpha(isCompleted ? '#6b7280' : '#10b981', 0.1),
-                                  color: isCompleted ? '#6b7280' : '#10b981',
+                                  bgcolor: alpha(isCompleted ? '#6b7280' : '#059669', 0.1),
+                                  color: isCompleted ? '#6b7280' : '#059669',
                                   fontWeight: 600,
                                 }}
                               />

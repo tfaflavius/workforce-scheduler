@@ -67,7 +67,7 @@ import FriendlyDialog from '../../components/common/FriendlyDialog';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 
 // Culori - violet pentru a diferentia de handicap (verde)
-const REVOLUTIONAR_COLOR = { main: '#7c3aed', bg: '#7c3aed15' };
+const REVOLUTIONAR_COLOR = { main: '#475569', bg: '#47556915' };
 
 const ITEMS_PER_PAGE = 10;
 

@@ -315,7 +315,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
           onClick={exportToPDF}
           disabled={filteredPositions.length === 0}
           sx={{
-            bgcolor: '#ef4444',
+            bgcolor: '#dc2626',
             '&:hover': { bgcolor: '#dc2626' },
             py: 1.5,
           }}
@@ -331,7 +331,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
           onClick={exportToExcel}
           disabled={filteredPositions.length === 0}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
             py: 1.5,
           }}
@@ -354,7 +354,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 3,
-            background: `linear-gradient(135deg, #ea580c 0%, #f97316 100%)`,
+            background: `linear-gradient(135deg, #ea580c 0%, #ea580c 100%)`,
             color: 'white',
             borderRadius: 3,
             position: 'relative',
@@ -401,7 +401,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
             title="Total Cheltuit"
             value={formatCurrency(stats.totalSpent)}
             icon={<SpentIcon />}
-            color="#ef4444"
+            color="#dc2626"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -409,7 +409,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
             title="Total Ramas"
             value={formatCurrency(stats.totalRemaining)}
             icon={<RemainingIcon />}
-            color="#10b981"
+            color="#059669"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -472,8 +472,8 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
               )}
               series={[
                 { label: 'Buget Total', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.totalAmount || 0)), color: '#ea580c' },
-                { label: 'Cheltuit', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.spentAmount || 0)), color: '#ef4444' },
-                { label: 'Ramas', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.remainingAmount || 0)), color: '#10b981' },
+                { label: 'Cheltuit', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.spentAmount || 0)), color: '#dc2626' },
+                { label: 'Ramas', data: filteredPositions.slice(0, 12).map((p: BudgetPosition) => Number(p.remainingAmount || 0)), color: '#059669' },
               ]}
               defaultType="bar"
               height={340}
@@ -506,8 +506,8 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
                         label={BUDGET_CATEGORY_LABELS[position.category]}
                         size="small"
                         sx={{
-                          bgcolor: position.category === 'INVESTMENTS' ? alpha('#2563eb', 0.1) : alpha('#8b5cf6', 0.1),
-                          color: position.category === 'INVESTMENTS' ? '#2563eb' : '#8b5cf6',
+                          bgcolor: position.category === 'INVESTMENTS' ? alpha('#2563eb', 0.1) : alpha('#64748b', 0.1),
+                          color: position.category === 'INVESTMENTS' ? '#2563eb' : '#64748b',
                           fontWeight: 600,
                         }}
                       />
@@ -565,7 +565,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
+              background: 'linear-gradient(135deg, #ea580c 0%, #ea580c 100%)',
             }}
             onClick={() => setExportDrawerOpen(true)}
           >
@@ -581,7 +581,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
             variant="contained"
             startIcon={<PdfIcon />}
             onClick={exportToPDF}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
           >
             Exporta PDF
           </Button>
@@ -589,7 +589,7 @@ const AchizitiiReportsTab: React.FC<AchizitiiReportsTabProps> = () => {
             variant="contained"
             startIcon={<ExcelIcon />}
             onClick={exportToExcel}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             Exporta Excel
           </Button>

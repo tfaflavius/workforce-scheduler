@@ -250,7 +250,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #334155 0%, #475569 100%)',
             }}
           >
             Sesiune Noua
@@ -483,7 +483,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
             sx={{
               textTransform: 'none',
               fontWeight: 600,
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #334155 0%, #475569 100%)',
             }}
           >
             {isCreating ? <CircularProgress size={20} /> : 'Creeaza Sesiunea'}
@@ -588,7 +588,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
               <IconButton
                 size="small"
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                sx={{ color: '#ef4444' }}
+                sx={{ color: '#dc2626' }}
               >
                 <DeleteIcon fontSize="small" />
               </IconButton>
@@ -690,8 +690,8 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
                   label={`${assignedCount}/2`}
                   size="small"
                   sx={{
-                    bgcolor: assignedCount === 2 ? alpha('#10b981', 0.15) : alpha('#f59e0b', 0.15),
-                    color: assignedCount === 2 ? '#10b981' : '#f59e0b',
+                    bgcolor: assignedCount === 2 ? alpha('#059669', 0.15) : alpha('#d97706', 0.15),
+                    color: assignedCount === 2 ? '#059669' : '#d97706',
                     fontWeight: 700,
                   }}
                 />
@@ -699,7 +699,7 @@ const DaysSection: React.FC<{ days: PvDisplayDay[] }> = ({ days }) => {
 
               {/* PV Details */}
               {hasPvDetails && (
-                <Box sx={{ mt: 1, p: 1, bgcolor: alpha('#8b5cf6', 0.04), borderRadius: 1.5, border: `1px solid ${alpha('#8b5cf6', 0.1)}` }}>
+                <Box sx={{ mt: 1, p: 1, bgcolor: alpha('#64748b', 0.04), borderRadius: 1.5, border: `1px solid ${alpha('#64748b', 0.1)}` }}>
                   <Stack spacing={0.5}>
                     {(day.firstNoticeSeries || day.firstNoticeNumber) && (
                       <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>

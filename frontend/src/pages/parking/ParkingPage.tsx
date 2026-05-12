@@ -118,22 +118,22 @@ const ParkingPage: React.FC = () => {
       icon: <IssuesIcon />,
       label: 'Probleme Parcari',
       shortLabel: 'Probleme',
-      color: '#ef4444',
-      bgColor: alpha('#ef4444', 0.1),
+      color: '#dc2626',
+      bgColor: alpha('#dc2626', 0.1),
     },
     {
       icon: <DamagesIcon />,
       label: 'Prejudicii Parcari',
       shortLabel: 'Prejudicii',
-      color: '#f59e0b',
-      bgColor: alpha('#f59e0b', 0.1),
+      color: '#d97706',
+      bgColor: alpha('#d97706', 0.1),
     },
     {
       icon: <CashIcon />,
       label: 'Automate de Plata',
       shortLabel: 'Ridicari',
-      color: '#10b981',
-      bgColor: alpha('#10b981', 0.1),
+      color: '#059669',
+      bgColor: alpha('#059669', 0.1),
     },
     ...(isAdminOrManager
       ? [
@@ -141,8 +141,8 @@ const ParkingPage: React.FC = () => {
             icon: <StatsIcon />,
             label: 'Statistici Parcari',
             shortLabel: 'Statistici',
-            color: '#8b5cf6',
-            bgColor: alpha('#8b5cf6', 0.1),
+            color: '#64748b',
+            bgColor: alpha('#64748b', 0.1),
           },
         ]
       : []),
@@ -165,7 +165,7 @@ const ParkingPage: React.FC = () => {
               mb: { xs: 2, sm: 3 },
               p: { xs: 2, sm: 2.5, md: 3 },
               background: theme.palette.mode === 'light'
-                ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                ? 'linear-gradient(135deg, #d97706 0%, #d97706 100%)'
                 : 'linear-gradient(135deg, #b45309 0%, #92400e 100%)',
               borderRadius: { xs: 2, sm: 3 },
               color: 'white',
@@ -247,7 +247,7 @@ const ParkingPage: React.FC = () => {
             mb: { xs: 2, sm: 3 },
             p: { xs: 2, sm: 2.5, md: 3 },
             background: theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)'
+              ? 'linear-gradient(135deg, #2563eb 0%, #475569 100%)'
               : 'linear-gradient(135deg, #1e40af 0%, #5b21b6 100%)',
             borderRadius: { xs: 2, sm: 3 },
             color: 'white',

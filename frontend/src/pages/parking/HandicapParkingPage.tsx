@@ -114,13 +114,13 @@ const HANDICAP_PARKING_DEPARTMENT_NAME = HANDICAP_DEPARTMENT_NAME;
 
 // Culori pentru legitimatii
 const LEGITIMATION_COLOR = { main: '#059669', bg: '#05966915' };
-const REVOLUTIONAR_COLOR = { main: '#7c3aed', bg: '#7c3aed15' };
+const REVOLUTIONAR_COLOR = { main: '#475569', bg: '#47556915' };
 
 // Culori pentru tipuri de solicitari
 const REQUEST_TYPE_COLORS: Record<HandicapRequestType, { main: string; bg: string }> = {
   AMPLASARE_PANOU: { main: '#2563eb', bg: '#2563eb15' },
-  REVOCARE_PANOU: { main: '#f59e0b', bg: '#f59e0b15' },
-  CREARE_MARCAJ: { main: '#8b5cf6', bg: '#8b5cf615' },
+  REVOCARE_PANOU: { main: '#d97706', bg: '#d9770615' },
+  CREARE_MARCAJ: { main: '#64748b', bg: '#64748b15' },
 };
 
 // Icons pentru tipuri
@@ -643,8 +643,8 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
                   size="small"
                   sx={{
                     ml: 1,
-                    bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-                    color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                    bgcolor: request.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+                    color: request.status === 'ACTIVE' ? '#dc2626' : '#059669',
                     fontWeight: 600,
                   }}
                 />
@@ -860,7 +860,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
                       {request.status === 'FINALIZAT' && request.resolutionDescription && (
                         <>
                           <Divider />
-                          <Box sx={{ bgcolor: '#10b98115', p: 2, borderRadius: 2 }}>
+                          <Box sx={{ bgcolor: '#05966915', p: 2, borderRadius: 2 }}>
                             <Typography variant="body2" color="success.main" fontWeight={600}>
                               Rezolvat de {request.resolver?.fullName} la {format(new Date(request.resolvedAt!), 'dd MMM yyyy, HH:mm', { locale: ro })}
                             </Typography>
@@ -1125,8 +1125,8 @@ const HandicapRequestCard: React.FC<RequestCardProps> = React.memo(({ request, o
             label={HANDICAP_REQUEST_STATUS_LABELS[request.status]}
             size="small"
             sx={{
-              bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-              color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+              bgcolor: request.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+              color: request.status === 'ACTIVE' ? '#dc2626' : '#059669',
               fontWeight: 600,
               fontSize: { xs: '0.65rem', sm: '0.7rem' },
               height: { xs: 22, sm: 24 },
@@ -1406,7 +1406,7 @@ const HandicapParkingPage: React.FC = () => {
   }, [tabConfig, canSeeLegitimations, handicapLegitimationsTabIndex, revolutionarLegitimationsTabIndex]);
 
   // Current section color
-  const currentSectionColor = sectionOptions.find(o => o.value === tabValue)?.color || tabConfig[0]?.color || '#6366f1';
+  const currentSectionColor = sectionOptions.find(o => o.value === tabValue)?.color || tabConfig[0]?.color || '#475569';
 
   // Filtered legitimations by month (pentru export)
   const getMonthBounds = () => {
@@ -1784,7 +1784,7 @@ const HandicapParkingPage: React.FC = () => {
             mb: { xs: 2, sm: 3 },
             p: { xs: 2, sm: 2.5, md: 3 },
             background: theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+              ? 'linear-gradient(135deg, #475569 0%, #64748b 100%)'
               : 'linear-gradient(135deg, #4338ca 0%, #6d28d9 100%)',
             borderRadius: { xs: 2, sm: 3 },
             color: 'white',
@@ -1969,7 +1969,7 @@ const HandicapParkingPage: React.FC = () => {
             startIcon={<PdfIcon />}
             onClick={exportCurrentSectionPDF}
             sx={{
-              bgcolor: '#ef4444',
+              bgcolor: '#dc2626',
               '&:hover': { bgcolor: '#dc2626' },
               fontSize: { xs: '0.7rem', sm: '0.8rem' },
               px: { xs: 1.5, sm: 2 },
@@ -1983,7 +1983,7 @@ const HandicapParkingPage: React.FC = () => {
             startIcon={<ExcelIcon />}
             onClick={exportCurrentSectionExcel}
             sx={{
-              bgcolor: '#10b981',
+              bgcolor: '#059669',
               '&:hover': { bgcolor: '#059669' },
               fontSize: { xs: '0.7rem', sm: '0.8rem' },
               px: { xs: 1.5, sm: 2 },
@@ -1997,9 +1997,9 @@ const HandicapParkingPage: React.FC = () => {
             startIcon={<AllSectionsIcon />}
             onClick={() => setExportAllOpen(true)}
             sx={{
-              borderColor: '#6366f1',
-              color: '#6366f1',
-              '&:hover': { borderColor: '#4f46e5', bgcolor: alpha('#6366f1', 0.05) },
+              borderColor: '#475569',
+              color: '#475569',
+              '&:hover': { borderColor: '#4f46e5', bgcolor: alpha('#475569', 0.05) },
               fontSize: { xs: '0.7rem', sm: '0.8rem' },
               px: { xs: 1.5, sm: 2 },
             }}
@@ -2025,7 +2025,7 @@ const HandicapParkingPage: React.FC = () => {
               variant="contained"
               startIcon={<PdfIcon />}
               onClick={() => { exportAllSectionsPDF(); setExportAllOpen(false); }}
-              sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' }, py: 1.5 }}
+              sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' }, py: 1.5 }}
             >
               Exporta PDF Complet
             </Button>
@@ -2034,7 +2034,7 @@ const HandicapParkingPage: React.FC = () => {
               variant="contained"
               startIcon={<ExcelIcon />}
               onClick={() => { exportAllSectionsExcel(); setExportAllOpen(false); }}
-              sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' }, py: 1.5 }}
+              sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' }, py: 1.5 }}
             >
               Exporta Excel Complet
             </Button>

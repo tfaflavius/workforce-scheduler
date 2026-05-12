@@ -513,7 +513,7 @@ const ShiftSwapsPage = () => {
         title="Schimburi de Ture"
         subtitle="Solicita sau gestioneaza schimburile de ture cu colegii"
         icon={<SwapIcon />}
-        gradient="#6366f1 0%, #8b5cf6 100%"
+        gradient="#475569 0%, #64748b 100%"
       />
 
       {/* Summary Cards */}

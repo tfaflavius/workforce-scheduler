@@ -69,9 +69,9 @@ const GPS_STATUS_LABELS: Record<string, string> = {
 };
 
 const GPS_STATUS_COLORS: Record<string, string> = {
-  active: '#10b981',
-  denied: '#ef4444',
-  error: '#f59e0b',
+  active: '#059669',
+  denied: '#dc2626',
+  error: '#d97706',
   unavailable: '#6b7280',
 };
 
@@ -343,7 +343,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
           onClick={exportToPDF}
           disabled={filteredEntries.length === 0}
           sx={{
-            bgcolor: '#ef4444',
+            bgcolor: '#dc2626',
             '&:hover': { bgcolor: '#dc2626' },
             py: 1.5,
           }}
@@ -359,7 +359,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
           onClick={exportToExcel}
           disabled={filteredEntries.length === 0}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
             py: 1.5,
           }}
@@ -382,7 +382,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 3,
-            background: `linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)`,
+            background: `linear-gradient(135deg, #0891b2 0%, #0891b2 100%)`,
             color: 'white',
             borderRadius: 3,
             position: 'relative',
@@ -423,7 +423,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
           series={[{
             label: 'Ore',
             data: topUsersByHours.length > 0 ? topUsersByHours.map(u => Number(u.hours.toFixed(1))) : [0],
-            color: '#06b6d4',
+            color: '#0891b2',
           }]}
           defaultType="bar"
         />
@@ -444,7 +444,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
             title="Total Ore"
             value={stats.totalHours.toFixed(1)}
             icon={<TimerIcon />}
-            color="#8b5cf6"
+            color="#64748b"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -460,7 +460,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
             title="GPS Activ"
             value={stats.gpsActiveCount}
             icon={<GpsIcon />}
-            color="#10b981"
+            color="#059669"
           />
         </Grid>
       </Grid>
@@ -576,7 +576,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',
+              background: 'linear-gradient(135deg, #0891b2 0%, #0891b2 100%)',
             }}
             onClick={() => setExportDrawerOpen(true)}
           >
@@ -592,7 +592,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
             variant="contained"
             startIcon={<PdfIcon />}
             onClick={exportToPDF}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
           >
             Exporta PDF
           </Button>
@@ -600,7 +600,7 @@ const PontajReportsTab: React.FC<PontajReportsTabProps> = ({
             variant="contained"
             startIcon={<ExcelIcon />}
             onClick={exportToExcel}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             Exporta Excel
           </Button>

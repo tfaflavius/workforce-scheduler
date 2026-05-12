@@ -413,7 +413,7 @@ const AchizitiiPage: React.FC = () => {
         title="Achizitii"
         subtitle="Gestionare pozitii bugetare si achizitii"
         icon={<ShoppingIcon />}
-        gradient="#10b981 0%, #059669 100%"
+        gradient="#059669 0%, #047857 100%"
       />
 
       {/* Annual investment envelope — visible only on Investitii tab */}

@@ -109,7 +109,7 @@ export const ResetPasswordPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%)',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e293b 100%)',
         p: 2,
         position: 'relative',
         overflow: 'hidden',
@@ -168,7 +168,7 @@ export const ResetPasswordPage = () => {
             maxWidth: 460,
             p: { xs: 3, sm: 4 },
             borderRadius: 4,
-            bgcolor: theme.palette.mode === 'light' ? 'white' : alpha('#1e293b', 0.95),
+            bgcolor: alpha('#1e293b', 0.95),
             position: 'relative',
             zIndex: 1,
           }}
@@ -179,11 +179,11 @@ export const ResetPasswordPage = () => {
                 display: 'inline-flex',
                 p: 1.5,
                 borderRadius: 3,
-                bgcolor: alpha('#7c3aed', 0.1),
+                bgcolor: alpha('#3b82f6', 0.1),
                 mb: 2,
               }}
             >
-              <CalendarIcon sx={{ fontSize: 40, color: '#7c3aed' }} />
+              <CalendarIcon sx={{ fontSize: 40, color: '#3b82f6' }} />
             </Box>
             <Typography variant="h5" fontWeight="bold" gutterBottom>
               Seteaza Parola Noua
@@ -268,12 +268,12 @@ export const ResetPasswordPage = () => {
                   fontWeight: 700,
                   textTransform: 'none',
                   borderRadius: 2.5,
-                  background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+                  background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+                  boxShadow: '0 4px 14px rgba(29, 78, 216, 0.4)',
                   transition: 'all 0.3s ease',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
-                    boxShadow: '0 6px 20px rgba(37, 99, 235, 0.5)',
+                    background: 'linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)',
+                    boxShadow: '0 6px 20px rgba(29, 78, 216, 0.5)',
                     transform: 'translateY(-2px)',
                   },
                   '&:active': {

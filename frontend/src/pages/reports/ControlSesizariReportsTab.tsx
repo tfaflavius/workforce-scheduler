@@ -358,7 +358,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
           onClick={exportToPDF}
           disabled={filteredSesizari.length === 0}
           sx={{
-            bgcolor: '#ef4444',
+            bgcolor: '#dc2626',
             '&:hover': { bgcolor: '#dc2626' },
             py: 1.5,
           }}
@@ -374,7 +374,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
           onClick={exportToExcel}
           disabled={filteredSesizari.length === 0}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
             py: 1.5,
           }}
@@ -397,7 +397,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 3,
-            background: `linear-gradient(135deg, #6366f1 0%, #818cf8 100%)`,
+            background: `linear-gradient(135deg, #475569 0%, #818cf8 100%)`,
             color: 'white',
             borderRadius: 3,
             position: 'relative',
@@ -442,7 +442,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
                 filteredSesizari.filter((s: ControlSesizare) => s.type === 'MARCAJ' && s.status === 'ACTIVE').length,
                 filteredSesizari.filter((s: ControlSesizare) => s.type === 'PANOU' && s.status === 'ACTIVE').length,
               ],
-              color: '#f59e0b',
+              color: '#d97706',
             },
             {
               label: 'Finalizate',
@@ -450,7 +450,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
                 filteredSesizari.filter((s: ControlSesizare) => s.type === 'MARCAJ' && s.status === 'FINALIZAT').length,
                 filteredSesizari.filter((s: ControlSesizare) => s.type === 'PANOU' && s.status === 'FINALIZAT').length,
               ],
-              color: '#10b981',
+              color: '#059669',
             },
           ]}
           defaultType="bar"
@@ -464,7 +464,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
             title="Total"
             value={stats.total}
             icon={<SesizareIcon />}
-            color="#6366f1"
+            color="#475569"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -472,7 +472,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
             title="Active"
             value={stats.active}
             icon={<ActiveIcon />}
-            color="#ef4444"
+            color="#dc2626"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -480,7 +480,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
             title="Finalizate"
             value={stats.finalizate}
             icon={<ResolvedIcon />}
-            color="#10b981"
+            color="#059669"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -535,7 +535,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'} stickyHeader>
             <TableHead>
-              <TableRow sx={{ bgcolor: alpha('#6366f1', 0.08) }}>
+              <TableRow sx={{ bgcolor: alpha('#475569', 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Tip</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Zona</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Locatie</TableCell>
@@ -553,8 +553,8 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
                       label={TYPE_LABELS[sesizare.type]}
                       size="small"
                       sx={{
-                        bgcolor: sesizare.type === 'MARCAJ' ? alpha('#8b5cf6', 0.1) : alpha('#2563eb', 0.1),
-                        color: sesizare.type === 'MARCAJ' ? '#8b5cf6' : '#2563eb',
+                        bgcolor: sesizare.type === 'MARCAJ' ? alpha('#64748b', 0.1) : alpha('#2563eb', 0.1),
+                        color: sesizare.type === 'MARCAJ' ? '#64748b' : '#2563eb',
                       }}
                     />
                   </TableCell>
@@ -563,8 +563,8 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
                       label={isMobile ? sesizare.zone : ZONE_LABELS[sesizare.zone]}
                       size="small"
                       sx={{
-                        bgcolor: sesizare.zone === 'ROSU' ? '#ef444420' : sesizare.zone === 'GALBEN' ? '#f59e0b20' : '#64748b20',
-                        color: sesizare.zone === 'ROSU' ? '#ef4444' : sesizare.zone === 'GALBEN' ? '#f59e0b' : '#64748b',
+                        bgcolor: sesizare.zone === 'ROSU' ? '#dc262620' : sesizare.zone === 'GALBEN' ? '#d9770620' : '#64748b20',
+                        color: sesizare.zone === 'ROSU' ? '#dc2626' : sesizare.zone === 'GALBEN' ? '#d97706' : '#64748b',
                       }}
                     />
                   </TableCell>
@@ -578,8 +578,8 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
                       label={STATUS_LABELS[sesizare.status]}
                       size="small"
                       sx={{
-                        bgcolor: sesizare.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-                        color: sesizare.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                        bgcolor: sesizare.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+                        color: sesizare.status === 'ACTIVE' ? '#dc2626' : '#059669',
                         fontWeight: 600,
                       }}
                     />
@@ -614,7 +614,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)',
+              background: 'linear-gradient(135deg, #475569 0%, #818cf8 100%)',
             }}
             onClick={() => setExportDrawerOpen(true)}
           >
@@ -630,7 +630,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
             variant="contained"
             startIcon={<PdfIcon />}
             onClick={exportToPDF}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
           >
             Exporta PDF
           </Button>
@@ -638,7 +638,7 @@ const ControlSesizariReportsTab: React.FC<ControlSesizariReportsTabProps> = ({
             variant="contained"
             startIcon={<ExcelIcon />}
             onClick={exportToExcel}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             Exporta Excel
           </Button>

@@ -326,7 +326,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
           onClick={exportToPDF}
           disabled={flatCategories.length === 0}
           sx={{
-            bgcolor: '#ef4444',
+            bgcolor: '#dc2626',
             '&:hover': { bgcolor: '#dc2626' },
             py: 1.5,
           }}
@@ -342,7 +342,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
           onClick={exportToExcel}
           disabled={flatCategories.length === 0}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
             py: 1.5,
           }}
@@ -365,7 +365,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 3,
-            background: `linear-gradient(135deg, #059669 0%, #10b981 100%)`,
+            background: `linear-gradient(135deg, #059669 0%, #059669 100%)`,
             color: 'white',
             borderRadius: 3,
             position: 'relative',
@@ -412,7 +412,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
             title="Total Cheltuieli"
             value={formatCurrency(stats.totalCheltuieli)}
             icon={<TrendingDownIcon />}
-            color="#ef4444"
+            color="#dc2626"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -420,7 +420,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
             title="Diferenta"
             value={formatCurrency(stats.diferenta)}
             icon={<DiffIcon />}
-            color={stats.diferenta >= 0 ? '#2563eb' : '#ef4444'}
+            color={stats.diferenta >= 0 ? '#2563eb' : '#dc2626'}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -428,7 +428,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
             title="Nr. Categorii"
             value={stats.nrCategorii}
             icon={<CategoryIcon />}
-            color="#8b5cf6"
+            color="#64748b"
           />
         </Grid>
       </Grid>
@@ -481,12 +481,12 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
                   {
                     label: 'Incasari',
                     data: MONTH_LABELS.map((_, i) => Number(revenueSummary.monthTotals?.[i + 1]?.incasari || 0)),
-                    color: '#10b981',
+                    color: '#059669',
                   },
                   {
                     label: 'Cheltuieli',
                     data: MONTH_LABELS.map((_, i) => Number(revenueSummary.monthTotals?.[i + 1]?.cheltuieli || 0)),
-                    color: '#ef4444',
+                    color: '#dc2626',
                   },
                 ]}
                 defaultType="bar"
@@ -509,12 +509,12 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
                     {
                       label: 'Incasari',
                       data: leafCategories.map((c: RevenueSummaryCategory) => Number(c.totalIncasari || 0)),
-                      color: '#10b981',
+                      color: '#059669',
                     },
                     {
                       label: 'Cheltuieli',
                       data: leafCategories.map((c: RevenueSummaryCategory) => Number(c.totalCheltuieli || 0)),
-                      color: '#ef4444',
+                      color: '#dc2626',
                     },
                   ]}
                   defaultType="doughnut"
@@ -648,7 +648,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+              background: 'linear-gradient(135deg, #059669 0%, #059669 100%)',
             }}
             onClick={() => setExportDrawerOpen(true)}
           >
@@ -664,7 +664,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
             variant="contained"
             startIcon={<PdfIcon />}
             onClick={exportToPDF}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
           >
             Exporta PDF
           </Button>
@@ -672,7 +672,7 @@ const IncasariCheltuieliReportsTab: React.FC<IncasariCheltuieliReportsTabProps> 
             variant="contained"
             startIcon={<ExcelIcon />}
             onClick={exportToExcel}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             Exporta Excel
           </Button>

@@ -248,7 +248,7 @@ export const LeaveRequestsPage = () => {
         title="Concediile Mele"
         subtitle="Solicita si gestioneaza cererile tale de concediu"
         icon={<BeachIcon />}
-        gradient="#10b981 0%, #059669 100%"
+        gradient="#059669 0%, #059669 100%"
       >
         <Chip
           icon={<BeachIcon sx={{ fontSize: 16 }} />}
@@ -275,7 +275,7 @@ export const LeaveRequestsPage = () => {
           fullWidth={isMobile}
           size={isMobile ? 'large' : 'medium'}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
           }}
         >
@@ -327,8 +327,8 @@ export const LeaveRequestsPage = () => {
                       bgcolor: isEmpty
                         ? alpha(theme.palette.grey[500], 0.1)
                         : isLow
-                          ? alpha('#f59e0b', 0.1)
-                          : alpha('#10b981', 0.1),
+                          ? alpha('#d97706', 0.1)
+                          : alpha('#059669', 0.1),
                     }}
                   />
 
@@ -338,8 +338,8 @@ export const LeaveRequestsPage = () => {
                       color: isEmpty
                         ? 'grey.500'
                         : isLow
-                          ? '#f59e0b'
-                          : '#10b981',
+                          ? '#d97706'
+                          : '#059669',
                     }}
                   >
                     {getLeaveTypeIcon(balance.leaveType)}
@@ -362,7 +362,7 @@ export const LeaveRequestsPage = () => {
                         fontWeight="bold"
                         sx={{
                           fontSize: { xs: '1.5rem', sm: '2rem' },
-                          color: '#10b981',
+                          color: '#059669',
                           lineHeight: 1,
                         }}
                       >
@@ -383,8 +383,8 @@ export const LeaveRequestsPage = () => {
                         sx={{
                           fontSize: '0.6rem',
                           height: 20,
-                          bgcolor: alpha('#10b981', 0.1),
-                          color: '#10b981',
+                          bgcolor: alpha('#059669', 0.1),
+                          color: '#059669',
                           fontWeight: 600,
                         }}
                       />
@@ -400,8 +400,8 @@ export const LeaveRequestsPage = () => {
                           color: isEmpty
                             ? 'grey.500'
                             : isLow
-                              ? '#f59e0b'
-                              : '#10b981',
+                              ? '#d97706'
+                              : '#059669',
                           lineHeight: 1,
                         }}
                       >
@@ -424,7 +424,7 @@ export const LeaveRequestsPage = () => {
                           height: 6,
                           borderRadius: 3,
                           bgcolor: alpha(
-                            isEmpty ? theme.palette.grey[500] : isLow ? '#f59e0b' : '#10b981',
+                            isEmpty ? theme.palette.grey[500] : isLow ? '#d97706' : '#059669',
                             0.15
                           ),
                           '& .MuiLinearProgress-bar': {
@@ -432,8 +432,8 @@ export const LeaveRequestsPage = () => {
                             bgcolor: isEmpty
                               ? 'grey.500'
                               : isLow
-                                ? '#f59e0b'
-                                : '#10b981',
+                                ? '#d97706'
+                                : '#059669',
                           },
                         }}
                       />
@@ -465,7 +465,7 @@ export const LeaveRequestsPage = () => {
 
       {requests.length === 0 ? (
         <EmptyState
-          icon={<EventBusyIcon sx={{ fontSize: 64, color: '#10b981' }} />}
+          icon={<EventBusyIcon sx={{ fontSize: 64, color: '#059669' }} />}
           title="Nicio cerere de concediu"
           description="Bucura-te de zilele tale libere! Apasa butonul de mai sus pentru a solicita concediu."
           illustration="noSchedule"

@@ -484,8 +484,8 @@ const ParkingStatsReportsTab: React.FC = () => {
           <Table size="small" stickyHeader sx={{ minWidth: { xs: 250, sm: 300 } }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Numar Tichete</TableCell>
+                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Numar Tichete</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -493,7 +493,7 @@ const ParkingStatsReportsTab: React.FC = () => {
                 const rows: React.ReactNode[] = [];
                 if (isFirstInGroup(idx) && d.group) {
                   rows.push(
-                    <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                    <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#64748b', 0.06) }}>
                       <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.group}</TableCell>
                       <TableCell />
                     </TableRow>
@@ -507,7 +507,7 @@ const ParkingStatsReportsTab: React.FC = () => {
                 );
                 return rows;
               })}
-              <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
+              <TableRow sx={{ bgcolor: alpha('#64748b', 0.08) }}>
                 <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>TOTAL</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>{total}</TableCell>
               </TableRow>
@@ -563,9 +563,9 @@ const ParkingStatsReportsTab: React.FC = () => {
           <Table size="small" stickyHeader sx={{ minWidth: { xs: 320, sm: 400 } }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Numar Abonamente</TableCell>
+                <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Numar Abonamente</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -576,7 +576,7 @@ const ParkingStatsReportsTab: React.FC = () => {
                   <TableCell align="right" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.value}</TableCell>
                 </TableRow>
               ))}
-              <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
+              <TableRow sx={{ bgcolor: alpha('#64748b', 0.08) }}>
                 <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>TOTAL</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>{totalSpots}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>{total}</TableCell>
@@ -634,12 +634,12 @@ const ParkingStatsReportsTab: React.FC = () => {
         <Table size="small" stickyHeader sx={{ minWidth: { xs: 450, sm: 560 } }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 90, sm: 140 } }}>Parcare</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Maxim</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Medie</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#8b5cf6', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Grad/Săpt. (%)</TableCell>
+              <TableCell sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 90, sm: 140 } }}>Parcare</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Maxim</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Medie</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, bgcolor: alpha('#64748b', 0.1), fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Grad/Săpt. (%)</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -648,7 +648,7 @@ const ParkingStatsReportsTab: React.FC = () => {
               if (isFirstInGroup(idx) && d.group) {
                 const groupSpots = getGroupTotalSpots(d.group);
                 rows.push(
-                  <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                  <TableRow key={`group-${d.group}`} sx={{ bgcolor: alpha('#64748b', 0.06) }}>
                     <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>{d.group}</TableCell>
                     <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>{groupSpots}</TableCell>
                     <TableCell colSpan={4} />
@@ -669,7 +669,7 @@ const ParkingStatsReportsTab: React.FC = () => {
               );
               return rows;
             })}
-            <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
+            <TableRow sx={{ bgcolor: alpha('#64748b', 0.08) }}>
               <TableCell sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>TOTAL / MEDIE</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>{TOTAL_PARKING_SPOTS}</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>

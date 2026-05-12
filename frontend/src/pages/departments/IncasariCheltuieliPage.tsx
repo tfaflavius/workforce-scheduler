@@ -319,7 +319,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                   sx={{
                     height: 18,
                     fontSize: '0.6rem',
-                    bgcolor: alpha('#10b981', 0.12),
+                    bgcolor: alpha('#059669', 0.12),
                     color: '#059669',
                     mt: 0.25,
                     '& .MuiChip-icon': { color: '#059669' },
@@ -353,7 +353,7 @@ const IncasariCheltuieliPage: React.FC = () => {
               align="center"
               sx={{
                 cursor: 'pointer',
-                '&:hover': { bgcolor: alpha('#10b981', 0.08) },
+                '&:hover': { bgcolor: alpha('#059669', 0.08) },
                 borderBottom: 'none',
                 py: 0.5,
                 px: 0.5,
@@ -370,7 +370,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                   </Typography>
                 </Box>
               ) : (
-                <Typography variant="caption" sx={{ fontWeight: 600, color: '#10b981', fontSize: '0.7rem' }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: '#059669', fontSize: '0.7rem' }}>
                   {data && data.incasari > 0 ? formatCurrency(data.incasari) : '-'}
                 </Typography>
               )}
@@ -378,7 +378,7 @@ const IncasariCheltuieliPage: React.FC = () => {
           );
         })}
         <TableCell align="center" sx={{ borderBottom: 'none', py: 0.5 }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981' }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: '#059669' }}>
             {formatCurrency(cat.totalIncasari)}
           </Typography>
         </TableCell>
@@ -393,7 +393,7 @@ const IncasariCheltuieliPage: React.FC = () => {
               align="center"
               sx={{
                 cursor: 'pointer',
-                '&:hover': { bgcolor: alpha('#ef4444', 0.08) },
+                '&:hover': { bgcolor: alpha('#dc2626', 0.08) },
                 borderBottom: '2px solid',
                 borderColor: 'divider',
                 py: 0.5,
@@ -401,14 +401,14 @@ const IncasariCheltuieliPage: React.FC = () => {
               }}
               onClick={() => handleOpenCellDialog(cat.categoryId, month)}
             >
-              <Typography variant="caption" sx={{ fontWeight: 600, color: '#ef4444', fontSize: '0.7rem' }}>
+              <Typography variant="caption" sx={{ fontWeight: 600, color: '#dc2626', fontSize: '0.7rem' }}>
                 {data && data.cheltuieli > 0 ? formatCurrency(data.cheltuieli) : '-'}
               </Typography>
             </TableCell>
           );
         })}
         <TableCell align="center" sx={{ borderBottom: '2px solid', borderColor: 'divider', py: 0.5 }}>
-          <Typography variant="caption" sx={{ fontWeight: 700, color: '#ef4444' }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: '#dc2626' }}>
             {formatCurrency(cat.totalCheltuieli)}
           </Typography>
         </TableCell>
@@ -420,7 +420,7 @@ const IncasariCheltuieliPage: React.FC = () => {
   const renderGroupRows = (cat: RevenueSummaryCategory) => (
     <React.Fragment key={cat.categoryId}>
       {/* Group Header Row */}
-      <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
+      <TableRow sx={{ bgcolor: alpha('#64748b', 0.08) }}>
         <TableCell
           colSpan={14}
           sx={{
@@ -433,13 +433,13 @@ const IncasariCheltuieliPage: React.FC = () => {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography variant="body2" sx={{ fontWeight: 800, color: '#7c3aed' }}>
+            <Typography variant="body2" sx={{ fontWeight: 800, color: '#475569' }}>
               {cat.categoryName}
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               <IconButton
                 size="small"
-                sx={{ color: '#8b5cf6' }}
+                sx={{ color: '#64748b' }}
                 onClick={() => handleOpenRevCatDialog(undefined, cat.categoryId)}
               >
                 <AddIcon sx={{ fontSize: 18 }} />
@@ -479,7 +479,7 @@ const IncasariCheltuieliPage: React.FC = () => {
       {/* Subtotal rows for group */}
       {cat.children && cat.children.length > 0 && (
         <>
-          <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.04) }}>
+          <TableRow sx={{ bgcolor: alpha('#64748b', 0.04) }}>
             <TableCell
               rowSpan={2}
               sx={{
@@ -489,7 +489,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                 bgcolor: stickyBgSubtotal,
                 zIndex: 3,
                 borderBottom: '3px solid',
-                borderColor: '#8b5cf6',
+                borderColor: '#64748b',
                 fontSize: '0.8rem',
                 borderRight: '2px solid',
                 borderRightColor: 'divider',
@@ -501,28 +501,28 @@ const IncasariCheltuieliPage: React.FC = () => {
               Subtotal {cat.categoryName}
             </TableCell>
             {months.map((month) => (
-              <TableCell key={month} align="center" sx={{ borderBottom: 'none', py: 0.5, px: 0.5, bgcolor: alpha('#8b5cf6', 0.04) }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.7rem' }}>
+              <TableCell key={month} align="center" sx={{ borderBottom: 'none', py: 0.5, px: 0.5, bgcolor: alpha('#64748b', 0.04) }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#059669', fontSize: '0.7rem' }}>
                   {cat.months[month]?.incasari ? formatCurrency(cat.months[month].incasari) : '0,00 lei'}
                 </Typography>
               </TableCell>
             ))}
-            <TableCell align="center" sx={{ borderBottom: 'none', py: 0.5, bgcolor: alpha('#8b5cf6', 0.04) }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#10b981' }}>
+            <TableCell align="center" sx={{ borderBottom: 'none', py: 0.5, bgcolor: alpha('#64748b', 0.04) }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#059669' }}>
                 {formatCurrency(cat.totalIncasari)}
               </Typography>
             </TableCell>
           </TableRow>
-          <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.04) }}>
+          <TableRow sx={{ bgcolor: alpha('#64748b', 0.04) }}>
             {months.map((month) => (
-              <TableCell key={month} align="center" sx={{ py: 0.5, px: 0.5, borderBottom: '3px solid', borderColor: '#8b5cf6', bgcolor: alpha('#8b5cf6', 0.04) }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#ef4444', fontSize: '0.7rem' }}>
+              <TableCell key={month} align="center" sx={{ py: 0.5, px: 0.5, borderBottom: '3px solid', borderColor: '#64748b', bgcolor: alpha('#64748b', 0.04) }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#dc2626', fontSize: '0.7rem' }}>
                   {cat.months[month]?.cheltuieli ? formatCurrency(cat.months[month].cheltuieli) : '0,00 lei'}
                 </Typography>
               </TableCell>
             ))}
-            <TableCell align="center" sx={{ py: 0.5, borderBottom: '3px solid', borderColor: '#8b5cf6', bgcolor: alpha('#8b5cf6', 0.04) }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#ef4444' }}>
+            <TableCell align="center" sx={{ py: 0.5, borderBottom: '3px solid', borderColor: '#64748b', bgcolor: alpha('#64748b', 0.04) }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#dc2626' }}>
                 {formatCurrency(cat.totalCheltuieli)}
               </Typography>
             </TableCell>
@@ -539,7 +539,7 @@ const IncasariCheltuieliPage: React.FC = () => {
         title="Incasari / Cheltuieli"
         subtitle="Gestionare incasari si cheltuieli pe categorii"
         icon={<RevenueIcon />}
-        gradient="#8b5cf6 0%, #7c3aed 100%"
+        gradient="#64748b 0%, #475569 100%"
       />
 
       {/* Tabs */}
@@ -602,8 +602,8 @@ const IncasariCheltuieliPage: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={() => handleOpenRevCatDialog()}
           sx={{
-            bgcolor: '#8b5cf6',
-            '&:hover': { bgcolor: '#7c3aed' },
+            bgcolor: '#64748b',
+            '&:hover': { bgcolor: '#475569' },
             textTransform: 'none',
             fontWeight: 600,
           }}
@@ -620,7 +620,7 @@ const IncasariCheltuieliPage: React.FC = () => {
         <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 3, overflowX: 'auto' }}>
           <Table size="small" sx={{ minWidth: { xs: 400, sm: 600, md: 900 } }}>
             <TableHead>
-              <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+              <TableRow sx={{ bgcolor: alpha('#64748b', 0.06) }}>
                 <TableCell sx={{ fontWeight: 700, minWidth: { xs: 120, sm: 180 }, maxWidth: { xs: 120, sm: 180 }, position: 'sticky', left: 0, bgcolor: stickyBgHeader, zIndex: 3, borderRight: '2px solid', borderRightColor: 'divider', boxShadow: '2px 0 4px rgba(0,0,0,0.08)' }}>
                   Categorie
                 </TableCell>
@@ -642,7 +642,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                 )}
 
               {/* TOTAL row */}
-              <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+              <TableRow sx={{ bgcolor: alpha('#64748b', 0.06) }}>
                 <TableCell
                   rowSpan={2}
                   sx={{ fontWeight: 800, position: 'sticky', left: 0, bgcolor: stickyBgHeader, zIndex: 3, borderRight: '2px solid', borderRightColor: 'divider', boxShadow: '2px 0 4px rgba(0,0,0,0.08)', minWidth: { xs: 120, sm: 180 }, maxWidth: { xs: 120, sm: 180 } }}
@@ -651,27 +651,27 @@ const IncasariCheltuieliPage: React.FC = () => {
                 </TableCell>
                 {months.map((month) => (
                   <TableCell key={month} align="center" sx={{ borderBottom: 'none', py: 0.5, px: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#10b981', fontSize: '0.7rem' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#059669', fontSize: '0.7rem' }}>
                       {formatCurrency(revenueSummary.monthTotals[month]?.incasari || 0)}
                     </Typography>
                   </TableCell>
                 ))}
                 <TableCell align="center" sx={{ borderBottom: 'none', py: 0.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#10b981' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#059669' }}>
                     {formatCurrency(revenueSummary.grandTotalIncasari)}
                   </Typography>
                 </TableCell>
               </TableRow>
-              <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+              <TableRow sx={{ bgcolor: alpha('#64748b', 0.06) }}>
                 {months.map((month) => (
                   <TableCell key={month} align="center" sx={{ py: 0.5, px: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#ef4444', fontSize: '0.7rem' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#dc2626', fontSize: '0.7rem' }}>
                       {formatCurrency(revenueSummary.monthTotals[month]?.cheltuieli || 0)}
                     </Typography>
                   </TableCell>
                 ))}
                 <TableCell align="center" sx={{ py: 0.5 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#ef4444' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#dc2626' }}>
                     {formatCurrency(revenueSummary.grandTotalCheltuieli)}
                   </Typography>
                 </TableCell>
@@ -681,7 +681,7 @@ const IncasariCheltuieliPage: React.FC = () => {
         </TableContainer>
       ) : !loadingRevenue ? (
         <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
-          <CategoryIcon sx={{ fontSize: 64, color: alpha('#8b5cf6', 0.3), mb: 2 }} />
+          <CategoryIcon sx={{ fontSize: 64, color: alpha('#64748b', 0.3), mb: 2 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
             Nicio categorie de incasari/cheltuieli
           </Typography>
@@ -692,7 +692,7 @@ const IncasariCheltuieliPage: React.FC = () => {
             variant="outlined"
             startIcon={<AddIcon />}
             onClick={() => handleOpenRevCatDialog()}
-            sx={{ color: '#8b5cf6', borderColor: '#8b5cf6' }}
+            sx={{ color: '#64748b', borderColor: '#64748b' }}
           >
             Adauga Categorie
           </Button>
@@ -786,7 +786,7 @@ const IncasariCheltuieliPage: React.FC = () => {
             variant="contained"
             onClick={handleSaveRevCat}
             disabled={!revCatForm.name.trim()}
-            sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+            sx={{ bgcolor: '#64748b', '&:hover': { bgcolor: '#475569' } }}
           >
             {editingRevCat ? 'Salveaza' : 'Creeaza'}
           </Button>
@@ -824,7 +824,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                   inputProps={{ inputMode: 'decimal' }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      bgcolor: alpha('#10b981', 0.06),
+                      bgcolor: alpha('#059669', 0.06),
                       '& fieldset': { borderColor: '#059669' },
                     },
                   }}
@@ -856,7 +856,7 @@ const IncasariCheltuieliPage: React.FC = () => {
                 value={editingCell?.incasari || '0'}
                 onChange={(e) => setEditingCell(editingCell ? { ...editingCell, incasari: e.target.value } : null)}
                 inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
-                sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#10b981' } } }}
+                sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#059669' } } }}
               />
             )}
             <TextField
@@ -866,7 +866,7 @@ const IncasariCheltuieliPage: React.FC = () => {
               value={editingCell?.cheltuieli || '0'}
               onChange={(e) => setEditingCell(editingCell ? { ...editingCell, cheltuieli: e.target.value } : null)}
               inputProps={{ min: 0, step: 0.01, inputMode: 'decimal' }}
-              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#ef4444' } } }}
+              sx={{ '& .MuiOutlinedInput-root': { '& fieldset': { borderColor: '#dc2626' } } }}
             />
             <TextField
               fullWidth
@@ -883,7 +883,7 @@ const IncasariCheltuieliPage: React.FC = () => {
           <Button
             variant="contained"
             onClick={handleSaveCell}
-            sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+            sx={{ bgcolor: '#64748b', '&:hover': { bgcolor: '#475569' } }}
           >
             Salveaza
           </Button>

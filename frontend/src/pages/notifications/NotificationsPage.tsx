@@ -128,7 +128,7 @@ const NotificationsPage: React.FC = () => {
         title="Notificari"
         subtitle={`${unreadCount} necitite din ${notifications.length} total`}
         icon={<NotificationsIcon />}
-        gradient="#7c3aed 0%, #2563eb 100%"
+        gradient="#475569 0%, #2563eb 100%"
       />
 
       {/* Actions Bar */}

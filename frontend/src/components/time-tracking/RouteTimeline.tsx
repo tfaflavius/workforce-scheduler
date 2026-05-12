@@ -169,7 +169,7 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
       {/* Header */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+          background: 'linear-gradient(135deg, #b45309 0%, #9a3412 100%)',
           p: { xs: 2, sm: 2.5 },
           color: 'white',
         }}
@@ -225,8 +225,8 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
         {/* Stats Row */}
         <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha('#f59e0b', 0.08) }}>
-              <ClockIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
+            <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha('#d97706', 0.08) }}>
+              <ClockIcon sx={{ color: '#d97706', fontSize: 20 }} />
               <Typography variant="h6" fontWeight={700}>{formatDuration(route.totalDurationMinutes)}</Typography>
               <Typography variant="caption" color="text.secondary">Durata totala</Typography>
             </Box>
@@ -239,15 +239,15 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
             </Box>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha('#10b981', 0.08) }}>
-              <MapIcon sx={{ color: '#10b981', fontSize: 20 }} />
+            <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha('#059669', 0.08) }}>
+              <MapIcon sx={{ color: '#059669', fontSize: 20 }} />
               <Typography variant="h6" fontWeight={700}>{uniqueStreets.length || route.streetSummary.length}</Typography>
               <Typography variant="caption" color="text.secondary">Strazi vizitate</Typography>
             </Box>
           </Grid>
           <Grid size={{ xs: 6, sm: 3 }}>
-            <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha('#8b5cf6', 0.08) }}>
-              <LocationIcon sx={{ color: '#8b5cf6', fontSize: 20 }} />
+            <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha('#64748b', 0.08) }}>
+              <LocationIcon sx={{ color: '#64748b', fontSize: 20 }} />
               <Typography variant="h6" fontWeight={700}>{route.points.length}</Typography>
               <Typography variant="caption" color="text.secondary">Puncte GPS</Typography>
             </Box>
@@ -267,7 +267,7 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
                   label={`${street.streetName} (${formatDuration(street.totalDurationMinutes)})`}
                   size="small"
                   sx={{
-                    bgcolor: alpha('#f59e0b', 0.1),
+                    bgcolor: alpha('#d97706', 0.1),
                     color: '#92400e',
                     fontWeight: 500,
                     fontSize: '0.75rem',
@@ -299,14 +299,14 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
                 top: 8,
                 bottom: 8,
                 width: 2,
-                bgcolor: alpha('#f59e0b', 0.2),
+                bgcolor: alpha('#d97706', 0.2),
               }}
             />
 
             {pointGroups.map((group, groupIndex) => {
               const isExpanded = expandedGroups.has(groupIndex);
               const hasMultiplePoints = group.points.length > 1;
-              const dotColor = group.isMoving ? '#f59e0b' : '#10b981';
+              const dotColor = group.isMoving ? '#d97706' : '#059669';
 
               return (
                 <Box key={groupIndex} sx={{ position: 'relative', mb: 1.5 }}>
@@ -333,7 +333,7 @@ const RouteTimeline: React.FC<RouteTimelineProps> = ({ timeEntryId, timeEntryIds
                     sx={{
                       p: 1.5,
                       borderRadius: 2,
-                      bgcolor: group.isMoving ? alpha('#f59e0b', 0.04) : alpha('#10b981', 0.04),
+                      bgcolor: group.isMoving ? alpha('#d97706', 0.04) : alpha('#059669', 0.04),
                       border: `1px solid ${alpha(dotColor, 0.15)}`,
                       cursor: hasMultiplePoints ? 'pointer' : 'default',
                     }}

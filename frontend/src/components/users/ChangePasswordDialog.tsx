@@ -29,8 +29,8 @@ function getPasswordStrength(password: string): { score: number; label: string; 
 
   const levels: Record<number, { label: string; color: string }> = {
     0: { label: '', color: 'transparent' },
-    1: { label: 'Slaba', color: '#ef4444' },
-    2: { label: 'Medie', color: '#f59e0b' },
+    1: { label: 'Slaba', color: '#dc2626' },
+    2: { label: 'Medie', color: '#d97706' },
     3: { label: 'Buna', color: '#22c55e' },
     4: { label: 'Puternica', color: '#16a34a' },
   };

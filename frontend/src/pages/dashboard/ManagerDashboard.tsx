@@ -157,7 +157,7 @@ const ManagerDashboard = () => {
                   height={{ xs: 180, sm: 220 }}
                   data={[
                     { label: 'Probleme', value: activeIssues.length, color: theme.palette.error.main },
-                    { label: 'Urgente', value: urgentIssues.length, color: '#f59e0b' },
+                    { label: 'Urgente', value: urgentIssues.length, color: '#d97706' },
                     { label: 'Prejudicii', value: activeDamages.length, color: theme.palette.warning.main },
                     { label: 'Urgente Prej.', value: urgentDamages.length, color: theme.palette.secondary.main },
                   ]}

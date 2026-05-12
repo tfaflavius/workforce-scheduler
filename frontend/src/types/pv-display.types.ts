@@ -22,17 +22,17 @@ export const PV_DAY_STATUS_LABELS: Record<PvDayStatus, string> = {
 // ===== COLORS =====
 
 export const PV_SESSION_STATUS_COLORS: Record<PvSessionStatus, string> = {
-  DRAFT: '#f59e0b',
+  DRAFT: '#d97706',
   READY: '#3b82f6',
-  IN_PROGRESS: '#8b5cf6',
-  COMPLETED: '#10b981',
+  IN_PROGRESS: '#64748b',
+  COMPLETED: '#059669',
 };
 
 export const PV_DAY_STATUS_COLORS: Record<PvDayStatus, string> = {
-  OPEN: '#f59e0b',
+  OPEN: '#d97706',
   ASSIGNED: '#3b82f6',
-  IN_PROGRESS: '#8b5cf6',
-  COMPLETED: '#10b981',
+  IN_PROGRESS: '#64748b',
+  COMPLETED: '#059669',
 };
 
 // ===== USER (minimal) =====

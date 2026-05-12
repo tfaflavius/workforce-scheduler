@@ -26,9 +26,9 @@ export const DOMICILIU_REQUEST_PRIORITY_LABELS: Record<DomiciliuRequestPriority,
 };
 
 export const DOMICILIU_REQUEST_PRIORITY_COLORS: Record<DomiciliuRequestPriority, string> = {
-  URGENT: '#ef4444',
-  MEDIU: '#f59e0b',
-  SCAZUT: '#10b981',
+  URGENT: '#dc2626',
+  MEDIU: '#d97706',
+  SCAZUT: '#059669',
 };
 
 export const SIGN_PLACEMENT_STATUS_LABELS: Record<SignPlacementStatus, string> = {
@@ -40,9 +40,9 @@ export const SIGN_PLACEMENT_STATUS_LABELS: Record<SignPlacementStatus, string> =
 
 export const SIGN_PLACEMENT_STATUS_COLORS: Record<SignPlacementStatus, string> = {
   NONE: '#6b7280',
-  REQUESTED: '#f59e0b',
+  REQUESTED: '#d97706',
   CLAIMED: '#3b82f6',
-  COMPLETED: '#10b981',
+  COMPLETED: '#059669',
 };
 
 export const PARKING_LAYOUT_LABELS: Record<ParkingLayoutType, string> = {

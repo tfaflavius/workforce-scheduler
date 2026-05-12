@@ -221,18 +221,13 @@ body {
 
 /* Brand selection color */
 ::selection {
-  background: rgba(37, 99, 235, 0.2);
-  color: inherit;
-}
-
-[data-theme="dark"] ::selection {
-  background: rgba(96, 165, 250, 0.3);
+  background: rgba(59, 130, 246, 0.3);
   color: inherit;
 }
 
 /* Modern focus-visible outline */
 *:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
@@ -248,28 +243,15 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #1e293b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #475569;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-/* Dark mode scrollbar — uses data attribute set by ThemeContext */
-[data-theme="dark"] ::-webkit-scrollbar-track {
-  background: #1e293b;
-}
-
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: #475569;
-}
-
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
 }
 

@@ -53,8 +53,8 @@ L.Icon.Default.mergeOptions({
 
 // Zone color mapping
 const ZONE_COLORS: Record<ParkingZone, { bg: string; border: string; shadow: string }> = {
-  ROSU: { bg: '#ef4444', border: '#ffffff', shadow: 'rgba(239,68,68,0.5)' },
-  GALBEN: { bg: '#f59e0b', border: '#ffffff', shadow: 'rgba(245,158,11,0.5)' },
+  ROSU: { bg: '#dc2626', border: '#ffffff', shadow: 'rgba(239,68,68,0.5)' },
+  GALBEN: { bg: '#d97706', border: '#ffffff', shadow: 'rgba(245,158,11,0.5)' },
   ALB: { bg: '#9ca3af', border: '#ffffff', shadow: 'rgba(156,163,175,0.5)' },
 };
 
@@ -346,19 +346,19 @@ const ParcometrePage: React.FC = () => {
 
   // Chip selector options
   const zoneOptions: ChipOption<ParkingZone>[] = [
-    { value: 'ROSU', label: 'Rosu', color: '#ef4444' },
-    { value: 'GALBEN', label: 'Galben', color: '#f59e0b' },
+    { value: 'ROSU', label: 'Rosu', color: '#dc2626' },
+    { value: 'GALBEN', label: 'Galben', color: '#d97706' },
     { value: 'ALB', label: 'Alb', color: '#6b7280', textColor: 'white' },
   ];
 
   const powerOptions: ChipOption<PowerSource>[] = [
     { value: 'CURENT', label: 'Curent', color: '#3b82f6', icon: <ElectricIcon sx={{ fontSize: 16 }} /> },
-    { value: 'SOLAR', label: 'Solar', color: '#f97316', icon: <SolarIcon sx={{ fontSize: 16 }} /> },
+    { value: 'SOLAR', label: 'Solar', color: '#ea580c', icon: <SolarIcon sx={{ fontSize: 16 }} /> },
   ];
 
   const conditionOptions: ChipOption<MeterCondition>[] = [
-    { value: 'NOU', label: 'Nou', color: '#10b981', icon: <NewIcon sx={{ fontSize: 16 }} /> },
-    { value: 'VECHI', label: 'Vechi', color: '#8b5cf6', icon: <OldIcon sx={{ fontSize: 16 }} /> },
+    { value: 'NOU', label: 'Nou', color: '#059669', icon: <NewIcon sx={{ fontSize: 16 }} /> },
+    { value: 'VECHI', label: 'Vechi', color: '#64748b', icon: <OldIcon sx={{ fontSize: 16 }} /> },
   ];
 
   return (
@@ -374,7 +374,7 @@ const ParcometrePage: React.FC = () => {
           flexWrap: 'wrap',
         }}
       >
-        <PlaceIcon sx={{ fontSize: { xs: 26, sm: 32 }, color: '#8b5cf6' }} />
+        <PlaceIcon sx={{ fontSize: { xs: 26, sm: 32 }, color: '#64748b' }} />
         <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1.15rem', sm: '1.4rem' }, flex: 1 }}>
           Parcometre
         </Typography>
@@ -384,9 +384,9 @@ const ParcometrePage: React.FC = () => {
             label={hasActiveFilters ? `${filteredMeters.length} din ${meters.length}` : `${meters.length} parcometr${meters.length !== 1 ? 'e' : 'u'}`}
             sx={{
               fontWeight: 600,
-              bgcolor: hasActiveFilters ? alpha('#f59e0b', 0.15) : alpha('#8b5cf6', 0.1),
-              color: hasActiveFilters ? '#d97706' : '#8b5cf6',
-              '& .MuiChip-icon': { color: hasActiveFilters ? '#d97706' : '#8b5cf6' },
+              bgcolor: hasActiveFilters ? alpha('#d97706', 0.15) : alpha('#64748b', 0.1),
+              color: hasActiveFilters ? '#d97706' : '#64748b',
+              '& .MuiChip-icon': { color: hasActiveFilters ? '#d97706' : '#64748b' },
             }}
           />
         )}
@@ -450,8 +450,8 @@ const ParcometrePage: React.FC = () => {
               minWidth: 'auto',
               ...(showFilters
                 ? {
-                    bgcolor: '#8b5cf6',
-                    '&:hover': { bgcolor: '#7c3aed' },
+                    bgcolor: '#64748b',
+                    '&:hover': { bgcolor: '#475569' },
                   }
                 : {}),
             }}
@@ -465,7 +465,7 @@ const ParcometrePage: React.FC = () => {
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
-                  bgcolor: '#f59e0b',
+                  bgcolor: '#d97706',
                   display: 'inline-block',
                 }}
               />
@@ -508,8 +508,8 @@ const ParcometrePage: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                 {[
                   { value: 'ALL' as const, label: 'Toate', color: '#6b7280' },
-                  { value: 'ROSU' as const, label: 'Rosu', color: '#ef4444' },
-                  { value: 'GALBEN' as const, label: 'Galben', color: '#f59e0b' },
+                  { value: 'ROSU' as const, label: 'Rosu', color: '#dc2626' },
+                  { value: 'GALBEN' as const, label: 'Galben', color: '#d97706' },
                   { value: 'ALB' as const, label: 'Alb', color: '#6b7280' },
                 ].map((opt) => (
                   <Chip
@@ -541,7 +541,7 @@ const ParcometrePage: React.FC = () => {
                 {[
                   { value: 'ALL' as const, label: 'Toate', color: '#6b7280' },
                   { value: 'CURENT' as const, label: 'Curent', color: '#3b82f6' },
-                  { value: 'SOLAR' as const, label: 'Solar', color: '#f97316' },
+                  { value: 'SOLAR' as const, label: 'Solar', color: '#ea580c' },
                 ].map((opt) => (
                   <Chip
                     key={opt.value}
@@ -571,8 +571,8 @@ const ParcometrePage: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                 {[
                   { value: 'ALL' as const, label: 'Toate', color: '#6b7280' },
-                  { value: 'NOU' as const, label: 'Nou', color: '#10b981' },
-                  { value: 'VECHI' as const, label: 'Vechi', color: '#8b5cf6' },
+                  { value: 'NOU' as const, label: 'Nou', color: '#059669' },
+                  { value: 'VECHI' as const, label: 'Vechi', color: '#64748b' },
                 ].map((opt) => (
                   <Chip
                     key={opt.value}
@@ -613,7 +613,7 @@ const ParcometrePage: React.FC = () => {
       >
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: 400 }}>
-            <CircularProgress sx={{ color: '#8b5cf6' }} />
+            <CircularProgress sx={{ color: '#64748b' }} />
           </Box>
         ) : (
           <MapContainer
@@ -637,7 +637,7 @@ const ParcometrePage: React.FC = () => {
               >
                 <Popup minWidth={220} maxWidth={300}>
                   <Box sx={{ p: 0.5 }} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: ZONE_COLORS[meter.zone]?.bg || '#8b5cf6' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: ZONE_COLORS[meter.zone]?.bg || '#64748b' }}>
                       {meter.name}
                     </Typography>
                     {meter.address && (
@@ -679,7 +679,7 @@ const ParcometrePage: React.FC = () => {
                           fontSize: '0.65rem',
                           fontWeight: 600,
                           bgcolor: meter.condition === 'NOU' ? '#ecfdf5' : '#f5f3ff',
-                          color: meter.condition === 'NOU' ? '#059669' : '#7c3aed',
+                          color: meter.condition === 'NOU' ? '#059669' : '#475569',
                         }}
                       />
                     </Box>
@@ -746,7 +746,7 @@ const ParcometrePage: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: 1,
-            background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+            background: 'linear-gradient(135deg, #334155 0%, #475569 100%)',
             color: 'white',
             py: 1.5,
             px: { xs: 2, sm: 3 },
@@ -874,8 +874,8 @@ const ParcometrePage: React.FC = () => {
             sx={{
               borderRadius: 2,
               py: { xs: 1.2, sm: 1 },
-              background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-              '&:hover': { background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' },
+              background: 'linear-gradient(135deg, #1d4ed8, #1e40af)',
+              '&:hover': { background: 'linear-gradient(135deg, #1e40af, #1e3a5f)' },
             }}
           >
             {creating || updating ? <CircularProgress size={20} color="inherit" /> : editingMeter ? 'Salveaza' : 'Adauga'}

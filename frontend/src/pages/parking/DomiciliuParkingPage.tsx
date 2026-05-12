@@ -298,13 +298,13 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = React.memo(({ 
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'URGENT' | 'MEDIU' | 'SCAZUT' })}
               >
                 <MenuItem value="URGENT">
-                  <Box component="span" sx={{ color: '#ef4444', fontWeight: 600 }}>Urgent</Box>
+                  <Box component="span" sx={{ color: '#dc2626', fontWeight: 600 }}>Urgent</Box>
                 </MenuItem>
                 <MenuItem value="MEDIU">
-                  <Box component="span" sx={{ color: '#f59e0b', fontWeight: 600 }}>Mediu</Box>
+                  <Box component="span" sx={{ color: '#d97706', fontWeight: 600 }}>Mediu</Box>
                 </MenuItem>
                 <MenuItem value="SCAZUT">
-                  <Box component="span" sx={{ color: '#10b981', fontWeight: 600 }}>Scazut</Box>
+                  <Box component="span" sx={{ color: '#059669', fontWeight: 600 }}>Scazut</Box>
                 </MenuItem>
               </Select>
             </FormControl>
@@ -599,8 +599,8 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
                   size="small"
                   sx={{
                     ml: 1,
-                    bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-                    color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                    bgcolor: request.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+                    color: request.status === 'ACTIVE' ? '#dc2626' : '#059669',
                     fontWeight: 600,
                   }}
                 />
@@ -650,7 +650,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
                       const hoursUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
                       const isOverdue = hoursUntil < 0 && request.status === 'ACTIVE';
                       const isUrgent = !isOverdue && hoursUntil <= 24 && request.status === 'ACTIVE';
-                      const color = isOverdue ? '#ef4444' : isUrgent ? '#f59e0b' : '#3b82f6';
+                      const color = isOverdue ? '#dc2626' : isUrgent ? '#d97706' : '#3b82f6';
                       return (
                         <Card
                           variant="outlined"
@@ -677,7 +677,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
                                   </Typography>
                                 )}
                                 {isUrgent && (
-                                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#f59e0b' }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#d97706' }}>
                                     Sub 24h ramase
                                   </Typography>
                                 )}
@@ -811,7 +811,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
                       {request.status === 'FINALIZAT' && request.resolutionDescription && (
                         <>
                           <Divider />
-                          <Box sx={{ bgcolor: '#10b98115', p: 2, borderRadius: 2 }}>
+                          <Box sx={{ bgcolor: '#05966915', p: 2, borderRadius: 2 }}>
                             <Typography variant="body2" color="success.main" fontWeight={600}>
                               Rezolvat de {request.resolver?.fullName} la {format(new Date(request.resolvedAt!), 'dd MMM yyyy, HH:mm', { locale: ro })}
                             </Typography>
@@ -861,7 +861,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
                                       sx={{
                                         textTransform: 'none',
                                         fontWeight: 600,
-                                        bgcolor: '#f59e0b',
+                                        bgcolor: '#d97706',
                                         '&:hover': { bgcolor: '#d97706' },
                                         borderRadius: 2,
                                       }}
@@ -893,7 +893,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
                                       sx={{
                                         textTransform: 'none',
                                         fontWeight: 600,
-                                        bgcolor: '#10b981',
+                                        bgcolor: '#059669',
                                         '&:hover': { bgcolor: '#059669' },
                                         borderRadius: 2,
                                       }}
@@ -1139,7 +1139,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
             sx={{
               textTransform: 'none',
               fontWeight: 600,
-              bgcolor: '#10b981',
+              bgcolor: '#059669',
               '&:hover': { bgcolor: '#059669' },
             }}
           >
@@ -1267,8 +1267,8 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = React.memo(({ request, 
               label={isMobile ? (request.status === 'ACTIVE' ? 'Activ' : 'Final') : DOMICILIU_REQUEST_STATUS_LABELS[request.status]}
               size="small"
               sx={{
-                bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-                color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                bgcolor: request.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+                color: request.status === 'ACTIVE' ? '#dc2626' : '#059669',
                 fontWeight: 600,
                 fontSize: { xs: '0.65rem', sm: '0.75rem' },
                 height: { xs: 22, sm: 24 },
@@ -1290,7 +1290,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = React.memo(({ request, 
           const hoursUntil = (deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60);
           const isOverdue = hoursUntil < 0;
           const isUrgent = !isOverdue && hoursUntil <= 24;
-          const color = isOverdue ? '#ef4444' : isUrgent ? '#f59e0b' : '#3b82f6';
+          const color = isOverdue ? '#dc2626' : isUrgent ? '#d97706' : '#3b82f6';
           return (
             <Typography
               variant="body2"
@@ -1370,9 +1370,9 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = React.memo(({ request, 
                   py: 0,
                   px: 1,
                   minHeight: 22,
-                  borderColor: '#f59e0b',
-                  color: '#f59e0b',
-                  '&:hover': { borderColor: '#d97706', bgcolor: alpha('#f59e0b', 0.08) },
+                  borderColor: '#d97706',
+                  color: '#d97706',
+                  '&:hover': { borderColor: '#d97706', bgcolor: alpha('#d97706', 0.08) },
                 }}
               >
                 {isRevocareType ? 'Solicita revocare panou' : 'Solicita amplasare'}
@@ -1541,7 +1541,7 @@ const DomiciliuParkingPage: React.FC = () => {
             mb: { xs: 2, sm: 3 },
             p: { xs: 2, sm: 2.5, md: 3 },
             background: theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+              ? 'linear-gradient(135deg, #059669 0%, #059669 100%)'
               : 'linear-gradient(135deg, #047857 0%, #059669 100%)',
             borderRadius: { xs: 2, sm: 3 },
             color: 'white',

@@ -359,7 +359,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
           onClick={exportToPDF}
           disabled={filteredRequests.length === 0}
           sx={{
-            bgcolor: '#ef4444',
+            bgcolor: '#dc2626',
             '&:hover': { bgcolor: '#dc2626' },
             py: 1.5,
           }}
@@ -375,7 +375,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
           onClick={exportToExcel}
           disabled={filteredRequests.length === 0}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
             py: 1.5,
           }}
@@ -398,7 +398,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 3,
-            background: `linear-gradient(135deg, #059669 0%, #10b981 100%)`,
+            background: `linear-gradient(135deg, #059669 0%, #059669 100%)`,
             color: 'white',
             borderRadius: 3,
             position: 'relative',
@@ -445,7 +445,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
                 stats.byType.AMPLASARE_PANOU.active,
                 stats.byType.REVOCARE_PANOU.active,
               ],
-              color: '#f59e0b',
+              color: '#d97706',
             },
             {
               label: 'Finalizate',
@@ -455,7 +455,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
                 stats.byType.AMPLASARE_PANOU.resolved,
                 stats.byType.REVOCARE_PANOU.resolved,
               ],
-              color: '#10b981',
+              color: '#059669',
             },
           ]}
           defaultType="bar"
@@ -477,7 +477,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             title="Active"
             value={stats.active}
             icon={<ActiveIcon />}
-            color="#ef4444"
+            color="#dc2626"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -485,7 +485,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             title="Finalizate"
             value={stats.resolved}
             icon={<ResolvedIcon />}
-            color="#10b981"
+            color="#059669"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -576,8 +576,8 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
                       label={DOMICILIU_REQUEST_STATUS_LABELS[request.status]}
                       size="small"
                       sx={{
-                        bgcolor: request.status === 'ACTIVE' ? '#ef444420' : '#10b98120',
-                        color: request.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                        bgcolor: request.status === 'ACTIVE' ? '#dc262620' : '#05966920',
+                        color: request.status === 'ACTIVE' ? '#dc2626' : '#059669',
                         fontWeight: 600,
                       }}
                     />
@@ -610,7 +610,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+              background: 'linear-gradient(135deg, #059669 0%, #059669 100%)',
             }}
             onClick={() => setExportDrawerOpen(true)}
           >
@@ -626,7 +626,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             variant="contained"
             startIcon={<PdfIcon />}
             onClick={exportToPDF}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
           >
             Exporta PDF
           </Button>
@@ -634,7 +634,7 @@ const DomiciliuReportsTab: React.FC<DomiciliuReportsTabProps> = ({
             variant="contained"
             startIcon={<ExcelIcon />}
             onClick={exportToExcel}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             Exporta Excel
           </Button>

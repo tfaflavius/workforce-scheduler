@@ -68,10 +68,10 @@ const SESSION_STATUS_LABELS: Record<PvSessionStatus, string> = {
 };
 
 const SESSION_STATUS_COLORS: Record<PvSessionStatus, string> = {
-  DRAFT: '#f59e0b',
+  DRAFT: '#d97706',
   READY: '#3b82f6',
-  IN_PROGRESS: '#8b5cf6',
-  COMPLETED: '#10b981',
+  IN_PROGRESS: '#64748b',
+  COMPLETED: '#059669',
 };
 
 const PvReportsTab: React.FC<PvReportsTabProps> = ({
@@ -338,7 +338,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
           onClick={exportToPDF}
           disabled={filteredSessions.length === 0}
           sx={{
-            bgcolor: '#ef4444',
+            bgcolor: '#dc2626',
             '&:hover': { bgcolor: '#dc2626' },
             py: 1.5,
           }}
@@ -354,7 +354,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
           onClick={exportToExcel}
           disabled={filteredSessions.length === 0}
           sx={{
-            bgcolor: '#10b981',
+            bgcolor: '#059669',
             '&:hover': { bgcolor: '#059669' },
             py: 1.5,
           }}
@@ -377,7 +377,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 3,
-            background: `linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)`,
+            background: `linear-gradient(135deg, #64748b 0%, #94a3b8 100%)`,
             color: 'white',
             borderRadius: 3,
             position: 'relative',
@@ -424,7 +424,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
                 filteredSessions.filter((s: PvDisplaySession) => s.status === 'IN_PROGRESS').length,
                 filteredSessions.filter((s: PvDisplaySession) => s.status === 'COMPLETED').length,
               ],
-              color: '#8b5cf6',
+              color: '#64748b',
             },
           ]}
           defaultType="bar"
@@ -438,7 +438,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
             title="Total Sesiuni"
             value={stats.total}
             icon={<PvIcon />}
-            color="#8b5cf6"
+            color="#64748b"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -446,7 +446,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
             title="Finalizate"
             value={stats.completed}
             icon={<CompletedIcon />}
-            color="#10b981"
+            color="#059669"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -454,7 +454,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
             title="In Desfasurare"
             value={stats.inProgress}
             icon={<InProgressIcon />}
-            color="#8b5cf6"
+            color="#64748b"
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
@@ -509,7 +509,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
         <TableContainer component={Paper} sx={{ borderRadius: 2, overflowX: 'auto' }}>
           <Table size={isMobile ? 'small' : 'medium'} stickyHeader>
             <TableHead>
-              <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
+              <TableRow sx={{ bgcolor: alpha('#64748b', 0.08) }}>
                 <TableCell sx={{ fontWeight: 600 }}>Luna/An</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Nr Zile</TableCell>
@@ -545,14 +545,14 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
                     </TableCell>
                     {!isMobile && (
                       <TableCell>
-                        <Typography variant="body2" color="#10b981" fontWeight={600}>
+                        <Typography variant="body2" color="#059669" fontWeight={600}>
                           {dayStats.completedDays}
                         </Typography>
                       </TableCell>
                     )}
                     {!isMobile && (
                       <TableCell>
-                        <Typography variant="body2" color={dayStats.openDays > 0 ? '#f59e0b' : 'text.secondary'} fontWeight={600}>
+                        <Typography variant="body2" color={dayStats.openDays > 0 ? '#d97706' : 'text.secondary'} fontWeight={600}>
                           {dayStats.openDays}
                         </Typography>
                       </TableCell>
@@ -587,7 +587,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+              background: 'linear-gradient(135deg, #64748b 0%, #94a3b8 100%)',
             }}
             onClick={() => setExportDrawerOpen(true)}
           >
@@ -603,7 +603,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
             variant="contained"
             startIcon={<PdfIcon />}
             onClick={exportToPDF}
-            sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+            sx={{ bgcolor: '#dc2626', '&:hover': { bgcolor: '#dc2626' } }}
           >
             Exporta PDF
           </Button>
@@ -611,7 +611,7 @@ const PvReportsTab: React.FC<PvReportsTabProps> = ({
             variant="contained"
             startIcon={<ExcelIcon />}
             onClick={exportToExcel}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             Exporta Excel
           </Button>

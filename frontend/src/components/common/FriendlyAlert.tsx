@@ -57,24 +57,24 @@ const alertIcons: Record<AlertVariant, React.ReactNode> = {
 
 const alertColors: Record<AlertVariant, { bg: string; border: string; icon: string }> = {
   success: {
-    bg: '#10b981',
-    border: '#059669',
-    icon: '#10b981',
+    bg: '#059669',
+    border: '#047857',
+    icon: '#059669',
   },
   error: {
-    bg: '#ef4444',
-    border: '#dc2626',
-    icon: '#ef4444',
+    bg: '#dc2626',
+    border: '#b91c1c',
+    icon: '#dc2626',
   },
   warning: {
-    bg: '#f59e0b',
-    border: '#d97706',
-    icon: '#f59e0b',
+    bg: '#d97706',
+    border: '#b45309',
+    icon: '#d97706',
   },
   info: {
-    bg: '#06b6d4',
-    border: '#0891b2',
-    icon: '#06b6d4',
+    bg: '#0891b2',
+    border: '#155e75',
+    icon: '#0891b2',
   },
 };
 

@@ -331,7 +331,7 @@ export const AdminLeaveRequestsPage = () => {
         title="Gestionare Concedii"
         subtitle="Aproba sau respinge cererile de concediu ale angajatilor"
         icon={<AdminIcon />}
-        gradient="#10b981 0%, #059669 100%"
+        gradient="#059669 0%, #059669 100%"
       >
         <Chip
           icon={<BeachIcon sx={{ fontSize: 16 }} />}
@@ -356,9 +356,9 @@ export const AdminLeaveRequestsPage = () => {
             title="In Asteptare"
             value={pendingRequests.length}
             subtitle={pendingRequests.length > 0 ? 'Necesita actiune' : undefined}
-            icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f59e0b' }} />}
-            color="#f59e0b"
-            bgColor={alpha('#f59e0b', 0.12)}
+            icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#d97706' }} />}
+            color="#d97706"
+            bgColor={alpha('#d97706', 0.12)}
             delay={0}
             urgent={pendingRequests.length > 0}
           />
@@ -367,9 +367,9 @@ export const AdminLeaveRequestsPage = () => {
           <StatCard
             title="Aprobate"
             value={approvedRequests.length}
-            icon={<ApproveIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#10b981' }} />}
-            color="#10b981"
-            bgColor={alpha('#10b981', 0.12)}
+            icon={<ApproveIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#059669' }} />}
+            color="#059669"
+            bgColor={alpha('#059669', 0.12)}
             delay={100}
           />
         </Grid>
@@ -377,9 +377,9 @@ export const AdminLeaveRequestsPage = () => {
           <StatCard
             title="Respinse"
             value={rejectedRequests.length}
-            icon={<RejectIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ef4444' }} />}
-            color="#ef4444"
-            bgColor={alpha('#ef4444', 0.12)}
+            icon={<RejectIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#dc2626' }} />}
+            color="#dc2626"
+            bgColor={alpha('#dc2626', 0.12)}
             delay={200}
           />
         </Grid>
@@ -429,7 +429,7 @@ export const AdminLeaveRequestsPage = () => {
       {/* Requests List */}
       {displayedRequests.length === 0 ? (
         <EmptyState
-          icon={<EventBusyIcon sx={{ fontSize: 64, color: tabValue === 0 ? '#f59e0b' : tabValue === 1 ? '#10b981' : '#ef4444' }} />}
+          icon={<EventBusyIcon sx={{ fontSize: 64, color: tabValue === 0 ? '#d97706' : tabValue === 1 ? '#059669' : '#dc2626' }} />}
           title={tabValue === 0 ? 'Nicio cerere in asteptare' : tabValue === 1 ? 'Nicio cerere aprobata' : 'Nicio cerere respinsa'}
           description={tabValue === 0 ? 'Nu ai cereri de concediu de procesat momentan.' : 'Nu exista cereri in aceasta categorie.'}
           illustration="noItems"

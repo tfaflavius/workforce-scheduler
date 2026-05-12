@@ -114,13 +114,13 @@ const ProcesVerbalePage: React.FC = () => {
     tabConfig.push({
       label: 'Marketplace Afisare',
       shortLabel: 'Mkt. Afisare',
-      color: '#f59e0b',
+      color: '#d97706',
       component: 'marketplace-afisare',
     });
     tabConfig.push({
       label: 'Sesiuni Semnare',
       shortLabel: 'Ses. Semnare',
-      color: '#8b5cf6',
+      color: '#64748b',
       component: 'sessions-semnare',
     });
     tabConfig.push({
@@ -134,13 +134,13 @@ const ProcesVerbalePage: React.FC = () => {
     tabConfig.push({
       label: 'Marketplace',
       shortLabel: 'Marketplace',
-      color: '#f59e0b',
+      color: '#d97706',
       component: 'marketplace-afisare',
     });
     tabConfig.push({
       label: 'Zilele Mele',
       shortLabel: 'Zilele Mele',
-      color: '#10b981',
+      color: '#059669',
       component: 'mydays-afisare',
     });
   } else if (isMaintenance) {
@@ -148,13 +148,13 @@ const ProcesVerbalePage: React.FC = () => {
     tabConfig.push({
       label: 'Marketplace',
       shortLabel: 'Marketplace',
-      color: '#f59e0b',
+      color: '#d97706',
       component: 'marketplace-semnare',
     });
     tabConfig.push({
       label: 'Zilele Mele',
       shortLabel: 'Zilele Mele',
-      color: '#10b981',
+      color: '#059669',
       component: 'mydays-semnare',
     });
   }
@@ -225,13 +225,13 @@ const ProcesVerbalePage: React.FC = () => {
             mb: { xs: 2, sm: 3 },
             p: { xs: 2, sm: 2.5, md: 3 },
             background: theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)'
-              : 'linear-gradient(135deg, #1e40af 0%, #5b21b6 100%)',
+              ? 'linear-gradient(135deg, #1e3a5f 0%, #334155 100%)'
+              : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             borderRadius: { xs: 2, sm: 3 },
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
-            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)',
+            boxShadow: '0 4px 20px rgba(15, 23, 42, 0.3)',
           }}
         >
           {/* Background decoration */}

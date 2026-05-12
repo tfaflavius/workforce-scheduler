@@ -217,7 +217,7 @@ const TicketsSection: React.FC = () => {
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
             <Table size="small" sx={{ minWidth: { xs: 280, sm: 320 } }}>
               <TableHead>
-                <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.08) }}>
+                <TableRow sx={{ bgcolor: alpha('#64748b', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                     {viewMode === 'daily' ? 'Tichete' : 'Total Tichete'}
@@ -230,7 +230,7 @@ const TicketsSection: React.FC = () => {
                   if (isFirstInGroup(idx) && loc.group) {
                     const groupTotal = getGroupKeys(loc.group).reduce((sum, k) => sum + getTicketValue(k), 0);
                     rows.push(
-                      <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#8b5cf6', 0.06) }}>
+                      <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#64748b', 0.06) }}>
                         <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>{loc.group}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>{groupTotal}</TableCell>
                       </TableRow>
@@ -262,7 +262,7 @@ const TicketsSection: React.FC = () => {
                   );
                   return rows;
                 })}
-                <TableRow sx={{ bgcolor: alpha('#8b5cf6', 0.05) }}>
+                <TableRow sx={{ bgcolor: alpha('#64748b', 0.05) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>TOTAL</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>{total}</TableCell>
                 </TableRow>
@@ -276,7 +276,7 @@ const TicketsSection: React.FC = () => {
               startIcon={<SaveIcon />}
               onClick={handleSave}
               disabled={saving}
-              sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+              sx={{ bgcolor: '#64748b', '&:hover': { bgcolor: '#475569' } }}
             >
               {saving ? 'Se salveaza...' : 'Salveaza Tichete'}
             </Button>
@@ -400,7 +400,7 @@ const SubscriptionsSection: React.FC = () => {
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
             <Table size="small" sx={{ minWidth: { xs: 300, sm: 400 } }}>
               <TableHead>
-                <TableRow sx={{ bgcolor: alpha('#10b981', 0.08) }}>
+                <TableRow sx={{ bgcolor: alpha('#059669', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Parcare</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>Abonamente</TableCell>
@@ -426,7 +426,7 @@ const SubscriptionsSection: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                <TableRow sx={{ bgcolor: alpha('#10b981', 0.05) }}>
+                <TableRow sx={{ bgcolor: alpha('#059669', 0.05) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.95rem' } }}>TOTAL</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>
                     {PARKING_SUBSCRIPTION_LOCATIONS.reduce((sum, loc) => sum + loc.spots, 0)}
@@ -442,7 +442,7 @@ const SubscriptionsSection: React.FC = () => {
             startIcon={<SaveIcon />}
             onClick={handleSave}
             disabled={saving}
-            sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+            sx={{ bgcolor: '#059669', '&:hover': { bgcolor: '#059669' } }}
           >
             {saving ? 'Se salveaza...' : 'Salveaza Abonamente'}
           </Button>
@@ -605,7 +605,7 @@ const OccupancySection: React.FC = () => {
           <TableContainer component={Paper} variant="outlined" sx={{ mb: 2, overflowX: 'auto' }}>
             <Table size="small" sx={{ minWidth: { xs: 340, sm: 540, md: 700 } }}>
               <TableHead>
-                <TableRow sx={{ bgcolor: alpha('#f59e0b', 0.08) }}>
+                <TableRow sx={{ bgcolor: alpha('#d97706', 0.08) }}>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' }, minWidth: { xs: 100, sm: 150 } }}>Parcare</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Nr. Locuri</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.7rem', sm: '0.875rem' } }}>Minim</TableCell>
@@ -626,7 +626,7 @@ const OccupancySection: React.FC = () => {
                     const groupAvg = groupKeys.reduce((sum, k) => sum + getOccValue(k).avg, 0);
                     const groupRate = getWeeklyRate(groupAvg, groupSpots);
                     rows.push(
-                      <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#f59e0b', 0.06) }}>
+                      <TableRow key={`group-${loc.group}`} sx={{ bgcolor: alpha('#d97706', 0.06) }}>
                         <TableCell sx={{ fontWeight: 'bold', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>{loc.group}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' }, color: 'text.secondary' }}>{groupSpots}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>{groupMin || ''}</TableCell>
@@ -718,7 +718,7 @@ const OccupancySection: React.FC = () => {
               startIcon={<SaveIcon />}
               onClick={handleSave}
               disabled={saving}
-              sx={{ bgcolor: '#f59e0b', '&:hover': { bgcolor: '#d97706' } }}
+              sx={{ bgcolor: '#d97706', '&:hover': { bgcolor: '#d97706' } }}
             >
               {saving ? 'Se salveaza...' : 'Salveaza Grad Ocupare'}
             </Button>
@@ -821,11 +821,11 @@ const ParkingStatsTab: React.FC = () => {
       <Accordion
         expanded={expanded === 'tickets'}
         onChange={handleAccordionChange('tickets')}
-        sx={sectionStyle('#8b5cf6')}
+        sx={sectionStyle('#64748b')}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <TicketIcon sx={{ color: '#8b5cf6', fontSize: { xs: 20, sm: 24 } }} />
+            <TicketIcon sx={{ color: '#64748b', fontSize: { xs: 20, sm: 24 } }} />
             <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>Numar Tichete Zilnice</Typography>
           </Stack>
         </AccordionSummary>
@@ -837,11 +837,11 @@ const ParkingStatsTab: React.FC = () => {
       <Accordion
         expanded={expanded === 'subscriptions'}
         onChange={handleAccordionChange('subscriptions')}
-        sx={sectionStyle('#10b981')}
+        sx={sectionStyle('#059669')}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <SubscriptionIcon sx={{ color: '#10b981', fontSize: { xs: 20, sm: 24 } }} />
+            <SubscriptionIcon sx={{ color: '#059669', fontSize: { xs: 20, sm: 24 } }} />
             <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>Numar Abonamente Lunare</Typography>
           </Stack>
         </AccordionSummary>
@@ -853,11 +853,11 @@ const ParkingStatsTab: React.FC = () => {
       <Accordion
         expanded={expanded === 'occupancy'}
         onChange={handleAccordionChange('occupancy')}
-        sx={sectionStyle('#f59e0b')}
+        sx={sectionStyle('#d97706')}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <OccupancyIcon sx={{ color: '#f59e0b', fontSize: { xs: 20, sm: 24 } }} />
+            <OccupancyIcon sx={{ color: '#d97706', fontSize: { xs: 20, sm: 24 } }} />
             <Typography variant="subtitle1" fontWeight="bold" sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>Grad de Ocupare Saptamanal</Typography>
           </Stack>
         </AccordionSummary>

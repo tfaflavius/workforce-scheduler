@@ -458,7 +458,7 @@ const DailyReportsPage: React.FC = () => {
               sx={{
                 p: 2,
                 bgcolor: '#fef3c7',
-                borderLeft: '4px solid #f59e0b',
+                borderLeft: '4px solid #d97706',
                 borderRadius: 2,
                 mb: 1,
               }}
@@ -505,7 +505,7 @@ const DailyReportsPage: React.FC = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #64748b 100%)',
               p: { xs: 2, sm: 3 },
               borderRadius: '12px 12px 0 0',
             }}
@@ -564,7 +564,7 @@ const DailyReportsPage: React.FC = () => {
                     sx={{
                       p: 2,
                       bgcolor: '#fef3c7',
-                      borderLeft: '4px solid #f59e0b',
+                      borderLeft: '4px solid #d97706',
                       borderRadius: 2,
                     }}
                   >
@@ -624,9 +624,9 @@ const DailyReportsPage: React.FC = () => {
                     size={isMobile ? 'small' : 'medium'}
                     sx={{
                       fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+                      background: 'linear-gradient(135deg, #3b82f6, #64748b)',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                        background: 'linear-gradient(135deg, #2563eb, #475569)',
                       },
                     }}
                   >
@@ -709,7 +709,7 @@ const DailyReportsPage: React.FC = () => {
                           mt: 1.5,
                           p: 1.5,
                           bgcolor: '#fef3c7',
-                          borderLeft: '3px solid #f59e0b',
+                          borderLeft: '3px solid #d97706',
                           borderRadius: 1,
                         }}
                       >
@@ -1009,8 +1009,8 @@ const DailyReportsPage: React.FC = () => {
               mb: 2,
               borderRadius: 2,
               border: '1px solid',
-              borderColor: alpha('#ef4444', 0.3),
-              bgcolor: alpha('#ef4444', 0.04),
+              borderColor: alpha('#dc2626', 0.3),
+              bgcolor: alpha('#dc2626', 0.04),
               overflow: 'hidden',
             }}
           >
@@ -1024,11 +1024,11 @@ const DailyReportsPage: React.FC = () => {
                 px: { xs: 2, sm: 2.5 },
                 py: 1.5,
                 cursor: 'pointer',
-                '&:hover': { bgcolor: alpha('#ef4444', 0.08) },
+                '&:hover': { bgcolor: alpha('#dc2626', 0.08) },
                 transition: 'background 0.2s',
               }}
             >
-              <WarningIcon sx={{ color: '#ef4444', fontSize: { xs: 20, sm: 22 } }} />
+              <WarningIcon sx={{ color: '#dc2626', fontSize: { xs: 20, sm: 22 } }} />
               <Typography
                 variant="subtitle2"
                 sx={{
@@ -1046,7 +1046,7 @@ const DailyReportsPage: React.FC = () => {
                 sx={{
                   height: 22,
                   fontWeight: 700,
-                  bgcolor: alpha('#ef4444', 0.15),
+                  bgcolor: alpha('#dc2626', 0.15),
                   color: '#dc2626',
                   '& .MuiChip-label': { px: 1 },
                 }}
@@ -1078,7 +1078,7 @@ const DailyReportsPage: React.FC = () => {
                         avatar={
                           <Avatar
                             sx={{
-                              bgcolor: alpha('#ef4444', 0.2),
+                              bgcolor: alpha('#dc2626', 0.2),
                               color: '#dc2626 !important',
                               fontSize: '0.65rem !important',
                               width: 24,
@@ -1117,7 +1117,7 @@ const DailyReportsPage: React.FC = () => {
                         sx={{
                           height: 'auto',
                           py: 0.5,
-                          borderColor: alpha('#ef4444', 0.3),
+                          borderColor: alpha('#dc2626', 0.3),
                           '& .MuiChip-label': { py: 0.25 },
                         }}
                       />
@@ -1217,7 +1217,7 @@ const DailyReportsPage: React.FC = () => {
                         p: 1.5,
                         mb: 1.5,
                         bgcolor: '#fef3c7',
-                        borderLeft: '3px solid #f59e0b',
+                        borderLeft: '3px solid #d97706',
                         borderRadius: 1,
                       }}
                     >
@@ -1270,7 +1270,7 @@ const DailyReportsPage: React.FC = () => {
                                 minWidth: 'auto',
                                 px: 2,
                                 fontSize: { xs: '0.75rem', sm: '0.8125rem' },
-                                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                background: 'linear-gradient(135deg, #d97706, #d97706)',
                               }}
                             >
                               {commenting ? <CircularProgress size={16} /> : <SendIcon fontSize="small" />}

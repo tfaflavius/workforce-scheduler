@@ -303,7 +303,7 @@ const CashCollectionsTab: React.FC = () => {
               mb: 3,
               borderRadius: 2,
               background: theme.palette.mode === 'light'
-                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                ? 'linear-gradient(135deg, #059669 0%, #059669 100%)'
                 : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
               color: 'white',
               position: 'relative',
@@ -560,7 +560,7 @@ const CashCollectionsTab: React.FC = () => {
               borderRadius: 2,
               fontWeight: 600,
               px: { xs: 2, sm: 3 },
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              background: 'linear-gradient(135deg, #059669 0%, #059669 100%)',
               '&:hover': {
                 background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
               },

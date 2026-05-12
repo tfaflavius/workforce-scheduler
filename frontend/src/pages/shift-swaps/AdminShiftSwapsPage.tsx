@@ -416,7 +416,7 @@ const AdminShiftSwapsPage = () => {
         title="Administrare Schimburi"
         subtitle="Gestioneaza si aproba cererile de schimb de ture"
         icon={<AdminIcon />}
-        gradient="#6366f1 0%, #8b5cf6 100%"
+        gradient="#475569 0%, #64748b 100%"
       >
         <Chip
           icon={<SwapIcon sx={{ fontSize: 16 }} />}
@@ -441,9 +441,9 @@ const AdminShiftSwapsPage = () => {
             title="Asteapta Aprobare"
             value={awaitingAdminRequests.length}
             subtitle={awaitingAdminRequests.length > 0 ? 'Actiune necesara' : undefined}
-            icon={<TimeIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#f59e0b' }} />}
-            color="#f59e0b"
-            bgColor={alpha('#f59e0b', 0.12)}
+            icon={<TimeIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#d97706' }} />}
+            color="#d97706"
+            bgColor={alpha('#d97706', 0.12)}
             delay={0}
             urgent={awaitingAdminRequests.length > 0}
           />
@@ -453,9 +453,9 @@ const AdminShiftSwapsPage = () => {
             title="In Curs"
             value={pendingRequests.length}
             subtitle="Asteapta raspuns"
-            icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#2563eb' }} />}
-            color="#2563eb"
-            bgColor={alpha('#2563eb', 0.12)}
+            icon={<PendingIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#1d4ed8' }} />}
+            color="#1d4ed8"
+            bgColor={alpha('#1d4ed8', 0.12)}
             delay={100}
           />
         </Grid>
@@ -463,9 +463,9 @@ const AdminShiftSwapsPage = () => {
           <StatCard
             title="Aprobate"
             value={approvedCount}
-            icon={<ApprovedIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#10b981' }} />}
-            color="#10b981"
-            bgColor={alpha('#10b981', 0.12)}
+            icon={<ApprovedIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#059669' }} />}
+            color="#059669"
+            bgColor={alpha('#059669', 0.12)}
             delay={200}
           />
         </Grid>
@@ -473,9 +473,9 @@ const AdminShiftSwapsPage = () => {
           <StatCard
             title="Respinse"
             value={rejectedCount}
-            icon={<RejectedIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#ef4444' }} />}
-            color="#ef4444"
-            bgColor={alpha('#ef4444', 0.12)}
+            icon={<RejectedIcon sx={{ fontSize: { xs: 24, sm: 28 }, color: '#dc2626' }} />}
+            color="#dc2626"
+            bgColor={alpha('#dc2626', 0.12)}
             delay={300}
           />
         </Grid>

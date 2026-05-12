@@ -115,7 +115,7 @@ const PvSigningMyDaysTab: React.FC = () => {
     <Box>
       {myDays.length === 0 ? (
         <Card sx={{ borderRadius: 3, p: 4, textAlign: 'center' }}>
-          <MyDaysIcon sx={{ fontSize: 64, color: alpha('#10b981', 0.3), mb: 2 }} />
+          <MyDaysIcon sx={{ fontSize: 64, color: alpha('#059669', 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             Nu ai zile revendicate
           </Typography>
@@ -128,7 +128,7 @@ const PvSigningMyDaysTab: React.FC = () => {
           {/* Active days */}
           {activeDays.length > 0 && (
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#f59e0b' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#d97706' }}>
                 Zile Active ({activeDays.length})
               </Typography>
               <Stack spacing={1.5}>
@@ -149,7 +149,7 @@ const PvSigningMyDaysTab: React.FC = () => {
           {/* Completed days */}
           {completedDays.length > 0 && (
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#10b981' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#059669' }}>
                 Zile Finalizate ({completedDays.length})
               </Typography>
               <Stack spacing={1.5}>
@@ -199,7 +199,7 @@ const PvSigningMyDaysTab: React.FC = () => {
             sx={{
               textTransform: 'none',
               fontWeight: 600,
-              bgcolor: '#10b981',
+              bgcolor: '#059669',
               '&:hover': { bgcolor: '#059669' },
             }}
           >
@@ -249,7 +249,7 @@ const DayCard: React.FC<DayCardProps> = ({ day, onUnclaim, onComplete, isUnclaim
       sx={{
         borderRadius: 2.5,
         border: `1px solid ${alpha(statusColor, 0.3)}`,
-        bgcolor: isCompleted ? alpha('#10b981', 0.03) : undefined,
+        bgcolor: isCompleted ? alpha('#059669', 0.03) : undefined,
       }}
     >
       <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
@@ -333,7 +333,7 @@ const DayCard: React.FC<DayCardProps> = ({ day, onUnclaim, onComplete, isUnclaim
                     borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 600,
-                    bgcolor: '#10b981',
+                    bgcolor: '#059669',
                     '&:hover': { bgcolor: '#059669' },
                     whiteSpace: 'nowrap',
                   }}
@@ -352,9 +352,9 @@ const DayCard: React.FC<DayCardProps> = ({ day, onUnclaim, onComplete, isUnclaim
                     borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 600,
-                    color: '#ef4444',
-                    borderColor: '#ef4444',
-                    '&:hover': { borderColor: '#dc2626', bgcolor: alpha('#ef4444', 0.05) },
+                    color: '#dc2626',
+                    borderColor: '#dc2626',
+                    '&:hover': { borderColor: '#dc2626', bgcolor: alpha('#dc2626', 0.05) },
                     whiteSpace: 'nowrap',
                   }}
                 >

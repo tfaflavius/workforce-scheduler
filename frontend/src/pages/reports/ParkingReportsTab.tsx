@@ -500,11 +500,11 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       title: 'Probleme',
       subtitle: `${issueStats.total} ${issueStats.total === 1 ? 'inregistrare' : 'inregistrari'}`,
       icon: <IssueIcon />,
-      color: '#ef4444',
-      bgColor: alpha('#ef4444', 0.1),
+      color: '#dc2626',
+      bgColor: alpha('#dc2626', 0.1),
       stats: [
-        { label: 'Active', value: issueStats.active, color: '#f59e0b' },
-        { label: 'Finalizate', value: issueStats.resolved, color: '#10b981' },
+        { label: 'Active', value: issueStats.active, color: '#d97706' },
+        { label: 'Finalizate', value: issueStats.resolved, color: '#059669' },
       ],
     },
     {
@@ -512,10 +512,10 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       title: 'Prejudicii',
       subtitle: `${damageStats.total} ${damageStats.total === 1 ? 'inregistrare' : 'inregistrari'}`,
       icon: <DamageIcon />,
-      color: '#f97316',
-      bgColor: alpha('#f97316', 0.1),
+      color: '#ea580c',
+      bgColor: alpha('#ea580c', 0.1),
       stats: [
-        { label: 'Active', value: damageStats.active, color: '#ef4444' },
+        { label: 'Active', value: damageStats.active, color: '#dc2626' },
         { label: 'Recuperate', value: damageStats.recuperat, color: '#22c55e' },
       ],
     },
@@ -524,10 +524,10 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       title: 'Numerar',
       subtitle: formatCurrency(collectionTotals?.totalAmount || 0),
       icon: <PaymentIcon />,
-      color: '#10b981',
-      bgColor: alpha('#10b981', 0.1),
+      color: '#059669',
+      bgColor: alpha('#059669', 0.1),
       stats: [
-        { label: (collectionTotals?.count || 0) === 1 ? 'Ridicare' : 'Ridicari', value: collectionTotals?.count || 0, color: '#10b981' },
+        { label: (collectionTotals?.count || 0) === 1 ? 'Ridicare' : 'Ridicari', value: collectionTotals?.count || 0, color: '#059669' },
       ],
     },
   ];
@@ -540,7 +540,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
           mb: 1.5,
           borderRadius: 2,
           borderLeft: 4,
-          borderLeftColor: issue.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+          borderLeftColor: issue.status === 'ACTIVE' ? '#dc2626' : '#059669',
           transition: 'transform 0.2s, box-shadow 0.2s',
           '&:active': { transform: 'scale(0.98)' },
         }}
@@ -555,8 +555,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
                 size="small"
                 label={issue.status === 'ACTIVE' ? 'Activ' : 'Finalizat'}
                 sx={{
-                  bgcolor: issue.status === 'ACTIVE' ? alpha('#ef4444', 0.1) : alpha('#10b981', 0.1),
-                  color: issue.status === 'ACTIVE' ? '#ef4444' : '#10b981',
+                  bgcolor: issue.status === 'ACTIVE' ? alpha('#dc2626', 0.1) : alpha('#059669', 0.1),
+                  color: issue.status === 'ACTIVE' ? '#dc2626' : '#059669',
                   fontWeight: 600,
                   fontSize: '0.7rem',
                 }}
@@ -596,7 +596,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
           mb: 1.5,
           borderRadius: 2,
           borderLeft: 4,
-          borderLeftColor: damage.status === 'ACTIVE' ? '#f97316' : '#10b981',
+          borderLeftColor: damage.status === 'ACTIVE' ? '#ea580c' : '#059669',
           transition: 'transform 0.2s, box-shadow 0.2s',
           '&:active': { transform: 'scale(0.98)' },
         }}
@@ -611,8 +611,8 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
                 size="small"
                 label={damage.resolutionType === 'RECUPERAT' ? 'Recuperat' : damage.resolutionType === 'TRIMIS_JURIDIC' ? 'Juridic' : damage.status === 'ACTIVE' ? 'Activ' : 'Finalizat'}
                 sx={{
-                  bgcolor: damage.status === 'ACTIVE' ? alpha('#f97316', 0.1) : alpha('#10b981', 0.1),
-                  color: damage.status === 'ACTIVE' ? '#f97316' : '#10b981',
+                  bgcolor: damage.status === 'ACTIVE' ? alpha('#ea580c', 0.1) : alpha('#059669', 0.1),
+                  color: damage.status === 'ACTIVE' ? '#ea580c' : '#059669',
                   fontWeight: 600,
                   fontSize: '0.7rem',
                 }}
@@ -645,7 +645,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
           mb: 1.5,
           borderRadius: 2,
           borderLeft: 4,
-          borderLeftColor: '#10b981',
+          borderLeftColor: '#059669',
           transition: 'transform 0.2s, box-shadow 0.2s',
           '&:active': { transform: 'scale(0.98)' },
         }}
@@ -756,17 +756,17 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   const renderExportOptions = () => {
     const exportOptions = selectedReport === 'issues'
       ? [
-          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportIssuesPDF, color: '#ef4444' },
-          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportIssuesExcel, color: '#10b981' },
+          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportIssuesPDF, color: '#dc2626' },
+          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportIssuesExcel, color: '#059669' },
         ]
       : selectedReport === 'damages'
       ? [
-          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportDamagesPDF, color: '#f97316' },
-          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportDamagesExcel, color: '#10b981' },
+          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportDamagesPDF, color: '#ea580c' },
+          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportDamagesExcel, color: '#059669' },
         ]
       : [
-          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportCollectionsPDF, color: '#ef4444' },
-          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportCollectionsExcel, color: '#10b981' },
+          { label: 'Descarca PDF', icon: <PdfIcon />, onClick: handleExportCollectionsPDF, color: '#dc2626' },
+          { label: 'Descarca Excel', icon: <ExcelIcon />, onClick: handleExportCollectionsExcel, color: '#059669' },
         ];
 
     const count = selectedReport === 'issues'
@@ -918,7 +918,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
             series={[{
               label: 'Probleme',
               data: [issueStats.active, issueStats.resolved, issueStats.urgent],
-              color: '#ef4444',
+              color: '#dc2626',
             }]}
             defaultType="bar"
           />
@@ -931,7 +931,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
             series={[{
               label: 'Prejudicii',
               data: [damageStats.active, damageStats.recuperat, damageStats.juridic, damageStats.resolved],
-              color: '#f97316',
+              color: '#ea580c',
             }]}
             defaultType="bar"
           />
@@ -944,7 +944,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
             series={[{
               label: 'Suma (RON)',
               data: collectionTotals.byParkingLot.slice(0, 12).map((item: any) => Number(item.totalAmount) || 0),
-              color: '#10b981',
+              color: '#059669',
             }]}
             defaultType="bar"
           />
@@ -957,22 +957,22 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
           <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap>
             {selectedReport === 'issues' && (
               <>
-                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${issueStats.active} ${issueStats.active === 1 ? 'activa' : 'active'}`} size="small" sx={{ bgcolor: alpha('#f59e0b', 0.1), color: '#f59e0b' }} />
-                <Chip icon={<ResolvedIcon sx={{ fontSize: 16 }} />} label={`${issueStats.resolved} ${issueStats.resolved === 1 ? 'finalizata' : 'finalizate'}`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
-                <Chip icon={<IssueIcon sx={{ fontSize: 16 }} />} label={`${issueStats.urgent} ${issueStats.urgent === 1 ? 'urgenta' : 'urgente'}`} size="small" sx={{ bgcolor: alpha('#ef4444', 0.1), color: '#ef4444' }} />
+                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${issueStats.active} ${issueStats.active === 1 ? 'activa' : 'active'}`} size="small" sx={{ bgcolor: alpha('#d97706', 0.1), color: '#d97706' }} />
+                <Chip icon={<ResolvedIcon sx={{ fontSize: 16 }} />} label={`${issueStats.resolved} ${issueStats.resolved === 1 ? 'finalizata' : 'finalizate'}`} size="small" sx={{ bgcolor: alpha('#059669', 0.1), color: '#059669' }} />
+                <Chip icon={<IssueIcon sx={{ fontSize: 16 }} />} label={`${issueStats.urgent} ${issueStats.urgent === 1 ? 'urgenta' : 'urgente'}`} size="small" sx={{ bgcolor: alpha('#dc2626', 0.1), color: '#dc2626' }} />
               </>
             )}
             {selectedReport === 'damages' && (
               <>
-                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${damageStats.active} ${damageStats.active === 1 ? 'activ' : 'active'}`} size="small" sx={{ bgcolor: alpha('#ef4444', 0.1), color: '#ef4444' }} />
+                <Chip icon={<ActiveIcon sx={{ fontSize: 16 }} />} label={`${damageStats.active} ${damageStats.active === 1 ? 'activ' : 'active'}`} size="small" sx={{ bgcolor: alpha('#dc2626', 0.1), color: '#dc2626' }} />
                 <Chip icon={<TrendingIcon sx={{ fontSize: 16 }} />} label={`${damageStats.recuperat} ${damageStats.recuperat === 1 ? 'recuperat' : 'recuperate'}`} size="small" sx={{ bgcolor: alpha('#22c55e', 0.1), color: '#22c55e' }} />
-                <Chip icon={<DamageIcon sx={{ fontSize: 16 }} />} label={`${damageStats.juridic} la juridic`} size="small" sx={{ bgcolor: alpha('#8b5cf6', 0.1), color: '#8b5cf6' }} />
+                <Chip icon={<DamageIcon sx={{ fontSize: 16 }} />} label={`${damageStats.juridic} la juridic`} size="small" sx={{ bgcolor: alpha('#64748b', 0.1), color: '#64748b' }} />
               </>
             )}
             {selectedReport === 'collections' && (
               <>
-                <Chip icon={<PaymentIcon sx={{ fontSize: 16 }} />} label={`${collectionTotals?.count || 0} ${(collectionTotals?.count || 0) === 1 ? 'ridicare' : 'ridicari'}`} size="small" sx={{ bgcolor: alpha('#10b981', 0.1), color: '#10b981' }} />
-                <Chip label={formatCurrency(collectionTotals?.totalAmount || 0)} size="small" sx={{ bgcolor: alpha('#10b981', 0.15), color: '#059669', fontWeight: 'bold' }} />
+                <Chip icon={<PaymentIcon sx={{ fontSize: 16 }} />} label={`${collectionTotals?.count || 0} ${(collectionTotals?.count || 0) === 1 ? 'ridicare' : 'ridicari'}`} size="small" sx={{ bgcolor: alpha('#059669', 0.1), color: '#059669' }} />
+                <Chip label={formatCurrency(collectionTotals?.totalAmount || 0)} size="small" sx={{ bgcolor: alpha('#059669', 0.15), color: '#059669', fontWeight: 'bold' }} />
               </>
             )}
           </Stack>
@@ -1034,7 +1034,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
               onClick={selectedReport === 'issues' ? handleExportIssuesPDF : selectedReport === 'damages' ? handleExportDamagesPDF : handleExportCollectionsPDF}
               disabled={(selectedReport === 'issues' && filteredIssues.length === 0) || (selectedReport === 'damages' && filteredDamages.length === 0) || (selectedReport === 'collections' && allCollections.length === 0)}
               sx={{
-                bgcolor: selectedReport === 'issues' ? '#ef4444' : selectedReport === 'damages' ? '#f97316' : '#ef4444',
+                bgcolor: selectedReport === 'issues' ? '#dc2626' : selectedReport === 'damages' ? '#ea580c' : '#dc2626',
                 '&:hover': { bgcolor: selectedReport === 'issues' ? '#dc2626' : selectedReport === 'damages' ? '#ea580c' : '#dc2626' },
               }}
             >
@@ -1112,7 +1112,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              bgcolor: selectedReport === 'issues' ? '#ef4444' : selectedReport === 'damages' ? '#f97316' : '#10b981',
+              bgcolor: selectedReport === 'issues' ? '#dc2626' : selectedReport === 'damages' ? '#ea580c' : '#059669',
               '&:hover': {
                 bgcolor: selectedReport === 'issues' ? '#dc2626' : selectedReport === 'damages' ? '#ea580c' : '#059669',
               },
