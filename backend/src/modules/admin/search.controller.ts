@@ -14,6 +14,15 @@ import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { ShiftSwapRequest } from '../shift-swaps/entities/shift-swap-request.entity';
 import { Department } from '../departments/entities/department.entity';
+import { DailyReport } from '../daily-reports/entities/daily-report.entity';
+import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
+import { PvDisplaySession } from '../parking/entities/pv-display-session.entity';
+import { ParkingMeter } from '../parking/entities/parking-meter.entity';
+import { Acquisition } from '../acquisitions/entities/acquisition.entity';
+import { BudgetPosition } from '../acquisitions/entities/budget-position.entity';
+import { EquipmentStockDefinition } from '../equipment-stock/entities/equipment-stock-definition.entity';
+import { CashCollection } from '../parking/entities/cash-collection.entity';
+import { EditRequest } from '../parking/entities/edit-request.entity';
 import { HttpCacheInterceptor, CacheTTL } from '../../common/interceptors/cache.interceptor';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
@@ -125,6 +134,11 @@ const ACCESS_CONTROL: AccessRule = {
   requiresDepartments: [CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
 };
 
+const ACCESS_STOC: AccessRule = {
+  roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.USER],
+  requiresDepartments: [PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
+};
+
 // Static page definitions with access rules
 const PAGES: { label: string; path: string; keywords: string[]; access: AccessRule }[] = [
   { label: 'Dashboard', path: '/dashboard', keywords: ['dashboard', 'acasa', 'home', 'panou'], access: ACCESS_ALL },
@@ -148,6 +162,7 @@ const PAGES: { label: string; path: string; keywords: string[]; access: AccessRu
   { label: 'Achizitii', path: '/achizitii', keywords: ['achizitii', 'achizitie', 'cumparare'], access: ACCESS_ACHIZITII },
   { label: 'Incasari / Cheltuieli', path: '/incasari-cheltuieli', keywords: ['incasari', 'cheltuieli', 'venit', 'venituri'], access: ACCESS_ACHIZITII },
   { label: 'Control Sesizari', path: '/control-sesizari', keywords: ['control', 'sesizare', 'sesizari'], access: ACCESS_CONTROL },
+  { label: 'Stoc Echipamente', path: '/stoc-echipamente', keywords: ['stoc', 'echipament', 'echipamente', 'inventar'], access: ACCESS_STOC },
   { label: 'Profil', path: '/profile', keywords: ['profil', 'cont', 'profile'], access: ACCESS_ALL },
   { label: 'Notificari', path: '/notifications', keywords: ['notificare', 'notificari', 'notifications'], access: ACCESS_ALL },
 ];
@@ -181,6 +196,24 @@ export class SearchController {
     private readonly shiftSwapRepo: Repository<ShiftSwapRequest>,
     @InjectRepository(Department)
     private readonly departmentRepo: Repository<Department>,
+    @InjectRepository(DailyReport)
+    private readonly dailyReportRepo: Repository<DailyReport>,
+    @InjectRepository(WorkSchedule)
+    private readonly workScheduleRepo: Repository<WorkSchedule>,
+    @InjectRepository(PvDisplaySession)
+    private readonly pvDisplaySessionRepo: Repository<PvDisplaySession>,
+    @InjectRepository(ParkingMeter)
+    private readonly parkingMeterRepo: Repository<ParkingMeter>,
+    @InjectRepository(Acquisition)
+    private readonly acquisitionRepo: Repository<Acquisition>,
+    @InjectRepository(BudgetPosition)
+    private readonly budgetPositionRepo: Repository<BudgetPosition>,
+    @InjectRepository(EquipmentStockDefinition)
+    private readonly equipmentStockDefRepo: Repository<EquipmentStockDefinition>,
+    @InjectRepository(CashCollection)
+    private readonly cashCollectionRepo: Repository<CashCollection>,
+    @InjectRepository(EditRequest)
+    private readonly editRequestRepo: Repository<EditRequest>,
   ) {}
 
   /**
@@ -267,6 +300,15 @@ export class SearchController {
       sesizari,
       leaves,
       swaps,
+      dailyReports,
+      schedules,
+      pvSessions,
+      parkingMeters,
+      acquisitions,
+      budgetPositions,
+      equipmentStockDefs,
+      cashCollections,
+      editRequests,
     ] = await Promise.all([
       // Users — ADMIN only
       this.canAccess(user, ACCESS_ADMIN)
@@ -409,6 +451,106 @@ export class SearchController {
             return qb.getMany();
           })()
         : empty,
+      // Daily reports — search by content; USER/MANAGER see only own
+      this.canAccess(user, ACCESS_ALL)
+        ? (() => {
+            const qb = this.dailyReportRepo.createQueryBuilder('dr')
+              .leftJoinAndSelect('dr.user', 'user')
+              .where('dr.content ILIKE :q', { q: `%${q}%` })
+              .orderBy('dr.date', 'DESC')
+              .take(3);
+            if (user.role !== UserRole.ADMIN && user.role !== UserRole.MASTER_ADMIN) {
+              qb.andWhere('dr.userId = :userId', { userId: user.id });
+            }
+            return qb.getMany();
+          })()
+        : empty,
+      // Work schedules — search by name; ADMIN+MANAGER
+      this.canAccess(user, ACCESS_SCHEDULES)
+        ? this.workScheduleRepo.find({
+            where: [
+              { name: ILike(`%${q}%`) },
+            ],
+            take: 3,
+            relations: ['department', 'creator'],
+            order: { createdAt: 'DESC' },
+          })
+        : empty,
+      // PV display sessions — search by monthYear or description
+      this.canAccess(user, ACCESS_PV)
+        ? this.pvDisplaySessionRepo.find({
+            where: [
+              { monthYear: ILike(`%${q}%`) },
+              { description: ILike(`%${q}%`) },
+            ],
+            take: 3,
+            relations: ['creator'],
+            order: { createdAt: 'DESC' },
+          })
+        : empty,
+      // Parking meters — search by name or address
+      this.canAccess(user, ACCESS_PARCOMETRE)
+        ? this.parkingMeterRepo.find({
+            where: [
+              { name: ILike(`%${q}%`) },
+              { address: ILike(`%${q}%`) },
+            ],
+            take: 3,
+          })
+        : empty,
+      // Acquisitions — search by name or contract number
+      this.canAccess(user, ACCESS_ACHIZITII)
+        ? this.acquisitionRepo.find({
+            where: [
+              { name: ILike(`%${q}%`) },
+              { contractNumber: ILike(`%${q}%`) },
+            ],
+            take: 3,
+            relations: ['budgetPosition'],
+            order: { createdAt: 'DESC' },
+          })
+        : empty,
+      // Budget positions — search by name
+      this.canAccess(user, ACCESS_ACHIZITII)
+        ? this.budgetPositionRepo.find({
+            where: [
+              { name: ILike(`%${q}%`) },
+            ],
+            take: 3,
+          })
+        : empty,
+      // Equipment stock definitions — search by name or category
+      this.canAccess(user, ACCESS_STOC)
+        ? this.equipmentStockDefRepo.find({
+            where: [
+              { name: ILike(`%${q}%`) },
+              { category: ILike(`%${q}%`) },
+            ],
+            take: 3,
+          })
+        : empty,
+      // Cash collections — search by notes; same access as parking
+      this.canAccess(user, ACCESS_PARKING)
+        ? this.cashCollectionRepo.find({
+            where: [
+              { notes: ILike(`%${q}%`) },
+            ],
+            take: 3,
+            relations: ['parkingLot', 'collector'],
+            order: { collectedAt: 'DESC' },
+          })
+        : empty,
+      // Edit requests — ADMIN only
+      this.canAccess(user, ACCESS_ADMIN)
+        ? this.editRequestRepo.find({
+            where: [
+              { reason: ILike(`%${q}%`) },
+            ],
+            take: 3,
+            relations: ['requester'],
+            order: { createdAt: 'DESC' },
+          })
+        : empty,
     ]);
 
     // Map users
@@ -532,6 +674,106 @@ export class SearchController {
       });
     });
 
-    return results.slice(0, 20);
+    // Map daily reports
+    (dailyReports as DailyReport[]).forEach((dr) => {
+      const preview = dr.content?.substring(0, 60) || 'N/A';
+      results.push({
+        type: 'daily_report',
+        id: dr.id,
+        title: `Raport: ${(dr as any).user?.fullName || 'N/A'}`,
+        subtitle: `${this.formatDate(dr.date)} - ${preview}`,
+        url: `/daily-reports`,
+      });
+    });
+
+    // Map work schedules
+    (schedules as WorkSchedule[]).forEach((ws) => {
+      results.push({
+        type: 'schedule',
+        id: ws.id,
+        title: `Program: ${ws.name}`,
+        subtitle: `${ws.department?.name || 'N/A'} - ${ws.status}`,
+        url: `/schedules`,
+      });
+    });
+
+    // Map PV display sessions
+    (pvSessions as PvDisplaySession[]).forEach((pv) => {
+      results.push({
+        type: 'pv_session',
+        id: pv.id,
+        title: `PV Sesiune: ${pv.monthYear}`,
+        subtitle: `${pv.description || 'N/A'} - ${pv.status}`,
+        url: `/procese-verbale`,
+      });
+    });
+
+    // Map parking meters
+    (parkingMeters as ParkingMeter[]).forEach((pm) => {
+      results.push({
+        type: 'parking_meter',
+        id: pm.id,
+        title: `Parcometru: ${pm.name}`,
+        subtitle: pm.address || 'N/A',
+        url: `/parcometre`,
+      });
+    });
+
+    // Map acquisitions
+    (acquisitions as Acquisition[]).forEach((a) => {
+      results.push({
+        type: 'acquisition',
+        id: a.id,
+        title: `Achizitie: ${a.name}`,
+        subtitle: `${a.budgetPosition?.name || 'N/A'}${a.contractNumber ? ` - ${a.contractNumber}` : ''}`,
+        url: `/achizitii`,
+      });
+    });
+
+    // Map budget positions
+    (budgetPositions as BudgetPosition[]).forEach((bp) => {
+      results.push({
+        type: 'budget_position',
+        id: bp.id,
+        title: `Pozitie buget: ${bp.name}`,
+        subtitle: `${bp.year} - ${bp.category}`,
+        url: `/achizitii`,
+      });
+    });
+
+    // Map equipment stock definitions
+    (equipmentStockDefs as EquipmentStockDefinition[]).forEach((eq) => {
+      results.push({
+        type: 'equipment_stock',
+        id: eq.id,
+        title: `Echipament: ${eq.name}`,
+        subtitle: eq.category,
+        url: `/stoc-echipamente`,
+      });
+    });
+
+    // Map cash collections
+    (cashCollections as CashCollection[]).forEach((cc) => {
+      results.push({
+        type: 'cash_collection',
+        id: cc.id,
+        title: `Incasare: ${(cc as any).parkingLot?.name || 'N/A'}`,
+        subtitle: `${cc.amount} RON - ${(cc as any).collector?.fullName || 'N/A'}`,
+        url: `/parking`,
+      });
+    });
+
+    // Map edit requests
+    (editRequests as EditRequest[]).forEach((er) => {
+      results.push({
+        type: 'edit_request',
+        id: er.id,
+        title: `Editare: ${(er as any).requester?.fullName || 'N/A'}`,
+        subtitle: `${er.requestType} - ${er.status}`,
+        url: `/admin/edit-requests`,
+      });
+    });
+
+    return results.slice(0, 30);
   }
 }

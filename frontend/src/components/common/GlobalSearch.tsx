@@ -38,6 +38,15 @@ import {
   Home as HomeIcon,
   Gavel as GavelIcon,
   Business as BusinessIcon,
+  Description as DescriptionIcon,
+  CalendarMonth as CalendarMonthIcon,
+  Receipt as ReceiptIcon,
+  Speed as SpeedIcon,
+  ShoppingCart as ShoppingCartIcon,
+  AccountBalance as AccountBalanceIcon,
+  Inventory as InventoryIcon,
+  Payments as PaymentsIcon,
+  EditNote as EditNoteIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useLazySearchQuery } from '../../store/api/search.api';
@@ -86,6 +95,15 @@ const typeConfig: Record<string, { icon: React.ReactElement; paletteColor: 'prim
   control_sesizare: { icon: <GavelIcon fontSize="small" />, paletteColor: 'warning', label: 'Sesizare' },
   leave_request: { icon: <LeaveIcon fontSize="small" />, paletteColor: 'success', label: 'Concediu' },
   shift_swap: { icon: <SwapIcon fontSize="small" />, paletteColor: 'warning', label: 'Schimb Tura' },
+  daily_report: { icon: <DescriptionIcon fontSize="small" />, paletteColor: 'primary', label: 'Raport Zilnic' },
+  schedule: { icon: <CalendarMonthIcon fontSize="small" />, paletteColor: 'info', label: 'Program' },
+  pv_session: { icon: <ReceiptIcon fontSize="small" />, paletteColor: 'warning', label: 'PV Sesiune' },
+  parking_meter: { icon: <SpeedIcon fontSize="small" />, paletteColor: 'success', label: 'Parcometru' },
+  acquisition: { icon: <ShoppingCartIcon fontSize="small" />, paletteColor: 'info', label: 'Achizitie' },
+  budget_position: { icon: <AccountBalanceIcon fontSize="small" />, paletteColor: 'info', label: 'Pozitie Buget' },
+  equipment_stock: { icon: <InventoryIcon fontSize="small" />, paletteColor: 'success', label: 'Echipament' },
+  cash_collection: { icon: <PaymentsIcon fontSize="small" />, paletteColor: 'warning', label: 'Incasare' },
+  edit_request: { icon: <EditNoteIcon fontSize="small" />, paletteColor: 'error', label: 'Editare' },
 };
 
 // Slide-up transition for mobile search dialog

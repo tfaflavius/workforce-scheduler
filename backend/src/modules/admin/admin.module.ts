@@ -18,6 +18,11 @@ import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.en
 import { CashCollection } from '../parking/entities/cash-collection.entity';
 import { EditRequest } from '../parking/entities/edit-request.entity';
 import { Notification } from '../notifications/entities/notification.entity';
+import { DailyReport } from '../daily-reports/entities/daily-report.entity';
+import { ParkingMeter } from '../parking/entities/parking-meter.entity';
+import { Acquisition } from '../acquisitions/entities/acquisition.entity';
+import { BudgetPosition } from '../acquisitions/entities/budget-position.entity';
+import { EquipmentStockDefinition } from '../equipment-stock/entities/equipment-stock-definition.entity';
 import { ParkingModule } from '../parking/parking.module';
 import { TimeTrackingModule } from '../time-tracking/time-tracking.module';
 import { DailyReportsModule } from '../daily-reports/daily-reports.module';
@@ -46,6 +51,11 @@ import { DashboardController } from './dashboard.controller';
       CashCollection,
       EditRequest,
       Notification,
+      DailyReport,
+      ParkingMeter,
+      Acquisition,
+      BudgetPosition,
+      EquipmentStockDefinition,
     ]),
     ParkingModule,
     TimeTrackingModule,
