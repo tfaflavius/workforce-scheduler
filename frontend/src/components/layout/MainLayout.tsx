@@ -10,6 +10,7 @@ import {
   List,
   Typography,
   Divider,
+  Button,
   IconButton,
   ListItem,
   ListItemButton,
@@ -54,6 +55,7 @@ import {
   EditNote as EditRequestsIcon,
   KeyboardArrowUp as ArrowUpIcon,
   Inventory as InventoryIcon,
+  ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import {
   Groups as GroupsIcon,
@@ -1158,6 +1160,41 @@ export const MainLayout = () => {
               }}
             />
           </Box>
+        )}
+
+        {/* Back button — hidden on dashboard */}
+        {location.pathname !== '/dashboard' && (
+          <Fade in={true} timeout={200}>
+            <Button
+              size="small"
+              startIcon={<ArrowBackIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />}
+              onClick={() => {
+                const segments = location.pathname.split('/').filter(Boolean);
+                const parentPath = segments.length > 1
+                  ? '/' + segments.slice(0, -1).join('/')
+                  : '/dashboard';
+                navigate(parentPath);
+                setTimeout(() => window.dispatchEvent(new Event('focus')), 100);
+              }}
+              sx={{
+                mb: 1,
+                px: { xs: 1.5, sm: 2 },
+                py: 0.5,
+                textTransform: 'none',
+                fontWeight: 500,
+                fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                color: 'text.secondary',
+                borderRadius: 2,
+                minHeight: 0,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.06),
+                  color: 'primary.main',
+                },
+              }}
+            >
+              Inapoi
+            </Button>
+          </Fade>
         )}
 
         <Fade in={true} timeout={300} key={location.pathname}>
