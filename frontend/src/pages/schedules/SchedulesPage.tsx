@@ -27,6 +27,7 @@ import { GradientHeader, EmptyState } from '../../components/common';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
+import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
@@ -184,6 +185,12 @@ const SchedulesPage: React.FC = () => {
   });
   const { data: users = [] } = useGetUsersQuery({ isActive: true });
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(selectedMonth);
+
+  // Global pending count (all months) — used to show banner when pending schedules exist in other months
+  const { data: dashboardStats } = useGetDashboardStatsQuery(undefined, {
+    skip: !isAdminOrAbove(user?.role),
+  });
+  const globalPendingCount = dashboardStats?.schedules?.pending || 0;
 
   // Check if current user is admin
   const isAdmin = isAdminOrAbove(user?.role);
@@ -516,6 +523,30 @@ const SchedulesPage: React.FC = () => {
             />
           </Stack>
         </GradientHeader>
+
+        {/* Pending schedules banner — visible when there are pending schedules globally */}
+        {isAdmin && globalPendingCount > 0 && (
+          <Alert
+            severity="warning"
+            icon={<PendingIcon />}
+            action={
+              <Button
+                color="warning"
+                size="small"
+                variant="contained"
+                onClick={() => navigate('/schedules/pending')}
+                sx={{ fontWeight: 600, textTransform: 'none', whiteSpace: 'nowrap' }}
+              >
+                Vezi si aproba
+              </Button>
+            }
+            sx={{ borderRadius: 2 }}
+          >
+            <Typography variant="body2" fontWeight={600}>
+              {globalPendingCount} {globalPendingCount === 1 ? 'program asteapta' : 'programe asteapta'} aprobare
+            </Typography>
+          </Alert>
+        )}
 
         {/* Create Buttons */}
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent={{ xs: 'stretch', sm: 'flex-end' }}>
