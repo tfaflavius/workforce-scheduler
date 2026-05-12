@@ -1,5 +1,4 @@
 import React, { useMemo, useCallback, Suspense } from 'react';
-import { useLazyRender } from '../../hooks/useLazyRender';
 import { useNavigate } from 'react-router-dom';
 import { formatRONCompact } from '../../utils/formatters';
 import {
@@ -9,9 +8,8 @@ import {
   CardContent,
   Grid,
   Stack,
-  Divider,
-  Grow,
   Fade,
+  Grow,
   alpha,
   useTheme,
   Chip,
@@ -25,60 +23,47 @@ import {
 } from '@mui/material';
 import {
   PendingActions as PendingIcon,
-  People as PeopleIcon,
   CalendarMonth as CalendarIcon,
-  Cancel as RejectedIcon,
   SwapHoriz as SwapIcon,
   BeachAccess as BeachIcon,
   TrendingUp as TrendingIcon,
   ReportProblem as IssuesIcon,
-  Warning as DamagesIcon,
   LocalAtm as CashIcon,
   Edit as EditIcon,
-  AddLocation as AmplasareIcon,
-  RemoveCircle as RevocareIcon,
-  Brush as MarcajeIcon,
-  Badge as LegitimatiiIcon,
-  MilitaryTech as RevolutionarIcon,
   Headset as DispatcherIcon,
   AccessTime as TimeIcon,
   Person as PersonIcon,
   Security as ControlIcon,
-  Assessment as ReportIcon,
-  ArrowForward as ArrowIcon,
   Notifications as NotifIcon,
+  ArrowForward as ArrowIcon,
+  DirectionsCar as CarIcon,
+  Accessible as AccessibleIcon,
+  Assessment as ReportIcon,
 } from '@mui/icons-material';
 import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
-import { StatCard } from '../../components/common/StatCard';
 import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
-// Lazy-load Chart.js (~100KB) — only admin/manager sees charts
+import { getTimeAgo } from '../../utils/getTimeAgo';
+import { useSmartPolling } from '../../hooks/useSmartPolling';
+
 const StatusDistributionChart = React.lazy(() =>
   import('../../components/common/DashboardCharts').then((m) => ({ default: m.StatusDistributionChart })),
 );
 const WeeklyOverviewChart = React.lazy(() =>
   import('../../components/common/DashboardCharts').then((m) => ({ default: m.WeeklyOverviewChart })),
 );
-import { DirectionsCar as CarIcon } from '@mui/icons-material';
-import { getTimeAgo } from '../../utils/getTimeAgo';
-import { useSmartPolling } from '../../hooks/useSmartPolling';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  // Memoized navigate callbacks to avoid re-creating on every render
   const goToParking = useCallback(() => navigate('/parking'), [navigate]);
   const goToParkingHandicap = useCallback(() => navigate('/parking/handicap'), [navigate]);
   const goToSchedulesPending = useCallback(() => navigate('/schedules/pending'), [navigate]);
-  const goToSchedules = useCallback(() => navigate('/schedules'), [navigate]);
-  const goToSchedulesRejected = useCallback(() => navigate('/schedules/rejected'), [navigate]);
-  const goToUsers = useCallback(() => navigate('/users'), [navigate]);
   const goToAdminShiftSwaps = useCallback(() => navigate('/admin/shift-swaps'), [navigate]);
   const goToAdminLeaveRequests = useCallback(() => navigate('/admin/leave-requests'), [navigate]);
   const goToAdminEditRequests = useCallback(() => navigate('/admin/edit-requests'), [navigate]);
 
-  // Single consolidated API call replaces 18 separate queries
   const adminPollingInterval = useSmartPolling(60000);
   const { data: stats, isLoading, isError } = useGetDashboardStatsQuery(undefined, {
     pollingInterval: adminPollingInterval,
@@ -86,46 +71,25 @@ const AdminDashboard = () => {
 
   const hasError = isError || (!isLoading && !stats);
 
-  // Derived values from the consolidated stats response
-  const activeUsers = stats?.activeUsersCount || 0;
+  const pendingCount = stats?.schedules?.pending || 0;
   const pendingSwaps = stats?.shiftSwaps?.pendingAdmin || 0;
   const pendingLeaves = stats?.leaveRequests?.pending || 0;
-  const pendingCount = stats?.schedules?.pending || 0;
   const todayDispatchers = stats?.todayDispatchers || [];
   const recentNotifications = stats?.recentNotifications || [];
   const carStatus = stats?.carStatus;
 
-  // Lazy render for heavy below-fold sections (handicap, charts, parking summary)
-  const [belowFoldRef, shouldRenderBelowFold] = useLazyRender('300px');
-
-  // Memoize dispatcher filtering
   const dispatchersDISP = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'DISP'), [todayDispatchers]);
   const dispatchersCTRL = useMemo(() => todayDispatchers.filter(d => d.workPositionCode === 'CTRL'), [todayDispatchers]);
 
-  // Quick summary items - items that need attention (using theme tokens)
-  const summaryItems = useMemo(() => [
-    { label: 'Programe', value: pendingCount, color: theme.palette.warning.main, urgent: pendingCount > 0 },
-    { label: 'Schimburi', value: pendingSwaps, color: theme.palette.info.main, urgent: pendingSwaps > 0 },
-    { label: 'Concedii', value: pendingLeaves, color: theme.palette.secondary.main, urgent: pendingLeaves > 0 },
-    { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main, urgent: (stats?.parking?.urgentIssues?.length || 0) > 0 },
-    { label: 'Utilizatori', value: activeUsers, color: theme.palette.primary.main, urgent: false },
-  ], [pendingCount, pendingSwaps, pendingLeaves, stats?.parking?.activeIssues, stats?.parking?.urgentIssues?.length, activeUsers, theme.palette]);
+  const pendingActions = useMemo(() => [
+    { label: 'Programe', count: pendingCount, icon: <CalendarIcon sx={{ fontSize: 16 }} />, color: theme.palette.warning.main, onClick: goToSchedulesPending },
+    { label: 'Schimburi', count: pendingSwaps, icon: <SwapIcon sx={{ fontSize: 16 }} />, color: theme.palette.info.main, onClick: goToAdminShiftSwaps },
+    { label: 'Concedii', count: pendingLeaves, icon: <BeachIcon sx={{ fontSize: 16 }} />, color: theme.palette.secondary.main, onClick: goToAdminLeaveRequests },
+    { label: 'Editari', count: stats?.parking?.pendingEditRequests || 0, icon: <EditIcon sx={{ fontSize: 16 }} />, color: theme.palette.primary.main, onClick: goToAdminEditRequests },
+  ].filter(a => a.count > 0), [pendingCount, pendingSwaps, pendingLeaves, stats?.parking?.pendingEditRequests, theme.palette, goToSchedulesPending, goToAdminShiftSwaps, goToAdminLeaveRequests, goToAdminEditRequests]);
 
-  // Quick actions (using theme tokens)
-  const quickActions = useMemo(() => [
-    { label: 'Aproba Programe', path: '/schedules/pending', icon: <CalendarIcon />, color: theme.palette.warning.main, count: pendingCount },
-    { label: 'Schimburi', path: '/admin/shift-swaps', icon: <SwapIcon />, color: theme.palette.info.main, count: pendingSwaps },
-    { label: 'Concedii', path: '/admin/leave-requests', icon: <BeachIcon />, color: theme.palette.secondary.main, count: pendingLeaves },
-    { label: 'Utilizatori', path: '/users', icon: <PeopleIcon />, color: theme.palette.primary.main },
-    { label: 'Rapoarte', path: '/reports', icon: <ReportIcon />, color: theme.palette.success.main },
-  ], [pendingCount, pendingSwaps, pendingLeaves, theme.palette]);
+  if (isLoading) return <DashboardSkeleton />;
 
-  // Loading state - show skeleton instead of spinner for better perceived performance
-  if (isLoading) {
-    return <DashboardSkeleton />;
-  }
-
-  // Error state
   if (hasError) {
     return (
       <Box sx={{ p: 3 }}>
@@ -139,13 +103,11 @@ const AdminDashboard = () => {
     );
   }
 
-
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
-      {/* Header - using GradientHeader */}
       <GradientHeader
-        title="Dashboard Administrator"
-        subtitle="Gestioneaza programele de lucru si utilizatorii"
+        title="Dashboard"
+        subtitle={new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         icon={<TrendingIcon />}
         gradient="#1e3a8a 0%, #7c3aed 100%"
       />
@@ -156,11 +118,7 @@ const AdminDashboard = () => {
           <Alert
             severity="warning"
             icon={<CarIcon />}
-            sx={{
-              mb: { xs: 2, sm: 3 },
-              borderRadius: 2,
-              '& .MuiAlert-message': { width: '100%' },
-            }}
+            sx={{ mb: { xs: 2, sm: 3 }, borderRadius: 2, '& .MuiAlert-message': { width: '100%' } }}
           >
             <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 0.5 }}>
               Masina indisponibila — Afisare Procese Verbale
@@ -174,122 +132,108 @@ const AdminDashboard = () => {
         </Fade>
       )}
 
-      {/* Quick Summary Strip */}
-      <Fade in={true} timeout={500}>
-        <Card
-          sx={{
-            mb: { xs: 2, sm: 3 },
-            bgcolor: alpha(theme.palette.background.paper, 0.8),
-            backdropFilter: 'blur(8px)',
-            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          }}
-        >
-          <CardContent sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
-            <Stack
-              direction="row"
-              spacing={{ xs: 1.5, sm: 3 }}
-              justifyContent="center"
-              flexWrap="wrap"
-              useFlexGap
-            >
-              {summaryItems.map((item) => (
-                <Box key={item.label} sx={{ textAlign: 'center', minWidth: { xs: 55, sm: 70 } }}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 800,
-                      color: item.urgent ? item.color : 'text.primary',
-                      fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' },
-                      lineHeight: 1,
-                    }}
-                  >
-                    {item.value}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ fontWeight: 600, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}
-                  >
-                    {item.label}
-                  </Typography>
-                  {item.urgent && (
-                    <Box
-                      sx={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: '50%',
-                        bgcolor: item.color,
-                        mx: 'auto',
-                        mt: 0.5,
-                        animation: 'pulse 2s infinite',
-                        '@keyframes pulse': {
-                          '0%, 100%': { opacity: 1 },
-                          '50%': { opacity: 0.3 },
-                        },
-                      }}
-                    />
-                  )}
-                </Box>
-              ))}
-            </Stack>
-          </CardContent>
-        </Card>
-      </Fade>
-
-      {/* Quick Actions */}
-      <Fade in={true} timeout={600}>
-        <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            {quickActions.map((action) => (
-              <Button
-                key={action.label}
-                variant="outlined"
-                startIcon={action.icon}
-                endIcon={action.count && action.count > 0 ? (
+      {/* Pending Actions Strip */}
+      {pendingActions.length > 0 && (
+        <Fade in={true} timeout={500}>
+          <Card
+            sx={{
+              mb: { xs: 2, sm: 3 },
+              border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
+              bgcolor: alpha(theme.palette.warning.main, 0.04),
+            }}
+          >
+            <CardContent sx={{ py: { xs: 1.5, sm: 2 }, px: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                <PendingIcon sx={{ fontSize: 18, color: 'warning.main' }} />
+                <Typography variant="subtitle2" fontWeight={700} sx={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'warning.main' }}>
+                  Necesita atentie
+                </Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {pendingActions.map((action) => (
                   <Chip
-                    label={action.count}
-                    size="small"
+                    key={action.label}
+                    icon={action.icon}
+                    label={`${action.label}: ${action.count}`}
+                    onClick={action.onClick}
                     sx={{
-                      height: 20,
-                      minWidth: 20,
-                      bgcolor: alpha(action.color, 0.15),
+                      fontWeight: 600,
+                      fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                      height: { xs: 32, sm: 36 },
+                      bgcolor: alpha(action.color, 0.1),
                       color: action.color,
-                      fontWeight: 700,
-                      fontSize: '0.7rem',
-                      '& .MuiChip-label': { px: 0.75 },
+                      border: `1px solid ${alpha(action.color, 0.3)}`,
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: alpha(action.color, 0.2) },
+                      '& .MuiChip-icon': { color: action.color },
                     }}
                   />
-                ) : undefined}
-                onClick={() => navigate(action.path)}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: { xs: '0.75rem', sm: '0.8rem' },
-                  borderColor: alpha(action.color, 0.3),
-                  color: action.color,
-                  borderRadius: 2,
-                  py: { xs: 0.75, sm: 1 },
-                  px: { xs: 1.5, sm: 2 },
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    borderColor: action.color,
-                    bgcolor: alpha(action.color, 0.08),
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
-                {action.label}
-              </Button>
-            ))}
-          </Stack>
-        </Box>
-      </Fade>
+                ))}
+              </Stack>
+            </CardContent>
+          </Card>
+        </Fade>
+      )}
 
-      {/* Main Content - 2 columns on desktop */}
+      {/* Main Content Grid */}
       <Grid container spacing={{ xs: 2, sm: 3 }}>
-        {/* Left Column - Main Content */}
+        {/* Left Column — Charts + Dispatchers */}
         <Grid size={{ xs: 12, lg: 8 }}>
-          {/* Today's Dispatchers Section */}
+          {/* Row 1: Two Doughnut Charts */}
+          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Suspense fallback={null}>
+                <StatusDistributionChart
+                  title="Programe"
+                  icon={<CalendarIcon sx={{ color: theme.palette.warning.main, fontSize: 20 }} />}
+                  height={{ xs: 180, sm: 220 }}
+                  data={[
+                    { label: 'In Asteptare', value: pendingCount, color: theme.palette.warning.main },
+                    { label: 'Aprobate', value: stats?.schedules.approved || 0, color: theme.palette.success.main },
+                    { label: 'Respinse', value: stats?.schedules.rejected || 0, color: theme.palette.error.main },
+                    { label: 'Draft', value: stats?.schedules.draft || 0, color: theme.palette.grey[400] },
+                  ]}
+                />
+              </Suspense>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Suspense fallback={null}>
+                <StatusDistributionChart
+                  title="Cereri Active"
+                  icon={<IssuesIcon sx={{ color: theme.palette.error.main, fontSize: 20 }} />}
+                  height={{ xs: 180, sm: 220 }}
+                  data={[
+                    { label: 'Probleme Parcari', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
+                    { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
+                    { label: 'Schimburi Ture', value: stats?.shiftSwaps?.total || 0, color: theme.palette.info.main },
+                    { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: theme.palette.secondary.main },
+                    { label: 'Cereri Editare', value: stats?.parking?.pendingEditRequests || 0, color: theme.palette.primary.main },
+                  ]}
+                />
+              </Suspense>
+            </Grid>
+          </Grid>
+
+          {/* Row 2: Bar Chart — Overview */}
+          <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Suspense fallback={null}>
+              <WeeklyOverviewChart
+                title="Sumar General"
+                icon={<ReportIcon sx={{ color: theme.palette.primary.main, fontSize: 20 }} />}
+                height={{ xs: 180, sm: 220 }}
+                data={[
+                  { label: 'Utilizatori', value: stats?.activeUsersCount || 0, color: theme.palette.primary.main },
+                  { label: 'Programe', value: (stats?.schedules.pending || 0) + (stats?.schedules.approved || 0), color: theme.palette.warning.main },
+                  { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: theme.palette.info.main },
+                  { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: theme.palette.secondary.main },
+                  { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
+                  { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: '#f59e0b' },
+                ]}
+              />
+            </Suspense>
+          </Box>
+
+          {/* Today's Dispatchers */}
           {(() => {
             const renderDispatcherList = (dispatchers: typeof todayDispatchers) => (
               <List sx={{ py: 0 }}>
@@ -318,13 +262,7 @@ const AdminDashboard = () => {
                     </ListItemAvatar>
                     <ListItemText
                       primary={
-                        <Typography
-                          variant="subtitle1"
-                          fontWeight="bold"
-                          color="white"
-                          sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}
-                          noWrap
-                        >
+                        <Typography variant="subtitle1" fontWeight="bold" color="white" sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }} noWrap>
                           {dispatcher.userName}
                         </Typography>
                       }
@@ -366,627 +304,139 @@ const AdminDashboard = () => {
 
             return (
               <Fade in={true} timeout={650}>
-                <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
+                <Card
+                  sx={{
+                    background: theme.palette.mode === 'light'
+                      ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
+                      : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                    color: 'white',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Box
                     sx={{
-                      mb: { xs: 1.5, sm: 2 },
-                      fontWeight: 700,
-                      fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-                      textTransform: 'uppercase',
-                      letterSpacing: '1px',
+                      position: 'absolute',
+                      top: -40,
+                      right: -40,
+                      width: 150,
+                      height: 150,
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.1)',
                     }}
-                  >
-                    Dispecerat Astazi - {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  </Typography>
-                  <Grow in={true} timeout={600}>
-                    <Card
-                      sx={{
-                        background: theme.palette.mode === 'light'
-                          ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
-                          : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
-                        color: 'white',
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: -40,
-                          right: -40,
-                          width: 150,
-                          height: 150,
-                          borderRadius: '50%',
-                          background: 'rgba(255, 255, 255, 0.1)',
-                        }}
-                      />
-                      <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, position: 'relative' }}>
-                        {/* Dispecerat */}
-                        <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 1.5, sm: 2 } }}>
-                          <Box
-                            sx={{
-                              p: { xs: 1, sm: 1.5 },
-                              borderRadius: 2,
-                              bgcolor: 'rgba(255,255,255,0.2)',
-                              display: 'flex',
-                            }}
-                          >
-                            <DispatcherIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
+                  />
+                  <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, position: 'relative' }}>
+                    <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mb: { xs: 1.5, sm: 2 } }}>
+                      <Box sx={{ p: { xs: 1, sm: 1.5 }, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)', display: 'flex' }}>
+                        <DispatcherIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
+                          Dispecerat Astazi
+                        </Typography>
+                        <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                          {new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    {dispatchersDISP.length > 0 ? renderDispatcherList(dispatchersDISP) : (
+                      <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, textAlign: 'center', mb: dispatchersCTRL.length > 0 ? 2 : 0 }}>
+                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                          Nu exista personal programat in dispecerat.
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {dispatchersCTRL.length > 0 && (
+                      <>
+                        <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mt: 2.5, mb: { xs: 1.5, sm: 2 } }}>
+                          <Box sx={{ p: { xs: 1, sm: 1.5 }, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)', display: 'flex' }}>
+                            <ControlIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
                           </Box>
                           <Box sx={{ minWidth: 0 }}>
                             <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
-                              Personal Dispecerat
+                              Personal Control
                             </Typography>
                             <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                              {dispatchersDISP.length > 0
-                                ? `${dispatchersDISP.length} ${dispatchersDISP.length === 1 ? 'persoana programata' : 'persoane programate'}`
-                                : 'Nicio persoana programata'}
+                              {`${dispatchersCTRL.length} ${dispatchersCTRL.length === 1 ? 'persoana' : 'persoane'}`}
                             </Typography>
                           </Box>
                         </Stack>
-
-                        {dispatchersDISP.length > 0 ? renderDispatcherList(dispatchersDISP) : (
-                          <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, textAlign: 'center', mb: dispatchersCTRL.length > 0 ? 2 : 0 }}>
-                            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                              Nu exista personal programat in dispecerat.
-                            </Typography>
-                          </Box>
-                        )}
-
-                        {/* Control - doar daca exista */}
-                        {dispatchersCTRL.length > 0 && (
-                          <>
-                            <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mt: 2.5, mb: { xs: 1.5, sm: 2 } }}>
-                              <Box
-                                sx={{
-                                  p: { xs: 1, sm: 1.5 },
-                                  borderRadius: 2,
-                                  bgcolor: 'rgba(255,255,255,0.2)',
-                                  display: 'flex',
-                                }}
-                              >
-                                <ControlIcon sx={{ fontSize: { xs: 22, sm: 28 } }} />
-                              </Box>
-                              <Box sx={{ minWidth: 0 }}>
-                                <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
-                                  Personal Control
-                                </Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                  {`${dispatchersCTRL.length} ${dispatchersCTRL.length === 1 ? 'persoana programata' : 'persoane programate'}`}
-                                </Typography>
-                              </Box>
-                            </Stack>
-                            {renderDispatcherList(dispatchersCTRL)}
-                          </>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Grow>
-                </Box>
+                        {renderDispatcherList(dispatchersCTRL)}
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
               </Fade>
             );
           })()}
-
-          <Divider sx={{ my: { xs: 2, sm: 3 } }} />
-
-          {/* Programe Section */}
-          <Fade in={true} timeout={700}>
-            <Box sx={{ mb: { xs: 2, sm: 3 } }}>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={{
-                  mb: { xs: 1.5, sm: 2 },
-                  fontWeight: 700,
-                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                }}
-              >
-                Programe
-              </Typography>
-              <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="In Asteptare"
-                    value={pendingCount}
-                    subtitle="Necesita aprobare"
-                    icon={<PendingIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
-                    color="#f59e0b"
-                    bgColor={alpha('#f59e0b', 0.12)}
-                    onClick={goToSchedulesPending}
-                    delay={0}
-                    urgent={pendingCount > 0}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="Aprobate"
-                    value={stats?.schedules.approved || 0}
-                    subtitle="Active"
-                    icon={<CalendarIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#10b981' }} />}
-                    color="#10b981"
-                    bgColor={alpha('#10b981', 0.12)}
-                    onClick={goToSchedules}
-                    delay={100}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="Respinse"
-                    value={stats?.schedules.rejected || 0}
-                    subtitle="Necesita revizuire"
-                    icon={<RejectedIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
-                    color="#ef4444"
-                    bgColor={alpha('#ef4444', 0.12)}
-                    onClick={goToSchedulesRejected}
-                    delay={200}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="Utilizatori Activi"
-                    value={activeUsers}
-                    subtitle="Total"
-                    icon={<PeopleIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#2563eb' }} />}
-                    color="#2563eb"
-                    bgColor={alpha('#2563eb', 0.12)}
-                    onClick={goToUsers}
-                    delay={300}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          </Fade>
-
-          <Divider sx={{ my: { xs: 2, sm: 3 } }} />
-
-          {/* Schimburi si Concedii Section */}
-          <Fade in={true} timeout={900}>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={{
-                  mb: { xs: 1.5, sm: 2 },
-                  fontWeight: 700,
-                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                }}
-              >
-                Schimburi Ture & Concedii
-              </Typography>
-              <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="Schimburi Pending"
-                    value={pendingSwaps}
-                    subtitle="Necesita aprobare"
-                    icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#06b6d4' }} />}
-                    color="#06b6d4"
-                    bgColor={alpha('#06b6d4', 0.12)}
-                    onClick={goToAdminShiftSwaps}
-                    delay={400}
-                    urgent={pendingSwaps > 0}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="Concedii Pending"
-                    value={pendingLeaves}
-                    subtitle="Necesita aprobare"
-                    icon={<BeachIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
-                    color="#8b5cf6"
-                    bgColor={alpha('#8b5cf6', 0.12)}
-                    onClick={goToAdminLeaveRequests}
-                    delay={500}
-                    urgent={pendingLeaves > 0}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="Total Schimburi"
-                    value={stats?.shiftSwaps.total || 0}
-                    subtitle="Toate cererile"
-                    icon={<SwapIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#64748b' }} />}
-                    color="#64748b"
-                    bgColor={alpha('#64748b', 0.12)}
-                    onClick={goToAdminShiftSwaps}
-                    delay={600}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 3 }}>
-                  <StatCard
-                    title="Total Concedii"
-                    value={stats?.leaveRequests.total || 0}
-                    subtitle="Toate cererile"
-                    icon={<BeachIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#64748b' }} />}
-                    color="#64748b"
-                    bgColor={alpha('#64748b', 0.12)}
-                    onClick={goToAdminLeaveRequests}
-                    delay={700}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          </Fade>
-
-          <Divider sx={{ my: { xs: 2, sm: 3 } }} />
-
-          {/* Parcari Etajate Section */}
-          <Fade in={true} timeout={1100}>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={{
-                  mb: { xs: 1.5, sm: 2 },
-                  fontWeight: 700,
-                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                }}
-              >
-                Parcari Etajate
-              </Typography>
-              <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 4 }}>
-                  <StatCard
-                    title="Probleme Active"
-                    value={stats?.parking?.activeIssues || 0}
-                    subtitle={(stats?.parking?.urgentIssues?.length || 0) > 0 ? `${stats.parking.urgentIssues.length} urgente` : 'Niciuna urgenta'}
-                    icon={<IssuesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#ef4444' }} />}
-                    color="#ef4444"
-                    bgColor={alpha('#ef4444', 0.12)}
-                    onClick={goToParking}
-                    delay={800}
-                    urgent={(stats?.parking?.urgentIssues?.length || 0) > 0}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 4 }}>
-                  <StatCard
-                    title="Prejudicii Active"
-                    value={stats?.parking?.activeDamages || 0}
-                    subtitle={(stats?.parking?.urgentDamages?.length || 0) > 0 ? `${stats.parking.urgentDamages.length} urgente` : 'Niciuna urgenta'}
-                    icon={<DamagesIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#f59e0b' }} />}
-                    color="#f59e0b"
-                    bgColor={alpha('#f59e0b', 0.12)}
-                    onClick={goToParking}
-                    delay={900}
-                    urgent={(stats?.parking?.urgentDamages?.length || 0) > 0}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 4 }}>
-                  <StatCard
-                    title="Cereri Editare"
-                    value={stats?.parking?.pendingEditRequests || 0}
-                    subtitle="In asteptare aprobare"
-                    icon={<EditIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#8b5cf6' }} />}
-                    color="#8b5cf6"
-                    bgColor={alpha('#8b5cf6', 0.12)}
-                    onClick={goToAdminEditRequests}
-                    delay={950}
-                    urgent={(stats?.parking?.pendingEditRequests || 0) > 0}
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  {/* Cash Summary Card - Special Design */}
-                  <Grow in={true} timeout={1400}>
-                    <Card
-                      sx={{
-                        cursor: 'pointer',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        height: '100%',
-                        background: theme.palette.mode === 'light'
-                          ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                          : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
-                        color: 'white',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        '&:hover': {
-                          transform: 'translateY(-6px)',
-                          boxShadow: '0 12px 28px rgba(16, 185, 129, 0.35)',
-                        },
-                      }}
-                      onClick={goToParking}
-                    >
-                      {/* Decorative circle */}
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: -30,
-                          right: -30,
-                          width: 100,
-                          height: 100,
-                          borderRadius: '50%',
-                          background: 'rgba(255, 255, 255, 0.15)',
-                        }}
-                      />
-                      <CardContent sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, position: 'relative' }}>
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={{ xs: 1, sm: 2 }}>
-                          <Box sx={{ minWidth: 0, flex: 1 }}>
-                            <Typography
-                              variant="overline"
-                              sx={{
-                                fontWeight: 600,
-                                fontSize: { xs: '0.6rem', sm: '0.7rem', md: '0.75rem' },
-                                letterSpacing: '0.5px',
-                                opacity: 0.9,
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              Total Incasari Automate
-                            </Typography>
-                            <Typography
-                              variant="h4"
-                              sx={{
-                                fontWeight: 800,
-                                my: 0.5,
-                                fontSize: { xs: '0.95rem', sm: '0.95rem', md: '1.75rem', lg: '2rem' },
-                                lineHeight: 1.2,
-                              }}
-                            >
-                              {stats?.parking?.cashCollectionTotals
-                                ? formatRONCompact(stats.parking.cashCollectionTotals.totalAmount || 0)
-                                : '0 RON'}
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontSize: { xs: '0.65rem', sm: '0.75rem', md: '0.875rem' },
-                                mt: 0.5,
-                                opacity: 0.85,
-                                lineHeight: 1.3,
-                              }}
-                            >
-                              {stats?.parking?.cashCollectionTotals ? `${stats.parking.cashCollectionTotals.count || 0} ridicari inregistrate` : 'Nicio ridicare'}
-                            </Typography>
-                          </Box>
-                          <Box
-                            sx={{
-                              p: { xs: 1, sm: 1.5, md: 2 },
-                              borderRadius: { xs: 2, sm: 2.5, md: 3 },
-                              bgcolor: 'rgba(255, 255, 255, 0.2)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              flexShrink: 0,
-                            }}
-                          >
-                            <CashIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 } }} />
-                          </Box>
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  </Grow>
-                </Grid>
-              </Grid>
-            </Box>
-          </Fade>
-
-          <Divider sx={{ my: { xs: 2, sm: 3 } }} />
-
-          {/* Lazy-rendered below-fold sections — only mount when scrolled near viewport */}
-          <Box ref={belowFoldRef}>
-          {shouldRenderBelowFold ? (
-            <>
-
-          {/* Parcari Handicap Section */}
-          <Fade in={true} timeout={1300}>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={{
-                  mb: { xs: 1.5, sm: 2 },
-                  fontWeight: 700,
-                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                }}
-              >
-                Parcari Handicap - Solicitari
-              </Typography>
-              <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 4 }}>
-                  <StatCard
-                    title="Amplasare Panouri"
-                    value={stats?.handicap?.requestsByType?.amplasare || 0}
-                    subtitle={`${stats?.handicap?.requestsByType?.amplasare || 0} active`}
-                    icon={<AmplasareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
-                    color="#059669"
-                    bgColor={alpha('#059669', 0.12)}
-                    onClick={goToParkingHandicap}
-                    delay={1000}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 4 }}>
-                  <StatCard
-                    title="Revocare Panouri"
-                    value={stats?.handicap?.requestsByType?.revocare || 0}
-                    subtitle={`${stats?.handicap?.requestsByType?.revocare || 0} active`}
-                    icon={<RevocareIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#dc2626' }} />}
-                    color="#dc2626"
-                    bgColor={alpha('#dc2626', 0.12)}
-                    onClick={goToParkingHandicap}
-                    delay={1100}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 4 }}>
-                  <StatCard
-                    title="Creare Marcaje"
-                    value={stats?.handicap?.requestsByType?.marcaje || 0}
-                    subtitle={`${stats?.handicap?.requestsByType?.marcaje || 0} active`}
-                    icon={<MarcajeIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#0284c7' }} />}
-                    color="#0284c7"
-                    bgColor={alpha('#0284c7', 0.12)}
-                    onClick={goToParkingHandicap}
-                    delay={1200}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          </Fade>
-
-          <Divider sx={{ my: { xs: 2, sm: 3 } }} />
-
-          {/* Legitimatii Section */}
-          <Fade in={true} timeout={1500}>
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={{
-                  mb: { xs: 1.5, sm: 2 },
-                  fontWeight: 700,
-                  fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' },
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px',
-                }}
-              >
-                Legitimatii
-              </Typography>
-              <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
-                <Grid size={{ xs: 6, sm: 6, md: 6 }}>
-                  <StatCard
-                    title="Legitimatii Handicap"
-                    value={stats?.handicap?.legitimationsCount || 0}
-                    subtitle={`${stats?.handicap?.legitimationsCount || 0} active`}
-                    icon={<LegitimatiiIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#059669' }} />}
-                    color="#059669"
-                    bgColor={alpha('#059669', 0.12)}
-                    onClick={goToParkingHandicap}
-                    delay={1300}
-                    urgent={(stats?.handicap?.legitimationsCount || 0) > 0}
-                  />
-                </Grid>
-                <Grid size={{ xs: 6, sm: 6, md: 6 }}>
-                  <StatCard
-                    title="Legitimatii Revolutionar"
-                    value={stats?.handicap?.revolutionarCount || 0}
-                    subtitle={`${stats?.handicap?.revolutionarCount || 0} active`}
-                    icon={<RevolutionarIcon sx={{ fontSize: { xs: 22, sm: 26, md: 32 }, color: '#7c3aed' }} />}
-                    color="#7c3aed"
-                    bgColor={alpha('#7c3aed', 0.12)}
-                    onClick={goToParkingHandicap}
-                    delay={1400}
-                    urgent={(stats?.handicap?.revolutionarCount || 0) > 0}
-                  />
-                </Grid>
-              </Grid>
-            </Box>
-          </Fade>
-
-            </>
-          ) : (
-            <Box sx={{ height: 400 }} /> /* Placeholder while below-fold sections load */
-          )}
-          </Box>
         </Grid>
 
-        {/* Right Column - Activity Feed + Parking Summary */}
+        {/* Right Column — Summary cards + Activity */}
         <Grid size={{ xs: 12, lg: 4 }}>
-          {/* Recent Activity */}
-          <Fade in={true} timeout={700}>
-            <Card sx={{ mb: { xs: 2, sm: 3 } }}>
-              <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                  <NotifIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                  <Typography variant="subtitle2" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem' }}>
-                    Activitate Recenta
-                  </Typography>
+          {/* Cash Total Card */}
+          <Grow in={true} timeout={600}>
+            <Card
+              sx={{
+                mb: { xs: 2, sm: 3 },
+                cursor: 'pointer',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                background: theme.palette.mode === 'light'
+                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                  : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                color: 'white',
+                position: 'relative',
+                overflow: 'hidden',
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(16, 185, 129, 0.35)' },
+              }}
+              onClick={goToParking}
+            >
+              <Box sx={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+              <CardContent sx={{ p: { xs: 2, sm: 2.5 }, position: 'relative' }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="overline" sx={{ fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.5px', opacity: 0.9 }}>
+                      Total Incasari Automate
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800, my: 0.5, fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' } }}>
+                      {stats?.parking?.cashCollectionTotals
+                        ? formatRONCompact(stats.parking.cashCollectionTotals.totalAmount || 0)
+                        : '0 RON'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontSize: '0.8rem', opacity: 0.85 }}>
+                      {stats?.parking?.cashCollectionTotals ? `${stats.parking.cashCollectionTotals.count || 0} ridicari` : 'Nicio ridicare'}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: 1.5, borderRadius: 3, bgcolor: 'rgba(255,255,255,0.2)', display: 'flex', flexShrink: 0 }}>
+                    <CashIcon sx={{ fontSize: 28 }} />
+                  </Box>
                 </Stack>
-                {recentNotifications.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                    Nicio activitate recenta
-                  </Typography>
-                ) : (
-                  <Stack spacing={1.5}>
-                    {recentNotifications.map((notif) => (
-                      <Box
-                        key={notif.id}
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 2,
-                          bgcolor: notif.isRead
-                            ? alpha(theme.palette.action.hover, 0.3)
-                            : alpha(theme.palette.primary.main, 0.06),
-                          borderLeft: notif.isRead
-                            ? `3px solid ${alpha(theme.palette.divider, 0.3)}`
-                            : `3px solid ${theme.palette.primary.main}`,
-                          transition: 'all 0.2s ease',
-                        }}
-                      >
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: notif.isRead ? 400 : 600,
-                            fontSize: '0.8rem',
-                            lineHeight: 1.4,
-                            mb: 0.5,
-                          }}
-                          noWrap
-                        >
-                          {notif.title}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            fontSize: '0.7rem',
-                          }}
-                        >
-                          {notif.message}
-                        </Typography>
-                        <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem', mt: 0.5, display: 'block' }}>
-                          {getTimeAgo(notif.createdAt)}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Stack>
-                )}
               </CardContent>
             </Card>
-          </Fade>
+          </Grow>
 
-          {/* Status Distribution Chart — lazy-loaded */}
-          <Suspense fallback={null}>
-            <StatusDistributionChart
-              title="Distributie Cereri Active"
-              data={[
-                { label: 'Probleme Parcari', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
-                { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
-                { label: 'Schimburi Ture', value: pendingSwaps, color: theme.palette.info.main },
-                { label: 'Concedii', value: pendingLeaves, color: theme.palette.secondary.main },
-                { label: 'Cereri Editare', value: stats?.parking?.pendingEditRequests || 0, color: theme.palette.primary.main },
-              ]}
-            />
-          </Suspense>
+          {/* Handicap Overview Chart */}
+          <Box sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Suspense fallback={null}>
+              <StatusDistributionChart
+                title="Parcari Handicap"
+                icon={<AccessibleIcon sx={{ color: theme.palette.info.main, fontSize: 20 }} />}
+                height={{ xs: 160, sm: 190 }}
+                data={[
+                  { label: 'Amplasare', value: stats?.handicap?.requestsByType?.amplasare || 0, color: theme.palette.success.main },
+                  { label: 'Revocare', value: stats?.handicap?.requestsByType?.revocare || 0, color: theme.palette.error.main },
+                  { label: 'Marcaje', value: stats?.handicap?.requestsByType?.marcaje || 0, color: theme.palette.info.main },
+                  { label: 'Legitimatii HC', value: stats?.handicap?.legitimationsCount || 0, color: theme.palette.warning.main },
+                  { label: 'Legitimatii Rev', value: stats?.handicap?.revolutionarCount || 0, color: theme.palette.secondary.main },
+                ]}
+              />
+            </Suspense>
+          </Box>
 
-          {/* Weekly Overview Chart — lazy-loaded */}
-          <Suspense fallback={null}>
-            <WeeklyOverviewChart
-              title="Sumar Activitate"
-              data={[
-                { label: 'Programe', value: pendingCount, color: theme.palette.warning.main },
-                { label: 'Schimburi', value: stats?.shiftSwaps?.total || 0, color: theme.palette.info.main },
-                { label: 'Concedii', value: stats?.leaveRequests?.total || 0, color: theme.palette.secondary.main },
-                { label: 'Probleme', value: stats?.parking?.activeIssues || 0, color: theme.palette.error.main },
-                { label: 'Prejudicii', value: stats?.parking?.activeDamages || 0, color: theme.palette.warning.main },
-              ]}
-            />
-          </Suspense>
-
-          {/* Parking Quick Overview - visible on desktop sidebar */}
+          {/* Parking Quick Summary */}
           <Fade in={true} timeout={900}>
-            <Card>
+            <Card sx={{ mb: { xs: 2, sm: 3 } }}>
               <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
                 <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
                   <IssuesIcon sx={{ color: 'error.main', fontSize: 20 }} />
@@ -1036,15 +486,72 @@ const AdminDashboard = () => {
                   variant="text"
                   endIcon={<ArrowIcon />}
                   onClick={goToParking}
-                  sx={{
-                    mt: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '0.8rem',
-                  }}
+                  sx={{ mt: 2, textTransform: 'none', fontWeight: 600, fontSize: '0.8rem' }}
                 >
                   Vezi toate parcarile
                 </Button>
+              </CardContent>
+            </Card>
+          </Fade>
+
+          {/* Recent Activity */}
+          <Fade in={true} timeout={700}>
+            <Card>
+              <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                  <NotifIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                  <Typography variant="subtitle2" fontWeight={700} sx={{ textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem' }}>
+                    Activitate Recenta
+                  </Typography>
+                </Stack>
+                {recentNotifications.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                    Nicio activitate recenta
+                  </Typography>
+                ) : (
+                  <Stack spacing={1.5}>
+                    {recentNotifications.map((notif) => (
+                      <Box
+                        key={notif.id}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          bgcolor: notif.isRead
+                            ? alpha(theme.palette.action.hover, 0.3)
+                            : alpha(theme.palette.primary.main, 0.06),
+                          borderLeft: notif.isRead
+                            ? `3px solid ${alpha(theme.palette.divider, 0.3)}`
+                            : `3px solid ${theme.palette.primary.main}`,
+                          transition: 'all 0.2s ease',
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: notif.isRead ? 400 : 600, fontSize: '0.8rem', lineHeight: 1.4, mb: 0.5 }}
+                          noWrap
+                        >
+                          {notif.title}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            fontSize: '0.7rem',
+                          }}
+                        >
+                          {notif.message}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem', mt: 0.5, display: 'block' }}>
+                          {getTimeAgo(notif.createdAt)}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                )}
               </CardContent>
             </Card>
           </Fade>

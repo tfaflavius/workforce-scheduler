@@ -23,12 +23,20 @@ import { DonutLarge as ChartIcon } from '@mui/icons-material';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
-interface StatusDistributionProps {
-  data: { label: string; value: number; color: string }[];
-  title: string;
+interface ChartDataItem {
+  label: string;
+  value: number;
+  color: string;
 }
 
-export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.memo(({ data, title }) => {
+interface StatusDistributionProps {
+  data: ChartDataItem[];
+  title: string;
+  icon?: React.ReactNode;
+  height?: number | { xs?: number; sm?: number; md?: number };
+}
+
+export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.memo(({ data, title, icon, height }) => {
   const theme = useTheme();
 
   const chartData = useMemo(() => ({
@@ -76,12 +84,14 @@ export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.
 
   if (total === 0) return null;
 
+  const resolvedHeight = height || { xs: 160, sm: 200 };
+
   return (
     <Fade in={true} timeout={800}>
-      <Card sx={{ mb: { xs: 2, sm: 3 } }}>
+      <Card sx={{ height: '100%' }}>
         <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <ChartIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+            {icon || <ChartIcon sx={{ color: 'primary.main', fontSize: 20 }} />}
             <Typography
               variant="subtitle2"
               fontWeight={700}
@@ -90,9 +100,8 @@ export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.
               {title}
             </Typography>
           </Stack>
-          <Box sx={{ position: 'relative', height: { xs: 160, sm: 200 }, display: 'flex', justifyContent: 'center' }}>
+          <Box sx={{ position: 'relative', height: resolvedHeight, display: 'flex', justifyContent: 'center' }}>
             <Doughnut data={chartData} options={options} />
-            {/* Center total */}
             <Box
               sx={{
                 position: 'absolute',
@@ -102,7 +111,7 @@ export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.
                 textAlign: 'center',
               }}
             >
-              <Typography variant="h5" fontWeight={800} color="text.primary">
+              <Typography variant="h5" fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                 {total}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
@@ -117,11 +126,14 @@ export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.
 });
 
 interface WeeklyOverviewProps {
-  data: { label: string; value: number; color: string }[];
+  data: ChartDataItem[];
   title: string;
+  icon?: React.ReactNode;
+  horizontal?: boolean;
+  height?: number | { xs?: number; sm?: number; md?: number };
 }
 
-export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = React.memo(({ data, title }) => {
+export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = React.memo(({ data, title, icon, horizontal, height }) => {
   const theme = useTheme();
 
   const chartData = useMemo(() => ({
@@ -141,6 +153,7 @@ export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = React.memo(({ 
   const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: horizontal ? ('y' as const) : ('x' as const),
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -163,27 +176,35 @@ export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = React.memo(({ 
         },
         grid: {
           color: alpha(theme.palette.divider, 0.5),
+          ...(horizontal ? { display: false } : {}),
         },
       },
       x: {
         ticks: {
           font: { size: 10 },
           color: theme.palette.text.secondary,
+          ...(horizontal ? { precision: 0 } : {}),
         },
-        grid: { display: false },
+        grid: {
+          display: horizontal ? true : false,
+          ...(horizontal ? { color: alpha(theme.palette.divider, 0.5) } : {}),
+        },
+        ...(horizontal ? { beginAtZero: true } : {}),
       },
     },
-  }), [theme]);
+  }), [theme, horizontal]);
 
   const total = data.reduce((sum, d) => sum + d.value, 0);
   if (total === 0) return null;
 
+  const resolvedHeight = height || { xs: 140, sm: 180 };
+
   return (
     <Fade in={true} timeout={1000}>
-      <Card sx={{ mb: { xs: 2, sm: 3 } }}>
+      <Card sx={{ height: '100%' }}>
         <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <ChartIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
+            {icon || <ChartIcon sx={{ color: '#f59e0b', fontSize: 20 }} />}
             <Typography
               variant="subtitle2"
               fontWeight={700}
@@ -192,7 +213,7 @@ export const WeeklyOverviewChart: React.FC<WeeklyOverviewProps> = React.memo(({ 
               {title}
             </Typography>
           </Stack>
-          <Box sx={{ height: { xs: 140, sm: 180 } }}>
+          <Box sx={{ height: resolvedHeight }}>
             <Bar data={chartData} options={options} />
           </Box>
         </CardContent>
