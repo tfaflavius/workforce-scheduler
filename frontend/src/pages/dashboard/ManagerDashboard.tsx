@@ -98,7 +98,7 @@ const ManagerDashboard = () => {
         title="Dashboard Manager"
         subtitle={todayDateStr}
         icon={<GroupsIcon />}
-        gradient="#059669 0%, #0891b2 100%"
+        gradient="#0f172a 0%, #1e293b 100%"
       />
 
       {myRejected.length > 0 && (
@@ -195,7 +195,7 @@ const ManagerDashboard = () => {
               <Fade in={true} timeout={650}>
                 <Card
                   sx={{
-                    background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                    background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)' : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                     color: 'white', position: 'relative', overflow: 'hidden',
                   }}
                 >
@@ -247,9 +247,9 @@ const ManagerDashboard = () => {
             <Card
               sx={{
                 mb: { xs: 2, sm: 3 }, cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                 color: 'white', position: 'relative', overflow: 'hidden',
-                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(16,185,129,0.35)' },
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(15,23,42,0.4)' },
               }}
               onClick={goToParking}
             >

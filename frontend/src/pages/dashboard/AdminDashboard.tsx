@@ -114,7 +114,7 @@ const AdminDashboard = () => {
         title="Dashboard"
         subtitle={new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         icon={<TrendingIcon />}
-        gradient="#1e3a8a 0%, #7c3aed 100%"
+        gradient="#0f172a 0%, #1e293b 100%"
       />
 
       {/* PV Car Status Banner */}
@@ -379,8 +379,8 @@ const AdminDashboard = () => {
                 <Card
                   sx={{
                     background: theme.palette.mode === 'light'
-                      ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)'
-                      : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                      ? 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)'
+                      : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                     color: 'white',
                     position: 'relative',
                     overflow: 'hidden',
@@ -455,12 +455,12 @@ const AdminDashboard = () => {
                 cursor: 'pointer',
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 background: theme.palette.mode === 'light'
-                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                  : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                  ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)'
+                  : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                 color: 'white',
                 position: 'relative',
                 overflow: 'hidden',
-                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(16, 185, 129, 0.35)' },
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(15, 23, 42, 0.4)' },
               }}
               onClick={goToParking}
             >

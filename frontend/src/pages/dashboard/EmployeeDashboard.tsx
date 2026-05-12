@@ -519,14 +519,14 @@ const EmployeeDashboard = () => {
 
   // ===== GRADIENT COLORS PER DEPARTMENT =====
   const deptGradients: Record<string, string> = {
-    [DISPECERAT_DEPARTMENT_NAME]: '#0ea5e9 0%, #0284c7 100%',
-    [CONTROL_DEPARTMENT_NAME]: '#6366f1 0%, #4f46e5 100%',
-    [MAINTENANCE_DEPARTMENT_NAME]: '#f59e0b 0%, #d97706 100%',
-    [HANDICAP_DEPARTMENT_NAME]: '#3b82f6 0%, #1d4ed8 100%',
-    [DOMICILIU_DEPARTMENT_NAME]: '#10b981 0%, #059669 100%',
-    [PROCESE_VERBALE_DEPARTMENT_NAME]: '#8b5cf6 0%, #7c3aed 100%',
-    [PARCOMETRE_DEPARTMENT_NAME]: '#ec4899 0%, #db2777 100%',
-    [ACHIZITII_DEPARTMENT_NAME]: '#14b8a6 0%, #0d9488 100%',
+    [DISPECERAT_DEPARTMENT_NAME]: '#0f172a 0%, #1e3a5f 100%',
+    [CONTROL_DEPARTMENT_NAME]: '#0f172a 0%, #1e293b 100%',
+    [MAINTENANCE_DEPARTMENT_NAME]: '#1a1a2e 0%, #16213e 100%',
+    [HANDICAP_DEPARTMENT_NAME]: '#0f172a 0%, #1e3a5f 100%',
+    [DOMICILIU_DEPARTMENT_NAME]: '#0f172a 0%, #1e293b 100%',
+    [PROCESE_VERBALE_DEPARTMENT_NAME]: '#1a1a2e 0%, #0f172a 100%',
+    [PARCOMETRE_DEPARTMENT_NAME]: '#0f172a 0%, #1e293b 100%',
+    [ACHIZITII_DEPARTMENT_NAME]: '#0f172a 0%, #16213e 100%',
   };
 
   return (
@@ -559,8 +559,8 @@ const EmployeeDashboard = () => {
           sx={{
             mb: { xs: 2, sm: 3 },
             background: todayAssignment
-              ? theme.palette.mode === 'light' ? `linear-gradient(135deg, ${deptGradients[departmentName]?.split(',')[0]?.replace(' 0%', '') || '#6366f1'} 0%, ${deptGradients[departmentName]?.split(',')[1]?.replace(' 100%', '')?.trim() || '#8b5cf6'} 100%)` : `linear-gradient(135deg, ${deptGradients[departmentName]?.split(',')[0]?.replace(' 0%', '') || '#6366f1'}cc 0%, ${deptGradients[departmentName]?.split(',')[1]?.replace(' 100%', '')?.trim() || '#8b5cf6'}cc 100%)`
-              : theme.palette.mode === 'light' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+              ? theme.palette.mode === 'light' ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+              : theme.palette.mode === 'light' ? 'linear-gradient(135deg, #1e293b 0%, #374151 100%)' : 'linear-gradient(135deg, #111827 0%, #1f2937 100%)',
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
@@ -668,8 +668,8 @@ const EmployeeDashboard = () => {
                 <Card
                   sx={{
                     background: activeTimer && !activeTimer.endTime
-                      ? theme.palette.mode === 'light' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : 'linear-gradient(135deg, #b45309 0%, #92400e 100%)'
-                      : theme.palette.mode === 'light' ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : 'linear-gradient(135deg, #4338ca 0%, #3730a3 100%)',
+                      ? theme.palette.mode === 'light' ? 'linear-gradient(135deg, #292524 0%, #44403c 100%)' : 'linear-gradient(135deg, #1c1917 0%, #292524 100%)'
+                      : theme.palette.mode === 'light' ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                     color: 'white', position: 'relative', overflow: 'hidden', mb: 2,
                   }}
                 >
@@ -859,9 +859,9 @@ const EmployeeDashboard = () => {
                   <Card
                     sx={{
                       height: '100%', cursor: 'pointer', transition: 'all 0.3s',
-                      background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                      background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                       color: 'white', position: 'relative', overflow: 'hidden',
-                      '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(16,185,129,0.35)' },
+                      '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 12px 28px rgba(15,23,42,0.4)' },
                     }}
                     onClick={goToParking}
                   >
@@ -937,7 +937,7 @@ const EmployeeDashboard = () => {
               <Card
                 sx={{
                   mb: { xs: 2, sm: 3 },
-                  background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
+                  background: theme.palette.mode === 'light' ? 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)' : 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                   color: 'white', position: 'relative', overflow: 'hidden',
                 }}
               >
