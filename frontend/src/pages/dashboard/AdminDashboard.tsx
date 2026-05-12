@@ -61,6 +61,7 @@ const WeeklyOverviewChart = React.lazy(() =>
 );
 import { DirectionsCar as CarIcon } from '@mui/icons-material';
 import { getTimeAgo } from '../../utils/getTimeAgo';
+import { useSmartPolling } from '../../hooks/useSmartPolling';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -78,8 +79,9 @@ const AdminDashboard = () => {
   const goToAdminEditRequests = useCallback(() => navigate('/admin/edit-requests'), [navigate]);
 
   // Single consolidated API call replaces 18 separate queries
+  const adminPollingInterval = useSmartPolling(60000);
   const { data: stats, isLoading, isError } = useGetDashboardStatsQuery(undefined, {
-    pollingInterval: 60000, // Auto-refresh every 60 seconds
+    pollingInterval: adminPollingInterval,
   });
 
   const hasError = isError || (!isLoading && !stats);

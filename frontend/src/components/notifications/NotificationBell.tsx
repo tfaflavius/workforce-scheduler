@@ -32,6 +32,7 @@ import {
 } from '../../store/api/notifications.api';
 import { useAppSelector } from '../../store/hooks';
 import { getNotificationIcon, getNotificationPath, isNotificationNavigable } from '../../utils/notificationHelpers';
+import { useSmartPolling } from '../../hooks/useSmartPolling';
 
 export const NotificationBell: React.FC = React.memo(() => {
   const theme = useTheme();
@@ -41,14 +42,15 @@ export const NotificationBell: React.FC = React.memo(() => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // Poll pentru notificari la fiecare 30 secunde
+  // Poll pentru notificari la fiecare 30 secunde (disabled cand tab-ul nu e vizibil)
+  const notifPollingInterval = useSmartPolling(30000);
   const { data: notifications = [], isLoading } = useGetNotificationsQuery(
     { limit: 10 },
-    { pollingInterval: 30000 }
+    { pollingInterval: notifPollingInterval }
   );
   const { data: unreadCount = 0 } = useGetUnreadCountQuery(
     undefined,
-    { pollingInterval: 30000 }
+    { pollingInterval: notifPollingInterval }
   );
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();

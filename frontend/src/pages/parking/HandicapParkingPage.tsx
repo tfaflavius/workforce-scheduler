@@ -154,7 +154,7 @@ interface CreateDialogProps {
   requestType: HandicapRequestType;
 }
 
-const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClose, requestType }) => {
+const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = React.memo(({ open, onClose, requestType }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [createRequest, { isLoading }] = useCreateHandicapRequestMutation();
@@ -453,7 +453,7 @@ const CreateHandicapRequestDialog: React.FC<CreateDialogProps> = ({ open, onClos
       </DialogActions>
     </Dialog>
   );
-};
+});
 
 // ============== DETAILS DIALOG ==============
 interface DetailsDialogProps {
@@ -462,7 +462,7 @@ interface DetailsDialogProps {
   requestId: string | null;
 }
 
-const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onClose, requestId }) => {
+const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({ open, onClose, requestId }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
@@ -1059,7 +1059,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       </FriendlyDialog>
     </>
   );
-};
+});
 
 // ============== REQUEST CARD ==============
 interface RequestCardProps {
@@ -1067,7 +1067,7 @@ interface RequestCardProps {
   onClick: () => void;
 }
 
-const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
+const HandicapRequestCard: React.FC<RequestCardProps> = React.memo(({ request, onClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const colors = REQUEST_TYPE_COLORS[request.requestType];
@@ -1209,7 +1209,7 @@ const HandicapRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) =
       </CardContent>
     </Card>
   );
-};
+});
 
 // PDF export headers (module-scope to avoid re-creation)
 const REQUEST_HEADERS = [['Locatie', 'Persoana', 'Nr Auto', 'Nr Certificat', 'Status', 'Data', 'Rezolvat de']];

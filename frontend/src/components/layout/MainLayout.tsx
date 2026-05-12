@@ -75,6 +75,7 @@ import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { useThemeMode } from '../../contexts/ThemeContext';
+import { useSmartPolling } from '../../hooks/useSmartPolling';
 import MobileBottomNav from './MobileBottomNav';
 import {
   MAINTENANCE_DEPARTMENT_NAME,
@@ -177,9 +178,10 @@ export const MainLayout = () => {
   const isAdmin = checkIsAdminOrAbove(user?.role);
   const { data: departments } = useGetDepartmentsQuery(undefined, { skip: !isAdmin });
   const { data: allUsers } = useGetUsersQuery(undefined, { skip: !isAdmin });
+  const dashboardPollingInterval = useSmartPolling(60000);
   const { data: dashboardStats } = useGetDashboardStatsQuery(undefined, {
     skip: !isAdmin,
-    pollingInterval: 60000, // Refresh every 60s
+    pollingInterval: dashboardPollingInterval,
   });
 
   // Badge counts for nav items (admin only)

@@ -135,7 +135,7 @@ interface ZoneChipSelectorProps {
   onChange: (zone: ControlSesizareZone) => void;
 }
 
-const ZoneChipSelector: React.FC<ZoneChipSelectorProps> = ({ value, onChange }) => {
+const ZoneChipSelector: React.FC<ZoneChipSelectorProps> = React.memo(({ value, onChange }) => {
   const zones: ControlSesizareZone[] = ['ROSU', 'GALBEN', 'ALB'];
   return (
     <Box>
@@ -159,7 +159,7 @@ const ZoneChipSelector: React.FC<ZoneChipSelectorProps> = ({ value, onChange }) 
       </Stack>
     </Box>
   );
-};
+});
 
 // ============== ORIENTATION CHIP SELECTOR ==============
 interface OrientationChipSelectorProps {
@@ -167,7 +167,7 @@ interface OrientationChipSelectorProps {
   onChange: (orientation: ControlParkingLayoutType) => void;
 }
 
-const OrientationChipSelector: React.FC<OrientationChipSelectorProps> = ({ value, onChange }) => {
+const OrientationChipSelector: React.FC<OrientationChipSelectorProps> = React.memo(({ value, onChange }) => {
   const orientations: ControlParkingLayoutType[] = ['PARALEL', 'PERPENDICULAR', 'SPIC'];
   return (
     <Box>
@@ -191,7 +191,7 @@ const OrientationChipSelector: React.FC<OrientationChipSelectorProps> = ({ value
       </Stack>
     </Box>
   );
-};
+});
 
 // ============== CREATE DIALOG ==============
 interface CreateDialogProps {
@@ -200,7 +200,7 @@ interface CreateDialogProps {
   sesizareType: ControlSesizareType;
 }
 
-const CreateControlSesizareDialog: React.FC<CreateDialogProps> = ({ open, onClose, sesizareType }) => {
+const CreateControlSesizareDialog: React.FC<CreateDialogProps> = React.memo(({ open, onClose, sesizareType }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [createSesizare, { isLoading }] = useCreateControlSesizareMutation();
@@ -459,7 +459,7 @@ const CreateControlSesizareDialog: React.FC<CreateDialogProps> = ({ open, onClos
       </DialogActions>
     </Dialog>
   );
-};
+});
 
 // ============== DETAILS DIALOG ==============
 interface DetailsDialogProps {
@@ -468,7 +468,7 @@ interface DetailsDialogProps {
   sesizareId: string | null;
 }
 
-const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onClose, sesizareId }) => {
+const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({ open, onClose, sesizareId }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
@@ -865,7 +865,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onCl
       </FriendlyDialog>
     </>
   );
-};
+});
 
 // ============== SESIZARE CARD ==============
 interface SesizareCardProps {
@@ -873,7 +873,7 @@ interface SesizareCardProps {
   onClick: () => void;
 }
 
-const ControlSesizareCard: React.FC<SesizareCardProps> = ({ sesizare, onClick }) => {
+const ControlSesizareCard: React.FC<SesizareCardProps> = React.memo(({ sesizare, onClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const zoneColor = ZONE_COLORS[sesizare.zone];
@@ -943,7 +943,7 @@ const ControlSesizareCard: React.FC<SesizareCardProps> = ({ sesizare, onClick })
       </CardContent>
     </Card>
   );
-};
+});
 
 // ============== MAIN PAGE ==============
 const ControlSesizariPage: React.FC = () => {

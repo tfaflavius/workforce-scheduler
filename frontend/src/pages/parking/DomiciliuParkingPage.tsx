@@ -153,7 +153,7 @@ interface CreateDialogProps {
   requestType: DomiciliuRequestType;
 }
 
-const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClose, requestType }) => {
+const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = React.memo(({ open, onClose, requestType }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [createRequest, { isLoading }] = useCreateDomiciliuRequestMutation();
@@ -444,7 +444,7 @@ const CreateDomiciliuRequestDialog: React.FC<CreateDialogProps> = ({ open, onClo
       </DialogActions>
     </Dialog>
   );
-};
+});
 
 // ============== DETAILS DIALOG ==============
 interface DetailsDialogProps {
@@ -453,7 +453,7 @@ interface DetailsDialogProps {
   requestId: string | null;
 }
 
-const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onClose, requestId }) => {
+const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({ open, onClose, requestId }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
@@ -1165,7 +1165,7 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = ({ open, onC
       </FriendlyDialog>
     </>
   );
-};
+});
 
 // ============== REQUEST CARD ==============
 interface RequestCardProps {
@@ -1173,7 +1173,7 @@ interface RequestCardProps {
   onClick: () => void;
 }
 
-const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) => {
+const DomiciliuRequestCard: React.FC<RequestCardProps> = React.memo(({ request, onClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useAppSelector((state) => state.auth);
@@ -1418,7 +1418,7 @@ const DomiciliuRequestCard: React.FC<RequestCardProps> = ({ request, onClick }) 
       </CardContent>
     </Card>
   );
-};
+});
 
 // ============== MAIN PAGE ==============
 const DomiciliuParkingPage: React.FC = () => {
