@@ -278,7 +278,15 @@ const EditDamageDialog: React.FC<EditDamageDialogProps> = ({
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
+      <DialogActions sx={{
+        px: { xs: 1.5, sm: 3 },
+        pb: { xs: 1.5, sm: 2 },
+        pt: { xs: 1, sm: 2 },
+        flexDirection: { xs: 'column-reverse', sm: 'row' },
+        flexWrap: 'wrap',
+        gap: 1,
+        '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+      }}>
         <Button onClick={onClose} disabled={isLoading}>
           Anuleaza
         </Button>

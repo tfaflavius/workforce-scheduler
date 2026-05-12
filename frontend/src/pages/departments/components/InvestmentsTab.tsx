@@ -278,7 +278,7 @@ const InvestmentsTab: React.FC = () => {
       )}
 
       {!metaLoading && !metadata && (
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+        <Card sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center', borderRadius: 2 }}>
           <ExcelIcon sx={{ fontSize: 64, color: alpha(theme.palette.success.main, 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             Nu exista niciun document incarcat

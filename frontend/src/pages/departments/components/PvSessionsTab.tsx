@@ -260,7 +260,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
 
       {/* Sessions list */}
       {sessions.length === 0 ? (
-        <Card sx={{ borderRadius: 3, p: 4, textAlign: 'center' }}>
+        <Card sx={{ borderRadius: 3, p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}>
           <CalendarIcon sx={{ fontSize: 64, color: alpha('#3b82f6', 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             Nu exista sesiuni de afisare
@@ -472,7 +472,15 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
             )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 1.5 }}>
+        <DialogActions sx={{
+          px: { xs: 1.5, sm: 3 },
+          pb: { xs: 1.5, sm: 1.5 },
+          pt: { xs: 1, sm: 1.5 },
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          flexWrap: 'wrap',
+          gap: 1,
+          '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+        }}>
           <Button onClick={() => setCreateDialogOpen(false)} sx={{ textTransform: 'none' }}>
             Anuleaza
           </Button>

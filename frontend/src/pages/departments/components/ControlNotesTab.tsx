@@ -359,7 +359,7 @@ const ControlNotesTab: React.FC = () => {
       )}
 
       {!isLoading && matrix && matrix.users.length === 0 && (
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+        <Card sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center', borderRadius: 2 }}>
           <NotesIcon sx={{ fontSize: 64, color: alpha(theme.palette.primary.main, 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             Niciun user din Control si nicio data pentru anul {year}

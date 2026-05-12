@@ -621,7 +621,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
         }}
       >
         {isLoading ? (
-          <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}>
             <CircularProgress />
           </Box>
         ) : request ? (
@@ -1003,7 +1003,7 @@ const HandicapRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
             </DialogActions>
           </>
         ) : (
-          <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}>
             <Typography>Solicitarea nu a fost gasita</Typography>
           </Box>
         )}

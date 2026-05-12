@@ -606,7 +606,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile}
         PaperProps={{ sx: { borderRadius: isMobile ? 0 : 3 } }}>
         {isLoading ? (
-          <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>
+          <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}><CircularProgress /></Box>
         ) : sesizare ? (
           <>
             <DialogTitle sx={{
@@ -826,7 +826,7 @@ const ControlSesizareDetailsDialog: React.FC<DetailsDialogProps> = React.memo(({
             </DialogActions>
           </>
         ) : (
-          <Box sx={{ p: 4, textAlign: 'center' }}>
+          <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}>
             <Typography>Sesizarea nu a fost gasita</Typography>
           </Box>
         )}
@@ -1113,7 +1113,7 @@ const ControlSesizariPage: React.FC = () => {
               ))}
             </Stack>
           ) : filteredSesizari.length === 0 ? (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3, bgcolor: alpha(tab.color, 0.05) }}>
+            <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center', borderRadius: 3, bgcolor: alpha(tab.color, 0.05) }}>
               <ReportProblemIcon sx={{ fontSize: 64, color: alpha(tab.color, 0.3), mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>Nu exista sesizari</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

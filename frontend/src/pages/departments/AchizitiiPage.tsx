@@ -570,7 +570,7 @@ const AchizitiiPage: React.FC = () => {
 
       {/* Empty state */}
       {!isLoading && budgetPositions.length === 0 && (
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
+        <Card sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center', borderRadius: 3 }}>
           <ShoppingIcon sx={{ fontSize: 64, color: alpha(theme.palette.success.main, 0.3), mb: 2 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
             Nicio pozitie bugetara
@@ -640,7 +640,7 @@ const AchizitiiPage: React.FC = () => {
               </Box>
 
               {/* Amount info */}
-              <Box sx={{ display: 'flex', gap: { xs: 1, sm: 3 }, flexWrap: 'wrap', ml: 4.5 }}>
+              <Box sx={{ display: 'flex', gap: { xs: 1, sm: 3 }, flexWrap: 'wrap', ml: { xs: 0, sm: 4.5 } }}>
                 <Box>
                   <Typography variant="caption" color="text.secondary">Total</Typography>
                   <Typography variant="body2" sx={{ fontWeight: 700, color: 'success.main' }}>
@@ -662,7 +662,7 @@ const AchizitiiPage: React.FC = () => {
               </Box>
 
               {/* Progress bar */}
-              <Box sx={{ ml: 4.5, mt: 1 }}>
+              <Box sx={{ ml: { xs: 0, sm: 4.5 }, mt: 1 }}>
                 <LinearProgress
                   variant="determinate"
                   value={usedPercent}

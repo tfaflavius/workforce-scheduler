@@ -903,7 +903,15 @@ const ParcometrePage: React.FC = () => {
             Esti sigur ca vrei sa stergi parcometrul <strong>{deletingMeter?.name}</strong>?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+        <DialogActions sx={{
+          px: { xs: 1.5, sm: 3 },
+          pb: { xs: 1.5, sm: 2 },
+          pt: { xs: 1, sm: 1.5 },
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          flexWrap: 'wrap',
+          gap: 1,
+          '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+        }}>
           <Button onClick={() => setDeletingMeter(null)} variant="outlined" sx={{ borderRadius: 2 }}>
             Anuleaza
           </Button>

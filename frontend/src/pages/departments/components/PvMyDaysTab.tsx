@@ -115,7 +115,7 @@ const PvMyDaysTab: React.FC = () => {
   return (
     <Box>
       {myDays.length === 0 ? (
-        <Card sx={{ borderRadius: 3, p: 4, textAlign: 'center' }}>
+        <Card sx={{ borderRadius: 3, p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}>
           <MyDaysIcon sx={{ fontSize: 64, color: alpha('#059669', 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             Nu ai zile revendicate
@@ -189,7 +189,15 @@ const PvMyDaysTab: React.FC = () => {
             placeholder="Adauga observatii despre afisarea de astazi..."
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{
+          px: { xs: 1.5, sm: 3 },
+          pb: { xs: 1.5, sm: 2 },
+          pt: { xs: 1, sm: 1.5 },
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          flexWrap: 'wrap',
+          gap: 1,
+          '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+        }}>
           <Button onClick={() => setCompleteDialogOpen(false)} sx={{ textTransform: 'none' }}>
             Anuleaza
           </Button>

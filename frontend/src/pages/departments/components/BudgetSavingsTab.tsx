@@ -856,7 +856,7 @@ const BudgetSavingsTab: React.FC = () => {
 
       {/* Empty state */}
       {!isLoading && sorted.length === 0 && (
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+        <Card sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center', borderRadius: 2 }}>
           <SavingsIcon sx={{ fontSize: 64, color: alpha(theme.palette.success.main, 0.3), mb: 2 }} />
           <Typography variant="h6" color="text.secondary">
             Nicio pozitie bugetara pentru anul {year}

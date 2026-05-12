@@ -680,7 +680,7 @@ const IncasariCheltuieliPage: React.FC = () => {
           </Table>
         </TableContainer>
       ) : !loadingRevenue ? (
-        <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
+        <Card sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center', borderRadius: 3 }}>
           <CategoryIcon sx={{ fontSize: 64, color: alpha('#64748b', 0.3), mb: 2 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
             Nicio categorie de incasari/cheltuieli

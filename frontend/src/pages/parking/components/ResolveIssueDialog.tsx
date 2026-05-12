@@ -94,7 +94,15 @@ const ResolveIssueDialog: React.FC<ResolveIssueDialogProps> = ({ open, onClose, 
           />
         </Stack>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions sx={{
+        px: { xs: 1.5, sm: 3 },
+        pb: { xs: 1.5, sm: 2 },
+        pt: { xs: 1, sm: 1.5 },
+        flexDirection: { xs: 'column-reverse', sm: 'row' },
+        flexWrap: 'wrap',
+        gap: 1,
+        '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+      }}>
         <Button onClick={handleClose} disabled={isLoading}>
           Anuleaza
         </Button>

@@ -1130,7 +1130,7 @@ const DailyReportsPage: React.FC = () => {
 
         {/* Prompt to select a day when none selected */}
         {selectedDay === '' ? (
-          <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+          <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center', borderRadius: 2 }}>
             <CalendarIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
             <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
               Selecteaza o zi din calendar pentru a vedea rapoartele.
