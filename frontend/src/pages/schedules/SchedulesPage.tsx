@@ -168,6 +168,7 @@ const SchedulesPage: React.FC = () => {
   const [departmentFilter, setDepartmentFilter] = useState<string>('ALL');
   const [dayFilter, setDayFilter] = useState<DayFilter>('ALL');
   const [workPositionFilter, setWorkPositionFilter] = useState<WorkPositionFilter>('ALL');
+  const [onlyScheduled, setOnlyScheduled] = useState(false);
 
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -345,6 +346,14 @@ const SchedulesPage: React.FC = () => {
       filtered = filtered.filter(user => user.department?.id === departmentFilter);
     }
 
+    // Filter only users who have at least one assignment (shift or leave) this month
+    if (onlyScheduled) {
+      filtered = filtered.filter(user => {
+        const userAssignments = allUsersAssignments[user.id]?.assignments || {};
+        return Object.keys(userAssignments).length > 0;
+      });
+    }
+
     // Filter by specific day - show only users who have a shift on the selected day
     if (targetDate) {
       filtered = filtered.filter(user => {
@@ -422,7 +431,7 @@ const SchedulesPage: React.FC = () => {
     });
 
     return filtered;
-  }, [eligibleUsers, debouncedSearch, departmentFilter, shiftFilter, dayFilter, workPositionFilter, selectedMonth, allUsersAssignments]);
+  }, [eligibleUsers, debouncedSearch, departmentFilter, shiftFilter, dayFilter, workPositionFilter, onlyScheduled, selectedMonth, allUsersAssignments]);
 
   const handleCreateSchedule = () => {
     navigate('/schedules/create');
@@ -464,7 +473,7 @@ const SchedulesPage: React.FC = () => {
   const totalCount = schedules.length;
 
   // Check if any filters are active
-  const hasActiveFilters = searchQuery !== '' || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL';
+  const hasActiveFilters = searchQuery !== '' || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL' || onlyScheduled;
 
   // Toggle legend
   const handleToggleLegend = useCallback(() => setLegendExpanded(prev => !prev), []);
@@ -482,6 +491,7 @@ const SchedulesPage: React.FC = () => {
     setShiftFilter('ALL');
     setWorkPositionFilter('ALL');
     setDayFilter('ALL');
+    setOnlyScheduled(false);
   }, []);
 
   // Get selected month label
@@ -610,6 +620,8 @@ const SchedulesPage: React.FC = () => {
           dayFilter={dayFilter}
           onDayFilterChange={setDayFilter}
           calendarDays={calendarDays}
+          onlyScheduled={onlyScheduled}
+          onOnlyScheduledChange={setOnlyScheduled}
         />
 
         {/* Legend - collapsible on mobile */}

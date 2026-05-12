@@ -10,6 +10,8 @@ import {
   Select,
   MenuItem,
   TextField,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   CalendarToday as CalendarIcon,
@@ -42,6 +44,8 @@ export interface ScheduleFiltersProps {
   dayFilter: DayFilter;
   onDayFilterChange: (day: DayFilter) => void;
   calendarDays: CalendarDay[];
+  onlyScheduled: boolean;
+  onOnlyScheduledChange: (value: boolean) => void;
 }
 
 const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
@@ -61,13 +65,16 @@ const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
   dayFilter,
   onDayFilterChange,
   calendarDays,
+  onlyScheduled,
+  onOnlyScheduledChange,
 }) => {
   const hasActiveFilters =
     searchQuery !== '' ||
     departmentFilter !== 'ALL' ||
     shiftFilter !== 'ALL' ||
     workPositionFilter !== 'ALL' ||
-    dayFilter !== 'ALL';
+    dayFilter !== 'ALL' ||
+    onlyScheduled;
 
   return (
     <Paper sx={{ p: { xs: 1.5, sm: 2 }, width: '100%' }}>
@@ -107,9 +114,10 @@ const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
               xs: '1fr',
               sm: 'repeat(2, 1fr)',
               md: 'repeat(3, 1fr)',
-              lg: 'repeat(6, 1fr)',
+              lg: 'repeat(7, 1fr)',
             },
             gap: { xs: 0.75, sm: 1.5, md: 2 },
+            alignItems: 'center',
           }}>
             {/* Search */}
             <TextField
@@ -223,6 +231,20 @@ const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
               </Select>
             </FormControl>
 
+            {/* Only scheduled toggle */}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={onlyScheduled}
+                  onChange={(e) => onOnlyScheduledChange(e.target.checked)}
+                  size="small"
+                  color="primary"
+                />
+              }
+              label={<Typography sx={{ fontSize: '0.8rem', fontWeight: 500 }}>Doar programati</Typography>}
+              sx={{ ml: 0, minHeight: 40, display: 'flex', alignItems: 'center' }}
+            />
+
             {/* Reset Filters Button */}
             {hasActiveFilters && (
               <Button
@@ -234,6 +256,7 @@ const ScheduleFilters: React.FC<ScheduleFiltersProps> = ({
                   onShiftFilterChange('ALL');
                   onWorkPositionFilterChange('ALL');
                   onDayFilterChange('ALL');
+                  onOnlyScheduledChange(false);
                 }}
                 sx={{
                   height: 40,
