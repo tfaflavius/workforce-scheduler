@@ -58,7 +58,6 @@ const AdminDashboard = () => {
   const theme = useTheme();
 
   const goToParking = useCallback(() => navigate('/parking'), [navigate]);
-  const goToParkingHandicap = useCallback(() => navigate('/parking/handicap'), [navigate]);
   const goToSchedulesPending = useCallback(() => navigate('/schedules/pending'), [navigate]);
   const goToAdminShiftSwaps = useCallback(() => navigate('/admin/shift-swaps'), [navigate]);
   const goToAdminLeaveRequests = useCallback(() => navigate('/admin/leave-requests'), [navigate]);
