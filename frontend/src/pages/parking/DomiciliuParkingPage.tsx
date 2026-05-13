@@ -1039,19 +1039,33 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
               </Stack>
             </DialogContent>
 
-            <DialogActions sx={{ p: 2, pt: 1, justifyContent: 'space-between' }}>
-              <Box>
+            <DialogActions sx={{
+              p: { xs: 1.5, sm: 2 },
+              pt: 1,
+              gap: 1,
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              justifyContent: { sm: 'space-between' },
+            }}>
+              <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>
                 {isAdmin && (
                   <Button
                     color="error"
                     startIcon={<DeleteIcon />}
                     onClick={handleDelete}
+                    fullWidth={isMobile}
                   >
                     Sterge
                   </Button>
                 )}
               </Box>
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box sx={{
+                display: 'flex',
+                gap: 1,
+                flexDirection: { xs: 'column-reverse', sm: 'row' },
+                width: { xs: '100%', sm: 'auto' },
+                '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+              }}>
                 <Button onClick={onClose}>Inchide</Button>
                 {canResolve && request.status === 'ACTIVE' && (
                   <Button
@@ -1081,12 +1095,14 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
         fullWidth
         fullScreen={isMobile}
       >
-        <DialogTitle>Finalizeaza solicitarea</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
+          Finalizeaza solicitarea
+        </DialogTitle>
+        <DialogContent sx={{ p: { xs: 2, sm: 3 } }}>
           <TextField
             fullWidth
             multiline
-            rows={3}
+            rows={isMobile ? 5 : 3}
             label="Descrierea rezolutiei"
             value={resolutionDescription}
             onChange={(e) => setResolutionDescription(e.target.value)}
@@ -1094,13 +1110,24 @@ const DomiciliuRequestDetailsDialog: React.FC<DetailsDialogProps> = React.memo((
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowResolveDialog(false)}>Anuleaza</Button>
+        <DialogActions sx={{
+          px: { xs: 1.5, sm: 3 },
+          pb: { xs: 1.5, sm: 2 },
+          pt: { xs: 1, sm: 1.5 },
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          flexWrap: 'wrap',
+          gap: 1,
+          '& > button': { minWidth: { xs: '100%', sm: 'auto' } },
+        }}>
+          <Button onClick={() => setShowResolveDialog(false)} sx={{ textTransform: 'none' }}>
+            Anuleaza
+          </Button>
           <Button
             variant="contained"
             color="success"
             onClick={handleResolve}
             disabled={!resolutionDescription.trim()}
+            sx={{ textTransform: 'none', fontWeight: 600 }}
           >
             Finalizeaza
           </Button>

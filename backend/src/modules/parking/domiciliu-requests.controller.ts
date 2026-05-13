@@ -60,7 +60,7 @@ export class DomiciliuRequestsController {
     return this.domiciliuRequestsService.update(id, req.user.id, dto, req.user.role);
   }
 
-  @Post(':id/resolve')
+  @Patch(':id/resolve')
   async resolve(
     @Param('id') id: string,
     @Request() req,
