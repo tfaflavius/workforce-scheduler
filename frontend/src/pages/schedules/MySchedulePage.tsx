@@ -44,31 +44,31 @@ import type { HighlightScheduleState } from '../../types/navigation.types';
 
 // Helper function to parse shift info from notes
 const getShiftInfoFromNotes = (notes: string | undefined | null) => {
-  if (!notes) return { name: 'Liber', isNightShift: false, startTime: '', endTime: '', hours: 0 };
+  if (!notes) return { name: 'Liber', code: '-', color: '#94a3b8', isNightShift: false, isLeave: false, startTime: '', endTime: '', hours: 0 };
 
   // Check for leave (can be "Concediu" or "Concediu: Concediu de Odihna" etc.)
   if (notes === 'Concediu' || notes.startsWith('Concediu:') || notes.includes('Concediu')) {
-    return { name: 'Concediu', isNightShift: false, startTime: '', endTime: '', hours: 0 };
+    return { name: 'Concediu', code: 'CO', color: '#d97706', isNightShift: false, isLeave: true, startTime: '', endTime: '', hours: 0 };
   }
   if (notes.includes('07:00-19:00')) {
-    return { name: 'Zi 12h', isNightShift: false, startTime: '07:00', endTime: '19:00', hours: 12 };
+    return { name: 'Zi 12h', code: 'Z', color: '#10b981', isNightShift: false, isLeave: false, startTime: '07:00', endTime: '19:00', hours: 12 };
   }
   if (notes.includes('19:00-07:00')) {
-    return { name: 'Noapte 12h', isNightShift: true, startTime: '19:00', endTime: '07:00', hours: 12 };
+    return { name: 'Noapte 12h', code: 'N', color: '#3b82f6', isNightShift: true, isLeave: false, startTime: '19:00', endTime: '07:00', hours: 12 };
   }
   if (notes.includes('07:30-15:30')) {
-    return { name: 'Zi 8h', isNightShift: false, startTime: '07:30', endTime: '15:30', hours: 8 };
+    return { name: 'Zi 8h', code: 'Z3', color: '#a16207', isNightShift: false, isLeave: false, startTime: '07:30', endTime: '15:30', hours: 8 };
   }
   if (notes.includes('06:00-14:00')) {
-    return { name: 'Zi 8h', isNightShift: false, startTime: '06:00', endTime: '14:00', hours: 8 };
+    return { name: 'Zi 8h', code: 'Z1', color: '#0891b2', isNightShift: false, isLeave: false, startTime: '06:00', endTime: '14:00', hours: 8 };
   }
   if (notes.includes('14:00-22:00')) {
-    return { name: 'Zi 8h', isNightShift: false, startTime: '14:00', endTime: '22:00', hours: 8 };
+    return { name: 'Zi 8h', code: 'Z2', color: '#7c3aed', isNightShift: false, isLeave: false, startTime: '14:00', endTime: '22:00', hours: 8 };
   }
   if (notes.includes('22:00-06:00')) {
-    return { name: 'Noapte 8h', isNightShift: true, startTime: '22:00', endTime: '06:00', hours: 8 };
+    return { name: 'Noapte 8h', code: 'N8', color: '#1e40af', isNightShift: true, isLeave: false, startTime: '22:00', endTime: '06:00', hours: 8 };
   }
-  return { name: notes, isNightShift: false, startTime: '', endTime: '', hours: 0 };
+  return { name: notes, code: '?', color: '#94a3b8', isNightShift: false, isLeave: false, startTime: '', endTime: '', hours: 0 };
 };
 
 // Constants extracted outside component to avoid re-creation per render
@@ -530,14 +530,13 @@ const MySchedulePage = () => {
                     sx={{
                       minHeight: { xs: 60, sm: 80, md: 100 },
                       border: today ? '2px solid' : '1px solid',
-                      borderColor: today ? 'primary.main' : 'divider',
+                      borderColor: today ? 'primary.main' : 'rgba(255, 255, 255, 0.10)',
+                      // Use slate dark surfaces — shift color comes from chip inside
                       bgcolor: today
-                        ? 'primary.lighter'
-                        : assignment
-                        ? 'white'
+                        ? 'rgba(59, 130, 246, 0.16)'
                         : isWeekend
-                        ? 'grey.100'
-                        : 'grey.50',
+                        ? 'rgba(239, 68, 68, 0.08)'
+                        : 'rgba(255, 255, 255, 0.03)',
                       transition: 'all 0.2s',
                       '&:hover': { boxShadow: 2 },
                     }}
@@ -564,10 +563,16 @@ const MySchedulePage = () => {
                         <Box sx={{ mt: 0.5 }}>
                           <Chip
                             size="small"
-                            icon={isTablet ? undefined : (shiftInfo.isNightShift ? <NightIcon /> : <DayIcon />)}
-                            label={shiftInfo.name?.substring(0, isTablet ? 4 : 8) || 'T'}
-                            color={shiftInfo.isNightShift ? 'info' : 'warning'}
-                            sx={{ fontSize: { xs: '0.6rem', sm: '0.7rem' }, height: { xs: 18, sm: 22 } }}
+                            label={isTablet ? shiftInfo.code : shiftInfo.name}
+                            sx={{
+                              fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                              height: { xs: 20, sm: 22 },
+                              bgcolor: shiftInfo.color,
+                              color: '#fff',
+                              fontWeight: 700,
+                              maxWidth: '100%',
+                              '& .MuiChip-label': { px: 0.75 },
+                            }}
                           />
                           {!isTablet && shiftInfo.startTime && (
                             <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.65rem' }}>
@@ -617,8 +622,8 @@ const MySchedulePage = () => {
                   sx={{
                     p: 2,
                     border: today ? '2px solid' : '1px solid',
-                    borderColor: today ? 'primary.main' : 'divider',
-                    bgcolor: today ? 'primary.lighter' : 'white',
+                    borderColor: today ? 'primary.main' : 'rgba(255, 255, 255, 0.10)',
+                    bgcolor: today ? 'rgba(59, 130, 246, 0.16)' : 'background.paper',
                   }}
                 >
                   <Grid container alignItems="center" spacing={2}>
