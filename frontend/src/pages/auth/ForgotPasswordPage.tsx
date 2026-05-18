@@ -125,7 +125,7 @@ export const ForgotPasswordPage = () => {
             maxWidth: 460,
             p: { xs: 3, sm: 4 },
             borderRadius: 4,
-            bgcolor: alpha('#1e293b', 0.95),
+            bgcolor: theme.palette.mode === 'light' ? '#ffffff' : alpha('#1e293b', 0.95),
             position: 'relative',
             zIndex: 1,
           }}

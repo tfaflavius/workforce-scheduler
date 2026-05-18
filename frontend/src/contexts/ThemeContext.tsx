@@ -33,13 +33,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     document.documentElement.setAttribute('data-theme', mode);
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', mode === 'light' ? '#1e293b' : '#111827');
+      metaThemeColor.setAttribute('content', mode === 'light' ? '#f1f5f9' : '#0f172a');
     }
   }, [mode]);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
   };
+
+  const isLight = mode === 'light';
 
   const theme = useMemo(
     () =>
@@ -54,68 +56,61 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           },
         },
         palette: {
-          mode: 'dark',
+          mode,
           primary: {
-            main: '#3b82f6',
+            main: '#2563eb',
             light: '#60a5fa',
             dark: '#1d4ed8',
           },
+          // Slate gray — never purple. Keeps app feeling professional, not "feminine".
           secondary: {
-            main: '#94a3b8',
-            light: '#cbd5e1',
-            dark: '#64748b',
+            main: '#475569',
+            light: '#64748b',
+            dark: '#334155',
           },
           success: {
-            main: '#10b981',
-            light: '#34d399',
-            dark: '#059669',
+            main: '#059669',
+            light: '#10b981',
+            dark: '#047857',
           },
           warning: {
-            main: '#f59e0b',
-            light: '#fbbf24',
-            dark: '#d97706',
+            main: '#d97706',
+            light: '#f59e0b',
+            dark: '#b45309',
           },
           error: {
-            main: '#ef4444',
-            light: '#f87171',
-            dark: '#dc2626',
+            main: '#dc2626',
+            light: '#ef4444',
+            dark: '#b91c1c',
           },
           info: {
-            main: '#06b6d4',
-            light: '#22d3ee',
-            dark: '#0891b2',
+            main: '#0891b2',
+            light: '#06b6d4',
+            dark: '#155e75',
           },
-          // Inverted grey scale for dark theme: low numbers stay subtle (close to bg),
-          // high numbers become bright (contrast text). Code that uses bgcolor: 'grey.50'
-          // for subtle panels and color: 'grey.500' for neutral icons now works correctly.
-          grey: {
-            50: '#1e293b',
-            100: '#293548',
-            200: '#334155',
-            300: '#475569',
-            400: '#64748b',
-            500: '#94a3b8',
-            600: '#cbd5e1',
-            700: '#e2e8f0',
-            800: '#f1f5f9',
-            900: '#f8fafc',
-            A100: '#293548',
-            A200: '#334155',
-            A400: '#64748b',
-            A700: '#475569',
-          },
-          background: {
-            // Page bg: medium-dark, warm slate for "light" mode; deeper navy for "dark"
-            default: mode === 'light' ? '#1e293b' : '#0f172a',
-            // Card/paper bg: clearly lighter than page so cards stand out
-            paper: mode === 'light' ? '#334155' : '#1e293b',
-          },
-          text: {
-            primary: '#f8fafc',
-            // Brighter secondary for better readability
-            secondary: '#cbd5e1',
-          },
-          divider: 'rgba(255, 255, 255, 0.14)',
+          ...(isLight
+            ? {
+                background: {
+                  default: '#f1f5f9',
+                  paper: '#ffffff',
+                },
+                text: {
+                  primary: '#0f172a',
+                  secondary: '#475569',
+                },
+                divider: 'rgba(15, 23, 42, 0.12)',
+              }
+            : {
+                background: {
+                  default: '#0f172a',
+                  paper: '#1e293b',
+                },
+                text: {
+                  primary: '#f1f5f9',
+                  secondary: '#cbd5e1',
+                },
+                divider: 'rgba(255, 255, 255, 0.14)',
+              }),
         },
         typography: {
           fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -166,7 +161,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               root: {
                 backdropFilter: 'blur(4px)',
-                backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                backgroundColor: isLight ? 'rgba(15, 23, 42, 0.4)' : 'rgba(0, 0, 0, 0.6)',
               },
             },
           },
@@ -197,32 +192,29 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 '&:hover': {
                   transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+                  boxShadow: isLight
+                    ? '0 4px 12px rgba(15, 23, 42, 0.12)'
+                    : '0 4px 12px rgba(0, 0, 0, 0.25)',
                 },
                 '&:active': {
                   transform: 'scale(0.98)',
                 },
               },
               contained: {
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                boxShadow: isLight
+                  ? '0 2px 8px rgba(15, 23, 42, 0.1)'
+                  : '0 2px 8px rgba(0, 0, 0, 0.2)',
                 '&.MuiButton-containedPrimary': {
                   backgroundImage: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                 },
                 '&.MuiButton-containedSecondary': {
-                  backgroundImage: 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
+                  backgroundImage: 'linear-gradient(135deg, #475569 0%, #334155 100%)',
                 },
                 '&.MuiButton-containedSuccess': {
                   backgroundImage: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 },
                 '&.MuiButton-containedError': {
                   backgroundImage: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                },
-              },
-              outlined: {
-                borderColor: 'rgba(255, 255, 255, 0.18)',
-                '&:hover': {
-                  borderColor: 'rgba(255, 255, 255, 0.32)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.04)',
                 },
               },
               sizeSmall: {
@@ -260,18 +252,21 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 overflow: 'hidden',
                 maxWidth: '100%',
                 contain: 'content',
-                border: '1px solid rgba(255, 255, 255, 0.10)',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.18)',
+                border: isLight
+                  ? '1px solid rgba(15, 23, 42, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: isLight
+                  ? '0 1px 2px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.04)'
+                  : '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.18)',
                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                // Solid lighter card surface for clear contrast against page bg
-                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
                 backgroundImage: 'none',
                 '&[role="button"], &:has(.MuiCardActionArea-root)': {
                   cursor: 'pointer',
                   '&:hover': {
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.25)',
-                    borderColor: 'rgba(255, 255, 255, 0.16)',
+                    boxShadow: isLight
+                      ? '0 4px 12px rgba(15, 23, 42, 0.08), 0 8px 24px rgba(15, 23, 42, 0.06)'
+                      : '0 6px 16px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.25)',
                   },
                 },
               },
@@ -283,14 +278,19 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 12,
                 maxWidth: '100%',
                 backgroundImage: 'none',
-                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
               },
               elevation0: {
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: isLight
+                  ? '1px solid rgba(15, 23, 42, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
               },
               elevation1: {
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15)',
+                border: isLight
+                  ? '1px solid rgba(15, 23, 42, 0.06)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: isLight
+                  ? '0 1px 2px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.03)'
+                  : '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15)',
               },
             },
           },
@@ -300,11 +300,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 8,
                 fontWeight: 500,
                 maxWidth: '100%',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              },
-              outlined: {
-                borderColor: 'rgba(255, 255, 255, 0.18)',
+                border: isLight
+                  ? '1px solid rgba(15, 23, 42, 0.10)'
+                  : '1px solid rgba(255, 255, 255, 0.12)',
               },
             },
           },
@@ -313,35 +311,23 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 10,
-                  // Clearly visible input surface against card bg
-                  backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                  backgroundColor: isLight
+                    ? '#ffffff'
+                    : 'rgba(255, 255, 255, 0.03)',
                   transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255, 255, 255, 0.18)',
+                    borderColor: isLight ? 'rgba(15, 23, 42, 0.16)' : 'rgba(255, 255, 255, 0.18)',
                   },
                   '&:hover': {
-                    backgroundColor: 'rgba(15, 23, 42, 0.65)',
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'rgba(255, 255, 255, 0.28)',
+                      borderColor: isLight ? 'rgba(15, 23, 42, 0.28)' : 'rgba(255, 255, 255, 0.28)',
                     },
                   },
                   '&.Mui-focused': {
-                    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-                    boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.18), 0 4px 12px rgba(59, 130, 246, 0.12)',
+                    boxShadow: isLight
+                      ? '0 0 0 3px rgba(37, 99, 235, 0.14)'
+                      : '0 0 0 3px rgba(59, 130, 246, 0.18)',
                   },
-                },
-              },
-            },
-          },
-          MuiOutlinedInput: {
-            styleOverrides: {
-              root: {
-                backgroundColor: 'rgba(15, 23, 42, 0.5)',
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'rgba(255, 255, 255, 0.18)',
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'rgba(255, 255, 255, 0.28)',
                 },
               },
             },
@@ -358,9 +344,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               paper: {
                 borderRadius: 16,
                 padding: '4px',
-                border: '1px solid rgba(255, 255, 255, 0.10)',
-                boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3)',
-                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
+                border: isLight
+                  ? '1px solid rgba(15, 23, 42, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: isLight
+                  ? '0 24px 48px rgba(15, 23, 42, 0.18), 0 8px 16px rgba(15, 23, 42, 0.10)'
+                  : '0 24px 48px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.3)',
                 backgroundImage: 'none',
               },
             },
@@ -372,17 +361,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 fontSize: 'clamp(0.8rem, 1.5vw, 0.875rem)',
                 overflowWrap: 'break-word' as const,
                 minHeight: 48,
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
               },
               sizeSmall: {
                 padding: 'clamp(6px, 1vw, 10px)',
               },
               head: {
                 fontWeight: 600,
-                color: '#f8fafc',
-                backgroundColor: mode === 'light' ? '#475569' : '#334155',
-                backgroundImage: 'none',
-                borderBottom: '2px solid rgba(255, 255, 255, 0.12)',
+                backgroundColor: isLight ? '#f1f5f9' : '#334155',
+                backgroundImage: isLight
+                  ? 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)'
+                  : 'linear-gradient(180deg, #3b4252 0%, #334155 100%)',
+                borderBottom: isLight ? '2px solid #e2e8f0' : '2px solid #475569',
               },
             },
           },
@@ -392,13 +381,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 contain: 'layout style',
                 transition: 'background-color 0.15s ease',
                 '&:nth-of-type(even)': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.025)',
+                  backgroundColor: isLight ? 'rgba(15, 23, 42, 0.02)' : 'rgba(255, 255, 255, 0.025)',
                 },
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  backgroundColor: isLight ? '#f8fafc' : 'rgba(255, 255, 255, 0.06)',
                 },
                 '&:active': {
-                  backgroundColor: 'rgba(96, 165, 250, 0.08)',
+                  backgroundColor: isLight ? 'rgba(37, 99, 235, 0.05)' : 'rgba(96, 165, 250, 0.08)',
                 },
                 WebkitTapHighlightColor: 'transparent',
               },
@@ -413,10 +402,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 minHeight: 44,
                 padding: 'clamp(6px, 1vw, 12px) clamp(8px, 1.5vw, 24px)',
                 transition: 'color 0.2s ease, background-color 0.2s ease',
-                color: '#cbd5e1',
                 '&.Mui-selected': {
                   fontWeight: 600,
-                  color: '#f8fafc',
                 },
               },
             },
@@ -426,7 +413,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               indicator: {
                 height: 3,
                 borderRadius: '3px 3px 0 0',
-                backgroundImage: 'linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%)',
+                // Blue-only gradient — no purple to keep things professional
+                backgroundImage: 'linear-gradient(90deg, #60a5fa 0%, #2563eb 100%)',
               },
             },
           },
@@ -438,7 +426,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 transition: 'transform 0.2s ease, background-color 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.08)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.10)',
+                  backgroundColor: isLight ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.10)',
                 },
               },
               sizeSmall: {
@@ -452,28 +440,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 borderRadius: 12,
                 borderLeft: '4px solid',
-                backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                color: '#f8fafc',
-              },
-              standardSuccess: {
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                color: '#d1fae5',
-                borderColor: '#10b981',
-              },
-              standardError: {
-                backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                color: '#fecaca',
-                borderColor: '#ef4444',
-              },
-              standardWarning: {
-                backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                color: '#fde68a',
-                borderColor: '#f59e0b',
-              },
-              standardInfo: {
-                backgroundColor: 'rgba(6, 182, 212, 0.15)',
-                color: '#cffafe',
-                borderColor: '#06b6d4',
               },
             },
           },
@@ -483,13 +449,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 borderRadius: 10,
                 fontSize: '0.813rem',
                 padding: '8px 14px',
-                backgroundColor: '#475569',
+                backgroundColor: isLight ? '#0f172a' : '#475569',
                 color: '#f8fafc',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
               },
               arrow: {
-                color: '#475569',
+                color: isLight ? '#0f172a' : '#475569',
               },
             },
           },
@@ -499,12 +464,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 minHeight: 44,
                 fontSize: 'clamp(0.85rem, 1.5vw, 0.938rem)',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  backgroundColor: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.06)',
                 },
                 '&.Mui-selected': {
-                  backgroundColor: 'rgba(59, 130, 246, 0.16)',
+                  backgroundColor: isLight ? 'rgba(37, 99, 235, 0.10)' : 'rgba(59, 130, 246, 0.16)',
                   '&:hover': {
-                    backgroundColor: 'rgba(59, 130, 246, 0.22)',
+                    backgroundColor: isLight ? 'rgba(37, 99, 235, 0.14)' : 'rgba(59, 130, 246, 0.22)',
                   },
                 },
               },
@@ -514,9 +479,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               paper: {
                 borderRadius: 12,
-                border: '1px solid rgba(255, 255, 255, 0.10)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
-                backgroundColor: mode === 'light' ? '#334155' : '#1e293b',
+                border: isLight
+                  ? '1px solid rgba(15, 23, 42, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.10)',
+                boxShadow: isLight
+                  ? '0 8px 32px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)',
                 backgroundImage: 'none',
               },
             },
@@ -527,12 +495,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 minHeight: 44,
                 WebkitTapHighlightColor: 'transparent',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  backgroundColor: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.06)',
                 },
                 '&.Mui-selected': {
-                  backgroundColor: 'rgba(59, 130, 246, 0.14)',
+                  backgroundColor: isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(59, 130, 246, 0.14)',
                   '&:hover': {
-                    backgroundColor: 'rgba(59, 130, 246, 0.20)',
+                    backgroundColor: isLight ? 'rgba(37, 99, 235, 0.12)' : 'rgba(59, 130, 246, 0.20)',
                   },
                 },
               },
@@ -542,8 +510,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             styleOverrides: {
               paper: {
                 borderRight: 'none',
-                boxShadow: '2px 0 12px rgba(0, 0, 0, 0.3)',
-                backgroundColor: mode === 'light' ? '#1e293b' : '#0f172a',
+                boxShadow: isLight
+                  ? '2px 0 12px rgba(15, 23, 42, 0.08)'
+                  : '2px 0 12px rgba(0, 0, 0, 0.3)',
                 backgroundImage: 'none',
               },
             },
@@ -551,7 +520,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiAppBar: {
             styleOverrides: {
               root: {
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+                boxShadow: isLight
+                  ? '0 1px 3px rgba(15, 23, 42, 0.08)'
+                  : '0 1px 3px rgba(0, 0, 0, 0.3)',
                 backgroundImage: 'none',
               },
             },
@@ -559,11 +530,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiFab: {
             styleOverrides: {
               root: {
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
                 transition: 'transform 0.2s ease, box-shadow 0.2s ease',
                 '&:hover': {
                   transform: 'scale(1.05)',
-                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.35)',
+                  boxShadow: '0 6px 20px rgba(15, 23, 42, 0.25)',
                 },
               },
             },
@@ -571,30 +542,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiDivider: {
             styleOverrides: {
               root: {
-                borderColor: 'rgba(255, 255, 255, 0.10)',
-              },
-            },
-          },
-          MuiInputLabel: {
-            styleOverrides: {
-              root: {
-                color: '#cbd5e1',
-                '&.Mui-focused': {
-                  color: '#60a5fa',
-                },
-              },
-            },
-          },
-          MuiFormHelperText: {
-            styleOverrides: {
-              root: {
-                color: '#94a3b8',
+                borderColor: isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.10)',
               },
             },
           },
         },
       }),
-    [mode]
+    [mode, isLight]
   );
 
   const value = useMemo(() => ({ mode, toggleTheme }), [mode]);

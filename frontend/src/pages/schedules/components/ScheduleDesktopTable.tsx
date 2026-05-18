@@ -88,8 +88,8 @@ const renderStatusChip = (status?: string) => {
 
 const renderDayCellContent = (existingAssignments: AssignmentInfo[] | undefined, isWeekend: boolean) => {
   let cellContent: React.ReactNode = '-';
-  // Subtle slate tint for weekends; light slate for weekdays — visible on dark theme without being harsh
-  let cellBgColor = isWeekend ? 'rgba(239, 68, 68, 0.10)' : 'rgba(255, 255, 255, 0.03)';
+  // Subtle red tint for weekends, transparent for weekdays — works on light theme
+  let cellBgColor = isWeekend ? 'rgba(220, 38, 38, 0.06)' : 'transparent';
 
   if (existingAssignments && existingAssignments.length > 0) {
     if (existingAssignments.length === 1) {
@@ -202,19 +202,16 @@ const ScheduleDesktopTable: React.FC<ScheduleDesktopTableProps> = ({
                   p: 0.3,
                   minWidth: 32,
                   maxWidth: 38,
-                  // Dark slate variants — distinct but never bright white
-                  bgcolor: isWeekend ? 'rgba(239, 68, 68, 0.12)' : '#475569',
+                  bgcolor: isWeekend ? 'rgba(220, 38, 38, 0.08)' : 'background.paper',
                   fontWeight: 'bold',
                   fontSize: '0.65rem',
-                  color: '#f8fafc',
-                  borderBottom: '2px solid rgba(255, 255, 255, 0.14)',
                 }}
               >
                 <Box>
-                  <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? '#fca5a5' : '#cbd5e1', fontWeight: 600 }}>
+                  <Typography sx={{ fontSize: '0.55rem', color: isWeekend ? 'error.main' : 'text.secondary', fontWeight: 600 }}>
                     {dayOfWeek}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold', color: '#f8fafc' }}>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 'bold' }}>
                     {day}
                   </Typography>
                 </Box>
@@ -290,10 +287,11 @@ const ScheduleDesktopTable: React.FC<ScheduleDesktopTableProps> = ({
                       sx={{
                         p: isMultipleAssignments ? 0 : 0.2,
                         bgcolor: cellBgColor,
-                        color: existingAssignments ? 'white' : '#cbd5e1',
+                        color: existingAssignments ? 'white' : 'text.secondary',
                         fontWeight: 'bold',
                         fontSize: '0.65rem',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        border: '1px solid',
+                        borderColor: 'divider',
                       }}
                     >
                       {cellContent}
