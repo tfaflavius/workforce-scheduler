@@ -47,6 +47,7 @@ const PermissionsPage = lazy(() => import('../pages/permissions/PermissionsPage'
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'));
 const NotificationRedirectPage = lazy(() => import('../pages/notifications/NotificationRedirectPage'));
 const EquipmentStockPage = lazy(() => import('../pages/equipment-stock/EquipmentStockPage'));
+const ControlNotesPage = lazy(() => import('../pages/control-notes/ControlNotesPage'));
 const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
 /** Skeleton placeholder shown while lazy-loaded pages are being fetched */
@@ -295,6 +296,16 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME]}>
               <SafePage><EquipmentStockPage /></SafePage>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Note de Constatare (Control Parcari) - Parcometre dept enters the data; Admin & Manager always have access */}
+        <Route
+          path="/note-constatare"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PARCOMETRE_DEPARTMENT_NAME]}>
+              <SafePage><ControlNotesPage /></SafePage>
             </ProtectedRoute>
           }
         />

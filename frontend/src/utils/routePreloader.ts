@@ -27,6 +27,7 @@ const routeImports: Record<string, () => Promise<unknown>> = {
   '/achizitii': () => import('../pages/departments/AchizitiiPage'),
   '/incasari-cheltuieli': () => import('../pages/departments/IncasariCheltuieliPage'),
   '/control-sesizari': () => import('../pages/parking/ControlSesizariPage'),
+  '/note-constatare': () => import('../pages/control-notes/ControlNotesPage'),
 };
 
 const preloadedRoutes = new Set<string>();
