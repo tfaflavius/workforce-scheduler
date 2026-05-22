@@ -30,6 +30,7 @@ import {
   History as OldIcon,
   Search as SearchIcon,
   FilterList as FilterIcon,
+  Map as MapLinkIcon,
 } from '@mui/icons-material';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -40,7 +41,7 @@ import {
   useUpdateParkingMeterMutation,
   useDeleteParkingMeterMutation,
 } from '../../store/api/parking.api';
-import type { ParkingMeter, ParkingZone, PowerSource, MeterCondition } from '../../types/parking.types';
+import type { ParkingMeter, ParkingZone, PowerSource, MeterCondition, ParkingMeterSourceColor } from '../../types/parking.types';
 
 // Fix default marker icons in Leaflet + Vite
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,34 +63,65 @@ const ZONE_LABELS: Record<ParkingZone, string> = { ROSU: 'Rosu', GALBEN: 'Galben
 const POWER_LABELS: Record<PowerSource, string> = { CURENT: 'Curent', SOLAR: 'Solar' };
 const CONDITION_LABELS: Record<MeterCondition, string> = { NOU: 'Nou', VECHI: 'Vechi' };
 
-// Create zone-colored marker icon
-const createZoneIcon = (zone: ParkingZone) => {
-  const colors = ZONE_COLORS[zone];
+// Source-color mapping from the canonical Google My Maps. Yellow = solar new,
+// pink = numbered legacy, blue = street-named legacy. ⚡ overlay = has electric supply.
+const SOURCE_COLORS: Record<ParkingMeterSourceColor, { bg: string; shadow: string; label: string }> = {
+  YELLOW: { bg: '#facc15', shadow: 'rgba(250,204,21,0.55)', label: 'Solar nou' },
+  PINK: { bg: '#db2777', shadow: 'rgba(219,39,119,0.45)', label: 'Numerotat (31+)' },
+  BLUE: { bg: '#0288d1', shadow: 'rgba(2,136,209,0.45)', label: 'Pe strada' },
+};
+
+// Builds a marker icon that matches the source My Maps style: round colour disc
+// + tiny lightning bolt badge in the bottom-right when the meter has mains current.
+// Falls back to the parking-zone palette for meters that were never imported
+// from the source map (manual entries).
+const createSourceIcon = (sourceColor: ParkingMeterSourceColor | null | undefined, hasElectric: boolean, fallbackZone: ParkingZone) => {
+  const colors = sourceColor
+    ? { bg: SOURCE_COLORS[sourceColor].bg, border: '#ffffff', shadow: SOURCE_COLORS[sourceColor].shadow }
+    : ZONE_COLORS[fallbackZone];
+  const boltBadge = hasElectric
+    ? `<div style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#1d4ed8;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:900;line-height:1;">⚡</div>`
+    : '';
   return L.divIcon({
     className: 'parking-meter-marker',
-    html: `<div style="
-      background-color: ${colors.bg};
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 3px solid ${colors.border};
-      box-shadow: 0 2px 8px ${colors.shadow};
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    "><span style="color: white; font-size: 14px; font-weight: 700;">P</span></div>`,
+    html: `<div style="position:relative;width:28px;height:28px;">
+      <div style="
+        background-color: ${colors.bg};
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 3px solid ${colors.border};
+        box-shadow: 0 2px 8px ${colors.shadow};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "><span style="color: white; font-size: 14px; font-weight: 700;">P</span></div>
+      ${boltBadge}
+    </div>`,
     iconSize: [28, 28],
     iconAnchor: [14, 14],
     popupAnchor: [0, -16],
   });
 };
 
-// Pre-create icons for each zone
-const zoneIcons: Record<ParkingZone, L.DivIcon> = {
-  ROSU: createZoneIcon('ROSU'),
-  GALBEN: createZoneIcon('GALBEN'),
-  ALB: createZoneIcon('ALB'),
+// Pre-create icons: every combination of (color, hasElectric) so React can reuse them.
+const sourceIconCache: Record<string, L.DivIcon> = {};
+const getMarkerIcon = (meter: Pick<ParkingMeter, 'sourceColor' | 'hasElectricSupply' | 'zone'>) => {
+  const key = `${meter.sourceColor ?? 'NONE'}_${meter.hasElectricSupply ? 'E' : 'N'}_${meter.zone}`;
+  if (!sourceIconCache[key]) {
+    sourceIconCache[key] = createSourceIcon(meter.sourceColor ?? null, meter.hasElectricSupply ?? false, meter.zone);
+  }
+  return sourceIconCache[key];
 };
+
+// Fallback marker for manually-created meters that don't yet have a sourceColor.
+const fallbackMeter: Pick<ParkingMeter, 'sourceColor' | 'hasElectricSupply' | 'zone'> = {
+  sourceColor: null,
+  hasElectricSupply: false,
+  zone: 'ALB',
+};
+// Eagerly create the fallback icon so the first render is instant.
+getMarkerIcon(fallbackMeter);
 
 // New meter marker (green)
 const newMeterIcon = L.divIcon({
@@ -112,6 +144,10 @@ const newMeterIcon = L.divIcon({
 
 // ORADEA center
 const ORADEA_CENTER: [number, number] = [47.06, 21.94];
+
+// Canonical Google My Maps for parking meters — used both as the seed source
+// (backend migration) and as the "open original map" link in the page header.
+const SOURCE_MY_MAPS_URL = 'https://www.google.com/maps/d/viewer?mid=1JaOtBYrTUtMHbguIjmj0BMnTozI3li0';
 
 // ============== Map Click Handler ==============
 
@@ -390,6 +426,47 @@ const ParcometrePage: React.FC = () => {
             }}
           />
         )}
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<MapLinkIcon sx={{ fontSize: 16 }} />}
+          href={SOURCE_MY_MAPS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ textTransform: 'none', fontWeight: 600 }}
+        >
+          Maps original
+        </Button>
+      </Box>
+
+      {/* Map legend — mirrors the canonical My Maps so the colour coding is consistent. */}
+      <Box sx={{ px: { xs: 2, sm: 3 }, pb: 1 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center' }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', mr: 0.5 }}>
+            Legenda:
+          </Typography>
+          <Chip
+            size="small"
+            label="Solar nou"
+            sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700, bgcolor: SOURCE_COLORS.YELLOW.bg, color: '#1f2937', border: '2px solid #fff' }}
+          />
+          <Chip
+            size="small"
+            label="Numerotat (31+)"
+            sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700, bgcolor: SOURCE_COLORS.PINK.bg, color: '#fff', border: '2px solid #fff' }}
+          />
+          <Chip
+            size="small"
+            label="Pe strada"
+            sx={{ height: 22, fontSize: '0.7rem', fontWeight: 700, bgcolor: SOURCE_COLORS.BLUE.bg, color: '#fff', border: '2px solid #fff' }}
+          />
+          <Chip
+            size="small"
+            icon={<ElectricIcon sx={{ fontSize: '14px !important', color: '#fff !important' }} />}
+            label="Cu curent (⚡)"
+            sx={{ height: 22, fontSize: '0.7rem', fontWeight: 600, bgcolor: '#1d4ed8', color: '#fff' }}
+          />
+        </Box>
       </Box>
 
       {/* Info bar */}
@@ -628,17 +705,20 @@ const ParcometrePage: React.FC = () => {
 
             <MapClickHandler onMapClick={handleMapClick} popupOpenRef={popupOpenRef} />
 
-            {/* Existing parking meter markers (filtered) */}
+            {/* Existing parking meter markers (filtered).
+                Marker colour mirrors the source My Maps: yellow=solar new,
+                pink=numbered legacy, blue=street legacy. ⚡ overlay marks
+                meters that also have a mains electric supply. */}
             {filteredMeters.map((meter) => (
               <Marker
                 key={meter.id}
                 position={[Number(meter.latitude), Number(meter.longitude)]}
-                icon={zoneIcons[meter.zone] || zoneIcons.ALB}
+                icon={getMarkerIcon(meter)}
               >
                 <Popup minWidth={220} maxWidth={300}>
                   <Box sx={{ p: 0.5 }} onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: ZONE_COLORS[meter.zone]?.bg || '#64748b' }}>
-                      {meter.name}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, color: meter.sourceColor ? SOURCE_COLORS[meter.sourceColor].bg : (ZONE_COLORS[meter.zone]?.bg || '#64748b') }}>
+                      {meter.name}{meter.hasElectricSupply ? ' ⚡' : ''}
                     </Typography>
                     {meter.address && (
                       <Typography variant="caption" sx={{ display: 'block', mb: 0.5, color: 'text.secondary' }}>

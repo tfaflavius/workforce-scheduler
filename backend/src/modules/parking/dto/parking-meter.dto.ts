@@ -6,7 +6,12 @@ import {
   IsBoolean,
   IsEnum,
 } from 'class-validator';
-import { ParkingZone, PowerSource, MeterCondition } from '../entities/parking-meter.entity';
+import {
+  ParkingZone,
+  PowerSource,
+  MeterCondition,
+  ParkingMeterSourceColor,
+} from '../entities/parking-meter.entity';
 
 export class CreateParkingMeterDto {
   @IsString()
@@ -31,6 +36,18 @@ export class CreateParkingMeterDto {
 
   @IsEnum(MeterCondition)
   condition: MeterCondition;
+
+  @IsOptional()
+  @IsEnum(ParkingMeterSourceColor)
+  sourceColor?: ParkingMeterSourceColor | null;
+
+  @IsOptional()
+  @IsBoolean()
+  hasElectricSupply?: boolean;
+
+  @IsOptional()
+  @IsString()
+  externalMapUrl?: string | null;
 }
 
 export class UpdateParkingMeterDto {
@@ -61,6 +78,18 @@ export class UpdateParkingMeterDto {
   @IsOptional()
   @IsEnum(MeterCondition)
   condition?: MeterCondition;
+
+  @IsOptional()
+  @IsEnum(ParkingMeterSourceColor)
+  sourceColor?: ParkingMeterSourceColor | null;
+
+  @IsOptional()
+  @IsBoolean()
+  hasElectricSupply?: boolean;
+
+  @IsOptional()
+  @IsString()
+  externalMapUrl?: string | null;
 
   @IsOptional()
   @IsBoolean()

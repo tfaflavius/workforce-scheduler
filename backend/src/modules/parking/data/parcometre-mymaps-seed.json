@@ -1,0 +1,996 @@
+[
+  {
+    "name": "Parcometrul 31",
+    "lat": 47.0579667,
+    "lng": 21.927891,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 32",
+    "lat": 47.059613,
+    "lng": 21.9275969,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 33",
+    "lat": 47.0486233,
+    "lng": 21.9245202,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 34",
+    "lat": 47.0627942,
+    "lng": 21.9356818,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 35",
+    "lat": 47.0759674,
+    "lng": 21.9171643,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 36",
+    "lat": 47.0752764,
+    "lng": 21.9182692,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 37",
+    "lat": 47.0754257,
+    "lng": 21.9165983,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 38",
+    "lat": 47.042218,
+    "lng": 21.9205693,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 39",
+    "lat": 47.0522775,
+    "lng": 21.9468856,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 40",
+    "lat": 47.0523086,
+    "lng": 21.9304047,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 41",
+    "lat": 47.0528816,
+    "lng": 21.9260802,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 42",
+    "lat": 47.0597506,
+    "lng": 21.9183063,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 43",
+    "lat": 47.0589317,
+    "lng": 21.9386889,
+    "sourceColor": "PINK",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 44",
+    "lat": 47.0593505,
+    "lng": 21.9377864,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 45",
+    "lat": 47.0535544,
+    "lng": 21.9398028,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 46",
+    "lat": 47.0497502,
+    "lng": 21.9416954,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 47",
+    "lat": 47.0547819,
+    "lng": 21.9231699,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 48",
+    "lat": 47.0561044,
+    "lng": 21.9376341,
+    "sourceColor": "PINK",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 49",
+    "lat": 47.0762956,
+    "lng": 21.9161051,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 50",
+    "lat": 47.0766687,
+    "lng": 21.9187239,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 51",
+    "lat": 47.0510543,
+    "lng": 21.9356205,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 52",
+    "lat": 47.0592484,
+    "lng": 21.9398798,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 53",
+    "lat": 47.0387087,
+    "lng": 21.945091,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 54",
+    "lat": 47.0656797,
+    "lng": 21.9254089,
+    "sourceColor": "PINK",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 55",
+    "lat": 47.0622776,
+    "lng": 21.9316726,
+    "sourceColor": "PINK",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 56",
+    "lat": 47.0643296,
+    "lng": 21.9342437,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 57",
+    "lat": 47.0519459,
+    "lng": 21.9356906,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 58",
+    "lat": 47.0633888,
+    "lng": 21.9377107,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 59",
+    "lat": 47.0655926,
+    "lng": 21.9286933,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 60",
+    "lat": 47.0575705,
+    "lng": 21.9216231,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 61",
+    "lat": 47.0642683,
+    "lng": 21.9239957,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 62",
+    "lat": 47.0683293,
+    "lng": 21.9328669,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 63",
+    "lat": 47.0581743,
+    "lng": 21.9246736,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 64",
+    "lat": 47.0581647,
+    "lng": 21.9252967,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 65",
+    "lat": 47.0775838,
+    "lng": 21.9169077,
+    "sourceColor": "PINK",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 66",
+    "lat": 47.0532752,
+    "lng": 21.9298171,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 67",
+    "lat": 47.0558275,
+    "lng": 21.9265218,
+    "sourceColor": "PINK",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 68",
+    "lat": 47.0452852,
+    "lng": 21.9217269,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 69",
+    "lat": 47.0449598,
+    "lng": 21.9218125,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 70",
+    "lat": 47.0507836,
+    "lng": 21.9362548,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 70 bis",
+    "lat": 47.0491198,
+    "lng": 21.9399643,
+    "sourceColor": "PINK",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 1",
+    "lat": 47.0573155,
+    "lng": 21.9265958,
+    "sourceColor": "YELLOW",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 2",
+    "lat": 47.0549795,
+    "lng": 21.9263943,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 3",
+    "lat": 47.0543787,
+    "lng": 21.9253402,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 4",
+    "lat": 47.0541692,
+    "lng": 21.9262853,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 5",
+    "lat": 47.0525928,
+    "lng": 21.9286271,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 6",
+    "lat": 47.0440291,
+    "lng": 21.9206893,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 7",
+    "lat": 47.0506524,
+    "lng": 21.9379468,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 8",
+    "lat": 47.0499947,
+    "lng": 21.9387394,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 9",
+    "lat": 47.0501203,
+    "lng": 21.9415248,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 11",
+    "lat": 47.0527678,
+    "lng": 21.9325055,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 12",
+    "lat": 47.0542006,
+    "lng": 21.9332579,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 10",
+    "lat": 47.0520922,
+    "lng": 21.9405057,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 13",
+    "lat": 47.0540089,
+    "lng": 21.9362896,
+    "sourceColor": "YELLOW",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 14",
+    "lat": 47.0549183,
+    "lng": 21.937284,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 15",
+    "lat": 47.0548488,
+    "lng": 21.9350986,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 16",
+    "lat": 47.0514873,
+    "lng": 21.9326802,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 17",
+    "lat": 47.0603922,
+    "lng": 21.9314636,
+    "sourceColor": "YELLOW",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 18",
+    "lat": 47.0597363,
+    "lng": 21.9321157,
+    "sourceColor": "YELLOW",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 19",
+    "lat": 47.0588197,
+    "lng": 21.9330565,
+    "sourceColor": "YELLOW",
+    "hasElectric": true
+  },
+  {
+    "name": "Parcometrul 20",
+    "lat": 47.057114,
+    "lng": 21.9368961,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 21",
+    "lat": 47.0593755,
+    "lng": 21.9377431,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 22",
+    "lat": 47.0582104,
+    "lng": 21.9375098,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 23",
+    "lat": 47.0583385,
+    "lng": 21.9350668,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 24",
+    "lat": 47.05955,
+    "lng": 21.9340892,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 25",
+    "lat": 47.0607853,
+    "lng": 21.9330203,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 26",
+    "lat": 47.0634829,
+    "lng": 21.9361956,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 27",
+    "lat": 47.0628591,
+    "lng": 21.9376665,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 28",
+    "lat": 47.0757822,
+    "lng": 21.917633,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 29",
+    "lat": 47.0753089,
+    "lng": 21.9187668,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Parcometrul 30",
+    "lat": 47.0763126,
+    "lng": 21.9182177,
+    "sourceColor": "YELLOW",
+    "hasElectric": false
+  },
+  {
+    "name": "Aleea Strandului",
+    "lat": 47.0547456,
+    "lng": 21.9497289,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Armatei Romane 2",
+    "lat": 47.0475359,
+    "lng": 21.9237817,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Armatei Romane 3",
+    "lat": 47.046412,
+    "lng": 21.9230769,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "C. Coposu 1",
+    "lat": 47.0766045,
+    "lng": 21.9167777,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "C. Coposu 7",
+    "lat": 47.0751205,
+    "lng": 21.9200643,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "C. Coposu 8",
+    "lat": 47.0740733,
+    "lng": 21.92239,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Cazaban 1",
+    "lat": 47.0669522,
+    "lng": 21.9058085,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Cazaban 2",
+    "lat": 47.0678454,
+    "lng": 21.9038564,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Cazaban 3",
+    "lat": 47.0682143,
+    "lng": 21.9030401,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Cazaban 4",
+    "lat": 47.0671575,
+    "lng": 21.9100565,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Clujului 3",
+    "lat": 47.0512094,
+    "lng": 21.9485918,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Crinului",
+    "lat": 47.0512343,
+    "lng": 21.9341013,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Crinului 2",
+    "lat": 47.0500886,
+    "lng": 21.9338256,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Cuza Voda 2",
+    "lat": 47.0525091,
+    "lng": 21.9286155,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Cuza Voda 4",
+    "lat": 47.0529673,
+    "lng": 21.9224679,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Dacia",
+    "lat": 47.0706524,
+    "lng": 21.9208313,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Decebal 1",
+    "lat": 47.0663676,
+    "lng": 21.923894,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Decebal 2",
+    "lat": 47.0664799,
+    "lng": 21.9234555,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Decebal 4",
+    "lat": 47.0509664,
+    "lng": 21.9190965,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Aleea Gojdu 1",
+    "lat": 47.0548298,
+    "lng": 21.9363633,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Aleea Gojdu 2",
+    "lat": 47.0545637,
+    "lng": 21.9348605,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Gh Doja 1",
+    "lat": 47.059467,
+    "lng": 21.9412424,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Gh Doja 2",
+    "lat": 47.0605402,
+    "lng": 21.9423411,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Grivitei 1",
+    "lat": 47.0503833,
+    "lng": 21.9404409,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Grivitei 2",
+    "lat": 47.0501066,
+    "lng": 21.941499,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Iuliu Maniu 4",
+    "lat": 47.0551369,
+    "lng": 21.919919,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "L. Pasteur 2",
+    "lat": 47.0620311,
+    "lng": 21.9409053,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "M. Kogalniceanu 3",
+    "lat": 47.0519448,
+    "lng": 21.9292312,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "M. Kogalniceanu 4",
+    "lat": 47.0520324,
+    "lng": 21.9265978,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Magheru 1",
+    "lat": 47.0608284,
+    "lng": 21.9394547,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Mihai Viteazul",
+    "lat": 47.0520379,
+    "lng": 21.9320882,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Muzeului",
+    "lat": 47.0676088,
+    "lng": 21.9340914,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "N. Jiga 4",
+    "lat": 47.0655787,
+    "lng": 21.9312468,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Nufarului 1",
+    "lat": 47.0317865,
+    "lng": 21.952418,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Nufarului 2",
+    "lat": 47.0307324,
+    "lng": 21.9541939,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Onestilor",
+    "lat": 47.0663911,
+    "lng": 21.9117596,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "P. Petofi 1",
+    "lat": 47.0661968,
+    "lng": 21.9343779,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "P. Petofi 2",
+    "lat": 47.0657492,
+    "lng": 21.9335251,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Parc Traian 1",
+    "lat": 47.0583566,
+    "lng": 21.9350796,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Parc Traian 3",
+    "lat": 47.0568135,
+    "lng": 21.9374312,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Primariei 2",
+    "lat": 47.0561587,
+    "lng": 21.9246414,
+    "sourceColor": "BLUE",
+    "hasElectric": true
+  },
+  {
+    "name": "Primariei 4",
+    "lat": 47.0569197,
+    "lng": 21.9233353,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Primariei 5",
+    "lat": 47.0567373,
+    "lng": 21.9210067,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Pta . 1 Decembrie 5",
+    "lat": 47.0541326,
+    "lng": 21.936105,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Pta. 1 Decembrie 6",
+    "lat": 47.0523621,
+    "lng": 21.9345514,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Cantacuzino",
+    "lat": 47.0715982,
+    "lng": 21.9292177,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Roman Ciorogariu 1",
+    "lat": 47.0641021,
+    "lng": 21.929013,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Roman Ciorogariu 2",
+    "lat": 47.0625273,
+    "lng": 21.9296511,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Simion Barnutiu",
+    "lat": 47.0580794,
+    "lng": 21.9209467,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Sirul Canonicilor 2",
+    "lat": 47.0699441,
+    "lng": 21.932358,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Sf. Apostol Andrei 2",
+    "lat": 47.0656719,
+    "lng": 21.9217747,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Evreilor Deportati 2",
+    "lat": 47.0508892,
+    "lng": 21.9243614,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Tudor Vladimirescu 3",
+    "lat": 47.0594324,
+    "lng": 21.9221076,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Teatrului",
+    "lat": 47.0573618,
+    "lng": 21.9298482,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Transilvaniei 3",
+    "lat": 47.0788634,
+    "lng": 21.9180229,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Transilvaniei 4",
+    "lat": 47.0785007,
+    "lng": 21.9184871,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Universitatii 2",
+    "lat": 47.043088,
+    "lng": 21.9198776,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Universitatii 3",
+    "lat": 47.0434371,
+    "lng": 21.9204409,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Universitatii 5",
+    "lat": 47.0420931,
+    "lng": 21.9178092,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Razboieni 1",
+    "lat": 47.0445842,
+    "lng": 21.9514382,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Razboieni 2",
+    "lat": 47.0439179,
+    "lng": 21.9543763,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Sz. Ede",
+    "lat": 47.0612874,
+    "lng": 21.9283515,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Dimitrie Cantemir",
+    "lat": 47.0495254,
+    "lng": 21.939188,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Clujului 1",
+    "lat": 47.0539763,
+    "lng": 21.9404809,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "M. Averescu",
+    "lat": 47.0550633,
+    "lng": 21.9401889,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "MIhai Eminescu 4",
+    "lat": 47.0641111,
+    "lng": 21.9303204,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Dacia 2",
+    "lat": 47.0703016,
+    "lng": 21.9224347,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Dacia 3",
+    "lat": 47.0716955,
+    "lng": 21.9191075,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Dacia 4",
+    "lat": 47.0728112,
+    "lng": 21.9165679,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "B. S. Delavrancea",
+    "lat": 47.0590014,
+    "lng": 21.9419739,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  },
+  {
+    "name": "Gh. Costaforu",
+    "lat": 47.0480592,
+    "lng": 21.9387215,
+    "sourceColor": "BLUE",
+    "hasElectric": false
+  }
+]

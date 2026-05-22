@@ -2,6 +2,13 @@
 export type ParkingZone = 'ROSU' | 'GALBEN' | 'ALB';
 export type PowerSource = 'CURENT' | 'SOLAR';
 export type MeterCondition = 'NOU' | 'VECHI';
+/**
+ * Source-map visual category from the canonical Google My Maps:
+ *  YELLOW = new solar batch
+ *  PINK = numbered legacy batch (Parcometrul 31+)
+ *  BLUE = street-named legacy batch
+ */
+export type ParkingMeterSourceColor = 'YELLOW' | 'PINK' | 'BLUE';
 
 // Parking Meter Types
 export interface ParkingMeter {
@@ -13,6 +20,9 @@ export interface ParkingMeter {
   zone: ParkingZone;
   powerSource: PowerSource;
   condition: MeterCondition;
+  sourceColor?: ParkingMeterSourceColor | null;
+  hasElectricSupply?: boolean;
+  externalMapUrl?: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -26,6 +36,9 @@ export interface CreateParkingMeterDto {
   zone: ParkingZone;
   powerSource: PowerSource;
   condition: MeterCondition;
+  sourceColor?: ParkingMeterSourceColor | null;
+  hasElectricSupply?: boolean;
+  externalMapUrl?: string | null;
 }
 
 export interface UpdateParkingMeterDto {
@@ -36,6 +49,9 @@ export interface UpdateParkingMeterDto {
   zone?: ParkingZone;
   powerSource?: PowerSource;
   condition?: MeterCondition;
+  sourceColor?: ParkingMeterSourceColor | null;
+  hasElectricSupply?: boolean;
+  externalMapUrl?: string | null;
   isActive?: boolean;
 }
 
