@@ -49,6 +49,8 @@ import {
   ArrowForward as ArrowIcon,
   CalendarMonth as CalendarIcon,
   DirectionsCar as CarIcon,
+  Savings as SavingsIcon,
+  AssignmentTurnedIn as ControlNotesIcon,
 } from '@mui/icons-material';
 import { useGetSchedulesQuery, useGetShiftColleaguesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
@@ -911,6 +913,87 @@ const EmployeeDashboard = () => {
                 </Suspense>
               </Grid>
             </Grid>
+          )}
+
+          {/* Achizitii YTD totals card — visible when the YTD totals exist */}
+          {isAchizitiiDepartment && deptStats?.revenueYTD && (
+            <Card sx={{ mb: { xs: 2, sm: 3 } }}>
+              <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                  <SavingsIcon sx={{ color: theme.palette.success.main, fontSize: 22 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                    Incasari — Total {deptStats.revenueYTD.year}
+                  </Typography>
+                </Stack>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' }, gap: { xs: 1, sm: 1.5 } }}>
+                  <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.success.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.success.main, 0.2)}` }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                      Incasari cash
+                    </Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.success.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                      {formatRONCompact(deptStats.revenueYTD.incasari || 0)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.info.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.info.main, 0.2)}` }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                      Incasari card
+                    </Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.info.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                      {formatRONCompact(deptStats.revenueYTD.incasariCard || 0)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.error.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`, gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                      Cheltuieli
+                    </Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.error.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                      {formatRONCompact(deptStats.revenueYTD.cheltuieli || 0)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Control Notes annual KPI — Parcometre users record these and want
+              to see the headline number on their dashboard. */}
+          {isParcometreDepartment && deptStats?.controlNotes && (
+            <Card sx={{ mb: { xs: 2, sm: 3 } }}>
+              <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                  <ControlNotesIcon sx={{ color: theme.palette.primary.main, fontSize: 22 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                    Note de Constatare — {deptStats.controlNotes.year}
+                  </Typography>
+                </Stack>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' }, gap: { xs: 1, sm: 1.5 } }}>
+                  <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.primary.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                      Total note
+                    </Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.primary.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                      {(deptStats.controlNotes.grandTotal || 0).toLocaleString('ro-RO')}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.warning.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}` }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                      Zile lucratoare
+                    </Typography>
+                    <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.warning.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                      {deptStats.controlNotes.totalWorkingDays || 0}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.success.main, 0.12), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.success.main, 0.35)}`, gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                      Media / zi
+                    </Typography>
+                    <Typography variant="body1" fontWeight={900} sx={{ color: theme.palette.success.main, fontSize: { xs: '0.95rem', sm: '1.15rem' } }}>
+                      {(deptStats.controlNotes.averagePerWorkingDay || 0).toFixed(2)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
           )}
 
           {/* Equipment Stock Charts (Parcometre / Maintenance) */}

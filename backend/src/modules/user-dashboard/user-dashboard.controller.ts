@@ -20,6 +20,8 @@ import { BudgetPosition } from '../acquisitions/entities/budget-position.entity'
 import { MonthlyRevenue } from '../acquisitions/entities/monthly-revenue.entity';
 import { EquipmentStockEntry } from '../equipment-stock/entities/equipment-stock-entry.entity';
 import { EquipmentStockDefinition } from '../equipment-stock/entities/equipment-stock-definition.entity';
+import { ControlInspectionNote } from '../control-notes/entities/control-inspection-note.entity';
+import { workingDaysInMonth } from '../control-notes/utils/romanian-holidays';
 import {
   DISPECERAT_DEPARTMENT_NAME,
   CONTROL_DEPARTMENT_NAME,
@@ -70,6 +72,8 @@ export class UserDashboardController {
     private readonly equipmentStockEntryRepo: Repository<EquipmentStockEntry>,
     @InjectRepository(EquipmentStockDefinition)
     private readonly equipmentStockDefRepo: Repository<EquipmentStockDefinition>,
+    @InjectRepository(ControlInspectionNote)
+    private readonly controlNotesRepo: Repository<ControlInspectionNote>,
   ) {}
 
   @Get('stats')
@@ -211,12 +215,26 @@ export class UserDashboardController {
             .leftJoin('a.budgetPosition', 'bp')
             .where('bp.year = :year', { year: currentYear })
             .getRawOne(),
-        ]).then(([revTotals, budgetTotals, acqTotals]) => {
+          // Year-to-date sums across all months — used for the dashboard summary card.
+          this.monthlyRevenueRepo
+            .createQueryBuilder('mr')
+            .select('COALESCE(SUM(mr.incasari), 0)', 'incasari')
+            .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
+            .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
+            .where('mr.year = :year', { year: currentYear })
+            .getRawOne(),
+        ]).then(([revTotals, budgetTotals, acqTotals, revYTD]) => {
           response.revenue = {
             incasari: parseFloat(revTotals?.incasari || '0'),
             incasariCard: parseFloat(revTotals?.incasariCard || '0'),
             cheltuieli: parseFloat(revTotals?.cheltuieli || '0'),
             month: currentMonth,
+            year: currentYear,
+          };
+          response.revenueYTD = {
+            incasari: parseFloat(revYTD?.incasari || '0'),
+            incasariCard: parseFloat(revYTD?.incasariCard || '0'),
+            cheltuieli: parseFloat(revYTD?.cheltuieli || '0'),
             year: currentYear,
           };
           response.achizitii = {
@@ -253,8 +271,54 @@ export class UserDashboardController {
       );
     }
 
+    // Note de Constatare — visible to the dept that fills them (Parcometre) so
+    // they can see the annual KPI of the work they record on Control agents.
+    if (departmentName === PARCOMETRE_DEPT) {
+      deptQueries.push(
+        this.controlNotesRepo
+          .createQueryBuilder('n')
+          .select('COALESCE(SUM(n.count), 0)', 'grandTotal')
+          .addSelect('COALESCE(ARRAY_AGG(DISTINCT n.month), ARRAY[]::int[])', 'monthsWithData')
+          .where('n.year = :year', { year: currentYear })
+          .getRawOne()
+          .then((raw: any) => {
+            response.controlNotes = this.buildControlNotesSummary(raw, currentYear);
+          }),
+      );
+    }
+
     await Promise.all(deptQueries);
 
     return response;
+  }
+
+  /**
+   * Same logic as DashboardController.buildControlNotesSummary —
+   * duplicated here to keep the two modules independent.
+   */
+  private buildControlNotesSummary(
+    raw: { grandTotal?: string; monthsWithData?: number[] | string } | null,
+    year: number,
+  ): { year: number; grandTotal: number; totalWorkingDays: number; averagePerWorkingDay: number } {
+    const grandTotal = parseFloat(raw?.grandTotal || '0');
+    let months: number[] = [];
+    if (Array.isArray(raw?.monthsWithData)) {
+      months = raw!.monthsWithData as number[];
+    } else if (typeof raw?.monthsWithData === 'string') {
+      months = raw.monthsWithData
+        .replace(/[{}]/g, '')
+        .split(',')
+        .map((s) => parseInt(s, 10))
+        .filter((n) => !isNaN(n) && n >= 1 && n <= 12);
+    }
+    let totalWorkingDays = 0;
+    for (const m of months) {
+      totalWorkingDays += workingDaysInMonth(year, m).workingDays;
+    }
+    const averagePerWorkingDay =
+      totalWorkingDays > 0
+        ? Math.round((grandTotal / totalWorkingDays) * 100) / 100
+        : 0;
+    return { year, grandTotal, totalWorkingDays, averagePerWorkingDay };
   }
 }

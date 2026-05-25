@@ -74,6 +74,20 @@ export interface DashboardStatsResponse {
     month: number;
     year: number;
   };
+  /** Year-to-date sums across all months of the current year. */
+  revenueYTD: {
+    incasari: number;
+    incasariCard: number;
+    cheltuieli: number;
+    year: number;
+  };
+  /** Control inspection notes aggregate for the current year. */
+  controlNotes: {
+    year: number;
+    grandTotal: number;
+    totalWorkingDays: number;
+    averagePerWorkingDay: number;
+  };
   controlSesizari: {
     active: number;
     finalizat: number;

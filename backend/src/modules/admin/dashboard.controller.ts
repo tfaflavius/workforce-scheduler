@@ -28,6 +28,8 @@ import { DailyReport, DailyReportStatus } from '../daily-reports/entities/daily-
 import { Acquisition } from '../acquisitions/entities/acquisition.entity';
 import { BudgetPosition } from '../acquisitions/entities/budget-position.entity';
 import { MonthlyRevenue } from '../acquisitions/entities/monthly-revenue.entity';
+import { ControlInspectionNote } from '../control-notes/entities/control-inspection-note.entity';
+import { workingDaysInMonth } from '../control-notes/utils/romanian-holidays';
 import { EquipmentStockEntry } from '../equipment-stock/entities/equipment-stock-entry.entity';
 import { PV_DAY_STATUS } from '../parking/constants/parking.constants';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -104,6 +106,20 @@ interface DashboardStatsResponse {
     cheltuieli: number;
     month: number;
     year: number;
+  };
+  /** Year-to-date revenue/expense totals across all months of the current year. */
+  revenueYTD: {
+    incasari: number;
+    incasariCard: number;
+    cheltuieli: number;
+    year: number;
+  };
+  /** Control inspection notes aggregate for the current year. */
+  controlNotes: {
+    year: number;
+    grandTotal: number;
+    totalWorkingDays: number;
+    averagePerWorkingDay: number;
   };
   controlSesizari: {
     active: number;
@@ -183,6 +199,8 @@ export class DashboardController {
     private readonly monthlyRevenueRepo: Repository<MonthlyRevenue>,
     @InjectRepository(EquipmentStockEntry)
     private readonly equipmentStockEntryRepo: Repository<EquipmentStockEntry>,
+    @InjectRepository(ControlInspectionNote)
+    private readonly controlNotesRepo: Repository<ControlInspectionNote>,
     private readonly adminConsolidatedScheduler: AdminConsolidatedScheduler,
   ) {}
 
@@ -277,6 +295,12 @@ export class DashboardController {
       // Daily reports today
       dailyReportsSubmitted,
       dailyReportsDraft,
+
+      // Year-to-date revenue/expense totals
+      revenueYTDTotals,
+
+      // Control inspection notes — current year aggregate
+      controlNotesYear,
     ] = await Promise.all([
       // Schedule counts
       this.scheduleRepo.count({ where: { status: 'PENDING_APPROVAL' } }),
@@ -427,6 +451,23 @@ export class DashboardController {
       // Daily reports today
       this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.SUBMITTED } }),
       this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.DRAFT } }),
+
+      // Year-to-date revenue/expense totals — current year, all months summed
+      this.monthlyRevenueRepo
+        .createQueryBuilder('mr')
+        .select('COALESCE(SUM(mr.incasari), 0)', 'incasari')
+        .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
+        .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
+        .where('mr.year = :year', { year: romaniaTime.getFullYear() })
+        .getRawOne(),
+
+      // Control inspection notes — grand total across all users for current year
+      this.controlNotesRepo
+        .createQueryBuilder('n')
+        .select('COALESCE(SUM(n.count), 0)', 'grandTotal')
+        .addSelect('COALESCE(ARRAY_AGG(DISTINCT n.month), ARRAY[]::int[])', 'monthsWithData')
+        .where('n.year = :year', { year: romaniaTime.getFullYear() })
+        .getRawOne(),
     ]);
 
     // Format today's dispatchers
@@ -549,7 +590,49 @@ export class DashboardController {
         submittedToday: dailyReportsSubmitted,
         draftToday: dailyReportsDraft,
       },
+      revenueYTD: {
+        incasari: parseFloat(revenueYTDTotals?.incasari || '0'),
+        incasariCard: parseFloat(revenueYTDTotals?.incasariCard || '0'),
+        cheltuieli: parseFloat(revenueYTDTotals?.cheltuieli || '0'),
+        year: romaniaTime.getFullYear(),
+      },
+      controlNotes: this.buildControlNotesSummary(controlNotesYear, romaniaTime.getFullYear()),
     };
+  }
+
+  /**
+   * Compute the year-to-date average of control notes per working day.
+   * Uses the same logic as ControlNotesService.getMatrix() but only the
+   * aggregate numbers — we don't need the per-user breakdown on the dashboard.
+   * Only months that actually contain data are counted toward the divisor, so
+   * the average stays meaningful in a partially-filled year (e.g. Q1 only).
+   */
+  private buildControlNotesSummary(
+    raw: { grandTotal?: string; monthsWithData?: number[] | string } | null,
+    year: number,
+  ): DashboardStatsResponse['controlNotes'] {
+    const grandTotal = parseFloat(raw?.grandTotal || '0');
+    // ARRAY_AGG may come back as a JS array or a Postgres array literal string
+    // depending on the driver — normalise to a number[] either way.
+    let months: number[] = [];
+    if (Array.isArray(raw?.monthsWithData)) {
+      months = raw!.monthsWithData as number[];
+    } else if (typeof raw?.monthsWithData === 'string') {
+      months = raw.monthsWithData
+        .replace(/[{}]/g, '')
+        .split(',')
+        .map((s) => parseInt(s, 10))
+        .filter((n) => !isNaN(n) && n >= 1 && n <= 12);
+    }
+    let totalWorkingDays = 0;
+    for (const m of months) {
+      totalWorkingDays += workingDaysInMonth(year, m).workingDays;
+    }
+    const averagePerWorkingDay =
+      totalWorkingDays > 0
+        ? Math.round((grandTotal / totalWorkingDays) * 100) / 100
+        : 0;
+    return { year, grandTotal, totalWorkingDays, averagePerWorkingDay };
   }
 
   @Post('trigger-weekly-report')

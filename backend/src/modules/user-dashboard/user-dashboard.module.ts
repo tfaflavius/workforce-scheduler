@@ -16,6 +16,7 @@ import { BudgetPosition } from '../acquisitions/entities/budget-position.entity'
 import { MonthlyRevenue } from '../acquisitions/entities/monthly-revenue.entity';
 import { EquipmentStockEntry } from '../equipment-stock/entities/equipment-stock-entry.entity';
 import { EquipmentStockDefinition } from '../equipment-stock/entities/equipment-stock-definition.entity';
+import { ControlInspectionNote } from '../control-notes/entities/control-inspection-note.entity';
 import { UserDashboardController } from './user-dashboard.controller';
 
 @Module({
@@ -37,6 +38,7 @@ import { UserDashboardController } from './user-dashboard.controller';
       MonthlyRevenue,
       EquipmentStockEntry,
       EquipmentStockDefinition,
+      ControlInspectionNote,
     ]),
   ],
   controllers: [UserDashboardController],

@@ -48,6 +48,18 @@ export interface UserDashboardStatsResponse {
     month: number;
     year: number;
   };
+  revenueYTD?: {
+    incasari: number;
+    incasariCard: number;
+    cheltuieli: number;
+    year: number;
+  };
+  controlNotes?: {
+    year: number;
+    grandTotal: number;
+    totalWorkingDays: number;
+    averagePerWorkingDay: number;
+  };
   achizitii?: {
     totalBudget: number;
     investments: number;

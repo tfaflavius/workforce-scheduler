@@ -45,6 +45,8 @@ import {
   ShoppingCart as ShoppingCartIcon,
   Inventory as InventoryIcon,
   Description as DescriptionIcon,
+  AssignmentTurnedIn as ControlNotesIcon,
+  Savings as SavingsIcon,
 } from '@mui/icons-material';
 import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
@@ -268,6 +270,111 @@ const AdminDashboard = () => {
                   ]}
                 />
               </Suspense>
+            </Grid>
+          </Grid>
+
+          {/* Row 3b: YTD revenue summary + Control Notes annual average */}
+          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                    <SavingsIcon sx={{ color: theme.palette.success.main, fontSize: 22 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                      Incasari — Total {stats?.revenueYTD?.year || new Date().getFullYear()}
+                    </Typography>
+                  </Stack>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+                      gap: { xs: 1, sm: 1.5 },
+                    }}
+                  >
+                    <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.success.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.success.main, 0.2)}` }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                        Incasari cash
+                      </Typography>
+                      <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.success.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                        {formatRONCompact(stats?.revenueYTD?.incasari || 0)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.info.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.info.main, 0.2)}` }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                        Incasari card
+                      </Typography>
+                      <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.info.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                        {formatRONCompact(stats?.revenueYTD?.incasariCard || 0)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.error.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`, gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                        Cheltuieli
+                      </Typography>
+                      <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.error.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                        {formatRONCompact(stats?.revenueYTD?.cheltuieli || 0)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {(() => {
+                    const net = (stats?.revenueYTD?.incasari || 0) + (stats?.revenueYTD?.incasariCard || 0) - (stats?.revenueYTD?.cheltuieli || 0);
+                    return (
+                      <Box sx={{ mt: 1.5, p: 1.25, borderRadius: 1.5, bgcolor: alpha(net >= 0 ? theme.palette.success.main : theme.palette.error.main, 0.10), border: `1px solid ${alpha(net >= 0 ? theme.palette.success.main : theme.palette.error.main, 0.3)}` }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          Net (incasari − cheltuieli)
+                        </Typography>
+                        <Typography variant="h6" fontWeight={900} sx={{ color: net >= 0 ? theme.palette.success.main : theme.palette.error.main, lineHeight: 1.1 }}>
+                          {formatRONCompact(net)}
+                        </Typography>
+                      </Box>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent sx={{ p: { xs: 1.75, sm: 2.25 }, '&:last-child': { pb: { xs: 1.75, sm: 2.25 } } }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                    <ControlNotesIcon sx={{ color: theme.palette.primary.main, fontSize: 22 }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                      Note de Constatare — {stats?.controlNotes?.year || new Date().getFullYear()}
+                    </Typography>
+                  </Stack>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+                      gap: { xs: 1, sm: 1.5 },
+                    }}
+                  >
+                    <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.primary.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                        Total note
+                      </Typography>
+                      <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.primary.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                        {(stats?.controlNotes?.grandTotal || 0).toLocaleString('ro-RO')}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.warning.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}` }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                        Zile lucratoare
+                      </Typography>
+                      <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.warning.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
+                        {stats?.controlNotes?.totalWorkingDays || 0}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.success.main, 0.12), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.success.main, 0.35)}`, gridColumn: { xs: '1 / -1', sm: 'auto' } }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
+                        Media / zi
+                      </Typography>
+                      <Typography variant="body1" fontWeight={900} sx={{ color: theme.palette.success.main, fontSize: { xs: '0.95rem', sm: '1.15rem' } }}>
+                        {(stats?.controlNotes?.averagePerWorkingDay || 0).toFixed(2)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
             </Grid>
           </Grid>
 
