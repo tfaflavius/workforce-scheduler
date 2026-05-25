@@ -977,7 +977,7 @@ const EmployeeDashboard = () => {
                   </Box>
                   <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.warning.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}` }}>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
-                      Zile lucratoare
+                      Zile efectiv control
                     </Typography>
                     <Typography variant="body1" fontWeight={800} sx={{ color: theme.palette.warning.main, fontSize: { xs: '0.95rem', sm: '1.1rem' } }}>
                       {deptStats.controlNotes.totalWorkingDays || 0}

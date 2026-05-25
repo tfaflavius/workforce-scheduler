@@ -25,7 +25,7 @@ import { BudgetPosition } from '../acquisitions/entities/budget-position.entity'
 import { EquipmentStockDefinition } from '../equipment-stock/entities/equipment-stock-definition.entity';
 import { EquipmentStockEntry } from '../equipment-stock/entities/equipment-stock-entry.entity';
 import { MonthlyRevenue } from '../acquisitions/entities/monthly-revenue.entity';
-import { ControlInspectionNote } from '../control-notes/entities/control-inspection-note.entity';
+import { ControlNotesModule } from '../control-notes/control-notes.module';
 import { ParkingModule } from '../parking/parking.module';
 import { TimeTrackingModule } from '../time-tracking/time-tracking.module';
 import { DailyReportsModule } from '../daily-reports/daily-reports.module';
@@ -61,11 +61,13 @@ import { DashboardController } from './dashboard.controller';
       EquipmentStockDefinition,
       EquipmentStockEntry,
       MonthlyRevenue,
-      ControlInspectionNote,
     ]),
     ParkingModule,
     TimeTrackingModule,
     DailyReportsModule,
+    // Provides ControlNotesService so the dashboard can reuse the same
+    // matrix logic (which already excludes DISP days from the divisor).
+    ControlNotesModule,
   ],
   controllers: [SearchController, DashboardController],
   providers: [AdminConsolidatedScheduler],

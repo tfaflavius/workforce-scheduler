@@ -214,7 +214,8 @@ const ControlNotesTab: React.FC = () => {
         user din departamentul <strong>Control</strong> pe fiecare luna. Datele sunt
         introduse de userii din <strong>Parcometre</strong>. Header-ul fiecarei luni arata
         zilele lucratoare (excludem weekend-urile si sarbatorile legale). Media pe zi este
-        calculata raportand totalul la numarul de zile lucratoare din lunile cu date.
+        calculata raportand totalul la <strong>zilele efectiv lucrate in Control</strong> —
+        scadem zilele in care agentul a fost programat la <strong>Dispecerat</strong>.
       </Alert>
 
       {/* Top filter + summary */}
@@ -311,7 +312,7 @@ const ControlNotesTab: React.FC = () => {
                   color="text.secondary"
                   sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}
                 >
-                  Zile lucratoare cu date
+                  Zile efectiv control
                 </Typography>
                 <Typography
                   variant="body1"

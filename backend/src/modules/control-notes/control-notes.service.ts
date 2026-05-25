@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ControlInspectionNote } from './entities/control-inspection-note.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
+import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { UpsertControlNoteDto } from './dto/upsert-control-note.dto';
 import {
   CONTROL_DEPARTMENT_NAME,
@@ -62,6 +63,8 @@ export class ControlNotesService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Department)
     private readonly departmentRepository: Repository<Department>,
+    @InjectRepository(ScheduleAssignment)
+    private readonly assignmentRepository: Repository<ScheduleAssignment>,
   ) {}
 
   /**
@@ -109,12 +112,22 @@ export class ControlNotesService {
     const noteMap = new Map<string, ControlInspectionNote>();
     for (const n of notes) noteMap.set(`${n.userId}|${n.month}`, n);
 
+    // Days when Control users were actually scheduled on Dispecerat (DISP).
+    // These days must be subtracted from the "working days available for
+    // Control notes" divisor — the agent wasn't doing Control work that day.
+    // Map: `${userId}|${month}` -> count of DISP days in that month.
+    const dispDaysMap = await this.getDispDaysForUsers(
+      Array.from(userMap.keys()),
+      year,
+    );
+
     // Build per-month working-day stats
     const monthsMeta = this.buildMonthsMeta(year, []);
 
     // Build user rows
     const users: ControlUserNoteRow[] = [];
     let grandTotal = 0;
+    let grandAdjustedWorkingDays = 0;
     const monthSums = Array.from({ length: 12 }, () => 0);
 
     // Sort: first current Control users alphabetically, then ex-Control with history
@@ -129,7 +142,7 @@ export class ControlNotesService {
       const monthlyCounts: (number | null)[] = Array.from({ length: 12 }, () => null);
       const monthlyMarkers: (string | null)[] = Array.from({ length: 12 }, () => null);
       let userTotal = 0;
-      let userWorkingDaysWithData = 0;
+      let userAdjustedWorkingDays = 0;
 
       for (let m = 1; m <= 12; m++) {
         const note = noteMap.get(`${u.id}|${m}`);
@@ -138,7 +151,11 @@ export class ControlNotesService {
           monthlyMarkers[m - 1] = note.marker || null;
           userTotal += note.count;
           monthSums[m - 1] += note.count;
-          userWorkingDaysWithData += monthsMeta[m - 1].workingDays;
+          const dispDays = dispDaysMap.get(`${u.id}|${m}`) || 0;
+          // Clamp so a user with more DISP days than working days (edge case
+          // around leaves/holidays) doesn't push the divisor negative.
+          const monthAdjusted = Math.max(0, monthsMeta[m - 1].workingDays - dispDays);
+          userAdjustedWorkingDays += monthAdjusted;
         }
       }
 
@@ -151,24 +168,17 @@ export class ControlNotesService {
         monthlyMarkers,
         total: userTotal,
         averagePerWorkingDay:
-          userWorkingDaysWithData > 0
-            ? Math.round((userTotal / userWorkingDaysWithData) * 100) / 100
+          userAdjustedWorkingDays > 0
+            ? Math.round((userTotal / userAdjustedWorkingDays) * 100) / 100
             : 0,
       });
 
       grandTotal += userTotal;
+      grandAdjustedWorkingDays += userAdjustedWorkingDays;
     }
 
     // Re-attach month totals
     const months = monthsMeta.map((m, i) => ({ ...m, totalCount: monthSums[i] }));
-
-    // Total working days only across months that have ANY data — keeps the
-    // average meaningful when the year is partially filled in (e.g. Aug 2025
-    // when months 9..12 are empty).
-    let totalWorkingDays = 0;
-    for (let i = 0; i < 12; i++) {
-      if (monthSums[i] > 0) totalWorkingDays += months[i].workingDays;
-    }
 
     return {
       year,
@@ -176,13 +186,55 @@ export class ControlNotesService {
       users,
       totals: {
         grandTotal,
-        totalWorkingDays,
+        // Now represents the team's total *Control-work-day capacity* for the
+        // months with data: sum over users of (working days - their DISP days).
+        totalWorkingDays: grandAdjustedWorkingDays,
         averagePerWorkingDay:
-          totalWorkingDays > 0
-            ? Math.round((grandTotal / totalWorkingDays) * 100) / 100
+          grandAdjustedWorkingDays > 0
+            ? Math.round((grandTotal / grandAdjustedWorkingDays) * 100) / 100
             : 0,
       },
     };
+  }
+
+  /**
+   * Counts, per (userId, month), the number of days each user was scheduled
+   * on the Dispecerat work position in the given year. Used to subtract
+   * Dispecerat days from the Control-work-day capacity used to compute the
+   * notes-per-day average — a Control agent scheduled at Dispecerat for the
+   * day cannot file any inspection notes that day.
+   *
+   * Returns an empty map when the user list is empty (a `findIds` over an
+   * empty IN list would return everything, so guard explicitly).
+   */
+  private async getDispDaysForUsers(
+    userIds: string[],
+    year: number,
+  ): Promise<Map<string, number>> {
+    const map = new Map<string, number>();
+    if (userIds.length === 0) return map;
+
+    const rows = await this.assignmentRepository
+      .createQueryBuilder('a')
+      .innerJoin('a.workPosition', 'wp')
+      .select('a.userId', 'userId')
+      .addSelect('EXTRACT(MONTH FROM a.shiftDate)', 'month')
+      .addSelect('COUNT(*)', 'days')
+      .where('wp.shortName = :pos', { pos: 'DISP' })
+      .andWhere('a.userId IN (:...ids)', { ids: userIds })
+      .andWhere('EXTRACT(YEAR FROM a.shiftDate) = :year', { year })
+      .groupBy('a.userId')
+      .addGroupBy('EXTRACT(MONTH FROM a.shiftDate)')
+      .getRawMany<{ userId: string; month: string; days: string }>();
+
+    for (const r of rows) {
+      const m = parseInt(r.month, 10);
+      const days = parseInt(r.days, 10);
+      if (!isNaN(m) && !isNaN(days)) {
+        map.set(`${r.userId}|${m}`, days);
+      }
+    }
+    return map;
   }
 
   /**

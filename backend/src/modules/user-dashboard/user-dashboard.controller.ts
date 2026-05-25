@@ -20,8 +20,7 @@ import { BudgetPosition } from '../acquisitions/entities/budget-position.entity'
 import { MonthlyRevenue } from '../acquisitions/entities/monthly-revenue.entity';
 import { EquipmentStockEntry } from '../equipment-stock/entities/equipment-stock-entry.entity';
 import { EquipmentStockDefinition } from '../equipment-stock/entities/equipment-stock-definition.entity';
-import { ControlInspectionNote } from '../control-notes/entities/control-inspection-note.entity';
-import { workingDaysInMonth } from '../control-notes/utils/romanian-holidays';
+import { ControlNotesService } from '../control-notes/control-notes.service';
 import {
   DISPECERAT_DEPARTMENT_NAME,
   CONTROL_DEPARTMENT_NAME,
@@ -72,8 +71,7 @@ export class UserDashboardController {
     private readonly equipmentStockEntryRepo: Repository<EquipmentStockEntry>,
     @InjectRepository(EquipmentStockDefinition)
     private readonly equipmentStockDefRepo: Repository<EquipmentStockDefinition>,
-    @InjectRepository(ControlInspectionNote)
-    private readonly controlNotesRepo: Repository<ControlInspectionNote>,
+    private readonly controlNotesService: ControlNotesService,
   ) {}
 
   @Get('stats')
@@ -271,54 +269,25 @@ export class UserDashboardController {
       );
     }
 
-    // Note de Constatare — visible to the dept that fills them (Parcometre) so
-    // they can see the annual KPI of the work they record on Control agents.
+    // Note de Constatare — visible to the dept that fills them (Parcometre)
+    // so they can see the annual KPI of the work they record on Control
+    // agents. Reuses the matrix service to keep the divisor (which excludes
+    // DISP days) consistent with what /note-constatare shows.
     if (departmentName === PARCOMETRE_DEPT) {
       deptQueries.push(
-        this.controlNotesRepo
-          .createQueryBuilder('n')
-          .select('COALESCE(SUM(n.count), 0)', 'grandTotal')
-          .addSelect('COALESCE(ARRAY_AGG(DISTINCT n.month), ARRAY[]::int[])', 'monthsWithData')
-          .where('n.year = :year', { year: currentYear })
-          .getRawOne()
-          .then((raw: any) => {
-            response.controlNotes = this.buildControlNotesSummary(raw, currentYear);
-          }),
+        this.controlNotesService.getMatrix(currentYear).then((matrix) => {
+          response.controlNotes = {
+            year: matrix.year,
+            grandTotal: matrix.totals.grandTotal,
+            totalWorkingDays: matrix.totals.totalWorkingDays,
+            averagePerWorkingDay: matrix.totals.averagePerWorkingDay,
+          };
+        }),
       );
     }
 
     await Promise.all(deptQueries);
 
     return response;
-  }
-
-  /**
-   * Same logic as DashboardController.buildControlNotesSummary —
-   * duplicated here to keep the two modules independent.
-   */
-  private buildControlNotesSummary(
-    raw: { grandTotal?: string; monthsWithData?: number[] | string } | null,
-    year: number,
-  ): { year: number; grandTotal: number; totalWorkingDays: number; averagePerWorkingDay: number } {
-    const grandTotal = parseFloat(raw?.grandTotal || '0');
-    let months: number[] = [];
-    if (Array.isArray(raw?.monthsWithData)) {
-      months = raw!.monthsWithData as number[];
-    } else if (typeof raw?.monthsWithData === 'string') {
-      months = raw.monthsWithData
-        .replace(/[{}]/g, '')
-        .split(',')
-        .map((s) => parseInt(s, 10))
-        .filter((n) => !isNaN(n) && n >= 1 && n <= 12);
-    }
-    let totalWorkingDays = 0;
-    for (const m of months) {
-      totalWorkingDays += workingDaysInMonth(year, m).workingDays;
-    }
-    const averagePerWorkingDay =
-      totalWorkingDays > 0
-        ? Math.round((grandTotal / totalWorkingDays) * 100) / 100
-        : 0;
-    return { year, grandTotal, totalWorkingDays, averagePerWorkingDay };
   }
 }
