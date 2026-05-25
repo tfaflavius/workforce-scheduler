@@ -213,15 +213,36 @@ export class UserDashboardController {
             .leftJoin('a.budgetPosition', 'bp')
             .where('bp.year = :year', { year: currentYear })
             .getRawOne(),
-          // Year-to-date sums across all months — used for the dashboard summary card.
+          // Year-to-date sums — used for the Achizitii dashboard summary
+          // card. `incasari` only sums monthly_revenues for non-parking
+          // categories: the actual parking cash comes from the
+          // cash_collections query below (matches /incasari-cheltuieli).
           this.monthlyRevenueRepo
             .createQueryBuilder('mr')
-            .select('COALESCE(SUM(mr.incasari), 0)', 'incasari')
+            .leftJoin('revenue_categories', 'rc', 'rc.id = mr.revenue_category_id')
+            .select('COALESCE(SUM(CASE WHEN rc.parking_lot_id IS NULL THEN mr.incasari ELSE 0 END), 0)', 'incasari')
             .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
             .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
             .where('mr.year = :year', { year: currentYear })
             .getRawOne(),
-        ]).then(([revTotals, budgetTotals, acqTotals, revYTD]) => {
+          // YTD parking cash collected automatically, gated to lots that
+          // have a revenue_category mapping (matches getRevenueSummary).
+          this.cashCollectionRepo
+            .createQueryBuilder('cc')
+            .select('COALESCE(SUM(cc.amount), 0)', 'cash')
+            .where(
+              `cc.parking_lot_id IN (
+                 SELECT DISTINCT rc2.parking_lot_id
+                 FROM revenue_categories rc2
+                 WHERE rc2.parking_lot_id IS NOT NULL AND rc2.is_active = true
+               )`,
+            )
+            .andWhere(
+              `EXTRACT(YEAR FROM cc.collected_at AT TIME ZONE 'Europe/Bucharest') = :year`,
+              { year: currentYear },
+            )
+            .getRawOne(),
+        ]).then(([revTotals, budgetTotals, acqTotals, revYTD, parkingCashYTD]) => {
           response.revenue = {
             incasari: parseFloat(revTotals?.incasari || '0'),
             incasariCard: parseFloat(revTotals?.incasariCard || '0'),
@@ -230,7 +251,9 @@ export class UserDashboardController {
             year: currentYear,
           };
           response.revenueYTD = {
-            incasari: parseFloat(revYTD?.incasari || '0'),
+            incasari:
+              parseFloat(revYTD?.incasari || '0') +
+              parseFloat(parkingCashYTD?.cash || '0'),
             incasariCard: parseFloat(revYTD?.incasariCard || '0'),
             cheltuieli: parseFloat(revYTD?.cheltuieli || '0'),
             year: currentYear,

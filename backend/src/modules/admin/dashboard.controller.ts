@@ -294,8 +294,12 @@ export class DashboardController {
       dailyReportsSubmitted,
       dailyReportsDraft,
 
-      // Year-to-date revenue/expense totals
+      // Year-to-date revenue/expense totals (manual cash + card + cheltuieli)
       revenueYTDTotals,
+      // Year-to-date parking cash collected automatically from parkometers.
+      // Matches the cash that getRevenueSummary attributes to parking-linked
+      // categories on /incasari-cheltuieli.
+      parkingCashYTD,
 
       // Control inspection notes — current year matrix (already excludes
       // DISP days from the per-user working-day divisor).
@@ -451,13 +455,41 @@ export class DashboardController {
       this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.SUBMITTED } }),
       this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.DRAFT } }),
 
-      // Year-to-date revenue/expense totals — current year, all months summed
+      // Year-to-date revenue/expense totals — current year, all months.
+      // `incasari` is filtered to NON parking-linked categories: for
+      // parking-linked categories the real cash comes from cash_collections
+      // (see next query) and the monthly_revenues.incasari column should
+      // stay 0; this LEFT JOIN+filter prevents accidental double-counting
+      // if anyone ever types a value there manually.
       this.monthlyRevenueRepo
         .createQueryBuilder('mr')
-        .select('COALESCE(SUM(mr.incasari), 0)', 'incasari')
+        .leftJoin('revenue_categories', 'rc', 'rc.id = mr.revenue_category_id')
+        .select('COALESCE(SUM(CASE WHEN rc.parking_lot_id IS NULL THEN mr.incasari ELSE 0 END), 0)', 'incasari')
         .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
         .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
         .where('mr.year = :year', { year: romaniaTime.getFullYear() })
+        .getRawOne(),
+
+      // Parking cash collected automatically by parkometers in the year.
+      // Gated to lots that have a revenue_category mapping so the number
+      // matches exactly what getRevenueSummary attributes on
+      // /incasari-cheltuieli (lots without a category aren't counted there
+      // either). Year filter is converted to Europe/Bucharest to align with
+      // how the rest of the dashboard interprets "current year".
+      this.cashCollectionRepo
+        .createQueryBuilder('cc')
+        .select('COALESCE(SUM(cc.amount), 0)', 'cash')
+        .where(
+          `cc.parking_lot_id IN (
+             SELECT DISTINCT rc2.parking_lot_id
+             FROM revenue_categories rc2
+             WHERE rc2.parking_lot_id IS NOT NULL AND rc2.is_active = true
+           )`,
+        )
+        .andWhere(
+          `EXTRACT(YEAR FROM cc.collected_at AT TIME ZONE 'Europe/Bucharest') = :year`,
+          { year: romaniaTime.getFullYear() },
+        )
         .getRawOne(),
 
       // Full notes matrix — the service excludes days where Control users
@@ -587,7 +619,12 @@ export class DashboardController {
         draftToday: dailyReportsDraft,
       },
       revenueYTD: {
-        incasari: parseFloat(revenueYTDTotals?.incasari || '0'),
+        // Cash = non-parking manual entries + auto-collected parking cash.
+        // Matches the breakdown used by /incasari-cheltuieli so the two
+        // screens stay in sync.
+        incasari:
+          parseFloat(revenueYTDTotals?.incasari || '0') +
+          parseFloat(parkingCashYTD?.cash || '0'),
         incasariCard: parseFloat(revenueYTDTotals?.incasariCard || '0'),
         cheltuieli: parseFloat(revenueYTDTotals?.cheltuieli || '0'),
         year: romaniaTime.getFullYear(),
