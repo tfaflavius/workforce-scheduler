@@ -215,7 +215,8 @@ const ControlNotesTab: React.FC = () => {
         introduse de userii din <strong>Parcometre</strong>. Header-ul fiecarei luni arata
         zilele lucratoare (excludem weekend-urile si sarbatorile legale). Media pe zi este
         calculata raportand totalul la <strong>zilele efectiv lucrate in Control</strong> —
-        scadem zilele in care agentul a fost programat la <strong>Dispecerat</strong>.
+        scadem zilele in care agentul a fost programat la <strong>Dispecerat</strong> sau
+        a fost in <strong>concediu</strong>.
       </Alert>
 
       {/* Top filter + summary */}

@@ -112,11 +112,12 @@ export class ControlNotesService {
     const noteMap = new Map<string, ControlInspectionNote>();
     for (const n of notes) noteMap.set(`${n.userId}|${n.month}`, n);
 
-    // Days when Control users were actually scheduled on Dispecerat (DISP).
-    // These days must be subtracted from the "working days available for
-    // Control notes" divisor — the agent wasn't doing Control work that day.
-    // Map: `${userId}|${month}` -> count of DISP days in that month.
-    const dispDaysMap = await this.getDispDaysForUsers(
+    // Days each Control user was unavailable for Control work — they were
+    // either scheduled on Dispecerat (DISP) or on approved leave (concediu).
+    // Both reduce the divisor of the per-day notes average so an agent on
+    // vacation isn't penalised for filing zero notes that week.
+    // Map: `${userId}|${month}` -> count of unavailable weekdays in month.
+    const unavailableDaysMap = await this.getUnavailableDaysForUsers(
       Array.from(userMap.keys()),
       year,
     );
@@ -151,10 +152,11 @@ export class ControlNotesService {
           monthlyMarkers[m - 1] = note.marker || null;
           userTotal += note.count;
           monthSums[m - 1] += note.count;
-          const dispDays = dispDaysMap.get(`${u.id}|${m}`) || 0;
-          // Clamp so a user with more DISP days than working days (edge case
-          // around leaves/holidays) doesn't push the divisor negative.
-          const monthAdjusted = Math.max(0, monthsMeta[m - 1].workingDays - dispDays);
+          const unavailableDays = unavailableDaysMap.get(`${u.id}|${m}`) || 0;
+          // Clamp so a user with more unavailable days than working days
+          // (edge case around overlapping leaves/holidays) doesn't push the
+          // divisor negative.
+          const monthAdjusted = Math.max(0, monthsMeta[m - 1].workingDays - unavailableDays);
           userAdjustedWorkingDays += monthAdjusted;
         }
       }
@@ -198,16 +200,19 @@ export class ControlNotesService {
   }
 
   /**
-   * Counts, per (userId, month), the number of days each user was scheduled
-   * on the Dispecerat work position in the given year. Used to subtract
-   * Dispecerat days from the Control-work-day capacity used to compute the
-   * notes-per-day average — a Control agent scheduled at Dispecerat for the
-   * day cannot file any inspection notes that day.
+   * Counts, per (userId, month), the number of **weekdays** in the given year
+   * where each user was unable to do Control work — i.e. scheduled on the
+   * Dispecerat work position (DISP) OR marked with any leave_type (concediu,
+   * which the leave-requests flow writes onto the schedule assignment).
    *
-   * Returns an empty map when the user list is empty (a `findIds` over an
-   * empty IN list would return everything, so guard explicitly).
+   * Only weekdays count, since the working-day divisor we subtract from also
+   * excludes weekends. COUNT(DISTINCT shiftDate) guards against the very
+   * unlikely case of both flags being set on the same day.
+   *
+   * Returns an empty map when the user list is empty (an empty IN list would
+   * otherwise match every row, so guard explicitly).
    */
-  private async getDispDaysForUsers(
+  private async getUnavailableDaysForUsers(
     userIds: string[],
     year: number,
   ): Promise<Map<string, number>> {
@@ -216,13 +221,15 @@ export class ControlNotesService {
 
     const rows = await this.assignmentRepository
       .createQueryBuilder('a')
-      .innerJoin('a.workPosition', 'wp')
+      .leftJoin('a.workPosition', 'wp')
       .select('a.userId', 'userId')
       .addSelect('EXTRACT(MONTH FROM a.shiftDate)', 'month')
-      .addSelect('COUNT(*)', 'days')
-      .where('wp.shortName = :pos', { pos: 'DISP' })
-      .andWhere('a.userId IN (:...ids)', { ids: userIds })
+      .addSelect('COUNT(DISTINCT a.shiftDate)', 'days')
+      .where('a.userId IN (:...ids)', { ids: userIds })
       .andWhere('EXTRACT(YEAR FROM a.shiftDate) = :year', { year })
+      // Weekday only: PostgreSQL DOW gives 0=Sunday, 6=Saturday.
+      .andWhere('EXTRACT(DOW FROM a.shiftDate) NOT IN (0, 6)')
+      .andWhere('(wp.shortName = :pos OR a.leaveType IS NOT NULL)', { pos: 'DISP' })
       .groupBy('a.userId')
       .addGroupBy('EXTRACT(MONTH FROM a.shiftDate)')
       .getRawMany<{ userId: string; month: string; days: string }>();
