@@ -5,7 +5,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 
 // Entities
 import { User } from '../users/entities/user.entity';
@@ -329,8 +329,11 @@ export class DashboardController {
       // Active users count
       this.userRepo.count({ where: { isActive: true } }),
 
-      // Shift swaps
-      this.shiftSwapRepo.count({ where: { status: ShiftSwapStatus.AWAITING_ADMIN } }),
+      // Shift swaps - cereri active care necesita atentia adminului:
+      // AWAITING_ADMIN (un coleg a acceptat, asteapta aprobare) + PENDING (cerere noua, inca fara raspuns)
+      this.shiftSwapRepo.count({
+        where: { status: In([ShiftSwapStatus.AWAITING_ADMIN, ShiftSwapStatus.PENDING]) },
+      }),
       this.shiftSwapRepo.count(),
 
       // Leave requests

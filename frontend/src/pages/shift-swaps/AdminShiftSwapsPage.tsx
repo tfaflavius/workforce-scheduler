@@ -131,6 +131,21 @@ const AdminShiftSwapsPage = () => {
   const [deleteSwap, { isLoading: deleting }] = useDeleteSwapRequestMutation();
   const [getUsersOnDate, { data: targetDateUsers = [], isLoading: loadingTargetUsers }] = useLazyGetUsersOnDateQuery();
 
+  // La prima incarcare (fara highlight din notificare), deschide automat primul tab
+  // care are cereri: intai "Asteapta Aprobare" (AWAITING_ADMIN), altfel "In Curs" (PENDING).
+  // Astfel adminul care intra dupa un email de cerere noua cade direct pe tab-ul cu cererea.
+  const didInitTabRef = useRef(false);
+  useEffect(() => {
+    if (didInitTabRef.current) return;
+    if (highlightSwapId) { didInitTabRef.current = true; return; } // highlight-ul gestioneaza tab-ul
+    if (allRequests.length === 0) return;
+    didInitTabRef.current = true;
+    const hasAwaiting = allRequests.some((r) => r.status === 'AWAITING_ADMIN');
+    const hasPending = allRequests.some((r) => r.status === 'PENDING');
+    if (hasAwaiting) setTabValue(0);
+    else if (hasPending) setTabValue(1);
+  }, [allRequests, highlightSwapId]);
+
   // Auto-switch tab, highlight, and open detail dialog from notification
   useEffect(() => {
     if (highlightSwapId && highlightSwapId !== lastHandledIdRef.current && allRequests.length > 0) {
