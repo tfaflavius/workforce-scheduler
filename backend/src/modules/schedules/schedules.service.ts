@@ -307,6 +307,23 @@ export class SchedulesService {
 
       // If assignments are updated, recreate them
       if (updateScheduleDto.assignments) {
+        // Valideaza TOATE tipurile de tura INAINTE de a sterge ceva.
+        // Anterior, un shiftType lipsa cauza sarirea silentioasa a inserarii (continue)
+        // DUPA ce assignment-urile existente ale userului erau deja sterse -> userul
+        // disparea complet din program (si pentru el, si pentru colegi). Validam intai,
+        // astfel incat tot update-ul sa dea rollback curat in loc sa piarda date.
+        const referencedShiftTypeIds = [...new Set(updateScheduleDto.assignments.map(a => a.shiftTypeId))];
+        const foundShiftTypes = await queryRunner.manager.getRepository(ShiftType).find({
+          where: { id: In(referencedShiftTypeIds) },
+        });
+        const shiftTypeIdSet = new Set(foundShiftTypes.map(st => st.id));
+        const missingShiftTypeIds = referencedShiftTypeIds.filter(stId => !shiftTypeIdSet.has(stId));
+        if (missingShiftTypeIds.length > 0) {
+          throw new BadRequestException(
+            `Tipuri de tura inexistente, programul nu a fost modificat: ${missingShiftTypeIds.join(', ')}`,
+          );
+        }
+
         // Get the unique user IDs being updated
         const affectedUserIds = [...new Set(updateScheduleDto.assignments.map(a => a.userId))];
 
@@ -338,17 +355,9 @@ export class SchedulesService {
           }
         }
 
-        // Create new assignments - use query builder to ensure workScheduleId is set
+        // Create new assignments - use query builder to ensure workScheduleId is set.
+        // Toate shiftTypeIds au fost validate mai sus, deci nu mai sarim nimic silentios.
         for (const assignmentDto of updateScheduleDto.assignments) {
-          const shiftType = await queryRunner.manager.getRepository(ShiftType).findOne({
-            where: { id: assignmentDto.shiftTypeId },
-          });
-
-          if (!shiftType) {
-            this.logger.warn(`Shift type ${assignmentDto.shiftTypeId} not found, skipping assignment`);
-            continue;
-          }
-
           // Normalize shiftDate to YYYY-MM-DD string so PG stores it without TZ conversion
           const shiftDateStr = typeof assignmentDto.shiftDate === 'string'
             ? assignmentDto.shiftDate.slice(0, 10)

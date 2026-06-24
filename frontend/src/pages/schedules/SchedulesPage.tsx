@@ -472,6 +472,13 @@ const SchedulesPage: React.FC = () => {
   const approvedCount = useMemo(() => schedules.filter(s => s.status === 'APPROVED').length, [schedules]);
   const totalCount = schedules.length;
 
+  // Programe din luna selectata care NU sunt aprobate (DRAFT sau PENDING_APPROVAL).
+  // Turele din ele NU sunt vizibile angajatilor/colegilor pana la aprobare.
+  const unapprovedSchedules = useMemo(
+    () => schedules.filter(s => s.status !== 'APPROVED'),
+    [schedules],
+  );
+
   // Check if any filters are active
   const hasActiveFilters = searchQuery !== '' || departmentFilter !== 'ALL' || shiftFilter !== 'ALL' || workPositionFilter !== 'ALL' || dayFilter !== 'ALL' || onlyScheduled;
 
@@ -560,6 +567,21 @@ const SchedulesPage: React.FC = () => {
                 {s.name} — creat de {s.creator?.fullName || 'N/A'} ({s.month}/{s.year})
               </Typography>
             ))}
+          </Alert>
+        )}
+
+        {/* Avertisment: programe din luna curenta care nu sunt aprobate.
+            Turele din ele nu sunt vizibile angajatilor/colegilor pana la aprobare. */}
+        {isAdmin && unapprovedSchedules.length > 0 && (
+          <Alert severity="info" icon={<PendingIcon />} sx={{ borderRadius: 2 }}>
+            <Typography variant="body2" fontWeight={600}>
+              {unapprovedSchedules.length === 1
+                ? '1 program din aceasta luna nu este aprobat'
+                : `${unapprovedSchedules.length} programe din aceasta luna nu sunt aprobate`}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              Turele dintr-un program neaprobat NU sunt vizibile angajatilor in "Programul Meu" si nici colegilor de tura. Aproba programul pentru a le face vizibile.
+            </Typography>
           </Alert>
         )}
 
