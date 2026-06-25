@@ -6,6 +6,7 @@ import {
   Grid,
   Stack,
   Chip,
+  Divider,
   Skeleton,
   IconButton,
   Tooltip,
@@ -118,16 +119,24 @@ const MySchedulePage = () => {
   // Colegii de tura la Dispecerat, pe zi, pentru luna curenta
   const { data: monthlyColleagues } = useGetMonthlyColleaguesQuery(monthYear);
 
-  // Map data (YYYY-MM-DD) -> colegi (exclus userul curent), pentru afisare per zi
-  const colleaguesByDate = useMemo(() => {
-    const map = new Map<string, { userName: string; shiftCode: string; startTime?: string; endTime?: string }[]>();
-    monthlyColleagues?.days.forEach((day) => {
+  // Zilele de Dispecerat ale userului, gata de afisat: data formatata + colegi (exclus el),
+  // + tura proprie (Zi/Noapte) in ziua respectiva.
+  const colleagueDays = useMemo(() => {
+    if (!monthlyColleagues?.days?.length) return [];
+    return monthlyColleagues.days.map((day) => {
+      const [y, m, d] = day.date.split('-').map(Number);
+      const dateObj = new Date(y, (m || 1) - 1, d || 1);
+      const mine = day.colleagues.find((c) => c.isCurrentUser);
       const others = day.colleagues
         .filter((c) => !c.isCurrentUser)
-        .map((c) => ({ userName: c.userName, shiftCode: c.shiftCode, startTime: c.startTime, endTime: c.endTime }));
-      map.set(day.date, others);
+        .map((c) => ({ userName: c.userName, shiftCode: c.shiftCode }));
+      return {
+        date: day.date,
+        label: `${DAY_NAMES_FULL[dateObj.getDay()]}, ${dateObj.getDate()} ${MONTH_NAMES[dateObj.getMonth()]}`,
+        myShiftCode: mine?.shiftCode || '',
+        others,
+      };
     });
-    return map;
   }, [monthlyColleagues]);
 
   // Concediile aprobate ale utilizatorului curent
@@ -660,8 +669,6 @@ const MySchedulePage = () => {
                       {assignment ? (() => {
                         const shiftInfo = getShiftInfoFromNotes(assignment.notes);
                         const workPosition = assignment.workPosition;
-                        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                        const dayColleagues = colleaguesByDate.get(dateKey) || [];
                         return (
                         <Stack direction="row" alignItems="center" spacing={3}>
                           <Avatar
@@ -719,27 +726,6 @@ const MySchedulePage = () => {
                                 />
                               )}
                             </Stack>
-                            {dayColleagues.length > 0 && (
-                              <Stack direction="row" alignItems="flex-start" spacing={1} sx={{ mt: 1.25 }}>
-                                <ColleaguesIcon fontSize="small" sx={{ color: 'text.secondary', mt: 0.25 }} />
-                                <Box>
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.25 }}>
-                                    Pe tura cu:
-                                  </Typography>
-                                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                    {dayColleagues.map((c, i) => (
-                                      <Chip
-                                        key={`${c.userName}-${i}`}
-                                        size="small"
-                                        variant="outlined"
-                                        label={c.shiftCode ? `${c.userName} (${c.shiftCode === 'N' ? 'Noapte' : 'Zi'})` : c.userName}
-                                        color={c.shiftCode === 'N' ? 'info' : 'warning'}
-                                      />
-                                    ))}
-                                  </Stack>
-                                </Box>
-                              </Stack>
-                            )}
                           </Box>
                         </Stack>
                         );
@@ -759,6 +745,61 @@ const MySchedulePage = () => {
               );
             })}
           </Stack>
+        )}
+
+        {/* Colegi de tura la Dispecerat — vizibil in ambele moduri, pe toata latimea.
+            Lista pe zi, chip-urile se aranjeaza pe randuri (fara overflow). */}
+        {colleagueDays.length > 0 && (
+          <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+              <ColleaguesIcon color="primary" fontSize={isMobile ? 'small' : 'medium'} />
+              <Typography variant={isMobile ? 'subtitle1' : 'h6'} fontWeight={600}>
+                Cu cine esti pe tura — Dispecerat
+              </Typography>
+            </Stack>
+            <Stack divider={<Divider flexItem />} spacing={1.25}>
+              {colleagueDays.map((day) => (
+                <Box
+                  key={day.date}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    gap: { xs: 0.5, sm: 1.5 },
+                    alignItems: { xs: 'stretch', sm: 'flex-start' },
+                  }}
+                >
+                  <Box sx={{ width: { xs: '100%', sm: 150 }, flexShrink: 0 }}>
+                    <Typography variant="body2" fontWeight={600}>
+                      {day.label}
+                    </Typography>
+                    {day.myShiftCode && (
+                      <Typography variant="caption" color="text.secondary">
+                        Tura ta: {day.myShiftCode === 'N' ? 'Noapte' : 'Zi'}
+                      </Typography>
+                    )}
+                  </Box>
+                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ flex: 1, minWidth: 0 }}>
+                    {day.others.length > 0 ? (
+                      day.others.map((c, i) => (
+                        <Chip
+                          key={`${c.userName}-${i}`}
+                          size="small"
+                          variant="outlined"
+                          color={c.shiftCode === 'N' ? 'info' : 'warning'}
+                          label={c.shiftCode ? `${c.userName} · ${c.shiftCode === 'N' ? 'Noapte' : 'Zi'}` : c.userName}
+                          sx={{ maxWidth: '100%', '& .MuiChip-label': { whiteSpace: 'normal' } }}
+                        />
+                      ))
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">
+                        Doar tu in aceasta zi
+                      </Typography>
+                    )}
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
         )}
 
         {/* Legend */}
