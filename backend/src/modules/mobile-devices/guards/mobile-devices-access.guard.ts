@@ -4,7 +4,6 @@ import { Repository } from 'typeorm';
 import { UserRole } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
 import {
-  CONTROL_DEPARTMENT_NAME,
   ACHIZITII_DEPARTMENT_NAME,
   PARCOMETRE_DEPARTMENT_NAME,
 } from '../../parking/constants/parking.constants';
@@ -14,7 +13,7 @@ import { isAdminOrAbove } from '../../../common/utils/role-hierarchy';
 /**
  * Acces la Dispozitive Mobile:
  * - ADMIN, MASTER_ADMIN, MANAGER: acces complet (vizualizare + editare)
- * - USER: doar daca este din departamentul Control, Achizitii sau Parcometre
+ * - USER: doar daca este din departamentul Achizitii sau Parcometre
  */
 @Injectable()
 export class MobileDevicesAccessGuard implements CanActivate {
@@ -51,7 +50,6 @@ export class MobileDevicesAccessGuard implements CanActivate {
 
     const deptName = removeDiacritics(department.name);
     return (
-      deptName === CONTROL_DEPARTMENT_NAME ||
       deptName === ACHIZITII_DEPARTMENT_NAME ||
       deptName === PARCOMETRE_DEPARTMENT_NAME
     );
