@@ -29,6 +29,7 @@ import { equipmentStockApi } from './api/equipmentStock.api';
 import { investmentsApi } from './api/investments.api';
 import { controlNotesApi } from './api/controlNotes.api';
 import { userDashboardApi } from './api/userDashboard.api';
+import { mobileDevicesApi } from './api/mobileDevices.api';
 
 export const store = configureStore({
   reducer: {
@@ -61,6 +62,7 @@ export const store = configureStore({
     [investmentsApi.reducerPath]: investmentsApi.reducer,
     [controlNotesApi.reducerPath]: controlNotesApi.reducer,
     [userDashboardApi.reducerPath]: userDashboardApi.reducer,
+    [mobileDevicesApi.reducerPath]: mobileDevicesApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -92,6 +94,7 @@ export const store = configureStore({
       investmentsApi.middleware,
       controlNotesApi.middleware,
       userDashboardApi.middleware,
+      mobileDevicesApi.middleware,
     ),
 });
 

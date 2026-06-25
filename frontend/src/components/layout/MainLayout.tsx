@@ -55,6 +55,7 @@ import {
   EditNote as EditRequestsIcon,
   KeyboardArrowUp as ArrowUpIcon,
   Inventory as InventoryIcon,
+  PhoneIphone as MobileDeviceIcon,
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 import {
@@ -355,6 +356,13 @@ export const MainLayout = () => {
       path: '/stoc-echipamente',
       roles: ['ADMIN', 'MANAGER', 'USER'],
       requiresDepartments: [PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME],
+    },
+    {
+      text: 'Dispozitive Mobile',
+      icon: <MobileDeviceIcon />,
+      path: '/dispozitive-mobile',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: [CONTROL_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME],
     },
     {
       text: 'Note Constatare',

@@ -47,6 +47,7 @@ const PermissionsPage = lazy(() => import('../pages/permissions/PermissionsPage'
 const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage'));
 const NotificationRedirectPage = lazy(() => import('../pages/notifications/NotificationRedirectPage'));
 const EquipmentStockPage = lazy(() => import('../pages/equipment-stock/EquipmentStockPage'));
+const MobileDevicesPage = lazy(() => import('../pages/mobile-devices/MobileDevicesPage'));
 const ControlNotesPage = lazy(() => import('../pages/control-notes/ControlNotesPage'));
 const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
@@ -296,6 +297,16 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME]}>
               <SafePage><EquipmentStockPage /></SafePage>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Dispozitive Mobile pe User - Control + Achizitii departments; Admin/Manager/Master Admin always */}
+        <Route
+          path="/dispozitive-mobile"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[CONTROL_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME]}>
+              <SafePage><MobileDevicesPage /></SafePage>
             </ProtectedRoute>
           }
         />
