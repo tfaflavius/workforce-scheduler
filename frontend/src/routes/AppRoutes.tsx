@@ -305,7 +305,7 @@ export const AppRoutes = () => {
         <Route
           path="/dispozitive-mobile"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[CONTROL_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME]}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'USER']} allowedDepartments={[CONTROL_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME, PARCOMETRE_DEPARTMENT_NAME]}>
               <SafePage><MobileDevicesPage /></SafePage>
             </ProtectedRoute>
           }

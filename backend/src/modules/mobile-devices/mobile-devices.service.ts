@@ -55,6 +55,8 @@ export class MobileDevicesService {
       serialImei: dto.serialImei ?? null,
       simOperator: dto.simOperator ?? null,
       simSerial: dto.simSerial ?? null,
+      status: dto.status ?? 'Functional',
+      handoverDate: dto.handoverDate ?? null,
       assignedUserId: dto.assignedUserId ?? null,
       notes: dto.notes ?? null,
       createdById: userId,
@@ -73,6 +75,8 @@ export class MobileDevicesService {
     if (dto.serialImei !== undefined) device.serialImei = dto.serialImei ?? null;
     if (dto.simOperator !== undefined) device.simOperator = dto.simOperator ?? null;
     if (dto.simSerial !== undefined) device.simSerial = dto.simSerial ?? null;
+    if (dto.status !== undefined) device.status = dto.status ?? 'Functional';
+    if (dto.handoverDate !== undefined) device.handoverDate = dto.handoverDate ?? null;
     if (dto.assignedUserId !== undefined) device.assignedUserId = dto.assignedUserId ?? null;
     if (dto.notes !== undefined) device.notes = dto.notes ?? null;
     device.lastEditedById = userId;

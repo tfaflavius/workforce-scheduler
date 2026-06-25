@@ -6,6 +6,9 @@ export interface MobileDeviceAssignedUser {
   fullName: string;
 }
 
+export const MOBILE_DEVICE_STATUSES = ['Functional', 'Defect', 'In reparatie', 'Casat'] as const;
+export type MobileDeviceStatus = (typeof MOBILE_DEVICE_STATUSES)[number];
+
 export interface MobileDevice {
   id: string;
   deviceType: string;
@@ -13,6 +16,8 @@ export interface MobileDevice {
   serialImei: string | null;
   simOperator: string | null;
   simSerial: string | null;
+  status: string;
+  handoverDate: string | null;
   assignedUserId: string | null;
   assignedUser: MobileDeviceAssignedUser | null;
   notes: string | null;
@@ -26,6 +31,8 @@ export interface MobileDevicePayload {
   serialImei?: string | null;
   simOperator?: string | null;
   simSerial?: string | null;
+  status?: string;
+  handoverDate?: string | null;
   assignedUserId?: string | null;
   notes?: string | null;
 }

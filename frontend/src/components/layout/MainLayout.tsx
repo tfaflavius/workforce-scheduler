@@ -362,7 +362,7 @@ export const MainLayout = () => {
       icon: <MobileDeviceIcon />,
       path: '/dispozitive-mobile',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: [CONTROL_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME],
+      requiresDepartments: [CONTROL_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME, PARCOMETRE_DEPARTMENT_NAME],
     },
     {
       text: 'Note Constatare',

@@ -38,6 +38,7 @@ import {
   useCreateMobileDeviceMutation,
   useUpdateMobileDeviceMutation,
   useDeleteMobileDeviceMutation,
+  MOBILE_DEVICE_STATUSES,
   type MobileDevice,
   type MobileDevicePayload,
 } from '../../store/api/mobileDevices.api';
@@ -52,8 +53,23 @@ const emptyForm: MobileDevicePayload = {
   serialImei: '',
   simOperator: '',
   simSerial: '',
+  status: 'Functional',
+  handoverDate: null,
   assignedUserId: null,
   notes: '',
+};
+
+const STATUS_COLORS: Record<string, 'success' | 'error' | 'warning' | 'default'> = {
+  Functional: 'success',
+  Defect: 'error',
+  'In reparatie': 'warning',
+  Casat: 'default',
+};
+
+const formatDate = (d: string | null) => {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return Number.isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('ro-RO');
 };
 
 const MobileDevicesPage = () => {
@@ -95,6 +111,8 @@ const MobileDevicesPage = () => {
       serialImei: device.serialImei || '',
       simOperator: device.simOperator || '',
       simSerial: device.simSerial || '',
+      status: device.status || 'Functional',
+      handoverDate: device.handoverDate,
       assignedUserId: device.assignedUserId,
       notes: device.notes || '',
     });
@@ -116,6 +134,8 @@ const MobileDevicesPage = () => {
       serialImei: form.serialImei?.trim() || null,
       simOperator: form.simOperator?.trim() || null,
       simSerial: form.simSerial?.trim() || null,
+      status: form.status || 'Functional',
+      handoverDate: form.handoverDate || null,
       assignedUserId: form.assignedUserId || null,
       notes: form.notes?.trim() || null,
     };
@@ -221,13 +241,20 @@ const MobileDevicesPage = () => {
                         {renderDash(device.simOperator)}{device.simSerial ? ` · ${device.simSerial}` : ''}
                       </Typography>
                     </Stack>
-                    <Chip
-                      icon={<PersonIcon />}
-                      size="small"
-                      sx={{ mt: 1 }}
-                      color={device.assignedUser ? 'primary' : 'default'}
-                      label={device.assignedUser ? device.assignedUser.fullName : 'Nealocat'}
-                    />
+                    <Stack direction="row" spacing={0.5} sx={{ mt: 1 }} flexWrap="wrap" useFlexGap>
+                      <Chip
+                        icon={<PersonIcon />}
+                        size="small"
+                        color={device.assignedUser ? 'primary' : 'default'}
+                        label={device.assignedUser ? device.assignedUser.fullName : 'Nealocat'}
+                      />
+                      <Chip size="small" color={STATUS_COLORS[device.status] || 'default'} label={device.status || '—'} />
+                    </Stack>
+                    {device.handoverDate && (
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                        Predat la: {formatDate(device.handoverDate)}
+                      </Typography>
+                    )}
                   </Box>
                   <Stack direction="row" spacing={0.5}>
                     <IconButton size="small" onClick={() => handleOpenEdit(device)} aria-label="Editeaza">
@@ -252,7 +279,9 @@ const MobileDevicesPage = () => {
                 <TableCell>Serie / IMEI</TableCell>
                 <TableCell>Operator SIM</TableCell>
                 <TableCell>Serie SIM</TableCell>
+                <TableCell>Stare</TableCell>
                 <TableCell>Atribuit user</TableCell>
+                <TableCell>Predat la</TableCell>
                 <TableCell align="right">Actiuni</TableCell>
               </TableRow>
             </TableHead>
@@ -265,12 +294,16 @@ const MobileDevicesPage = () => {
                   <TableCell>{renderDash(device.simOperator)}</TableCell>
                   <TableCell>{renderDash(device.simSerial)}</TableCell>
                   <TableCell>
+                    <Chip size="small" color={STATUS_COLORS[device.status] || 'default'} label={device.status || '—'} />
+                  </TableCell>
+                  <TableCell>
                     {device.assignedUser ? (
                       <Chip icon={<PersonIcon />} size="small" color="primary" label={device.assignedUser.fullName} />
                     ) : (
                       <Chip size="small" label="Nealocat" />
                     )}
                   </TableCell>
+                  <TableCell>{formatDate(device.handoverDate)}</TableCell>
                   <TableCell align="right">
                     <Stack direction="row" spacing={0.5} justifyContent="flex-end">
                       <Tooltip title="Editeaza">
@@ -343,6 +376,25 @@ const MobileDevicesPage = () => {
           <TextField label="Serie / IMEI" value={form.serialImei ?? ''} onChange={handleChange('serialImei')} fullWidth />
           <TextField label="Operator SIM" value={form.simOperator ?? ''} onChange={handleChange('simOperator')} fullWidth />
           <TextField label="Serie SIM" value={form.simSerial ?? ''} onChange={handleChange('simSerial')} fullWidth />
+          <TextField
+            select
+            label="Stare"
+            value={form.status ?? 'Functional'}
+            onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+            fullWidth
+          >
+            {MOBILE_DEVICE_STATUSES.map((s) => (
+              <MenuItem key={s} value={s}>{s}</MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Data predarii"
+            type="date"
+            value={form.handoverDate ?? ''}
+            onChange={(e) => setForm((prev) => ({ ...prev, handoverDate: e.target.value || null }))}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+          />
           <TextField
             select
             label="Atribuit user"

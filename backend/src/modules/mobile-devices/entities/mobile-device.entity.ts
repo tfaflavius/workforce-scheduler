@@ -39,6 +39,14 @@ export class MobileDevice {
   @Column({ name: 'sim_serial', length: 150, nullable: true })
   simSerial: string | null;
 
+  // Stare dispozitiv (Functional, Defect, In reparatie, Casat)
+  @Column({ length: 50, default: 'Functional' })
+  status: string;
+
+  // Data predarii dispozitivului catre user
+  @Column({ name: 'handover_date', type: 'date', nullable: true })
+  handoverDate: string | null;
+
   // La ce user este dat (poate fi nealocat)
   @Index()
   @Column({ name: 'assigned_user_id', type: 'uuid', nullable: true })
