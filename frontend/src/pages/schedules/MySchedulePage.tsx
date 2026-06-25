@@ -34,9 +34,10 @@ import {
   WorkHistory as HoursIcon,
   EventAvailable as ShiftIcon,
   LocationOn as LocationIcon,
+  Group as ColleaguesIcon,
 } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
-import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
+import { useGetSchedulesQuery, useGetMonthlyColleaguesQuery } from '../../store/api/schedulesApi';
 import { useGetApprovedLeavesByMonthQuery } from '../../store/api/leaveRequests.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
@@ -113,6 +114,21 @@ const MySchedulePage = () => {
 
   // Obtine concediile aprobate pentru luna curenta
   const { data: approvedLeaves = [] } = useGetApprovedLeavesByMonthQuery(monthYear);
+
+  // Colegii de tura la Dispecerat, pe zi, pentru luna curenta
+  const { data: monthlyColleagues } = useGetMonthlyColleaguesQuery(monthYear);
+
+  // Map data (YYYY-MM-DD) -> colegi (exclus userul curent), pentru afisare per zi
+  const colleaguesByDate = useMemo(() => {
+    const map = new Map<string, { userName: string; shiftCode: string; startTime?: string; endTime?: string }[]>();
+    monthlyColleagues?.days.forEach((day) => {
+      const others = day.colleagues
+        .filter((c) => !c.isCurrentUser)
+        .map((c) => ({ userName: c.userName, shiftCode: c.shiftCode, startTime: c.startTime, endTime: c.endTime }));
+      map.set(day.date, others);
+    });
+    return map;
+  }, [monthlyColleagues]);
 
   // Concediile aprobate ale utilizatorului curent
   const myApprovedLeaveDates = useMemo(() => {
@@ -644,6 +660,8 @@ const MySchedulePage = () => {
                       {assignment ? (() => {
                         const shiftInfo = getShiftInfoFromNotes(assignment.notes);
                         const workPosition = assignment.workPosition;
+                        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                        const dayColleagues = colleaguesByDate.get(dateKey) || [];
                         return (
                         <Stack direction="row" alignItems="center" spacing={3}>
                           <Avatar
@@ -701,6 +719,27 @@ const MySchedulePage = () => {
                                 />
                               )}
                             </Stack>
+                            {dayColleagues.length > 0 && (
+                              <Stack direction="row" alignItems="flex-start" spacing={1} sx={{ mt: 1.25 }}>
+                                <ColleaguesIcon fontSize="small" sx={{ color: 'text.secondary', mt: 0.25 }} />
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.25 }}>
+                                    Pe tura cu:
+                                  </Typography>
+                                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                    {dayColleagues.map((c, i) => (
+                                      <Chip
+                                        key={`${c.userName}-${i}`}
+                                        size="small"
+                                        variant="outlined"
+                                        label={c.shiftCode ? `${c.userName} (${c.shiftCode === 'N' ? 'Noapte' : 'Zi'})` : c.userName}
+                                        color={c.shiftCode === 'N' ? 'info' : 'warning'}
+                                      />
+                                    ))}
+                                  </Stack>
+                                </Box>
+                              </Stack>
+                            )}
                           </Box>
                         </Stack>
                         );

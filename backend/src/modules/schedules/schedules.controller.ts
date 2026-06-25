@@ -65,6 +65,11 @@ export class SchedulesController {
     return this.schedulesService.getColleaguesByPosition(req.user.id);
   }
 
+  @Get('month/colleagues')
+  getMonthlyColleagues(@Request() req, @Query('monthYear') monthYear: string) {
+    return this.schedulesService.getMonthlyColleaguesByPosition(req.user.id, monthYear);
+  }
+
   @Get('shift-types')
   getShiftTypes() {
     return this.schedulesService.getShiftTypes();

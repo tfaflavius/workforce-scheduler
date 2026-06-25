@@ -35,6 +35,25 @@ export interface ColleaguesResponse {
   userPosition: string | null;
 }
 
+// Colegi de tura pe zi, pentru toata luna (doar pentru zilele in care userul lucreaza la DISP)
+export interface MonthlyColleagueDay {
+  date: string; // YYYY-MM-DD
+  colleagues: Array<{
+    userId: string;
+    userName: string;
+    shiftType: string;
+    shiftCode: string;
+    startTime?: string;
+    endTime?: string;
+    isCurrentUser: boolean;
+  }>;
+}
+
+export interface MonthlyColleaguesResponse {
+  userPosition: string | null;
+  days: MonthlyColleagueDay[];
+}
+
 // Type for today's dispatcher
 export interface TodayDispatcher {
   id: string;
@@ -206,6 +225,15 @@ export const schedulesApi = createApi({
       providesTags: ['Schedule'],
     }),
 
+    // Get DISP colleagues per day for a whole month (only days the user works DISP)
+    getMonthlyColleagues: builder.query<MonthlyColleaguesResponse, string>({
+      query: (monthYear) => ({
+        url: '/schedules/month/colleagues',
+        params: { monthYear },
+      }),
+      providesTags: ['Schedule'],
+    }),
+
     // Export schedule to PDF or Excel
     exportSchedule: builder.mutation<
       ReportResponse,
@@ -242,5 +270,6 @@ export const {
   useGetDashboardStatsQuery,
   useGetTodayDispatchersQuery,
   useGetShiftColleaguesQuery,
+  useGetMonthlyColleaguesQuery,
   useExportScheduleMutation,
 } = schedulesApi;

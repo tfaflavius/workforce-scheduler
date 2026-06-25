@@ -1237,6 +1237,87 @@ export class SchedulesService {
   }
 
   /**
+   * Pentru un user care lucreaza la Dispecerat, returneaza pentru fiecare zi
+   * din luna in care are tura la DISP, colegii care lucreaza in aceeasi zi
+   * la aceeasi pozitie (DISP). Doar programe APROBATE.
+   * Folosit in "Programul Meu" ca userul sa vada cu cine e pe tura.
+   */
+  async getMonthlyColleaguesByPosition(
+    userId: string,
+    monthYear: string,
+  ): Promise<{ userPosition: string | null; days: Array<{ date: string; colleagues: any[] }> }> {
+    const [year, month] = (monthYear || '').split('-').map(Number);
+    if (!year || !month) {
+      return { userPosition: null, days: [] };
+    }
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const monthStart = `${year}-${pad(month)}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const monthEnd = `${year}-${pad(month)}-${pad(lastDay)}`;
+
+    const toDateStr = (d: any): string =>
+      typeof d === 'string' ? d.slice(0, 10) : new Date(d).toISOString().slice(0, 10);
+
+    // Zilele in care userul lucreaza la DISP in luna (din programe aprobate)
+    const userAssignments = await this.assignmentRepository
+      .createQueryBuilder('assignment')
+      .leftJoin('assignment.workPosition', 'workPosition')
+      .leftJoin('assignment.schedule', 'schedule')
+      .where('assignment.userId = :userId', { userId })
+      .andWhere('assignment.shiftDate BETWEEN :start AND :end', { start: monthStart, end: monthEnd })
+      .andWhere('schedule.status = :status', { status: 'APPROVED' })
+      .andWhere('workPosition.shortName = :position', { position: 'DISP' })
+      .getMany();
+
+    if (userAssignments.length === 0) {
+      return { userPosition: null, days: [] };
+    }
+
+    const userDates = [...new Set(userAssignments.map(a => toDateStr(a.shiftDate)))];
+
+    // Toate assignment-urile DISP din acele zile (toti userii), programe aprobate
+    const allAssignments = await this.assignmentRepository
+      .createQueryBuilder('assignment')
+      .leftJoinAndSelect('assignment.user', 'user')
+      .leftJoinAndSelect('assignment.shiftType', 'shiftType')
+      .leftJoinAndSelect('assignment.workPosition', 'workPosition')
+      .leftJoin('assignment.schedule', 'schedule')
+      .where('assignment.shiftDate IN (:...dates)', { dates: userDates })
+      .andWhere('schedule.status = :status', { status: 'APPROVED' })
+      .andWhere('workPosition.shortName = :position', { position: 'DISP' })
+      .orderBy('shiftType.startTime', 'ASC')
+      .addOrderBy('user.fullName', 'ASC')
+      .getMany();
+
+    const byDate = new Map<string, any[]>();
+    for (const a of allAssignments) {
+      const dateStr = toDateStr(a.shiftDate);
+      const shiftName = a.shiftType?.name || '';
+      let shiftCode = '';
+      if (shiftName.toLowerCase().includes('zi')) shiftCode = 'Z';
+      else if (shiftName.toLowerCase().includes('noapte')) shiftCode = 'N';
+
+      if (!byDate.has(dateStr)) byDate.set(dateStr, []);
+      byDate.get(dateStr)!.push({
+        userId: a.userId,
+        userName: a.user?.fullName || 'Necunoscut',
+        shiftType: shiftName,
+        shiftCode,
+        startTime: a.shiftType?.startTime,
+        endTime: a.shiftType?.endTime,
+        isCurrentUser: a.userId === userId,
+      });
+    }
+
+    const days = userDates
+      .sort()
+      .map(date => ({ date, colleagues: byDate.get(date) || [] }));
+
+    return { userPosition: 'DISP', days };
+  }
+
+  /**
    * Send email notifications to all employees affected by a schedule
    */
   async sendScheduleNotifications(
