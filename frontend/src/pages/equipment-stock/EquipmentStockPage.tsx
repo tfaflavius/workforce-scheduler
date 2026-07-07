@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import { Inventory as InventoryIcon } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
-import { isAdminOrAbove, isMasterAdmin } from '../../utils/roleHelpers';
+import { isAdminOrAbove } from '../../utils/roleHelpers';
 import { PARCOMETRE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../../constants/departments';
 import { STOCK_CATEGORY_LABELS } from '../../constants/equipmentStock';
 import type { StockCategory } from '../../constants/equipmentStock';
@@ -51,7 +51,10 @@ const EquipmentStockPage: React.FC = () => {
 
   const userDept = user?.department?.name || '';
   const isAdmin = isAdminOrAbove(user?.role);
-  const isMaster = isMasterAdmin(user?.role);
+
+  // Cine poate gestiona definitiile: Admin/Master Admin, Manager si userii din Parcometre
+  const canManageDefinitions =
+    isAdmin || user?.role === 'MANAGER' || userDept === PARCOMETRE_DEPARTMENT_NAME;
 
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -97,7 +100,7 @@ const EquipmentStockPage: React.FC = () => {
       },
     ];
 
-    if (isMaster) {
+    if (canManageDefinitions) {
       tabs.push({
         label: 'Definitii',
         shortLabel: 'Definitii',
@@ -107,7 +110,7 @@ const EquipmentStockPage: React.FC = () => {
     }
 
     return tabs;
-  }, [isMaster]);
+  }, [canManageDefinitions]);
 
   const getTabContent = (index: number) => {
     const tab = tabConfig[index];

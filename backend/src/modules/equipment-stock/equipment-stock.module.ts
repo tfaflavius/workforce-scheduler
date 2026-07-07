@@ -16,6 +16,7 @@ import { EquipmentStockController } from './equipment-stock.controller';
 
 // Guard
 import { EquipmentStockAccessGuard } from './guards/equipment-stock-access.guard';
+import { StockDefinitionAccessGuard } from './guards/stock-definition-access.guard';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { EquipmentStockAccessGuard } from './guards/equipment-stock-access.guard
     ]),
   ],
   controllers: [EquipmentStockController],
-  providers: [EquipmentStockService, EquipmentStockAccessGuard],
+  providers: [EquipmentStockService, EquipmentStockAccessGuard, StockDefinitionAccessGuard],
   exports: [EquipmentStockService],
 })
 export class EquipmentStockModule {}

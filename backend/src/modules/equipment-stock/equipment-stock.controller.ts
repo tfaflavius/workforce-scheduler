@@ -16,6 +16,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { EquipmentStockAccessGuard } from './guards/equipment-stock-access.guard';
+import { StockDefinitionAccessGuard } from './guards/stock-definition-access.guard';
 import { EquipmentStockService } from './equipment-stock.service';
 import { CreateStockDefinitionDto } from './dto/create-stock-definition.dto';
 import { UpdateStockDefinitionDto } from './dto/update-stock-definition.dto';
@@ -45,7 +46,7 @@ export class EquipmentStockController {
   }
 
   @Post('definitions')
-  @Roles(UserRole.MASTER_ADMIN)
+  @UseGuards(StockDefinitionAccessGuard)
   async createDefinition(
     @Request() req,
     @Body() dto: CreateStockDefinitionDto,
@@ -54,7 +55,7 @@ export class EquipmentStockController {
   }
 
   @Patch('definitions/:id')
-  @Roles(UserRole.MASTER_ADMIN)
+  @UseGuards(StockDefinitionAccessGuard)
   async updateDefinition(
     @Param('id') id: string,
     @Request() req,
@@ -64,7 +65,7 @@ export class EquipmentStockController {
   }
 
   @Delete('definitions/:id')
-  @Roles(UserRole.MASTER_ADMIN)
+  @UseGuards(StockDefinitionAccessGuard)
   async deleteDefinition(@Param('id') id: string, @Request() req) {
     return this.equipmentStockService.deleteDefinition(id, req.user.id);
   }
