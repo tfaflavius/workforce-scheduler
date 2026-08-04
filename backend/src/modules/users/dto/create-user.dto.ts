@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Matches, IsArray, IsUUID, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../entities/user.entity';
 
@@ -37,4 +37,15 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   departmentId?: string;
+
+  @ApiPropertyOptional({ description: 'HR only: department IDs whose schedules this HR user may view' })
+  @IsArray()
+  @IsUUID('all', { each: true })
+  @IsOptional()
+  hrVisibleDepartmentIds?: string[];
+
+  @ApiPropertyOptional({ description: 'HR only: show only DISP (Dispecerat) position assignments' })
+  @IsBoolean()
+  @IsOptional()
+  hrOnlyDispPosition?: boolean;
 }

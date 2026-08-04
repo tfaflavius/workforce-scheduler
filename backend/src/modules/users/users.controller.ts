@@ -37,6 +37,10 @@ export class UsersController {
   @Post()
   @Roles(UserRole.ADMIN)
   create(@Body() createUserDto: CreateUserDto, @Request() req) {
+    // Doar Master Admin poate crea utilizatori cu rolul Resurse Umane
+    if (createUserDto.role === UserRole.RESURSE_UMANE && req.user?.role !== UserRole.MASTER_ADMIN) {
+      throw new ForbiddenException('Doar Master Admin poate crea utilizatori Resurse Umane');
+    }
     return this.usersService.create(createUserDto, req.user?.id);
   }
 

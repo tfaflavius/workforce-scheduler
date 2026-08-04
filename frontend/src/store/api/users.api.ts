@@ -29,8 +29,10 @@ export interface CreateUserRequest {
   password: string;
   fullName: string;
   phone?: string;
-  role: 'ADMIN' | 'MANAGER' | 'USER';  // Cannot create MASTER_ADMIN
+  role: 'ADMIN' | 'MANAGER' | 'USER' | 'RESURSE_UMANE';  // Cannot create MASTER_ADMIN
   departmentId?: string;
+  hrVisibleDepartmentIds?: string[];
+  hrOnlyDispPosition?: boolean;
 }
 
 export interface UpdateUserRequest {
