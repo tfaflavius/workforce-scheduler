@@ -36,6 +36,19 @@ export class ControlNotesController {
   }
 
   /**
+   * Statistici personale pentru userul curent (cate amenzi a dat el + procentul
+   * fata de media combinata a tuturor userilor de Control). Fara datele colegilor.
+   */
+  @Get('my-stats')
+  async getMyStats(
+    @Request() req,
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+  ) {
+    const target = year ?? new Date().getFullYear();
+    return this.service.getMyStats(req.user.id, target);
+  }
+
+  /**
    * Set or update a single (user, year, month) cell.
    * Editing is restricted to Parcometre dept + Admin/Manager — enforced
    * inside the service via assertCanEdit().

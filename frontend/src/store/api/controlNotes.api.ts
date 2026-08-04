@@ -43,6 +43,16 @@ export interface UpsertControlNoteDto {
   notes?: string | null;
 }
 
+export interface ControlNotesMyStats {
+  year: number;
+  isControlUser: boolean;
+  myTotal: number;
+  currentMonthCount: number;
+  myAveragePerWorkingDay: number;
+  combinedAveragePerWorkingDay: number;
+  percentageVsCombined: number; // >0 peste medie, <0 sub medie
+}
+
 export const controlNotesApi = createApi({
   reducerPath: 'controlNotesApi',
   baseQuery: createAuthBaseQuery(),
@@ -57,6 +67,13 @@ export const controlNotesApi = createApi({
       providesTags: (_r, _e, year) => [
         { type: 'ControlNotesMatrix', id: year ?? 'CURRENT' },
       ],
+    }),
+    getMyControlNotesStats: builder.query<ControlNotesMyStats, number | void>({
+      query: (year) => ({
+        url: '/control-inspection-notes/my-stats',
+        params: year ? { year } : undefined,
+      }),
+      providesTags: [{ type: 'ControlNotesMatrix', id: 'MY_STATS' }],
     }),
     upsertControlNote: builder.mutation<unknown, UpsertControlNoteDto>({
       query: (body) => ({
@@ -87,6 +104,7 @@ export const controlNotesApi = createApi({
 
 export const {
   useGetControlNotesMatrixQuery,
+  useGetMyControlNotesStatsQuery,
   useUpsertControlNoteMutation,
   useDeleteControlNoteCellMutation,
 } = controlNotesApi;

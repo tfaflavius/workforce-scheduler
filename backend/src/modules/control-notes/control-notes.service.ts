@@ -200,6 +200,54 @@ export class ControlNotesService {
   }
 
   /**
+   * Statistici personale pentru un user de Control: cate note (amenzi) a dat el,
+   * si cu cat la suta e sub/peste media combinata pe zi lucrata a tuturor userilor
+   * de Control. Fara a expune datele individuale ale colegilor.
+   */
+  async getMyStats(userId: string, year: number) {
+    const matrix = await this.getMatrix(year);
+    const combinedAveragePerWorkingDay = matrix.totals.averagePerWorkingDay;
+    const row = matrix.users.find((u) => u.userId === userId);
+
+    if (!row) {
+      return {
+        year,
+        isControlUser: false,
+        myTotal: 0,
+        currentMonthCount: 0,
+        myAveragePerWorkingDay: 0,
+        combinedAveragePerWorkingDay,
+        percentageVsCombined: 0,
+      };
+    }
+
+    const myAveragePerWorkingDay = row.averagePerWorkingDay;
+    const percentageVsCombined =
+      combinedAveragePerWorkingDay > 0
+        ? Math.round(
+            ((myAveragePerWorkingDay - combinedAveragePerWorkingDay) /
+              combinedAveragePerWorkingDay) *
+              100,
+          )
+        : 0;
+
+    // Numarul din luna curenta (doar daca ne uitam la anul curent)
+    const now = new Date();
+    const currentMonthCount =
+      year === now.getFullYear() ? row.monthlyCounts[now.getMonth()] ?? 0 : 0;
+
+    return {
+      year,
+      isControlUser: true,
+      myTotal: row.total,
+      currentMonthCount,
+      myAveragePerWorkingDay,
+      combinedAveragePerWorkingDay,
+      percentageVsCombined,
+    };
+  }
+
+  /**
    * Counts, per (userId, month), the number of **weekdays** in the given year
    * where each user was unable to do Control work — i.e. scheduled on the
    * Dispecerat work position (DISP) OR marked with any leave_type (concediu,

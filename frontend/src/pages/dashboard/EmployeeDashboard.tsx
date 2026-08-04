@@ -63,6 +63,7 @@ import {
   useReportGpsStatusMutation,
 } from '../../store/api/time-tracking.api';
 import { useGetUserDashboardStatsQuery } from '../../store/api/userDashboard.api';
+import { useGetMyControlNotesStatsQuery } from '../../store/api/controlNotes.api';
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
@@ -154,6 +155,42 @@ const EmployeeDashboard = () => {
     { startDate: `${todayISO}T00:00:00`, endDate: `${todayISO}T23:59:59` },
     { skip: !hasPontaj },
   );
+
+  // Pontajul pe toata luna curenta — pentru sectiunea "Program lucrat" (Control + Intretinere)
+  const monthRange = useMemo(() => {
+    const last = new Date(currentYear, currentMonth, 0).getDate();
+    return {
+      startDate: `${monthYear}-01T00:00:00`,
+      endDate: `${monthYear}-${String(last).padStart(2, '0')}T23:59:59`,
+    };
+  }, [currentYear, currentMonth, monthYear]);
+
+  const { data: monthEntries = [] } = useGetTimeEntriesQuery(monthRange, { skip: !hasPontaj });
+
+  // Agregare pe zi: total minute lucrate + ora de inceput (cea mai devreme) din pontajul zilei.
+  // Prag "complet" pentru tura de 8h: minim 7h59m = 479 minute lucrate.
+  const FULL_8H_THRESHOLD_MIN = 479;
+  const workedDays = useMemo(() => {
+    const map = new Map<string, { workedMinutes: number; firstStart: string }>();
+    for (const e of monthEntries) {
+      if (!e.endTime || !e.durationMinutes) continue; // doar ture finalizate
+      const start = new Date(e.startTime);
+      const key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.workedMinutes += e.durationMinutes;
+        if (new Date(e.startTime) < new Date(existing.firstStart)) existing.firstStart = e.startTime;
+      } else {
+        map.set(key, { workedMinutes: e.durationMinutes, firstStart: e.startTime });
+      }
+    }
+    return Array.from(map.entries())
+      .map(([date, v]) => ({ date, ...v, isFull8h: v.workedMinutes >= FULL_8H_THRESHOLD_MIN }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [monthEntries]);
+
+  // Statistici personale amenzi (doar useri Control)
+  const { data: myControlStats } = useGetMyControlNotesStatsQuery(undefined, { skip: !isControlDepartment });
 
   const [startTimerMutation, { isLoading: isStarting }] = useStartTimerMutation();
   const [stopTimerMutation, { isLoading: isStopping }] = useStopTimerMutation();
@@ -761,7 +798,99 @@ const EmployeeDashboard = () => {
                     </CardContent>
                   </Card>
                 )}
+                {/* Program lucrat pe luna curenta (pe baza pontajului) */}
+                {workedDays.length > 0 && (
+                  <Card sx={{ mt: 2 }}>
+                    <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+                        <TimerIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: 'text.secondary' }} />
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                          Program lucrat — {monthNames[currentMonth - 1]} {currentYear}
+                        </Typography>
+                      </Stack>
+                      <Stack spacing={1}>
+                        {workedDays.map((d) => (
+                          <Box key={d.date} sx={{ p: { xs: 1, sm: 1.5 }, bgcolor: alpha(theme.palette.primary.main, 0.04), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.divider, 0.08)}` }}>
+                            <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={0.5}>
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <TimeIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'primary.main' }} />
+                                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
+                                  {new Date(d.date).toLocaleDateString('ro-RO', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  de la {formatTime(d.firstStart)}
+                                </Typography>
+                              </Stack>
+                              <Stack direction="row" alignItems="center" spacing={0.75}>
+                                <Chip label={`${Math.floor(d.workedMinutes / 60)}h ${d.workedMinutes % 60}m`} size="small" color="primary" sx={{ fontWeight: 600, height: { xs: 22, sm: 26 }, fontSize: { xs: '0.7rem', sm: '0.75rem' } }} />
+                                {d.isFull8h && (
+                                  <Chip label="8h complet" size="small" color="success" sx={{ fontWeight: 600, height: { xs: 22, sm: 26 }, fontSize: { xs: '0.7rem', sm: '0.75rem' } }} />
+                                )}
+                              </Stack>
+                            </Stack>
+                          </Box>
+                        ))}
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                )}
               </Box>
+            </Fade>
+          )}
+
+          {/* Sectiune amenzi personale (useri Control) */}
+          {isControlDepartment && myControlStats?.isControlUser && (
+            <Fade in={true} timeout={700}>
+              <Card sx={{ mb: { xs: 2, sm: 3 } }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                    <ControlNotesIcon sx={{ color: theme.palette.primary.main }} />
+                    <Typography variant="h6" fontWeight={700}>
+                      Amenzile mele — {myControlStats.year}
+                    </Typography>
+                  </Stack>
+                  <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha(theme.palette.primary.main, 0.08) }}>
+                        <Typography variant="h4" fontWeight={800} color="primary.main">{myControlStats.myTotal}</Typography>
+                        <Typography variant="caption" color="text.secondary">Total an</Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha(theme.palette.info.main, 0.08) }}>
+                        <Typography variant="h4" fontWeight={800} color="info.main">{myControlStats.currentMonthCount}</Typography>
+                        <Typography variant="caption" color="text.secondary">Luna curenta</Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha(theme.palette.grey[500], 0.1) }}>
+                        <Typography variant="h5" fontWeight={800}>{myControlStats.myAveragePerWorkingDay.toFixed(2)}</Typography>
+                        <Typography variant="caption" color="text.secondary">Media mea/zi</Typography>
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 6, sm: 3 }}>
+                      {(() => {
+                        const p = myControlStats.percentageVsCombined;
+                        const above = p >= 0;
+                        const color = above ? theme.palette.success.main : theme.palette.error.main;
+                        return (
+                          <Box sx={{ textAlign: 'center', p: 1.5, borderRadius: 2, bgcolor: alpha(color, 0.1) }}>
+                            <Typography variant="h5" fontWeight={800} sx={{ color }}>
+                              {above ? '+' : ''}{p}%
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {above ? 'peste' : 'sub'} media echipei
+                            </Typography>
+                          </Box>
+                        );
+                      })()}
+                    </Grid>
+                  </Grid>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+                    Comparatie cu media pe zi lucrata a tuturor userilor de Control ({myControlStats.combinedAveragePerWorkingDay.toFixed(2)}/zi).
+                  </Typography>
+                </CardContent>
+              </Card>
             </Fade>
           )}
 
