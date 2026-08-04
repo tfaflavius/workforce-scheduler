@@ -1,4 +1,4 @@
-export type UserRole = 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER';
+export type UserRole = 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER' | 'RESURSE_UMANE';
 
 export interface Department {
   id: string;

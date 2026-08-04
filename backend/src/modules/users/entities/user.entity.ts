@@ -16,6 +16,9 @@ export enum UserRole {
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',
   USER = 'USER',
+  // Rol lateral, read-only: vede DOAR sectiunea Programe, pentru evidenta pontajului,
+  // limitat la departamentele configurate de Master Admin (vezi hrVisibleDepartmentIds).
+  RESURSE_UMANE = 'RESURSE_UMANE',
 }
 
 @Entity('users')
@@ -73,6 +76,20 @@ export class User {
 
   @Column({ name: 'birth_date', type: 'date', nullable: true })
   birthDate: Date;
+
+  /**
+   * Doar pentru rolul RESURSE_UMANE: lista de department_id din care userul HR
+   * are voie sa vada programele (evidenta pontaj). Gol = niciun departament.
+   */
+  @Column({ name: 'hr_visible_department_ids', type: 'jsonb', default: () => "'[]'" })
+  hrVisibleDepartmentIds: string[];
+
+  /**
+   * Doar pentru RESURSE_UMANE: daca true, arata doar turele de pe pozitia DISP
+   * (Dispecerat) ale userilor vizibili — adica doar zilele lucrate efectiv in Dispecerat.
+   */
+  @Column({ name: 'hr_only_disp_position', type: 'boolean', default: false })
+  hrOnlyDispPosition: boolean;
 
   /** Brute-force protection: failed login attempts counter */
   @Column({ name: 'failed_login_attempts', default: 0 })

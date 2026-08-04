@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { Navigate } from 'react-router-dom';
 import { CircularProgress, Box } from '@mui/material';
 import { useAppSelector } from '../../store/hooks';
 
@@ -22,6 +23,9 @@ export const DashboardPage = () => {
         return <AdminDashboard />;
       case 'MANAGER':
         return <ManagerDashboard />;
+      case 'RESURSE_UMANE':
+        // HR nu are dashboard — vede doar Programe
+        return <Navigate to="/schedules" replace />;
       case 'USER':
         return <EmployeeDashboard />;
       default:

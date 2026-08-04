@@ -144,7 +144,7 @@ export const AppRoutes = () => {
         <Route
           path="/schedules"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER', 'RESURSE_UMANE']}>
               <SafePage><SchedulesPage /></SafePage>
             </ProtectedRoute>
           }

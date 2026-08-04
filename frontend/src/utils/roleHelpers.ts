@@ -26,6 +26,7 @@ export function getRoleLabel(role: string | null | undefined): string {
     case 'ADMIN': return 'Admin';
     case 'MANAGER': return 'Manager';
     case 'USER': return 'Utilizator';
+    case 'RESURSE_UMANE': return 'Resurse Umane';
     default: return role || '';
   }
 }
@@ -36,6 +37,7 @@ export function getRoleBadgeColor(role: string | null | undefined): string {
     case 'ADMIN': return 'error';
     case 'MANAGER': return 'warning';
     case 'USER': return 'info';
+    case 'RESURSE_UMANE': return 'success';
     default: return 'default';
   }
 }

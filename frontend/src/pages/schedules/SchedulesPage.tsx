@@ -196,6 +196,8 @@ const SchedulesPage: React.FC = () => {
   // Check if current user is admin
   const isAdmin = isAdminOrAbove(user?.role);
   const isManager = user?.role === 'MANAGER';
+  // Rolurile care pot crea/edita programe (nu si Resurse Umane, care e read-only)
+  const canManage = isAdmin || isManager;
 
   // Filter only employees and managers
   const eligibleUsers = useMemo(() => {
@@ -585,7 +587,8 @@ const SchedulesPage: React.FC = () => {
           </Alert>
         )}
 
-        {/* Create Buttons */}
+        {/* Create Buttons — ascunse pentru rolurile read-only (ex: Resurse Umane) */}
+        {canManage && (
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent={{ xs: 'stretch', sm: 'flex-end' }}>
           <Button
             variant="outlined"
@@ -623,6 +626,7 @@ const SchedulesPage: React.FC = () => {
             {isMobile ? 'Creeaza Program' : 'Creeaza Program Nou'}
           </Button>
         </Stack>
+        )}
 
         {/* Month Selector and Filters */}
         <ScheduleFilters

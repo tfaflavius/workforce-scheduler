@@ -267,7 +267,7 @@ export const MainLayout = () => {
       text: 'Programe',
       icon: <CalendarIcon />,
       path: '/schedules',
-      roles: ['ADMIN', 'MANAGER'],
+      roles: ['ADMIN', 'MANAGER', 'RESURSE_UMANE'],
     },
     {
       text: 'Gestionare Schimburi',
@@ -402,6 +402,10 @@ export const MainLayout = () => {
 
     // Admin si Master Admin vad tot
     if (user.role === 'ADMIN' || user.role === 'MASTER_ADMIN') return true;
+
+    // Resurse Umane: vede doar itemele care il listeaza explicit (ex: Programe),
+    // fara restrictii de departament (scope-ul se aplica pe date, in backend).
+    if (user.role === 'RESURSE_UMANE') return true;
 
     // Manager vede tot EXCEPTAND daca exista excludeDepartments
     if (user.role === 'MANAGER') {

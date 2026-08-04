@@ -7,7 +7,7 @@ export interface User {
   email: string;
   fullName: string;
   phone: string | null;
-  role: 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER';
+  role: 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER' | 'RESURSE_UMANE';
   departmentId: string | null;
   avatarUrl: string | null;
   isActive: boolean;
@@ -16,6 +16,8 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   lastLogin: string | null;
+  hrVisibleDepartmentIds?: string[];
+  hrOnlyDispPosition?: boolean;
   department?: {
     id: string;
     name: string;
@@ -35,10 +37,12 @@ export interface UpdateUserRequest {
   email?: string;
   fullName?: string;
   phone?: string;
-  role?: 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER';
+  role?: 'MASTER_ADMIN' | 'ADMIN' | 'MANAGER' | 'USER' | 'RESURSE_UMANE';
   departmentId?: string;
   isActive?: boolean;
   birthDate?: string;
+  hrVisibleDepartmentIds?: string[];
+  hrOnlyDispPosition?: boolean;
 }
 
 export interface ChangePasswordRequest {

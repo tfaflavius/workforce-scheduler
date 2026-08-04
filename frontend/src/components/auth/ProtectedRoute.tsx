@@ -17,15 +17,23 @@ export const ProtectedRoute = ({ children, allowedRoles, allowedDepartments }: P
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Hierarchical role check: user passes if their role level >= any required role level
+  // Hierarchical role check: user passes if their role level >= any required role level.
+  // RESURSE_UMANE is a lateral, read-only role outside the hierarchy: it only matches
+  // routes that explicitly list it in allowedRoles.
   if (allowedRoles && user) {
-    const userLevel = ROLE_HIERARCHY[user.role] ?? -1;
-    const hasAccess = allowedRoles.some((role) => {
-      const requiredLevel = ROLE_HIERARCHY[role] ?? -1;
-      return userLevel >= requiredLevel;
-    });
+    let hasAccess: boolean;
+    if (user.role === 'RESURSE_UMANE') {
+      hasAccess = allowedRoles.includes('RESURSE_UMANE');
+    } else {
+      const userLevel = ROLE_HIERARCHY[user.role] ?? -1;
+      hasAccess = allowedRoles.some((role) => {
+        const requiredLevel = ROLE_HIERARCHY[role] ?? -1;
+        return userLevel >= requiredLevel;
+      });
+    }
     if (!hasAccess) {
-      return <Navigate to="/dashboard" replace />;
+      // HR has access only to schedules — send them there instead of the dashboard.
+      return <Navigate to={user.role === 'RESURSE_UMANE' ? '/schedules' : '/dashboard'} replace />;
     }
   }
 

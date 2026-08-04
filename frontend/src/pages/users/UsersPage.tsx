@@ -413,6 +413,7 @@ const UsersPage: React.FC = () => {
                         <MenuItem value="ADMIN">Admin</MenuItem>
                         <MenuItem value="MANAGER">Manager</MenuItem>
                         <MenuItem value="USER">User</MenuItem>
+                        <MenuItem value="RESURSE_UMANE">Resurse Umane</MenuItem>
                       </Select>
                     </FormControl>
 
@@ -905,6 +906,8 @@ const UsersPage: React.FC = () => {
                 phone: editUser.phone || '',
                 role: editUser.role as any,
                 departmentId: editUser.departmentId || '',
+                hrVisibleDepartmentIds: editUser.hrVisibleDepartmentIds || [],
+                hrOnlyDispPosition: editUser.hrOnlyDispPosition || false,
               } : undefined}
               onSubmit={handleEditSubmit}
               onCancel={() => {

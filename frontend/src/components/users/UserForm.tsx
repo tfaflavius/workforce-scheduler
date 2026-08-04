@@ -9,6 +9,11 @@ import {
   Stack,
   FormHelperText,
   CircularProgress,
+  OutlinedInput,
+  Checkbox,
+  ListItemText,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import type { CreateUserRequest, UpdateUserRequest } from '../../store/api/users.api';
@@ -41,9 +46,11 @@ export const UserForm: React.FC<UserFormProps> = ({
     password: '',
     fullName: initialData?.fullName || '',
     phone: initialData?.phone || '',
-    role: initialData?.role || 'USER',
+    role: (initialData?.role || 'USER') as string,
     departmentId: initialData?.departmentId || '',
     birthDate: initialData?.birthDate || '',
+    hrVisibleDepartmentIds: initialData?.hrVisibleDepartmentIds || [],
+    hrOnlyDispPosition: initialData?.hrOnlyDispPosition || false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,6 +65,8 @@ export const UserForm: React.FC<UserFormProps> = ({
         role: initialData.role || 'USER',
         departmentId: initialData.departmentId || '',
         birthDate: initialData.birthDate || '',
+        hrVisibleDepartmentIds: initialData.hrVisibleDepartmentIds || [],
+        hrOnlyDispPosition: initialData.hrOnlyDispPosition || false,
       });
     }
   }, [initialData]);
@@ -104,10 +113,20 @@ export const UserForm: React.FC<UserFormProps> = ({
         // Skip password for update
         return;
       }
+      // Campurile HR se trimit separat, doar pentru rolul RESURSE_UMANE
+      if (key === 'hrVisibleDepartmentIds' || key === 'hrOnlyDispPosition') {
+        return;
+      }
       if (value !== '' && value !== null && value !== undefined) {
         cleanedData[key] = value;
       }
     });
+
+    // Scope-ul HR se salveaza doar cand rolul e Resurse Umane
+    if (formData.role === 'RESURSE_UMANE') {
+      cleanedData.hrVisibleDepartmentIds = formData.hrVisibleDepartmentIds;
+      cleanedData.hrOnlyDispPosition = formData.hrOnlyDispPosition;
+    }
 
     onSubmit(cleanedData);
   };
@@ -205,10 +224,51 @@ export const UserForm: React.FC<UserFormProps> = ({
             )}
             <MenuItem value="MANAGER">Manager</MenuItem>
             <MenuItem value="USER">User</MenuItem>
+            {currentUserRole === 'MASTER_ADMIN' && (
+              <MenuItem value="RESURSE_UMANE">Resurse Umane</MenuItem>
+            )}
           </Select>
           {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
           {isEditingMasterAdmin && <FormHelperText>Rolul Master Admin nu poate fi schimbat</FormHelperText>}
         </FormControl>
+
+        {/* Configurare scope pentru Resurse Umane (doar Master Admin) */}
+        {formData.role === 'RESURSE_UMANE' && currentUserRole === 'MASTER_ADMIN' && (
+          <>
+            <FormControl fullWidth>
+              <InputLabel>Departamente vizibile (HR)</InputLabel>
+              <Select
+                multiple
+                value={formData.hrVisibleDepartmentIds}
+                onChange={(e) => setFormData({ ...formData, hrVisibleDepartmentIds: e.target.value as string[] })}
+                input={<OutlinedInput label="Departamente vizibile (HR)" />}
+                renderValue={(selected) =>
+                  (selected as string[])
+                    .map((id) => departments?.find((d) => d.id === id)?.name || id)
+                    .join(', ')
+                }
+              >
+                {departments?.map((dept) => (
+                  <MenuItem key={dept.id} value={dept.id}>
+                    <Checkbox checked={formData.hrVisibleDepartmentIds.includes(dept.id)} />
+                    <ListItemText primary={dept.name} />
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>Din ce departamente vede userul HR programele (pontajul)</FormHelperText>
+            </FormControl>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.hrOnlyDispPosition}
+                  onChange={(e) => setFormData({ ...formData, hrOnlyDispPosition: e.target.checked })}
+                />
+              }
+              label="Doar turele de Dispecerat (pozitia DISP)"
+            />
+          </>
+        )}
 
         <FormControl fullWidth error={!!errors.departmentId}>
           <InputLabel>Departament</InputLabel>
