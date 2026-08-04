@@ -9,6 +9,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  ListSubheader,
   Alert,
   CircularProgress,
   Card,
@@ -77,6 +78,23 @@ const SHIFT_OPTIONS_8H: ShiftOption[] = [
   { id: 'day6_8', label: 'Zi 13-21', shortLabel: 'Z6', startTime: '13:00', endTime: '21:00', color: '#673AB7', isNightShift: false, isVacation: false },
   { id: 'night_8', label: 'Noapte 22-06', shortLabel: 'N8', startTime: '22:00', endTime: '06:00', color: '#E91E63', isNightShift: true, isVacation: false },
   { id: 'vacation_8', label: 'Concediu', shortLabel: 'CO', startTime: '', endTime: '', color: '#FF9800', isNightShift: false, isVacation: true },
+];
+
+// Lista completa (12h + 8h) — folosita pentru rezolvarea culorii/notitelor indiferent de pattern-ul zilei.
+// Permite combinarea pe zile diferite in aceeasi luna a programelor de 12h cu 8h si a diferitelor ture de 8h.
+const ALL_SHIFT_OPTIONS: ShiftOption[] = [...SHIFT_OPTIONS_12H, ...SHIFT_OPTIONS_8H];
+
+// Optiuni grupate pentru selectorul per zi (Concediu unificat la final, cu eticheta clara pe fiecare)
+const GROUPED_SHIFT_OPTIONS: { group: string; options: ShiftOption[] }[] = [
+  { group: 'Tura 12h', options: SHIFT_OPTIONS_12H.filter(o => !o.isVacation) },
+  { group: 'Tura 8h', options: SHIFT_OPTIONS_8H.filter(o => !o.isVacation) },
+  {
+    group: 'Concediu',
+    options: [
+      { ...(SHIFT_OPTIONS_12H.find(o => o.isVacation) as ShiftOption), label: 'Concediu (12h)' },
+      { ...(SHIFT_OPTIONS_8H.find(o => o.isVacation) as ShiftOption), label: 'Concediu (8h)' },
+    ],
+  },
 ];
 
 // Genereaza lista de luni pentru anul curent (toate cele 12 luni)
@@ -316,9 +334,6 @@ const CreateSchedulePage: React.FC = () => {
 
     return sorted;
   }, [selectedUser, dbWorkPositions]);
-
-  // Obtine optiunile de tura in functie de tipul selectat
-  const shiftOptions = shiftPattern === '12H' ? SHIFT_OPTIONS_12H : SHIFT_OPTIONS_8H;
 
   // Genereaza zilele lunii
   const daysInMonth = useMemo(() => {
@@ -566,7 +581,7 @@ const CreateSchedulePage: React.FC = () => {
     const defaultPositionId = getDefaultPositionForUser || (dbWorkPositions.length > 0 ? dbWorkPositions[0].id : null);
 
     Object.entries(assignments).forEach(([date, localShiftId]) => {
-      const shiftOption = shiftOptions.find(s => s.id === localShiftId);
+      const shiftOption = ALL_SHIFT_OPTIONS.find(s => s.id === localShiftId);
       const dbShiftTypeId = getShiftTypeId(localShiftId);
 
       if (!dbShiftTypeId) {
@@ -722,7 +737,7 @@ const CreateSchedulePage: React.FC = () => {
   const getDayColor = (date: string) => {
     const shiftId = assignments[date];
     if (!shiftId) return 'transparent';
-    const shift = shiftOptions.find(s => s.id === shiftId);
+    const shift = ALL_SHIFT_OPTIONS.find(s => s.id === shiftId);
     return shift?.color || 'transparent';
   };
 
@@ -841,31 +856,16 @@ const CreateSchedulePage: React.FC = () => {
               {/* Selector Tip Tura */}
               <Box sx={{ flex: 1, minWidth: { md: 150 } }}>
                 <FormControl fullWidth size="small">
-                  <InputLabel>Tip Tura</InputLabel>
+                  <InputLabel>Tip Tura (implicit)</InputLabel>
                   <Select
                     value={shiftPattern}
                     onChange={(e) => {
-                      const newPattern = e.target.value as ShiftPatternType;
-                      // Doar schimba pattern-ul, nu sterge asignarile
-                      // Asignarile incompatibile vor fi convertite sau ignorate la salvare
-                      if (Object.keys(assignments).length > 0) {
-                        // Avertizeaza utilizatorul ca are asignari care vor fi sterse
-                        setConfirmDialog({
-                          open: true,
-                          title: 'Schimba tipul de tura',
-                          message: 'Schimbarea tipului de tura va sterge asignarile curente. Continuati?',
-                          variant: 'warning',
-                          confirmText: 'Continua',
-                          onConfirm: () => {
-                            setShiftPattern(newPattern);
-                            setAssignments({});
-                          },
-                        });
-                      } else {
-                        setShiftPattern(newPattern);
-                      }
+                      // Doar seteaza pattern-ul implicit (pentru legenda si prefill concediu).
+                      // NU sterge asignarile — turele se pot combina liber pe zile diferite,
+                      // fiecare zi se alege individual din calendar (8h si 12h impreuna).
+                      setShiftPattern(e.target.value as ShiftPatternType);
                     }}
-                    label="Tip Tura"
+                    label="Tip Tura (implicit)"
                   >
                     <MenuItem value="12H">Tura 12 ore</MenuItem>
                     <MenuItem value="8H">Tura 8 ore</MenuItem>
@@ -918,9 +918,9 @@ const CreateSchedulePage: React.FC = () => {
         <Paper sx={{ p: 1.5, width: '100%' }}>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
             <Typography variant="caption" fontWeight="bold" sx={{ mr: 1 }}>
-              Legenda ({shiftPattern}):
+              Legenda ture:
             </Typography>
-            {shiftOptions.map((option) => (
+            {ALL_SHIFT_OPTIONS.filter((o, i, arr) => !o.isVacation || arr.findIndex(x => x.isVacation) === i).map((option) => (
               <Chip
                 key={option.id}
                 label={`${option.shortLabel} - ${option.label}`}
@@ -941,6 +941,9 @@ const CreateSchedulePage: React.FC = () => {
               sx={{ fontSize: '0.7rem', height: 24 }}
             />
           </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            Poti combina in aceeasi luna ture de 8h si 12h (si diferite ture de 8h) — alege pentru fiecare zi orice tura din calendar.
+          </Typography>
           {shiftPattern === '12H' && (
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
               * Dupa tura de zi (Z) - 24h liber | Dupa tura de noapte (N) - 48h liber
@@ -1078,21 +1081,26 @@ const CreateSchedulePage: React.FC = () => {
                         <MenuItem value="" sx={{ fontSize: '0.75rem' }}>
                           <em>Liber</em>
                         </MenuItem>
-                        {shiftOptions.map((option) => (
-                          <MenuItem
-                            key={option.id}
-                            value={option.id}
-                            sx={{
-                              fontSize: '0.75rem',
-                              bgcolor: option.color,
-                              color: 'white',
-                              '&:hover': { bgcolor: option.color, opacity: 0.9 },
-                              '&.Mui-selected': { bgcolor: option.color, '&:hover': { bgcolor: option.color } },
-                            }}
-                          >
-                            {option.label}
-                          </MenuItem>
-                        ))}
+                        {GROUPED_SHIFT_OPTIONS.flatMap((group) => [
+                          <ListSubheader key={`header-${group.group}`} sx={{ fontSize: '0.7rem', lineHeight: 2, fontWeight: 700 }}>
+                            {group.group}
+                          </ListSubheader>,
+                          ...group.options.map((option) => (
+                            <MenuItem
+                              key={option.id}
+                              value={option.id}
+                              sx={{
+                                fontSize: '0.75rem',
+                                bgcolor: option.color,
+                                color: 'white',
+                                '&:hover': { bgcolor: option.color, opacity: 0.9 },
+                                '&.Mui-selected': { bgcolor: option.color, '&:hover': { bgcolor: option.color } },
+                              }}
+                            >
+                              {option.label}
+                            </MenuItem>
+                          )),
+                        ])}
                       </Select>
                     </FormControl>
 
@@ -1313,7 +1321,7 @@ const CreateSchedulePage: React.FC = () => {
                           let cellBgColor = isWeekend ? 'grey.100' : 'transparent';
 
                           if (isCurrentUser && currentUserShift) {
-                            const shift = shiftOptions.find(s => s.id === currentUserShift);
+                            const shift = ALL_SHIFT_OPTIONS.find(s => s.id === currentUserShift);
                             if (shift) {
                               cellContent = shift.shortLabel;
                               cellBgColor = shift.color;
