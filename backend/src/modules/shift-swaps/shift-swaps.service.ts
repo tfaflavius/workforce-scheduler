@@ -63,9 +63,14 @@ export class ShiftSwapsService {
       throw new BadRequestException('Nu ai o tura programata in data selectata');
     }
 
-    // Extrage departmentId si shiftPattern pentru filtrare
+    // Extrage departmentId si regimul de ore (8h/12h) pentru filtrare.
+    // Regimul se ia din tura efectiva a zilei, nu din eticheta programului,
+    // ca sa fie corect si cand userul are ture mixte in aceeasi luna.
     const departmentId = requester.departmentId || undefined;
-    const shiftPattern = requesterAssignment.schedule?.shiftPattern || undefined;
+    const shiftPattern =
+      requesterAssignment.shiftType?.shiftPattern ||
+      requesterAssignment.schedule?.shiftPattern ||
+      undefined;
 
     // Gaseste userii care lucreaza in data tinta (filtrare pe departament + regim ore)
     const targetUsers = await this.findUsersWorkingOnDate(
@@ -440,6 +445,7 @@ export class ShiftSwapsService {
       .createQueryBuilder('assignment')
       .leftJoinAndSelect('assignment.user', 'user')
       .leftJoin('assignment.schedule', 'schedule')
+      .leftJoin('assignment.shiftType', 'shiftType')
       .where('assignment.shiftDate = :date', { date })
       .andWhere('user.isActive = true')
       .andWhere('schedule.status = :status', { status: 'APPROVED' });
@@ -451,9 +457,11 @@ export class ShiftSwapsService {
     // NU filtram pe workPositionId - userii din Control pot schimba tura
     // indiferent daca lucreaza la pozitia Control sau Dispecerat
 
-    // Filtreaza pe regimul de ore (8h/12h) - doar colegi cu acelasi regim
+    // Filtreaza pe regimul de ore (8h/12h) dupa tura efectiva din ziua respectiva
+    // (nu dupa eticheta programului), ca sa functioneze corect si cand un user are
+    // in aceeasi luna ture mixte (8h + 12h). Pentru programele ne-mixte rezultatul e identic.
     if (shiftPattern) {
-      qb.andWhere('schedule.shiftPattern = :shiftPattern', { shiftPattern });
+      qb.andWhere('shiftType.shiftPattern = :shiftPattern', { shiftPattern });
     }
 
     const assignments = await qb.getMany();
@@ -487,11 +495,14 @@ export class ShiftSwapsService {
     // Gaseste assignment-ul user-ului pe userDate pentru workPositionId si shiftPattern
     const userAssignment = await this.assignmentRepository.findOne({
       where: { userId, shiftDate: new Date(userDate) },
-      relations: ['workPosition', 'schedule'],
+      relations: ['workPosition', 'schedule', 'shiftType'],
     });
 
     const departmentId = user.departmentId;
-    const shiftPattern = userAssignment?.schedule?.shiftPattern || null;
+    // Regimul de ore (8h/12h) se ia din tura efectiva a zilei, nu din eticheta programului,
+    // ca sa fie corect si pentru programe cu ture mixte. Fallback la eticheta programului.
+    const shiftPattern =
+      userAssignment?.shiftType?.shiftPattern || userAssignment?.schedule?.shiftPattern || null;
 
     // Cauta assignment-uri viitoare de la alti useri din acelasi departament si regim
     const today = new Date();
@@ -501,6 +512,7 @@ export class ShiftSwapsService {
       .createQueryBuilder('assignment')
       .leftJoin('assignment.user', 'user')
       .leftJoin('assignment.schedule', 'schedule')
+      .leftJoin('assignment.shiftType', 'shiftType')
       .select('assignment.shiftDate', 'shiftDate')
       .addSelect('COUNT(DISTINCT user.id)', 'userCount')
       .where('user.id != :userId', { userId })
@@ -517,9 +529,10 @@ export class ShiftSwapsService {
     // NU filtram pe workPositionId - userii din Control pot schimba tura
     // indiferent daca lucreaza la pozitia Control sau Dispecerat
 
-    // Filtreaza pe regimul de ore (SHIFT_8H / SHIFT_12H) - doar colegi cu acelasi regim
+    // Filtreaza pe regimul de ore (SHIFT_8H / SHIFT_12H) dupa tura efectiva a zilei,
+    // nu dupa eticheta programului (corect si pentru ture mixte in aceeasi luna)
     if (shiftPattern) {
-      qb.andWhere('schedule.shiftPattern = :shiftPattern', { shiftPattern });
+      qb.andWhere('shiftType.shiftPattern = :shiftPattern', { shiftPattern });
     }
 
     qb.groupBy('assignment.shiftDate')
