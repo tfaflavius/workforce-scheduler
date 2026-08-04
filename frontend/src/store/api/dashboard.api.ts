@@ -127,7 +127,19 @@ export const dashboardApi = createApi({
       // Refetch every 60 seconds for live dashboard
       keepUnusedDataFor: 60,
     }),
+    sendPontajAmenziAnnouncement: builder.mutation<
+      { total: number; notified: number; emailed: number; failed: number },
+      void
+    >({
+      query: () => ({
+        url: '/admin/announcements/pontaj-amenzi',
+        method: 'POST',
+      }),
+    }),
   }),
 });
 
-export const { useGetDashboardStatsQuery } = dashboardApi;
+export const {
+  useGetDashboardStatsQuery,
+  useSendPontajAmenziAnnouncementMutation,
+} = dashboardApi;

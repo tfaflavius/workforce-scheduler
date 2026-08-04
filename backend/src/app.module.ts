@@ -88,6 +88,7 @@ import { InvestmentAnnualBudgetHistory } from './modules/investments/entities/in
 import { ControlNotesModule } from './modules/control-notes/control-notes.module';
 import { UserDashboardModule } from './modules/user-dashboard/user-dashboard.module';
 import { MobileDevicesModule } from './modules/mobile-devices/mobile-devices.module';
+import { AnnouncementsModule } from './modules/announcements/announcements.module';
 import { ControlInspectionNote } from './modules/control-notes/entities/control-inspection-note.entity';
 import { AuditLog } from './modules/audit/entities/audit-log.entity';
 import { envValidationSchema } from './config/env.validation';
@@ -144,6 +145,7 @@ import { envValidationSchema } from './config/env.validation';
     ControlNotesModule,
     UserDashboardModule,
     MobileDevicesModule,
+    AnnouncementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

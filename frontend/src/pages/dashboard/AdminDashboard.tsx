@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, Suspense } from 'react';
+import React, { useMemo, useCallback, useState, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatRONCompact } from '../../utils/formatters';
 import {
@@ -48,8 +48,10 @@ import {
   AssignmentTurnedIn as ControlNotesIcon,
   Savings as SavingsIcon,
 } from '@mui/icons-material';
-import { useGetDashboardStatsQuery } from '../../store/api/dashboard.api';
+import { useGetDashboardStatsQuery, useSendPontajAmenziAnnouncementMutation } from '../../store/api/dashboard.api';
 import { GradientHeader } from '../../components/common/GradientHeader';
+import { FriendlyDialog } from '../../components/common';
+import { useSnackbar } from '../../contexts/SnackbarContext';
 import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
 import { getTimeAgo } from '../../utils/getTimeAgo';
 import { useSmartPolling } from '../../hooks/useSmartPolling';
@@ -77,6 +79,21 @@ const AdminDashboard = () => {
   });
 
   const hasError = isError || (!isLoading && !stats);
+
+  // Anunt pontaj + amenzi catre Control & Intretinere
+  const { notifySuccess, notifyError } = useSnackbar();
+  const [announceOpen, setAnnounceOpen] = useState(false);
+  const [sendAnnouncement, { isLoading: sendingAnnouncement }] = useSendPontajAmenziAnnouncementMutation();
+
+  const handleSendAnnouncement = useCallback(async () => {
+    try {
+      const res = await sendAnnouncement().unwrap();
+      notifySuccess(`Anunt trimis: ${res.notified} notificari, ${res.emailed} emailuri${res.failed ? ` (${res.failed} emailuri esuate)` : ''}.`);
+      setAnnounceOpen(false);
+    } catch {
+      notifyError('Nu s-a putut trimite anuntul.');
+    }
+  }, [sendAnnouncement, notifySuccess, notifyError]);
 
   const pendingCount = stats?.schedules?.pending || 0;
   const pendingSwaps = stats?.shiftSwaps?.pendingAdmin || 0;
@@ -118,6 +135,35 @@ const AdminDashboard = () => {
         icon={<TrendingIcon />}
         gradient="#0f172a 0%, #1e293b 100%"
       />
+
+      {/* Anunt pontaj + amenzi catre Control & Intretinere */}
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: { xs: 2, sm: 3 } }}>
+        <Button
+          variant="outlined"
+          startIcon={<NotifIcon />}
+          onClick={() => setAnnounceOpen(true)}
+          sx={{ fontWeight: 600, borderRadius: 2, textTransform: 'none' }}
+        >
+          Trimite anunt pontaj + amenzi
+        </Button>
+      </Stack>
+
+      <FriendlyDialog
+        open={announceOpen}
+        onClose={() => setAnnounceOpen(false)}
+        icon={<NotifIcon />}
+        variant="info"
+        title="Trimite anunt pontaj + amenzi"
+        onConfirm={handleSendAnnouncement}
+        confirmText={sendingAnnouncement ? 'Se trimite...' : 'Trimite acum'}
+        cancelText="Anuleaza"
+      >
+        <Typography>
+          Se va trimite o notificare in aplicatie SI un email tuturor userilor activi de la
+          <strong> Control</strong> si <strong>Intretinere Parcari</strong>, despre pontajul obligatoriu
+          (pornire/oprire tura) si — pentru Control — despre evidenta amenzilor. Continui?
+        </Typography>
+      </FriendlyDialog>
 
       {/* PV Car Status Banner */}
       {carStatus?.carInUse && (
