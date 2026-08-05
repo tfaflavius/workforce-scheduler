@@ -61,6 +61,20 @@ export class UsersService {
 
     const savedUser = await this.userRepository.save(user);
 
+    // Create the matching Supabase auth user so the account can actually log in.
+    // Best-effort: if it fails, the account still works — the login flow self-heals
+    // by creating the Supabase user on the first successful local-password login.
+    try {
+      await this.supabaseService.signUp(savedUser.email, createUserDto.password, {
+        fullName: savedUser.fullName,
+        role: savedUser.role,
+      });
+    } catch (err: any) {
+      this.logger.error(
+        `Supabase user creation failed for ${savedUser.email}: ${err?.message} — login will self-heal.`,
+      );
+    }
+
     // Audit log
     this.auditService.log({
       userId: requestingUserId,

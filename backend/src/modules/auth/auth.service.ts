@@ -144,12 +144,23 @@ export class AuthService {
             user.lockedUntil = null;
           }
 
-          // Sync password to Supabase so future logins work directly
+          // Ensure a Supabase auth user exists for this account. Admin-created
+          // users are stored only locally (no Supabase user), so the first
+          // Supabase sign-in above fails. Create the Supabase user now so login
+          // works from here on (self-heal). If it already exists, sync password.
           try {
-            await this.supabaseService.updateUserPassword(user.id, loginDto.password);
-            this.logger.log(`[Login] Supabase password synced for ${loginDto.email}`);
-          } catch (syncErr) {
-            this.logger.error(`[Login] Supabase password sync failed: ${syncErr?.message}`);
+            await this.supabaseService.signUp(loginDto.email, loginDto.password, {
+              fullName: user.fullName,
+              role: user.role,
+            });
+            this.logger.log(`[Login] Created missing Supabase auth user for ${loginDto.email}`);
+          } catch (createErr: any) {
+            this.logger.log(`[Login] Supabase user likely already exists for ${loginDto.email}: ${createErr?.message}`);
+            try {
+              await this.supabaseService.updateUserPassword(user.id, loginDto.password);
+            } catch (syncErr: any) {
+              this.logger.error(`[Login] Supabase password sync failed: ${syncErr?.message}`);
+            }
           }
 
           // Now login with Supabase (should work after sync)
@@ -191,9 +202,11 @@ export class AuthService {
       // Verify token with Supabase
       const supabaseUser = await this.supabaseService.getUser(token);
 
-      // Get user from our database
+      // Get user from our database by EMAIL. Admin-created users have a local id
+      // that differs from their Supabase id, so we can't match on id — email is
+      // unique and always matches between Supabase and our DB.
       const user = await this.userRepository.findOne({
-        where: { id: supabaseUser.id },
+        where: { email: supabaseUser.email },
         relations: ['department'],
       });
 
