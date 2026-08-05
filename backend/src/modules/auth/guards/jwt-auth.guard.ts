@@ -44,9 +44,11 @@ export class JwtAuthGuard implements CanActivate {
       // Verify token with Supabase
       const supabaseUser = await this.supabaseService.getUser(token);
 
-      // Get user from our database
+      // Get user from our database by EMAIL. Admin-created users have a local id
+      // that differs from their Supabase id, so matching on id fails (401 on every
+      // request). Email is unique and always matches between Supabase and our DB.
       const user = await this.userRepository.findOne({
-        where: { id: supabaseUser.id },
+        where: { email: supabaseUser.email },
         relations: ['department'],
       });
 
