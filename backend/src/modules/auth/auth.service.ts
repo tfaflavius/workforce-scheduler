@@ -84,11 +84,12 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    // Get user from our database first
-    const user = await this.userRepository.findOne({
-      where: { email: loginDto.email },
-      relations: ['department'],
-    });
+    // Get user from our database first (case-insensitive email match)
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.department', 'department')
+      .where('LOWER(user.email) = LOWER(:email)', { email: loginDto.email })
+      .getOne();
 
     if (!user) {
       throw new UnauthorizedException('Credentiale invalide');
@@ -197,13 +198,14 @@ export class AuthService {
       // Verify token with Supabase
       const supabaseUser = await this.supabaseService.getUser(token);
 
-      // Get user from our database by EMAIL. Admin-created users have a local id
-      // that differs from their Supabase id, so we can't match on id — email is
-      // unique and always matches between Supabase and our DB.
-      const user = await this.userRepository.findOne({
-        where: { email: supabaseUser.email },
-        relations: ['department'],
-      });
+      // Get user from our database by EMAIL, case-insensitively. Admin-created users
+      // have a local id that differs from their Supabase id, and Supabase normalises
+      // emails to lowercase, so an exact compare can miss a local email with casing.
+      const user = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.department', 'department')
+        .where('LOWER(user.email) = LOWER(:email)', { email: supabaseUser.email })
+        .getOne();
 
       if (!user || !user.isActive) {
         throw new UnauthorizedException('Utilizatorul nu a fost gasit sau este inactiv');

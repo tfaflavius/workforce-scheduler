@@ -44,13 +44,15 @@ export class JwtAuthGuard implements CanActivate {
       // Verify token with Supabase
       const supabaseUser = await this.supabaseService.getUser(token);
 
-      // Get user from our database by EMAIL. Admin-created users have a local id
-      // that differs from their Supabase id, so matching on id fails (401 on every
-      // request). Email is unique and always matches between Supabase and our DB.
-      const user = await this.userRepository.findOne({
-        where: { email: supabaseUser.email },
-        relations: ['department'],
-      });
+      // Get user from our database by EMAIL, case-insensitively. Admin-created users
+      // have a local id that differs from their Supabase id, so matching on id fails.
+      // Supabase also normalises emails to lowercase, so a local email with different
+      // casing wouldn't match an exact compare — use LOWER() on both sides.
+      const user = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.department', 'department')
+        .where('LOWER(user.email) = LOWER(:email)', { email: supabaseUser.email })
+        .getOne();
 
       if (!user || !user.isActive) {
         throw new UnauthorizedException('Utilizatorul nu a fost gasit sau este inactiv');
