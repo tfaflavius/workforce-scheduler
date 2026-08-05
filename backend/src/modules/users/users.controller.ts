@@ -58,8 +58,16 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  findAll(@Query() filters: UserFiltersDto) {
+  findAll(@Query() filters: UserFiltersDto, @Request() req) {
+    const role = req.user?.role;
+    // Resurse Umane: primeste doar userii din departamentele permise (pentru evidenta programe)
+    if (role === UserRole.RESURSE_UMANE) {
+      return this.usersService.findForHr(req.user.id, filters);
+    }
+    // Restul listarii ramane doar pentru Admin/Manager
+    if (role !== UserRole.ADMIN && role !== UserRole.MASTER_ADMIN && role !== UserRole.MANAGER) {
+      throw new ForbiddenException('Acces interzis');
+    }
     if (Object.keys(filters).length > 0) {
       return this.usersService.findAllWithFilters(filters);
     }

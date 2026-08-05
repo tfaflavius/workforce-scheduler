@@ -321,6 +321,41 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
+  /**
+   * Listare pentru rolul RESURSE_UMANE: doar userii activi din departamentele
+   * pe care Master Admin le-a permis userului HR. Fara aceste departamente -> lista goala.
+   */
+  async findForHr(hrUserId: string, filters: UserFiltersDto): Promise<User[]> {
+    const hrUser = await this.userRepository.findOne({ where: { id: hrUserId } });
+    const allowedDeptIds = Array.isArray(hrUser?.hrVisibleDepartmentIds)
+      ? hrUser.hrVisibleDepartmentIds
+      : [];
+    if (allowedDeptIds.length === 0) {
+      return [];
+    }
+
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.department', 'department')
+      .where('user.departmentId IN (:...allowedDeptIds)', { allowedDeptIds })
+      .orderBy('user.fullName', 'ASC');
+
+    // Implicit doar userii activi; respecta filtrul daca e trimis explicit
+    if (filters?.isActive !== undefined) {
+      query.andWhere('user.isActive = :isActive', { isActive: filters.isActive });
+    } else {
+      query.andWhere('user.isActive = true');
+    }
+
+    if (filters?.search) {
+      query.andWhere('(user.fullName ILIKE :search OR user.email ILIKE :search)', {
+        search: `%${filters.search}%`,
+      });
+    }
+
+    return query.getMany();
+  }
+
   async findAllWithFilters(filters: UserFiltersDto): Promise<User[]> {
     const query = this.userRepository
       .createQueryBuilder('user')

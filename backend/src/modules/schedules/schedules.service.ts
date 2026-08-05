@@ -264,28 +264,19 @@ export class SchedulesService {
 
     // RESURSE_UMANE: vede doar programele care contin useri din departamentele permise
     // (optional doar turele de pe pozitia DISP). Config luata de pe userul HR.
+    // Filtrarea propriu-zisa se face in JS dupa fetch (mai robust decat SQL raw).
     let hrAllowedDeptIds: string[] = [];
     let hrOnlyDisp = false;
     if (filters?.userRole === 'RESURSE_UMANE' && filters?.userId) {
       const hrUser = await this.userRepository.findOne({ where: { id: filters.userId } });
-      hrAllowedDeptIds = hrUser?.hrVisibleDepartmentIds ?? [];
-      hrOnlyDisp = hrUser?.hrOnlyDispPosition ?? false;
+      hrAllowedDeptIds = Array.isArray(hrUser?.hrVisibleDepartmentIds)
+        ? hrUser.hrVisibleDepartmentIds
+        : [];
+      hrOnlyDisp = !!hrUser?.hrOnlyDispPosition;
 
       if (hrAllowedDeptIds.length === 0) {
         return []; // niciun departament permis => nu vede nimic
       }
-
-      query.andWhere(
-        `EXISTS (
-          SELECT 1 FROM schedule_assignments sa
-          JOIN users u ON u.id = sa.user_id
-          ${hrOnlyDisp ? 'JOIN work_positions wp ON wp.id = sa.work_position_id' : ''}
-          WHERE sa.work_schedule_id = schedule.id
-            AND u.department_id IN (:...hrAllowedDeptIds)
-            ${hrOnlyDisp ? "AND wp.short_name = 'DISP'" : ''}
-        )`,
-        { hrAllowedDeptIds },
-      );
     }
 
     // Safety cap: limit to 200 schedules max
@@ -302,15 +293,18 @@ export class SchedulesService {
     }
 
     // Pentru HR: pastreaza doar asignarile vizibile (departament permis + optional DISP)
+    // si elimina programele care nu mai au nicio asignare vizibila.
     if (filters?.userRole === 'RESURSE_UMANE' && filters?.userId) {
-      return schedules.map(schedule => {
-        schedule.assignments = (schedule.assignments || []).filter(a => {
-          const inDept = !!a.user && hrAllowedDeptIds.includes(a.user.departmentId);
-          const dispOk = !hrOnlyDisp || a.workPosition?.shortName === 'DISP';
-          return inDept && dispOk;
-        });
-        return schedule;
-      });
+      return schedules
+        .map(schedule => {
+          schedule.assignments = (schedule.assignments || []).filter(a => {
+            const inDept = !!a.user && hrAllowedDeptIds.includes(a.user.departmentId);
+            const dispOk = !hrOnlyDisp || a.workPosition?.shortName === 'DISP';
+            return inDept && dispOk;
+          });
+          return schedule;
+        })
+        .filter(schedule => schedule.assignments.length > 0);
     }
 
     return schedules;
