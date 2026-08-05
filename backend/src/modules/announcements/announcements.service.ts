@@ -82,7 +82,7 @@ export class AnnouncementsService {
           ? 'Important: pontaj obligatoriu + evidența amenzilor'
           : 'Important: pontaj obligatoriu (pornire/oprire tură)',
         message: this.buildMessage(control),
-        data: { url: '/dashboard' },
+        data: { url: '/dashboard', announcementKey: 'pontaj-amenzi' },
       };
     });
 
