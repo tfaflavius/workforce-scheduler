@@ -65,7 +65,7 @@ export class UsersService {
     // Best-effort: if it fails, the account still works — the login flow self-heals
     // by creating the Supabase user on the first successful local-password login.
     try {
-      await this.supabaseService.signUp(savedUser.email, createUserDto.password, {
+      await this.supabaseService.upsertUserByEmail(savedUser.email, createUserDto.password, {
         fullName: savedUser.fullName,
         role: savedUser.role,
       });
@@ -297,12 +297,22 @@ export class UsersService {
       }
     }
 
-    // Update password in Supabase Auth
-    await this.supabaseService.updateUserPassword(userId, dto.newPassword);
-
-    // Also update hash in local DB for backwards compatibility
+    // Update the local hash FIRST so login works via the local-password fallback
+    // even if the Supabase sync below fails.
     user.password = await bcrypt.hash(dto.newPassword, BCRYPT_SALT_ROUNDS);
     await this.userRepository.save(user);
+
+    // Sync to Supabase Auth by EMAIL (create the user if missing, else update the
+    // password). Admin-created users have a local id that differs from Supabase,
+    // so updating by id would fail. Best-effort: never fail the request over this.
+    try {
+      await this.supabaseService.upsertUserByEmail(user.email, dto.newPassword, {
+        fullName: user.fullName,
+        role: user.role,
+      });
+    } catch (err: any) {
+      this.logger.error(`Supabase password sync failed for ${user.email}: ${err?.message}`);
+    }
   }
 
   async toggleActiveStatus(userId: string, isActive: boolean): Promise<User> {

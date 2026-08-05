@@ -144,23 +144,18 @@ export class AuthService {
             user.lockedUntil = null;
           }
 
-          // Ensure a Supabase auth user exists for this account. Admin-created
-          // users are stored only locally (no Supabase user), so the first
-          // Supabase sign-in above fails. Create the Supabase user now so login
-          // works from here on (self-heal). If it already exists, sync password.
+          // Ensure a Supabase auth user exists for this account with this password.
+          // Admin-created users are stored only locally (no Supabase user), so the
+          // first Supabase sign-in above fails. Create/update it by email (self-heal)
+          // so login works from here on.
           try {
-            await this.supabaseService.signUp(loginDto.email, loginDto.password, {
+            await this.supabaseService.upsertUserByEmail(loginDto.email, loginDto.password, {
               fullName: user.fullName,
               role: user.role,
             });
-            this.logger.log(`[Login] Created missing Supabase auth user for ${loginDto.email}`);
+            this.logger.log(`[Login] Ensured Supabase auth user for ${loginDto.email}`);
           } catch (createErr: any) {
-            this.logger.log(`[Login] Supabase user likely already exists for ${loginDto.email}: ${createErr?.message}`);
-            try {
-              await this.supabaseService.updateUserPassword(user.id, loginDto.password);
-            } catch (syncErr: any) {
-              this.logger.error(`[Login] Supabase password sync failed: ${syncErr?.message}`);
-            }
+            this.logger.error(`[Login] Supabase self-heal failed for ${loginDto.email}: ${createErr?.message}`);
           }
 
           // Now login with Supabase (should work after sync)

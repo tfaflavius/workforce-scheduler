@@ -87,4 +87,54 @@ export class SupabaseService {
       throw error;
     }
   }
+
+  /**
+   * Gaseste un user Supabase Auth dupa email (scaneaza paginat lista de admin).
+   */
+  private async findAuthUserByEmail(email: string): Promise<{ id: string; email?: string } | null> {
+    const target = email.toLowerCase();
+    const perPage = 200;
+    for (let page = 1; page <= 25; page++) {
+      const { data, error } = await this.supabase.auth.admin.listUsers({ page, perPage });
+      if (error) throw error;
+      const users: any[] = (data as any)?.users || [];
+      const match = users.find((u: any) => (u.email || '').toLowerCase() === target);
+      if (match) return match;
+      if (users.length < perPage) break; // ultima pagina
+    }
+    return null;
+  }
+
+  /**
+   * Se asigura ca exista un user Supabase Auth pentru email si ii seteaza parola.
+   * Il creeaza daca lipseste (email confirmat), altfel actualizeaza parola.
+   * Folosit pentru conturile create de admin, care nu au acelasi id ca in Supabase.
+   */
+  async upsertUserByEmail(email: string, password: string, metadata?: Record<string, any>) {
+    // Incearca sa creeze userul
+    const { data, error } = await this.supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: metadata,
+    });
+
+    if (!error) {
+      return data.user;
+    }
+
+    // Exista deja -> gaseste-l dupa email si actualizeaza parola
+    const existing = await this.findAuthUserByEmail(email);
+    if (!existing) {
+      throw error;
+    }
+    const { error: updateError } = await this.supabase.auth.admin.updateUserById(existing.id, {
+      password,
+      email_confirm: true,
+    });
+    if (updateError) {
+      throw updateError;
+    }
+    return existing;
+  }
 }
