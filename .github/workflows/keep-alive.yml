@@ -1,18 +1,17 @@
 name: Keep Alive - Render Backend
 
 # Pinguieste backend-ul de pe Render ca sa nu adoarma (Render Free Tier opreste
-# serverul dupa 15 min de inactivitate).
+# serverul dupa 15 min de inactivitate). Strat extern, pe langa keep-alive-ul
+# intern din aplicatie (KeepAliveService, self-ping la 10 min).
 #
-# NOTA: Aplicatia are DEJA un keep-alive intern (KeepAliveService, self-ping la
-# fiecare 14 min catre /api/health), care e suficient sa tina serverul treaz.
-# Programarea automata de aici a fost DEZACTIVATA pentru ca genera esecuri false
-# la pene de infrastructura GitHub ("job not acquired by runner"). Ramane doar
-# rularea manuala. Ca sa reactivezi ping-ul automat, decomenteaza blocul "schedule".
+# NOTA: ocazional GitHub poate marca run-ul ca "Failure" la pene de infrastructura
+# proprie ("job not acquired by runner") — acele esecuri sunt de la GitHub, nu de
+# la aplicatie, si pot fi ignorate.
 
 on:
-  # schedule:
-  #   # La fiecare 10 minute, 24/7
-  #   - cron: '*/10 * * * *'
+  schedule:
+    # La fiecare 10 minute, 24/7
+    - cron: '*/10 * * * *'
   workflow_dispatch: # Rulare manuala
 
 jobs:
