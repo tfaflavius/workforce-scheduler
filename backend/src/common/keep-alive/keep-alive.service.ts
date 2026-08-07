@@ -6,11 +6,11 @@ import * as https from 'https';
  * KeepAliveService — Previne oprirea serverului pe Render Free Tier
  *
  * Render Free opreste serverul dupa 15 min de inactivitate.
- * Acest serviciu face un self-ping la fiecare 14 minute pentru a-l tine activ.
+ * Acest serviciu face un self-ping la fiecare 10 minute pentru a-l tine activ.
  *
  * Flux:
  * 1. Dimineata, un utilizator deschide aplicatia → serverul porneste
- * 2. Self-ping-ul incepe si ruleaza la fiecare 14 min
+ * 2. Self-ping-ul incepe si ruleaza la fiecare 10 min
  * 3. Serverul ramane activ toata ziua
  * 4. Cron-urile de la 20:00 si 20:30 ruleaza cu succes
  * 5. Peste noapte, daca nimeni nu foloseste app-ul, serverul se opreste
@@ -36,17 +36,19 @@ export class KeepAliveService implements OnApplicationBootstrap {
 
   onApplicationBootstrap() {
     if (this.healthUrl) {
-      this.logger.log(`Keep-alive activ — ping la fiecare 14 min: ${this.healthUrl}`);
+      this.logger.log(`Keep-alive activ — ping la fiecare 10 min: ${this.healthUrl}`);
     } else {
       this.logger.log('Keep-alive dezactivat (development mode)');
     }
   }
 
   /**
-   * Self-ping la fiecare 14 minute (Render opreste dupa 15 min inactivitate)
-   * Ruleaza 24/7 cat timp serverul e activ
+   * Self-ping la fiecare 10 minute (Render opreste dupa 15 min inactivitate).
+   * Interval de 10 min => marja de siguranta de 5 min (fata de 1 min la 14 min),
+   * deci un ping intarziat/esuat ocazional nu lasa serverul sa adoarma.
+   * Ruleaza 24/7 cat timp serverul e activ.
    */
-  @Cron('*/14 * * * *')
+  @Cron('*/10 * * * *')
   async handleKeepAlive() {
     if (!this.healthUrl) return;
 
