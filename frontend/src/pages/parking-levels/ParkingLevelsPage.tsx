@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, type ReactElement } from 'react';
 import {
   Box,
   Typography,
@@ -26,6 +26,10 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Accessible as HandicapIcon,
+  ChildCare as ChildIcon,
+  ElectricCar as ElectricIcon,
+  Bookmark as ReservedIcon,
+  TwoWheeler as MotoIcon,
 } from '@mui/icons-material';
 import { GradientHeader, FriendlyDialog, EmptyState } from '../../components/common';
 import {
@@ -50,6 +54,20 @@ const NUM_COLUMNS: { key: NumField; label: string }[] = [
   { key: 'electric', label: 'Electrice' },
   { key: 'rezervat', label: 'Rezervat' },
   { key: 'moto', label: 'Moto' },
+];
+
+// Chip-uri pe categorii, afisate langa numele parcarii (doar cand suma > 0)
+const CATEGORY_CHIPS: {
+  key: Exclude<NumField, 'total' | 'normal'>;
+  label: string;
+  color: 'info' | 'secondary' | 'success' | 'warning' | 'default';
+  icon: ReactElement;
+}[] = [
+  { key: 'handicap', label: 'handicap', color: 'info', icon: <HandicapIcon sx={{ fontSize: 15 }} /> },
+  { key: 'mamaCopil', label: 'mama-copil', color: 'secondary', icon: <ChildIcon sx={{ fontSize: 15 }} /> },
+  { key: 'electric', label: 'electrice', color: 'success', icon: <ElectricIcon sx={{ fontSize: 15 }} /> },
+  { key: 'rezervat', label: 'rezervat', color: 'warning', icon: <ReservedIcon sx={{ fontSize: 15 }} /> },
+  { key: 'moto', label: 'moto', color: 'default', icon: <MotoIcon sx={{ fontSize: 15 }} /> },
 ];
 
 const emptyForm: ParkingLevelPayload = {
@@ -197,11 +215,24 @@ const ParkingLevelsPage = () => {
           {groups.map((group) => (
             <Paper key={group.name} sx={{ p: { xs: 1.5, sm: 2 } }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }} flexWrap="wrap" gap={1}>
-                <Stack direction="row" alignItems="center" spacing={1}>
+                <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap>
                   <ParkingIcon color="primary" />
                   <Typography variant="h6" fontWeight={700}>{group.name}</Typography>
                   <Chip size="small" label={`${sumField(group.rows, 'total')} locuri`} color="primary" />
-                  <Chip size="small" icon={<HandicapIcon sx={{ fontSize: 15 }} />} label={`${sumField(group.rows, 'handicap')} handicap`} color="info" variant="outlined" />
+                  {CATEGORY_CHIPS.map((chip) => {
+                    const val = sumField(group.rows, chip.key);
+                    if (val <= 0) return null;
+                    return (
+                      <Chip
+                        key={chip.key}
+                        size="small"
+                        icon={chip.icon}
+                        label={`${val} ${chip.label}`}
+                        color={chip.color}
+                        variant="outlined"
+                      />
+                    );
+                  })}
                 </Stack>
                 {canEdit && (
                   <Button size="small" startIcon={<AddIcon />} onClick={() => handleOpenAddLevel(group.name)}>
