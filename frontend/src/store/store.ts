@@ -30,6 +30,7 @@ import { investmentsApi } from './api/investments.api';
 import { controlNotesApi } from './api/controlNotes.api';
 import { userDashboardApi } from './api/userDashboard.api';
 import { mobileDevicesApi } from './api/mobileDevices.api';
+import { parkingLevelsApi } from './api/parkingLevels.api';
 
 export const store = configureStore({
   reducer: {
@@ -63,6 +64,7 @@ export const store = configureStore({
     [controlNotesApi.reducerPath]: controlNotesApi.reducer,
     [userDashboardApi.reducerPath]: userDashboardApi.reducer,
     [mobileDevicesApi.reducerPath]: mobileDevicesApi.reducer,
+    [parkingLevelsApi.reducerPath]: parkingLevelsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -95,6 +97,7 @@ export const store = configureStore({
       controlNotesApi.middleware,
       userDashboardApi.middleware,
       mobileDevicesApi.middleware,
+      parkingLevelsApi.middleware,
     ),
 });
 

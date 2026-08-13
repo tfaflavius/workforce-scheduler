@@ -48,6 +48,7 @@ const NotificationsPage = lazy(() => import('../pages/notifications/Notification
 const NotificationRedirectPage = lazy(() => import('../pages/notifications/NotificationRedirectPage'));
 const EquipmentStockPage = lazy(() => import('../pages/equipment-stock/EquipmentStockPage'));
 const MobileDevicesPage = lazy(() => import('../pages/mobile-devices/MobileDevicesPage'));
+const ParkingLevelsPage = lazy(() => import('../pages/parking-levels/ParkingLevelsPage'));
 const ControlNotesPage = lazy(() => import('../pages/control-notes/ControlNotesPage'));
 const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
@@ -221,6 +222,9 @@ export const AppRoutes = () => {
 
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<SafePage><ParkingPage /></SafePage>} />
+
+        {/* Locuri pe nivele (parcari etajate) */}
+        <Route path="/parking/nivele" element={<SafePage><ParkingLevelsPage /></SafePage>} />
 
         {/* Handicap Parking - Intretinere Parcari, Parcari Handicap, Parcari Domiciliu, Admin */}
         <Route path="/parking/handicap" element={<SafePage><HandicapParkingPage /></SafePage>} />

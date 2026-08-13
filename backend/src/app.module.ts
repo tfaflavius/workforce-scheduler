@@ -89,6 +89,7 @@ import { ControlNotesModule } from './modules/control-notes/control-notes.module
 import { UserDashboardModule } from './modules/user-dashboard/user-dashboard.module';
 import { MobileDevicesModule } from './modules/mobile-devices/mobile-devices.module';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
+import { ParkingLevelsModule } from './modules/parking-levels/parking-levels.module';
 import { ControlInspectionNote } from './modules/control-notes/entities/control-inspection-note.entity';
 import { AuditLog } from './modules/audit/entities/audit-log.entity';
 import { envValidationSchema } from './config/env.validation';
@@ -146,6 +147,7 @@ import { envValidationSchema } from './config/env.validation';
     UserDashboardModule,
     MobileDevicesModule,
     AnnouncementsModule,
+    ParkingLevelsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
