@@ -64,6 +64,8 @@ export class EquipmentStockService {
       name: dto.name,
       category: dto.category,
       description: dto.description || null,
+      serial: dto.serial || null,
+      terminal: dto.terminal || null,
       isActive: dto.isActive !== undefined ? dto.isActive : true,
       sortOrder: dto.sortOrder !== undefined ? dto.sortOrder : 0,
     });

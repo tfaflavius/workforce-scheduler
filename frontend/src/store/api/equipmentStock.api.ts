@@ -8,6 +8,8 @@ export interface StockDefinitionItem {
   name: string;
   category: string;
   description: string | null;
+  serial: string | null;
+  terminal: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -36,6 +38,8 @@ export interface CreateDefinitionDto {
   name: string;
   category: string;
   description?: string;
+  serial?: string;
+  terminal?: string;
   isActive?: boolean;
   sortOrder?: number;
 }
@@ -44,6 +48,8 @@ export interface UpdateDefinitionDto {
   name?: string;
   category?: string;
   description?: string;
+  serial?: string;
+  terminal?: string;
   isActive?: boolean;
   sortOrder?: number;
 }

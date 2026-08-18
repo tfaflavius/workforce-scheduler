@@ -24,6 +24,14 @@ export class EquipmentStockDefinition {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  // Serie (numar de serie) — optional
+  @Column({ length: 150, nullable: true })
+  serial: string | null;
+
+  // Terminal — optional
+  @Column({ length: 150, nullable: true })
+  terminal: string | null;
+
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 

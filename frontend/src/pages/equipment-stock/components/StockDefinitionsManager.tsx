@@ -52,6 +52,8 @@ interface DefinitionFormData {
   name: string;
   category: string;
   description: string;
+  serial: string;
+  terminal: string;
   isActive: boolean;
   sortOrder: number;
 }
@@ -60,6 +62,8 @@ const emptyForm: DefinitionFormData = {
   name: '',
   category: 'PARCARI_ETAJATE',
   description: '',
+  serial: '',
+  terminal: '',
   isActive: true,
   sortOrder: 0,
 };
@@ -92,6 +96,8 @@ const StockDefinitionsManager: React.FC = () => {
       name: def.name,
       category: def.category,
       description: def.description || '',
+      serial: def.serial || '',
+      terminal: def.terminal || '',
       isActive: def.isActive,
       sortOrder: def.sortOrder,
     });
@@ -115,6 +121,8 @@ const StockDefinitionsManager: React.FC = () => {
         name: formData.name.trim(),
         category: formData.category,
         description: formData.description.trim() || undefined,
+        serial: formData.serial.trim() || undefined,
+        terminal: formData.terminal.trim() || undefined,
         isActive: formData.isActive,
         sortOrder: formData.sortOrder,
       };
@@ -238,6 +246,8 @@ const StockDefinitionsManager: React.FC = () => {
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Nume</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Categorie</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Descriere</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Serie</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Terminal</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }} align="center">Activ</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }} align="center">Ordine</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }} align="center">Actiuni</TableCell>
@@ -276,6 +286,12 @@ const StockDefinitionsManager: React.FC = () => {
                     >
                       {def.description || '-'}
                     </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">{def.serial || '-'}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" color="text.secondary">{def.terminal || '-'}</Typography>
                   </TableCell>
                   <TableCell align="center">
                     <Chip
@@ -355,6 +371,13 @@ const StockDefinitionsManager: React.FC = () => {
                     {def.description}
                   </Typography>
                 )}
+                {(def.serial || def.terminal) && (
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    {def.serial ? `Serie: ${def.serial}` : ''}
+                    {def.serial && def.terminal ? ' · ' : ''}
+                    {def.terminal ? `Terminal: ${def.terminal}` : ''}
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -411,6 +434,24 @@ const StockDefinitionsManager: React.FC = () => {
             multiline
             rows={2}
             placeholder="Descriere optionala..."
+          />
+
+          <TextField
+            label="Serie"
+            value={formData.serial}
+            onChange={(e) => setFormData((prev) => ({ ...prev, serial: e.target.value }))}
+            fullWidth
+            size="small"
+            placeholder="Numar de serie (optional)"
+          />
+
+          <TextField
+            label="Terminal"
+            value={formData.terminal}
+            onChange={(e) => setFormData((prev) => ({ ...prev, terminal: e.target.value }))}
+            fullWidth
+            size="small"
+            placeholder="Terminal (optional)"
           />
 
           <FormControlLabel

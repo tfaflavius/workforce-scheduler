@@ -25,6 +25,16 @@ export class CreateStockDefinitionDto {
   description?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  serial?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(150)
+  terminal?: string | null;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 
