@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsUUID,
   IsEnum,
+  IsBoolean,
   Min,
   MaxLength,
 } from 'class-validator';
@@ -28,6 +29,10 @@ export class CreateStockEntryDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  functional?: boolean;
 
   @IsString()
   dateAdded: string; // ISO date string (YYYY-MM-DD)

@@ -28,6 +28,7 @@ export interface StockEntryItem {
   quantity: number;
   location: string | null;
   notes: string | null;
+  functional: boolean;
   dateAdded: string;
   addedBy: StockEntryUser;
   createdAt: string;
@@ -60,6 +61,7 @@ export interface CreateEntryDto {
   quantity: number;
   location?: string;
   notes?: string;
+  functional?: boolean;
   dateAdded?: string;
 }
 
@@ -68,6 +70,7 @@ export interface UpdateEntryDto {
   quantity?: number;
   location?: string;
   notes?: string;
+  functional?: boolean;
   dateAdded?: string;
 }
 

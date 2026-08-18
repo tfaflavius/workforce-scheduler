@@ -20,6 +20,8 @@ import {
   Chip,
   alpha,
   MenuItem,
+  Switch,
+  FormControlLabel,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -59,6 +61,7 @@ interface EntryFormData {
   quantity: number;
   location: string;
   notes: string;
+  functional: boolean;
   dateAdded: Date | null;
 }
 
@@ -67,6 +70,7 @@ const emptyForm: EntryFormData = {
   quantity: 0,
   location: '',
   notes: '',
+  functional: true,
   dateAdded: new Date(),
 };
 
@@ -109,6 +113,7 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
       quantity: entry.quantity,
       location: entry.location || '',
       notes: entry.notes || '',
+      functional: entry.functional ?? true,
       dateAdded: entry.dateAdded ? new Date(entry.dateAdded) : new Date(),
     });
     setDialogOpen(true);
@@ -137,6 +142,7 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
         quantity: formData.quantity,
         location: formData.location || undefined,
         notes: formData.notes || undefined,
+        functional: formData.functional,
         dateAdded: formData.dateAdded
           ? formData.dateAdded.toISOString().split('T')[0]
           : new Date().toISOString().split('T')[0],
@@ -276,6 +282,7 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }} align="center">Cantitate</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Locatie</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Note</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }} align="center">Stare</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Data Adaugarii</TableCell>
                 <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>Adaugat de</TableCell>
                 {(canEdit || isAdmin) && (
@@ -323,6 +330,15 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
                     >
                       {entry.notes || '-'}
                     </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Chip
+                      label={entry.functional ? 'Functional' : 'Nefunctional'}
+                      size="small"
+                      color={entry.functional ? 'success' : 'error'}
+                      variant={entry.functional ? 'filled' : 'outlined'}
+                      sx={{ fontWeight: 600 }}
+                    />
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" color="text.secondary">
@@ -390,12 +406,21 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
                       </Typography>
                     )}
                   </Box>
-                  <Chip
-                    label={`x${entry.quantity}`}
-                    size="small"
-                    color={entry.quantity > 0 ? 'primary' : 'default'}
-                    sx={{ fontWeight: 700, ml: 1 }}
-                  />
+                  <Stack direction="row" spacing={0.5} sx={{ ml: 1 }}>
+                    <Chip
+                      label={`x${entry.quantity}`}
+                      size="small"
+                      color={entry.quantity > 0 ? 'primary' : 'default'}
+                      sx={{ fontWeight: 700 }}
+                    />
+                    <Chip
+                      label={entry.functional ? 'Functional' : 'Nefunctional'}
+                      size="small"
+                      color={entry.functional ? 'success' : 'error'}
+                      variant={entry.functional ? 'filled' : 'outlined'}
+                      sx={{ fontWeight: 600 }}
+                    />
+                  </Stack>
                 </Stack>
 
                 {entry.notes && (
@@ -504,6 +529,17 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
             multiline
             rows={3}
             placeholder="Note aditionale..."
+          />
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={formData.functional}
+                onChange={(e) => setFormData((prev) => ({ ...prev, functional: e.target.checked }))}
+                color="success"
+              />
+            }
+            label={formData.functional ? 'Functional (nou)' : 'Nefunctional (stricat)'}
           />
 
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ro}>

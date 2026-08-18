@@ -33,6 +33,10 @@ export class EquipmentStockEntry {
   @Column({ type: 'text', nullable: true })
   notes: string;
 
+  // Stare echipament: true = functional (nou), false = nefunctional (stricat)
+  @Column({ type: 'boolean', default: true })
+  functional: boolean;
+
   @Column({ name: 'date_added', type: 'date' })
   dateAdded: string;
 

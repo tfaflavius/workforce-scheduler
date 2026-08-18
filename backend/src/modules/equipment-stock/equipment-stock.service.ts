@@ -209,6 +209,7 @@ export class EquipmentStockService {
       quantity: dto.quantity,
       location: dto.location || null,
       notes: dto.notes || null,
+      functional: dto.functional !== undefined ? dto.functional : true,
       dateAdded: dto.dateAdded,
       addedById: userId,
     });
