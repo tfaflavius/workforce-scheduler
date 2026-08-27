@@ -280,7 +280,7 @@ export const MainLayout = () => {
       text: 'Gestionare Concedii',
       icon: <BeachIcon />,
       path: '/admin/leave-requests',
-      roles: ['ADMIN'],
+      roles: ['ADMIN', 'MANAGER'],
     },
     {
       text: 'Rapoarte',

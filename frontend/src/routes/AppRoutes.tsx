@@ -131,11 +131,11 @@ export const AppRoutes = () => {
         {/* Leave Requests - for all users */}
         <Route path="/leave-requests" element={<SafePage><LeaveRequestsPage /></SafePage>} />
 
-        {/* Admin Leave Requests */}
+        {/* Admin Leave Requests — Admin + Manager */}
         <Route
           path="/admin/leave-requests"
           element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'MANAGER']}>
               <SafePage><AdminLeaveRequestsPage /></SafePage>
             </ProtectedRoute>
           }

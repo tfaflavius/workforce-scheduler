@@ -50,7 +50,7 @@ export class LeaveRequestsController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   getAllRequests(
     @Query('status') status?: LeaveRequestStatus,
     @Query('page') page?: string,
@@ -104,14 +104,14 @@ export class LeaveRequestsController {
 
   @Get(':id/overlaps')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   checkOverlaps(@Param('id') id: string) {
     return this.leaveRequestsService.checkOverlaps(id);
   }
 
   @Patch(':id/respond')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   respond(
     @Param('id') id: string,
     @Body() dto: RespondLeaveRequestDto,
@@ -127,7 +127,7 @@ export class LeaveRequestsController {
 
   @Patch(':id/admin-edit')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   adminEdit(
     @Param('id') id: string,
     @Body() dto: AdminEditLeaveRequestDto,
@@ -138,7 +138,7 @@ export class LeaveRequestsController {
 
   @Delete(':id/admin-delete')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
   adminDelete(@Param('id') id: string, @Request() req) {
     return this.leaveRequestsService.adminDelete(id, req.user.id);
   }
