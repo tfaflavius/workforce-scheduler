@@ -88,7 +88,7 @@ export class AuthService {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.department', 'department')
-      .where('LOWER(user.email) = LOWER(:email)', { email: loginDto.email })
+      .where('LOWER(TRIM(user.email)) = LOWER(TRIM(:email))', { email: loginDto.email })
       .getOne();
 
     if (!user) {
@@ -204,7 +204,7 @@ export class AuthService {
       const user = await this.userRepository
         .createQueryBuilder('user')
         .leftJoinAndSelect('user.department', 'department')
-        .where('LOWER(user.email) = LOWER(:email)', { email: supabaseUser.email })
+        .where('LOWER(TRIM(user.email)) = LOWER(TRIM(:email))', { email: supabaseUser.email })
         .getOne();
 
       if (!user || !user.isActive) {
