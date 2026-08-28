@@ -440,11 +440,13 @@ const SchedulesPage: React.FC = () => {
   };
 
   // Check if user can edit the schedule
-  const canEditSchedule = useCallback((targetUser: any) => {
+  const canEditSchedule = useCallback((_targetUser: any) => {
     if (isAdmin) {
       return true;
     }
-    if (isManager && targetUser.role === 'USER') {
+    // Managerii pot edita orice angajat (ca adminul), insa modificarile lor
+    // necesita aprobarea adminului (se salveaza ca PENDING_APPROVAL, nu live).
+    if (isManager) {
       return true;
     }
     return false;
