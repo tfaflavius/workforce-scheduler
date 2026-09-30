@@ -761,8 +761,21 @@ export class ShiftSwapsService {
       .andWhere('wp.shortName = :shortName', { shortName: 'CTRL' })
       .getOne();
 
-    const shiftTypeId = existingCtrlAssignment?.shiftTypeId || ctrlAssignmentExample.shiftTypeId;
-    const notes = existingCtrlAssignment?.notes || '07:30-15:30';
+    // IMPORTANT: creaza o tura CTRL de inlocuire DOAR pentru userii care au efectiv
+    // rotatie de Control (au macar o tura CTRL undeva). Un user pur Dispecerat, care nu
+    // lucreaza niciodata la Control, cand cedeaza tura de DISP printr-un schimb trebuie
+    // sa ramana LIBER in acea zi - nu sa primeasca o tura fantoma de 8h (07:30-15:30).
+    // Fara aceasta verificare, fallback-ul pe ctrlAssignmentExample.shiftTypeId ii crea
+    // o tura de 8h nedorita in ziua schimbata (bug raportat: Mudura Calin, data 20).
+    if (!existingCtrlAssignment) {
+      this.logger.log(
+        `Skip CTRL creation for ${userId} on ${date}: no Control rotation -> stays free`,
+      );
+      return;
+    }
+
+    const shiftTypeId = existingCtrlAssignment.shiftTypeId;
+    const notes = existingCtrlAssignment.notes || '07:30-15:30';
 
     // Gaseste scheduleId din un assignment existent pe acea data
     const dateAssignment = await this.assignmentRepository.findOne({

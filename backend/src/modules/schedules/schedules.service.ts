@@ -326,17 +326,16 @@ export class SchedulesService {
   async update(id: string, updateScheduleDto: UpdateScheduleDto, updaterUserId?: string): Promise<WorkSchedule> {
     const schedule = await this.findOne(id);
 
+    // Userii efectiv modificati in acest update (folositi pentru notificari scoped +
+    // decizia de "split" a statusului). Programul reincarcat/returnat poate fi altul
+    // decat `id` cand facem split (userii editati merg intr-un program dedicat).
+    let affectedUserIds: string[] = [];
+    let returnScheduleId = id;
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      if (updateScheduleDto.status) {
-        schedule.status = updateScheduleDto.status;
-        // IMPORTANT: Save the status change immediately
-        await queryRunner.manager.save(schedule);
-        this.logger.log(`Schedule ${id} status updated to: ${updateScheduleDto.status}`);
-      }
-
       // If assignments are updated, recreate them
       if (updateScheduleDto.assignments) {
         // Valideaza TOATE tipurile de tura INAINTE de a sterge ceva.
@@ -357,12 +356,53 @@ export class SchedulesService {
         }
 
         // Get the unique user IDs being updated
-        const affectedUserIds = [...new Set(updateScheduleDto.assignments.map(a => a.userId))];
+        affectedUserIds = [...new Set(updateScheduleDto.assignments.map(a => a.userId))];
+
+        // Un WorkSchedule este PARTAJAT intre mai multi angajati, dar statusul
+        // (DRAFT/PENDING_APPROVAL/APPROVED) este per-program. Daca schimbam statusul
+        // programului partajat cand editam DOAR un subset de useri, ii taram si pe colegii
+        // nemodificati in acea stare (bug raportat: dupa editarea lui Mudura si trimiterea
+        // spre aprobare, Vartolomei Raul aparea "Asteapta aprobare" desi nu a fost atins).
+        // Solutie: cand se cere o schimbare de status care ar afecta si alti useri, mutam
+        // asignarile userilor editati intr-un program dedicat care poarta noul status, si
+        // lasam programul partajat (cu colegii) complet neatins.
+        const requestedStatus = updateScheduleDto.status;
+        const otherUsersPresent = (schedule.assignments || []).some(
+          a => !affectedUserIds.includes(a.userId),
+        );
+        const needSplit =
+          !!requestedStatus &&
+          affectedUserIds.length > 0 &&
+          requestedStatus !== schedule.status &&
+          otherUsersPresent;
+
+        let targetScheduleId = id;
+        if (needSplit) {
+          const newSchedule = queryRunner.manager.getRepository(WorkSchedule).create({
+            name: schedule.name,
+            month: schedule.month,
+            year: schedule.year,
+            shiftPattern: schedule.shiftPattern,
+            departmentId: schedule.departmentId,
+            createdBy: updaterUserId || schedule.createdBy,
+            status: requestedStatus,
+          });
+          const savedNew = await queryRunner.manager.save(newSchedule);
+          targetScheduleId = savedNew.id;
+          returnScheduleId = savedNew.id;
+          this.logger.log(
+            `Split edit: users [${affectedUserIds.join(', ')}] -> program nou ${savedNew.id} (status ${requestedStatus}); programul partajat ${id} (${schedule.status}) ramane neatins pentru colegi`,
+          );
+        } else if (requestedStatus) {
+          schedule.status = requestedStatus;
+          await queryRunner.manager.save(schedule);
+          this.logger.log(`Schedule ${id} status updated to: ${requestedStatus}`);
+        }
 
         // Delete ONLY the affected users' assignments (not all assignments in the schedule!)
         // This prevents wiping other users' data when bulk-saving user by user
         for (const affectedUserId of affectedUserIds) {
-          // Delete from THIS schedule
+          // Delete from the ORIGINAL schedule (their previous rows live here)
           await queryRunner.manager
             .createQueryBuilder()
             .delete()
@@ -387,8 +427,8 @@ export class SchedulesService {
           }
         }
 
-        // Create new assignments - use query builder to ensure workScheduleId is set.
-        // Toate shiftTypeIds au fost validate mai sus, deci nu mai sarim nimic silentios.
+        // Create new assignments into the TARGET schedule (shared one, or the dedicated
+        // split schedule). Toate shiftTypeIds au fost validate mai sus, deci nu sarim nimic.
         for (const assignmentDto of updateScheduleDto.assignments) {
           // Normalize shiftDate to YYYY-MM-DD string so PG stores it without TZ conversion
           const shiftDateStr = typeof assignmentDto.shiftDate === 'string'
@@ -400,7 +440,7 @@ export class SchedulesService {
             .insert()
             .into('schedule_assignments')
             .values({
-              workScheduleId: id,
+              workScheduleId: targetScheduleId,
               userId: assignmentDto.userId,
               shiftTypeId: assignmentDto.shiftTypeId,
               shiftDate: shiftDateStr,
@@ -410,8 +450,25 @@ export class SchedulesService {
             })
             .execute();
         }
+
+        // Curata programele ramase COMPLET goale pentru aceasta luna (ex: un program
+        // partajat din care s-au mutat toti userii, sau resturi mai vechi). Un program gol
+        // cu status PENDING_APPROVAL ar aparea altfel ca o cerere de aprobare "fantoma".
+        await queryRunner.manager.query(
+          `DELETE FROM work_schedules ws
+           WHERE ws.month = $1 AND ws.year = $2
+             AND NOT EXISTS (
+               SELECT 1 FROM schedule_assignments sa WHERE sa.work_schedule_id = ws.id
+             )`,
+          [schedule.month, schedule.year],
+        );
+      } else if (updateScheduleDto.status) {
+        // Doar schimbare de status, fara asignari -> aplica pe program direct
+        schedule.status = updateScheduleDto.status;
+        await queryRunner.manager.save(schedule);
+        this.logger.log(`Schedule ${id} status updated to: ${updateScheduleDto.status}`);
       } else {
-        // Only save schedule if no assignments were updated
+        // Only save schedule if nothing else changed
         await queryRunner.manager.save(schedule);
       }
 
@@ -449,33 +506,43 @@ export class SchedulesService {
     // Reload schedule. Transaction already committed — failures here MUST NOT propagate as 500.
     let updatedSchedule: WorkSchedule;
     try {
-      updatedSchedule = await this.findOne(id);
+      updatedSchedule = await this.findOne(returnScheduleId);
     } catch (err: any) {
       this.logger.error(
-        `Schedule was updated (id=${id}) but reload failed: ${err?.message || err}`,
+        `Schedule was updated (id=${returnScheduleId}) but reload failed: ${err?.message || err}`,
         err?.stack,
       );
-      return { id, status: updateScheduleDto.status || 'DRAFT' } as WorkSchedule;
+      return { id: returnScheduleId, status: updateScheduleDto.status || 'DRAFT' } as WorkSchedule;
     }
 
     // Send notifications OUTSIDE the transaction (best-effort)
     if (updateScheduleDto.assignments) {
       try {
         const monthYear = `${updatedSchedule.year}-${String(updatedSchedule.month).padStart(2, '0')}`;
-        const userIds = [...new Set(updatedSchedule.assignments?.map(a => a.userId) || [])];
+        // Notifica DOAR userii efectiv modificati, nu toti colegii din programul partajat.
+        // (Anterior se notificau toti userii din program -> colegi nemodificati primeau
+        // "Program actualizat"/cerere de aprobare desi programul lor nu s-a schimbat.)
+        const userIds = affectedUserIds.length > 0
+          ? affectedUserIds
+          : [...new Set(updatedSchedule.assignments?.map(a => a.userId) || [])];
         if (userIds.length > 0) {
           let updaterName = 'Administrator';
           if (updaterUserId) {
             const updater = await this.userRepository.findOne({ where: { id: updaterUserId } });
             updaterName = updater?.fullName || 'Administrator';
           }
-          this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName, id).catch(err => {
+          this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName, returnScheduleId).catch(err => {
             this.logger.error('Failed to send schedule update notifications:', err);
           });
         }
 
         if (updatedSchedule.status === 'APPROVED') {
-          this.sendScheduleNotifications(updatedSchedule.id, 'updated').catch(err => {
+          this.sendScheduleNotifications(
+            updatedSchedule.id,
+            'updated',
+            undefined,
+            affectedUserIds.length > 0 ? affectedUserIds : undefined,
+          ).catch(err => {
             this.logger.error('Failed to send schedule update email notifications:', err);
           });
         }
@@ -1356,12 +1423,18 @@ export class SchedulesService {
     scheduleId: string,
     notificationType: 'created' | 'updated' | 'approved' | 'rejected',
     rejectionReason?: string,
+    onlyUserIds?: string[],
   ): Promise<{ success: number; failed: number }> {
     try {
       const schedule = await this.findOne(scheduleId);
 
-      // Get unique user IDs from assignments
-      const userIds = [...new Set(schedule.assignments.map(a => a.userId))];
+      // Get unique user IDs from assignments. When onlyUserIds is provided (ex: la un
+      // update care a atins doar un subset de angajati), trimitem email DOAR acelora,
+      // ca sa nu primeasca colegii nemodificati un email de "program actualizat".
+      const allUserIds = [...new Set(schedule.assignments.map(a => a.userId))];
+      const userIds = onlyUserIds && onlyUserIds.length > 0
+        ? allUserIds.filter(uid => onlyUserIds.includes(uid))
+        : allUserIds;
 
       if (userIds.length === 0) {
         this.logger.log('No employees to notify for schedule ' + scheduleId);
