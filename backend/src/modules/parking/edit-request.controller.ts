@@ -29,19 +29,14 @@ export class EditRequestController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  async create(
-    @Request() req,
-    @Body() dto: CreateEditRequestDto,
-  ): Promise<EditRequest> {
+  async create(@Request() req, @Body() dto: CreateEditRequestDto): Promise<EditRequest> {
     return this.editRequestService.create(req.user.id, dto);
   }
 
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  async findAll(
-    @Query('status') status?: EditRequestStatus,
-  ): Promise<EditRequest[]> {
+  async findAll(@Query('status') status?: EditRequestStatus): Promise<EditRequest[]> {
     return this.editRequestService.findAll(status);
   }
 

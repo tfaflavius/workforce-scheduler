@@ -74,7 +74,9 @@ export class ScheduleGeneratorService {
     const workingDaysCount = this.countWorkingDays(year, month);
     const monthlyHoursLimit = workingDaysCount * 8;
 
-    this.logger.log(`Month has ${daysInMonth} days, ${workingDaysCount} working days, limit: ${monthlyHoursLimit}h`);
+    this.logger.log(
+      `Month has ${daysInMonth} days, ${workingDaysCount} working days, limit: ${monthlyHoursLimit}h`,
+    );
 
     // Incarca datele necesare
     const [users, shiftTypes, workPositions, approvedLeaves] = await Promise.all([
@@ -85,18 +87,24 @@ export class ScheduleGeneratorService {
     ]);
 
     // Categoriseste utilizatorii bazat pe shiftPattern (cast deoarece proprietatea nu e pe entity)
-    const dispecerat12H = users.filter(u => (u as any).shiftPattern === ShiftPattern.SHIFT_12H);
-    const dispecerat8HFixed = users.filter(u => (u as any).shiftPattern === ShiftPattern.SHIFT_8H_FIXED);
-    const controlUsers = users.filter(u => (u as any).shiftPattern === ShiftPattern.SHIFT_8H_ROTATING);
+    const dispecerat12H = users.filter((u) => (u as any).shiftPattern === ShiftPattern.SHIFT_12H);
+    const dispecerat8HFixed = users.filter(
+      (u) => (u as any).shiftPattern === ShiftPattern.SHIFT_8H_FIXED,
+    );
+    const controlUsers = users.filter(
+      (u) => (u as any).shiftPattern === ShiftPattern.SHIFT_8H_ROTATING,
+    );
 
-    this.logger.log(`Users by shiftPattern: SHIFT_12H: ${dispecerat12H.length}, SHIFT_8H_FIXED: ${dispecerat8HFixed.length}, SHIFT_8H_ROTATING: ${controlUsers.length}`);
+    this.logger.log(
+      `Users by shiftPattern: SHIFT_12H: ${dispecerat12H.length}, SHIFT_8H_FIXED: ${dispecerat8HFixed.length}, SHIFT_8H_ROTATING: ${controlUsers.length}`,
+    );
 
     const assignments: GeneratedAssignment[] = [];
     const warnings: string[] = [];
     const userStates: Map<string, UserScheduleState> = new Map();
 
     // Initializeaza starea pentru fiecare utilizator
-    users.forEach(user => {
+    users.forEach((user) => {
       userStates.set(user.id, {
         lastShiftDate: null,
         lastShiftType: null,
@@ -177,7 +185,7 @@ export class ScheduleGeneratorService {
       warnings,
       stats: {
         totalAssignments: assignments.length,
-        usersScheduled: new Set(assignments.map(a => a.userId)).size,
+        usersScheduled: new Set(assignments.map((a) => a.userId)).size,
         replacementsNeeded: replacementStats.needed,
         replacementsFound: replacementStats.found,
       },
@@ -207,7 +215,9 @@ export class ScheduleGeneratorService {
     const assignments: GeneratedAssignment[] = [];
 
     if (users.length < 8) {
-      warnings.push(`Dispecerat 12H: Sunt doar ${users.length} angajati, minim 8 necesari pentru 2 pe ZI + 2 pe NOAPTE cu ciclu de 4 zile`);
+      warnings.push(
+        `Dispecerat 12H: Sunt doar ${users.length} angajati, minim 8 necesari pentru 2 pe ZI + 2 pe NOAPTE cu ciclu de 4 zile`,
+      );
     }
 
     const dayShiftId = shiftTypeMap.get('Zi 07-19');
@@ -314,7 +324,10 @@ export class ScheduleGeneratorService {
 
           // Verifica daca a avut noapte recent (minim 48h pauza)
           if (state.lastShiftDate && state.lastShiftType === 'NIGHT_12') {
-            const hoursSince = this.getHoursDifference(state.lastShiftDate, new Date(year, month - 1, day));
+            const hoursSince = this.getHoursDifference(
+              state.lastShiftDate,
+              new Date(year, month - 1, day),
+            );
             if (hoursSince < 48) continue;
           }
 
@@ -347,7 +360,10 @@ export class ScheduleGeneratorService {
 
           // Verifica pauza de 48h dupa noapte anterioara
           if (state.lastShiftDate && state.lastShiftType === 'NIGHT_12') {
-            const hoursSince = this.getHoursDifference(state.lastShiftDate, new Date(year, month - 1, day));
+            const hoursSince = this.getHoursDifference(
+              state.lastShiftDate,
+              new Date(year, month - 1, day),
+            );
             if (hoursSince < 48) continue;
           }
 
@@ -368,10 +384,14 @@ export class ScheduleGeneratorService {
 
       // Avertismente daca nu s-au gasit suficienti
       if (dayShiftAssigned.length < 2) {
-        warnings.push(`${dateStr}: Doar ${dayShiftAssigned.length}/2 angajati pentru tura de zi Dispecerat`);
+        warnings.push(
+          `${dateStr}: Doar ${dayShiftAssigned.length}/2 angajati pentru tura de zi Dispecerat`,
+        );
       }
       if (nightShiftAssigned.length < 2) {
-        warnings.push(`${dateStr}: Doar ${nightShiftAssigned.length}/2 angajati pentru tura de noapte Dispecerat`);
+        warnings.push(
+          `${dateStr}: Doar ${nightShiftAssigned.length}/2 angajati pentru tura de noapte Dispecerat`,
+        );
       }
     }
 
@@ -472,7 +492,7 @@ export class ScheduleGeneratorService {
     });
 
     let currentWeek = 0;
-    let lastWeekStart = 1;
+    const lastWeekStart = 1;
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = this.formatDate(year, month, day);
@@ -483,7 +503,7 @@ export class ScheduleGeneratorService {
       if (dayOfWeek === 1 && day > 1) {
         currentWeek++;
         // Roteste turele pentru fiecare utilizator
-        users.forEach(user => {
+        users.forEach((user) => {
           const currentIndex = userShiftIndex.get(user.id)!;
           userShiftIndex.set(user.id, (currentIndex + 1) % shiftRotation.length);
         });
@@ -540,8 +560,8 @@ export class ScheduleGeneratorService {
     workPositionMap: Map<string, string>,
     warnings: string[],
   ): Promise<{ needed: number; found: number }> {
-    let needed = 0;
-    let found = 0;
+    const needed = 0;
+    const found = 0;
 
     // Gaseste zilele unde lipseste personal din cauza concediilor
     // si incearca sa gaseasca inlocuitori
@@ -585,7 +605,7 @@ export class ScheduleGeneratorService {
   private buildLeaveDaysMap(leaves: LeaveRequest[]): Map<string, Set<string>> {
     const map = new Map<string, Set<string>>();
 
-    leaves.forEach(leave => {
+    leaves.forEach((leave) => {
       if (!map.has(leave.userId)) {
         map.set(leave.userId, new Set());
       }
@@ -610,7 +630,7 @@ export class ScheduleGeneratorService {
 
   private buildShiftTypeMap(shiftTypes: ShiftType[]): Map<string, string> {
     const map = new Map<string, string>();
-    shiftTypes.forEach(st => {
+    shiftTypes.forEach((st) => {
       map.set(st.name, st.id);
     });
     return map;
@@ -618,7 +638,7 @@ export class ScheduleGeneratorService {
 
   private buildWorkPositionMap(positions: WorkPosition[]): Map<string, string> {
     const map = new Map<string, string>();
-    positions.forEach(p => {
+    positions.forEach((p) => {
       map.set(p.name, p.id);
     });
     return map;

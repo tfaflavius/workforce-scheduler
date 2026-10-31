@@ -1,4 +1,13 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../../users/entities/user.entity';
@@ -9,7 +18,12 @@ export class RegisterDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ description: 'User password (8-128 chars, must contain uppercase + digit)', example: 'SecurePass123', minLength: 8, maxLength: 128 })
+  @ApiProperty({
+    description: 'User password (8-128 chars, must contain uppercase + digit)',
+    example: 'SecurePass123',
+    minLength: 8,
+    maxLength: 128,
+  })
   @IsString()
   @IsNotEmpty()
   @MinLength(8, { message: 'Parola trebuie sa aiba cel putin 8 caractere' })
@@ -29,13 +43,21 @@ export class RegisterDto {
   @IsOptional()
   phone?: string;
 
-  @ApiPropertyOptional({ description: 'User role', enum: UserRole, default: UserRole.USER, example: 'USER' })
+  @ApiPropertyOptional({
+    description: 'User role',
+    enum: UserRole,
+    default: UserRole.USER,
+    example: 'USER',
+  })
   @Transform(({ value }) => value?.toUpperCase?.() || value)
   @IsEnum(UserRole, { message: 'role must be one of: ADMIN, MANAGER, USER' })
   @IsOptional()
   role?: UserRole = UserRole.USER;
 
-  @ApiPropertyOptional({ description: 'Department ID to assign the user to', example: '550e8400-e29b-41d4-a716-446655440000' })
+  @ApiPropertyOptional({
+    description: 'Department ID to assign the user to',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
   @IsString()
   @IsOptional()
   departmentId?: string;

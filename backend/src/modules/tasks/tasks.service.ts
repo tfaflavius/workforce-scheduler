@@ -28,14 +28,7 @@ export class TasksService {
     const savedTask = await this.taskRepository.save(task);
 
     // Create history entry
-    await this.createHistoryEntry(
-      savedTask.id,
-      'CREATED',
-      null,
-      null,
-      null,
-      createdById,
-    );
+    await this.createHistoryEntry(savedTask.id, 'CREATED', null, null, null, createdById);
 
     return this.findOne(savedTask.id);
   }
@@ -47,7 +40,10 @@ export class TasksService {
     createdById?: string;
     page?: number;
     limit?: number;
-  }): Promise<{ data: Task[]; meta?: { page: number; limit: number; total: number; totalPages: number } }> {
+  }): Promise<{
+    data: Task[];
+    meta?: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const query = this.taskRepository
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.assignedToUser', 'assignedToUser')
@@ -98,7 +94,13 @@ export class TasksService {
   async findOne(id: string): Promise<Task> {
     const task = await this.taskRepository.findOne({
       where: { id },
-      relations: ['assignedToUser', 'assignedByUser', 'department', 'history', 'history.changedByUser'],
+      relations: [
+        'assignedToUser',
+        'assignedByUser',
+        'department',
+        'history',
+        'history.changedByUser',
+      ],
     });
 
     if (!task) {
@@ -108,11 +110,7 @@ export class TasksService {
     return task;
   }
 
-  async update(
-    id: string,
-    updateTaskDto: UpdateTaskDto,
-    userId: string,
-  ): Promise<Task> {
+  async update(id: string, updateTaskDto: UpdateTaskDto, userId: string): Promise<Task> {
     const task = await this.findOne(id);
 
     // Track changes for history

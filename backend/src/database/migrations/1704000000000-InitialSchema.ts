@@ -131,7 +131,9 @@ export class InitialSchema1704000000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`CREATE INDEX idx_time_entries_user ON time_entries(user_id)`);
-    await queryRunner.query(`CREATE INDEX idx_time_entries_date ON time_entries(start_time, end_time)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_time_entries_date ON time_entries(start_time, end_time)`,
+    );
     await queryRunner.query(`CREATE INDEX idx_time_entries_task ON time_entries(task_id)`);
 
     // Create location_logs table
@@ -150,10 +152,16 @@ export class InitialSchema1704000000000 implements MigrationInterface {
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX idx_location_logs_time_entry ON location_logs(time_entry_id)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_location_logs_time_entry ON location_logs(time_entry_id)`,
+    );
     await queryRunner.query(`CREATE INDEX idx_location_logs_user ON location_logs(user_id)`);
-    await queryRunner.query(`CREATE INDEX idx_location_logs_recorded_at ON location_logs(recorded_at)`);
-    await queryRunner.query(`CREATE INDEX idx_location_logs_geography ON location_logs USING GIST(location)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_location_logs_recorded_at ON location_logs(recorded_at)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_location_logs_geography ON location_logs USING GIST(location)`,
+    );
 
     // Create shift_types table
     await queryRunner.query(`
@@ -190,7 +198,9 @@ export class InitialSchema1704000000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`CREATE INDEX idx_schedules_month_year ON work_schedules(year, month)`);
-    await queryRunner.query(`CREATE INDEX idx_schedules_department ON work_schedules(department_id)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_schedules_department ON work_schedules(department_id)`,
+    );
 
     // Create schedule_assignments table
     await queryRunner.query(`
@@ -208,9 +218,15 @@ export class InitialSchema1704000000000 implements MigrationInterface {
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX idx_schedule_assignments_schedule ON schedule_assignments(work_schedule_id)`);
-    await queryRunner.query(`CREATE INDEX idx_schedule_assignments_user ON schedule_assignments(user_id)`);
-    await queryRunner.query(`CREATE INDEX idx_schedule_assignments_date ON schedule_assignments(shift_date)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_schedule_assignments_schedule ON schedule_assignments(work_schedule_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_schedule_assignments_user ON schedule_assignments(user_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_schedule_assignments_date ON schedule_assignments(shift_date)`,
+    );
 
     // Create labor_law_validations table
     await queryRunner.query(`
@@ -247,8 +263,12 @@ export class InitialSchema1704000000000 implements MigrationInterface {
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX idx_change_requests_status ON schedule_change_requests(status)`);
-    await queryRunner.query(`CREATE INDEX idx_change_requests_requested_by ON schedule_change_requests(requested_by)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_change_requests_status ON schedule_change_requests(status)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_change_requests_requested_by ON schedule_change_requests(requested_by)`,
+    );
 
     // Create notifications table
     await queryRunner.query(`
@@ -267,7 +287,9 @@ export class InitialSchema1704000000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`CREATE INDEX idx_notifications_user ON notifications(user_id)`);
-    await queryRunner.query(`CREATE INDEX idx_notifications_unread ON notifications(user_id, is_read) WHERE is_read = false`);
+    await queryRunner.query(
+      `CREATE INDEX idx_notifications_unread ON notifications(user_id, is_read) WHERE is_read = false`,
+    );
     await queryRunner.query(`CREATE INDEX idx_notifications_created ON notifications(created_at)`);
 
     // Create push_subscriptions table
@@ -285,7 +307,9 @@ export class InitialSchema1704000000000 implements MigrationInterface {
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX idx_push_subscriptions_user ON push_subscriptions(user_id)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_push_subscriptions_user ON push_subscriptions(user_id)`,
+    );
 
     // Create generated_reports table
     await queryRunner.query(`
@@ -302,7 +326,9 @@ export class InitialSchema1704000000000 implements MigrationInterface {
       )
     `);
 
-    await queryRunner.query(`CREATE INDEX idx_reports_generated_by ON generated_reports(generated_by)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_reports_generated_by ON generated_reports(generated_by)`,
+    );
     await queryRunner.query(`CREATE INDEX idx_reports_created ON generated_reports(created_at)`);
 
     // Create audit_logs table
@@ -322,7 +348,9 @@ export class InitialSchema1704000000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`CREATE INDEX idx_audit_logs_user ON audit_logs(user_id)`);
-    await queryRunner.query(`CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id)`,
+    );
     await queryRunner.query(`CREATE INDEX idx_audit_logs_created ON audit_logs(created_at)`);
 
     // Create system_settings table

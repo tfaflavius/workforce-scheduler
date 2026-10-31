@@ -12,13 +12,7 @@ import { EmailModule } from '../../common/email/email.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      LeaveRequest,
-      LeaveBalance,
-      User,
-      ScheduleAssignment,
-      Department,
-    ]),
+    TypeOrmModule.forFeature([LeaveRequest, LeaveBalance, User, ScheduleAssignment, Department]),
     NotificationsModule,
     EmailModule,
   ],

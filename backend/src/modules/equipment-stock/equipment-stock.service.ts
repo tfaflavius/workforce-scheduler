@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EquipmentStockDefinition } from './entities/equipment-stock-definition.entity';
@@ -34,9 +29,11 @@ export class EquipmentStockService {
 
   // ===== DEFINITIONS =====
 
-  async findAllDefinitions(category?: string, includeInactive?: boolean): Promise<EquipmentStockDefinition[]> {
-    const qb = this.definitionRepository
-      .createQueryBuilder('def');
+  async findAllDefinitions(
+    category?: string,
+    includeInactive?: boolean,
+  ): Promise<EquipmentStockDefinition[]> {
+    const qb = this.definitionRepository.createQueryBuilder('def');
 
     if (!includeInactive) {
       qb.where('def.isActive = :isActive', { isActive: true });
@@ -72,13 +69,10 @@ export class EquipmentStockService {
 
     const saved = await this.definitionRepository.save(definition);
 
-    await this.logHistory(
-      'EQUIPMENT_STOCK_DEFINITION',
-      saved.id,
-      'CREATED',
-      userId,
-      { name: dto.name, category: dto.category },
-    );
+    await this.logHistory('EQUIPMENT_STOCK_DEFINITION', saved.id, 'CREATED', userId, {
+      name: dto.name,
+      category: dto.category,
+    });
 
     this.logger.log(`Definition created: ${saved.name} (${saved.id}) by user ${userId}`);
     return saved;
@@ -116,13 +110,7 @@ export class EquipmentStockService {
     const updated = await this.definitionRepository.save(definition);
 
     if (Object.keys(changes).length > 0) {
-      await this.logHistory(
-        'EQUIPMENT_STOCK_DEFINITION',
-        id,
-        'UPDATED',
-        userId,
-        changes,
-      );
+      await this.logHistory('EQUIPMENT_STOCK_DEFINITION', id, 'UPDATED', userId, changes);
     }
 
     this.logger.log(`Definition updated: ${updated.name} (${id}) by user ${userId}`);
@@ -140,13 +128,9 @@ export class EquipmentStockService {
     definition.isActive = false;
     await this.definitionRepository.save(definition);
 
-    await this.logHistory(
-      'EQUIPMENT_STOCK_DEFINITION',
-      id,
-      'DELETED',
-      userId,
-      { name: definition.name },
-    );
+    await this.logHistory('EQUIPMENT_STOCK_DEFINITION', id, 'DELETED', userId, {
+      name: definition.name,
+    });
 
     this.logger.log(`Definition soft-deleted: ${definition.name} (${id}) by user ${userId}`);
     return { success: true };
@@ -179,10 +163,7 @@ export class EquipmentStockService {
     return qb.getMany();
   }
 
-  async createEntry(
-    dto: CreateStockEntryDto,
-    userId: string,
-  ): Promise<EquipmentStockEntry> {
+  async createEntry(dto: CreateStockEntryDto, userId: string): Promise<EquipmentStockEntry> {
     // Verificam ca definitia exista si e activa
     const definition = await this.definitionRepository.findOne({
       where: { id: dto.definitionId },
@@ -216,18 +197,12 @@ export class EquipmentStockService {
 
     const saved = await this.entryRepository.save(entry);
 
-    await this.logHistory(
-      'EQUIPMENT_STOCK_ENTRY',
-      saved.id,
-      'CREATED',
-      userId,
-      {
-        definitionName: definition.name,
-        category: dto.category,
-        quantity: dto.quantity,
-        location: dto.location,
-      },
-    );
+    await this.logHistory('EQUIPMENT_STOCK_ENTRY', saved.id, 'CREATED', userId, {
+      definitionName: definition.name,
+      category: dto.category,
+      quantity: dto.quantity,
+      location: dto.location,
+    });
 
     this.logger.log(`Entry created for "${definition.name}" (${saved.id}) by user ${userId}`);
 
@@ -286,13 +261,7 @@ export class EquipmentStockService {
     const updated = await this.entryRepository.save(entry);
 
     if (Object.keys(changes).length > 0) {
-      await this.logHistory(
-        'EQUIPMENT_STOCK_ENTRY',
-        id,
-        'UPDATED',
-        userId,
-        changes,
-      );
+      await this.logHistory('EQUIPMENT_STOCK_ENTRY', id, 'UPDATED', userId, changes);
     }
 
     this.logger.log(`Entry updated (${id}) by user ${userId}`);
@@ -315,17 +284,11 @@ export class EquipmentStockService {
 
     await this.entryRepository.remove(entry);
 
-    await this.logHistory(
-      'EQUIPMENT_STOCK_ENTRY',
-      id,
-      'DELETED',
-      userId,
-      {
-        definitionName: entry.definition?.name,
-        category: entry.category,
-        quantity: entry.quantity,
-      },
-    );
+    await this.logHistory('EQUIPMENT_STOCK_ENTRY', id, 'DELETED', userId, {
+      definitionName: entry.definition?.name,
+      category: entry.category,
+      quantity: entry.quantity,
+    });
 
     this.logger.log(`Entry deleted (${id}) by user ${userId}`);
     return { success: true };

@@ -69,9 +69,10 @@ export class ReportsService {
       : null;
 
     // 4. Generate report buffer
-    const buffer = dto.format === 'PDF'
-      ? await this.generatePdfReport(schedule, validation, weeklySummaries)
-      : await this.generateExcelReport(schedule, validation, weeklySummaries);
+    const buffer =
+      dto.format === 'PDF'
+        ? await this.generatePdfReport(schedule, validation, weeklySummaries)
+        : await this.generateExcelReport(schedule, validation, weeklySummaries);
 
     // 5. Upload to storage
     const fileName = `schedule-${schedule.monthYear}-${Date.now()}.${dto.format.toLowerCase()}`;
@@ -79,7 +80,9 @@ export class ReportsService {
       'reports',
       fileName,
       buffer,
-      dto.format === 'PDF' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      dto.format === 'PDF'
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
 
     // 6. Save metadata
@@ -121,7 +124,14 @@ export class ReportsService {
   ): Promise<Buffer> {
     // Load Handlebars template
     // __dirname in dist points to dist/modules/reports, we need to go to src
-    const templatePath = path.join(process.cwd(), 'src', 'modules', 'reports', 'templates', 'schedule-template.hbs');
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'modules',
+      'reports',
+      'templates',
+      'schedule-template.hbs',
+    );
     const templateSource = await fs.promises.readFile(templatePath, 'utf8');
     const template = Handlebars.compile(templateSource);
 
@@ -294,7 +304,10 @@ export class ReportsService {
     const summaries: WeeklySummary[] = [];
     userWeeklyData.forEach((weeks, userId) => {
       weeks.forEach((assignments, weekNumber) => {
-        const totalHours = assignments.reduce((sum, a) => sum + (a.shiftType?.durationHours || 0), 0);
+        const totalHours = assignments.reduce(
+          (sum, a) => sum + (a.shiftType?.durationHours || 0),
+          0,
+        );
         const daysWorked = assignments.filter((a) => !a.isRestDay).length;
         const userName = assignments[0]?.user?.fullName || 'N/A';
 
@@ -309,7 +322,9 @@ export class ReportsService {
       });
     });
 
-    return summaries.sort((a, b) => a.weekNumber - b.weekNumber || a.userId.localeCompare(b.userId));
+    return summaries.sort(
+      (a, b) => a.weekNumber - b.weekNumber || a.userId.localeCompare(b.userId),
+    );
   }
 
   private getWeekNumber(date: Date): number {
@@ -338,14 +353,17 @@ export class ReportsService {
     );
 
     if (!overtimeData || overtimeData.length === 0) {
-      throw new NotFoundException('Nu s-au gasit date de ore suplimentare pentru perioada specificata');
+      throw new NotFoundException(
+        'Nu s-au gasit date de ore suplimentare pentru perioada specificata',
+      );
     }
 
     // 2. Generate report buffer
     const format = filters.format || 'PDF';
-    const buffer = format === 'PDF'
-      ? await this.generateOvertimePdfReport(overtimeData, monthYear)
-      : await this.generateOvertimeExcelReport(overtimeData, monthYear);
+    const buffer =
+      format === 'PDF'
+        ? await this.generateOvertimePdfReport(overtimeData, monthYear)
+        : await this.generateOvertimeExcelReport(overtimeData, monthYear);
 
     // 3. Upload to storage
     const fileName = `overtime-${monthYear}-${Date.now()}.${format.toLowerCase()}`;
@@ -353,7 +371,9 @@ export class ReportsService {
       'reports',
       fileName,
       buffer,
-      format === 'PDF' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      format === 'PDF'
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
 
     // 4. Save metadata
@@ -391,12 +411,16 @@ export class ReportsService {
     };
   }
 
-  private async generateOvertimePdfReport(
-    overtimeData: any[],
-    monthYear: string,
-  ): Promise<Buffer> {
+  private async generateOvertimePdfReport(overtimeData: any[], monthYear: string): Promise<Buffer> {
     // Load Handlebars template
-    const templatePath = path.join(process.cwd(), 'src', 'modules', 'reports', 'templates', 'overtime-template.hbs');
+    const templatePath = path.join(
+      process.cwd(),
+      'src',
+      'modules',
+      'reports',
+      'templates',
+      'overtime-template.hbs',
+    );
     const templateSource = await fs.promises.readFile(templatePath, 'utf8');
     const template = Handlebars.compile(templateSource);
 

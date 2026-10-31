@@ -48,25 +48,25 @@ export class TasksController {
       priority,
       assignedToId,
       createdById,
-      ...(page || limit ? {
-        page: Math.max(1, parseInt(page || '1', 10) || 1),
-        limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
-      } : {}),
+      ...(page || limit
+        ? {
+            page: Math.max(1, parseInt(page || '1', 10) || 1),
+            limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
+          }
+        : {}),
     });
   }
 
   @Get('my-tasks')
-  findMyTasks(
-    @Request() req,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  findMyTasks(@Request() req, @Query('page') page?: string, @Query('limit') limit?: string) {
     return this.tasksService.findAll({
       assignedToId: req.user.id,
-      ...(page || limit ? {
-        page: Math.max(1, parseInt(page || '1', 10) || 1),
-        limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
-      } : {}),
+      ...(page || limit
+        ? {
+            page: Math.max(1, parseInt(page || '1', 10) || 1),
+            limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
+          }
+        : {}),
     });
   }
 
@@ -81,11 +81,7 @@ export class TasksController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateTaskDto: UpdateTaskDto,
-    @Request() req,
-  ) {
+  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Request() req) {
     return this.tasksService.update(id, updateTaskDto, req.user.id);
   }
 

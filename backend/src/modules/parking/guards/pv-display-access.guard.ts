@@ -40,10 +40,7 @@ export class PvDisplayAccessGuard implements CanActivate {
 
       if (department) {
         // Permite acces pentru Procese Verbale/Facturare si Control
-        const allowedDepartments = [
-          PROCESE_VERBALE_DEPARTMENT_NAME,
-          CONTROL_DEPARTMENT_NAME,
-        ];
+        const allowedDepartments = [PROCESE_VERBALE_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME];
         if (allowedDepartments.includes(removeDiacritics(department.name))) {
           return true;
         }

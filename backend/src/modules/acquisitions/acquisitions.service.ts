@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { BudgetPosition, BudgetCategory } from './entities/budget-position.entity';
@@ -7,7 +13,10 @@ import { AcquisitionInvoice } from './entities/acquisition-invoice.entity';
 import { CreateBudgetPositionDto, UpdateBudgetPositionDto } from './dto/create-budget-position.dto';
 import { CreateAcquisitionDto, UpdateAcquisitionDto } from './dto/create-acquisition.dto';
 import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/create-invoice.dto';
-import { CreateRevenueCategoryDto, UpdateRevenueCategoryDto } from './dto/create-revenue-category.dto';
+import {
+  CreateRevenueCategoryDto,
+  UpdateRevenueCategoryDto,
+} from './dto/create-revenue-category.dto';
 import { UpsertMonthlyRevenueDto, UpdateMonthlyRevenueDto } from './dto/create-monthly-revenue.dto';
 import { RevenueCategory } from './entities/revenue-category.entity';
 import { MonthlyRevenue } from './entities/monthly-revenue.entity';
@@ -195,12 +204,14 @@ export class AcquisitionsService {
     if (dto.caietDeSarcini !== undefined) acq.caietDeSarcini = dto.caietDeSarcini;
     if (dto.notaJustificativa !== undefined) acq.notaJustificativa = dto.notaJustificativa;
     if (dto.contractNumber !== undefined) acq.contractNumber = dto.contractNumber;
-    if (dto.contractDate !== undefined) acq.contractDate = dto.contractDate ? new Date(dto.contractDate) : null;
+    if (dto.contractDate !== undefined)
+      acq.contractDate = dto.contractDate ? new Date(dto.contractDate) : null;
     if (dto.ordinIncepere !== undefined) acq.ordinIncepere = dto.ordinIncepere;
     if (dto.procesVerbalReceptie !== undefined) acq.procesVerbalReceptie = dto.procesVerbalReceptie;
     if (dto.isServiceContract !== undefined) acq.isServiceContract = dto.isServiceContract;
     if (dto.serviceMonths !== undefined) acq.serviceMonths = dto.serviceMonths;
-    if (dto.serviceStartDate !== undefined) acq.serviceStartDate = dto.serviceStartDate ? new Date(dto.serviceStartDate) : null;
+    if (dto.serviceStartDate !== undefined)
+      acq.serviceStartDate = dto.serviceStartDate ? new Date(dto.serviceStartDate) : null;
     if (dto.receptionDay !== undefined) acq.receptionDay = dto.receptionDay;
     if (dto.notes !== undefined) acq.notes = dto.notes;
 
@@ -428,7 +439,7 @@ export class AcquisitionsService {
     // Verify category exists
     await this.findOneRevenueCategory(dto.revenueCategoryId);
 
-    let existing = await this.monthlyRevenueRepository.findOne({
+    const existing = await this.monthlyRevenueRepository.findOne({
       where: {
         revenueCategoryId: dto.revenueCategoryId,
         year: dto.year,
@@ -476,9 +487,7 @@ export class AcquisitionsService {
 
     // --- Cash from CashCollections for parking-linked categories ---
     // Collect all parkingLotIds from categories that have one
-    const parkingLotIds = allCategories
-      .filter((c) => c.parkingLotId)
-      .map((c) => c.parkingLotId!);
+    const parkingLotIds = allCategories.filter((c) => c.parkingLotId).map((c) => c.parkingLotId!);
     const uniqueParkingLotIds = [...new Set(parkingLotIds)];
 
     // Fetch monthly cash totals in a single optimized query
@@ -500,7 +509,17 @@ export class AcquisitionsService {
     const categoryDataMap = new Map<
       string,
       {
-        months: Record<number, { incasari: number; incasariCash: number; incasariCard: number; cheltuieli: number; notes: string | null; id: string }>;
+        months: Record<
+          number,
+          {
+            incasari: number;
+            incasariCash: number;
+            incasariCard: number;
+            cheltuieli: number;
+            notes: string | null;
+            id: string;
+          }
+        >;
         totalIncasari: number;
         totalCheltuieli: number;
       }
@@ -581,7 +600,11 @@ export class AcquisitionsService {
 
     // Helper to build summary for a single category
     const buildCatSummary = (cat: RevenueCategory) => {
-      const data = categoryDataMap.get(cat.id) || { months: {}, totalIncasari: 0, totalCheltuieli: 0 };
+      const data = categoryDataMap.get(cat.id) || {
+        months: {},
+        totalIncasari: 0,
+        totalCheltuieli: 0,
+      };
       return {
         categoryId: cat.id,
         categoryName: cat.name,
@@ -697,7 +720,7 @@ export class AcquisitionsService {
     const remainingAmount = value - invoicedAmount;
 
     // Generate monthly schedule for service contracts
-    let monthlySchedule: any[] = [];
+    const monthlySchedule: any[] = [];
     if (acq.isServiceContract && acq.serviceMonths && acq.serviceStartDate) {
       const monthlyAmount = Math.round((value / acq.serviceMonths) * 100) / 100;
       const startDate = new Date(acq.serviceStartDate);

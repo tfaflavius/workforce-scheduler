@@ -93,13 +93,15 @@ export class PermissionsService {
     await this.permissionRepo.save(permissions);
 
     // Audit log
-    this.auditService.log({
-      userId,
-      action: 'UPDATE',
-      entity: 'Permission',
-      description: `Actualizare bulk ${permissions.length} permisiuni`,
-      changes: changesLog,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'UPDATE',
+        entity: 'Permission',
+        description: `Actualizare bulk ${permissions.length} permisiuni`,
+        changes: changesLog,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return { updated: permissions.length };
   }
@@ -132,13 +134,15 @@ export class PermissionsService {
 
     if (overrides.length === 0) {
       // Audit log
-      this.auditService.log({
-        userId: adminUserId,
-        action: 'DELETE',
-        entity: 'UserOverride',
-        entityId: userId,
-        description: `Sterse toate exceptiile pentru user ${userId}`,
-      }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+      this.auditService
+        .log({
+          userId: adminUserId,
+          action: 'DELETE',
+          entity: 'UserOverride',
+          entityId: userId,
+          description: `Sterse toate exceptiile pentru user ${userId}`,
+        })
+        .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
       return [];
     }
 
@@ -154,16 +158,18 @@ export class PermissionsService {
     const saved = await this.overrideRepo.save(entities);
 
     // Audit log
-    this.auditService.log({
-      userId: adminUserId,
-      action: 'UPDATE',
-      entity: 'UserOverride',
-      entityId: userId,
-      description: `Setate ${overrides.length} exceptii pentru user ${userId}`,
-      changes: Object.fromEntries(
-        overrides.map((o) => [`${o.resourceKey}.${o.action}`, { old: null, new: o.allowed }]),
-      ),
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId: adminUserId,
+        action: 'UPDATE',
+        entity: 'UserOverride',
+        entityId: userId,
+        description: `Setate ${overrides.length} exceptii pentru user ${userId}`,
+        changes: Object.fromEntries(
+          overrides.map((o) => [`${o.resourceKey}.${o.action}`, { old: null, new: o.allowed }]),
+        ),
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return saved;
   }
@@ -192,9 +198,7 @@ export class PermissionsService {
     const defaultPerms = await this.permissionRepo.find({
       where: [
         { role: user.role, departmentId: null as any },
-        ...(user.departmentId
-          ? [{ role: user.role, departmentId: user.departmentId }]
-          : []),
+        ...(user.departmentId ? [{ role: user.role, departmentId: user.departmentId }] : []),
       ],
     });
 
@@ -263,13 +267,15 @@ export class PermissionsService {
     const rule = this.taskFlowRepo.create(data);
     const saved = await this.taskFlowRepo.save(rule);
 
-    this.auditService.log({
-      userId,
-      action: 'CREATE',
-      entity: 'TaskFlowRule',
-      entityId: saved.id,
-      description: `Creat flux task: ${saved.taskType}`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'CREATE',
+        entity: 'TaskFlowRule',
+        entityId: saved.id,
+        description: `Creat flux task: ${saved.taskType}`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return saved;
   }
@@ -283,16 +289,21 @@ export class PermissionsService {
     Object.assign(rule, data);
     const saved = await this.taskFlowRepo.save(rule);
 
-    this.auditService.log({
-      userId,
-      action: 'UPDATE',
-      entity: 'TaskFlowRule',
-      entityId: id,
-      description: `Actualizat flux task: ${saved.taskType}`,
-      changes: Object.fromEntries(
-        Object.keys(data).map((key) => [key, { old: (oldData as any)[key], new: (data as any)[key] }]),
-      ),
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'UPDATE',
+        entity: 'TaskFlowRule',
+        entityId: id,
+        description: `Actualizat flux task: ${saved.taskType}`,
+        changes: Object.fromEntries(
+          Object.keys(data).map((key) => [
+            key,
+            { old: (oldData as any)[key], new: (data as any)[key] },
+          ]),
+        ),
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return saved;
   }
@@ -304,13 +315,15 @@ export class PermissionsService {
     }
     await this.taskFlowRepo.remove(rule);
 
-    this.auditService.log({
-      userId,
-      action: 'DELETE',
-      entity: 'TaskFlowRule',
-      entityId: id,
-      description: `Sters flux task: ${rule.taskType}`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'DELETE',
+        entity: 'TaskFlowRule',
+        entityId: id,
+        description: `Sters flux task: ${rule.taskType}`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return { deleted: true };
   }
@@ -373,7 +386,9 @@ export class PermissionsService {
     await this.seedTaskFlows();
     await this.seedEmailNotificationRules();
     await this.seedNotificationSettings();
-    return { message: 'Permissions, task flows, email rules and notification settings seeded successfully' };
+    return {
+      message: 'Permissions, task flows, email rules and notification settings seeded successfully',
+    };
   }
 
   private async seedPermissions() {
@@ -410,12 +425,12 @@ export class PermissionsService {
 
     // ── MANAGER: department-independent ──
     const managerAllowed: Record<string, string[]> = {
-      'dashboard': ['view'],
+      dashboard: ['view'],
       'my-schedule': ['view'],
       'daily-reports': ['view', 'create', 'edit'],
       'shift-swaps': ['view', 'create'],
       'leave-requests': ['view', 'create'],
-      'schedules': ['view', 'create', 'edit', 'delete'],
+      schedules: ['view', 'create', 'edit', 'delete'],
       'parking.issues': ['view', 'create', 'edit', 'resolve'],
       'parking.damages': ['view', 'create', 'edit', 'resolve'],
       'parking.payment-machines': ['view', 'create', 'edit'],
@@ -423,13 +438,20 @@ export class PermissionsService {
       'parking.handicap': ['view', 'create', 'edit', 'resolve'],
       'parking.domiciliu': ['view', 'create', 'edit', 'resolve'],
       'pv-facturare': ['view', 'create', 'edit'],
-      'parcometre': ['view', 'create', 'edit'],
-      'achizitii': ['view', 'create', 'edit'],
+      parcometre: ['view', 'create', 'edit'],
+      achizitii: ['view', 'create', 'edit'],
       'incasari-cheltuieli': ['view', 'create', 'edit'],
       'control-sesizari': ['view', 'create', 'resolve'],
     };
 
-    const managerDenied = ['users', 'reports', 'shift-swaps.admin', 'leave-requests.admin', 'time-tracking', 'permissions'];
+    const managerDenied = [
+      'users',
+      'reports',
+      'shift-swaps.admin',
+      'leave-requests.admin',
+      'time-tracking',
+      'permissions',
+    ];
 
     for (const resource of RESOURCE_DEFINITIONS) {
       for (const action of resource.actions) {
@@ -457,23 +479,31 @@ export class PermissionsService {
 
     // ── USER: department-independent resources ──
     const userGeneralAllowed: Record<string, string[]> = {
-      'dashboard': ['view'],
+      dashboard: ['view'],
       'my-schedule': ['view'],
       'daily-reports': ['view', 'create', 'edit'],
       'shift-swaps': ['view', 'create'],
       'leave-requests': ['view', 'create'],
-      'schedules': ['view'],
+      schedules: ['view'],
     };
 
     const userAlwaysDenied = [
-      'users', 'reports', 'shift-swaps.admin', 'leave-requests.admin',
-      'time-tracking', 'permissions',
+      'users',
+      'reports',
+      'shift-swaps.admin',
+      'leave-requests.admin',
+      'time-tracking',
+      'permissions',
     ];
 
     // First, add department-independent USER permissions
     const departmentIndependentResources = [
-      'dashboard', 'my-schedule', 'daily-reports', 'shift-swaps',
-      'leave-requests', 'schedules',
+      'dashboard',
+      'my-schedule',
+      'daily-reports',
+      'shift-swaps',
+      'leave-requests',
+      'schedules',
       ...userAlwaysDenied,
     ];
 
@@ -505,9 +535,9 @@ export class PermissionsService {
     }
 
     // ── USER: parking resources with departmentId=null (so they appear in matrix) ──
-    const parkingResourceKeys = RESOURCE_DEFINITIONS
-      .filter((r) => !departmentIndependentResources.includes(r.key))
-      .map((r) => r.key);
+    const parkingResourceKeys = RESOURCE_DEFINITIONS.filter(
+      (r) => !departmentIndependentResources.includes(r.key),
+    ).map((r) => r.key);
 
     for (const resourceKey of parkingResourceKeys) {
       const resource = RESOURCE_DEFINITIONS.find((r) => r.key === resourceKey);
@@ -537,8 +567,8 @@ export class PermissionsService {
       'parking.handicap': ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
       'parking.domiciliu': ['Intretinere Parcari', 'Parcari Handicap', 'Parcari Domiciliu'],
       'pv-facturare': ['Procese Verbale/Facturare', 'Control'],
-      'parcometre': ['Parcometre'],
-      'achizitii': ['Achizitii'],
+      parcometre: ['Parcometre'],
+      achizitii: ['Achizitii'],
       'incasari-cheltuieli': ['Achizitii'],
       'control-sesizari': ['Control', 'Intretinere Parcari'],
     };
@@ -679,50 +709,242 @@ export class PermissionsService {
 
     const rules: Partial<EmailNotificationRule>[] = [
       // ── Probleme Parcari ──
-      { eventType: 'parking_issue', eventAction: 'created', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Intretinere Parcari'), description: 'Notifica Intretinere Parcari cand se creaza o problema noua', sendImmediate: true, cronSchedule: null },
-      { eventType: 'parking_issue', eventAction: 'resolved', recipientType: R.CREATOR, description: 'Notifica creatorul cand problema este rezolvata', sendImmediate: true, cronSchedule: null },
-      { eventType: 'parking_issue', eventAction: 'reminder', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Dispecerat'), description: 'Reminder dimineata - probleme nerezolvate catre Dispecerat', sendImmediate: false, cronSchedule: '08:00 L-V' },
-      { eventType: 'parking_issue', eventAction: 'reminder', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Intretinere Parcari'), description: 'Reminder dupa-amiaza - probleme nerezolvate catre Intretinere', sendImmediate: false, cronSchedule: '13:00 L-V' },
+      {
+        eventType: 'parking_issue',
+        eventAction: 'created',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Intretinere Parcari'),
+        description: 'Notifica Intretinere Parcari cand se creaza o problema noua',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'parking_issue',
+        eventAction: 'resolved',
+        recipientType: R.CREATOR,
+        description: 'Notifica creatorul cand problema este rezolvata',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'parking_issue',
+        eventAction: 'reminder',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Dispecerat'),
+        description: 'Reminder dimineata - probleme nerezolvate catre Dispecerat',
+        sendImmediate: false,
+        cronSchedule: '08:00 L-V',
+      },
+      {
+        eventType: 'parking_issue',
+        eventAction: 'reminder',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Intretinere Parcari'),
+        description: 'Reminder dupa-amiaza - probleme nerezolvate catre Intretinere',
+        sendImmediate: false,
+        cronSchedule: '13:00 L-V',
+      },
 
       // ── Prejudicii Parcari ──
-      { eventType: 'parking_damage', eventAction: 'created', recipientType: R.ADMIN_ALL, description: 'Notifica toti adminii cand se creaza un prejudiciu nou', sendImmediate: true, cronSchedule: null },
-      { eventType: 'parking_damage', eventAction: 'resolved', recipientType: R.CREATOR, description: 'Notifica creatorul cand prejudiciul este rezolvat', sendImmediate: true, cronSchedule: null },
+      {
+        eventType: 'parking_damage',
+        eventAction: 'created',
+        recipientType: R.ADMIN_ALL,
+        description: 'Notifica toti adminii cand se creaza un prejudiciu nou',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'parking_damage',
+        eventAction: 'resolved',
+        recipientType: R.CREATOR,
+        description: 'Notifica creatorul cand prejudiciul este rezolvat',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
 
       // ── Solicitari Handicap ──
-      { eventType: 'handicap_request', eventAction: 'created', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Intretinere Parcari'), description: 'Notifica Intretinere Parcari cand se creaza o solicitare handicap', sendImmediate: true, cronSchedule: null },
-      { eventType: 'handicap_request', eventAction: 'resolved', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Parcari Handicap'), description: 'Notifica Parcari Handicap cand solicitarea este rezolvata', sendImmediate: true, cronSchedule: null },
-      { eventType: 'handicap_request', eventAction: 'report', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Parcari Handicap'), description: 'Raport zilnic solicitari handicap', sendImmediate: false, cronSchedule: '09:00 L-V' },
+      {
+        eventType: 'handicap_request',
+        eventAction: 'created',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Intretinere Parcari'),
+        description: 'Notifica Intretinere Parcari cand se creaza o solicitare handicap',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'handicap_request',
+        eventAction: 'resolved',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Parcari Handicap'),
+        description: 'Notifica Parcari Handicap cand solicitarea este rezolvata',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'handicap_request',
+        eventAction: 'report',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Parcari Handicap'),
+        description: 'Raport zilnic solicitari handicap',
+        sendImmediate: false,
+        cronSchedule: '09:00 L-V',
+      },
 
       // ── Solicitari Domiciliu ──
-      { eventType: 'domiciliu_request', eventAction: 'created', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Intretinere Parcari'), description: 'Notifica Intretinere Parcari cand se creaza o solicitare domiciliu', sendImmediate: true, cronSchedule: null },
-      { eventType: 'domiciliu_request', eventAction: 'resolved', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Parcari Domiciliu'), description: 'Notifica Parcari Domiciliu cand solicitarea este rezolvata', sendImmediate: true, cronSchedule: null },
+      {
+        eventType: 'domiciliu_request',
+        eventAction: 'created',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Intretinere Parcari'),
+        description: 'Notifica Intretinere Parcari cand se creaza o solicitare domiciliu',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'domiciliu_request',
+        eventAction: 'resolved',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Parcari Domiciliu'),
+        description: 'Notifica Parcari Domiciliu cand solicitarea este rezolvata',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
 
       // ── Sesizari Control ──
-      { eventType: 'control_sesizare', eventAction: 'created', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Intretinere Parcari'), description: 'Notifica Intretinere Parcari cand se creaza o sesizare', sendImmediate: true, cronSchedule: null },
-      { eventType: 'control_sesizare', eventAction: 'resolved', recipientType: R.DEPARTMENT, recipientDepartmentId: getDeptId('Control'), description: 'Notifica Control cand sesizarea este rezolvata', sendImmediate: true, cronSchedule: null },
+      {
+        eventType: 'control_sesizare',
+        eventAction: 'created',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Intretinere Parcari'),
+        description: 'Notifica Intretinere Parcari cand se creaza o sesizare',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'control_sesizare',
+        eventAction: 'resolved',
+        recipientType: R.DEPARTMENT,
+        recipientDepartmentId: getDeptId('Control'),
+        description: 'Notifica Control cand sesizarea este rezolvata',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
 
       // ── Cereri Concediu ──
-      { eventType: 'leave_request', eventAction: 'created', recipientType: R.ADMIN_ALL, description: 'Notifica adminii cand un angajat depune cerere de concediu', sendImmediate: true, cronSchedule: null },
-      { eventType: 'leave_request', eventAction: 'approved', recipientType: R.CREATOR, description: 'Notifica angajatul cand cererea de concediu este aprobata', sendImmediate: true, cronSchedule: null },
-      { eventType: 'leave_request', eventAction: 'rejected', recipientType: R.CREATOR, description: 'Notifica angajatul cand cererea de concediu este respinsa', sendImmediate: true, cronSchedule: null },
+      {
+        eventType: 'leave_request',
+        eventAction: 'created',
+        recipientType: R.ADMIN_ALL,
+        description: 'Notifica adminii cand un angajat depune cerere de concediu',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'leave_request',
+        eventAction: 'approved',
+        recipientType: R.CREATOR,
+        description: 'Notifica angajatul cand cererea de concediu este aprobata',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'leave_request',
+        eventAction: 'rejected',
+        recipientType: R.CREATOR,
+        description: 'Notifica angajatul cand cererea de concediu este respinsa',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
 
       // ── Schimburi Ture ──
-      { eventType: 'shift_swap', eventAction: 'created', recipientType: R.ASSIGNED, description: 'Notifica colegul destinatar cand se solicita un schimb de tura', sendImmediate: true, cronSchedule: null },
-      { eventType: 'shift_swap', eventAction: 'accepted', recipientType: R.CREATOR, description: 'Notifica creatorul cand colegul accepta schimbul', sendImmediate: true, cronSchedule: null },
-      { eventType: 'shift_swap', eventAction: 'rejected', recipientType: R.CREATOR, description: 'Notifica creatorul cand colegul refuza schimbul', sendImmediate: true, cronSchedule: null },
-      { eventType: 'shift_swap', eventAction: 'approved', recipientType: R.CREATOR, description: 'Notifica ambii angajati la aprobarea finala a schimbului', sendImmediate: true, cronSchedule: null },
+      {
+        eventType: 'shift_swap',
+        eventAction: 'created',
+        recipientType: R.ASSIGNED,
+        description: 'Notifica colegul destinatar cand se solicita un schimb de tura',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'shift_swap',
+        eventAction: 'accepted',
+        recipientType: R.CREATOR,
+        description: 'Notifica creatorul cand colegul accepta schimbul',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'shift_swap',
+        eventAction: 'rejected',
+        recipientType: R.CREATOR,
+        description: 'Notifica creatorul cand colegul refuza schimbul',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'shift_swap',
+        eventAction: 'approved',
+        recipientType: R.CREATOR,
+        description: 'Notifica ambii angajati la aprobarea finala a schimbului',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
 
       // ── Program ──
-      { eventType: 'schedule', eventAction: 'created', recipientType: R.ASSIGNED, description: 'Notifica angajatii cand programul este creat sau actualizat', sendImmediate: true, cronSchedule: null },
+      {
+        eventType: 'schedule',
+        eventAction: 'created',
+        recipientType: R.ASSIGNED,
+        description: 'Notifica angajatii cand programul este creat sau actualizat',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
 
       // ── Rapoarte Consolidate ──
-      { eventType: 'daily_report', eventAction: 'report', recipientType: R.MANAGER_ALL, description: 'Raport consolidat zilnic dimineata catre manageri', sendImmediate: false, cronSchedule: '08:00 L-V' },
-      { eventType: 'daily_report', eventAction: 'report', recipientType: R.ADMIN_ALL, description: 'Raport consolidat zilnic seara catre admini si manageri', sendImmediate: false, cronSchedule: '20:00 L-V' },
-      { eventType: 'weekly_report', eventAction: 'report', recipientType: R.ADMIN_ALL, description: 'Raport consolidat saptamanal catre admini si manageri', sendImmediate: false, cronSchedule: 'Vineri 20:30' },
+      {
+        eventType: 'daily_report',
+        eventAction: 'report',
+        recipientType: R.MANAGER_ALL,
+        description: 'Raport consolidat zilnic dimineata catre manageri',
+        sendImmediate: false,
+        cronSchedule: '08:00 L-V',
+      },
+      {
+        eventType: 'daily_report',
+        eventAction: 'report',
+        recipientType: R.ADMIN_ALL,
+        description: 'Raport consolidat zilnic seara catre admini si manageri',
+        sendImmediate: false,
+        cronSchedule: '20:00 L-V',
+      },
+      {
+        eventType: 'weekly_report',
+        eventAction: 'report',
+        recipientType: R.ADMIN_ALL,
+        description: 'Raport consolidat saptamanal catre admini si manageri',
+        sendImmediate: false,
+        cronSchedule: 'Vineri 20:30',
+      },
 
       // ── Cont Utilizator ──
-      { eventType: 'welcome', eventAction: 'created', recipientType: R.ASSIGNED, description: 'Email de bun venit cu datele contului cand se creaza un utilizator nou', sendImmediate: true, cronSchedule: null },
-      { eventType: 'password_reset', eventAction: 'created', recipientType: R.CREATOR, description: 'Email cu link de resetare parola', sendImmediate: true, cronSchedule: null },
+      {
+        eventType: 'welcome',
+        eventAction: 'created',
+        recipientType: R.ASSIGNED,
+        description: 'Email de bun venit cu datele contului cand se creaza un utilizator nou',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
+      {
+        eventType: 'password_reset',
+        eventAction: 'created',
+        recipientType: R.CREATOR,
+        description: 'Email cu link de resetare parola',
+        sendImmediate: true,
+        cronSchedule: null,
+      },
     ];
 
     const entities = rules.map((r) => this.emailRuleRepo.create(r));
@@ -876,9 +1098,8 @@ export class PermissionsService {
   }
 
   async seedEquipment(): Promise<{ created: number }> {
-    const { EQUIPMENT_LIST, DAMAGE_EQUIPMENT_LIST } = await import(
-      '../parking/constants/parking.constants'
-    );
+    const { EQUIPMENT_LIST, DAMAGE_EQUIPMENT_LIST } =
+      await import('../parking/constants/parking.constants');
 
     const issueSet = new Set<string>(EQUIPMENT_LIST as any);
     const damageSet = new Set<string>(DAMAGE_EQUIPMENT_LIST as any);
@@ -953,9 +1174,8 @@ export class PermissionsService {
   }
 
   async seedContactFirms(): Promise<{ created: number }> {
-    const { COMPANY_LIST, INTERNAL_MAINTENANCE_COMPANIES } = await import(
-      '../parking/constants/parking.constants'
-    );
+    const { COMPANY_LIST, INTERNAL_MAINTENANCE_COMPANIES } =
+      await import('../parking/constants/parking.constants');
 
     const internalSet = new Set<string>(INTERNAL_MAINTENANCE_COMPANIES as any);
 

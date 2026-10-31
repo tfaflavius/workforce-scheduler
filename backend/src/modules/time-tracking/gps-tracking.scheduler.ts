@@ -56,7 +56,9 @@ export class GpsTrackingScheduler {
         return;
       }
 
-      this.logger.log(`[GPS Cron] Sending GPS capture push to ${activeEntries.length} active employees`);
+      this.logger.log(
+        `[GPS Cron] Sending GPS capture push to ${activeEntries.length} active employees`,
+      );
 
       // Send silent push to each active employee
       const sendPromises = activeEntries.map(async (entry) => {
@@ -74,7 +76,9 @@ export class GpsTrackingScheduler {
             NotificationType.GPS_STATUS_ALERT,
           );
         } catch (err) {
-          this.logger.debug(`[GPS Cron] Failed to send push to ${entry.user?.fullName}: ${err.message}`);
+          this.logger.debug(
+            `[GPS Cron] Failed to send push to ${entry.user?.fullName}: ${err.message}`,
+          );
         }
       });
 
@@ -112,7 +116,9 @@ export class GpsTrackingScheduler {
     try {
       const stoppedCount = await this.timeTrackingService.autoStopShiftsWithoutGps(180);
       if (stoppedCount > 0) {
-        this.logger.warn(`[GPS Auto-Stop] Stopped ${stoppedCount} shifts due to 3h+ missing GPS data`);
+        this.logger.warn(
+          `[GPS Auto-Stop] Stopped ${stoppedCount} shifts due to 3h+ missing GPS data`,
+        );
       }
     } catch (error) {
       this.logger.error(`[GPS Auto-Stop] Error: ${error.message}`);

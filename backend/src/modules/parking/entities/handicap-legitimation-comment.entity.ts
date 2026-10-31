@@ -27,7 +27,9 @@ export class HandicapLegitimationComment {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => HandicapLegitimation, (legitimation) => legitimation.comments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => HandicapLegitimation, (legitimation) => legitimation.comments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'legitimation_id' })
   legitimation: HandicapLegitimation;
 

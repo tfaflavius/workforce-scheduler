@@ -99,17 +99,33 @@ export class CreateParkingTables1769500000000 implements MigrationInterface {
 
     // 7. Creare indexuri pentru performanta
     await queryRunner.query(`CREATE INDEX idx_parking_issues_status ON parking_issues(status)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_issues_parking_lot ON parking_issues(parking_lot_id)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_issues_assigned_to ON parking_issues(assigned_to)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_issues_created_at ON parking_issues(created_at DESC)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_issues_parking_lot ON parking_issues(parking_lot_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_issues_assigned_to ON parking_issues(assigned_to)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_issues_created_at ON parking_issues(created_at DESC)`,
+    );
 
     await queryRunner.query(`CREATE INDEX idx_parking_damages_status ON parking_damages(status)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_damages_parking_lot ON parking_damages(parking_lot_id)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_damages_created_at ON parking_damages(created_at DESC)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_damages_parking_lot ON parking_damages(parking_lot_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_damages_created_at ON parking_damages(created_at DESC)`,
+    );
 
-    await queryRunner.query(`CREATE INDEX idx_cash_collections_parking_lot ON cash_collections(parking_lot_id)`);
-    await queryRunner.query(`CREATE INDEX idx_cash_collections_machine ON cash_collections(payment_machine_id)`);
-    await queryRunner.query(`CREATE INDEX idx_cash_collections_collected_at ON cash_collections(collected_at DESC)`);
+    await queryRunner.query(
+      `CREATE INDEX idx_cash_collections_parking_lot ON cash_collections(parking_lot_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_cash_collections_machine ON cash_collections(payment_machine_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_cash_collections_collected_at ON cash_collections(collected_at DESC)`,
+    );
 
     // 8. Seed date parcari si automate
     // Parcare Baritiu

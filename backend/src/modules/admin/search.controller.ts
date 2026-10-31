@@ -106,12 +106,20 @@ const ACCESS_PARKING: AccessRule = {
 
 const ACCESS_HANDICAP: AccessRule = {
   roles: [UserRole.ADMIN, UserRole.USER],
-  requiresDepartments: [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_PARKING_DEPARTMENT_NAME, DOMICILIU_PARKING_DEPARTMENT_NAME],
+  requiresDepartments: [
+    MAINTENANCE_DEPARTMENT_NAME,
+    HANDICAP_PARKING_DEPARTMENT_NAME,
+    DOMICILIU_PARKING_DEPARTMENT_NAME,
+  ],
 };
 
 const ACCESS_DOMICILIU: AccessRule = {
   roles: [UserRole.ADMIN, UserRole.USER],
-  requiresDepartments: [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_PARKING_DEPARTMENT_NAME, DOMICILIU_PARKING_DEPARTMENT_NAME],
+  requiresDepartments: [
+    MAINTENANCE_DEPARTMENT_NAME,
+    HANDICAP_PARKING_DEPARTMENT_NAME,
+    DOMICILIU_PARKING_DEPARTMENT_NAME,
+  ],
 };
 
 const ACCESS_PV: AccessRule = {
@@ -141,30 +149,150 @@ const ACCESS_STOC: AccessRule = {
 
 // Static page definitions with access rules
 const PAGES: { label: string; path: string; keywords: string[]; access: AccessRule }[] = [
-  { label: 'Dashboard', path: '/dashboard', keywords: ['dashboard', 'acasa', 'home', 'panou'], access: ACCESS_ALL },
-  { label: 'Programul Meu', path: '/my-schedule', keywords: ['program', 'orar', 'schedule'], access: ACCESS_MY_SCHEDULE },
-  { label: 'Raport Zilnic', path: '/daily-reports', keywords: ['raport', 'zilnic', 'daily'], access: ACCESS_ALL },
-  { label: 'Schimburi Ture', path: '/shift-swaps', keywords: ['schimb', 'tura', 'swap'], access: ACCESS_SHIFT_SWAPS },
-  { label: 'Concedii', path: '/leave-requests', keywords: ['concediu', 'vacanta', 'leave'], access: ACCESS_LEAVE },
-  { label: 'Programe', path: '/schedules', keywords: ['programe', 'grafic', 'schedule'], access: ACCESS_SCHEDULES },
-  { label: 'Gestionare Schimburi', path: '/admin/shift-swaps', keywords: ['gestionare', 'schimb', 'admin'], access: ACCESS_ADMIN },
-  { label: 'Gestionare Concedii', path: '/admin/leave-requests', keywords: ['gestionare', 'concediu', 'admin'], access: ACCESS_ADMIN },
-  { label: 'Rapoarte', path: '/reports', keywords: ['raport', 'rapoarte', 'statistici', 'reports'], access: ACCESS_ADMIN },
-  { label: 'Utilizatori', path: '/users', keywords: ['utilizator', 'utilizatori', 'angajat', 'angajati', 'user'], access: ACCESS_ADMIN },
-  { label: 'Monitorizare Pontaj', path: '/admin/pontaj', keywords: ['pontaj', 'prezenta', 'time'], access: ACCESS_ADMIN },
-  { label: 'Editari Solicitate', path: '/admin/edit-requests', keywords: ['editari', 'solicitate', 'edit'], access: ACCESS_ADMIN },
-  { label: 'Permisiuni', path: '/admin/permissions', keywords: ['permisiuni', 'setari', 'permissions'], access: ACCESS_MASTER_ADMIN },
-  { label: 'Parcari Etajate', path: '/parking', keywords: ['parcari', 'etajate', 'parking', 'parcare'], access: ACCESS_PARKING },
-  { label: 'Parcari Handicap', path: '/parking/handicap', keywords: ['handicap', 'dizabilitat'], access: ACCESS_HANDICAP },
-  { label: 'Parcari Domiciliu', path: '/parking/domiciliu', keywords: ['domiciliu', 'rezident'], access: ACCESS_DOMICILIU },
-  { label: 'PV / Facturare', path: '/procese-verbale', keywords: ['proces', 'verbal', 'factura', 'pv', 'facturare'], access: ACCESS_PV },
-  { label: 'Parcometre', path: '/parcometre', keywords: ['parcometru', 'parcometre'], access: ACCESS_PARCOMETRE },
-  { label: 'Achizitii', path: '/achizitii', keywords: ['achizitii', 'achizitie', 'cumparare'], access: ACCESS_ACHIZITII },
-  { label: 'Incasari / Cheltuieli', path: '/incasari-cheltuieli', keywords: ['incasari', 'cheltuieli', 'venit', 'venituri'], access: ACCESS_ACHIZITII },
-  { label: 'Control Sesizari', path: '/control-sesizari', keywords: ['control', 'sesizare', 'sesizari'], access: ACCESS_CONTROL },
-  { label: 'Stoc Echipamente', path: '/stoc-echipamente', keywords: ['stoc', 'echipament', 'echipamente', 'inventar'], access: ACCESS_STOC },
-  { label: 'Profil', path: '/profile', keywords: ['profil', 'cont', 'profile'], access: ACCESS_ALL },
-  { label: 'Notificari', path: '/notifications', keywords: ['notificare', 'notificari', 'notifications'], access: ACCESS_ALL },
+  {
+    label: 'Dashboard',
+    path: '/dashboard',
+    keywords: ['dashboard', 'acasa', 'home', 'panou'],
+    access: ACCESS_ALL,
+  },
+  {
+    label: 'Programul Meu',
+    path: '/my-schedule',
+    keywords: ['program', 'orar', 'schedule'],
+    access: ACCESS_MY_SCHEDULE,
+  },
+  {
+    label: 'Raport Zilnic',
+    path: '/daily-reports',
+    keywords: ['raport', 'zilnic', 'daily'],
+    access: ACCESS_ALL,
+  },
+  {
+    label: 'Schimburi Ture',
+    path: '/shift-swaps',
+    keywords: ['schimb', 'tura', 'swap'],
+    access: ACCESS_SHIFT_SWAPS,
+  },
+  {
+    label: 'Concedii',
+    path: '/leave-requests',
+    keywords: ['concediu', 'vacanta', 'leave'],
+    access: ACCESS_LEAVE,
+  },
+  {
+    label: 'Programe',
+    path: '/schedules',
+    keywords: ['programe', 'grafic', 'schedule'],
+    access: ACCESS_SCHEDULES,
+  },
+  {
+    label: 'Gestionare Schimburi',
+    path: '/admin/shift-swaps',
+    keywords: ['gestionare', 'schimb', 'admin'],
+    access: ACCESS_ADMIN,
+  },
+  {
+    label: 'Gestionare Concedii',
+    path: '/admin/leave-requests',
+    keywords: ['gestionare', 'concediu', 'admin'],
+    access: ACCESS_ADMIN,
+  },
+  {
+    label: 'Rapoarte',
+    path: '/reports',
+    keywords: ['raport', 'rapoarte', 'statistici', 'reports'],
+    access: ACCESS_ADMIN,
+  },
+  {
+    label: 'Utilizatori',
+    path: '/users',
+    keywords: ['utilizator', 'utilizatori', 'angajat', 'angajati', 'user'],
+    access: ACCESS_ADMIN,
+  },
+  {
+    label: 'Monitorizare Pontaj',
+    path: '/admin/pontaj',
+    keywords: ['pontaj', 'prezenta', 'time'],
+    access: ACCESS_ADMIN,
+  },
+  {
+    label: 'Editari Solicitate',
+    path: '/admin/edit-requests',
+    keywords: ['editari', 'solicitate', 'edit'],
+    access: ACCESS_ADMIN,
+  },
+  {
+    label: 'Permisiuni',
+    path: '/admin/permissions',
+    keywords: ['permisiuni', 'setari', 'permissions'],
+    access: ACCESS_MASTER_ADMIN,
+  },
+  {
+    label: 'Parcari Etajate',
+    path: '/parking',
+    keywords: ['parcari', 'etajate', 'parking', 'parcare'],
+    access: ACCESS_PARKING,
+  },
+  {
+    label: 'Parcari Handicap',
+    path: '/parking/handicap',
+    keywords: ['handicap', 'dizabilitat'],
+    access: ACCESS_HANDICAP,
+  },
+  {
+    label: 'Parcari Domiciliu',
+    path: '/parking/domiciliu',
+    keywords: ['domiciliu', 'rezident'],
+    access: ACCESS_DOMICILIU,
+  },
+  {
+    label: 'PV / Facturare',
+    path: '/procese-verbale',
+    keywords: ['proces', 'verbal', 'factura', 'pv', 'facturare'],
+    access: ACCESS_PV,
+  },
+  {
+    label: 'Parcometre',
+    path: '/parcometre',
+    keywords: ['parcometru', 'parcometre'],
+    access: ACCESS_PARCOMETRE,
+  },
+  {
+    label: 'Achizitii',
+    path: '/achizitii',
+    keywords: ['achizitii', 'achizitie', 'cumparare'],
+    access: ACCESS_ACHIZITII,
+  },
+  {
+    label: 'Incasari / Cheltuieli',
+    path: '/incasari-cheltuieli',
+    keywords: ['incasari', 'cheltuieli', 'venit', 'venituri'],
+    access: ACCESS_ACHIZITII,
+  },
+  {
+    label: 'Control Sesizari',
+    path: '/control-sesizari',
+    keywords: ['control', 'sesizare', 'sesizari'],
+    access: ACCESS_CONTROL,
+  },
+  {
+    label: 'Stoc Echipamente',
+    path: '/stoc-echipamente',
+    keywords: ['stoc', 'echipament', 'echipamente', 'inventar'],
+    access: ACCESS_STOC,
+  },
+  {
+    label: 'Profil',
+    path: '/profile',
+    keywords: ['profil', 'cont', 'profile'],
+    access: ACCESS_ALL,
+  },
+  {
+    label: 'Notificari',
+    path: '/notifications',
+    keywords: ['notificare', 'notificari', 'notifications'],
+    access: ACCESS_ALL,
+  },
 ];
 
 @ApiTags('Admin')
@@ -222,7 +350,8 @@ export class SearchController {
    */
   private canAccess(user: User, rule: AccessRule): boolean {
     // 1. Role check (MASTER_ADMIN can see ADMIN items hierarchically)
-    const roleMatches = rule.roles.includes(user.role) ||
+    const roleMatches =
+      rule.roles.includes(user.role) ||
       (user.role === UserRole.MASTER_ADMIN && rule.roles.includes(UserRole.ADMIN));
     if (!roleMatches) return false;
 
@@ -267,15 +396,13 @@ export class SearchController {
     const results: SearchResult[] = [];
 
     // 1. Page navigation (static, instant — no DB) — filtered by access
-    const pageResults = PAGES
-      .filter(p => this.canAccess(user, p.access))
-      .filter(p =>
-        p.label.toLowerCase().includes(qLower) ||
-        p.keywords.some(k => k.includes(qLower))
+    const pageResults = PAGES.filter((p) => this.canAccess(user, p.access))
+      .filter(
+        (p) => p.label.toLowerCase().includes(qLower) || p.keywords.some((k) => k.includes(qLower)),
       )
       .slice(0, 5);
 
-    pageResults.forEach(p => {
+    pageResults.forEach((p) => {
       results.push({
         type: 'page',
         id: p.path,
@@ -313,10 +440,7 @@ export class SearchController {
       // Users — ADMIN only
       this.canAccess(user, ACCESS_ADMIN)
         ? this.userRepo.find({
-            where: [
-              { fullName: ILike(`%${q}%`) },
-              { email: ILike(`%${q}%`) },
-            ],
+            where: [{ fullName: ILike(`%${q}%`) }, { email: ILike(`%${q}%`) }],
             take: 5,
             relations: ['department'],
           })
@@ -409,10 +533,7 @@ export class SearchController {
       // Control sesizari
       this.canAccess(user, ACCESS_CONTROL)
         ? this.controlSesizareRepo.find({
-            where: [
-              { location: ILike(`%${q}%`) },
-              { description: ILike(`%${q}%`) },
-            ],
+            where: [{ location: ILike(`%${q}%`) }, { description: ILike(`%${q}%`) }],
             take: 3,
             order: { createdAt: 'DESC' },
           })
@@ -420,12 +541,16 @@ export class SearchController {
       // Leave requests — search by reason and user name; USER/MANAGER see only own
       this.canAccess(user, ACCESS_LEAVE)
         ? (() => {
-            const qb = this.leaveRepo.createQueryBuilder('lr')
+            const qb = this.leaveRepo
+              .createQueryBuilder('lr')
               .leftJoinAndSelect('lr.user', 'user')
-              .where(new Brackets(sub =>
-                sub.where('lr.reason ILIKE :q', { q: `%${q}%` })
-                   .orWhere('user.fullName ILIKE :q', { q: `%${q}%` }),
-              ))
+              .where(
+                new Brackets((sub) =>
+                  sub
+                    .where('lr.reason ILIKE :q', { q: `%${q}%` })
+                    .orWhere('user.fullName ILIKE :q', { q: `%${q}%` }),
+                ),
+              )
               .orderBy('lr.createdAt', 'DESC')
               .take(3);
             if (user.role !== UserRole.ADMIN && user.role !== UserRole.MASTER_ADMIN) {
@@ -437,12 +562,16 @@ export class SearchController {
       // Shift swap requests — search by reason and requester name; USER/MANAGER see only own
       this.canAccess(user, ACCESS_SHIFT_SWAPS)
         ? (() => {
-            const qb = this.shiftSwapRepo.createQueryBuilder('ss')
+            const qb = this.shiftSwapRepo
+              .createQueryBuilder('ss')
               .leftJoinAndSelect('ss.requester', 'requester')
-              .where(new Brackets(sub =>
-                sub.where('ss.reason ILIKE :q', { q: `%${q}%` })
-                   .orWhere('requester.fullName ILIKE :q', { q: `%${q}%` }),
-              ))
+              .where(
+                new Brackets((sub) =>
+                  sub
+                    .where('ss.reason ILIKE :q', { q: `%${q}%` })
+                    .orWhere('requester.fullName ILIKE :q', { q: `%${q}%` }),
+                ),
+              )
               .orderBy('ss.createdAt', 'DESC')
               .take(3);
             if (user.role !== UserRole.ADMIN && user.role !== UserRole.MASTER_ADMIN) {
@@ -454,7 +583,8 @@ export class SearchController {
       // Daily reports — search by content; USER/MANAGER see only own
       this.canAccess(user, ACCESS_ALL)
         ? (() => {
-            const qb = this.dailyReportRepo.createQueryBuilder('dr')
+            const qb = this.dailyReportRepo
+              .createQueryBuilder('dr')
               .leftJoinAndSelect('dr.user', 'user')
               .where('dr.content ILIKE :q', { q: `%${q}%` })
               .orderBy('dr.date', 'DESC')
@@ -468,9 +598,7 @@ export class SearchController {
       // Work schedules — search by name; ADMIN+MANAGER
       this.canAccess(user, ACCESS_SCHEDULES)
         ? this.workScheduleRepo.find({
-            where: [
-              { name: ILike(`%${q}%`) },
-            ],
+            where: [{ name: ILike(`%${q}%`) }],
             take: 3,
             relations: ['department', 'creator'],
             order: { createdAt: 'DESC' },
@@ -479,10 +607,7 @@ export class SearchController {
       // PV display sessions — search by monthYear or description
       this.canAccess(user, ACCESS_PV)
         ? this.pvDisplaySessionRepo.find({
-            where: [
-              { monthYear: ILike(`%${q}%`) },
-              { description: ILike(`%${q}%`) },
-            ],
+            where: [{ monthYear: ILike(`%${q}%`) }, { description: ILike(`%${q}%`) }],
             take: 3,
             relations: ['creator'],
             order: { createdAt: 'DESC' },
@@ -491,20 +616,14 @@ export class SearchController {
       // Parking meters — search by name or address
       this.canAccess(user, ACCESS_PARCOMETRE)
         ? this.parkingMeterRepo.find({
-            where: [
-              { name: ILike(`%${q}%`) },
-              { address: ILike(`%${q}%`) },
-            ],
+            where: [{ name: ILike(`%${q}%`) }, { address: ILike(`%${q}%`) }],
             take: 3,
           })
         : empty,
       // Acquisitions — search by name or contract number
       this.canAccess(user, ACCESS_ACHIZITII)
         ? this.acquisitionRepo.find({
-            where: [
-              { name: ILike(`%${q}%`) },
-              { contractNumber: ILike(`%${q}%`) },
-            ],
+            where: [{ name: ILike(`%${q}%`) }, { contractNumber: ILike(`%${q}%`) }],
             take: 3,
             relations: ['budgetPosition'],
             order: { createdAt: 'DESC' },
@@ -513,28 +632,21 @@ export class SearchController {
       // Budget positions — search by name
       this.canAccess(user, ACCESS_ACHIZITII)
         ? this.budgetPositionRepo.find({
-            where: [
-              { name: ILike(`%${q}%`) },
-            ],
+            where: [{ name: ILike(`%${q}%`) }],
             take: 3,
           })
         : empty,
       // Equipment stock definitions — search by name or category
       this.canAccess(user, ACCESS_STOC)
         ? this.equipmentStockDefRepo.find({
-            where: [
-              { name: ILike(`%${q}%`) },
-              { category: ILike(`%${q}%`) },
-            ],
+            where: [{ name: ILike(`%${q}%`) }, { category: ILike(`%${q}%`) }],
             take: 3,
           })
         : empty,
       // Cash collections — search by notes; same access as parking
       this.canAccess(user, ACCESS_PARKING)
         ? this.cashCollectionRepo.find({
-            where: [
-              { notes: ILike(`%${q}%`) },
-            ],
+            where: [{ notes: ILike(`%${q}%`) }],
             take: 3,
             relations: ['parkingLot', 'collector'],
             order: { collectedAt: 'DESC' },
@@ -543,9 +655,7 @@ export class SearchController {
       // Edit requests — ADMIN only
       this.canAccess(user, ACCESS_ADMIN)
         ? this.editRequestRepo.find({
-            where: [
-              { reason: ILike(`%${q}%`) },
-            ],
+            where: [{ reason: ILike(`%${q}%`) }],
             take: 3,
             relations: ['requester'],
             order: { createdAt: 'DESC' },

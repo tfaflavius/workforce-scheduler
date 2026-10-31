@@ -66,14 +66,11 @@ export class HandicapRequestsController {
     if (canSeeCnp) {
       return requests;
     }
-    return requests.map(request => this.filterCnp(request, canSeeCnp));
+    return requests.map((request) => this.filterCnp(request, canSeeCnp));
   }
 
   @Post()
-  async create(
-    @Request() req,
-    @Body() dto: CreateHandicapRequestDto,
-  ): Promise<HandicapRequest> {
+  async create(@Request() req, @Body() dto: CreateHandicapRequestDto): Promise<HandicapRequest> {
     return this.handicapRequestsService.create(req.user.id, dto);
   }
 

@@ -34,17 +34,12 @@ export class ParkingIssuesController {
   constructor(private readonly parkingIssuesService: ParkingIssuesService) {}
 
   @Post()
-  async create(
-    @Request() req,
-    @Body() dto: CreateParkingIssueDto,
-  ): Promise<ParkingIssue> {
+  async create(@Request() req, @Body() dto: CreateParkingIssueDto): Promise<ParkingIssue> {
     return this.parkingIssuesService.create(req.user.id, dto);
   }
 
   @Get()
-  async findAll(
-    @Query('status') status?: ParkingIssueStatus,
-  ): Promise<ParkingIssue[]> {
+  async findAll(@Query('status') status?: ParkingIssueStatus): Promise<ParkingIssue[]> {
     return this.parkingIssuesService.findAll(status);
   }
 

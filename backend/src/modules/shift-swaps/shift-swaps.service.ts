@@ -140,15 +140,15 @@ export class ShiftSwapsService {
     }
 
     // Verifica daca userul lucreaza in data tinta
-    const targetDateStr = swapRequest.targetDate instanceof Date
-      ? swapRequest.targetDate.toISOString().split('T')[0]
-      : String(swapRequest.targetDate);
-    const responderAssignment = await this.findAssignmentForUserAndDate(
-      responderId,
-      targetDateStr,
-    );
+    const targetDateStr =
+      swapRequest.targetDate instanceof Date
+        ? swapRequest.targetDate.toISOString().split('T')[0]
+        : String(swapRequest.targetDate);
+    const responderAssignment = await this.findAssignmentForUserAndDate(responderId, targetDateStr);
     if (!responderAssignment) {
-      throw new ForbiddenException('Nu poti raspunde la aceasta cerere - nu lucrezi in data respectiva');
+      throw new ForbiddenException(
+        'Nu poti raspunde la aceasta cerere - nu lucrezi in data respectiva',
+      );
     }
 
     // Verifica daca nu a raspuns deja
@@ -174,19 +174,27 @@ export class ShiftSwapsService {
     try {
       await this.sendSwapResponseNotifications(swapRequest, responder, dto.response);
     } catch (error) {
-      this.logger.error(`Failed to send swap response notifications: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to send swap response notifications: ${error.message}`,
+        error.stack,
+      );
     }
 
     // Daca cineva a acceptat, marcheaza cererea ca AWAITING_ADMIN
     // Cererea ramane deschisa pentru alti colegi sa accepte/refuze
     // Adminul va alege din toti cei care au acceptat
-    if (dto.response === SwapResponseType.ACCEPTED && swapRequest.status === ShiftSwapStatus.PENDING) {
+    if (
+      dto.response === SwapResponseType.ACCEPTED &&
+      swapRequest.status === ShiftSwapStatus.PENDING
+    ) {
       await this.swapRequestRepository.update(swapRequestId, {
         status: ShiftSwapStatus.AWAITING_ADMIN,
       });
     }
 
-    this.logger.log(`Swap response: ${dto.response} for request ${swapRequestId} by user ${responderId}`);
+    this.logger.log(
+      `Swap response: ${dto.response} for request ${swapRequestId} by user ${responderId}`,
+    );
 
     return savedResponse;
   }
@@ -212,7 +220,8 @@ export class ShiftSwapsService {
     // Daca e AWAITING_ADMIN, verificam ca userul ales a acceptat
     if (swapRequest.status === ShiftSwapStatus.AWAITING_ADMIN) {
       const acceptedResponse = swapRequest.responses?.find(
-        (r) => r.responderId === dto.approvedResponderId && r.response === SwapResponseType.ACCEPTED,
+        (r) =>
+          r.responderId === dto.approvedResponderId && r.response === SwapResponseType.ACCEPTED,
       );
       if (!acceptedResponse) {
         throw new BadRequestException('Utilizatorul selectat nu a acceptat schimbul');
@@ -221,9 +230,10 @@ export class ShiftSwapsService {
 
     // Daca e PENDING (force-assign), verificam ca userul ales lucreaza in data tinta
     if (swapRequest.status === ShiftSwapStatus.PENDING) {
-      const targetDateStr = swapRequest.targetDate instanceof Date
-        ? swapRequest.targetDate.toISOString().split('T')[0]
-        : String(swapRequest.targetDate).split('T')[0];
+      const targetDateStr =
+        swapRequest.targetDate instanceof Date
+          ? swapRequest.targetDate.toISOString().split('T')[0]
+          : String(swapRequest.targetDate).split('T')[0];
       const responderAssignment = await this.findAssignmentForUserAndDate(
         dto.approvedResponderId,
         targetDateStr,
@@ -248,7 +258,10 @@ export class ShiftSwapsService {
     try {
       await this.sendSwapApprovedNotifications(swapRequest, dto.approvedResponderId);
     } catch (error) {
-      this.logger.error(`Failed to send swap approved notifications: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to send swap approved notifications: ${error.message}`,
+        error.stack,
+      );
     }
 
     this.logger.log(`Swap approved: ${swapRequestId} by admin ${adminId}`);
@@ -280,7 +293,9 @@ export class ShiftSwapsService {
     try {
       const requesterDateFormatted = this.formatDate(swapRequest.requesterDate);
       const targetDateFormatted = this.formatDate(swapRequest.targetDate);
-      const requester = await this.userRepository.findOne({ where: { id: swapRequest.requesterId } });
+      const requester = await this.userRepository.findOne({
+        where: { id: swapRequest.requesterId },
+      });
 
       // Notifica solicitantul
       await this.notificationsService.create({
@@ -314,7 +329,10 @@ export class ShiftSwapsService {
         });
       }
     } catch (error) {
-      this.logger.error(`Failed to send swap rejected notifications: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to send swap rejected notifications: ${error.message}`,
+        error.stack,
+      );
     }
 
     this.logger.log(`Swap rejected: ${swapRequestId} by admin ${adminId}`);
@@ -325,10 +343,7 @@ export class ShiftSwapsService {
   /**
    * Anuleaza o cerere (doar solicitantul)
    */
-  async cancelSwapRequest(
-    swapRequestId: string,
-    userId: string,
-  ): Promise<ShiftSwapRequest> {
+  async cancelSwapRequest(swapRequestId: string, userId: string): Promise<ShiftSwapRequest> {
     const swapRequest = await this.findOne(swapRequestId);
 
     if (swapRequest.requesterId !== userId) {
@@ -361,7 +376,9 @@ export class ShiftSwapsService {
     // Sterge cererea
     await this.swapRequestRepository.delete(swapRequestId);
 
-    this.logger.log(`Swap request deleted: ${swapRequestId} (requester: ${swapRequest.requester?.fullName})`);
+    this.logger.log(
+      `Swap request deleted: ${swapRequestId} (requester: ${swapRequest.requester?.fullName})`,
+    );
 
     return { deleted: true };
   }
@@ -412,9 +429,7 @@ export class ShiftSwapsService {
   /**
    * Lista tuturor cererilor (pentru admin)
    */
-  async findAllSwapRequests(filters?: {
-    status?: ShiftSwapStatus;
-  }): Promise<ShiftSwapRequest[]> {
+  async findAllSwapRequests(filters?: { status?: ShiftSwapStatus }): Promise<ShiftSwapRequest[]> {
     const query = this.swapRequestRepository
       .createQueryBuilder('request')
       .leftJoinAndSelect('request.requester', 'requester')
@@ -466,9 +481,7 @@ export class ShiftSwapsService {
 
     const assignments = await qb.getMany();
 
-    let users = assignments
-      .map((a) => a.user)
-      .filter((u) => u && u.id !== excludeUserId);
+    const users = assignments.map((a) => a.user).filter((u) => u && u.id !== excludeUserId);
 
     // Elimina duplicatele
     const uniqueUsers = users.filter(
@@ -535,15 +548,15 @@ export class ShiftSwapsService {
       qb.andWhere('shiftType.shiftPattern = :shiftPattern', { shiftPattern });
     }
 
-    qb.groupBy('assignment.shiftDate')
-      .orderBy('assignment.shiftDate', 'ASC');
+    qb.groupBy('assignment.shiftDate').orderBy('assignment.shiftDate', 'ASC');
 
     const results = await qb.getRawMany();
 
     return results.map((r) => ({
-      date: typeof r.shiftDate === 'string'
-        ? r.shiftDate.split('T')[0]
-        : new Date(r.shiftDate).toISOString().split('T')[0],
+      date:
+        typeof r.shiftDate === 'string'
+          ? r.shiftDate.split('T')[0]
+          : new Date(r.shiftDate).toISOString().split('T')[0],
       count: parseInt(r.userCount, 10),
     }));
   }
@@ -568,9 +581,7 @@ export class ShiftSwapsService {
     if (assignments.length === 1) return assignments[0];
 
     // Daca sunt mai multe, returneaza assignment-ul de Dispecerat (DISP)
-    const dispAssignment = assignments.find(
-      a => a.workPosition?.shortName === 'DISP',
-    );
+    const dispAssignment = assignments.find((a) => a.workPosition?.shortName === 'DISP');
     return dispAssignment || assignments[0];
   }
 
@@ -594,12 +605,14 @@ export class ShiftSwapsService {
     swapRequest: ShiftSwapRequest,
     approvedResponderId: string,
   ): Promise<void> {
-    const requesterDateStr = swapRequest.requesterDate instanceof Date
-      ? swapRequest.requesterDate.toISOString().split('T')[0]
-      : String(swapRequest.requesterDate);
-    const targetDateStr = swapRequest.targetDate instanceof Date
-      ? swapRequest.targetDate.toISOString().split('T')[0]
-      : String(swapRequest.targetDate);
+    const requesterDateStr =
+      swapRequest.requesterDate instanceof Date
+        ? swapRequest.requesterDate.toISOString().split('T')[0]
+        : String(swapRequest.requesterDate);
+    const targetDateStr =
+      swapRequest.targetDate instanceof Date
+        ? swapRequest.targetDate.toISOString().split('T')[0]
+        : String(swapRequest.targetDate);
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -639,8 +652,8 @@ export class ShiftSwapsService {
       // Skip CTRL handling for same-day swaps (day<->night) - CTRL assignments stay as they are
       if (requesterDateStr !== targetDateStr) {
         await this.handleControlAssignmentsAfterSwap(
-          swapRequest.requesterId,  // requester cedeaza DISP pe requesterDate, preia DISP pe targetDate
-          approvedResponderId,       // responder cedeaza DISP pe targetDate, preia DISP pe requesterDate
+          swapRequest.requesterId, // requester cedeaza DISP pe requesterDate, preia DISP pe targetDate
+          approvedResponderId, // responder cedeaza DISP pe targetDate, preia DISP pe requesterDate
           requesterDateStr,
           targetDateStr,
           manager,
@@ -724,7 +737,7 @@ export class ShiftSwapsService {
       relations: ['workPosition'],
     });
 
-    return assignments.find(a => a.workPosition?.shortName === 'CTRL') || null;
+    return assignments.find((a) => a.workPosition?.shortName === 'CTRL') || null;
   }
 
   /**
@@ -851,9 +864,10 @@ export class ShiftSwapsService {
         userId: user.id,
         type: 'SHIFT_SWAP_REQUEST' as any,
         title: 'Cerere de schimb de tura',
-        message: requesterDateFormatted === targetDateFormatted
-          ? `${requester.fullName} doreste sa schimbe tura (${request.requesterShiftType}) cu tura ta (${request.targetShiftType}) din ${targetDateFormatted}. Motiv: ${request.reason}`
-          : `${requester.fullName} doreste sa schimbe tura din ${requesterDateFormatted} cu tura ta din ${targetDateFormatted}. Motiv: ${request.reason}`,
+        message:
+          requesterDateFormatted === targetDateFormatted
+            ? `${requester.fullName} doreste sa schimbe tura (${request.requesterShiftType}) cu tura ta (${request.targetShiftType}) din ${targetDateFormatted}. Motiv: ${request.reason}`
+            : `${requester.fullName} doreste sa schimbe tura din ${requesterDateFormatted} cu tura ta din ${targetDateFormatted}. Motiv: ${request.reason}`,
         data: { swapRequestId: request.id },
         skipPush: true,
       });
@@ -922,7 +936,8 @@ export class ShiftSwapsService {
         requesterName: requester.fullName,
         requesterDate: requesterDateFormatted,
         targetDate: targetDateFormatted,
-        swapType: responseType === SwapResponseType.ACCEPTED ? 'response_accepted' : 'response_declined',
+        swapType:
+          responseType === SwapResponseType.ACCEPTED ? 'response_accepted' : 'response_declined',
         responderName: responder.fullName,
       });
     }
@@ -989,9 +1004,10 @@ export class ShiftSwapsService {
       userId: request.requesterId,
       type: 'SHIFT_SWAP_APPROVED' as any,
       title: 'Schimb de tura aprobat!',
-      message: requesterDateFormatted === targetDateFormatted
-        ? `Schimbul tau a fost aprobat! Acum lucrezi tura ${request.targetShiftType} in ${targetDateFormatted}.`
-        : `Schimbul tau a fost aprobat! Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}.`,
+      message:
+        requesterDateFormatted === targetDateFormatted
+          ? `Schimbul tau a fost aprobat! Acum lucrezi tura ${request.targetShiftType} in ${targetDateFormatted}.`
+          : `Schimbul tau a fost aprobat! Acum lucrezi in ${targetDateFormatted} in loc de ${requesterDateFormatted}.`,
       data: { swapRequestId: request.id },
       skipPush: true,
     });
@@ -1025,9 +1041,10 @@ export class ShiftSwapsService {
       userId: approvedResponderId,
       type: 'SHIFT_SWAP_APPROVED' as any,
       title: 'Schimb de tura aprobat!',
-      message: requesterDateFormatted === targetDateFormatted
-        ? `Schimbul a fost aprobat! Acum lucrezi tura ${request.requesterShiftType} in ${requesterDateFormatted}.`
-        : `Schimbul a fost aprobat! Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}.`,
+      message:
+        requesterDateFormatted === targetDateFormatted
+          ? `Schimbul a fost aprobat! Acum lucrezi tura ${request.requesterShiftType} in ${requesterDateFormatted}.`
+          : `Schimbul a fost aprobat! Acum lucrezi in ${requesterDateFormatted} in loc de ${targetDateFormatted}.`,
       data: { swapRequestId: request.id },
       skipPush: true,
     });

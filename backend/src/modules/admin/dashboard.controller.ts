@@ -18,7 +18,10 @@ import { EditRequest } from '../parking/entities/edit-request.entity';
 import { HandicapRequest } from '../parking/entities/handicap-request.entity';
 import { HandicapLegitimation } from '../parking/entities/handicap-legitimation.entity';
 import { RevolutionarLegitimation } from '../parking/entities/revolutionar-legitimation.entity';
-import { ShiftSwapRequest, ShiftSwapStatus } from '../shift-swaps/entities/shift-swap-request.entity';
+import {
+  ShiftSwapRequest,
+  ShiftSwapStatus,
+} from '../shift-swaps/entities/shift-swap-request.entity';
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
@@ -67,7 +70,12 @@ interface DashboardStatsResponse {
     activeIssues: number;
     urgentIssues: { id: string; equipment: string; parkingLotId: string; createdAt: Date }[];
     activeDamages: number;
-    urgentDamages: { id: string; damagedEquipment: string; parkingLotId: string; createdAt: Date }[];
+    urgentDamages: {
+      id: string;
+      damagedEquipment: string;
+      parkingLotId: string;
+      createdAt: Date;
+    }[];
     pendingEditRequests: number;
     cashCollectionTotals: { totalAmount: number; count: number };
   };
@@ -128,7 +136,12 @@ interface DashboardStatsResponse {
   domiciliu: {
     active: number;
     finalizat: number;
-    byType: { trasareLocuri: number; revocareLocuri: number; amplasarePanou: number; revocarePanou: number };
+    byType: {
+      trasareLocuri: number;
+      revocareLocuri: number;
+      amplasarePanou: number;
+      revocarePanou: number;
+    };
   };
   achizitii: {
     totalBudget: number;
@@ -369,8 +382,12 @@ export class DashboardController {
         .getRawOne(),
 
       // Handicap requests by type (only ACTIVE)
-      this.handicapRequestRepo.count({ where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' } }),
-      this.handicapRequestRepo.count({ where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' } }),
+      this.handicapRequestRepo.count({
+        where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' },
+      }),
+      this.handicapRequestRepo.count({
+        where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' },
+      }),
       this.handicapRequestRepo.count({ where: { requestType: 'CREARE_MARCAJ', status: 'ACTIVE' } }),
 
       // Legitimations (ACTIVE)
@@ -401,7 +418,10 @@ export class DashboardController {
         .select('COALESCE(SUM(mr.incasari), 0)', 'incasari')
         .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
         .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
-        .where('mr.year = :year AND mr.month = :month', { year: romaniaTime.getFullYear(), month: romaniaTime.getMonth() + 1 })
+        .where('mr.year = :year AND mr.month = :month', {
+          year: romaniaTime.getFullYear(),
+          month: romaniaTime.getMonth() + 1,
+        })
         .getRawOne(),
 
       // Control sesizari counts
@@ -414,18 +434,36 @@ export class DashboardController {
       // Domiciliu requests
       this.domiciliuRequestRepo.count({ where: { status: 'ACTIVE' } }),
       this.domiciliuRequestRepo.count({ where: { status: 'FINALIZAT' } }),
-      this.domiciliuRequestRepo.count({ where: { requestType: 'TRASARE_LOCURI', status: 'ACTIVE' } }),
-      this.domiciliuRequestRepo.count({ where: { requestType: 'REVOCARE_LOCURI', status: 'ACTIVE' } }),
-      this.domiciliuRequestRepo.count({ where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' } }),
-      this.domiciliuRequestRepo.count({ where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' } }),
+      this.domiciliuRequestRepo.count({
+        where: { requestType: 'TRASARE_LOCURI', status: 'ACTIVE' },
+      }),
+      this.domiciliuRequestRepo.count({
+        where: { requestType: 'REVOCARE_LOCURI', status: 'ACTIVE' },
+      }),
+      this.domiciliuRequestRepo.count({
+        where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' },
+      }),
+      this.domiciliuRequestRepo.count({
+        where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' },
+      }),
 
       // Achizitii — current year budget and spending
       this.budgetPositionRepo
         .createQueryBuilder('bp')
-        .select('COALESCE(SUM(CASE WHEN bp.category = :inv THEN bp.totalAmount ELSE 0 END), 0)', 'investments')
-        .addSelect('COALESCE(SUM(CASE WHEN bp.category = :cur THEN bp.totalAmount ELSE 0 END), 0)', 'currentExpenses')
+        .select(
+          'COALESCE(SUM(CASE WHEN bp.category = :inv THEN bp.totalAmount ELSE 0 END), 0)',
+          'investments',
+        )
+        .addSelect(
+          'COALESCE(SUM(CASE WHEN bp.category = :cur THEN bp.totalAmount ELSE 0 END), 0)',
+          'currentExpenses',
+        )
         .addSelect('COALESCE(SUM(bp.totalAmount), 0)', 'totalBudget')
-        .where('bp.year = :year', { year: romaniaTime.getFullYear(), inv: 'INVESTMENTS', cur: 'CURRENT_EXPENSES' })
+        .where('bp.year = :year', {
+          year: romaniaTime.getFullYear(),
+          inv: 'INVESTMENTS',
+          cur: 'CURRENT_EXPENSES',
+        })
         .getRawOne(),
       this.acquisitionRepo
         .createQueryBuilder('a')
@@ -455,8 +493,12 @@ export class DashboardController {
         .getRawOne(),
 
       // Daily reports today
-      this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.SUBMITTED } }),
-      this.dailyReportRepo.count({ where: { date: todayStr as any, status: DailyReportStatus.DRAFT } }),
+      this.dailyReportRepo.count({
+        where: { date: todayStr as any, status: DailyReportStatus.SUBMITTED },
+      }),
+      this.dailyReportRepo.count({
+        where: { date: todayStr as any, status: DailyReportStatus.DRAFT },
+      }),
 
       // Year-to-date revenue/expense totals — current year, all months.
       // `incasari` is filtered to NON parking-linked categories: for
@@ -467,7 +509,10 @@ export class DashboardController {
       this.monthlyRevenueRepo
         .createQueryBuilder('mr')
         .leftJoin('revenue_categories', 'rc', 'rc.id = mr.revenue_category_id')
-        .select('COALESCE(SUM(CASE WHEN rc.parking_lot_id IS NULL THEN mr.incasari ELSE 0 END), 0)', 'incasari')
+        .select(
+          'COALESCE(SUM(CASE WHEN rc.parking_lot_id IS NULL THEN mr.incasari ELSE 0 END), 0)',
+          'incasari',
+        )
         .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
         .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
         .where('mr.year = :year', { year: romaniaTime.getFullYear() })
@@ -489,10 +534,9 @@ export class DashboardController {
              WHERE rc2.parking_lot_id IS NOT NULL AND rc2.is_active = true
            )`,
         )
-        .andWhere(
-          `EXTRACT(YEAR FROM cc.collected_at AT TIME ZONE 'Europe/Bucharest') = :year`,
-          { year: romaniaTime.getFullYear() },
-        )
+        .andWhere(`EXTRACT(YEAR FROM cc.collected_at AT TIME ZONE 'Europe/Bucharest') = :year`, {
+          year: romaniaTime.getFullYear(),
+        })
         .getRawOne(),
 
       // Full notes matrix — the service excludes days where Control users
@@ -569,10 +613,15 @@ export class DashboardController {
       carStatus: {
         carInUse: pvActiveDays.length > 0,
         activeDaysCount: pvActiveDays.length,
-        days: pvActiveDays.map(d => {
-          const dateStr = d.displayDate instanceof Date
-            ? d.displayDate.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' })
-            : String(d.displayDate);
+        days: pvActiveDays.map((d) => {
+          const dateStr =
+            d.displayDate instanceof Date
+              ? d.displayDate.toLocaleDateString('ro-RO', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })
+              : String(d.displayDate);
           return {
             id: d.id,
             dayOrder: d.dayOrder,
@@ -626,8 +675,7 @@ export class DashboardController {
         // Matches the breakdown used by /incasari-cheltuieli so the two
         // screens stay in sync.
         incasari:
-          parseFloat(revenueYTDTotals?.incasari || '0') +
-          parseFloat(parkingCashYTD?.cash || '0'),
+          parseFloat(revenueYTDTotals?.incasari || '0') + parseFloat(parkingCashYTD?.cash || '0'),
         incasariCard: parseFloat(revenueYTDTotals?.incasariCard || '0'),
         cheltuieli: parseFloat(revenueYTDTotals?.cheltuieli || '0'),
         year: romaniaTime.getFullYear(),

@@ -8,7 +8,10 @@ export class CreateTaskDto {
   @MaxLength(200)
   title: string;
 
-  @ApiPropertyOptional({ description: 'Detailed task description', example: 'Review and approve the monthly financial report for March' })
+  @ApiPropertyOptional({
+    description: 'Detailed task description',
+    example: 'Review and approve the monthly financial report for March',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(5000)
@@ -34,7 +37,10 @@ export class CreateTaskDto {
   @IsDateString()
   dueDate?: string;
 
-  @ApiPropertyOptional({ description: 'UUID of the user to assign the task to', example: '550e8400-e29b-41d4-a716-446655440000' })
+  @ApiPropertyOptional({
+    description: 'UUID of the user to assign the task to',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
   @IsOptional()
   @IsUUID()
   assignedToId?: string;

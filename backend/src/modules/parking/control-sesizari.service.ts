@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { ControlSesizare } from './entities/control-sesizare.entity';
@@ -48,9 +54,14 @@ export class ControlSesizariService {
       where: { id: userId },
       relations: ['department'],
     });
-    if (creator && creator.role === UserRole.USER &&
-        removeDiacritics(creator.department?.name || '') === MAINTENANCE_DEPARTMENT_NAME) {
-      throw new ForbiddenException('Utilizatorii din departamentul Intretinere Parcari nu pot crea sesizari');
+    if (
+      creator &&
+      creator.role === UserRole.USER &&
+      removeDiacritics(creator.department?.name || '') === MAINTENANCE_DEPARTMENT_NAME
+    ) {
+      throw new ForbiddenException(
+        'Utilizatorii din departamentul Intretinere Parcari nu pot crea sesizari',
+      );
     }
 
     const sesizare = this.sesizareRepository.create({
@@ -81,8 +92,12 @@ export class ControlSesizariService {
     return this.findOne(savedSesizare.id);
   }
 
-  async findAll(status?: ControlSesizareStatus, type?: ControlSesizareType): Promise<ControlSesizare[]> {
-    const query = this.sesizareRepository.createQueryBuilder('sesizare')
+  async findAll(
+    status?: ControlSesizareStatus,
+    type?: ControlSesizareType,
+  ): Promise<ControlSesizare[]> {
+    const query = this.sesizareRepository
+      .createQueryBuilder('sesizare')
       .leftJoinAndSelect('sesizare.creator', 'creator')
       .leftJoinAndSelect('sesizare.resolver', 'resolver')
       .leftJoinAndSelect('sesizare.lastModifier', 'lastModifier')
@@ -112,7 +127,12 @@ export class ControlSesizariService {
     return sesizare;
   }
 
-  async update(id: string, userId: string, dto: UpdateControlSesizareDto, user: any): Promise<ControlSesizare> {
+  async update(
+    id: string,
+    userId: string,
+    dto: UpdateControlSesizareDto,
+    user: any,
+  ): Promise<ControlSesizare> {
     // Doar Admin poate edita sesizari
     if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot modifica sesizarile');
@@ -155,7 +175,11 @@ export class ControlSesizariService {
     return this.findOne(id);
   }
 
-  async resolve(id: string, userId: string, dto: ResolveControlSesizareDto): Promise<ControlSesizare> {
+  async resolve(
+    id: string,
+    userId: string,
+    dto: ResolveControlSesizareDto,
+  ): Promise<ControlSesizare> {
     const sesizare = await this.findOne(id);
 
     if (sesizare.status === 'FINALIZAT') {
@@ -181,7 +205,11 @@ export class ControlSesizariService {
     return this.findOne(id);
   }
 
-  async addComment(sesizareId: string, userId: string, dto: CreateCommentDto): Promise<ControlSesizareComment> {
+  async addComment(
+    sesizareId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<ControlSesizareComment> {
     const sesizare = await this.findOne(sesizareId);
 
     const comment = this.commentRepository.create({
@@ -245,7 +273,8 @@ export class ControlSesizariService {
     status?: ControlSesizareStatus;
     type?: ControlSesizareType;
   }): Promise<ControlSesizare[]> {
-    const query = this.sesizareRepository.createQueryBuilder('sesizare')
+    const query = this.sesizareRepository
+      .createQueryBuilder('sesizare')
       .leftJoinAndSelect('sesizare.creator', 'creator')
       .leftJoinAndSelect('sesizare.resolver', 'resolver');
 
@@ -273,7 +302,10 @@ export class ControlSesizariService {
     return this.sesizareRepository.count({ where: { status } });
   }
 
-  async countByStatusAndType(status: ControlSesizareStatus, type: ControlSesizareType): Promise<number> {
+  async countByStatusAndType(
+    status: ControlSesizareStatus,
+    type: ControlSesizareType,
+  ): Promise<number> {
     return this.sesizareRepository.count({ where: { status, type } });
   }
 
@@ -295,7 +327,10 @@ export class ControlSesizariService {
     await this.historyRepository.save(history);
   }
 
-  private async notifyMaintenanceTeam(sesizare: ControlSesizare, creatorUserId: string): Promise<void> {
+  private async notifyMaintenanceTeam(
+    sesizare: ControlSesizare,
+    creatorUserId: string,
+  ): Promise<void> {
     // Gaseste departamentul Intretinere Parcari
     const maintenanceDept = await this.departmentRepository.findOne({
       where: { name: MAINTENANCE_DEPARTMENT_NAME },
@@ -325,7 +360,7 @@ export class ControlSesizariService {
     const zoneLabel = CONTROL_SESIZARE_ZONE_LABELS[sesizare.zone];
 
     // Trimite notificari in-app
-    const notifications = maintenanceUsers.map(user => ({
+    const notifications = maintenanceUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.CONTROL_SESIZARE_ASSIGNED,
       title: `Sesizare noua: ${typeLabel}`,
@@ -341,7 +376,10 @@ export class ControlSesizariService {
     await this.notificationsService.createMany(notifications);
   }
 
-  private async notifyOnResolution(sesizare: ControlSesizare, resolverUserId: string): Promise<void> {
+  private async notifyOnResolution(
+    sesizare: ControlSesizare,
+    resolverUserId: string,
+  ): Promise<void> {
     const resolver = await this.userRepository.findOne({ where: { id: resolverUserId } });
     const resolverName = resolver?.fullName || 'Un utilizator';
 
@@ -366,18 +404,18 @@ export class ControlSesizariService {
       const controlUsers = await this.userRepository.find({
         where: { departmentId: controlDept.id, isActive: true },
       });
-      usersToNotify.push(...controlUsers.filter(u => u.id !== resolverUserId));
+      usersToNotify.push(...controlUsers.filter((u) => u.id !== resolverUserId));
     }
 
     // 3. Toti adminii
     const admins = await this.userRepository.find({
       where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
-    usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
+    usersToNotify.push(...admins.filter((u) => u.id !== resolverUserId));
 
     // Elimina duplicatele
-    const uniqueUsers = usersToNotify.filter((user, index, self) =>
-      index === self.findIndex(u => u.id === user.id)
+    const uniqueUsers = usersToNotify.filter(
+      (user, index, self) => index === self.findIndex((u) => u.id === user.id),
     );
 
     if (uniqueUsers.length === 0) {
@@ -385,7 +423,7 @@ export class ControlSesizariService {
     }
 
     // Trimite notificari in-app
-    const notifications = uniqueUsers.map(user => ({
+    const notifications = uniqueUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.CONTROL_SESIZARE_RESOLVED,
       title: `Sesizare finalizata: ${typeLabel}`,
@@ -401,7 +439,11 @@ export class ControlSesizariService {
     await this.notificationsService.createMany(notifications);
   }
 
-  private async notifyAboutComment(sesizare: ControlSesizare, commenterUserId: string, commentContent: string): Promise<void> {
+  private async notifyAboutComment(
+    sesizare: ControlSesizare,
+    commenterUserId: string,
+    commentContent: string,
+  ): Promise<void> {
     const commenter = await this.userRepository.findOne({ where: { id: commenterUserId } });
     const commenterName = commenter?.fullName || 'Un utilizator';
 
@@ -430,10 +472,10 @@ export class ControlSesizariService {
         where: { departmentId: maintenanceDept.id, isActive: true },
       });
 
-      const toNotify = maintenanceUsers.filter(u => u.id !== commenterUserId);
+      const toNotify = maintenanceUsers.filter((u) => u.id !== commenterUserId);
 
       if (toNotify.length > 0) {
-        const notifications = toNotify.map(user => ({
+        const notifications = toNotify.map((user) => ({
           userId: user.id,
           type: NotificationType.CONTROL_SESIZARE_RESOLVED,
           title: 'Comentariu nou la sesizare control',

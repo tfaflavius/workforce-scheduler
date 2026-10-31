@@ -48,7 +48,10 @@ export class ParkingLotsController {
   @Get('constants/equipment')
   async getEquipmentList(): Promise<string[]> {
     const dbItems = await this.equipmentRepo.find({
-      where: [{ category: 'ISSUE', isActive: true }, { category: 'BOTH', isActive: true }],
+      where: [
+        { category: 'ISSUE', isActive: true },
+        { category: 'BOTH', isActive: true },
+      ],
       order: { sortOrder: 'ASC', name: 'ASC' },
     });
     if (dbItems.length > 0) return dbItems.map((e) => e.name);
@@ -58,7 +61,10 @@ export class ParkingLotsController {
   @Get('constants/damage-equipment')
   async getDamageEquipmentList(): Promise<string[]> {
     const dbItems = await this.equipmentRepo.find({
-      where: [{ category: 'DAMAGE', isActive: true }, { category: 'BOTH', isActive: true }],
+      where: [
+        { category: 'DAMAGE', isActive: true },
+        { category: 'BOTH', isActive: true },
+      ],
       order: { sortOrder: 'ASC', name: 'ASC' },
     });
     if (dbItems.length > 0) return dbItems.map((e) => e.name);

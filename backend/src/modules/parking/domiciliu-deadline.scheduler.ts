@@ -55,7 +55,7 @@ export class DomiciliuDeadlineScheduler {
       });
 
       // Filtreaza cele cu deadline in intervalul [now, now+24h]
-      const upcoming = requests.filter(r => {
+      const upcoming = requests.filter((r) => {
         if (!r.deadline) return false;
         const deadlineMs = new Date(r.deadline).getTime();
         return deadlineMs > now.getTime() && deadlineMs <= cutoff.getTime();
@@ -69,20 +69,19 @@ export class DomiciliuDeadlineScheduler {
 
       // Gaseste useri din Intretinere Parcari + Parcari Domiciliu (o singura interogare)
       const targetDepts = await this.departmentRepository.find({
-        where: [
-          { name: MAINTENANCE_DEPARTMENT_NAME },
-          { name: DOMICILIU_PARKING_DEPARTMENT_NAME },
-        ],
+        where: [{ name: MAINTENANCE_DEPARTMENT_NAME }, { name: DOMICILIU_PARKING_DEPARTMENT_NAME }],
       });
       if (targetDepts.length === 0) return;
 
-      const targetDeptIds = targetDepts.map(d => d.id);
+      const targetDeptIds = targetDepts.map((d) => d.id);
       const targetUsers = await this.userRepository.find({
-        where: targetDeptIds.map(id => ({ departmentId: id, isActive: true })),
+        where: targetDeptIds.map((id) => ({ departmentId: id, isActive: true })),
       });
 
       if (targetUsers.length === 0) {
-        this.logger.warn('No active users in Maintenance/Domiciliu departments — deadline notifications skipped');
+        this.logger.warn(
+          'No active users in Maintenance/Domiciliu departments — deadline notifications skipped',
+        );
         return;
       }
 
@@ -101,7 +100,7 @@ export class DomiciliuDeadlineScheduler {
         const title = `Deadline aproape: ${requestTypeLabel}`;
         const message = `Solicitarea "${requestTypeLabel}" la ${request.location} are deadline ${deadlineFormatted} si nu este inca finalizata. Te rugam sa o finalizezi cat mai curand.`;
 
-        const notifications = targetUsers.map(u => ({
+        const notifications = targetUsers.map((u) => ({
           userId: u.id,
           type: NotificationType.DOMICILIU_REQUEST_DEADLINE_APPROACHING,
           title,
@@ -121,11 +120,15 @@ export class DomiciliuDeadlineScheduler {
           request.deadlineNotifiedAt = new Date();
           await this.domiciliuRequestRepository.save(request);
         } catch (err: any) {
-          this.logger.error(`Failed to send deadline notifications for request ${request.id}: ${err?.message}`);
+          this.logger.error(
+            `Failed to send deadline notifications for request ${request.id}: ${err?.message}`,
+          );
         }
       }
 
-      this.logger.log(`Domiciliu deadline check: notificat pentru ${upcoming.length} solicitari, ${targetUsers.length} useri tinta`);
+      this.logger.log(
+        `Domiciliu deadline check: notificat pentru ${upcoming.length} solicitari, ${targetUsers.length} useri tinta`,
+      );
     } catch (error: any) {
       this.logger.error(`Domiciliu deadline scheduler error: ${error?.message}`, error?.stack);
     }

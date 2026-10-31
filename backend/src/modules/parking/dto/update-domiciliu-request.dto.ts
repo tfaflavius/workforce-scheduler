@@ -1,5 +1,9 @@
 import { IsString, IsOptional, IsIn, IsEmail, IsInt, Min, IsDateString } from 'class-validator';
-import { DOMICILIU_REQUEST_TYPES, PARKING_LAYOUT_TYPES, DOMICILIU_REQUEST_PRIORITY } from '../constants/parking.constants';
+import {
+  DOMICILIU_REQUEST_TYPES,
+  PARKING_LAYOUT_TYPES,
+  DOMICILIU_REQUEST_PRIORITY,
+} from '../constants/parking.constants';
 
 export class UpdateDomiciliuRequestDto {
   @IsString()

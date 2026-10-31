@@ -103,11 +103,7 @@ export class ShiftSwapsController {
    */
   @Post(':id/respond')
   @Roles(UserRole.USER, UserRole.MANAGER)
-  respond(
-    @Param('id') id: string,
-    @Body() dto: RespondSwapDto,
-    @Request() req,
-  ) {
+  respond(@Param('id') id: string, @Body() dto: RespondSwapDto, @Request() req) {
     return this.shiftSwapsService.respondToSwapRequest(id, req.user.id, dto);
   }
 
@@ -117,11 +113,7 @@ export class ShiftSwapsController {
    */
   @Post(':id/approve')
   @Roles(UserRole.ADMIN)
-  approve(
-    @Param('id') id: string,
-    @Body() dto: AdminApproveSwapDto,
-    @Request() req,
-  ) {
+  approve(@Param('id') id: string, @Body() dto: AdminApproveSwapDto, @Request() req) {
     return this.shiftSwapsService.adminApproveSwap(id, req.user.id, dto);
   }
 
@@ -131,11 +123,7 @@ export class ShiftSwapsController {
    */
   @Post(':id/reject')
   @Roles(UserRole.ADMIN)
-  reject(
-    @Param('id') id: string,
-    @Body() dto: AdminRejectSwapDto,
-    @Request() req,
-  ) {
+  reject(@Param('id') id: string, @Body() dto: AdminRejectSwapDto, @Request() req) {
     return this.shiftSwapsService.adminRejectSwap(id, req.user.id, dto);
   }
 

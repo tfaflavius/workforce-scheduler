@@ -35,14 +35,14 @@ export function getRomanianHolidays(year: number): string[] {
 
   // Fixed-date holidays
   const fixed: Array<[number, number]> = [
-    [1, 1],   // Anul Nou
-    [1, 2],   // Anul Nou
-    [1, 24],  // Unirea Principatelor
-    [5, 1],   // Ziua Muncii
-    [6, 1],   // Ziua Copilului
-    [8, 15],  // Adormirea Maicii Domnului
+    [1, 1], // Anul Nou
+    [1, 2], // Anul Nou
+    [1, 24], // Unirea Principatelor
+    [5, 1], // Ziua Muncii
+    [6, 1], // Ziua Copilului
+    [8, 15], // Adormirea Maicii Domnului
     [11, 30], // Sf. Andrei
-    [12, 1],  // Ziua Nationala
+    [12, 1], // Ziua Nationala
     [12, 25], // Craciun
     [12, 26], // Craciun
   ];
@@ -53,12 +53,12 @@ export function getRomanianHolidays(year: number): string[] {
   // Easter-based holidays (Orthodox)
   const easter = orthodoxEaster(year);
   holidays.add(dateOnly(addDays(easter, -2))); // Vinerea Mare
-  holidays.add(dateOnly(easter));               // Pastele
-  holidays.add(dateOnly(addDays(easter, 1)));   // Lunea de Pasti
+  holidays.add(dateOnly(easter)); // Pastele
+  holidays.add(dateOnly(addDays(easter, 1))); // Lunea de Pasti
 
   // Pentecost = 49 days after Easter (Sunday), Monday after
-  holidays.add(dateOnly(addDays(easter, 49)));  // Rusalii
-  holidays.add(dateOnly(addDays(easter, 50)));  // Lunea de Rusalii
+  holidays.add(dateOnly(addDays(easter, 49))); // Rusalii
+  holidays.add(dateOnly(addDays(easter, 50))); // Lunea de Rusalii
 
   return Array.from(holidays).sort();
 }
@@ -74,7 +74,10 @@ export function daysInMonth(year: number, month: number): number {
  * Working days = days in month minus weekends (Sat/Sun) and Romanian
  * public holidays falling on weekdays.
  */
-export function workingDaysInMonth(year: number, month: number): {
+export function workingDaysInMonth(
+  year: number,
+  month: number,
+): {
   totalDays: number;
   weekendDays: number;
   holidayDays: number; // weekday holidays only

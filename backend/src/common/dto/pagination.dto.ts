@@ -30,7 +30,10 @@ export function parsePagination(
   maxLimit = 500,
 ): PaginationParams {
   const p = Math.max(1, parseInt(String(page ?? 1), 10) || 1);
-  const l = Math.min(maxLimit, Math.max(1, parseInt(String(limit ?? defaultLimit), 10) || defaultLimit));
+  const l = Math.min(
+    maxLimit,
+    Math.max(1, parseInt(String(limit ?? defaultLimit), 10) || defaultLimit),
+  );
   return { page: p, limit: l };
 }
 

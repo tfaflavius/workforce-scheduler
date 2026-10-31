@@ -39,7 +39,8 @@ export class AuditService {
   }
 
   async findAll(filters: AuditLogFilters = {}): Promise<{ data: AuditLog[]; total: number }> {
-    const qb = this.auditRepo.createQueryBuilder('audit')
+    const qb = this.auditRepo
+      .createQueryBuilder('audit')
       .leftJoinAndSelect('audit.user', 'user')
       .orderBy('audit.createdAt', 'DESC');
 

@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { DomiciliuRequest } from './entities/domiciliu-request.entity';
@@ -51,9 +57,14 @@ export class DomiciliuRequestsService {
       where: { id: userId },
       relations: ['department'],
     });
-    if (creator && creator.role === UserRole.USER &&
-        removeDiacritics(creator.department?.name || '') === MAINTENANCE_DEPARTMENT_NAME) {
-      throw new ForbiddenException('Utilizatorii din departamentul Intretinere Parcari nu pot crea solicitari');
+    if (
+      creator &&
+      creator.role === UserRole.USER &&
+      removeDiacritics(creator.department?.name || '') === MAINTENANCE_DEPARTMENT_NAME
+    ) {
+      throw new ForbiddenException(
+        'Utilizatorii din departamentul Intretinere Parcari nu pot crea solicitari',
+      );
     }
 
     const request = this.domiciliuRequestRepository.create({
@@ -74,11 +85,18 @@ export class DomiciliuRequestsService {
       createdBy: userId,
       lastModifiedBy: userId,
       status: 'ACTIVE' as DomiciliuRequestStatus,
-      signPlacementStatus: (dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU'
+      signPlacementStatus: (dto.requestType === 'AMPLASARE_PANOU' ||
+      dto.requestType === 'REVOCARE_PANOU'
         ? SIGN_PLACEMENT_STATUS.REQUESTED
         : SIGN_PLACEMENT_STATUS.NONE) as SignPlacementStatus,
-      signPlacementRequestedAt: (dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU') ? new Date() : null,
-      signPlacementRequestedBy: (dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU') ? userId : null,
+      signPlacementRequestedAt:
+        dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU'
+          ? new Date()
+          : null,
+      signPlacementRequestedBy:
+        dto.requestType === 'AMPLASARE_PANOU' || dto.requestType === 'REVOCARE_PANOU'
+          ? userId
+          : null,
     });
 
     const savedRequest = await this.domiciliuRequestRepository.save(request);
@@ -96,7 +114,12 @@ export class DomiciliuRequestsService {
     return this.findOne(savedRequest.id);
   }
 
-  async update(id: string, userId: string, dto: UpdateDomiciliuRequestDto, userRole: UserRole): Promise<DomiciliuRequest> {
+  async update(
+    id: string,
+    userId: string,
+    dto: UpdateDomiciliuRequestDto,
+    userRole: UserRole,
+  ): Promise<DomiciliuRequest> {
     // Doar Admin poate modifica
     if (!isAdminOrAbove(userRole)) {
       throw new ForbiddenException('Doar administratorii pot modifica solicitarile');
@@ -194,7 +217,10 @@ export class DomiciliuRequestsService {
     await this.historyRepository.save(history);
   }
 
-  private async notifyMaintenanceTeam(request: DomiciliuRequest, creatorUserId: string): Promise<void> {
+  private async notifyMaintenanceTeam(
+    request: DomiciliuRequest,
+    creatorUserId: string,
+  ): Promise<void> {
     // Gaseste departamentul Intretinere Parcari
     const maintenanceDept = await this.departmentRepository.findOne({
       where: { name: MAINTENANCE_DEPARTMENT_NAME },
@@ -223,7 +249,7 @@ export class DomiciliuRequestsService {
     const requestTypeLabel = DOMICILIU_REQUEST_TYPE_LABELS[request.requestType];
 
     // Trimite notificari in-app catre toti userii din echipa de intretinere (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = maintenanceUsers.map(user => ({
+    const notifications = maintenanceUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.DOMICILIU_REQUEST_ASSIGNED,
       title: `Solicitare domiciliu noua: ${requestTypeLabel}`,
@@ -238,7 +264,10 @@ export class DomiciliuRequestsService {
     await this.notificationsService.createMany(notifications);
   }
 
-  private async notifyOnResolution(request: DomiciliuRequest, resolverUserId: string): Promise<void> {
+  private async notifyOnResolution(
+    request: DomiciliuRequest,
+    resolverUserId: string,
+  ): Promise<void> {
     const resolver = await this.userRepository.findOne({ where: { id: resolverUserId } });
     const resolverName = resolver?.fullName || 'Un utilizator';
 
@@ -263,7 +292,7 @@ export class DomiciliuRequestsService {
       const handicapUsers = await this.userRepository.find({
         where: { departmentId: handicapDept.id, isActive: true },
       });
-      usersToNotify.push(...handicapUsers.filter(u => u.id !== resolverUserId));
+      usersToNotify.push(...handicapUsers.filter((u) => u.id !== resolverUserId));
     }
 
     // 3. Toti userii din Parcari Domiciliu
@@ -274,18 +303,18 @@ export class DomiciliuRequestsService {
       const domiciliuUsers = await this.userRepository.find({
         where: { departmentId: domiciliuDept.id, isActive: true },
       });
-      usersToNotify.push(...domiciliuUsers.filter(u => u.id !== resolverUserId));
+      usersToNotify.push(...domiciliuUsers.filter((u) => u.id !== resolverUserId));
     }
 
     // 4. Toti adminii
     const admins = await this.userRepository.find({
       where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
-    usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
+    usersToNotify.push(...admins.filter((u) => u.id !== resolverUserId));
 
     // Elimina duplicatele
-    const uniqueUsers = usersToNotify.filter((user, index, self) =>
-      index === self.findIndex(u => u.id === user.id)
+    const uniqueUsers = usersToNotify.filter(
+      (user, index, self) => index === self.findIndex((u) => u.id === user.id),
     );
 
     if (uniqueUsers.length === 0) {
@@ -293,7 +322,7 @@ export class DomiciliuRequestsService {
     }
 
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = uniqueUsers.map(user => ({
+    const notifications = uniqueUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.DOMICILIU_REQUEST_RESOLVED,
       title: `Solicitare domiciliu finalizata: ${requestTypeLabel}`,
@@ -309,8 +338,12 @@ export class DomiciliuRequestsService {
     await this.notificationsService.createMany(notifications);
   }
 
-  async findAll(status?: DomiciliuRequestStatus, requestType?: DomiciliuRequestType): Promise<DomiciliuRequest[]> {
-    const query = this.domiciliuRequestRepository.createQueryBuilder('request')
+  async findAll(
+    status?: DomiciliuRequestStatus,
+    requestType?: DomiciliuRequestType,
+  ): Promise<DomiciliuRequest[]> {
+    const query = this.domiciliuRequestRepository
+      .createQueryBuilder('request')
       .leftJoinAndSelect('request.creator', 'creator')
       .leftJoinAndSelect('request.resolver', 'resolver')
       .leftJoinAndSelect('request.lastModifier', 'lastModifier')
@@ -332,7 +365,16 @@ export class DomiciliuRequestsService {
   async findOne(id: string): Promise<DomiciliuRequest> {
     const request = await this.domiciliuRequestRepository.findOne({
       where: { id },
-      relations: ['creator', 'resolver', 'lastModifier', 'signPlacementRequester', 'signPlacementClaimer', 'signPlacementCompleter', 'comments', 'comments.user'],
+      relations: [
+        'creator',
+        'resolver',
+        'lastModifier',
+        'signPlacementRequester',
+        'signPlacementClaimer',
+        'signPlacementCompleter',
+        'comments',
+        'comments.user',
+      ],
     });
 
     if (!request) {
@@ -350,7 +392,11 @@ export class DomiciliuRequestsService {
     });
   }
 
-  async resolve(id: string, userId: string, dto: ResolveDomiciliuRequestDto): Promise<DomiciliuRequest> {
+  async resolve(
+    id: string,
+    userId: string,
+    dto: ResolveDomiciliuRequestDto,
+  ): Promise<DomiciliuRequest> {
     const request = await this.findOne(id);
 
     if (request.status === 'FINALIZAT') {
@@ -376,7 +422,11 @@ export class DomiciliuRequestsService {
     return this.findOne(id);
   }
 
-  async addComment(requestId: string, userId: string, dto: CreateCommentDto): Promise<DomiciliuRequestComment> {
+  async addComment(
+    requestId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<DomiciliuRequestComment> {
     const request = await this.findOne(requestId);
 
     const comment = this.commentRepository.create({
@@ -400,7 +450,11 @@ export class DomiciliuRequestsService {
     return savedComment;
   }
 
-  private async notifyAboutComment(request: DomiciliuRequest, commenterUserId: string, commentContent: string): Promise<void> {
+  private async notifyAboutComment(
+    request: DomiciliuRequest,
+    commenterUserId: string,
+    commentContent: string,
+  ): Promise<void> {
     const commenter = await this.userRepository.findOne({ where: { id: commenterUserId } });
     const commenterName = commenter?.fullName || 'Un utilizator';
 
@@ -429,10 +483,10 @@ export class DomiciliuRequestsService {
         where: { departmentId: maintenanceDept.id, isActive: true },
       });
 
-      const toNotify = maintenanceUsers.filter(u => u.id !== commenterUserId);
+      const toNotify = maintenanceUsers.filter((u) => u.id !== commenterUserId);
 
       if (toNotify.length > 0) {
-        const notifications = toNotify.map(user => ({
+        const notifications = toNotify.map((user) => ({
           userId: user.id,
           type: NotificationType.DOMICILIU_REQUEST_ASSIGNED,
           title: 'Comentariu nou la solicitare domiciliu',
@@ -504,13 +558,17 @@ export class DomiciliuRequestsService {
     const isAdmin = isAdminOrAbove(user.role);
 
     if (!isMaintenance && !isAdmin) {
-      throw new ForbiddenException('Doar departamentul Intretinere Parcari si administratorii pot revendica amplasarea panoului');
+      throw new ForbiddenException(
+        'Doar departamentul Intretinere Parcari si administratorii pot revendica amplasarea panoului',
+      );
     }
 
     const request = await this.findOne(id);
 
     if (request.signPlacementStatus !== SIGN_PLACEMENT_STATUS.REQUESTED) {
-      throw new ForbiddenException('Amplasarea panoului nu este in starea corecta pentru revendicare');
+      throw new ForbiddenException(
+        'Amplasarea panoului nu este in starea corecta pentru revendicare',
+      );
     }
 
     request.signPlacementStatus = SIGN_PLACEMENT_STATUS.CLAIMED as SignPlacementStatus;
@@ -529,19 +587,28 @@ export class DomiciliuRequestsService {
     return this.findOne(id);
   }
 
-  async completeSignPlacement(id: string, userId: string, observations: string | null, user: any): Promise<DomiciliuRequest> {
+  async completeSignPlacement(
+    id: string,
+    userId: string,
+    observations: string | null,
+    user: any,
+  ): Promise<DomiciliuRequest> {
     const userDeptName = removeDiacritics(user.department?.name || '');
     const isMaintenance = userDeptName === MAINTENANCE_DEPARTMENT_NAME;
     const isAdmin = isAdminOrAbove(user.role);
 
     if (!isMaintenance && !isAdmin) {
-      throw new ForbiddenException('Doar departamentul Intretinere Parcari si administratorii pot finaliza amplasarea panoului');
+      throw new ForbiddenException(
+        'Doar departamentul Intretinere Parcari si administratorii pot finaliza amplasarea panoului',
+      );
     }
 
     const request = await this.findOne(id);
 
     if (request.signPlacementStatus !== SIGN_PLACEMENT_STATUS.CLAIMED) {
-      throw new ForbiddenException('Amplasarea panoului nu este in starea corecta pentru finalizare');
+      throw new ForbiddenException(
+        'Amplasarea panoului nu este in starea corecta pentru finalizare',
+      );
     }
 
     request.signPlacementStatus = SIGN_PLACEMENT_STATUS.COMPLETED as SignPlacementStatus;
@@ -573,7 +640,8 @@ export class DomiciliuRequestsService {
       const notifiedUserIds = new Set<string>();
       const notifications: any[] = [];
 
-      const isRevocare = request.requestType === 'REVOCARE_PANOU' || request.requestType === 'REVOCARE_LOCURI';
+      const isRevocare =
+        request.requestType === 'REVOCARE_PANOU' || request.requestType === 'REVOCARE_LOCURI';
       const panouLabel = isRevocare ? 'revocare panou' : 'amplasare panou';
       const panouAction = isRevocare ? 'revocarea' : 'amplasarea';
 
@@ -597,7 +665,7 @@ export class DomiciliuRequestsService {
         const maintenanceUsers = await this.userRepository.find({
           where: { departmentId: maintenanceDept.id, isActive: true },
         });
-        maintenanceUsers.forEach(u => {
+        maintenanceUsers.forEach((u) => {
           if (u.id !== actorUserId && !notifiedUserIds.has(u.id)) {
             notifiedUserIds.add(u.id);
             notifications.push({
@@ -619,7 +687,7 @@ export class DomiciliuRequestsService {
         const domiciliuUsers = await this.userRepository.find({
           where: { departmentId: domiciliuDept.id, isActive: true },
         });
-        domiciliuUsers.forEach(u => {
+        domiciliuUsers.forEach((u) => {
           if (u.id !== actorUserId && !notifiedUserIds.has(u.id)) {
             notifiedUserIds.add(u.id);
             notifications.push({
@@ -637,7 +705,7 @@ export class DomiciliuRequestsService {
       const admins = await this.userRepository.find({
         where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
       });
-      admins.forEach(u => {
+      admins.forEach((u) => {
         if (u.id !== actorUserId && !notifiedUserIds.has(u.id)) {
           notifiedUserIds.add(u.id);
           notifications.push({
@@ -676,7 +744,8 @@ export class DomiciliuRequestsService {
     status?: DomiciliuRequestStatus;
     requestType?: DomiciliuRequestType;
   }): Promise<DomiciliuRequest[]> {
-    const query = this.domiciliuRequestRepository.createQueryBuilder('request')
+    const query = this.domiciliuRequestRepository
+      .createQueryBuilder('request')
       .leftJoinAndSelect('request.creator', 'creator')
       .leftJoinAndSelect('request.resolver', 'resolver');
 

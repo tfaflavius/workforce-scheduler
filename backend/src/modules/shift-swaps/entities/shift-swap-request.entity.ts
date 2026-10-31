@@ -13,12 +13,12 @@ import { User } from '../../users/entities/user.entity';
 import { ShiftSwapResponse } from './shift-swap-response.entity';
 
 export enum ShiftSwapStatus {
-  PENDING = 'PENDING',           // Asteptare raspunsuri de la useri
+  PENDING = 'PENDING', // Asteptare raspunsuri de la useri
   AWAITING_ADMIN = 'AWAITING_ADMIN', // Cel putin un user a acceptat, asteapta admin
-  APPROVED = 'APPROVED',         // Admin a aprobat schimbul
-  REJECTED = 'REJECTED',         // Admin a respins sau toti userii au refuzat
-  CANCELLED = 'CANCELLED',       // Solicitantul a anulat
-  EXPIRED = 'EXPIRED',           // A expirat fara raspuns
+  APPROVED = 'APPROVED', // Admin a aprobat schimbul
+  REJECTED = 'REJECTED', // Admin a respins sau toti userii au refuzat
+  CANCELLED = 'CANCELLED', // Solicitantul a anulat
+  EXPIRED = 'EXPIRED', // A expirat fara raspuns
 }
 
 @Entity('shift_swap_requests')

@@ -48,8 +48,18 @@ export interface ControlNotesMatrix {
 }
 
 const MONTH_LABELS = [
-  'Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun',
-  'Iul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Ian',
+  'Feb',
+  'Mar',
+  'Apr',
+  'Mai',
+  'Iun',
+  'Iul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 @Injectable()
@@ -97,7 +107,7 @@ export class ControlNotesService {
       .leftJoinAndSelect('note.user', 'user')
       .where('note.year = :year', { year })
       .getMany();
-    const userIdsFromHistory = new Set(usersFromHistory.map(n => n.userId));
+    const userIdsFromHistory = new Set(usersFromHistory.map((n) => n.userId));
 
     const currentControlUsers = await this.userRepository.find({
       where: { departmentId: controlDept.id },
@@ -133,8 +143,8 @@ export class ControlNotesService {
 
     // Sort: first current Control users alphabetically, then ex-Control with history
     const orderedUsers = Array.from(userMap.values()).sort((a, b) => {
-      const aIsCurrent = currentControlUsers.some(u => u.id === a.id) ? 0 : 1;
-      const bIsCurrent = currentControlUsers.some(u => u.id === b.id) ? 0 : 1;
+      const aIsCurrent = currentControlUsers.some((u) => u.id === a.id) ? 0 : 1;
+      const bIsCurrent = currentControlUsers.some((u) => u.id === b.id) ? 0 : 1;
       if (aIsCurrent !== bIsCurrent) return aIsCurrent - bIsCurrent;
       return removeDiacritics(a.fullName).localeCompare(removeDiacritics(b.fullName));
     });
@@ -234,7 +244,7 @@ export class ControlNotesService {
     // Numarul din luna curenta (doar daca ne uitam la anul curent)
     const now = new Date();
     const currentMonthCount =
-      year === now.getFullYear() ? row.monthlyCounts[now.getMonth()] ?? 0 : 0;
+      year === now.getFullYear() ? (row.monthlyCounts[now.getMonth()] ?? 0) : 0;
 
     return {
       year,
@@ -296,10 +306,7 @@ export class ControlNotesService {
    * Upsert a (user, year, month) row. Restricted to Parcometre dept users
    * + Admin/Manager — guards enforce that on the controller.
    */
-  async upsert(
-    actor: User,
-    dto: UpsertControlNoteDto,
-  ): Promise<ControlInspectionNote> {
+  async upsert(actor: User, dto: UpsertControlNoteDto): Promise<ControlInspectionNote> {
     await this.assertCanEdit(actor);
 
     // Validate target user exists
@@ -352,10 +359,7 @@ export class ControlNotesService {
     const dept = actor.departmentId
       ? await this.departmentRepository.findOne({ where: { id: actor.departmentId } })
       : null;
-    if (
-      dept &&
-      removeDiacritics(dept.name) === PARCOMETRE_DEPARTMENT_NAME
-    ) {
+    if (dept && removeDiacritics(dept.name) === PARCOMETRE_DEPARTMENT_NAME) {
       return;
     }
     throw new ForbiddenException(
@@ -363,7 +367,10 @@ export class ControlNotesService {
     );
   }
 
-  private buildMonthsMeta(year: number, _ignored: number[]): Array<{
+  private buildMonthsMeta(
+    year: number,
+    _ignored: number[],
+  ): Array<{
     month: number;
     label: string;
     totalDays: number;

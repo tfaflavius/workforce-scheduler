@@ -39,10 +39,7 @@ export class ControlSesizareAccessGuard implements CanActivate {
       });
 
       if (department) {
-        const allowedDepartments = [
-          CONTROL_DEPARTMENT_NAME,
-          MAINTENANCE_DEPARTMENT_NAME,
-        ];
+        const allowedDepartments = [CONTROL_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME];
         if (allowedDepartments.includes(removeDiacritics(department.name))) {
           return true;
         }

@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -38,10 +29,7 @@ export class ParkingMetersController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.MASTER_ADMIN)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateParkingMeterDto,
-  ): Promise<ParkingMeter> {
+  async update(@Param('id') id: string, @Body() dto: UpdateParkingMeterDto): Promise<ParkingMeter> {
     return this.parkingMetersService.update(id, dto);
   }
 

@@ -37,10 +37,28 @@ export class AddParkingMeterSourceMarkers1770700000000 implements MigrationInter
     `);
 
     // 3. Seed data from My Maps export
-    const seedPath = path.join(__dirname, '..', '..', 'modules', 'parking', 'data', 'parcometre-mymaps-seed.json');
+    const seedPath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'modules',
+      'parking',
+      'data',
+      'parcometre-mymaps-seed.json',
+    );
     if (!fs.existsSync(seedPath)) {
       // Production builds put files in /dist — try the relative path from /dist
-      const altPath = path.join(__dirname, '..', '..', '..', 'src', 'modules', 'parking', 'data', 'parcometre-mymaps-seed.json');
+      const altPath = path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'src',
+        'modules',
+        'parking',
+        'data',
+        'parcometre-mymaps-seed.json',
+      );
       if (!fs.existsSync(altPath)) {
         // Don't fail the migration if seed file is missing in some envs —
         // schema changes still apply. Admin can re-import later.
@@ -50,7 +68,17 @@ export class AddParkingMeterSourceMarkers1770700000000 implements MigrationInter
 
     const resolved = fs.existsSync(seedPath)
       ? seedPath
-      : path.join(__dirname, '..', '..', '..', 'src', 'modules', 'parking', 'data', 'parcometre-mymaps-seed.json');
+      : path.join(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'src',
+          'modules',
+          'parking',
+          'data',
+          'parcometre-mymaps-seed.json',
+        );
 
     const raw = fs.readFileSync(resolved, 'utf8');
     const meters: Array<{
@@ -61,7 +89,8 @@ export class AddParkingMeterSourceMarkers1770700000000 implements MigrationInter
       hasElectric: boolean;
     }> = JSON.parse(raw);
 
-    const SOURCE_MAP_URL = 'https://www.google.com/maps/d/viewer?mid=1JaOtBYrTUtMHbguIjmj0BMnTozI3li0';
+    const SOURCE_MAP_URL =
+      'https://www.google.com/maps/d/viewer?mid=1JaOtBYrTUtMHbguIjmj0BMnTozI3li0';
 
     for (const m of meters) {
       // YELLOW = SOLAR + NOU per user spec. Lightning bolt on yellow means it
@@ -116,8 +145,12 @@ export class AddParkingMeterSourceMarkers1770700000000 implements MigrationInter
     await queryRunner.query(
       `DELETE FROM "parking_meters" WHERE external_map_url = 'https://www.google.com/maps/d/viewer?mid=1JaOtBYrTUtMHbguIjmj0BMnTozI3li0'`,
     );
-    await queryRunner.query(`ALTER TABLE "parking_meters" DROP COLUMN IF EXISTS "external_map_url"`);
-    await queryRunner.query(`ALTER TABLE "parking_meters" DROP COLUMN IF EXISTS "has_electric_supply"`);
+    await queryRunner.query(
+      `ALTER TABLE "parking_meters" DROP COLUMN IF EXISTS "external_map_url"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "parking_meters" DROP COLUMN IF EXISTS "has_electric_supply"`,
+    );
     await queryRunner.query(`ALTER TABLE "parking_meters" DROP COLUMN IF EXISTS "source_color"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "parking_meters_source_color_enum"`);
   }

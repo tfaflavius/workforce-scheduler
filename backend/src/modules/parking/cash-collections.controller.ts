@@ -14,7 +14,11 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ParkingAccessGuard } from './guards/parking-access.guard';
-import { CashCollectionsService, CashCollectionTotals, CashCollectionFilters } from './cash-collections.service';
+import {
+  CashCollectionsService,
+  CashCollectionTotals,
+  CashCollectionFilters,
+} from './cash-collections.service';
 import { CreateCashCollectionDto } from './dto/create-cash-collection.dto';
 import { CashCollection } from './entities/cash-collection.entity';
 import { UserRole } from '../users/entities/user.entity';
@@ -27,10 +31,7 @@ export class CashCollectionsController {
   constructor(private readonly cashCollectionsService: CashCollectionsService) {}
 
   @Post()
-  async create(
-    @Request() req,
-    @Body() dto: CreateCashCollectionDto,
-  ): Promise<CashCollection> {
+  async create(@Request() req, @Body() dto: CreateCashCollectionDto): Promise<CashCollection> {
     return this.cashCollectionsService.create(req.user.id, dto);
   }
 

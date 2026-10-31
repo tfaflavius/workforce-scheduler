@@ -52,29 +52,17 @@ export class DomiciliuRequestsController {
   }
 
   @Patch(':id')
-  async update(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: UpdateDomiciliuRequestDto,
-  ) {
+  async update(@Param('id') id: string, @Request() req, @Body() dto: UpdateDomiciliuRequestDto) {
     return this.domiciliuRequestsService.update(id, req.user.id, dto, req.user.role);
   }
 
   @Patch(':id/resolve')
-  async resolve(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: ResolveDomiciliuRequestDto,
-  ) {
+  async resolve(@Param('id') id: string, @Request() req, @Body() dto: ResolveDomiciliuRequestDto) {
     return this.domiciliuRequestsService.resolve(id, req.user.id, dto);
   }
 
   @Post(':id/comments')
-  async addComment(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: CreateCommentDto,
-  ) {
+  async addComment(@Param('id') id: string, @Request() req, @Body() dto: CreateCommentDto) {
     return this.domiciliuRequestsService.addComment(id, req.user.id, dto);
   }
 
@@ -94,8 +82,17 @@ export class DomiciliuRequestsController {
   }
 
   @Post(':id/complete-sign-placement')
-  async completeSignPlacement(@Param('id') id: string, @Request() req, @Body() body: { observations?: string }) {
-    return this.domiciliuRequestsService.completeSignPlacement(id, req.user.id, body.observations || null, req.user);
+  async completeSignPlacement(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { observations?: string },
+  ) {
+    return this.domiciliuRequestsService.completeSignPlacement(
+      id,
+      req.user.id,
+      body.observations || null,
+      req.user,
+    );
   }
 
   @Delete(':id')

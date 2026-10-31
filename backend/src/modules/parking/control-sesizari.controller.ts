@@ -35,10 +35,7 @@ export class ControlSesizariController {
   constructor(private readonly controlSesizariService: ControlSesizariService) {}
 
   @Post()
-  async create(
-    @Request() req,
-    @Body() dto: CreateControlSesizareDto,
-  ): Promise<ControlSesizare> {
+  async create(@Request() req, @Body() dto: CreateControlSesizareDto): Promise<ControlSesizare> {
     return this.controlSesizariService.create(req.user.id, dto);
   }
 

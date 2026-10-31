@@ -9,8 +9,30 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-export type ParkingHistoryEntityType = 'ISSUE' | 'DAMAGE' | 'COLLECTION' | 'HANDICAP_REQUEST' | 'DOMICILIU_REQUEST' | 'HANDICAP_LEGITIMATION' | 'REVOLUTIONAR_LEGITIMATION' | 'PV_DISPLAY_SESSION' | 'PV_DISPLAY_DAY' | 'PV_SIGNING_SESSION' | 'PV_SIGNING_DAY' | 'CONTROL_SESIZARE' | 'EQUIPMENT_STOCK_DEFINITION' | 'EQUIPMENT_STOCK_ENTRY';
-export type ParkingHistoryAction = 'CREATED' | 'UPDATED' | 'RESOLVED' | 'DELETED' | 'CLAIMED' | 'UNCLAIMED' | 'FINALIZED' | 'ADMIN_ASSIGNED';
+export type ParkingHistoryEntityType =
+  | 'ISSUE'
+  | 'DAMAGE'
+  | 'COLLECTION'
+  | 'HANDICAP_REQUEST'
+  | 'DOMICILIU_REQUEST'
+  | 'HANDICAP_LEGITIMATION'
+  | 'REVOLUTIONAR_LEGITIMATION'
+  | 'PV_DISPLAY_SESSION'
+  | 'PV_DISPLAY_DAY'
+  | 'PV_SIGNING_SESSION'
+  | 'PV_SIGNING_DAY'
+  | 'CONTROL_SESIZARE'
+  | 'EQUIPMENT_STOCK_DEFINITION'
+  | 'EQUIPMENT_STOCK_ENTRY';
+export type ParkingHistoryAction =
+  | 'CREATED'
+  | 'UPDATED'
+  | 'RESOLVED'
+  | 'DELETED'
+  | 'CLAIMED'
+  | 'UNCLAIMED'
+  | 'FINALIZED'
+  | 'ADMIN_ASSIGNED';
 
 @Entity('parking_history')
 @Index('IDX_history_entity', ['entityType', 'entityId'])

@@ -55,7 +55,9 @@ export class UsersService {
 
     const user = this.userRepository.create({
       ...createUserDto,
-      fullName: createUserDto.fullName ? removeDiacritics(createUserDto.fullName) : createUserDto.fullName,
+      fullName: createUserDto.fullName
+        ? removeDiacritics(createUserDto.fullName)
+        : createUserDto.fullName,
       password: hashedPassword,
     });
 
@@ -76,17 +78,23 @@ export class UsersService {
     }
 
     // Audit log
-    this.auditService.log({
-      userId: requestingUserId,
-      action: 'CREATE',
-      entity: 'User',
-      entityId: savedUser.id,
-      description: `Creat utilizator: ${savedUser.fullName} (${savedUser.email})`,
-      changes: { role: { old: null, new: savedUser.role }, email: { old: null, new: savedUser.email } },
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId: requestingUserId,
+        action: 'CREATE',
+        entity: 'User',
+        entityId: savedUser.id,
+        description: `Creat utilizator: ${savedUser.fullName} (${savedUser.email})`,
+        changes: {
+          role: { old: null, new: savedUser.role },
+          email: { old: null, new: savedUser.email },
+        },
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     // Send welcome email
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
     await this.emailService.sendWelcomeEmail({
       employeeEmail: savedUser.email,
       employeeName: savedUser.fullName,
@@ -131,7 +139,10 @@ export class UsersService {
     }
 
     // Only MASTER_ADMIN can promote to ADMIN
-    if ((updateUserDto as any).role === UserRole.ADMIN && requestingUser?.role !== UserRole.MASTER_ADMIN) {
+    if (
+      (updateUserDto as any).role === UserRole.ADMIN &&
+      requestingUser?.role !== UserRole.MASTER_ADMIN
+    ) {
       throw new ForbiddenException('Doar Master Admin poate promova utilizatori la rolul de Admin');
     }
 
@@ -174,14 +185,16 @@ export class UsersService {
 
     // Audit log
     if (Object.keys(changes).length > 0) {
-      this.auditService.log({
-        userId: requestingUser?.id,
-        action: 'UPDATE',
-        entity: 'User',
-        entityId: id,
-        description: `Actualizat utilizator: ${savedUser.fullName}`,
-        changes,
-      }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+      this.auditService
+        .log({
+          userId: requestingUser?.id,
+          action: 'UPDATE',
+          entity: 'User',
+          entityId: id,
+          description: `Actualizat utilizator: ${savedUser.fullName}`,
+          changes,
+        })
+        .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
     }
 
     return savedUser;
@@ -196,13 +209,15 @@ export class UsersService {
     }
 
     // Audit log (before deletion since userId will be SET NULL)
-    this.auditService.log({
-      userId: requestingUserId,
-      action: 'DELETE',
-      entity: 'User',
-      entityId: id,
-      description: `Sters utilizator: ${user.fullName} (${user.email}, ${user.role})`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId: requestingUserId,
+        action: 'DELETE',
+        entity: 'User',
+        entityId: id,
+        description: `Sters utilizator: ${user.fullName} (${user.email}, ${user.role})`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     // Sterge din Supabase Auth (permite re-inregistrarea cu acelasi email)
     try {
@@ -226,9 +241,13 @@ export class UsersService {
       await queryRunner.query('DELETE FROM parking_issue_comments WHERE user_id = $1', [id]);
       await queryRunner.query('DELETE FROM parking_damage_comments WHERE user_id = $1', [id]);
       await queryRunner.query('DELETE FROM domiciliu_request_comments WHERE user_id = $1', [id]);
-      await queryRunner.query('DELETE FROM handicap_legitimation_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM handicap_legitimation_comments WHERE user_id = $1', [
+        id,
+      ]);
       await queryRunner.query('DELETE FROM handicap_request_comments WHERE user_id = $1', [id]);
-      await queryRunner.query('DELETE FROM revolutionar_legitimation_comments WHERE user_id = $1', [id]);
+      await queryRunner.query('DELETE FROM revolutionar_legitimation_comments WHERE user_id = $1', [
+        id,
+      ]);
       await queryRunner.query('DELETE FROM parking_history WHERE user_id = $1', [id]);
 
       // 3. Parking/Handicap/Domiciliu tables (RESTRICT on created_by)
@@ -255,14 +274,34 @@ export class UsersService {
       await queryRunner.query('DELETE FROM generated_reports WHERE generated_by = $1', [id]);
 
       // 8. NULL-ify references where user is optional (SET NULL or NO ACTION on admin fields)
-      await queryRunner.query('UPDATE daily_reports SET admin_commented_by = NULL WHERE admin_commented_by = $1', [id]);
-      await queryRunner.query('UPDATE leave_requests SET admin_id = NULL WHERE admin_id = $1', [id]);
-      await queryRunner.query('UPDATE departments SET manager_id = NULL WHERE manager_id = $1', [id]);
-      await queryRunner.query('UPDATE time_entries SET approved_by = NULL WHERE approved_by = $1', [id]);
-      await queryRunner.query('UPDATE work_schedules SET created_by = NULL WHERE created_by = $1', [id]);
-      await queryRunner.query('UPDATE work_schedules SET approved_by_admin = NULL WHERE approved_by_admin = $1', [id]);
-      await queryRunner.query('UPDATE shift_swap_requests SET admin_id = NULL WHERE admin_id = $1', [id]);
-      await queryRunner.query('UPDATE shift_swap_requests SET approved_responder_id = NULL WHERE approved_responder_id = $1', [id]);
+      await queryRunner.query(
+        'UPDATE daily_reports SET admin_commented_by = NULL WHERE admin_commented_by = $1',
+        [id],
+      );
+      await queryRunner.query('UPDATE leave_requests SET admin_id = NULL WHERE admin_id = $1', [
+        id,
+      ]);
+      await queryRunner.query('UPDATE departments SET manager_id = NULL WHERE manager_id = $1', [
+        id,
+      ]);
+      await queryRunner.query('UPDATE time_entries SET approved_by = NULL WHERE approved_by = $1', [
+        id,
+      ]);
+      await queryRunner.query('UPDATE work_schedules SET created_by = NULL WHERE created_by = $1', [
+        id,
+      ]);
+      await queryRunner.query(
+        'UPDATE work_schedules SET approved_by_admin = NULL WHERE approved_by_admin = $1',
+        [id],
+      );
+      await queryRunner.query(
+        'UPDATE shift_swap_requests SET admin_id = NULL WHERE admin_id = $1',
+        [id],
+      );
+      await queryRunner.query(
+        'UPDATE shift_swap_requests SET approved_responder_id = NULL WHERE approved_responder_id = $1',
+        [id],
+      );
 
       // 9. Now delete the user (CASCADE handles: leave_requests, leave_balances, daily_reports, notifications, push_subscriptions)
       await queryRunner.query('DELETE FROM users WHERE id = $1', [id]);
@@ -363,10 +402,9 @@ export class UsersService {
       .orderBy('user.createdAt', 'DESC');
 
     if (filters.search) {
-      query.andWhere(
-        '(user.fullName ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${filters.search}%` },
-      );
+      query.andWhere('(user.fullName ILIKE :search OR user.email ILIKE :search)', {
+        search: `%${filters.search}%`,
+      });
     }
 
     if (filters.role) {

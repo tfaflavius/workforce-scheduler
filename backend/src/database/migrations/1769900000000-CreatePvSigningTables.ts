@@ -105,9 +105,15 @@ export class CreatePvSigningTables1769900000000 implements MigrationInterface {
     `);
 
     // Indexes
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_pv_signing_days_session_id" ON "pv_signing_days" ("session_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_pv_signing_days_status" ON "pv_signing_days" ("status")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_pv_signing_comments_session_id" ON "pv_signing_session_comments" ("session_id")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_pv_signing_days_session_id" ON "pv_signing_days" ("session_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_pv_signing_days_status" ON "pv_signing_days" ("status")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_pv_signing_comments_session_id" ON "pv_signing_session_comments" ("session_id")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

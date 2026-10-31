@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { TimeTrackingService } from './time-tracking.service';
 import { GeocodingService } from './geocoding.service';
@@ -54,10 +45,12 @@ export class TimeTrackingController {
       ...(startDate && { startDate: new Date(startDate) }),
       ...(endDate && { endDate: new Date(endDate) }),
       ...(userId && { userId }),
-      ...(page || limit ? {
-        page: Math.max(1, parseInt(page || '1', 10) || 1),
-        limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
-      } : {}),
+      ...(page || limit
+        ? {
+            page: Math.max(1, parseInt(page || '1', 10) || 1),
+            limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
+          }
+        : {}),
     };
     return this.timeTrackingService.getAdminAllEntries(filters);
   }
@@ -101,7 +94,7 @@ export class TimeTrackingController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   getAdminCombinedRoute(@Query('entryIds') entryIds: string) {
-    const ids = entryIds ? entryIds.split(',').filter(id => id.trim()) : [];
+    const ids = entryIds ? entryIds.split(',').filter((id) => id.trim()) : [];
     return this.timeTrackingService.getAdminCombinedRoute(ids);
   }
 
@@ -109,7 +102,7 @@ export class TimeTrackingController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   getAdminCombinedLocations(@Query('entryIds') entryIds: string) {
-    const ids = entryIds ? entryIds.split(',').filter(id => id.trim()) : [];
+    const ids = entryIds ? entryIds.split(',').filter((id) => id.trim()) : [];
     return this.timeTrackingService.getAdminCombinedLocations(ids);
   }
 

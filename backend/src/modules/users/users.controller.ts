@@ -81,11 +81,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
-    @Request() req,
-  ) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req) {
     const isMasterAdmin = req.user.role === UserRole.MASTER_ADMIN;
     const isAdminOrAbove = req.user.role === UserRole.ADMIN || isMasterAdmin;
     const isOwnProfile = req.user.id === id;
@@ -120,12 +116,9 @@ export class UsersController {
   }
 
   @Patch(':id/password')
-  async changePassword(
-    @Param('id') id: string,
-    @Body() dto: ChangePasswordDto,
-    @Request() req,
-  ) {
-    const isAdminOrAbove = req.user.role === UserRole.ADMIN || req.user.role === UserRole.MASTER_ADMIN;
+  async changePassword(@Param('id') id: string, @Body() dto: ChangePasswordDto, @Request() req) {
+    const isAdminOrAbove =
+      req.user.role === UserRole.ADMIN || req.user.role === UserRole.MASTER_ADMIN;
     const canChange = isAdminOrAbove || req.user.id === id;
 
     if (!canChange) {

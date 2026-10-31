@@ -56,12 +56,24 @@ export class AddParkingCommentsAndHistory1769600000000 implements MigrationInter
     `);
 
     // 6. Indexuri pentru performanta
-    await queryRunner.query(`CREATE INDEX idx_parking_issue_comments_issue ON parking_issue_comments(issue_id)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_damage_comments_damage ON parking_damage_comments(damage_id)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_history_entity ON parking_history(entity_type, entity_id)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_history_created_at ON parking_history(created_at DESC)`);
-    await queryRunner.query(`CREATE INDEX idx_parking_issues_urgent ON parking_issues(is_urgent) WHERE is_urgent = true`);
-    await queryRunner.query(`CREATE INDEX idx_parking_damages_urgent ON parking_damages(is_urgent) WHERE is_urgent = true`);
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_issue_comments_issue ON parking_issue_comments(issue_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_damage_comments_damage ON parking_damage_comments(damage_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_history_entity ON parking_history(entity_type, entity_id)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_history_created_at ON parking_history(created_at DESC)`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_issues_urgent ON parking_issues(is_urgent) WHERE is_urgent = true`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX idx_parking_damages_urgent ON parking_damages(is_urgent) WHERE is_urgent = true`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

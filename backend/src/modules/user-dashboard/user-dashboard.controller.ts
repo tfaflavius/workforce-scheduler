@@ -111,12 +111,21 @@ export class UserDashboardController {
     const deptQueries: Promise<void>[] = [];
 
     // Handicap department
-    if (departmentName === HANDICAP_PARKING_DEPARTMENT_NAME || departmentName === MAINTENANCE_DEPARTMENT_NAME) {
+    if (
+      departmentName === HANDICAP_PARKING_DEPARTMENT_NAME ||
+      departmentName === MAINTENANCE_DEPARTMENT_NAME
+    ) {
       deptQueries.push(
         Promise.all([
-          this.handicapRequestRepo.count({ where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' } }),
-          this.handicapRequestRepo.count({ where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' } }),
-          this.handicapRequestRepo.count({ where: { requestType: 'CREARE_MARCAJ', status: 'ACTIVE' } }),
+          this.handicapRequestRepo.count({
+            where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' },
+          }),
+          this.handicapRequestRepo.count({
+            where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' },
+          }),
+          this.handicapRequestRepo.count({
+            where: { requestType: 'CREARE_MARCAJ', status: 'ACTIVE' },
+          }),
           this.handicapLegitimationRepo.count({ where: { status: 'ACTIVE' } }),
           this.revolutionarLegitimationRepo.count({ where: { status: 'ACTIVE' } }),
         ]).then(([amplasare, revocare, marcaje, legit, revol]) => {
@@ -130,27 +139,47 @@ export class UserDashboardController {
     }
 
     // Domiciliu department
-    if (departmentName === DOMICILIU_PARKING_DEPARTMENT_NAME || departmentName === MAINTENANCE_DEPARTMENT_NAME || departmentName === HANDICAP_PARKING_DEPARTMENT_NAME) {
+    if (
+      departmentName === DOMICILIU_PARKING_DEPARTMENT_NAME ||
+      departmentName === MAINTENANCE_DEPARTMENT_NAME ||
+      departmentName === HANDICAP_PARKING_DEPARTMENT_NAME
+    ) {
       deptQueries.push(
         Promise.all([
           this.domiciliuRequestRepo.count({ where: { status: 'ACTIVE' } }),
           this.domiciliuRequestRepo.count({ where: { status: 'FINALIZAT' } }),
-          this.domiciliuRequestRepo.count({ where: { requestType: 'TRASARE_LOCURI', status: 'ACTIVE' } }),
-          this.domiciliuRequestRepo.count({ where: { requestType: 'REVOCARE_LOCURI', status: 'ACTIVE' } }),
-          this.domiciliuRequestRepo.count({ where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' } }),
-          this.domiciliuRequestRepo.count({ where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' } }),
+          this.domiciliuRequestRepo.count({
+            where: { requestType: 'TRASARE_LOCURI', status: 'ACTIVE' },
+          }),
+          this.domiciliuRequestRepo.count({
+            where: { requestType: 'REVOCARE_LOCURI', status: 'ACTIVE' },
+          }),
+          this.domiciliuRequestRepo.count({
+            where: { requestType: 'AMPLASARE_PANOU', status: 'ACTIVE' },
+          }),
+          this.domiciliuRequestRepo.count({
+            where: { requestType: 'REVOCARE_PANOU', status: 'ACTIVE' },
+          }),
         ]).then(([active, finalizat, trasare, revocare, amplasare, revocarePanou]) => {
           response.domiciliu = {
             active,
             finalizat,
-            byType: { trasareLocuri: trasare, revocareLocuri: revocare, amplasarePanou: amplasare, revocarePanou },
+            byType: {
+              trasareLocuri: trasare,
+              revocareLocuri: revocare,
+              amplasarePanou: amplasare,
+              revocarePanou,
+            },
           };
         }),
       );
     }
 
     // Control department
-    if (departmentName === CONTROL_DEPARTMENT_NAME || departmentName === MAINTENANCE_DEPARTMENT_NAME) {
+    if (
+      departmentName === CONTROL_DEPARTMENT_NAME ||
+      departmentName === MAINTENANCE_DEPARTMENT_NAME
+    ) {
       deptQueries.push(
         Promise.all([
           this.controlSesizareRepo.count({ where: { status: 'ACTIVE' } }),
@@ -165,7 +194,10 @@ export class UserDashboardController {
     }
 
     // Parking (Dispecerat, Maintenance)
-    if (departmentName === DISPECERAT_DEPARTMENT_NAME || departmentName === MAINTENANCE_DEPARTMENT_NAME) {
+    if (
+      departmentName === DISPECERAT_DEPARTMENT_NAME ||
+      departmentName === MAINTENANCE_DEPARTMENT_NAME
+    ) {
       deptQueries.push(
         Promise.all([
           this.parkingIssueRepo.count({ where: { status: 'ACTIVE' } }),
@@ -197,14 +229,27 @@ export class UserDashboardController {
             .select('COALESCE(SUM(mr.incasari), 0)', 'incasari')
             .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
             .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
-            .where('mr.year = :year AND mr.month = :month', { year: currentYear, month: currentMonth })
+            .where('mr.year = :year AND mr.month = :month', {
+              year: currentYear,
+              month: currentMonth,
+            })
             .getRawOne(),
           this.budgetPositionRepo
             .createQueryBuilder('bp')
-            .select('COALESCE(SUM(CASE WHEN bp.category = :inv THEN bp.totalAmount ELSE 0 END), 0)', 'investments')
-            .addSelect('COALESCE(SUM(CASE WHEN bp.category = :cur THEN bp.totalAmount ELSE 0 END), 0)', 'currentExpenses')
+            .select(
+              'COALESCE(SUM(CASE WHEN bp.category = :inv THEN bp.totalAmount ELSE 0 END), 0)',
+              'investments',
+            )
+            .addSelect(
+              'COALESCE(SUM(CASE WHEN bp.category = :cur THEN bp.totalAmount ELSE 0 END), 0)',
+              'currentExpenses',
+            )
             .addSelect('COALESCE(SUM(bp.totalAmount), 0)', 'totalBudget')
-            .where('bp.year = :year', { year: currentYear, inv: 'INVESTMENTS', cur: 'CURRENT_EXPENSES' })
+            .where('bp.year = :year', {
+              year: currentYear,
+              inv: 'INVESTMENTS',
+              cur: 'CURRENT_EXPENSES',
+            })
             .getRawOne(),
           this.acquisitionRepo
             .createQueryBuilder('a')
@@ -220,7 +265,10 @@ export class UserDashboardController {
           this.monthlyRevenueRepo
             .createQueryBuilder('mr')
             .leftJoin('revenue_categories', 'rc', 'rc.id = mr.revenue_category_id')
-            .select('COALESCE(SUM(CASE WHEN rc.parking_lot_id IS NULL THEN mr.incasari ELSE 0 END), 0)', 'incasari')
+            .select(
+              'COALESCE(SUM(CASE WHEN rc.parking_lot_id IS NULL THEN mr.incasari ELSE 0 END), 0)',
+              'incasari',
+            )
             .addSelect('COALESCE(SUM(mr.incasariCard), 0)', 'incasariCard')
             .addSelect('COALESCE(SUM(mr.cheltuieli), 0)', 'cheltuieli')
             .where('mr.year = :year', { year: currentYear })
@@ -251,9 +299,7 @@ export class UserDashboardController {
             year: currentYear,
           };
           response.revenueYTD = {
-            incasari:
-              parseFloat(revYTD?.incasari || '0') +
-              parseFloat(parkingCashYTD?.cash || '0'),
+            incasari: parseFloat(revYTD?.incasari || '0') + parseFloat(parkingCashYTD?.cash || '0'),
             incasariCard: parseFloat(revYTD?.incasariCard || '0'),
             cheltuieli: parseFloat(revYTD?.cheltuieli || '0'),
             year: currentYear,

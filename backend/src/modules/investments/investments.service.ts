@@ -26,7 +26,7 @@ export interface InvestmentDocumentMetadata {
 
 export interface InvestmentAnnualBudgetSummary {
   year: number;
-  totalAmount: number;       // user-set yearly investment envelope
+  totalAmount: number; // user-set yearly investment envelope
   allocatedToPositions: number; // sum of INVESTMENT budget positions' totalAmount
   spentOnAcquisitions: number; // sum of acquisitions values across investments
   remainingInPositions: number; // allocated - spent (already on positions, not yet on acquisitions)
@@ -127,14 +127,17 @@ export class InvestmentsService {
 
     const doc = this.documentRepository.create({
       fileName: file.originalname || 'document.xlsx',
-      mimeType: file.mimetype || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      mimeType:
+        file.mimetype || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       fileSize: file.size,
       fileData: file.buffer,
       uploadedById: userId,
     });
 
     const saved = await this.documentRepository.save(doc);
-    this.logger.log(`Investment document uploaded by ${userId}: ${file.originalname} (${file.size} bytes)`);
+    this.logger.log(
+      `Investment document uploaded by ${userId}: ${file.originalname} (${file.size} bytes)`,
+    );
 
     // Reload with relation to return full metadata
     const reloaded = await this.documentRepository.findOne({
@@ -176,13 +179,9 @@ export class InvestmentsService {
       relations: ['acquisitions'],
     });
 
-    const allocatedToPositions = positions.reduce(
-      (s, p) => s + Number(p.totalAmount || 0),
-      0,
-    );
+    const allocatedToPositions = positions.reduce((s, p) => s + Number(p.totalAmount || 0), 0);
     const spentOnAcquisitions = positions.reduce(
-      (s, p) =>
-        s + (p.acquisitions || []).reduce((acc, a) => acc + Number(a.value || 0), 0),
+      (s, p) => s + (p.acquisitions || []).reduce((acc, a) => acc + Number(a.value || 0), 0),
       0,
     );
     const remainingInPositions = allocatedToPositions - spentOnAcquisitions;
@@ -260,31 +259,31 @@ export class InvestmentsService {
   /**
    * Returns the change history for a specific year, newest first.
    */
-  async getAnnualBudgetHistory(year: number): Promise<Array<{
-    id: string;
-    year: number;
-    oldAmount: number | null;
-    newAmount: number;
-    oldNotes: string | null;
-    newNotes: string | null;
-    changedBy: { id: string; fullName: string } | null;
-    createdAt: Date;
-  }>> {
+  async getAnnualBudgetHistory(year: number): Promise<
+    Array<{
+      id: string;
+      year: number;
+      oldAmount: number | null;
+      newAmount: number;
+      oldNotes: string | null;
+      newNotes: string | null;
+      changedBy: { id: string; fullName: string } | null;
+      createdAt: Date;
+    }>
+  > {
     const rows = await this.annualBudgetHistoryRepository.find({
       where: { year },
       relations: ['changedBy'],
       order: { createdAt: 'DESC' },
     });
-    return rows.map(r => ({
+    return rows.map((r) => ({
       id: r.id,
       year: r.year,
       oldAmount: r.oldAmount !== null ? Number(r.oldAmount) : null,
       newAmount: Number(r.newAmount),
       oldNotes: r.oldNotes,
       newNotes: r.newNotes,
-      changedBy: r.changedBy
-        ? { id: r.changedBy.id, fullName: r.changedBy.fullName }
-        : null,
+      changedBy: r.changedBy ? { id: r.changedBy.id, fullName: r.changedBy.fullName } : null,
       createdAt: r.createdAt,
     }));
   }

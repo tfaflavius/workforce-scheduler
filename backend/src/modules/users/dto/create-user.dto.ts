@@ -1,4 +1,16 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Matches, IsArray, IsUUID, IsBoolean } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsArray,
+  IsUUID,
+  IsBoolean,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../entities/user.entity';
 
@@ -8,7 +20,12 @@ export class CreateUserDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ description: 'User password (8-128 chars, must contain uppercase + digit)', example: 'SecurePass123', minLength: 8, maxLength: 128 })
+  @ApiProperty({
+    description: 'User password (8-128 chars, must contain uppercase + digit)',
+    example: 'SecurePass123',
+    minLength: 8,
+    maxLength: 128,
+  })
   @IsString()
   @IsNotEmpty()
   @MinLength(8, { message: 'Parola trebuie sa aiba cel putin 8 caractere' })
@@ -33,12 +50,17 @@ export class CreateUserDto {
   @IsNotEmpty()
   role: UserRole;
 
-  @ApiPropertyOptional({ description: 'Department ID to assign the user to', example: '550e8400-e29b-41d4-a716-446655440000' })
+  @ApiPropertyOptional({
+    description: 'Department ID to assign the user to',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
   @IsString()
   @IsOptional()
   departmentId?: string;
 
-  @ApiPropertyOptional({ description: 'HR only: department IDs whose schedules this HR user may view' })
+  @ApiPropertyOptional({
+    description: 'HR only: department IDs whose schedules this HR user may view',
+  })
   @IsArray()
   @IsUUID('all', { each: true })
   @IsOptional()

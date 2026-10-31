@@ -13,7 +13,9 @@ const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
 if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
   const bootstrapLogger = new Logger('PushNotificationService');
-  bootstrapLogger.warn('VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY env vars are not set. Push notifications will be disabled.');
+  bootstrapLogger.warn(
+    'VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY env vars are not set. Push notifications will be disabled.',
+  );
 }
 
 @Injectable()
@@ -46,7 +48,10 @@ export class PushNotificationService {
     return VAPID_PUBLIC_KEY || '';
   }
 
-  async subscribe(userId: string, subscription: webpush.PushSubscription): Promise<PushSubscription> {
+  async subscribe(
+    userId: string,
+    subscription: webpush.PushSubscription,
+  ): Promise<PushSubscription> {
     // Check if subscription already exists
     const existing = await this.pushSubscriptionRepository.findOne({
       where: { endpoint: subscription.endpoint },
@@ -76,7 +81,13 @@ export class PushNotificationService {
     this.logger.log(`Unsubscribed push notification for endpoint: ${endpoint.substring(0, 50)}...`);
   }
 
-  async sendToUser(userId: string, title: string, body: string, data?: Record<string, any>, notificationType?: string): Promise<void> {
+  async sendToUser(
+    userId: string,
+    title: string,
+    body: string,
+    data?: Record<string, any>,
+    notificationType?: string,
+  ): Promise<void> {
     if (!this.vapidConfigured) {
       this.logger.debug('Push notifications disabled — VAPID keys not configured');
       return;
@@ -92,7 +103,9 @@ export class PushNotificationService {
         if (user) {
           const enabled = await this.settingCheck.isPushEnabled(notificationType, user.role);
           if (!enabled) {
-            this.logger.debug(`Push notification ${notificationType} suppressed for role ${user.role}`);
+            this.logger.debug(
+              `Push notification ${notificationType} suppressed for role ${user.role}`,
+            );
             return;
           }
         }
@@ -147,8 +160,16 @@ export class PushNotificationService {
     await Promise.all(sendPromises);
   }
 
-  async sendToUsers(userIds: string[], title: string, body: string, data?: Record<string, any>, notificationType?: string): Promise<void> {
-    await Promise.all(userIds.map((userId) => this.sendToUser(userId, title, body, data, notificationType)));
+  async sendToUsers(
+    userIds: string[],
+    title: string,
+    body: string,
+    data?: Record<string, any>,
+    notificationType?: string,
+  ): Promise<void> {
+    await Promise.all(
+      userIds.map((userId) => this.sendToUser(userId, title, body, data, notificationType)),
+    );
   }
 
   async getUserSubscriptions(userId: string): Promise<PushSubscription[]> {
@@ -179,6 +200,8 @@ export class PushNotificationService {
       .where('updatedAt < :cutoff', { cutoff: ninetyDaysAgo })
       .execute();
 
-    this.logger.log(`Cleared ${result.affected || 0} expired push subscriptions (older than 90 days)`);
+    this.logger.log(
+      `Cleared ${result.affected || 0} expired push subscriptions (older than 90 days)`,
+    );
   }
 }

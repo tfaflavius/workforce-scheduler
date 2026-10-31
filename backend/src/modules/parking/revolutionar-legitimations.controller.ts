@@ -19,7 +19,10 @@ import { CreateRevolutionarLegitimationDto } from './dto/create-revolutionar-leg
 import { UpdateRevolutionarLegitimationDto } from './dto/update-revolutionar-legitimation.dto';
 import { ResolveHandicapLegitimationDto } from './dto/resolve-handicap-legitimation.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { RevolutionarLegitimationStatus, HANDICAP_PARKING_DEPARTMENT_NAME } from './constants/parking.constants';
+import {
+  RevolutionarLegitimationStatus,
+  HANDICAP_PARKING_DEPARTMENT_NAME,
+} from './constants/parking.constants';
 import { UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
@@ -34,7 +37,8 @@ export class RevolutionarLegitimationsController {
   private checkAccess(user: any): void {
     // Doar Admin si departamentul Parcari Handicap pot accesa
     const isAdmin = isAdminOrAbove(user.role);
-    const isHandicapDepartment = removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
+    const isHandicapDepartment =
+      removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!isAdmin && !isHandicapDepartment) {
       throw new ForbiddenException('Nu aveti permisiunea sa accesati aceasta resursa');
@@ -48,10 +52,7 @@ export class RevolutionarLegitimationsController {
   }
 
   @Get()
-  async findAll(
-    @Request() req,
-    @Query('status') status?: RevolutionarLegitimationStatus,
-  ) {
+  async findAll(@Request() req, @Query('status') status?: RevolutionarLegitimationStatus) {
     this.checkAccess(req.user);
     return this.legitimationsService.findAll(status);
   }
@@ -114,11 +115,7 @@ export class RevolutionarLegitimationsController {
   }
 
   @Post(':id/comments')
-  async addComment(
-    @Request() req,
-    @Param('id') id: string,
-    @Body() dto: CreateCommentDto,
-  ) {
+  async addComment(@Request() req, @Param('id') id: string, @Body() dto: CreateCommentDto) {
     this.checkAccess(req.user);
     return this.legitimationsService.addComment(id, req.user.id, dto);
   }

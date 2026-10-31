@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { HandicapRequest } from './entities/handicap-request.entity';
@@ -47,9 +53,14 @@ export class HandicapRequestsService {
       where: { id: userId },
       relations: ['department'],
     });
-    if (creator && creator.role === UserRole.USER &&
-        removeDiacritics(creator.department?.name || '') === MAINTENANCE_DEPARTMENT_NAME) {
-      throw new ForbiddenException('Utilizatorii din departamentul Intretinere Parcari nu pot crea solicitari');
+    if (
+      creator &&
+      creator.role === UserRole.USER &&
+      removeDiacritics(creator.department?.name || '') === MAINTENANCE_DEPARTMENT_NAME
+    ) {
+      throw new ForbiddenException(
+        'Utilizatorii din departamentul Intretinere Parcari nu pot crea solicitari',
+      );
     }
 
     const request = this.handicapRequestRepository.create({
@@ -82,13 +93,21 @@ export class HandicapRequestsService {
     return this.findOne(savedRequest.id);
   }
 
-  async update(id: string, userId: string, dto: UpdateHandicapRequestDto, user: any): Promise<HandicapRequest> {
+  async update(
+    id: string,
+    userId: string,
+    dto: UpdateHandicapRequestDto,
+    user: any,
+  ): Promise<HandicapRequest> {
     // Admin si userii de la departamentul Parcari Handicap pot edita
-    const canEdit = isAdminOrAbove(user.role) ||
+    const canEdit =
+      isAdminOrAbove(user.role) ||
       removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
-      throw new ForbiddenException('Doar administratorii si departamentul Parcari Handicap pot modifica solicitarile');
+      throw new ForbiddenException(
+        'Doar administratorii si departamentul Parcari Handicap pot modifica solicitarile',
+      );
     }
 
     const request = await this.findOne(id);
@@ -111,8 +130,14 @@ export class HandicapRequestsService {
       changes.personName = { from: request.personName, to: dto.personName };
       request.personName = dto.personName;
     }
-    if (dto.handicapCertificateNumber !== undefined && dto.handicapCertificateNumber !== request.handicapCertificateNumber) {
-      changes.handicapCertificateNumber = { from: request.handicapCertificateNumber, to: dto.handicapCertificateNumber };
+    if (
+      dto.handicapCertificateNumber !== undefined &&
+      dto.handicapCertificateNumber !== request.handicapCertificateNumber
+    ) {
+      changes.handicapCertificateNumber = {
+        from: request.handicapCertificateNumber,
+        to: dto.handicapCertificateNumber,
+      };
       request.handicapCertificateNumber = dto.handicapCertificateNumber;
     }
     if (dto.carPlate !== undefined && dto.carPlate !== request.carPlate) {
@@ -160,7 +185,10 @@ export class HandicapRequestsService {
     await this.historyRepository.save(history);
   }
 
-  private async notifyMaintenanceTeam(request: HandicapRequest, creatorUserId: string): Promise<void> {
+  private async notifyMaintenanceTeam(
+    request: HandicapRequest,
+    creatorUserId: string,
+  ): Promise<void> {
     // Gaseste departamentul Intretinere Parcari
     const maintenanceDept = await this.departmentRepository.findOne({
       where: { name: MAINTENANCE_DEPARTMENT_NAME },
@@ -189,7 +217,7 @@ export class HandicapRequestsService {
     const requestTypeLabel = HANDICAP_REQUEST_TYPE_LABELS[request.requestType];
 
     // Trimite notificari in-app catre toti userii din echipa de intretinere (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = maintenanceUsers.map(user => ({
+    const notifications = maintenanceUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.HANDICAP_REQUEST_ASSIGNED,
       title: `Solicitare noua: ${requestTypeLabel}`,
@@ -204,7 +232,10 @@ export class HandicapRequestsService {
     await this.notificationsService.createMany(notifications);
   }
 
-  private async notifyOnResolution(request: HandicapRequest, resolverUserId: string): Promise<void> {
+  private async notifyOnResolution(
+    request: HandicapRequest,
+    resolverUserId: string,
+  ): Promise<void> {
     const resolver = await this.userRepository.findOne({ where: { id: resolverUserId } });
     const resolverName = resolver?.fullName || 'Un utilizator';
 
@@ -229,7 +260,7 @@ export class HandicapRequestsService {
       const handicapUsers = await this.userRepository.find({
         where: { departmentId: handicapDept.id, isActive: true },
       });
-      usersToNotify.push(...handicapUsers.filter(u => u.id !== resolverUserId));
+      usersToNotify.push(...handicapUsers.filter((u) => u.id !== resolverUserId));
     }
 
     // 3. Toti userii din Parcari Domiciliu
@@ -240,18 +271,18 @@ export class HandicapRequestsService {
       const domiciliuUsers = await this.userRepository.find({
         where: { departmentId: domiciliuDept.id, isActive: true },
       });
-      usersToNotify.push(...domiciliuUsers.filter(u => u.id !== resolverUserId));
+      usersToNotify.push(...domiciliuUsers.filter((u) => u.id !== resolverUserId));
     }
 
     // 4. Toti adminii
     const admins = await this.userRepository.find({
       where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
-    usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
+    usersToNotify.push(...admins.filter((u) => u.id !== resolverUserId));
 
     // Elimina duplicatele
-    const uniqueUsers = usersToNotify.filter((user, index, self) =>
-      index === self.findIndex(u => u.id === user.id)
+    const uniqueUsers = usersToNotify.filter(
+      (user, index, self) => index === self.findIndex((u) => u.id === user.id),
     );
 
     if (uniqueUsers.length === 0) {
@@ -259,7 +290,7 @@ export class HandicapRequestsService {
     }
 
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = uniqueUsers.map(user => ({
+    const notifications = uniqueUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.HANDICAP_REQUEST_RESOLVED,
       title: `Solicitare finalizata: ${requestTypeLabel}`,
@@ -275,8 +306,12 @@ export class HandicapRequestsService {
     await this.notificationsService.createMany(notifications);
   }
 
-  async findAll(status?: HandicapRequestStatus, requestType?: HandicapRequestType): Promise<HandicapRequest[]> {
-    const query = this.handicapRequestRepository.createQueryBuilder('request')
+  async findAll(
+    status?: HandicapRequestStatus,
+    requestType?: HandicapRequestType,
+  ): Promise<HandicapRequest[]> {
+    const query = this.handicapRequestRepository
+      .createQueryBuilder('request')
       .leftJoinAndSelect('request.creator', 'creator')
       .leftJoinAndSelect('request.resolver', 'resolver')
       .leftJoinAndSelect('request.lastModifier', 'lastModifier');
@@ -313,7 +348,11 @@ export class HandicapRequestsService {
     });
   }
 
-  async resolve(id: string, userId: string, dto: ResolveHandicapRequestDto): Promise<HandicapRequest> {
+  async resolve(
+    id: string,
+    userId: string,
+    dto: ResolveHandicapRequestDto,
+  ): Promise<HandicapRequest> {
     const request = await this.findOne(id);
 
     if (request.status === 'FINALIZAT') {
@@ -339,7 +378,11 @@ export class HandicapRequestsService {
     return this.findOne(id);
   }
 
-  async addComment(requestId: string, userId: string, dto: CreateCommentDto): Promise<HandicapRequestComment> {
+  async addComment(
+    requestId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<HandicapRequestComment> {
     const request = await this.findOne(requestId);
 
     const comment = this.commentRepository.create({
@@ -363,7 +406,11 @@ export class HandicapRequestsService {
     return savedComment;
   }
 
-  private async notifyAboutComment(request: HandicapRequest, commenterUserId: string, commentContent: string): Promise<void> {
+  private async notifyAboutComment(
+    request: HandicapRequest,
+    commenterUserId: string,
+    commentContent: string,
+  ): Promise<void> {
     const commenter = await this.userRepository.findOne({ where: { id: commenterUserId } });
     const commenterName = commenter?.fullName || 'Un utilizator';
 
@@ -392,10 +439,10 @@ export class HandicapRequestsService {
         where: { departmentId: maintenanceDept.id, isActive: true },
       });
 
-      const toNotify = maintenanceUsers.filter(u => u.id !== commenterUserId);
+      const toNotify = maintenanceUsers.filter((u) => u.id !== commenterUserId);
 
       if (toNotify.length > 0) {
-        const notifications = toNotify.map(user => ({
+        const notifications = toNotify.map((user) => ({
           userId: user.id,
           type: NotificationType.HANDICAP_REQUEST_ASSIGNED,
           title: 'Comentariu nou la solicitare handicap',
@@ -442,7 +489,8 @@ export class HandicapRequestsService {
     status?: HandicapRequestStatus;
     requestType?: HandicapRequestType;
   }): Promise<HandicapRequest[]> {
-    const query = this.handicapRequestRepository.createQueryBuilder('request')
+    const query = this.handicapRequestRepository
+      .createQueryBuilder('request')
       .leftJoinAndSelect('request.creator', 'creator')
       .leftJoinAndSelect('request.resolver', 'resolver');
 

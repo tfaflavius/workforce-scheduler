@@ -106,7 +106,7 @@ export class TimeTrackingService {
     const savedEntry = await this.timeEntryRepository.save(timeEntry);
 
     // Auto-geocodare async (nu blocheaza raspunsul catre angajat)
-    this.geocodingService.geocodeTimeEntryLocations(savedEntry.id).catch(err => {
+    this.geocodingService.geocodeTimeEntryLocations(savedEntry.id).catch((err) => {
       this.logger.error(`Auto-geocoding failed for entry ${savedEntry.id}: ${err?.message}`);
     });
 
@@ -145,7 +145,7 @@ export class TimeTrackingService {
         return { mismatch: false, expectedMinutes: 0, expectedHours: 0 };
       }
 
-      const scheduleIds = approvedSchedules.map(s => s.id);
+      const scheduleIds = approvedSchedules.map((s) => s.id);
 
       // Caut assignment-ul utilizatorului pentru data curenta
       const assignment = await this.scheduleAssignmentRepository
@@ -210,7 +210,7 @@ export class TimeTrackingService {
         return;
       }
 
-      const notifications = adminsAndManagers.map(admin => ({
+      const notifications = adminsAndManagers.map((admin) => ({
         userId: admin.id,
         type: NotificationType.TIME_ENTRY_MISMATCH,
         title: 'Nepotrivire ore pontaj',
@@ -241,11 +241,14 @@ export class TimeTrackingService {
     });
   }
 
-  async getTimeEntries(userId: string, filters?: {
-    startDate?: Date;
-    endDate?: Date;
-    taskId?: string;
-  }): Promise<TimeEntry[]> {
+  async getTimeEntries(
+    userId: string,
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      taskId?: string;
+    },
+  ): Promise<TimeEntry[]> {
     const query = this.timeEntryRepository
       .createQueryBuilder('entry')
       .leftJoinAndSelect('entry.task', 'task')
@@ -296,8 +299,9 @@ export class TimeTrackingService {
       if (lastLog.length > 0) {
         const last = lastLog[0];
         const secondsAgo = (Date.now() - new Date(last.recorded_at).getTime()) / 1000;
-        const sameCoords = Math.abs(parseFloat(last.latitude) - recordLocationDto.latitude) < 0.00001
-          && Math.abs(parseFloat(last.longitude) - recordLocationDto.longitude) < 0.00001;
+        const sameCoords =
+          Math.abs(parseFloat(last.latitude) - recordLocationDto.latitude) < 0.00001 &&
+          Math.abs(parseFloat(last.longitude) - recordLocationDto.longitude) < 0.00001;
         if (sameCoords && secondsAgo < 90) {
           // Duplicate - return a properly shaped object (raw SQL uses snake_case)
           return {
@@ -362,7 +366,11 @@ export class TimeTrackingService {
 
   // ===== GPS STATUS REPORTING =====
 
-  async reportGpsStatus(userId: string, timeEntryId: string, dto: ReportGpsStatusDto): Promise<{ ok: boolean }> {
+  async reportGpsStatus(
+    userId: string,
+    timeEntryId: string,
+    dto: ReportGpsStatusDto,
+  ): Promise<{ ok: boolean }> {
     const timeEntry = await this.timeEntryRepository.findOne({
       where: { id: timeEntryId, userId },
       relations: ['user'],
@@ -387,7 +395,10 @@ export class TimeTrackingService {
     await this.timeEntryRepository.save(timeEntry);
 
     // Notify admins only when status changes to a problem state (and wasn't already that state)
-    if (statusChanged && (dto.status === 'denied' || dto.status === 'error' || dto.status === 'unavailable')) {
+    if (
+      statusChanged &&
+      (dto.status === 'denied' || dto.status === 'error' || dto.status === 'unavailable')
+    ) {
       const employeeName = timeEntry.user?.fullName || 'Angajat necunoscut';
       const statusLabels: Record<string, string> = {
         denied: 'GPS BLOCAT - permisiune refuzata',
@@ -405,7 +416,7 @@ export class TimeTrackingService {
         });
 
         if (admins.length > 0) {
-          const notifications = admins.map(admin => ({
+          const notifications = admins.map((admin) => ({
             userId: admin.id,
             type: NotificationType.GPS_STATUS_ALERT,
             title: 'Problema GPS angajat',
@@ -420,7 +431,9 @@ export class TimeTrackingService {
           }));
 
           await this.notificationsService.createMany(notifications);
-          this.logger.log(`[GPS Status] Alert sent to ${admins.length} admins: ${employeeName} - ${dto.status}`);
+          this.logger.log(
+            `[GPS Status] Alert sent to ${admins.length} admins: ${employeeName} - ${dto.status}`,
+          );
         }
       } catch (err) {
         this.logger.error(`[GPS Status] Failed to send notifications: ${err?.message}`);
@@ -487,7 +500,10 @@ export class TimeTrackingService {
     userId?: string;
     page?: number;
     limit?: number;
-  }): Promise<{ data: TimeEntry[]; meta?: { page: number; limit: number; total: number; totalPages: number } }> {
+  }): Promise<{
+    data: TimeEntry[];
+    meta?: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const query = this.timeEntryRepository
       .createQueryBuilder('entry')
       .leftJoinAndSelect('entry.user', 'user')
@@ -559,7 +575,11 @@ export class TimeTrackingService {
       .getMany();
   }
 
-  async getAdminStats(): Promise<{ activeCount: number; totalHoursToday: number; locationLogsToday: number }> {
+  async getAdminStats(): Promise<{
+    activeCount: number;
+    totalHoursToday: number;
+    locationLogsToday: number;
+  }> {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
@@ -634,15 +654,16 @@ export class TimeTrackingService {
         const prevLog = logs[index - 1];
         distanceFromPrev = Math.round(
           this.geocodingService.haversineDistance(
-            Number(prevLog.latitude), Number(prevLog.longitude),
-            Number(log.latitude), Number(log.longitude),
+            Number(prevLog.latitude),
+            Number(prevLog.longitude),
+            Number(log.latitude),
+            Number(log.longitude),
           ),
         );
       }
 
-      const recordedAtStr = log.recordedAt instanceof Date
-        ? log.recordedAt.toISOString()
-        : String(log.recordedAt);
+      const recordedAtStr =
+        log.recordedAt instanceof Date ? log.recordedAt.toISOString() : String(log.recordedAt);
 
       return {
         id: log.id,
@@ -665,10 +686,11 @@ export class TimeTrackingService {
       pointCount: number;
     }> = [];
 
-    let currentStreet: typeof streetSummary[0] | null = null;
+    let currentStreet: (typeof streetSummary)[0] | null = null;
 
     for (const point of points) {
-      const streetName = point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+      const streetName =
+        point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
 
       if (currentStreet && currentStreet.streetName === streetName) {
         currentStreet.lastVisitTime = point.recordedAt;
@@ -692,18 +714,19 @@ export class TimeTrackingService {
     }
 
     const totalDistanceM = points.reduce((sum, p) => sum + p.distanceFromPrev, 0);
-    const ungeocodedCount = points.filter(p => !p.address).length;
+    const ungeocodedCount = points.filter((p) => !p.address).length;
 
     const entryEndTime = entry.endTime || new Date();
     const totalDurationMinutes = Math.round(
       (new Date(entryEndTime).getTime() - new Date(entry.startTime).getTime()) / 60000,
     );
 
-    const startTimeStr = entry.startTime instanceof Date
-      ? entry.startTime.toISOString()
-      : String(entry.startTime);
+    const startTimeStr =
+      entry.startTime instanceof Date ? entry.startTime.toISOString() : String(entry.startTime);
     const endTimeStr = entry.endTime
-      ? (entry.endTime instanceof Date ? entry.endTime.toISOString() : String(entry.endTime))
+      ? entry.endTime instanceof Date
+        ? entry.endTime.toISOString()
+        : String(entry.endTime)
       : null;
 
     return {
@@ -764,15 +787,16 @@ export class TimeTrackingService {
         const prevLog = logs[index - 1];
         distanceFromPrev = Math.round(
           this.geocodingService.haversineDistance(
-            Number(prevLog.latitude), Number(prevLog.longitude),
-            Number(log.latitude), Number(log.longitude),
+            Number(prevLog.latitude),
+            Number(prevLog.longitude),
+            Number(log.latitude),
+            Number(log.longitude),
           ),
         );
       }
 
-      const recordedAtStr = log.recordedAt instanceof Date
-        ? log.recordedAt.toISOString()
-        : String(log.recordedAt);
+      const recordedAtStr =
+        log.recordedAt instanceof Date ? log.recordedAt.toISOString() : String(log.recordedAt);
 
       return {
         id: log.id,
@@ -795,10 +819,11 @@ export class TimeTrackingService {
       pointCount: number;
     }> = [];
 
-    let currentStreet: typeof streetSummary[0] | null = null;
+    let currentStreet: (typeof streetSummary)[0] | null = null;
 
     for (const point of points) {
-      const streetName = point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+      const streetName =
+        point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
 
       if (currentStreet && currentStreet.streetName === streetName) {
         currentStreet.lastVisitTime = point.recordedAt;
@@ -822,16 +847,19 @@ export class TimeTrackingService {
     }
 
     const totalDistanceM = points.reduce((sum, p) => sum + p.distanceFromPrev, 0);
-    const ungeocodedCount = points.filter(p => !p.address).length;
+    const ungeocodedCount = points.filter((p) => !p.address).length;
 
     const firstEntry = entries[0];
     const lastEntry = entries[entries.length - 1];
 
-    const firstStartTime = firstEntry.startTime instanceof Date
-      ? firstEntry.startTime.toISOString()
-      : String(firstEntry.startTime);
+    const firstStartTime =
+      firstEntry.startTime instanceof Date
+        ? firstEntry.startTime.toISOString()
+        : String(firstEntry.startTime);
     const lastEndTime = lastEntry.endTime
-      ? (lastEntry.endTime instanceof Date ? lastEntry.endTime.toISOString() : String(lastEntry.endTime))
+      ? lastEntry.endTime instanceof Date
+        ? lastEntry.endTime.toISOString()
+        : String(lastEntry.endTime)
       : null;
 
     const totalDurationMinutes = entries.reduce((sum, e) => sum + (e.durationMinutes || 0), 0);
@@ -949,7 +977,7 @@ export class TimeTrackingService {
         });
 
         if (admins.length > 0) {
-          const notifications = admins.map(admin => ({
+          const notifications = admins.map((admin) => ({
             userId: admin.id,
             type: NotificationType.GPS_STATUS_ALERT,
             title: 'Tura oprita automat - lipsa GPS',
@@ -1036,7 +1064,9 @@ export class TimeTrackingService {
 
       const employeeName = entry.user?.fullName || 'Angajat necunoscut';
       const noLocations = !entry.locationLogs || entry.locationLogs.length === 0;
-      const minutesWithout = noLocations ? Math.floor(minutesActive) : Math.floor(minutesSinceLastLocation!);
+      const minutesWithout = noLocations
+        ? Math.floor(minutesActive)
+        : Math.floor(minutesSinceLastLocation!);
       const alertMessage = noLocations
         ? `${employeeName}: Nu s-a putut verifica locatia GPS de ${minutesWithout} min (nicio locatie inregistrata)`
         : `${employeeName}: Nu s-a putut verifica locatia GPS de ${minutesWithout} min`;
@@ -1054,7 +1084,7 @@ export class TimeTrackingService {
         });
 
         if (admins.length > 0) {
-          const notifications = admins.map(admin => ({
+          const notifications = admins.map((admin) => ({
             userId: admin.id,
             type: NotificationType.GPS_STATUS_ALERT,
             title: 'Verificare GPS esuata',
@@ -1105,7 +1135,9 @@ export class TimeTrackingService {
           NotificationType.GPS_STATUS_ALERT,
         );
       } catch (err) {
-        this.logger.error(`[GPS Alert] Failed to send self-notification to ${employeeName}: ${err?.message}`);
+        this.logger.error(
+          `[GPS Alert] Failed to send self-notification to ${employeeName}: ${err?.message}`,
+        );
       }
     }
 
@@ -1136,7 +1168,9 @@ export class TimeTrackingService {
         return { notifiedCount: 0, activeCount: 0 };
       }
 
-      this.logger.log(`[GPS Instant] Sending GPS capture push to ${activeEntries.length} active employees`);
+      this.logger.log(
+        `[GPS Instant] Sending GPS capture push to ${activeEntries.length} active employees`,
+      );
 
       let notifiedCount = 0;
 
@@ -1156,12 +1190,16 @@ export class TimeTrackingService {
           );
           notifiedCount++;
         } catch (err) {
-          this.logger.debug(`[GPS Instant] Failed to send push to ${entry.user?.fullName}: ${err.message}`);
+          this.logger.debug(
+            `[GPS Instant] Failed to send push to ${entry.user?.fullName}: ${err.message}`,
+          );
         }
       });
 
       await Promise.all(sendPromises);
-      this.logger.log(`[GPS Instant] Push notifications sent to ${notifiedCount}/${activeEntries.length} employees`);
+      this.logger.log(
+        `[GPS Instant] Push notifications sent to ${notifiedCount}/${activeEntries.length} employees`,
+      );
 
       return { notifiedCount, activeCount: activeEntries.length };
     } catch (error) {
@@ -1240,7 +1278,7 @@ export class TimeTrackingService {
       let totalLocs = 0;
       let hasProblems = false;
 
-      const shifts = userEntries.map(entry => {
+      const shifts = userEntries.map((entry) => {
         const logs = (entry.locationLogs || []).sort(
           (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
         );
@@ -1248,9 +1286,13 @@ export class TimeTrackingService {
         const locationCount = logs.length;
         totalLocs += locationCount;
 
-        const duration = entry.durationMinutes || Math.round(
-          ((entry.endTime ? new Date(entry.endTime).getTime() : Date.now()) - new Date(entry.startTime).getTime()) / 60000,
-        );
+        const duration =
+          entry.durationMinutes ||
+          Math.round(
+            ((entry.endTime ? new Date(entry.endTime).getTime() : Date.now()) -
+              new Date(entry.startTime).getTime()) /
+              60000,
+          );
         totalDuration += duration;
 
         // Build street summary from logs
@@ -1262,8 +1304,10 @@ export class TimeTrackingService {
             const prevLog = logs[index - 1];
             distanceFromPrev = Math.round(
               this.geocodingService.haversineDistance(
-                Number(prevLog.latitude), Number(prevLog.longitude),
-                Number(log.latitude), Number(log.longitude),
+                Number(prevLog.latitude),
+                Number(prevLog.longitude),
+                Number(log.latitude),
+                Number(log.longitude),
               ),
             );
           }
@@ -1289,7 +1333,8 @@ export class TimeTrackingService {
         let currentStreet: { streetName: string; durationMinutes: number } | null = null;
 
         for (const point of points) {
-          const streetName = point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
+          const streetName =
+            point.address || `${point.latitude.toFixed(5)}, ${point.longitude.toFixed(5)}`;
 
           if (currentStreet && currentStreet.streetName === streetName) {
             currentStreet.durationMinutes += point.durationMinutes;
@@ -1308,16 +1353,20 @@ export class TimeTrackingService {
 
         // Check GPS problems
         const gpsStatus = entry.gpsStatus || null;
-        const isGpsProblem = gpsStatus === 'denied' || gpsStatus === 'error' || gpsStatus === 'unavailable'
-          || (locationCount === 0 && duration > 15);
+        const isGpsProblem =
+          gpsStatus === 'denied' ||
+          gpsStatus === 'error' ||
+          gpsStatus === 'unavailable' ||
+          (locationCount === 0 && duration > 15);
         if (isGpsProblem) hasProblems = true;
         if (entry.stoppedBySystem) totalAutoStopped++;
 
-        const startTimeStr = entry.startTime instanceof Date
-          ? entry.startTime.toISOString()
-          : String(entry.startTime);
+        const startTimeStr =
+          entry.startTime instanceof Date ? entry.startTime.toISOString() : String(entry.startTime);
         const endTimeStr = entry.endTime
-          ? (entry.endTime instanceof Date ? entry.endTime.toISOString() : String(entry.endTime))
+          ? entry.endTime instanceof Date
+            ? entry.endTime.toISOString()
+            : String(entry.endTime)
           : null;
 
         return {

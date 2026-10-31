@@ -13,7 +13,12 @@ import { Department } from '../departments/entities/department.entity';
 import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
-import { MAINTENANCE_DEPARTMENT_NAME, HANDICAP_PARKING_DEPARTMENT_NAME, HANDICAP_REQUEST_TYPE_LABELS, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
+import {
+  MAINTENANCE_DEPARTMENT_NAME,
+  HANDICAP_PARKING_DEPARTMENT_NAME,
+  HANDICAP_REQUEST_TYPE_LABELS,
+  DISPECERAT_DEPARTMENT_NAME,
+} from './constants/parking.constants';
 
 @Injectable()
 export class ParkingUrgentScheduler {
@@ -48,7 +53,9 @@ export class ParkingUrgentScheduler {
       const damagesMarked = await this.parkingDamagesService.markUrgentDamages();
 
       if (issuesMarked > 0 || damagesMarked > 0) {
-        this.logger.log(`Marcate ca urgente: ${issuesMarked} probleme, ${damagesMarked} prejudicii`);
+        this.logger.log(
+          `Marcate ca urgente: ${issuesMarked} probleme, ${damagesMarked} prejudicii`,
+        );
       }
     } catch (error) {
       this.logger.error('Eroare la marcarea problemelor urgente:', error);
@@ -124,7 +131,7 @@ export class ParkingUrgentScheduler {
     const now = new Date();
 
     // Formateaza problemele pentru email (cu assignedTo pentru filtrare)
-    const allUnresolvedIssues = activeIssues.map(issue => {
+    const allUnresolvedIssues = activeIssues.map((issue) => {
       const createdAt = new Date(issue.createdAt);
       const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
       return {
@@ -139,7 +146,7 @@ export class ParkingUrgentScheduler {
     });
 
     // Formateaza prejudiciile pentru email
-    const allUnresolvedDamages = activeDamages.map(damage => {
+    const allUnresolvedDamages = activeDamages.map((damage) => {
       const createdAt = new Date(damage.createdAt);
       const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
       return {
@@ -208,7 +215,7 @@ export class ParkingUrgentScheduler {
     // 2. Intretinere Parcari - primesc DOAR problemele asignate lor
     for (const user of maintenanceUsers) {
       const userAssignedIssues = allUnresolvedIssues.filter(
-        issue => issue.assignedTo === user.id,
+        (issue) => issue.assignedTo === user.id,
       );
       await sendEmailToUser(user, userAssignedIssues, []);
     }
@@ -369,7 +376,7 @@ export class ParkingUrgentScheduler {
         recipientName: recipient.fullName,
         reportDate,
         createdToday: createdToday.map(formatRequest),
-        resolvedToday: resolvedToday.map(r => ({
+        resolvedToday: resolvedToday.map((r) => ({
           ...formatRequest(r),
           resolvedBy: r.resolver?.fullName || 'N/A',
           resolutionDescription: r.resolutionDescription || '-',
@@ -392,11 +399,10 @@ export class ParkingUrgentScheduler {
 
     this.logger.log(
       `Raport Handicap trimis catre ${sentCount}/${allRecipients.length} destinatari ` +
-      `(${handicapDeptUsers.length} Parcari Handicap, admini primesc raport consolidat). ` +
-      `Create azi: ${createdToday.length}, Finalizate azi: ${resolvedToday.length}, ` +
-      `Active: ${activeNormal.length}, Expirate: ${expired.length}, ` +
-      `Legitimatii Handicap: ${allHandicapLegitimations.length}, Legitimatii Revolutionar: ${allRevolutionarLegitimations.length}`
+        `(${handicapDeptUsers.length} Parcari Handicap, admini primesc raport consolidat). ` +
+        `Create azi: ${createdToday.length}, Finalizate azi: ${resolvedToday.length}, ` +
+        `Active: ${activeNormal.length}, Expirate: ${expired.length}, ` +
+        `Legitimatii Handicap: ${allHandicapLegitimations.length}, Legitimatii Revolutionar: ${allRevolutionarLegitimations.length}`,
     );
   }
-
 }

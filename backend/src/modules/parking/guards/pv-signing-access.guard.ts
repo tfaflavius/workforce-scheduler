@@ -40,10 +40,7 @@ export class PvSigningAccessGuard implements CanActivate {
 
       if (department) {
         // Permite acces pentru Procese Verbale/Facturare si Intretinere Parcari
-        const allowedDepartments = [
-          PROCESE_VERBALE_DEPARTMENT_NAME,
-          MAINTENANCE_DEPARTMENT_NAME,
-        ];
+        const allowedDepartments = [PROCESE_VERBALE_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME];
         if (allowedDepartments.includes(removeDiacritics(department.name))) {
           return true;
         }

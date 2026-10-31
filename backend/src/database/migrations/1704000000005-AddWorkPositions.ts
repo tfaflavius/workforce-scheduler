@@ -52,7 +52,9 @@ export class AddWorkPositions1704000000005 implements MigrationInterface {
     await queryRunner.query(`DROP INDEX IF EXISTS idx_schedule_assignments_work_position`);
 
     // Remove column from schedule_assignments
-    await queryRunner.query(`ALTER TABLE schedule_assignments DROP COLUMN IF EXISTS work_position_id`);
+    await queryRunner.query(
+      `ALTER TABLE schedule_assignments DROP COLUMN IF EXISTS work_position_id`,
+    );
 
     // Drop work_positions table
     await queryRunner.query(`DROP TABLE IF EXISTS work_positions CASCADE`);

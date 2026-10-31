@@ -11,7 +11,11 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { ControlSesizareComment } from './control-sesizare-comment.entity';
-import { ControlSesizareType, ControlSesizareStatus, ControlSesizareZone } from '../constants/parking.constants';
+import {
+  ControlSesizareType,
+  ControlSesizareStatus,
+  ControlSesizareZone,
+} from '../constants/parking.constants';
 import { ParkingLayoutType } from '../constants/parking.constants';
 
 @Entity('control_sesizari')

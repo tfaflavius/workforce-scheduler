@@ -56,23 +56,21 @@ export class LeaveRequestsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const pagination = page || limit
-      ? { page: Math.max(1, parseInt(page || '1', 10) || 1), limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)) }
-      : undefined;
+    const pagination =
+      page || limit
+        ? {
+            page: Math.max(1, parseInt(page || '1', 10) || 1),
+            limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
+          }
+        : undefined;
     return this.leaveRequestsService.getAllRequests(status, pagination);
   }
 
   @Get('user/:userId/balance')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  getUserBalance(
-    @Param('userId') userId: string,
-    @Query('year') year?: string,
-  ) {
-    return this.leaveRequestsService.getUserBalance(
-      userId,
-      year ? parseInt(year, 10) : undefined,
-    );
+  getUserBalance(@Param('userId') userId: string, @Query('year') year?: string) {
+    return this.leaveRequestsService.getUserBalance(userId, year ? parseInt(year, 10) : undefined);
   }
 
   @Patch('user/:userId/balance')
@@ -112,11 +110,7 @@ export class LeaveRequestsController {
   @Patch(':id/respond')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  respond(
-    @Param('id') id: string,
-    @Body() dto: RespondLeaveRequestDto,
-    @Request() req,
-  ) {
+  respond(@Param('id') id: string, @Body() dto: RespondLeaveRequestDto, @Request() req) {
     return this.leaveRequestsService.respond(id, req.user.id, dto);
   }
 
@@ -128,11 +122,7 @@ export class LeaveRequestsController {
   @Patch(':id/admin-edit')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  adminEdit(
-    @Param('id') id: string,
-    @Body() dto: AdminEditLeaveRequestDto,
-    @Request() req,
-  ) {
+  adminEdit(@Param('id') id: string, @Body() dto: AdminEditLeaveRequestDto, @Request() req) {
     return this.leaveRequestsService.adminEdit(id, req.user.id, dto);
   }
 

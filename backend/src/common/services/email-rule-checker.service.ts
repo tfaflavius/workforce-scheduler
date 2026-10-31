@@ -34,7 +34,7 @@ export class EmailRuleCheckerService {
     }
 
     // If at least one rule is active, allow
-    return rules.some(rule => rule.isActive);
+    return rules.some((rule) => rule.isActive);
   }
 
   /**
@@ -51,7 +51,10 @@ export class EmailRuleCheckerService {
   /**
    * Get all active immediate rules for a given event type and action.
    */
-  async getImmediateRules(eventType: string, eventAction: string): Promise<EmailNotificationRule[]> {
+  async getImmediateRules(
+    eventType: string,
+    eventAction: string,
+  ): Promise<EmailNotificationRule[]> {
     return this.ruleRepo.find({
       where: { eventType, eventAction, isActive: true, sendImmediate: true },
       relations: ['recipientDepartment'],

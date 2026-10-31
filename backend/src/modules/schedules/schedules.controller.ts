@@ -99,21 +99,13 @@ export class SchedulesController {
 
   @Post(':id/approve')
   @Roles(UserRole.ADMIN)
-  approve(
-    @Param('id') id: string,
-    @Request() req,
-    @Body('notes') notes?: string,
-  ) {
+  approve(@Param('id') id: string, @Request() req, @Body('notes') notes?: string) {
     return this.schedulesService.approve(id, req.user.id, notes);
   }
 
   @Post(':id/reject')
   @Roles(UserRole.ADMIN)
-  reject(
-    @Param('id') id: string,
-    @Request() req,
-    @Body('reason') reason: string,
-  ) {
+  reject(@Param('id') id: string, @Request() req, @Body('reason') reason: string) {
     return this.schedulesService.reject(id, req.user.id, reason);
   }
 

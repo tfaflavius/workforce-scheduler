@@ -33,17 +33,12 @@ export class ParkingDamagesController {
   constructor(private readonly parkingDamagesService: ParkingDamagesService) {}
 
   @Post()
-  async create(
-    @Request() req,
-    @Body() dto: CreateParkingDamageDto,
-  ): Promise<ParkingDamage> {
+  async create(@Request() req, @Body() dto: CreateParkingDamageDto): Promise<ParkingDamage> {
     return this.parkingDamagesService.create(req.user.id, dto);
   }
 
   @Get()
-  async findAll(
-    @Query('status') status?: ParkingDamageStatus,
-  ): Promise<ParkingDamage[]> {
+  async findAll(@Query('status') status?: ParkingDamageStatus): Promise<ParkingDamage[]> {
     return this.parkingDamagesService.findAll(status);
   }
 

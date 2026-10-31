@@ -54,13 +54,19 @@ export class PvSigningService {
 
   // ===== SESSIONS =====
 
-  async createSession(userId: string, dto: CreatePvSigningSessionDto, user: any): Promise<PvSigningSession> {
+  async createSession(
+    userId: string,
+    dto: CreatePvSigningSessionDto,
+    user: any,
+  ): Promise<PvSigningSession> {
     // Doar PVF si Admin pot crea sesiuni
     const userDeptName = removeDiacritics(user.department?.name || '');
     const canCreate = isAdminOrAbove(user.role) || userDeptName === PROCESE_VERBALE_DEPARTMENT_NAME;
 
     if (!canCreate) {
-      throw new ForbiddenException('Doar departamentul Procese Verbale/Facturare si administratorii pot crea sesiuni');
+      throw new ForbiddenException(
+        'Doar departamentul Procese Verbale/Facturare si administratorii pot crea sesiuni',
+      );
     }
 
     // Validare: trebuie sa aiba cel putin 1 zi
@@ -118,7 +124,8 @@ export class PvSigningService {
   }
 
   async findAllSessions(status?: PvSessionStatus): Promise<PvSigningSession[]> {
-    const query = this.sessionRepository.createQueryBuilder('session')
+    const query = this.sessionRepository
+      .createQueryBuilder('session')
       .leftJoinAndSelect('session.creator', 'creator')
       .leftJoinAndSelect('session.lastModifier', 'lastModifier')
       .leftJoinAndSelect('session.days', 'days')
@@ -159,7 +166,12 @@ export class PvSigningService {
     return session;
   }
 
-  async updateSession(id: string, userId: string, dto: UpdatePvSigningSessionDto, user: any): Promise<PvSigningSession> {
+  async updateSession(
+    id: string,
+    userId: string,
+    dto: UpdatePvSigningSessionDto,
+    user: any,
+  ): Promise<PvSigningSession> {
     // Doar Admin poate edita sesiuni
     if (!isAdminOrAbove(user.role)) {
       throw new ForbiddenException('Doar administratorii pot modifica sesiunile');
@@ -185,7 +197,7 @@ export class PvSigningService {
     if (dto.days && dto.days.length > 0) {
       // Sterge zilele vechi care nu au useri asignati
       const existingDays = await this.dayRepository.find({ where: { sessionId: id } });
-      const daysToDelete = existingDays.filter(d => !d.maintenanceUser1Id);
+      const daysToDelete = existingDays.filter((d) => !d.maintenanceUser1Id);
       if (daysToDelete.length > 0) {
         await this.dayRepository.remove(daysToDelete);
       }
@@ -247,7 +259,8 @@ export class PvSigningService {
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
     const cutoffStr = ninetyDaysAgo.toISOString().slice(0, 10);
 
-    const days = await this.dayRepository.createQueryBuilder('day')
+    const days = await this.dayRepository
+      .createQueryBuilder('day')
       .leftJoinAndSelect('day.session', 'session')
       .leftJoinAndSelect('day.maintenanceUser1', 'maintenanceUser1')
       .leftJoinAndSelect('day.maintenanceUser2', 'maintenanceUser2')
@@ -260,7 +273,8 @@ export class PvSigningService {
   }
 
   async getMyClaimedDays(userId: string): Promise<PvSigningDay[]> {
-    const days = await this.dayRepository.createQueryBuilder('day')
+    const days = await this.dayRepository
+      .createQueryBuilder('day')
       .leftJoinAndSelect('day.session', 'session')
       .leftJoinAndSelect('day.maintenanceUser1', 'maintenanceUser1')
       .leftJoinAndSelect('day.maintenanceUser2', 'maintenanceUser2')
@@ -279,7 +293,9 @@ export class PvSigningService {
     const isAdmin = isAdminOrAbove(user.role);
 
     if (!isMaintenance && !isAdmin) {
-      throw new ForbiddenException('Doar departamentul Intretinere Parcari si administratorii pot revendica zile');
+      throw new ForbiddenException(
+        'Doar departamentul Intretinere Parcari si administratorii pot revendica zile',
+      );
     }
 
     const day = await this.dayRepository.findOne({
@@ -342,7 +358,9 @@ export class PvSigningService {
 
     // Nu se poate face unclaim daca ziua e in progress sau completed
     if (day.status === PV_DAY_STATUS.IN_PROGRESS || day.status === PV_DAY_STATUS.COMPLETED) {
-      throw new BadRequestException('Nu se poate renunta la o zi care este in desfasurare sau finalizata');
+      throw new BadRequestException(
+        'Nu se poate renunta la o zi care este in desfasurare sau finalizata',
+      );
     }
 
     const isAdmin = isAdminOrAbove(user.role);
@@ -374,7 +392,11 @@ export class PvSigningService {
     return this.findOneDay(dayId);
   }
 
-  async adminAssignDay(dayId: string, adminId: string, dto: AdminAssignPvSigningDayDto): Promise<PvSigningDay> {
+  async adminAssignDay(
+    dayId: string,
+    adminId: string,
+    dto: AdminAssignPvSigningDayDto,
+  ): Promise<PvSigningDay> {
     const day = await this.dayRepository.findOne({
       where: { id: dayId },
       relations: ['session'],
@@ -397,7 +419,9 @@ export class PvSigningService {
     // Verificare: userul e din departamentul Intretinere Parcari
     const targetDeptName = removeDiacritics(targetUser.department?.name || '');
     if (targetDeptName !== MAINTENANCE_DEPARTMENT_NAME) {
-      throw new BadRequestException('Utilizatorul nu face parte din departamentul Intretinere Parcari');
+      throw new BadRequestException(
+        'Utilizatorul nu face parte din departamentul Intretinere Parcari',
+      );
     }
 
     // Verificare: ziua nu e deja ocupata (semnare: 1 user)
@@ -424,13 +448,15 @@ export class PvSigningService {
     await this.recalculateSessionStatus(day.sessionId);
 
     // Notifica userul asignat
-    await this.notificationsService.createMany([{
-      userId: dto.userId,
-      type: NotificationType.PV_SESSION_ASSIGNED,
-      title: 'Asignat pe zi semnare PV',
-      message: `Ai fost asignat de administrator pe o zi de semnare procese verbale (${this.formatDate(day.signingDate)}).`,
-      data: { pvDayId: dayId, pvSessionId: day.sessionId },
-    }]);
+    await this.notificationsService.createMany([
+      {
+        userId: dto.userId,
+        type: NotificationType.PV_SESSION_ASSIGNED,
+        title: 'Asignat pe zi semnare PV',
+        message: `Ai fost asignat de administrator pe o zi de semnare procese verbale (${this.formatDate(day.signingDate)}).`,
+        data: { pvDayId: dayId, pvSessionId: day.sessionId },
+      },
+    ]);
 
     await this.notifyDayFullyAssigned(day);
 
@@ -439,7 +465,12 @@ export class PvSigningService {
 
   // ===== COMPLETE DAY =====
 
-  async completeDay(dayId: string, userId: string, dto: CompletePvSigningDayDto, user: any): Promise<PvSigningDay> {
+  async completeDay(
+    dayId: string,
+    userId: string,
+    dto: CompletePvSigningDayDto,
+    user: any,
+  ): Promise<PvSigningDay> {
     const day = await this.dayRepository.findOne({
       where: { id: dayId },
       relations: ['session'],
@@ -453,7 +484,9 @@ export class PvSigningService {
     const isAssigned = day.maintenanceUser1Id === userId;
 
     if (!isAdmin && !isAssigned) {
-      throw new ForbiddenException('Doar utilizatorii asignati pe aceasta zi sau administratorii pot finaliza');
+      throw new ForbiddenException(
+        'Doar utilizatorii asignati pe aceasta zi sau administratorii pot finaliza',
+      );
     }
 
     if (day.status === PV_DAY_STATUS.COMPLETED) {
@@ -485,7 +518,11 @@ export class PvSigningService {
 
   // ===== COMMENTS =====
 
-  async addComment(sessionId: string, userId: string, dto: CreateCommentDto): Promise<PvSigningSessionComment> {
+  async addComment(
+    sessionId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<PvSigningSessionComment> {
     // Verifica ca sesiunea exista
     await this.findOneSession(sessionId);
 
@@ -559,12 +596,13 @@ export class PvSigningService {
     const days = session.days;
     if (!days || days.length === 0) return;
 
-    const allCompleted = days.every(d => d.status === PV_DAY_STATUS.COMPLETED);
-    const anyInProgress = days.some(d => d.status === PV_DAY_STATUS.IN_PROGRESS);
-    const allAssignedOrBetter = days.every(d =>
-      d.status === PV_DAY_STATUS.ASSIGNED ||
-      d.status === PV_DAY_STATUS.IN_PROGRESS ||
-      d.status === PV_DAY_STATUS.COMPLETED,
+    const allCompleted = days.every((d) => d.status === PV_DAY_STATUS.COMPLETED);
+    const anyInProgress = days.some((d) => d.status === PV_DAY_STATUS.IN_PROGRESS);
+    const allAssignedOrBetter = days.every(
+      (d) =>
+        d.status === PV_DAY_STATUS.ASSIGNED ||
+        d.status === PV_DAY_STATUS.IN_PROGRESS ||
+        d.status === PV_DAY_STATUS.COMPLETED,
     );
 
     let newStatus: PvSessionStatus;
@@ -603,7 +641,7 @@ export class PvSigningService {
           where: { departmentId: maintenanceDept.id, isActive: true },
         });
 
-        maintenanceUsers.forEach(u => {
+        maintenanceUsers.forEach((u) => {
           if (u.id !== creatorId && !notifiedUserIds.has(u.id)) {
             notifiedUserIds.add(u.id);
             notifications.push({
@@ -626,7 +664,7 @@ export class PvSigningService {
         ],
       });
 
-      adminsManagers.forEach(u => {
+      adminsManagers.forEach((u) => {
         if (u.id !== creatorId && !notifiedUserIds.has(u.id)) {
           notifiedUserIds.add(u.id);
           notifications.push({
@@ -662,7 +700,7 @@ export class PvSigningService {
           where: { departmentId: pvfDept.id, isActive: true },
         });
 
-        pvfUsers.forEach(u => {
+        pvfUsers.forEach((u) => {
           if (!notifiedUserIds.has(u.id)) {
             notifiedUserIds.add(u.id);
             notifications.push({
@@ -681,7 +719,7 @@ export class PvSigningService {
         where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
       });
 
-      admins.forEach(u => {
+      admins.forEach((u) => {
         if (!notifiedUserIds.has(u.id)) {
           notifiedUserIds.add(u.id);
           notifications.push({
@@ -717,7 +755,7 @@ export class PvSigningService {
           where: { departmentId: pvfDept.id, isActive: true },
         });
 
-        pvfUsers.forEach(u => {
+        pvfUsers.forEach((u) => {
           if (!notifiedUserIds.has(u.id)) {
             notifiedUserIds.add(u.id);
             notifications.push({
@@ -736,7 +774,7 @@ export class PvSigningService {
         where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
       });
 
-      admins.forEach(u => {
+      admins.forEach((u) => {
         if (u.id !== completedByUserId && !notifiedUserIds.has(u.id)) {
           notifiedUserIds.add(u.id);
           notifications.push({

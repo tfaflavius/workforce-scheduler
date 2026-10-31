@@ -42,13 +42,17 @@ export class DailyReportsScheduler {
       return;
     }
 
-    const missingNames = missingUsers.map(u => u.fullName).join(', ');
+    const missingNames = missingUsers.map((u) => u.fullName).join(', ');
     this.logger.log(`Utilizatori fara raport zilnic (${missingUsers.length}): ${missingNames}`);
 
     // Construieste lista scurta de nume pt mesaj
-    const shortList = missingUsers.length <= 3
-      ? missingUsers.map(u => u.fullName).join(', ')
-      : `${missingUsers.slice(0, 3).map(u => u.fullName).join(', ')} si alti ${missingUsers.length - 3}`;
+    const shortList =
+      missingUsers.length <= 3
+        ? missingUsers.map((u) => u.fullName).join(', ')
+        : `${missingUsers
+            .slice(0, 3)
+            .map((u) => u.fullName)
+            .join(', ')} si alti ${missingUsers.length - 3}`;
 
     const message = `${missingUsers.length} utilizator(i) nu au trimis raportul zilnic: ${shortList}.`;
 
@@ -73,7 +77,7 @@ export class DailyReportsScheduler {
         data: {
           date: today,
           missingCount: missingUsers.length,
-          missingUserIds: missingUsers.map(u => u.id),
+          missingUserIds: missingUsers.map((u) => u.id),
         },
         skipPush: true, // Push sent separately below with custom message
       });
@@ -91,7 +95,7 @@ export class DailyReportsScheduler {
         data: {
           date: today,
           missingCount: missingUsers.length,
-          missingUserIds: missingUsers.map(u => u.id),
+          missingUserIds: missingUsers.map((u) => u.id),
         },
         skipPush: true, // Push sent separately below with custom message
       });
@@ -113,7 +117,7 @@ export class DailyReportsScheduler {
     }
 
     // Notifica si userii insisi ca nu au trimis raportul
-    const userNotifications = missingUsers.map(u => ({
+    const userNotifications = missingUsers.map((u) => ({
       userId: u.id,
       type: NotificationType.DAILY_REPORT_MISSING,
       title: 'Raport zilnic netrimis',
@@ -129,7 +133,7 @@ export class DailyReportsScheduler {
       await this.notificationsService.createMany(userNotifications);
 
       await this.pushNotificationService.sendToUsers(
-        missingUsers.map(u => u.id),
+        missingUsers.map((u) => u.id),
         'Raport zilnic netrimis',
         'Nu ai trimis raportul zilnic pentru astazi. Te rugam sa il completezi.',
         { type: 'DAILY_REPORT_MISSING', date: today, isSelfNotification: true },

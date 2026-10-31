@@ -163,7 +163,8 @@ export const HANDICAP_REQUEST_TYPES = {
   CREARE_MARCAJ: 'CREARE_MARCAJ',
 } as const;
 
-export type HandicapRequestType = typeof HANDICAP_REQUEST_TYPES[keyof typeof HANDICAP_REQUEST_TYPES];
+export type HandicapRequestType =
+  (typeof HANDICAP_REQUEST_TYPES)[keyof typeof HANDICAP_REQUEST_TYPES];
 
 // Status pentru solicitari handicap
 export const HANDICAP_REQUEST_STATUS = {
@@ -171,7 +172,8 @@ export const HANDICAP_REQUEST_STATUS = {
   FINALIZAT: 'FINALIZAT',
 } as const;
 
-export type HandicapRequestStatus = typeof HANDICAP_REQUEST_STATUS[keyof typeof HANDICAP_REQUEST_STATUS];
+export type HandicapRequestStatus =
+  (typeof HANDICAP_REQUEST_STATUS)[keyof typeof HANDICAP_REQUEST_STATUS];
 
 // Labels in limba romana pentru tipurile de solicitari handicap
 export const HANDICAP_REQUEST_TYPE_LABELS: Record<HandicapRequestType, string> = {
@@ -184,13 +186,14 @@ export const HANDICAP_REQUEST_TYPE_LABELS: Record<HandicapRequestType, string> =
 
 // Tipuri de solicitari parcari domiciliu
 export const DOMICILIU_REQUEST_TYPES = {
-  TRASARE_LOCURI: 'TRASARE_LOCURI',       // Trasare locuri de parcare
-  REVOCARE_LOCURI: 'REVOCARE_LOCURI',     // Revocare locuri de parcare
-  AMPLASARE_PANOU: 'AMPLASARE_PANOU',     // Amplasare panou domiciliu
-  REVOCARE_PANOU: 'REVOCARE_PANOU',       // Revocare panou domiciliu
+  TRASARE_LOCURI: 'TRASARE_LOCURI', // Trasare locuri de parcare
+  REVOCARE_LOCURI: 'REVOCARE_LOCURI', // Revocare locuri de parcare
+  AMPLASARE_PANOU: 'AMPLASARE_PANOU', // Amplasare panou domiciliu
+  REVOCARE_PANOU: 'REVOCARE_PANOU', // Revocare panou domiciliu
 } as const;
 
-export type DomiciliuRequestType = typeof DOMICILIU_REQUEST_TYPES[keyof typeof DOMICILIU_REQUEST_TYPES];
+export type DomiciliuRequestType =
+  (typeof DOMICILIU_REQUEST_TYPES)[keyof typeof DOMICILIU_REQUEST_TYPES];
 
 // Tipuri de parcare
 export const PARKING_LAYOUT_TYPES = {
@@ -199,7 +202,7 @@ export const PARKING_LAYOUT_TYPES = {
   SPIC: 'SPIC',
 } as const;
 
-export type ParkingLayoutType = typeof PARKING_LAYOUT_TYPES[keyof typeof PARKING_LAYOUT_TYPES];
+export type ParkingLayoutType = (typeof PARKING_LAYOUT_TYPES)[keyof typeof PARKING_LAYOUT_TYPES];
 
 export const PARKING_LAYOUT_LABELS: Record<ParkingLayoutType, string> = {
   PARALEL: 'Paralel',
@@ -213,7 +216,8 @@ export const DOMICILIU_REQUEST_STATUS = {
   FINALIZAT: 'FINALIZAT',
 } as const;
 
-export type DomiciliuRequestStatus = typeof DOMICILIU_REQUEST_STATUS[keyof typeof DOMICILIU_REQUEST_STATUS];
+export type DomiciliuRequestStatus =
+  (typeof DOMICILIU_REQUEST_STATUS)[keyof typeof DOMICILIU_REQUEST_STATUS];
 
 // Labels in limba romana pentru tipurile de solicitari domiciliu
 export const DOMICILIU_REQUEST_TYPE_LABELS: Record<DomiciliuRequestType, string> = {
@@ -230,7 +234,8 @@ export const DOMICILIU_REQUEST_PRIORITY = {
   SCAZUT: 'SCAZUT',
 } as const;
 
-export type DomiciliuRequestPriority = typeof DOMICILIU_REQUEST_PRIORITY[keyof typeof DOMICILIU_REQUEST_PRIORITY];
+export type DomiciliuRequestPriority =
+  (typeof DOMICILIU_REQUEST_PRIORITY)[keyof typeof DOMICILIU_REQUEST_PRIORITY];
 
 export const DOMICILIU_REQUEST_PRIORITY_LABELS: Record<DomiciliuRequestPriority, string> = {
   URGENT: 'Urgent',
@@ -246,7 +251,8 @@ export const SIGN_PLACEMENT_STATUS = {
   COMPLETED: 'COMPLETED',
 } as const;
 
-export type SignPlacementStatus = typeof SIGN_PLACEMENT_STATUS[keyof typeof SIGN_PLACEMENT_STATUS];
+export type SignPlacementStatus =
+  (typeof SIGN_PLACEMENT_STATUS)[keyof typeof SIGN_PLACEMENT_STATUS];
 
 export const SIGN_PLACEMENT_STATUS_LABELS: Record<SignPlacementStatus, string> = {
   NONE: 'Nesolicitata',
@@ -263,7 +269,8 @@ export const HANDICAP_LEGITIMATION_STATUS = {
   FINALIZAT: 'FINALIZAT',
 } as const;
 
-export type HandicapLegitimationStatus = typeof HANDICAP_LEGITIMATION_STATUS[keyof typeof HANDICAP_LEGITIMATION_STATUS];
+export type HandicapLegitimationStatus =
+  (typeof HANDICAP_LEGITIMATION_STATUS)[keyof typeof HANDICAP_LEGITIMATION_STATUS];
 
 // ============== LEGITIMATII REVOLUTIONAR/DEPORTAT ==============
 
@@ -273,7 +280,8 @@ export const REVOLUTIONAR_LEGITIMATION_STATUS = {
   FINALIZAT: 'FINALIZAT',
 } as const;
 
-export type RevolutionarLegitimationStatus = typeof REVOLUTIONAR_LEGITIMATION_STATUS[keyof typeof REVOLUTIONAR_LEGITIMATION_STATUS];
+export type RevolutionarLegitimationStatus =
+  (typeof REVOLUTIONAR_LEGITIMATION_STATUS)[keyof typeof REVOLUTIONAR_LEGITIMATION_STATUS];
 
 // ============== DEPARTAMENTE NOI ==============
 
@@ -292,13 +300,13 @@ export const SIMPLE_DASHBOARD_DEPARTMENTS = [
 
 // Status sesiune PV Display
 export const PV_SESSION_STATUS = {
-  DRAFT: 'DRAFT',           // Sesiunea a fost creata, zilele nu sunt complet alocate
-  READY: 'READY',           // Toate zilele au 2 useri Control asignati
+  DRAFT: 'DRAFT', // Sesiunea a fost creata, zilele nu sunt complet alocate
+  READY: 'READY', // Toate zilele au 2 useri Control asignati
   IN_PROGRESS: 'IN_PROGRESS', // Cel putin o zi a inceput (azi sau trecut)
-  COMPLETED: 'COMPLETED',   // Toate zilele au fost finalizate
+  COMPLETED: 'COMPLETED', // Toate zilele au fost finalizate
 } as const;
 
-export type PvSessionStatus = typeof PV_SESSION_STATUS[keyof typeof PV_SESSION_STATUS];
+export type PvSessionStatus = (typeof PV_SESSION_STATUS)[keyof typeof PV_SESSION_STATUS];
 
 export const PV_SESSION_STATUS_LABELS: Record<PvSessionStatus, string> = {
   DRAFT: 'Nefinalizat',
@@ -309,13 +317,13 @@ export const PV_SESSION_STATUS_LABELS: Record<PvSessionStatus, string> = {
 
 // Status zi PV Display
 export const PV_DAY_STATUS = {
-  OPEN: 'OPEN',             // Locuri libere (0/2 sau 1/2)
-  ASSIGNED: 'ASSIGNED',     // 2/2 useri Control asignati
+  OPEN: 'OPEN', // Locuri libere (0/2 sau 1/2)
+  ASSIGNED: 'ASSIGNED', // 2/2 useri Control asignati
   IN_PROGRESS: 'IN_PROGRESS', // Ziua a inceput (scheduler 07:30)
-  COMPLETED: 'COMPLETED',   // Finalizata de Control
+  COMPLETED: 'COMPLETED', // Finalizata de Control
 } as const;
 
-export type PvDayStatus = typeof PV_DAY_STATUS[keyof typeof PV_DAY_STATUS];
+export type PvDayStatus = (typeof PV_DAY_STATUS)[keyof typeof PV_DAY_STATUS];
 
 export const PV_DAY_STATUS_LABELS: Record<PvDayStatus, string> = {
   OPEN: 'Disponibil',
@@ -332,7 +340,8 @@ export const CONTROL_SESIZARE_TYPES = {
   PANOU: 'PANOU',
 } as const;
 
-export type ControlSesizareType = typeof CONTROL_SESIZARE_TYPES[keyof typeof CONTROL_SESIZARE_TYPES];
+export type ControlSesizareType =
+  (typeof CONTROL_SESIZARE_TYPES)[keyof typeof CONTROL_SESIZARE_TYPES];
 
 // Status pentru sesizari control
 export const CONTROL_SESIZARE_STATUS = {
@@ -340,7 +349,8 @@ export const CONTROL_SESIZARE_STATUS = {
   FINALIZAT: 'FINALIZAT',
 } as const;
 
-export type ControlSesizareStatus = typeof CONTROL_SESIZARE_STATUS[keyof typeof CONTROL_SESIZARE_STATUS];
+export type ControlSesizareStatus =
+  (typeof CONTROL_SESIZARE_STATUS)[keyof typeof CONTROL_SESIZARE_STATUS];
 
 // Labels in limba romana pentru tipurile de sesizari
 export const CONTROL_SESIZARE_TYPE_LABELS: Record<ControlSesizareType, string> = {
@@ -355,7 +365,8 @@ export const CONTROL_SESIZARE_ZONES = {
   ALB: 'ALB',
 } as const;
 
-export type ControlSesizareZone = typeof CONTROL_SESIZARE_ZONES[keyof typeof CONTROL_SESIZARE_ZONES];
+export type ControlSesizareZone =
+  (typeof CONTROL_SESIZARE_ZONES)[keyof typeof CONTROL_SESIZARE_ZONES];
 
 export const CONTROL_SESIZARE_ZONE_LABELS: Record<ControlSesizareZone, string> = {
   ROSU: 'Rosu',
@@ -380,7 +391,7 @@ export const PARKING_STAT_LOCATIONS = [
   { key: 'DOJA_P3P4', name: 'P3+P4', group: 'Parcarea Doja' },
 ] as const;
 
-export type ParkingStatLocationKey = typeof PARKING_STAT_LOCATIONS[number]['key'];
+export type ParkingStatLocationKey = (typeof PARKING_STAT_LOCATIONS)[number]['key'];
 
 // Locatii pentru abonamente lunare — Doja ca o singura parcare (fara sub-niveluri)
 export const PARKING_SUBSCRIPTION_LOCATIONS = [
@@ -395,4 +406,4 @@ export const PARKING_SUBSCRIPTION_LOCATIONS = [
   { key: 'DOJA', name: 'Parcarea Doja' },
 ] as const;
 
-export type ParkingSubscriptionLocationKey = typeof PARKING_SUBSCRIPTION_LOCATIONS[number]['key'];
+export type ParkingSubscriptionLocationKey = (typeof PARKING_SUBSCRIPTION_LOCATIONS)[number]['key'];

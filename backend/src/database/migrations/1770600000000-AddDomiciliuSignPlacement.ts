@@ -39,13 +39,29 @@ export class AddDomiciliuSignPlacement1770600000000 implements MigrationInterfac
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_observations"`);
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_completed_at"`);
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_completed_by"`);
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_claimed_at"`);
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_claimed_by"`);
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_requested_by"`);
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_requested_at"`);
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_status"`);
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_observations"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_completed_at"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_completed_by"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_claimed_at"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_claimed_by"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_requested_by"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_requested_at"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "sign_placement_status"`,
+    );
   }
 }

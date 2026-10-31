@@ -1,4 +1,10 @@
-import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
@@ -32,7 +38,9 @@ export class AuthService {
     // Prevent self-assignment of privileged roles during registration
     // Only USER role is allowed for self-registration
     if (registerDto.role && registerDto.role !== UserRole.USER) {
-      throw new ForbiddenException('Nu te poti inregistra cu un rol privilegiat. Contacteaza un administrator.');
+      throw new ForbiddenException(
+        'Nu te poti inregistra cu un rol privilegiat. Contacteaza un administrator.',
+      );
     }
 
     // Check if user already exists in our DB
@@ -52,7 +60,7 @@ export class AuthService {
         {
           fullName: registerDto.fullName,
           role: registerDto.role,
-        }
+        },
       );
 
       // Create user in our database with Supabase ID
@@ -97,13 +105,17 @@ export class AuthService {
 
     // Check if user is approved by admin
     if (!user.isActive) {
-      throw new UnauthorizedException('Contul tau asteapta aprobarea unui administrator. Vei primi acces in curand.');
+      throw new UnauthorizedException(
+        'Contul tau asteapta aprobarea unui administrator. Vei primi acces in curand.',
+      );
     }
 
     // Check account lockout
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
-      this.logger.warn(`[Login] Account locked for ${loginDto.email}. ${minutesLeft} minutes remaining.`);
+      this.logger.warn(
+        `[Login] Account locked for ${loginDto.email}. ${minutesLeft} minutes remaining.`,
+      );
       throw new UnauthorizedException(
         `Contul este blocat temporar dupa prea multe incercari esuate. Incearca din nou in ${minutesLeft} minute.`,
       );
@@ -111,10 +123,7 @@ export class AuthService {
 
     // Try Supabase authentication first (primary)
     try {
-      const loginResult = await this.supabaseService.signIn(
-        loginDto.email,
-        loginDto.password,
-      );
+      const loginResult = await this.supabaseService.signIn(loginDto.email, loginDto.password);
 
       // Reset failed attempts on successful login
       if (user.failedLoginAttempts > 0 || user.lockedUntil) {
@@ -131,13 +140,17 @@ export class AuthService {
         accessToken: loginResult.session.access_token,
       };
     } catch (supabaseError) {
-      this.logger.log(`[Login] Supabase auth failed for ${loginDto.email}: ${supabaseError?.message}. Trying local password...`);
+      this.logger.log(
+        `[Login] Supabase auth failed for ${loginDto.email}: ${supabaseError?.message}. Trying local password...`,
+      );
 
       // Fallback: check local password (useful after password reset if Supabase sync failed)
       if (user.password && user.password.length > 0) {
         const isLocalPasswordValid = await bcrypt.compare(loginDto.password, user.password);
         if (isLocalPasswordValid) {
-          this.logger.log(`[Login] Local password matched for ${loginDto.email}. Syncing to Supabase...`);
+          this.logger.log(
+            `[Login] Local password matched for ${loginDto.email}. Syncing to Supabase...`,
+          );
 
           // Reset failed attempts on successful login
           if (user.failedLoginAttempts > 0 || user.lockedUntil) {
@@ -156,7 +169,9 @@ export class AuthService {
             });
             this.logger.log(`[Login] Ensured Supabase auth user for ${loginDto.email}`);
           } catch (createErr: any) {
-            this.logger.error(`[Login] Supabase self-heal failed for ${loginDto.email}: ${createErr?.message}`);
+            this.logger.error(
+              `[Login] Supabase self-heal failed for ${loginDto.email}: ${createErr?.message}`,
+            );
           }
 
           // Now login with Supabase (should work after sync)
@@ -174,7 +189,9 @@ export class AuthService {
               accessToken: loginResult.session.access_token,
             };
           } catch (retryErr) {
-            this.logger.error(`[Login] Supabase login retry failed after sync: ${retryErr?.message}`);
+            this.logger.error(
+              `[Login] Supabase login retry failed after sync: ${retryErr?.message}`,
+            );
             throw new UnauthorizedException('Credentiale invalide');
           }
         }
@@ -186,7 +203,9 @@ export class AuthService {
       if (updatedUser && updatedUser.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
         updatedUser.lockedUntil = new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000);
         await this.userRepository.save(updatedUser);
-        this.logger.warn(`[Login] Account locked for ${loginDto.email} after ${updatedUser.failedLoginAttempts} failed attempts. Locked until ${updatedUser.lockedUntil.toISOString()}`);
+        this.logger.warn(
+          `[Login] Account locked for ${loginDto.email} after ${updatedUser.failedLoginAttempts} failed attempts. Locked until ${updatedUser.lockedUntil.toISOString()}`,
+        );
       }
 
       throw new UnauthorizedException('Credentiale invalide');
@@ -223,7 +242,8 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    const successMessage = 'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.';
+    const successMessage =
+      'Daca adresa de email exista in sistem, vei primi un link de resetare a parolei.';
 
     // Verifica daca userul exista in DB
     const user = await this.userRepository.findOne({ where: { email } });
@@ -238,14 +258,20 @@ export class AuthService {
       const jwtSecret = this.configService.get<string>('JWT_SECRET');
       const resendKey = this.configService.get<string>('RESEND_API_KEY');
 
-      this.logger.log(`[ForgotPassword] Config check - JWT_SECRET: ${jwtSecret ? 'SET' : 'MISSING'}, RESEND_API_KEY: ${resendKey ? 'SET' : 'MISSING'}, FRONTEND_URL: ${frontendUrl}`);
+      this.logger.log(
+        `[ForgotPassword] Config check - JWT_SECRET: ${jwtSecret ? 'SET' : 'MISSING'}, RESEND_API_KEY: ${resendKey ? 'SET' : 'MISSING'}, FRONTEND_URL: ${frontendUrl}`,
+      );
 
       if (!jwtSecret) {
-        this.logger.error('[ForgotPassword] JWT_SECRET is not configured! Cannot generate reset token.');
+        this.logger.error(
+          '[ForgotPassword] JWT_SECRET is not configured! Cannot generate reset token.',
+        );
         return { message: successMessage };
       }
 
-      this.logger.log(`[ForgotPassword] Generating reset token for ${email} (user: ${user.fullName})`);
+      this.logger.log(
+        `[ForgotPassword] Generating reset token for ${email} (user: ${user.fullName})`,
+      );
 
       // Generate a password reset JWT token (1 hour expiry)
       const resetToken = jwt.sign(
@@ -264,10 +290,14 @@ export class AuthService {
         resetUrl,
       });
 
-      this.logger.log(`[ForgotPassword] Email send result for ${email}: ${emailSent ? 'SUCCESS' : 'FAILED (check RESEND_API_KEY and Resend domain verification)'}`);
+      this.logger.log(
+        `[ForgotPassword] Email send result for ${email}: ${emailSent ? 'SUCCESS' : 'FAILED (check RESEND_API_KEY and Resend domain verification)'}`,
+      );
 
       if (!emailSent) {
-        this.logger.error(`[ForgotPassword] Email FAILED for ${email}. Possible causes: RESEND_API_KEY missing/invalid, domain not verified in Resend, or Resend service error.`);
+        this.logger.error(
+          `[ForgotPassword] Email FAILED for ${email}. Possible causes: RESEND_API_KEY missing/invalid, domain not verified in Resend, or Resend service error.`,
+        );
       }
     } catch (error) {
       this.logger.error('[ForgotPassword] Error:', error?.message || error);
@@ -285,7 +315,9 @@ export class AuthService {
       payload = jwt.verify(resetToken, jwtSecret);
     } catch (error) {
       this.logger.error('[ResetPassword] JWT verify failed:', error?.message);
-      throw new BadRequestException('Link-ul de resetare a expirat sau este invalid. Te rugam sa soliciti un nou link.');
+      throw new BadRequestException(
+        'Link-ul de resetare a expirat sau este invalid. Te rugam sa soliciti un nou link.',
+      );
     }
 
     if (payload.purpose !== 'password-reset' || !payload.userId) {
@@ -293,7 +325,9 @@ export class AuthService {
       throw new BadRequestException('Token invalid.');
     }
 
-    this.logger.log(`[ResetPassword] Token valid for userId: ${payload.userId}, email: ${payload.email}`);
+    this.logger.log(
+      `[ResetPassword] Token valid for userId: ${payload.userId}, email: ${payload.email}`,
+    );
 
     const user = await this.userRepository.findOne({ where: { id: payload.userId } });
     if (!user) {
@@ -301,7 +335,9 @@ export class AuthService {
       throw new BadRequestException('Utilizatorul nu a fost gasit.');
     }
 
-    this.logger.log(`[ResetPassword] User found: ${user.fullName} (${user.email}), updating password...`);
+    this.logger.log(
+      `[ResetPassword] User found: ${user.fullName} (${user.email}), updating password...`,
+    );
 
     // 1. Update hashed password in local DB first (this always works)
     user.password = await bcrypt.hash(newPassword, BCRYPT_SALT_ROUNDS);
@@ -314,7 +350,9 @@ export class AuthService {
       this.logger.log(`[ResetPassword] Supabase password updated for ${user.email}`);
     } catch (error) {
       // Log the error but don't fail - we'll handle Supabase sync on next login
-      this.logger.error(`[ResetPassword] Supabase password update failed for ${user.email}: ${error?.message || error}`);
+      this.logger.error(
+        `[ResetPassword] Supabase password update failed for ${user.email}: ${error?.message || error}`,
+      );
       this.logger.error(`[ResetPassword] Full error: ${JSON.stringify(error, null, 2)}`);
     }
 

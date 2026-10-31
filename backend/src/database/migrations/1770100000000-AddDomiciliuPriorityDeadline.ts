@@ -22,7 +22,9 @@ export class AddDomiciliuPriorityDeadline1770100000000 implements MigrationInter
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "deadline_notified_at"`);
+    await queryRunner.query(
+      `ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "deadline_notified_at"`,
+    );
     await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "deadline"`);
     await queryRunner.query(`ALTER TABLE "domiciliu_requests" DROP COLUMN IF EXISTS "priority"`);
   }

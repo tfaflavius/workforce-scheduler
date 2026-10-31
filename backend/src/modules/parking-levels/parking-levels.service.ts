@@ -2,10 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ParkingLevel } from './entities/parking-level.entity';
-import {
-  CreateParkingLevelDto,
-  UpdateParkingLevelDto,
-} from './dto/upsert-parking-level.dto';
+import { CreateParkingLevelDto, UpdateParkingLevelDto } from './dto/upsert-parking-level.dto';
 
 @Injectable()
 export class ParkingLevelsService {

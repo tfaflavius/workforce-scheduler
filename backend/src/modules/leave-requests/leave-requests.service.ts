@@ -50,11 +50,11 @@ function toISODateString(date: Date | string): string {
 
 /** Maps internal leave types to email-friendly categories */
 const LEAVE_TYPE_EMAIL_MAP: Record<string, 'ANNUAL' | 'SICK' | 'UNPAID' | 'OTHER'> = {
-  'VACATION': 'ANNUAL',
-  'MEDICAL': 'SICK',
-  'BIRTHDAY': 'OTHER',
-  'SPECIAL': 'OTHER',
-  'EXTRA_DAYS': 'OTHER',
+  VACATION: 'ANNUAL',
+  MEDICAL: 'SICK',
+  BIRTHDAY: 'OTHER',
+  SPECIAL: 'OTHER',
+  EXTRA_DAYS: 'OTHER',
 };
 
 @Injectable()
@@ -136,14 +136,16 @@ export class LeaveRequestsService {
 
       // Birthday leave is only 1 day
       if (days > 1) {
-        throw new BadRequestException('Concediul pentru Zi de Nastere este valabil doar pentru o zi');
+        throw new BadRequestException(
+          'Concediul pentru Zi de Nastere este valabil doar pentru o zi',
+        );
       }
     }
 
     // Check leave balance only for BIRTHDAY and MEDICAL
     // VACATION, SPECIAL, and EXTRA_DAYS have no limits
     const year = startDate.getFullYear();
-    let balance = await this.getOrCreateBalance(userId, dto.leaveType, year);
+    const balance = await this.getOrCreateBalance(userId, dto.leaveType, year);
 
     // Only enforce balance limits for BIRTHDAY and MEDICAL leave types
     const typesWithBalanceLimit: LeaveType[] = ['BIRTHDAY', 'MEDICAL'];
@@ -172,9 +174,7 @@ export class LeaveRequestsService {
     });
 
     if (overlapping) {
-      throw new BadRequestException(
-        'Ai deja o cerere de concediu pentru aceasta perioada',
-      );
+      throw new BadRequestException('Ai deja o cerere de concediu pentru aceasta perioada');
     }
 
     // Create the leave request
@@ -193,13 +193,15 @@ export class LeaveRequestsService {
     await this.notifyAdminsAboutNewRequest(leaveRequest, user);
 
     // Audit log
-    this.auditService.log({
-      userId,
-      action: 'CREATE',
-      entity: 'LeaveRequest',
-      entityId: leaveRequest.id,
-      description: `Cerere concediu: ${dto.leaveType} (${dto.startDate} - ${dto.endDate})`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'CREATE',
+        entity: 'LeaveRequest',
+        entityId: leaveRequest.id,
+        description: `Cerere concediu: ${dto.leaveType} (${dto.startDate} - ${dto.endDate})`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return this.findOne(leaveRequest.id);
   }
@@ -232,7 +234,10 @@ export class LeaveRequestsService {
   async getAllRequests(
     status?: LeaveRequestStatus,
     pagination?: { page: number; limit: number },
-  ): Promise<{ data: LeaveRequest[]; meta?: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: LeaveRequest[];
+    meta?: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const where: any = {};
     if (status) {
       where.status = status;
@@ -263,7 +268,9 @@ export class LeaveRequestsService {
     return { data };
   }
 
-  async getApprovedByMonth(monthYear: string): Promise<{ userId: string; dates: string[]; leaveType: string }[]> {
+  async getApprovedByMonth(
+    monthYear: string,
+  ): Promise<{ userId: string; dates: string[]; leaveType: string }[]> {
     // Parse monthYear (format: YYYY-MM)
     const [year, month] = monthYear.split('-').map(Number);
 
@@ -351,11 +358,7 @@ export class LeaveRequestsService {
     return overlaps;
   }
 
-  async respond(
-    id: string,
-    adminId: string,
-    dto: RespondLeaveRequestDto,
-  ): Promise<LeaveRequest> {
+  async respond(id: string, adminId: string, dto: RespondLeaveRequestDto): Promise<LeaveRequest> {
     const request = await this.findOne(id);
 
     if (request.status !== 'PENDING') {
@@ -391,7 +394,6 @@ export class LeaveRequestsService {
           .andWhere('leaveType = :leaveType', { leaveType: request.leaveType })
           .andWhere('year = :year', { year })
           .execute();
-
       }
 
       await queryRunner.commitTransaction();
@@ -401,7 +403,9 @@ export class LeaveRequestsService {
         try {
           await this.createLeaveAssignments(request);
         } catch (err) {
-          this.logger.error(`Failed to create leave assignments for request ${id}: ${err?.message}`);
+          this.logger.error(
+            `Failed to create leave assignments for request ${id}: ${err?.message}`,
+          );
         }
       }
     } catch (err) {
@@ -422,14 +426,16 @@ export class LeaveRequestsService {
     }
 
     // Audit log
-    this.auditService.log({
-      userId: adminId,
-      action: 'UPDATE',
-      entity: 'LeaveRequest',
-      entityId: id,
-      description: `${dto.status === 'APPROVED' ? 'Aprobata' : 'Respinsa'} cerere concediu`,
-      changes: { status: { old: 'PENDING', new: dto.status } },
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId: adminId,
+        action: 'UPDATE',
+        entity: 'LeaveRequest',
+        entityId: id,
+        description: `${dto.status === 'APPROVED' ? 'Aprobata' : 'Respinsa'} cerere concediu`,
+        changes: { status: { old: 'PENDING', new: dto.status } },
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return this.findOne(id);
   }
@@ -534,7 +540,6 @@ export class LeaveRequestsService {
           .andWhere('leaveType = :leaveType', { leaveType: newLeaveType })
           .andWhere('year = :year', { year: newYear })
           .execute();
-
       }
 
       await queryRunner.commitTransaction();
@@ -544,7 +549,9 @@ export class LeaveRequestsService {
         try {
           await this.createLeaveAssignments(request);
         } catch (err) {
-          this.logger.error(`Failed to create leave assignments for request ${id}: ${err?.message}`);
+          this.logger.error(
+            `Failed to create leave assignments for request ${id}: ${err?.message}`,
+          );
         }
       }
     } catch (err) {
@@ -600,13 +607,15 @@ export class LeaveRequestsService {
     }
 
     // Audit log
-    this.auditService.log({
-      userId: adminId,
-      action: 'DELETE',
-      entity: 'LeaveRequest',
-      entityId: id,
-      description: `Stearsa cerere concediu: ${leaveType} (${startDate} - ${endDate})`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId: adminId,
+        action: 'DELETE',
+        entity: 'LeaveRequest',
+        entityId: id,
+        description: `Stearsa cerere concediu: ${leaveType} (${startDate} - ${endDate})`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
   }
 
   // Private helper methods
@@ -796,10 +805,7 @@ export class LeaveRequestsService {
     );
   }
 
-  private async notifyAdminsAboutNewRequest(
-    request: LeaveRequest,
-    user: User,
-  ): Promise<void> {
+  private async notifyAdminsAboutNewRequest(request: LeaveRequest, user: User): Promise<void> {
     const admins = await this.userRepository.find({
       where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]) as any, isActive: true },
     });
@@ -859,10 +865,7 @@ export class LeaveRequestsService {
     });
   }
 
-  private async notifyUserAboutResponse(
-    request: LeaveRequest,
-    approved: boolean,
-  ): Promise<void> {
+  private async notifyUserAboutResponse(request: LeaveRequest, approved: boolean): Promise<void> {
     const startDate = new Date(request.startDate).toLocaleDateString('ro-RO');
     const endDate = new Date(request.endDate).toLocaleDateString('ro-RO');
     const days = this.calculateBusinessDays(new Date(request.startDate), new Date(request.endDate));

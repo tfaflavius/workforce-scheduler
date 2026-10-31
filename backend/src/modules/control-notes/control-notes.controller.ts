@@ -28,9 +28,7 @@ export class ControlNotesController {
    * Anyone authenticated can view.
    */
   @Get()
-  async getMatrix(
-    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
-  ) {
+  async getMatrix(@Query('year', new ParseIntPipe({ optional: true })) year?: number) {
     const target = year ?? new Date().getFullYear();
     return this.service.getMatrix(target);
   }

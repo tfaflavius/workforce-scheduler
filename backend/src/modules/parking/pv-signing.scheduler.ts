@@ -6,10 +6,7 @@ import { PvSigningDay } from './entities/pv-signing-day.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { PvSigningService } from './pv-signing.service';
-import {
-  PV_DAY_STATUS,
-  PvDayStatus,
-} from './constants/parking.constants';
+import { PV_DAY_STATUS, PvDayStatus } from './constants/parking.constants';
 
 @Injectable()
 export class PvSigningScheduler {
@@ -30,7 +27,8 @@ export class PvSigningScheduler {
       const today = new Date();
       const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
 
-      const todayDays = await this.dayRepository.createQueryBuilder('day')
+      const todayDays = await this.dayRepository
+        .createQueryBuilder('day')
         .leftJoinAndSelect('day.session', 'session')
         .leftJoinAndSelect('day.maintenanceUser1', 'maintenanceUser1')
         .where('day.signingDate = :today', { today: todayStr })
@@ -51,13 +49,15 @@ export class PvSigningScheduler {
         await this.pvSigningService.recalculateSessionStatus(day.sessionId);
 
         if (day.maintenanceUser1Id) {
-          await this.notificationsService.createMany([{
-            userId: day.maintenanceUser1Id,
-            type: NotificationType.PV_SESSION_ASSIGNED,
-            title: 'Azi ai semnare procese verbale',
-            message: `Ziua ${day.dayOrder} de semnare PV este programata pentru azi (${this.formatDate(day.signingDate)}). ${day.noticeCount} procese verbale de semnat.`,
-            data: { pvDayId: day.id, pvSessionId: day.sessionId },
-          }]);
+          await this.notificationsService.createMany([
+            {
+              userId: day.maintenanceUser1Id,
+              type: NotificationType.PV_SESSION_ASSIGNED,
+              title: 'Azi ai semnare procese verbale',
+              message: `Ziua ${day.dayOrder} de semnare PV este programata pentru azi (${this.formatDate(day.signingDate)}). ${day.noticeCount} procese verbale de semnat.`,
+              data: { pvDayId: day.id, pvSessionId: day.sessionId },
+            },
+          ]);
         }
 
         this.logger.log(`PV Signing Scheduler: zi ${day.id} marcata IN_PROGRESS`);

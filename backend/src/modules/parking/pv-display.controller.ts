@@ -77,11 +77,7 @@ export class PvDisplayController {
   }
 
   @Post('sessions/:id/comments')
-  async addComment(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: CreateCommentDto,
-  ) {
+  async addComment(@Param('id') id: string, @Request() req, @Body() dto: CreateCommentDto) {
     return this.pvDisplayService.addComment(id, req.user.id, dto);
   }
 
@@ -118,22 +114,14 @@ export class PvDisplayController {
   }
 
   @Post('days/:id/complete')
-  async completeDay(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: CompletePvDisplayDayDto,
-  ) {
+  async completeDay(@Param('id') id: string, @Request() req, @Body() dto: CompletePvDisplayDayDto) {
     return this.pvDisplayService.completeDay(id, req.user.id, dto, req.user);
   }
 
   @Post('days/:id/admin-assign')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  async adminAssignDay(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: AdminAssignPvDayDto,
-  ) {
+  async adminAssignDay(@Param('id') id: string, @Request() req, @Body() dto: AdminAssignPvDayDto) {
     return this.pvDisplayService.adminAssignDay(id, req.user.id, dto);
   }
 

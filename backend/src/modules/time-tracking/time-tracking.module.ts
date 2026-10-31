@@ -13,13 +13,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      TimeEntry,
-      LocationLog,
-      ScheduleAssignment,
-      WorkSchedule,
-      User,
-    ]),
+    TypeOrmModule.forFeature([TimeEntry, LocationLog, ScheduleAssignment, WorkSchedule, User]),
     NotificationsModule,
   ],
   controllers: [TimeTrackingController],

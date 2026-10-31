@@ -15,6 +15,8 @@ export class AddFunctionalToStockEntry1771400000000 implements MigrationInterfac
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "equipment_stock_entries" DROP COLUMN IF EXISTS "functional"`);
+    await queryRunner.query(
+      `ALTER TABLE "equipment_stock_entries" DROP COLUMN IF EXISTS "functional"`,
+    );
   }
 }

@@ -52,10 +52,7 @@ export class DailyReportsController {
   @Get('missing')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  getMissingReports(
-    @Query('startDate') startDate: string,
-    @Query('endDate') endDate: string,
-  ) {
+  getMissingReports(@Query('startDate') startDate: string, @Query('endDate') endDate: string) {
     return this.dailyReportsService.getMissingReportsForDateRange(startDate, endDate);
   }
 
@@ -77,22 +74,14 @@ export class DailyReportsController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateDailyReportDto,
-    @Request() req,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdateDailyReportDto, @Request() req) {
     return this.dailyReportsService.update(id, req.user.id, dto);
   }
 
   @Patch(':id/comment')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  addComment(
-    @Param('id') id: string,
-    @Body() dto: AdminCommentDto,
-    @Request() req,
-  ) {
+  addComment(@Param('id') id: string, @Body() dto: AdminCommentDto, @Request() req) {
     return this.dailyReportsService.addAdminComment(id, req.user.id, dto);
   }
 }

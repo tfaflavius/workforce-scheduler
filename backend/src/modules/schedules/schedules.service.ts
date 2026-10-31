@@ -67,15 +67,19 @@ export class SchedulesService {
         status: createScheduleDto.status || 'DRAFT',
       });
 
-      this.logger.log(`Creating schedule with status: ${schedule.status} for month: ${month}/${year}`);
+      this.logger.log(
+        `Creating schedule with status: ${schedule.status} for month: ${month}/${year}`,
+      );
       const savedSchedule = await queryRunner.manager.save(schedule);
       savedScheduleId = savedSchedule.id;
-      this.logger.log(`Schedule created with ID: ${savedSchedule.id}, status: ${savedSchedule.status}`);
+      this.logger.log(
+        `Schedule created with ID: ${savedSchedule.id}, status: ${savedSchedule.status}`,
+      );
 
       // Create assignments
       if (createScheduleDto.assignments && createScheduleDto.assignments.length > 0) {
         // Remove any existing conflicting assignments (UNIQUE constraint: user_id + shift_date)
-        const conflictPairs = createScheduleDto.assignments.map(a => ({
+        const conflictPairs = createScheduleDto.assignments.map((a) => ({
           userId: a.userId,
           shiftDate: new Date(a.shiftDate).toISOString().split('T')[0],
         }));
@@ -109,13 +113,16 @@ export class SchedulesService {
             });
 
             if (!shiftType) {
-              throw new NotFoundException(`Tipul de tura ${assignmentDto.shiftTypeId} nu a fost gasit`);
+              throw new NotFoundException(
+                `Tipul de tura ${assignmentDto.shiftTypeId} nu a fost gasit`,
+              );
             }
 
             // Normalize shiftDate to YYYY-MM-DD string so PG stores it without TZ conversion
-            const shiftDateStr = typeof assignmentDto.shiftDate === 'string'
-              ? assignmentDto.shiftDate.slice(0, 10)
-              : new Date(assignmentDto.shiftDate).toISOString().slice(0, 10);
+            const shiftDateStr =
+              typeof assignmentDto.shiftDate === 'string'
+                ? assignmentDto.shiftDate.slice(0, 10)
+                : new Date(assignmentDto.shiftDate).toISOString().slice(0, 10);
 
             return queryRunner.manager.getRepository(ScheduleAssignment).create({
               workScheduleId: savedScheduleId,
@@ -124,7 +131,8 @@ export class SchedulesService {
               shiftDate: shiftDateStr as any,
               isRestDay: false,
               notes: assignmentDto.notes,
-              workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
+              workPositionId:
+                assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001', // Default to Dispecerat
             });
           }),
         );
@@ -155,9 +163,7 @@ export class SchedulesService {
         );
       }
       if (pgCode === '23502') {
-        throw new BadRequestException(
-          `Camp obligatoriu lipsa: ${pgColumn || err.message}`,
-        );
+        throw new BadRequestException(`Camp obligatoriu lipsa: ${pgColumn || err.message}`);
       }
       // Re-throw with more context if it's a TypeORM/Postgres error
       if (pgCode && err?.message) {
@@ -179,7 +185,13 @@ export class SchedulesService {
         err?.stack,
       );
       // Return a minimal schedule object so the client still gets a success response
-      return { id: savedScheduleId, name, month, year, status: createScheduleDto.status || 'DRAFT' } as WorkSchedule;
+      return {
+        id: savedScheduleId,
+        name,
+        month,
+        year,
+        status: createScheduleDto.status || 'DRAFT',
+      } as WorkSchedule;
     }
 
     // Get creator name (best-effort)
@@ -193,28 +205,32 @@ export class SchedulesService {
     const monthYear = `${year}-${String(month).padStart(2, '0')}`;
 
     // Send in-app notifications to affected employees (fire-and-forget)
-    const userIds = [...new Set(finalSchedule.assignments?.map(a => a.userId) || [])];
+    const userIds = [...new Set(finalSchedule.assignments?.map((a) => a.userId) || [])];
     if (userIds.length > 0) {
-      this.notificationsService.notifyScheduleCreated(userIds, monthYear, creatorName, savedScheduleId).catch(err => {
-        this.logger.error('Failed to send schedule creation notifications:', err);
-      });
+      this.notificationsService
+        .notifyScheduleCreated(userIds, monthYear, creatorName, savedScheduleId)
+        .catch((err) => {
+          this.logger.error('Failed to send schedule creation notifications:', err);
+        });
     }
 
     // Send email notifications if schedule is approved (admin created it directly)
     if (finalSchedule.status === 'APPROVED') {
-      this.sendScheduleNotifications(finalSchedule.id, 'created').catch(err => {
+      this.sendScheduleNotifications(finalSchedule.id, 'created').catch((err) => {
         this.logger.error('Failed to send schedule creation email notifications:', err);
       });
     }
 
     // Audit log
-    this.auditService.log({
-      userId,
-      action: 'CREATE',
-      entity: 'Schedule',
-      entityId: savedScheduleId,
-      description: `Creat program: ${finalSchedule.name}`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'CREATE',
+        entity: 'Schedule',
+        entityId: savedScheduleId,
+        description: `Creat program: ${finalSchedule.name}`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return finalSchedule;
   }
@@ -247,7 +263,9 @@ export class SchedulesService {
     }
 
     if (filters?.departmentId) {
-      query.andWhere('schedule.departmentId = :departmentId', { departmentId: filters.departmentId });
+      query.andWhere('schedule.departmentId = :departmentId', {
+        departmentId: filters.departmentId,
+      });
     }
 
     // Role-based filtering
@@ -258,7 +276,7 @@ export class SchedulesService {
       // For regular users, only return schedules where they have assignments
       query.andWhere(
         'EXISTS (SELECT 1 FROM schedule_assignments sa WHERE sa.work_schedule_id = schedule.id AND sa.user_id = :userId)',
-        { userId: filters.userId }
+        { userId: filters.userId },
       );
     }
 
@@ -286,8 +304,8 @@ export class SchedulesService {
 
     // For regular users, filter assignments to only show their own
     if (filters?.userRole === 'USER' && filters?.userId) {
-      return schedules.map(schedule => {
-        schedule.assignments = schedule.assignments.filter(a => a.userId === filters.userId);
+      return schedules.map((schedule) => {
+        schedule.assignments = schedule.assignments.filter((a) => a.userId === filters.userId);
         return schedule;
       });
     }
@@ -296,15 +314,15 @@ export class SchedulesService {
     // si elimina programele care nu mai au nicio asignare vizibila.
     if (filters?.userRole === 'RESURSE_UMANE' && filters?.userId) {
       return schedules
-        .map(schedule => {
-          schedule.assignments = (schedule.assignments || []).filter(a => {
+        .map((schedule) => {
+          schedule.assignments = (schedule.assignments || []).filter((a) => {
             const inDept = !!a.user && hrAllowedDeptIds.includes(a.user.departmentId);
             const dispOk = !hrOnlyDisp || a.workPosition?.shortName === 'DISP';
             return inDept && dispOk;
           });
           return schedule;
         })
-        .filter(schedule => schedule.assignments.length > 0);
+        .filter((schedule) => schedule.assignments.length > 0);
     }
 
     return schedules;
@@ -313,7 +331,15 @@ export class SchedulesService {
   async findOne(id: string): Promise<WorkSchedule> {
     const schedule = await this.scheduleRepository.findOne({
       where: { id },
-      relations: ['creator', 'department', 'approver', 'assignments', 'assignments.user', 'assignments.shiftType', 'assignments.workPosition'],
+      relations: [
+        'creator',
+        'department',
+        'approver',
+        'assignments',
+        'assignments.user',
+        'assignments.shiftType',
+        'assignments.workPosition',
+      ],
     });
 
     if (!schedule) {
@@ -323,7 +349,11 @@ export class SchedulesService {
     return schedule;
   }
 
-  async update(id: string, updateScheduleDto: UpdateScheduleDto, updaterUserId?: string): Promise<WorkSchedule> {
+  async update(
+    id: string,
+    updateScheduleDto: UpdateScheduleDto,
+    updaterUserId?: string,
+  ): Promise<WorkSchedule> {
     const schedule = await this.findOne(id);
 
     // Userii efectiv modificati in acest update (folositi pentru notificari scoped +
@@ -343,12 +373,16 @@ export class SchedulesService {
         // DUPA ce assignment-urile existente ale userului erau deja sterse -> userul
         // disparea complet din program (si pentru el, si pentru colegi). Validam intai,
         // astfel incat tot update-ul sa dea rollback curat in loc sa piarda date.
-        const referencedShiftTypeIds = [...new Set(updateScheduleDto.assignments.map(a => a.shiftTypeId))];
+        const referencedShiftTypeIds = [
+          ...new Set(updateScheduleDto.assignments.map((a) => a.shiftTypeId)),
+        ];
         const foundShiftTypes = await queryRunner.manager.getRepository(ShiftType).find({
           where: { id: In(referencedShiftTypeIds) },
         });
-        const shiftTypeIdSet = new Set(foundShiftTypes.map(st => st.id));
-        const missingShiftTypeIds = referencedShiftTypeIds.filter(stId => !shiftTypeIdSet.has(stId));
+        const shiftTypeIdSet = new Set(foundShiftTypes.map((st) => st.id));
+        const missingShiftTypeIds = referencedShiftTypeIds.filter(
+          (stId) => !shiftTypeIdSet.has(stId),
+        );
         if (missingShiftTypeIds.length > 0) {
           throw new BadRequestException(
             `Tipuri de tura inexistente, programul nu a fost modificat: ${missingShiftTypeIds.join(', ')}`,
@@ -356,7 +390,7 @@ export class SchedulesService {
         }
 
         // Get the unique user IDs being updated
-        affectedUserIds = [...new Set(updateScheduleDto.assignments.map(a => a.userId))];
+        affectedUserIds = [...new Set(updateScheduleDto.assignments.map((a) => a.userId))];
 
         // Un WorkSchedule este PARTAJAT intre mai multi angajati, dar statusul
         // (DRAFT/PENDING_APPROVAL/APPROVED) este per-program. Daca schimbam statusul
@@ -368,7 +402,7 @@ export class SchedulesService {
         // lasam programul partajat (cu colegii) complet neatins.
         const requestedStatus = updateScheduleDto.status;
         const otherUsersPresent = (schedule.assignments || []).some(
-          a => !affectedUserIds.includes(a.userId),
+          (a) => !affectedUserIds.includes(a.userId),
         );
         const needSplit =
           !!requestedStatus &&
@@ -413,8 +447,8 @@ export class SchedulesService {
 
           // Also delete from ANY other schedule for the same dates (UNIQUE: user_id + shift_date)
           const userDates = updateScheduleDto.assignments
-            .filter(a => a.userId === affectedUserId)
-            .map(a => new Date(a.shiftDate).toISOString().split('T')[0]);
+            .filter((a) => a.userId === affectedUserId)
+            .map((a) => new Date(a.shiftDate).toISOString().split('T')[0]);
 
           if (userDates.length > 0) {
             await queryRunner.manager
@@ -431,9 +465,10 @@ export class SchedulesService {
         // split schedule). Toate shiftTypeIds au fost validate mai sus, deci nu sarim nimic.
         for (const assignmentDto of updateScheduleDto.assignments) {
           // Normalize shiftDate to YYYY-MM-DD string so PG stores it without TZ conversion
-          const shiftDateStr = typeof assignmentDto.shiftDate === 'string'
-            ? assignmentDto.shiftDate.slice(0, 10)
-            : new Date(assignmentDto.shiftDate).toISOString().slice(0, 10);
+          const shiftDateStr =
+            typeof assignmentDto.shiftDate === 'string'
+              ? assignmentDto.shiftDate.slice(0, 10)
+              : new Date(assignmentDto.shiftDate).toISOString().slice(0, 10);
 
           await queryRunner.manager
             .createQueryBuilder()
@@ -446,7 +481,8 @@ export class SchedulesService {
               shiftDate: shiftDateStr,
               isRestDay: false,
               notes: assignmentDto.notes || null,
-              workPositionId: assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001',
+              workPositionId:
+                assignmentDto.workPositionId || '00000000-0000-0000-0000-000000000001',
             })
             .execute();
         }
@@ -475,10 +511,7 @@ export class SchedulesService {
       await queryRunner.commitTransaction();
     } catch (err: any) {
       await queryRunner.rollbackTransaction();
-      this.logger.error(
-        `Schedule update failed for ${id}: ${err?.message || err}`,
-        err?.stack,
-      );
+      this.logger.error(`Schedule update failed for ${id}: ${err?.message || err}`, err?.stack);
       // Convert DB constraint errors into user-friendly messages
       if (err?.code === '23505') {
         throw new BadRequestException(
@@ -491,9 +524,7 @@ export class SchedulesService {
         );
       }
       if (err?.code === '23502') {
-        throw new BadRequestException(
-          `Camp obligatoriu lipsa: ${err.column || err.message}`,
-        );
+        throw new BadRequestException(`Camp obligatoriu lipsa: ${err.column || err.message}`);
       }
       if (err?.code && err?.message) {
         throw new BadRequestException(`Eroare baza de date (${err.code}): ${err.message}`);
@@ -522,18 +553,21 @@ export class SchedulesService {
         // Notifica DOAR userii efectiv modificati, nu toti colegii din programul partajat.
         // (Anterior se notificau toti userii din program -> colegi nemodificati primeau
         // "Program actualizat"/cerere de aprobare desi programul lor nu s-a schimbat.)
-        const userIds = affectedUserIds.length > 0
-          ? affectedUserIds
-          : [...new Set(updatedSchedule.assignments?.map(a => a.userId) || [])];
+        const userIds =
+          affectedUserIds.length > 0
+            ? affectedUserIds
+            : [...new Set(updatedSchedule.assignments?.map((a) => a.userId) || [])];
         if (userIds.length > 0) {
           let updaterName = 'Administrator';
           if (updaterUserId) {
             const updater = await this.userRepository.findOne({ where: { id: updaterUserId } });
             updaterName = updater?.fullName || 'Administrator';
           }
-          this.notificationsService.notifyScheduleUpdated(userIds, monthYear, updaterName, returnScheduleId).catch(err => {
-            this.logger.error('Failed to send schedule update notifications:', err);
-          });
+          this.notificationsService
+            .notifyScheduleUpdated(userIds, monthYear, updaterName, returnScheduleId)
+            .catch((err) => {
+              this.logger.error('Failed to send schedule update notifications:', err);
+            });
         }
 
         if (updatedSchedule.status === 'APPROVED') {
@@ -542,7 +576,7 @@ export class SchedulesService {
             'updated',
             undefined,
             affectedUserIds.length > 0 ? affectedUserIds : undefined,
-          ).catch(err => {
+          ).catch((err) => {
             this.logger.error('Failed to send schedule update email notifications:', err);
           });
         }
@@ -577,27 +611,31 @@ export class SchedulesService {
     const monthYear = `${approvedSchedule.year}-${String(approvedSchedule.month).padStart(2, '0')}`;
 
     // Send in-app notifications to affected employees
-    const userIds = [...new Set(approvedSchedule.assignments.map(a => a.userId))];
+    const userIds = [...new Set(approvedSchedule.assignments.map((a) => a.userId))];
     for (const affectedUserId of userIds) {
-      this.notificationsService.notifyScheduleApproved(affectedUserId, monthYear, approverName, id).catch(err => {
-        this.logger.error(`Failed to send approval notification to ${affectedUserId}:`, err);
-      });
+      this.notificationsService
+        .notifyScheduleApproved(affectedUserId, monthYear, approverName, id)
+        .catch((err) => {
+          this.logger.error(`Failed to send approval notification to ${affectedUserId}:`, err);
+        });
     }
 
     // Send email notifications to affected employees
-    this.sendScheduleNotifications(approvedSchedule.id, 'approved').catch(err => {
+    this.sendScheduleNotifications(approvedSchedule.id, 'approved').catch((err) => {
       this.logger.error('Failed to send schedule approval notifications:', err);
     });
 
     // Audit log
-    this.auditService.log({
-      userId,
-      action: 'UPDATE',
-      entity: 'Schedule',
-      entityId: id,
-      description: `Aprobat program: ${approvedSchedule.name}`,
-      changes: { status: { old: 'PENDING_APPROVAL', new: 'APPROVED' } },
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'UPDATE',
+        entity: 'Schedule',
+        entityId: id,
+        description: `Aprobat program: ${approvedSchedule.name}`,
+        changes: { status: { old: 'PENDING_APPROVAL', new: 'APPROVED' } },
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return approvedSchedule;
   }
@@ -622,15 +660,17 @@ export class SchedulesService {
     const monthYear = `${rejectedSchedule.year}-${String(rejectedSchedule.month).padStart(2, '0')}`;
 
     // Send in-app notifications to affected employees
-    const userIds = [...new Set(rejectedSchedule.assignments.map(a => a.userId))];
+    const userIds = [...new Set(rejectedSchedule.assignments.map((a) => a.userId))];
     for (const affectedUserId of userIds) {
-      this.notificationsService.notifyScheduleRejected(affectedUserId, monthYear, reason, rejectorName, id).catch(err => {
-        this.logger.error(`Failed to send rejection notification to ${affectedUserId}:`, err);
-      });
+      this.notificationsService
+        .notifyScheduleRejected(affectedUserId, monthYear, reason, rejectorName, id)
+        .catch((err) => {
+          this.logger.error(`Failed to send rejection notification to ${affectedUserId}:`, err);
+        });
     }
 
     // Send email notifications to affected employees about rejection
-    this.sendScheduleNotifications(rejectedSchedule.id, 'rejected', reason).catch(err => {
+    this.sendScheduleNotifications(rejectedSchedule.id, 'rejected', reason).catch((err) => {
       this.logger.error('Failed to send schedule rejection notifications:', err);
     });
 
@@ -648,7 +688,9 @@ export class SchedulesService {
     const validation = await this.validateLaborLaw(id);
 
     if (validation.criticalViolations && validation.criticalViolations.length > 0) {
-      throw new BadRequestException('Nu se poate trimite programul cu incalcari critice ale legislatiei muncii');
+      throw new BadRequestException(
+        'Nu se poate trimite programul cu incalcari critice ale legislatiei muncii',
+      );
     }
 
     schedule.status = 'PENDING_APPROVAL';
@@ -773,13 +815,15 @@ export class SchedulesService {
     }
 
     // Audit log (before deletion)
-    this.auditService.log({
-      userId,
-      action: 'DELETE',
-      entity: 'Schedule',
-      entityId: id,
-      description: `Sters program: ${schedule.name}`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'DELETE',
+        entity: 'Schedule',
+        entityId: id,
+        description: `Sters program: ${schedule.name}`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     await this.assignmentRepository.delete({ workScheduleId: id });
     await this.scheduleRepository.delete(id);
@@ -822,20 +866,24 @@ export class SchedulesService {
     });
 
     // Remove password from creator and approver
-    const recentSchedules = recentSchedulesRaw.map(schedule => ({
+    const recentSchedules = recentSchedulesRaw.map((schedule) => ({
       ...schedule,
-      creator: schedule.creator ? {
-        id: schedule.creator.id,
-        email: schedule.creator.email,
-        fullName: schedule.creator.fullName,
-        role: schedule.creator.role,
-      } : null,
-      approver: schedule.approver ? {
-        id: schedule.approver.id,
-        email: schedule.approver.email,
-        fullName: schedule.approver.fullName,
-        role: schedule.approver.role,
-      } : null,
+      creator: schedule.creator
+        ? {
+            id: schedule.creator.id,
+            email: schedule.creator.email,
+            fullName: schedule.creator.fullName,
+            role: schedule.creator.role,
+          }
+        : null,
+      approver: schedule.approver
+        ? {
+            id: schedule.approver.id,
+            email: schedule.approver.email,
+            fullName: schedule.approver.fullName,
+            role: schedule.approver.role,
+          }
+        : null,
     }));
 
     // Total employees with schedules this month
@@ -846,7 +894,7 @@ export class SchedulesService {
       .where('schedule.month = :month', { month: currentMonth })
       .andWhere('schedule.year = :year', { year: currentYear })
       .andWhere('schedule.status IN (:...statuses)', {
-        statuses: ['APPROVED', 'ACTIVE']
+        statuses: ['APPROVED', 'ACTIVE'],
       })
       .getRawOne();
 
@@ -927,8 +975,8 @@ export class SchedulesService {
     const warnings = [];
 
     // Sort assignments by date
-    const sortedAssignments = assignments.sort((a, b) =>
-      new Date(a.shiftDate).getTime() - new Date(b.shiftDate).getTime()
+    const sortedAssignments = assignments.sort(
+      (a, b) => new Date(a.shiftDate).getTime() - new Date(b.shiftDate).getTime(),
     );
 
     // Determine shift pattern (8h or 12h) from first assignment
@@ -981,7 +1029,8 @@ export class SchedulesService {
             type: 'EXCESSIVE_WEEKLY_HOURS_12H',
             severity: 'CRITICAL',
             message: `Saptamana ${weekNumber}: ${hours}h depaseste maximul de 48h (ture 12h)`,
-            legalReference: 'Codul Muncii Art. 112: Durata maxima legala a timpului de munca nu poate depasi 48 de ore pe saptamana, inclusiv orele suplimentare.',
+            legalReference:
+              'Codul Muncii Art. 112: Durata maxima legala a timpului de munca nu poate depasi 48 de ore pe saptamana, inclusiv orele suplimentare.',
             userId: sortedAssignments[0].userId,
             weekNumber,
             hours,
@@ -1003,7 +1052,8 @@ export class SchedulesService {
             type: 'EXCESSIVE_WORK_DAYS',
             severity: 'CRITICAL',
             message: `Saptamana ${weekNumber}: ${data.days} zile de lucru depaseste maximul de 5 zile (ture 8h)`,
-            legalReference: 'Codul Muncii Art. 110 si Art. 113: Saptamana de lucru este de maximum 5 zile lucratoare. Angajatii au dreptul la minimum 2 zile de repaus saptamanal.',
+            legalReference:
+              'Codul Muncii Art. 110 si Art. 113: Saptamana de lucru este de maximum 5 zile lucratoare. Angajatii au dreptul la minimum 2 zile de repaus saptamanal.',
             userId: sortedAssignments[0].userId,
             weekNumber,
             days: data.days,
@@ -1016,7 +1066,8 @@ export class SchedulesService {
             type: 'EXCESSIVE_WEEKLY_HOURS_8H',
             severity: 'CRITICAL',
             message: `Saptamana ${weekNumber}: ${data.hours}h depaseste maximul de 40h (ture 8h)`,
-            legalReference: 'Codul Muncii Art. 110: Durata normala a timpului de munca este de 8 ore pe zi si de 40 de ore pe saptamana.',
+            legalReference:
+              'Codul Muncii Art. 110: Durata normala a timpului de munca este de 8 ore pe zi si de 40 de ore pe saptamana.',
             userId: sortedAssignments[0].userId,
             weekNumber,
             hours: data.hours,
@@ -1050,7 +1101,8 @@ export class SchedulesService {
             type: 'INSUFFICIENT_REST_8H',
             severity: 'CRITICAL',
             message: `Ture 8h: Odihna insuficienta intre ture (${hoursBetween.toFixed(1)}h < 11h necesar)`,
-            legalReference: 'Codul Muncii Art. 113: Durata minima a repausului zilnic este de 12 ore consecutive. In cazul programului de lucru in ture, repausul intre ture trebuie sa fie de minimum 11 ore.',
+            legalReference:
+              'Codul Muncii Art. 113: Durata minima a repausului zilnic este de 12 ore consecutive. In cazul programului de lucru in ture, repausul intre ture trebuie sa fie de minimum 11 ore.',
             userId: current.userId,
             dates: [current.shiftDate, next.shiftDate],
             actualRest: hoursBetween,
@@ -1101,7 +1153,9 @@ export class SchedulesService {
     return weeklyHours;
   }
 
-  private calculateWeeklyDataFor8H(assignments: ScheduleAssignment[]): Map<number, { hours: number; days: number }> {
+  private calculateWeeklyDataFor8H(
+    assignments: ScheduleAssignment[],
+  ): Map<number, { hours: number; days: number }> {
     const weeklyData = new Map<number, { hours: number; days: number }>();
 
     assignments.forEach((assignment) => {
@@ -1139,8 +1193,8 @@ export class SchedulesService {
 
     // Check each week for 35h consecutive rest
     weekGroups.forEach((weekAssignments, weekNumber) => {
-      const sorted = weekAssignments.sort((a, b) =>
-        new Date(a.shiftDate).getTime() - new Date(b.shiftDate).getTime()
+      const sorted = weekAssignments.sort(
+        (a, b) => new Date(a.shiftDate).getTime() - new Date(b.shiftDate).getTime(),
       );
 
       let maxRestPeriod = 0;
@@ -1207,7 +1261,7 @@ export class SchedulesService {
 
     // Format the response
     // Extract shift code from name (e.g., "Zi (07-19)" -> "Z", "Noapte (19-07)" -> "N")
-    return assignments.map(assignment => {
+    return assignments.map((assignment) => {
       const shiftName = assignment.shiftType?.name || '';
       let shiftCode = '';
       if (shiftName.toLowerCase().includes('zi')) {
@@ -1238,7 +1292,9 @@ export class SchedulesService {
    * Get colleagues working at the same position (DISP or CTRL) for today and tomorrow.
    * Only returns results for users in Dispecerat or Control departments.
    */
-  async getColleaguesByPosition(userId: string): Promise<{ today: any[]; tomorrow: any[]; userPosition: string | null }> {
+  async getColleaguesByPosition(
+    userId: string,
+  ): Promise<{ today: any[]; tomorrow: any[]; userPosition: string | null }> {
     const now = new Date();
     const romaniaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Bucharest' }));
     const todayStr = romaniaTime.toISOString().split('T')[0];
@@ -1305,7 +1361,7 @@ export class SchedulesService {
         .orderBy('shiftType.startTime', 'ASC')
         .getMany();
 
-      return assignments.map(assignment => {
+      return assignments.map((assignment) => {
         const shiftName = assignment.shiftType?.name || '';
         let shiftCode = '';
         if (shiftName.toLowerCase().includes('zi')) shiftCode = 'Z';
@@ -1364,7 +1420,10 @@ export class SchedulesService {
       .leftJoin('assignment.workPosition', 'workPosition')
       .leftJoin('assignment.schedule', 'schedule')
       .where('assignment.userId = :userId', { userId })
-      .andWhere('assignment.shiftDate BETWEEN :start AND :end', { start: monthStart, end: monthEnd })
+      .andWhere('assignment.shiftDate BETWEEN :start AND :end', {
+        start: monthStart,
+        end: monthEnd,
+      })
       .andWhere('schedule.status = :status', { status: 'APPROVED' })
       .andWhere('workPosition.shortName = :position', { position: 'DISP' })
       .getMany();
@@ -1373,7 +1432,7 @@ export class SchedulesService {
       return { userPosition: null, days: [] };
     }
 
-    const userDates = [...new Set(userAssignments.map(a => toDateStr(a.shiftDate)))];
+    const userDates = [...new Set(userAssignments.map((a) => toDateStr(a.shiftDate)))];
 
     // Toate assignment-urile DISP din acele zile (toti userii), programe aprobate
     const allAssignments = await this.assignmentRepository
@@ -1409,9 +1468,7 @@ export class SchedulesService {
       });
     }
 
-    const days = userDates
-      .sort()
-      .map(date => ({ date, colleagues: byDate.get(date) || [] }));
+    const days = userDates.sort().map((date) => ({ date, colleagues: byDate.get(date) || [] }));
 
     return { userPosition: 'DISP', days };
   }
@@ -1431,10 +1488,11 @@ export class SchedulesService {
       // Get unique user IDs from assignments. When onlyUserIds is provided (ex: la un
       // update care a atins doar un subset de angajati), trimitem email DOAR acelora,
       // ca sa nu primeasca colegii nemodificati un email de "program actualizat".
-      const allUserIds = [...new Set(schedule.assignments.map(a => a.userId))];
-      const userIds = onlyUserIds && onlyUserIds.length > 0
-        ? allUserIds.filter(uid => onlyUserIds.includes(uid))
-        : allUserIds;
+      const allUserIds = [...new Set(schedule.assignments.map((a) => a.userId))];
+      const userIds =
+        onlyUserIds && onlyUserIds.length > 0
+          ? allUserIds.filter((uid) => onlyUserIds.includes(uid))
+          : allUserIds;
 
       if (userIds.length === 0) {
         this.logger.log('No employees to notify for schedule ' + scheduleId);
@@ -1443,9 +1501,9 @@ export class SchedulesService {
 
       // Get user details (email, name)
       const users = await this.userRepository.find({
-        where: { id: In(userIds) }
+        where: { id: In(userIds) },
       });
-      const userMap = new Map(users.map(u => [u.id, u]));
+      const userMap = new Map(users.map((u) => [u.id, u]));
 
       const monthYear = `${schedule.year}-${String(schedule.month).padStart(2, '0')}`;
 
@@ -1460,12 +1518,12 @@ export class SchedulesService {
         }
 
         // Get this user's shifts
-        const userAssignments = schedule.assignments.filter(a => a.userId === userId);
-        const shifts = userAssignments.map(a => ({
+        const userAssignments = schedule.assignments.filter((a) => a.userId === userId);
+        const shifts = userAssignments.map((a) => ({
           date: new Date(a.shiftDate).toLocaleDateString('ro-RO', {
             weekday: 'long',
             day: 'numeric',
-            month: 'long'
+            month: 'long',
           }),
           shiftType: a.shiftType?.name || 'Tura',
           startTime: a.shiftType?.startTime || '',
@@ -1487,7 +1545,7 @@ export class SchedulesService {
       const result = await this.emailService.sendBulkScheduleNotifications(emailDataList);
 
       this.logger.log(
-        `Schedule notifications sent for ${scheduleId}: ${result.success} success, ${result.failed} failed`
+        `Schedule notifications sent for ${scheduleId}: ${result.success} success, ${result.failed} failed`,
       );
 
       return result;

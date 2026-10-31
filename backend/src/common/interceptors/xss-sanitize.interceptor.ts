@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { filterXSS } from 'xss';
 
@@ -33,8 +28,8 @@ export class XssSanitizeInterceptor implements NestInterceptor {
   private sanitize(value: any): any {
     if (typeof value === 'string') {
       return filterXSS(value, {
-        whiteList: {},           // strip ALL HTML tags
-        stripIgnoreTag: true,    // strip tags not in whitelist
+        whiteList: {}, // strip ALL HTML tags
+        stripIgnoreTag: true, // strip tags not in whitelist
         stripIgnoreTagBody: ['script', 'style'], // remove <script>/<style> entirely
       });
     }

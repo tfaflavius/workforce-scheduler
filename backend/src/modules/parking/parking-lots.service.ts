@@ -18,7 +18,9 @@ export class ParkingLotsService implements OnModuleInit {
   async onModuleInit() {
     try {
       const result = await this.seedData();
-      this.logger.log(`Parking lots seed: ${result.message} (${result.parkingLots} lots, ${result.paymentMachines} machines)`);
+      this.logger.log(
+        `Parking lots seed: ${result.message} (${result.parkingLots} lots, ${result.paymentMachines} machines)`,
+      );
     } catch (error) {
       this.logger.warn(`Parking lots seed failed: ${error.message}`);
     }
@@ -46,7 +48,8 @@ export class ParkingLotsService implements OnModuleInit {
   }
 
   async findPaymentMachines(parkingLotId?: string): Promise<PaymentMachine[]> {
-    const query = this.paymentMachineRepository.createQueryBuilder('machine')
+    const query = this.paymentMachineRepository
+      .createQueryBuilder('machine')
       .leftJoinAndSelect('machine.parkingLot', 'parkingLot')
       .where('machine.isActive = :isActive', { isActive: true });
 
@@ -54,7 +57,8 @@ export class ParkingLotsService implements OnModuleInit {
       query.andWhere('machine.parkingLotId = :parkingLotId', { parkingLotId });
     }
 
-    return query.orderBy('parkingLot.name', 'ASC')
+    return query
+      .orderBy('parkingLot.name', 'ASC')
       .addOrderBy('machine.machineNumber', 'ASC')
       .getMany();
   }
@@ -121,9 +125,12 @@ export class ParkingLotsService implements OnModuleInit {
     const totalMachinesCount = await this.paymentMachineRepository.count();
 
     return {
-      message: lotsCreated > 0 ? `Seeded ${lotsCreated} new parking lots` : 'All parking lots already exist',
+      message:
+        lotsCreated > 0
+          ? `Seeded ${lotsCreated} new parking lots`
+          : 'All parking lots already exist',
       parkingLots: totalLots,
-      paymentMachines: totalMachinesCount
+      paymentMachines: totalMachinesCount,
     };
   }
 }

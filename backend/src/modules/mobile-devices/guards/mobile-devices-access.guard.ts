@@ -49,9 +49,6 @@ export class MobileDevicesAccessGuard implements CanActivate {
     }
 
     const deptName = removeDiacritics(department.name);
-    return (
-      deptName === ACHIZITII_DEPARTMENT_NAME ||
-      deptName === PARCOMETRE_DEPARTMENT_NAME
-    );
+    return deptName === ACHIZITII_DEPARTMENT_NAME || deptName === PARCOMETRE_DEPARTMENT_NAME;
   }
 }

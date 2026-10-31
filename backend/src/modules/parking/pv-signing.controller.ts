@@ -77,11 +77,7 @@ export class PvSigningController {
   }
 
   @Post('sessions/:id/comments')
-  async addComment(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: CreateCommentDto,
-  ) {
+  async addComment(@Param('id') id: string, @Request() req, @Body() dto: CreateCommentDto) {
     return this.pvSigningService.addComment(id, req.user.id, dto);
   }
 
@@ -118,11 +114,7 @@ export class PvSigningController {
   }
 
   @Post('days/:id/complete')
-  async completeDay(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: CompletePvSigningDayDto,
-  ) {
+  async completeDay(@Param('id') id: string, @Request() req, @Body() dto: CompletePvSigningDayDto) {
     return this.pvSigningService.completeDay(id, req.user.id, dto, req.user);
   }
 

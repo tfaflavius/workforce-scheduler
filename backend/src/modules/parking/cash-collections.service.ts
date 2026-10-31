@@ -52,7 +52,8 @@ export class CashCollectionsService {
   }
 
   async findAll(filters?: CashCollectionFilters): Promise<CashCollection[]> {
-    const query = this.cashCollectionRepository.createQueryBuilder('collection')
+    const query = this.cashCollectionRepository
+      .createQueryBuilder('collection')
       .leftJoinAndSelect('collection.parkingLot', 'parkingLot')
       .leftJoinAndSelect('collection.paymentMachine', 'paymentMachine')
       .leftJoinAndSelect('collection.collector', 'collector');
@@ -103,10 +104,14 @@ export class CashCollectionsService {
     // Construieste conditiile de filtrare o singura data
     const applyFilters = (qb: SelectQueryBuilder<CashCollection>) => {
       if (filters?.parkingLotIds?.length) {
-        qb.andWhere('c.parkingLotId IN (:...parkingLotIds)', { parkingLotIds: filters.parkingLotIds });
+        qb.andWhere('c.parkingLotId IN (:...parkingLotIds)', {
+          parkingLotIds: filters.parkingLotIds,
+        });
       }
       if (filters?.paymentMachineIds?.length) {
-        qb.andWhere('c.paymentMachineId IN (:...paymentMachineIds)', { paymentMachineIds: filters.paymentMachineIds });
+        qb.andWhere('c.paymentMachineId IN (:...paymentMachineIds)', {
+          paymentMachineIds: filters.paymentMachineIds,
+        });
       }
       if (filters?.startDate) {
         qb.andWhere('c.collectedAt >= :startDate', { startDate: filters.startDate });
@@ -119,7 +124,8 @@ export class CashCollectionsService {
     };
 
     // 1. Total general — un singur query SQL (nu mai incarca toate entitatile)
-    const totalQb = this.cashCollectionRepository.createQueryBuilder('c')
+    const totalQb = this.cashCollectionRepository
+      .createQueryBuilder('c')
       .select('COALESCE(SUM(c.amount), 0)', 'total')
       .addSelect('COUNT(*)::int', 'cnt');
     applyFilters(totalQb);
@@ -128,7 +134,8 @@ export class CashCollectionsService {
     const count = parseInt(totalRow?.cnt, 10) || 0;
 
     // 2. Grupare per parcare — GROUP BY SQL
-    const lotQb = this.cashCollectionRepository.createQueryBuilder('c')
+    const lotQb = this.cashCollectionRepository
+      .createQueryBuilder('c')
       .leftJoin('c.parkingLot', 'lot')
       .select('c.parkingLotId', 'parkingLotId')
       .addSelect('lot.name', 'parkingLotName')
@@ -140,7 +147,8 @@ export class CashCollectionsService {
     const byParkingLotRows = await lotQb.getRawMany();
 
     // 3. Grupare per automat — GROUP BY SQL
-    const machineQb = this.cashCollectionRepository.createQueryBuilder('c')
+    const machineQb = this.cashCollectionRepository
+      .createQueryBuilder('c')
       .leftJoin('c.parkingLot', 'lot2')
       .leftJoin('c.paymentMachine', 'machine')
       .select('c.paymentMachineId', 'paymentMachineId')
@@ -157,13 +165,13 @@ export class CashCollectionsService {
     return {
       totalAmount,
       count,
-      byParkingLot: byParkingLotRows.map(row => ({
+      byParkingLot: byParkingLotRows.map((row) => ({
         parkingLotId: row.parkingLotId,
         parkingLotName: row.parkingLotName || '',
         totalAmount: parseFloat(row.totalAmount) || 0,
         count: parseInt(row.cnt, 10) || 0,
       })),
-      byMachine: byMachineRows.map(row => ({
+      byMachine: byMachineRows.map((row) => ({
         paymentMachineId: row.paymentMachineId,
         machineNumber: row.machineNumber || '',
         parkingLotName: row.parkingLotName || '',

@@ -11,7 +11,13 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { DomiciliuRequestComment } from './domiciliu-request-comment.entity';
-import { DomiciliuRequestType, DomiciliuRequestStatus, ParkingLayoutType, DomiciliuRequestPriority, SignPlacementStatus } from '../constants/parking.constants';
+import {
+  DomiciliuRequestType,
+  DomiciliuRequestStatus,
+  ParkingLayoutType,
+  DomiciliuRequestPriority,
+  SignPlacementStatus,
+} from '../constants/parking.constants';
 
 @Entity('domiciliu_requests')
 @Index('IDX_domiciliu_requests_status', ['status'])

@@ -4,7 +4,10 @@ import { Repository } from 'typeorm';
 import { ParkingDailyTicket } from './entities/parking-daily-ticket.entity';
 import { ParkingMonthlySubscription } from './entities/parking-monthly-subscription.entity';
 import { ParkingWeeklyOccupancy } from './entities/parking-weekly-occupancy.entity';
-import { PARKING_STAT_LOCATIONS, PARKING_SUBSCRIPTION_LOCATIONS } from './constants/parking.constants';
+import {
+  PARKING_STAT_LOCATIONS,
+  PARKING_SUBSCRIPTION_LOCATIONS,
+} from './constants/parking.constants';
 
 interface TicketEntry {
   locationKey: string;
@@ -38,12 +41,16 @@ export class ParkingStatsService {
 
   // ==================== DAILY TICKETS ====================
 
-  async upsertDailyTickets(date: string, entries: TicketEntry[], userId: string): Promise<ParkingDailyTicket[]> {
+  async upsertDailyTickets(
+    date: string,
+    entries: TicketEntry[],
+    userId: string,
+  ): Promise<ParkingDailyTicket[]> {
     const results: ParkingDailyTicket[] = [];
 
     for (const entry of entries) {
       // Validate locationKey
-      if (!PARKING_STAT_LOCATIONS.find(l => l.key === entry.locationKey)) continue;
+      if (!PARKING_STAT_LOCATIONS.find((l) => l.key === entry.locationKey)) continue;
 
       const existing = await this.ticketRepository.findOne({
         where: { date, locationKey: entry.locationKey },
@@ -73,7 +80,9 @@ export class ParkingStatsService {
     });
   }
 
-  async getWeeklyTicketsSummary(weekStart: string): Promise<{ locationKey: string; totalTickets: number }[]> {
+  async getWeeklyTicketsSummary(
+    weekStart: string,
+  ): Promise<{ locationKey: string; totalTickets: number }[]> {
     // weekStart is a Monday date (YYYY-MM-DD)
     const weekEnd = this.addDays(weekStart, 6);
 
@@ -86,13 +95,15 @@ export class ParkingStatsService {
       .orderBy('t.location_key', 'ASC')
       .getRawMany();
 
-    return result.map(r => ({
+    return result.map((r) => ({
       locationKey: r.locationKey,
       totalTickets: Number(r.totalTickets),
     }));
   }
 
-  async getMonthlyTicketsSummary(monthYear: string): Promise<{ locationKey: string; totalTickets: number }[]> {
+  async getMonthlyTicketsSummary(
+    monthYear: string,
+  ): Promise<{ locationKey: string; totalTickets: number }[]> {
     // monthYear format: "2026-01"
     const [year, month] = monthYear.split('-');
     const startDate = `${year}-${month}-01`;
@@ -107,7 +118,7 @@ export class ParkingStatsService {
       .orderBy('t.location_key', 'ASC')
       .getRawMany();
 
-    return result.map(r => ({
+    return result.map((r) => ({
       locationKey: r.locationKey,
       totalTickets: Number(r.totalTickets),
     }));
@@ -115,11 +126,15 @@ export class ParkingStatsService {
 
   // ==================== MONTHLY SUBSCRIPTIONS ====================
 
-  async upsertMonthlySubscriptions(monthYear: string, entries: SubscriptionEntry[], userId: string): Promise<ParkingMonthlySubscription[]> {
+  async upsertMonthlySubscriptions(
+    monthYear: string,
+    entries: SubscriptionEntry[],
+    userId: string,
+  ): Promise<ParkingMonthlySubscription[]> {
     const results: ParkingMonthlySubscription[] = [];
 
     for (const entry of entries) {
-      if (!PARKING_SUBSCRIPTION_LOCATIONS.find(l => l.key === entry.locationKey)) continue;
+      if (!PARKING_SUBSCRIPTION_LOCATIONS.find((l) => l.key === entry.locationKey)) continue;
 
       const existing = await this.subscriptionRepository.findOne({
         where: { monthYear, locationKey: entry.locationKey },
@@ -151,11 +166,15 @@ export class ParkingStatsService {
 
   // ==================== WEEKLY OCCUPANCY ====================
 
-  async upsertWeeklyOccupancy(weekStart: string, entries: OccupancyEntry[], userId: string): Promise<ParkingWeeklyOccupancy[]> {
+  async upsertWeeklyOccupancy(
+    weekStart: string,
+    entries: OccupancyEntry[],
+    userId: string,
+  ): Promise<ParkingWeeklyOccupancy[]> {
     const results: ParkingWeeklyOccupancy[] = [];
 
     for (const entry of entries) {
-      if (!PARKING_STAT_LOCATIONS.find(l => l.key === entry.locationKey)) continue;
+      if (!PARKING_STAT_LOCATIONS.find((l) => l.key === entry.locationKey)) continue;
 
       const dailyRate = Number((entry.avgOccupancy / 7).toFixed(4));
 
@@ -193,7 +212,11 @@ export class ParkingStatsService {
     });
   }
 
-  async getMonthlyOccupancySummary(monthYear: string): Promise<{ locationKey: string; avgMin: number; avgMax: number; avgAvg: number; avgDailyRate: number }[]> {
+  async getMonthlyOccupancySummary(
+    monthYear: string,
+  ): Promise<
+    { locationKey: string; avgMin: number; avgMax: number; avgAvg: number; avgDailyRate: number }[]
+  > {
     const [year, month] = monthYear.split('-');
     // Get all Mondays in this month
     const firstDay = new Date(Number(year), Number(month) - 1, 1);
@@ -216,7 +239,7 @@ export class ParkingStatsService {
       .orderBy('o.location_key', 'ASC')
       .getRawMany();
 
-    return result.map(r => ({
+    return result.map((r) => ({
       locationKey: r.locationKey,
       avgMin: Number(Number(r.avgMin).toFixed(0)),
       avgMax: Number(Number(r.avgMax).toFixed(0)),

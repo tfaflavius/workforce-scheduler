@@ -3,7 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../../users/entities/user.entity';
 import { Department } from '../../departments/entities/department.entity';
-import { DISPECERAT_DEPARTMENT_NAME, MAINTENANCE_DEPARTMENT_NAME } from '../constants/parking.constants';
+import {
+  DISPECERAT_DEPARTMENT_NAME,
+  MAINTENANCE_DEPARTMENT_NAME,
+} from '../constants/parking.constants';
 import { removeDiacritics } from '../../../common/utils/remove-diacritics';
 import { isAdminOrAbove } from '../../../common/utils/role-hierarchy';
 

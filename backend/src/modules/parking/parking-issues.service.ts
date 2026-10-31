@@ -14,7 +14,11 @@ import { User, UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import { ContactFirm } from '../permissions/entities/contact-firm.entity';
-import { INTERNAL_MAINTENANCE_COMPANIES, MAINTENANCE_DEPARTMENT_NAME, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
+import {
+  INTERNAL_MAINTENANCE_COMPANIES,
+  MAINTENANCE_DEPARTMENT_NAME,
+  DISPECERAT_DEPARTMENT_NAME,
+} from './constants/parking.constants';
 import { EmailService } from '../../common/email/email.service';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 import { AuditService } from '../audit/audit.service';
@@ -51,7 +55,7 @@ export class ParkingIssuesService {
    */
   private async getInternalFirmNames(): Promise<string[]> {
     const now = Date.now();
-    if (this.cachedInternalFirms && (now - this.cacheTimestamp) < ParkingIssuesService.CACHE_TTL_MS) {
+    if (this.cachedInternalFirms && now - this.cacheTimestamp < ParkingIssuesService.CACHE_TTL_MS) {
       return this.cachedInternalFirms;
     }
     try {
@@ -59,12 +63,13 @@ export class ParkingIssuesService {
         where: { isInternal: true, isActive: true },
       });
       // Cache even empty results to avoid repeated DB queries
-      this.cachedInternalFirms = firms.length > 0
-        ? firms.map((f) => f.name)
-        : [...INTERNAL_MAINTENANCE_COMPANIES];
+      this.cachedInternalFirms =
+        firms.length > 0 ? firms.map((f) => f.name) : [...INTERNAL_MAINTENANCE_COMPANIES];
       this.cacheTimestamp = now;
       return this.cachedInternalFirms;
-    } catch { /* fallback */ }
+    } catch {
+      /* fallback */
+    }
     return [...INTERNAL_MAINTENANCE_COMPANIES];
   }
 
@@ -99,13 +104,15 @@ export class ParkingIssuesService {
     await this.notifyManagersAndAdmins(fullIssue, 'CREATED', userId);
 
     // Audit log
-    this.auditService.log({
-      userId,
-      action: 'CREATE',
-      entity: 'ParkingIssue',
-      entityId: fullIssue.id,
-      description: `Raportata problema parcare: ${fullIssue.equipment}`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'CREATE',
+        entity: 'ParkingIssue',
+        entityId: fullIssue.id,
+        description: `Raportata problema parcare: ${fullIssue.equipment}`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return fullIssue;
   }
@@ -186,7 +193,7 @@ export class ParkingIssuesService {
     const creatorName = issue.creator?.fullName || 'Un utilizator';
 
     // Trimite notificari in-app catre toti userii din echipa de intretinere
-    const notifications = maintenanceUsers.map(user => ({
+    const notifications = maintenanceUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.PARKING_ISSUE_ASSIGNED,
       title: 'Problema noua de rezolvat',
@@ -219,7 +226,7 @@ export class ParkingIssuesService {
     });
 
     // Exclude actorul din lista de notificati
-    const toNotify = managersAndAdmins.filter(u => u.id !== actorUserId);
+    const toNotify = managersAndAdmins.filter((u) => u.id !== actorUserId);
 
     if (toNotify.length === 0) return;
 
@@ -246,11 +253,12 @@ export class ParkingIssuesService {
         break;
     }
 
-    const notificationType = action === 'RESOLVED'
-      ? NotificationType.PARKING_ISSUE_RESOLVED
-      : NotificationType.PARKING_ISSUE_ASSIGNED;
+    const notificationType =
+      action === 'RESOLVED'
+        ? NotificationType.PARKING_ISSUE_RESOLVED
+        : NotificationType.PARKING_ISSUE_ASSIGNED;
 
-    const notifications = toNotify.map(user => ({
+    const notifications = toNotify.map((user) => ({
       userId: user.id,
       type: notificationType,
       title,
@@ -269,7 +277,8 @@ export class ParkingIssuesService {
   }
 
   async findAll(status?: ParkingIssueStatus, limit = 1000): Promise<ParkingIssue[]> {
-    const query = this.parkingIssueRepository.createQueryBuilder('issue')
+    const query = this.parkingIssueRepository
+      .createQueryBuilder('issue')
       .leftJoinAndSelect('issue.parkingLot', 'parkingLot')
       .leftJoinAndSelect('issue.creator', 'creator')
       .leftJoinAndSelect('issue.assignee', 'assignee')
@@ -280,14 +289,16 @@ export class ParkingIssuesService {
       query.where('issue.status = :status', { status });
     }
 
-    return query.orderBy('issue.isUrgent', 'DESC')
+    return query
+      .orderBy('issue.isUrgent', 'DESC')
       .addOrderBy('issue.createdAt', 'DESC')
       .take(limit)
       .getMany();
   }
 
   async findUrgent(): Promise<ParkingIssue[]> {
-    return this.parkingIssueRepository.createQueryBuilder('issue')
+    return this.parkingIssueRepository
+      .createQueryBuilder('issue')
       .leftJoinAndSelect('issue.parkingLot', 'parkingLot')
       .leftJoinAndSelect('issue.creator', 'creator')
       .where('issue.isUrgent = :isUrgent', { isUrgent: true })
@@ -303,7 +314,10 @@ export class ParkingIssuesService {
       relations: ['department'],
     });
 
-    if (!user?.department || removeDiacritics(user.department.name) !== MAINTENANCE_DEPARTMENT_NAME) {
+    if (
+      !user?.department ||
+      removeDiacritics(user.department.name) !== MAINTENANCE_DEPARTMENT_NAME
+    ) {
       return [];
     }
 
@@ -311,12 +325,13 @@ export class ParkingIssuesService {
     const internalFirms = await this.getInternalFirmNames();
     if (internalFirms.length === 0) return [];
 
-    return this.parkingIssueRepository.createQueryBuilder('issue')
+    return this.parkingIssueRepository
+      .createQueryBuilder('issue')
       .leftJoinAndSelect('issue.parkingLot', 'parkingLot')
       .leftJoinAndSelect('issue.creator', 'creator')
       .where('issue.status = :status', { status: 'ACTIVE' })
       .andWhere('issue.contactedCompany IN (:...companies)', {
-        companies: internalFirms
+        companies: internalFirms,
       })
       .orderBy('issue.isUrgent', 'DESC')
       .addOrderBy('issue.createdAt', 'DESC')
@@ -326,7 +341,15 @@ export class ParkingIssuesService {
   async findOne(id: string): Promise<ParkingIssue> {
     const issue = await this.parkingIssueRepository.findOne({
       where: { id },
-      relations: ['parkingLot', 'creator', 'assignee', 'resolver', 'lastModifier', 'comments', 'comments.user'],
+      relations: [
+        'parkingLot',
+        'creator',
+        'assignee',
+        'resolver',
+        'lastModifier',
+        'comments',
+        'comments.user',
+      ],
     });
 
     if (!issue) {
@@ -390,7 +413,11 @@ export class ParkingIssuesService {
     return this.findOne(id);
   }
 
-  async addComment(issueId: string, userId: string, dto: CreateCommentDto): Promise<ParkingIssueComment> {
+  async addComment(
+    issueId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<ParkingIssueComment> {
     const issue = await this.findOne(issueId);
 
     const comment = this.commentRepository.create({
@@ -411,10 +438,10 @@ export class ParkingIssuesService {
     });
 
     const actor = await this.userRepository.findOne({ where: { id: userId } });
-    const toNotify = managersAndAdmins.filter(u => u.id !== userId);
+    const toNotify = managersAndAdmins.filter((u) => u.id !== userId);
 
     if (toNotify.length > 0) {
-      const notifications = toNotify.map(user => ({
+      const notifications = toNotify.map((user) => ({
         userId: user.id,
         type: NotificationType.PARKING_ISSUE_ASSIGNED,
         title: 'Comentariu nou la problema',
@@ -491,7 +518,7 @@ export class ParkingIssuesService {
     const usersWithAccess = await this.getUsersWithParkingAccess();
 
     for (const issue of urgentIssues) {
-      const notifications = usersWithAccess.map(user => ({
+      const notifications = usersWithAccess.map((user) => ({
         userId: user.id,
         type: NotificationType.PARKING_ISSUE_ASSIGNED,
         title: '⚠️ URGENT: Problema nerezolvata 48h+',

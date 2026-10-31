@@ -6,9 +6,7 @@ import * as Joi from 'joi';
  */
 export const envValidationSchema = Joi.object({
   // Application
-  NODE_ENV: Joi.string()
-    .valid('development', 'production', 'test')
-    .default('development'),
+  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
   PORT: Joi.number().default(3000),
   CORS_ORIGIN: Joi.string()
     .optional()
@@ -26,7 +24,8 @@ export const envValidationSchema = Joi.object({
       return value;
     })
     .messages({
-      'any.invalid': 'CORS_ORIGIN must be comma-separated URLs (http/https). Wildcard "*" is not allowed.',
+      'any.invalid':
+        'CORS_ORIGIN must be comma-separated URLs (http/https). Wildcard "*" is not allowed.',
     }),
   FRONTEND_URL: Joi.string().uri().optional(),
 

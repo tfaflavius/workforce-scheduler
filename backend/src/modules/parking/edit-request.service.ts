@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { EditRequest, EditRequestStatus, EditRequestType } from './entities/edit-request.entity';
@@ -73,11 +79,13 @@ export class EditRequestService {
     const saved = await this.editRequestRepository.save(editRequest);
 
     // Notifica adminii - in background
-    this.notifyAdmins(saved, user).catch(err => {
+    this.notifyAdmins(saved, user).catch((err) => {
       this.logger.error(`Failed to notify admins: ${err.message}`);
     });
 
-    this.logger.log(`Edit request created by ${user.fullName} for ${dto.requestType} ${dto.entityId}`);
+    this.logger.log(
+      `Edit request created by ${user.fullName} for ${dto.requestType} ${dto.entityId}`,
+    );
 
     return this.findOne(saved.id);
   }
@@ -138,11 +146,13 @@ export class EditRequestService {
     const saved = await this.editRequestRepository.save(editRequest);
 
     // Notifica solicitantul - in background
-    this.notifyRequester(saved, reviewer).catch(err => {
+    this.notifyRequester(saved, reviewer).catch((err) => {
       this.logger.error(`Failed to notify requester: ${err.message}`);
     });
 
-    this.logger.log(`Edit request ${id} ${dto.approved ? 'approved' : 'rejected'} by ${reviewer.fullName}`);
+    this.logger.log(
+      `Edit request ${id} ${dto.approved ? 'approved' : 'rejected'} by ${reviewer.fullName}`,
+    );
 
     return this.findOne(saved.id);
   }
@@ -157,7 +167,10 @@ export class EditRequestService {
 
   // Helper methods
 
-  private async getOriginalData(type: EditRequestType, entityId: string): Promise<Record<string, any>> {
+  private async getOriginalData(
+    type: EditRequestType,
+    entityId: string,
+  ): Promise<Record<string, any>> {
     switch (type) {
       case 'PARKING_ISSUE':
         const issue = await this.parkingIssueRepository.findOne({
@@ -237,7 +250,10 @@ export class EditRequestService {
     }
   }
 
-  private async applyChangesDirectly(userId: string, dto: CreateEditRequestDto): Promise<EditRequest> {
+  private async applyChangesDirectly(
+    userId: string,
+    dto: CreateEditRequestDto,
+  ): Promise<EditRequest> {
     // Admin poate edita direct fara aprobare
     const originalData = await this.getOriginalData(dto.requestType, dto.entityId);
 
@@ -274,7 +290,9 @@ export class EditRequestService {
     }
 
     try {
-      this.logger.log(`Applying changes for ${dto.requestType} ${dto.entityId}: ${JSON.stringify(changes)}`);
+      this.logger.log(
+        `Applying changes for ${dto.requestType} ${dto.entityId}: ${JSON.stringify(changes)}`,
+      );
 
       switch (dto.requestType) {
         case 'PARKING_ISSUE':
@@ -298,7 +316,7 @@ export class EditRequestService {
     this.logger.log(`Edit request saved with id: ${saved.id}`);
 
     // Notifica managerii si adminii - in background pentru a nu bloca raspunsul
-    this.notifyManagersAndAdmins(saved, userId).catch(err => {
+    this.notifyManagersAndAdmins(saved, userId).catch((err) => {
       this.logger.error(`Failed to notify managers and admins: ${err.message}`);
     });
 
@@ -310,7 +328,10 @@ export class EditRequestService {
       where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
 
-    const entityDescription = await this.getEntityDescription(editRequest.requestType, editRequest.entityId);
+    const entityDescription = await this.getEntityDescription(
+      editRequest.requestType,
+      editRequest.entityId,
+    );
 
     // Notificari in-app
     for (const admin of admins) {
@@ -344,18 +365,23 @@ export class EditRequestService {
     const requester = await this.userRepository.findOne({ where: { id: editRequest.requestedBy } });
     if (!requester) return;
 
-    const entityDescription = await this.getEntityDescription(editRequest.requestType, editRequest.entityId);
+    const entityDescription = await this.getEntityDescription(
+      editRequest.requestType,
+      editRequest.entityId,
+    );
 
     // Notificare in-app
     await this.notificationsService.create({
       userId: requester.id,
-      type: editRequest.status === 'APPROVED'
-        ? NotificationType.EDIT_REQUEST_APPROVED
-        : NotificationType.EDIT_REQUEST_REJECTED,
+      type:
+        editRequest.status === 'APPROVED'
+          ? NotificationType.EDIT_REQUEST_APPROVED
+          : NotificationType.EDIT_REQUEST_REJECTED,
       title: editRequest.status === 'APPROVED' ? 'Cerere aprobata' : 'Cerere respinsa',
-      message: editRequest.status === 'APPROVED'
-        ? `Cererea ta de editare pentru ${entityDescription} a fost aprobata de ${reviewer.fullName}.`
-        : `Cererea ta de editare pentru ${entityDescription} a fost respinsa. Motiv: ${editRequest.rejectionReason}`,
+      message:
+        editRequest.status === 'APPROVED'
+          ? `Cererea ta de editare pentru ${entityDescription} a fost aprobata de ${reviewer.fullName}.`
+          : `Cererea ta de editare pentru ${entityDescription} a fost respinsa. Motiv: ${editRequest.rejectionReason}`,
       data: {
         editRequestId: editRequest.id,
         requestType: editRequest.requestType,
@@ -390,10 +416,13 @@ export class EditRequestService {
     });
 
     const uniqueRecipients = recipients.filter(
-      (r, index, self) => index === self.findIndex(u => u.id === r.id) && r.id !== editorId
+      (r, index, self) => index === self.findIndex((u) => u.id === r.id) && r.id !== editorId,
     );
 
-    const entityDescription = await this.getEntityDescription(editRequest.requestType, editRequest.entityId);
+    const entityDescription = await this.getEntityDescription(
+      editRequest.requestType,
+      editRequest.entityId,
+    );
 
     for (const recipient of uniqueRecipients) {
       // Notificare in-app
@@ -437,14 +466,18 @@ export class EditRequestService {
           where: { id: entityId },
           relations: ['parkingLot'],
         });
-        return damage ? `Prejudiciu: ${damage.damagedEquipment} - ${damage.parkingLot?.name}` : 'Prejudiciu';
+        return damage
+          ? `Prejudiciu: ${damage.damagedEquipment} - ${damage.parkingLot?.name}`
+          : 'Prejudiciu';
 
       case 'CASH_COLLECTION':
         const collection = await this.cashCollectionRepository.findOne({
           where: { id: entityId },
           relations: ['parkingLot'],
         });
-        return collection ? `Incasare: ${collection.amount} RON - ${collection.parkingLot?.name}` : 'Incasare';
+        return collection
+          ? `Incasare: ${collection.amount} RON - ${collection.parkingLot?.name}`
+          : 'Incasare';
 
       default:
         return 'Element';

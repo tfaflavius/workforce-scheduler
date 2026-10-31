@@ -56,9 +56,15 @@ export class CreateEquipmentStockTables1770000000000 implements MigrationInterfa
     `);
 
     // Indexes
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_equipment_stock_def_category" ON "equipment_stock_definitions" ("category")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_equipment_stock_entry_def_id" ON "equipment_stock_entries" ("definition_id")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "IDX_equipment_stock_entry_category" ON "equipment_stock_entries" ("category")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_equipment_stock_def_category" ON "equipment_stock_definitions" ("category")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_equipment_stock_entry_def_id" ON "equipment_stock_entries" ("definition_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_equipment_stock_entry_category" ON "equipment_stock_entries" ("category")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

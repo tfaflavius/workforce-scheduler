@@ -52,7 +52,8 @@ export class PvDisplayScheduler {
       const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
 
       // Gaseste zilele de azi cu status ASSIGNED
-      const todayDays = await this.dayRepository.createQueryBuilder('day')
+      const todayDays = await this.dayRepository
+        .createQueryBuilder('day')
         .leftJoinAndSelect('day.session', 'session')
         .leftJoinAndSelect('day.controlUser1', 'controlUser1')
         .leftJoinAndSelect('day.controlUser2', 'controlUser2')
@@ -96,7 +97,9 @@ export class PvDisplayScheduler {
           await this.notificationsService.createMany(notifications);
         }
 
-        this.logger.log(`PV Display Scheduler: zi ${day.id} marcata IN_PROGRESS, ${notifications.length} notificari trimise`);
+        this.logger.log(
+          `PV Display Scheduler: zi ${day.id} marcata IN_PROGRESS, ${notifications.length} notificari trimise`,
+        );
       }
     } catch (error) {
       this.logger.error(`PV Display Scheduler error: ${error.message}`, error.stack);
@@ -107,7 +110,10 @@ export class PvDisplayScheduler {
    * Notifica dispeceratul ca masina este indisponibila
    * Cauta dispecerii pe tura in acea zi
    */
-  private async notifyDispeceratCarUnavailable(day: PvDisplayDay, notifications: any[]): Promise<void> {
+  private async notifyDispeceratCarUnavailable(
+    day: PvDisplayDay,
+    notifications: any[],
+  ): Promise<void> {
     try {
       const dispeceratDept = await this.departmentRepository.findOne({
         where: { name: DISPECERAT_DEPARTMENT_NAME },
@@ -116,11 +122,13 @@ export class PvDisplayScheduler {
       if (!dispeceratDept) return;
 
       // Gaseste utilizatorii din Dispecerat care sunt programati azi
-      const todayStr = day.displayDate instanceof Date
-        ? day.displayDate.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' })
-        : String(day.displayDate);
+      const todayStr =
+        day.displayDate instanceof Date
+          ? day.displayDate.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' })
+          : String(day.displayDate);
 
-      const assignments = await this.scheduleAssignmentRepository.createQueryBuilder('sa')
+      const assignments = await this.scheduleAssignmentRepository
+        .createQueryBuilder('sa')
         .leftJoinAndSelect('sa.user', 'user')
         .leftJoinAndSelect('user.department', 'department')
         .where('sa.shiftDate = :date', { date: todayStr })

@@ -13,10 +13,12 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   // Security headers (X-Frame-Options, HSTS, X-Content-Type-Options, etc.)
-  app.use(helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
-    crossOriginEmbedderPolicy: false,
-  }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
   // Request payload size limits (prevent DoS via large payloads)
   app.use(json({ limit: '10mb' }));
@@ -24,7 +26,7 @@ async function bootstrap() {
 
   // Enable CORS
   const corsOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
     : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
 
   app.enableCors({
@@ -56,7 +58,9 @@ async function bootstrap() {
   // Swagger API Documentation (available at /api/docs)
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Workforce Scheduler API')
-    .setDescription('API pentru gestionarea programelor, concediilor, parcărilor și resurselor umane')
+    .setDescription(
+      'API pentru gestionarea programelor, concediilor, parcărilor și resurselor umane',
+    )
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
     .addTag('Auth', 'Autentificare si gestionare sesiuni')

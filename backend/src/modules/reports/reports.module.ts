@@ -11,11 +11,7 @@ import { StorageService } from '../../common/services/storage.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      GeneratedReport,
-      TimeEntry,
-      ScheduleAssignment,
-    ]),
+    TypeOrmModule.forFeature([GeneratedReport, TimeEntry, ScheduleAssignment]),
     SchedulesModule,
   ],
   controllers: [ReportsController],

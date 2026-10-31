@@ -10,12 +10,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-export type LeaveType =
-  | 'VACATION'
-  | 'MEDICAL'
-  | 'BIRTHDAY'
-  | 'SPECIAL'
-  | 'EXTRA_DAYS';
+export type LeaveType = 'VACATION' | 'MEDICAL' | 'BIRTHDAY' | 'SPECIAL' | 'EXTRA_DAYS';
 
 export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 

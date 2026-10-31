@@ -27,7 +27,9 @@ export class RevolutionarLegitimationComment {
   createdAt: Date;
 
   // Relations
-  @ManyToOne(() => RevolutionarLegitimation, (legitimation) => legitimation.comments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => RevolutionarLegitimation, (legitimation) => legitimation.comments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'legitimation_id' })
   legitimation: RevolutionarLegitimation;
 

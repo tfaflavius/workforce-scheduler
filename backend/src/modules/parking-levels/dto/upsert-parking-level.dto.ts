@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsInt,
-  Min,
-  MaxLength,
-  IsNotEmpty,
-} from 'class-validator';
+import { IsString, IsOptional, IsInt, Min, MaxLength, IsNotEmpty } from 'class-validator';
 
 export class CreateParkingLevelDto {
   @IsString()

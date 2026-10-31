@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
@@ -65,13 +71,21 @@ export class HandicapLegitimationsService {
     return this.findOne(savedLegitimation.id);
   }
 
-  async update(id: string, userId: string, dto: UpdateHandicapLegitimationDto, user: any): Promise<HandicapLegitimation> {
+  async update(
+    id: string,
+    userId: string,
+    dto: UpdateHandicapLegitimationDto,
+    user: any,
+  ): Promise<HandicapLegitimation> {
     // Admin si userii de la departamentul Parcari Handicap pot edita
-    const canEdit = isAdminOrAbove(user.role) ||
+    const canEdit =
+      isAdminOrAbove(user.role) ||
       removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
-      throw new ForbiddenException('Doar administratorii si departamentul Parcari Handicap pot modifica legitimatiile');
+      throw new ForbiddenException(
+        'Doar administratorii si departamentul Parcari Handicap pot modifica legitimatiile',
+      );
     }
 
     const legitimation = await this.findOne(id);
@@ -86,8 +100,14 @@ export class HandicapLegitimationsService {
       changes.cnp = { from: legitimation.cnp, to: dto.cnp };
       legitimation.cnp = dto.cnp;
     }
-    if (dto.handicapCertificateNumber && dto.handicapCertificateNumber !== legitimation.handicapCertificateNumber) {
-      changes.handicapCertificateNumber = { from: legitimation.handicapCertificateNumber, to: dto.handicapCertificateNumber };
+    if (
+      dto.handicapCertificateNumber &&
+      dto.handicapCertificateNumber !== legitimation.handicapCertificateNumber
+    ) {
+      changes.handicapCertificateNumber = {
+        from: legitimation.handicapCertificateNumber,
+        to: dto.handicapCertificateNumber,
+      };
       legitimation.handicapCertificateNumber = dto.handicapCertificateNumber;
     }
     if (dto.carPlate && dto.carPlate !== legitimation.carPlate) {
@@ -135,7 +155,10 @@ export class HandicapLegitimationsService {
     await this.historyRepository.save(history);
   }
 
-  private async notifyHandicapDepartment(legitimation: HandicapLegitimation, creatorUserId: string): Promise<void> {
+  private async notifyHandicapDepartment(
+    legitimation: HandicapLegitimation,
+    creatorUserId: string,
+  ): Promise<void> {
     // Gaseste departamentul Parcari Handicap
     const handicapDept = await this.departmentRepository.findOne({
       where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
@@ -159,7 +182,8 @@ export class HandicapLegitimationsService {
     });
 
     const allUsers = [...handicapUsers, ...admins].filter(
-      (user, index, self) => index === self.findIndex(u => u.id === user.id) && user.id !== creatorUserId
+      (user, index, self) =>
+        index === self.findIndex((u) => u.id === user.id) && user.id !== creatorUserId,
     );
 
     if (allUsers.length === 0) {
@@ -171,7 +195,7 @@ export class HandicapLegitimationsService {
     const creatorName = creator?.fullName || 'Un utilizator';
 
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = allUsers.map(user => ({
+    const notifications = allUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.LEGITIMATION_ASSIGNED,
       title: 'Solicitare legitimatie handicap noua',
@@ -186,7 +210,10 @@ export class HandicapLegitimationsService {
     await this.notificationsService.createMany(notifications);
   }
 
-  private async notifyOnResolution(legitimation: HandicapLegitimation, resolverUserId: string): Promise<void> {
+  private async notifyOnResolution(
+    legitimation: HandicapLegitimation,
+    resolverUserId: string,
+  ): Promise<void> {
     const resolver = await this.userRepository.findOne({ where: { id: resolverUserId } });
     const resolverName = resolver?.fullName || 'Un utilizator';
 
@@ -209,18 +236,18 @@ export class HandicapLegitimationsService {
       const handicapUsers = await this.userRepository.find({
         where: { departmentId: handicapDept.id, isActive: true },
       });
-      usersToNotify.push(...handicapUsers.filter(u => u.id !== resolverUserId));
+      usersToNotify.push(...handicapUsers.filter((u) => u.id !== resolverUserId));
     }
 
     // 3. Toti adminii
     const admins = await this.userRepository.find({
       where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
-    usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
+    usersToNotify.push(...admins.filter((u) => u.id !== resolverUserId));
 
     // Elimina duplicatele
-    const uniqueUsers = usersToNotify.filter((user, index, self) =>
-      index === self.findIndex(u => u.id === user.id)
+    const uniqueUsers = usersToNotify.filter(
+      (user, index, self) => index === self.findIndex((u) => u.id === user.id),
     );
 
     if (uniqueUsers.length === 0) {
@@ -228,7 +255,7 @@ export class HandicapLegitimationsService {
     }
 
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = uniqueUsers.map(user => ({
+    const notifications = uniqueUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.LEGITIMATION_RESOLVED,
       title: 'Legitimatie handicap finalizata',
@@ -244,7 +271,8 @@ export class HandicapLegitimationsService {
   }
 
   async findAll(status?: HandicapLegitimationStatus): Promise<HandicapLegitimation[]> {
-    const query = this.legitimationRepository.createQueryBuilder('legitimation')
+    const query = this.legitimationRepository
+      .createQueryBuilder('legitimation')
       .leftJoinAndSelect('legitimation.creator', 'creator')
       .leftJoinAndSelect('legitimation.resolver', 'resolver')
       .leftJoinAndSelect('legitimation.lastModifier', 'lastModifier');
@@ -277,7 +305,11 @@ export class HandicapLegitimationsService {
     });
   }
 
-  async resolve(id: string, userId: string, dto: ResolveHandicapLegitimationDto): Promise<HandicapLegitimation> {
+  async resolve(
+    id: string,
+    userId: string,
+    dto: ResolveHandicapLegitimationDto,
+  ): Promise<HandicapLegitimation> {
     const legitimation = await this.findOne(id);
 
     if (legitimation.status === 'FINALIZAT') {
@@ -303,7 +335,11 @@ export class HandicapLegitimationsService {
     return this.findOne(id);
   }
 
-  async addComment(legitimationId: string, userId: string, dto: CreateCommentDto): Promise<HandicapLegitimationComment> {
+  async addComment(
+    legitimationId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<HandicapLegitimationComment> {
     const legitimation = await this.findOne(legitimationId);
 
     const comment = this.commentRepository.create({
@@ -327,7 +363,11 @@ export class HandicapLegitimationsService {
     return savedComment;
   }
 
-  private async notifyAboutComment(legitimation: HandicapLegitimation, commenterUserId: string, commentContent: string): Promise<void> {
+  private async notifyAboutComment(
+    legitimation: HandicapLegitimation,
+    commenterUserId: string,
+    commentContent: string,
+  ): Promise<void> {
     const commenter = await this.userRepository.findOne({ where: { id: commenterUserId } });
     const commenterName = commenter?.fullName || 'Un utilizator';
 
@@ -354,10 +394,12 @@ export class HandicapLegitimationsService {
         where: { departmentId: handicapDept.id, isActive: true },
       });
 
-      const toNotify = handicapUsers.filter(u => u.id !== commenterUserId && u.id !== legitimation.createdBy);
+      const toNotify = handicapUsers.filter(
+        (u) => u.id !== commenterUserId && u.id !== legitimation.createdBy,
+      );
 
       if (toNotify.length > 0) {
-        const notifications = toNotify.map(user => ({
+        const notifications = toNotify.map((user) => ({
           userId: user.id,
           type: NotificationType.LEGITIMATION_ASSIGNED,
           title: 'Comentariu nou la legitimatie handicap',
@@ -403,7 +445,8 @@ export class HandicapLegitimationsService {
     endDate?: Date;
     status?: HandicapLegitimationStatus;
   }): Promise<HandicapLegitimation[]> {
-    const query = this.legitimationRepository.createQueryBuilder('legitimation')
+    const query = this.legitimationRepository
+      .createQueryBuilder('legitimation')
       .leftJoinAndSelect('legitimation.creator', 'creator')
       .leftJoinAndSelect('legitimation.resolver', 'resolver');
 

@@ -255,10 +255,10 @@ export interface WeeklyDailyReportSummaryData {
   recipientEmail: string;
   recipientName: string;
   weekStartDate: string; // Luni
-  weekEndDate: string;   // Vineri
+  weekEndDate: string; // Vineri
   reportsByDay: Array<{
-    dayName: string;     // ex: 'Luni', 'Marti', etc.
-    date: string;        // ex: '2024-01-15'
+    dayName: string; // ex: 'Luni', 'Marti', etc.
+    date: string; // ex: '2024-01-15'
     reports: Array<{
       userName: string;
       departmentName: string;
@@ -374,7 +374,10 @@ export interface ConsolidatedDailyReportData {
     damages: UnresolvedItemsReminderData['unresolvedDamages'];
   } | null;
   // Sectiune 4: Handicap
-  handicapReport: Omit<HandicapDailyReportData, 'recipientEmail' | 'recipientName' | 'reportDate'> | null;
+  handicapReport: Omit<
+    HandicapDailyReportData,
+    'recipientEmail' | 'recipientName' | 'reportDate'
+  > | null;
   // Sectiune 5: GPS
   gpsReport: Omit<DailyGpsReportData, 'recipientEmail' | 'recipientName' | 'reportDate'> | null;
   // Sectiune 6: Rapoarte zilnice lipsa
@@ -502,16 +505,17 @@ export class EmailService {
 
   // Lista de email-uri/domenii de test - nu se trimit email-uri automate la acestea
   private readonly testEmailPatterns: string[] = [
-    '@workforce.com',           // Toate conturile interne de test
-    '@test.com',                // Conturi de test generice
-    '@example.com',             // Conturi de exemplu
-    'test@',                    // Orice email care incepe cu test@
+    '@workforce.com', // Toate conturile interne de test
+    '@test.com', // Conturi de test generice
+    '@example.com', // Conturi de exemplu
+    'test@', // Orice email care incepe cu test@
   ];
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('RESEND_API_KEY');
     this.fromEmail = this.configService.get<string>('RESEND_FROM_EMAIL') || 'onboarding@resend.dev';
-    this.appUrl = this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
+    this.appUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'https://workforce-scheduler.vercel.app';
     this.isEnabled = !!apiKey;
 
     if (apiKey) {
@@ -528,7 +532,7 @@ export class EmailService {
    */
   private isTestEmail(email: string): boolean {
     const emailLower = email.toLowerCase();
-    return this.testEmailPatterns.some(pattern => {
+    return this.testEmailPatterns.some((pattern) => {
       if (pattern.startsWith('@')) {
         // Verifica domeniul (ex: @workforce.com)
         return emailLower.endsWith(pattern);
@@ -552,21 +556,26 @@ export class EmailService {
     return date.toLocaleDateString('ro-RO', {
       day: '2-digit',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
     });
   }
 
   private getLeaveTypeLabel(leaveType: string): string {
     const labels: Record<string, string> = {
-      'ANNUAL': 'Concediu de odihna',
-      'SICK': 'Concediu medical',
-      'UNPAID': 'Concediu fara plata',
-      'OTHER': 'Alte tipuri'
+      ANNUAL: 'Concediu de odihna',
+      SICK: 'Concediu medical',
+      UNPAID: 'Concediu fara plata',
+      OTHER: 'Alte tipuri',
     };
     return labels[leaveType] || leaveType;
   }
 
-  private generateBaseTemplate(title: string, subtitle: string, content: string, gradientColors: string = '#667eea 0%, #764ba2 100%'): string {
+  private generateBaseTemplate(
+    title: string,
+    subtitle: string,
+    content: string,
+    gradientColors: string = '#667eea 0%, #764ba2 100%',
+  ): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -594,7 +603,12 @@ export class EmailService {
     `;
   }
 
-  private async sendEmail(to: string, subject: string, html: string, forceTestEmail: boolean = false): Promise<boolean> {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+    forceTestEmail: boolean = false,
+  ): Promise<boolean> {
     if (!this.isEnabled || !this.resend) {
       this.logger.warn(`Email not sent (service disabled): ${subject} to ${to}`);
       return false;
@@ -611,7 +625,7 @@ export class EmailService {
     const timeSinceLastEmail = now - this.lastEmailSentAt;
     if (timeSinceLastEmail < this.MIN_EMAIL_INTERVAL_MS) {
       const delay = this.MIN_EMAIL_INTERVAL_MS - timeSinceLastEmail;
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
     try {
@@ -667,13 +681,17 @@ export class EmailService {
 
     let shiftsTable = '';
     if (data.shifts && data.shifts.length > 0) {
-      const shiftsRows = data.shifts.map(shift => `
+      const shiftsRows = data.shifts
+        .map(
+          (shift) => `
         <tr>
           <td style="padding: 8px; border: 1px solid #ddd;">${shift.date}</td>
           <td style="padding: 8px; border: 1px solid #ddd;">${shift.shiftType}</td>
           <td style="padding: 8px; border: 1px solid #ddd;">${shift.startTime} - ${shift.endTime}</td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       shiftsTable = `
         <h3 style="color: #333; margin-top: 20px;">Turele programate:</h3>
@@ -725,20 +743,22 @@ export class EmailService {
   async sendScheduleNotification(data: ScheduleEmailData): Promise<boolean> {
     const monthFormatted = this.formatMonthYear(data.monthYear);
     const subjects: Record<string, string> = {
-      'created': `Program de lucru creat pentru ${monthFormatted}`,
-      'updated': `Program de lucru modificat pentru ${monthFormatted}`,
-      'approved': `Program de lucru aprobat pentru ${monthFormatted}`,
-      'rejected': `Program de lucru respins pentru ${monthFormatted}`,
+      created: `Program de lucru creat pentru ${monthFormatted}`,
+      updated: `Program de lucru modificat pentru ${monthFormatted}`,
+      approved: `Program de lucru aprobat pentru ${monthFormatted}`,
+      rejected: `Program de lucru respins pentru ${monthFormatted}`,
     };
 
     return this.sendEmail(
       data.employeeEmail,
       subjects[data.scheduleType] || `Notificare program - ${monthFormatted}`,
-      this.generateScheduleHtml(data)
+      this.generateScheduleHtml(data),
     );
   }
 
-  async sendBulkScheduleNotifications(dataList: ScheduleEmailData[]): Promise<{ success: number; failed: number }> {
+  async sendBulkScheduleNotifications(
+    dataList: ScheduleEmailData[],
+  ): Promise<{ success: number; failed: number }> {
     let success = 0;
     let failed = 0;
 
@@ -831,20 +851,25 @@ export class EmailService {
       </p>
     `;
 
-    return this.generateBaseTemplate('WorkSchedule', 'Notificare Cerere Concediu', content, gradientColors);
+    return this.generateBaseTemplate(
+      'WorkSchedule',
+      'Notificare Cerere Concediu',
+      content,
+      gradientColors,
+    );
   }
 
   async sendLeaveRequestNotification(data: LeaveRequestEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'submitted': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} inregistrata`,
-      'approved': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} aprobata ✅`,
-      'rejected': `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} respinsa`,
+      submitted: `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} inregistrata`,
+      approved: `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} aprobata ✅`,
+      rejected: `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} respinsa`,
     };
 
     return this.sendEmail(
       data.employeeEmail,
       subjects[data.status],
-      this.generateLeaveRequestHtml(data)
+      this.generateLeaveRequestHtml(data),
     );
   }
 
@@ -856,7 +881,7 @@ export class EmailService {
     leaveType: string,
     startDate: string,
     endDate: string,
-    totalDays: number
+    totalDays: number,
   ): Promise<boolean> {
     const content = `
       <p style="font-size: 16px;">Buna ziua, <strong>${approverName}</strong>!</p>
@@ -899,7 +924,12 @@ export class EmailService {
     return this.sendEmail(
       approverEmail,
       `⏳ Cerere de concediu de la ${employeeName}`,
-      this.generateBaseTemplate('WorkSchedule', 'Cerere Concediu Noua', content, '#ff9800 0%, #f57c00 100%')
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        'Cerere Concediu Noua',
+        content,
+        '#ff9800 0%, #f57c00 100%',
+      ),
     );
   }
 
@@ -913,7 +943,9 @@ export class EmailService {
 
     switch (data.issueType) {
       case 'new_issue':
-        statusText = data.isUrgent ? 'O problema URGENTA a fost raportata' : 'O noua problema a fost raportata';
+        statusText = data.isUrgent
+          ? 'O problema URGENTA a fost raportata'
+          : 'O noua problema a fost raportata';
         statusColor = data.isUrgent ? '#f44336' : '#ff9800';
         gradientColors = data.isUrgent ? '#f44336 0%, #d32f2f 100%' : '#ff9800 0%, #f57c00 100%';
         subtitle = data.isUrgent ? '🚨 Problema Urgenta Parcare' : 'Problema Noua Parcare';
@@ -942,9 +974,10 @@ export class EmailService {
       `;
     }
 
-    const urgentBadge = data.isUrgent && data.issueType !== 'issue_resolved'
-      ? '<span style="background-color: #f44336; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px;">URGENT</span>'
-      : '';
+    const urgentBadge =
+      data.isUrgent && data.issueType !== 'issue_resolved'
+        ? '<span style="background-color: #f44336; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px;">URGENT</span>'
+        : '';
 
     const content = `
       <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
@@ -989,17 +1022,17 @@ export class EmailService {
 
   async sendParkingIssueNotification(data: ParkingIssueEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_issue': data.isUrgent
+      new_issue: data.isUrgent
         ? `🚨 URGENT: Problema la ${data.parkingLotName}`
         : `Problema noua la ${data.parkingLotName}`,
-      'issue_resolved': `✅ Problema rezolvata la ${data.parkingLotName}`,
-      'urgent_reminder': `🚨 REMINDER: Problema urgenta nerezolvata la ${data.parkingLotName}`,
+      issue_resolved: `✅ Problema rezolvata la ${data.parkingLotName}`,
+      urgent_reminder: `🚨 REMINDER: Problema urgenta nerezolvata la ${data.parkingLotName}`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.issueType],
-      this.generateParkingIssueHtml(data)
+      this.generateParkingIssueHtml(data),
     );
   }
 
@@ -1059,7 +1092,12 @@ export class EmailService {
     return this.sendEmail(
       data.employeeEmail,
       '🎉 Bine ai venit in WorkSchedule!',
-      this.generateBaseTemplate('WorkSchedule', 'Bine ai venit!', content, '#4CAF50 0%, #45a049 100%')
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        'Bine ai venit!',
+        content,
+        '#4CAF50 0%, #45a049 100%',
+      ),
     );
   }
 
@@ -1097,7 +1135,12 @@ export class EmailService {
     return this.sendEmail(
       data.employeeEmail,
       '🔐 Resetare parola WorkSchedule',
-      this.generateBaseTemplate('WorkSchedule', 'Resetare Parola', content, '#ff9800 0%, #f57c00 100%')
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        'Resetare Parola',
+        content,
+        '#ff9800 0%, #f57c00 100%',
+      ),
     );
   }
 
@@ -1111,7 +1154,9 @@ export class EmailService {
 
     switch (data.damageType) {
       case 'new_damage':
-        statusText = data.isUrgent ? 'Un prejudiciu URGENT a fost raportat' : 'Un prejudiciu nou a fost raportat';
+        statusText = data.isUrgent
+          ? 'Un prejudiciu URGENT a fost raportat'
+          : 'Un prejudiciu nou a fost raportat';
         statusColor = data.isUrgent ? '#f44336' : '#ff9800';
         gradientColors = data.isUrgent ? '#f44336 0%, #d32f2f 100%' : '#ff9800 0%, #f57c00 100%';
         subtitle = data.isUrgent ? '🚨 Prejudiciu Urgent' : 'Prejudiciu Nou';
@@ -1132,7 +1177,8 @@ export class EmailService {
 
     let resolutionSection = '';
     if (data.damageType === 'damage_resolved' && data.resolutionDescription) {
-      const resolutionTypeLabel = data.resolutionType === 'RECUPERAT' ? 'Recuperat' : 'Trimis la Juridic';
+      const resolutionTypeLabel =
+        data.resolutionType === 'RECUPERAT' ? 'Recuperat' : 'Trimis la Juridic';
       resolutionSection = `
         <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #4CAF50;">
           <strong>Tip finalizare:</strong> ${resolutionTypeLabel}
@@ -1141,9 +1187,10 @@ export class EmailService {
       `;
     }
 
-    const urgentBadge = data.isUrgent && data.damageType !== 'damage_resolved'
-      ? '<span style="background-color: #f44336; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px;">URGENT</span>'
-      : '';
+    const urgentBadge =
+      data.isUrgent && data.damageType !== 'damage_resolved'
+        ? '<span style="background-color: #f44336; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px;">URGENT</span>'
+        : '';
 
     const content = `
       <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
@@ -1196,17 +1243,17 @@ export class EmailService {
 
   async sendParkingDamageNotification(data: ParkingDamageEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_damage': data.isUrgent
+      new_damage: data.isUrgent
         ? `🚨 URGENT: Prejudiciu la ${data.parkingLotName}`
         : `Prejudiciu nou la ${data.parkingLotName}`,
-      'damage_resolved': `✅ Prejudiciu finalizat la ${data.parkingLotName}`,
-      'urgent_reminder': `🚨 REMINDER: Prejudiciu nerezolvat la ${data.parkingLotName}`,
+      damage_resolved: `✅ Prejudiciu finalizat la ${data.parkingLotName}`,
+      urgent_reminder: `🚨 REMINDER: Prejudiciu nerezolvat la ${data.parkingLotName}`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.damageType],
-      this.generateParkingDamageHtml(data)
+      this.generateParkingDamageHtml(data),
     );
   }
 
@@ -1311,39 +1358,47 @@ export class EmailService {
 
   async sendShiftSwapNotification(data: ShiftSwapEmailData): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_request': `🔄 Cerere de schimb de tura de la ${data.requesterName}`,
-      'response_accepted': `✅ ${data.responderName} a acceptat schimbul de tura`,
-      'response_declined': `❌ ${data.responderName} a refuzat schimbul de tura`,
-      'approved': `✅ Schimbul de tura a fost aprobat!`,
-      'rejected': `❌ Schimbul de tura a fost respins`,
+      new_request: `🔄 Cerere de schimb de tura de la ${data.requesterName}`,
+      response_accepted: `✅ ${data.responderName} a acceptat schimbul de tura`,
+      response_declined: `❌ ${data.responderName} a refuzat schimbul de tura`,
+      approved: `✅ Schimbul de tura a fost aprobat!`,
+      rejected: `❌ Schimbul de tura a fost respins`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.swapType],
-      this.generateShiftSwapHtml(data)
+      this.generateShiftSwapHtml(data),
     );
   }
 
   // ============== DAILY CASH REPORT EMAIL ==============
 
   async sendDailyCashReport(data: DailyReportEmailData): Promise<boolean> {
-    const parkingLotRows = data.byParkingLot.map(lot => `
+    const parkingLotRows = data.byParkingLot
+      .map(
+        (lot) => `
       <tr>
         <td style="padding: 10px; border: 1px solid #ddd;">${lot.parkingLotName}</td>
         <td style="padding: 10px; border: 1px solid #ddd; text-align: right;">${lot.count}</td>
         <td style="padding: 10px; border: 1px solid #ddd; text-align: right; font-weight: bold;">${lot.totalAmount.toFixed(2)} RON</td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
-    const machineRows = data.byMachine.map(machine => `
+    const machineRows = data.byMachine
+      .map(
+        (machine) => `
       <tr>
         <td style="padding: 8px; border: 1px solid #ddd;">${machine.machineNumber}</td>
         <td style="padding: 8px; border: 1px solid #ddd;">${machine.parkingLotName}</td>
         <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${machine.count}</td>
         <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${machine.totalAmount.toFixed(2)} RON</td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     const content = `
       <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
@@ -1397,7 +1452,12 @@ export class EmailService {
     return this.sendEmail(
       data.recipientEmail,
       `📊 Raport Incasari Parcari - ${data.reportDate}`,
-      this.generateBaseTemplate('WorkSchedule', 'Raport Zilnic Incasari', content, '#2196F3 0%, #1976D2 100%')
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        'Raport Zilnic Incasari',
+        content,
+        '#2196F3 0%, #1976D2 100%',
+      ),
     );
   }
 
@@ -1405,13 +1465,15 @@ export class EmailService {
 
   async sendUnresolvedItemsReminder(data: UnresolvedItemsReminderData): Promise<boolean> {
     const totalItems = data.unresolvedIssues.length + data.unresolvedDamages.length;
-    const urgentIssues = data.unresolvedIssues.filter(i => i.isUrgent).length;
-    const urgentDamages = data.unresolvedDamages.filter(d => d.isUrgent).length;
+    const urgentIssues = data.unresolvedIssues.filter((i) => i.isUrgent).length;
+    const urgentDamages = data.unresolvedDamages.filter((d) => d.isUrgent).length;
     const totalUrgent = urgentIssues + urgentDamages;
 
     let issuesTable = '';
     if (data.unresolvedIssues.length > 0) {
-      const issueRows = data.unresolvedIssues.map(issue => `
+      const issueRows = data.unresolvedIssues
+        .map(
+          (issue) => `
         <tr style="${issue.isUrgent ? 'background-color: #ffebee;' : ''}">
           <td style="padding: 8px; border: 1px solid #ddd;">${issue.parkingLotName}</td>
           <td style="padding: 8px; border: 1px solid #ddd;">${issue.equipment}</td>
@@ -1421,7 +1483,9 @@ export class EmailService {
             ${issue.isUrgent ? '<span style="color: #f44336; font-weight: bold;">⚠️</span>' : ''}
           </td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       issuesTable = `
         <h3 style="color: #333; margin-top: 20px;">🔧 Probleme Nerezolvate (${data.unresolvedIssues.length}):</h3>
@@ -1443,7 +1507,9 @@ export class EmailService {
 
     let damagesTable = '';
     if (data.unresolvedDamages.length > 0) {
-      const damageRows = data.unresolvedDamages.map(damage => `
+      const damageRows = data.unresolvedDamages
+        .map(
+          (damage) => `
         <tr style="${damage.isUrgent ? 'background-color: #ffebee;' : ''}">
           <td style="padding: 8px; border: 1px solid #ddd;">${damage.parkingLotName}</td>
           <td style="padding: 8px; border: 1px solid #ddd;">${damage.damagedEquipment}</td>
@@ -1454,7 +1520,9 @@ export class EmailService {
             ${damage.isUrgent ? '<span style="color: #f44336; font-weight: bold;">⚠️</span>' : ''}
           </td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       damagesTable = `
         <h3 style="color: #333; margin-top: 20px;">💥 Prejudicii Nerezolvate (${data.unresolvedDamages.length}):</h3>
@@ -1475,13 +1543,16 @@ export class EmailService {
       `;
     }
 
-    const urgentWarning = totalUrgent > 0 ? `
+    const urgentWarning =
+      totalUrgent > 0
+        ? `
       <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f44336;">
         <p style="margin: 0; font-weight: bold; color: #f44336;">
           ⚠️ ${totalUrgent} ${totalUrgent === 1 ? 'element urgent' : 'elemente urgente'} (mai vechi de 48h)!
         </p>
       </div>
-    ` : '';
+    `
+        : '';
 
     const content = `
       <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
@@ -1506,7 +1577,12 @@ export class EmailService {
     return this.sendEmail(
       data.recipientEmail,
       `⏰ Reminder: ${totalItems} ${totalItems === 1 ? 'element nerezolvat' : 'elemente nerezolvate'} - Parcari`,
-      this.generateBaseTemplate('WorkSchedule', 'Reminder Elemente Nerezolvate', content, '#ff9800 0%, #f57c00 100%')
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        'Reminder Elemente Nerezolvate',
+        content,
+        '#ff9800 0%, #f57c00 100%',
+      ),
     );
   }
 
@@ -1514,9 +1590,9 @@ export class EmailService {
 
   private getRequestTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      'PARKING_ISSUE': 'Problema Parcare',
-      'PARKING_DAMAGE': 'Prejudiciu Parcare',
-      'CASH_COLLECTION': 'Ridicare Incasari',
+      PARKING_ISSUE: 'Problema Parcare',
+      PARKING_DAMAGE: 'Prejudiciu Parcare',
+      CASH_COLLECTION: 'Ridicare Incasari',
     };
     return labels[type] || type;
   }
@@ -1546,13 +1622,17 @@ export class EmailService {
         break;
     }
 
-    const changesRows = Object.entries(data.proposedChanges).map(([key, value]) => `
+    const changesRows = Object.entries(data.proposedChanges)
+      .map(
+        ([key, value]) => `
       <tr>
         <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">${key}</td>
         <td style="padding: 8px; border: 1px solid #ddd; color: #f44336;">${value.from || '-'}</td>
         <td style="padding: 8px; border: 1px solid #ddd; color: #4CAF50;">${value.to || '-'}</td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join('');
 
     let reasonSection = '';
     if (data.reason) {
@@ -1621,15 +1701,15 @@ export class EmailService {
     `;
 
     const subjects: Record<string, string> = {
-      'new_request': `📝 Cerere de editare de la ${data.requesterName}`,
-      'approved': `✅ Cerere de editare aprobata - ${this.getRequestTypeLabel(data.requestType)}`,
-      'rejected': `❌ Cerere de editare respinsa - ${this.getRequestTypeLabel(data.requestType)}`,
+      new_request: `📝 Cerere de editare de la ${data.requesterName}`,
+      approved: `✅ Cerere de editare aprobata - ${this.getRequestTypeLabel(data.requestType)}`,
+      rejected: `❌ Cerere de editare respinsa - ${this.getRequestTypeLabel(data.requestType)}`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.status],
-      this.generateBaseTemplate('WorkSchedule', subtitle, content, gradientColors)
+      this.generateBaseTemplate('WorkSchedule', subtitle, content, gradientColors),
     );
   }
 
@@ -1663,15 +1743,21 @@ export class EmailService {
     return this.sendEmail(
       toEmail,
       '🧪 Test WorkSchedule - Emailurile functioneaza!',
-      this.generateBaseTemplate('WorkSchedule', 'Email de Test', content, '#4CAF50 0%, #45a049 100%'),
-      true // Force send to test accounts when explicitly requested
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        'Email de Test',
+        content,
+        '#4CAF50 0%, #45a049 100%',
+      ),
+      true, // Force send to test accounts when explicitly requested
     );
   }
 
   // ============== WELCOME BROADCAST EMAIL ==============
 
   async sendWelcomeBroadcast(toEmail: string, toName: string, role: string): Promise<boolean> {
-    const roleLabel = role === 'ADMIN' ? 'Administrator' : role === 'MANAGER' ? 'Manager' : 'Utilizator';
+    const roleLabel =
+      role === 'ADMIN' ? 'Administrator' : role === 'MANAGER' ? 'Manager' : 'Utilizator';
 
     const content = `
       <p style="font-size: 18px;">Buna ziua, <strong>${toName}</strong>! 👋</p>
@@ -1721,7 +1807,12 @@ export class EmailService {
     return this.sendEmail(
       toEmail,
       '🎉 Bine ai venit pe Workforce App!',
-      this.generateBaseTemplate('Workforce App', 'Bine ai venit in echipa!', content, '#667eea 0%, #764ba2 100%')
+      this.generateBaseTemplate(
+        'Workforce App',
+        'Bine ai venit in echipa!',
+        content,
+        '#667eea 0%, #764ba2 100%',
+      ),
     );
   }
 
@@ -1729,9 +1820,9 @@ export class EmailService {
 
   private getHandicapRequestTypeLabel(requestType: string): string {
     const labels: Record<string, string> = {
-      'AMPLASARE_PANOU': 'Amplasare panou handicap',
-      'REVOCARE_PANOU': 'Revocare panou handicap',
-      'CREARE_MARCAJ': 'Creare marcaj handicap',
+      AMPLASARE_PANOU: 'Amplasare panou handicap',
+      REVOCARE_PANOU: 'Revocare panou handicap',
+      CREARE_MARCAJ: 'Creare marcaj handicap',
     };
     return labels[requestType] || requestType;
   }
@@ -1830,14 +1921,14 @@ export class EmailService {
     const requestTypeLabel = this.getHandicapRequestTypeLabel(data.requestType);
 
     const subjects: Record<string, string> = {
-      'new_request': `🆕 Solicitare noua: ${requestTypeLabel}`,
-      'request_resolved': `✅ Solicitare finalizata: ${requestTypeLabel}`,
+      new_request: `🆕 Solicitare noua: ${requestTypeLabel}`,
+      request_resolved: `✅ Solicitare finalizata: ${requestTypeLabel}`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.emailType],
-      this.generateHandicapRequestHtml(data)
+      this.generateHandicapRequestHtml(data),
     );
   }
 
@@ -1845,9 +1936,9 @@ export class EmailService {
 
   private getDomiciliuRequestTypeLabel(requestType: string): string {
     const labels: Record<string, string> = {
-      'APROBARE_LOC': 'Aprobare loc parcare domiciliu',
-      'REVOCARE_LOC': 'Revocare loc parcare domiciliu',
-      'MODIFICARE_DATE': 'Modificare date parcare domiciliu',
+      APROBARE_LOC: 'Aprobare loc parcare domiciliu',
+      REVOCARE_LOC: 'Revocare loc parcare domiciliu',
+      MODIFICARE_DATE: 'Modificare date parcare domiciliu',
     };
     return labels[requestType] || requestType;
   }
@@ -1946,14 +2037,14 @@ export class EmailService {
     const requestTypeLabel = this.getDomiciliuRequestTypeLabel(data.requestType);
 
     const subjects: Record<string, string> = {
-      'new_request': `🏠 Solicitare noua: ${requestTypeLabel}`,
-      'request_resolved': `✅ Solicitare finalizata: ${requestTypeLabel}`,
+      new_request: `🏠 Solicitare noua: ${requestTypeLabel}`,
+      request_resolved: `✅ Solicitare finalizata: ${requestTypeLabel}`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.emailType],
-      this.generateDomiciliuRequestHtml(data)
+      this.generateDomiciliuRequestHtml(data),
     );
   }
 
@@ -1982,12 +2073,16 @@ export class EmailService {
             <td style="padding: 8px 0; color: #64748b;">Nr. inmatriculare:</td>
             <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.carPlate}</td>
           </tr>
-          ${data.description ? `
+          ${
+            data.description
+              ? `
           <tr>
             <td style="padding: 8px 0; color: #64748b;">Descriere:</td>
             <td style="padding: 8px 0; color: #1e293b;">${data.description}</td>
           </tr>
-          ` : ''}
+          `
+              : ''
+          }
         </table>
       </div>
     `;
@@ -2022,9 +2117,10 @@ export class EmailService {
                 Buna ziua, ${data.recipientName}!
               </p>
               <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                ${isNewRequest
-                  ? `<strong>${data.creatorName}</strong> a creat o noua solicitare de legitimatie handicap.`
-                  : `Solicitarea de legitimatie pentru <strong>${data.personName}</strong> a fost finalizata de <strong>${data.creatorName}</strong>.`
+                ${
+                  isNewRequest
+                    ? `<strong>${data.creatorName}</strong> a creat o noua solicitare de legitimatie handicap.`
+                    : `Solicitarea de legitimatie pentru <strong>${data.personName}</strong> a fost finalizata de <strong>${data.creatorName}</strong>.`
                 }
               </p>
               ${contentHtml}
@@ -2049,16 +2145,18 @@ export class EmailService {
     `;
   }
 
-  async sendHandicapLegitimationNotification(data: HandicapLegitimationEmailData): Promise<boolean> {
+  async sendHandicapLegitimationNotification(
+    data: HandicapLegitimationEmailData,
+  ): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_request': `🎫 Solicitare legitimatie handicap noua`,
-      'request_resolved': `✅ Legitimatie handicap finalizata`,
+      new_request: `🎫 Solicitare legitimatie handicap noua`,
+      request_resolved: `✅ Legitimatie handicap finalizata`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.emailType],
-      this.generateHandicapLegitimationHtml(data)
+      this.generateHandicapLegitimationHtml(data),
     );
   }
 
@@ -2066,7 +2164,9 @@ export class EmailService {
     const isNewRequest = data.emailType === 'new_request';
 
     const headerColor = isNewRequest ? '#7c3aed' : '#10b981';
-    const headerText = isNewRequest ? 'Solicitare legitimatie revolutionar/deportat noua' : 'Legitimatie revolutionar/deportat finalizata';
+    const headerText = isNewRequest
+      ? 'Solicitare legitimatie revolutionar/deportat noua'
+      : 'Legitimatie revolutionar/deportat finalizata';
     const icon = isNewRequest ? '🏅' : '✅';
 
     let contentHtml = `
@@ -2085,12 +2185,16 @@ export class EmailService {
             <td style="padding: 8px 0; color: #64748b;">Nr. inmatriculare:</td>
             <td style="padding: 8px 0; color: #1e293b; font-weight: 500;">${data.carPlate}</td>
           </tr>
-          ${data.description ? `
+          ${
+            data.description
+              ? `
           <tr>
             <td style="padding: 8px 0; color: #64748b;">Descriere:</td>
             <td style="padding: 8px 0; color: #1e293b;">${data.description}</td>
           </tr>
-          ` : ''}
+          `
+              : ''
+          }
         </table>
       </div>
     `;
@@ -2125,9 +2229,10 @@ export class EmailService {
                 Buna ziua, ${data.recipientName}!
               </p>
               <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
-                ${isNewRequest
-                  ? `<strong>${data.creatorName}</strong> a creat o noua solicitare de legitimatie revolutionar/deportat.`
-                  : `Solicitarea de legitimatie pentru <strong>${data.personName}</strong> a fost finalizata de <strong>${data.creatorName}</strong>.`
+                ${
+                  isNewRequest
+                    ? `<strong>${data.creatorName}</strong> a creat o noua solicitare de legitimatie revolutionar/deportat.`
+                    : `Solicitarea de legitimatie pentru <strong>${data.personName}</strong> a fost finalizata de <strong>${data.creatorName}</strong>.`
                 }
               </p>
               ${contentHtml}
@@ -2152,16 +2257,18 @@ export class EmailService {
     `;
   }
 
-  async sendRevolutionarLegitimationNotification(data: RevolutionarLegitimationEmailData): Promise<boolean> {
+  async sendRevolutionarLegitimationNotification(
+    data: RevolutionarLegitimationEmailData,
+  ): Promise<boolean> {
     const subjects: Record<string, string> = {
-      'new_request': `🏅 Solicitare legitimatie revolutionar/deportat noua`,
-      'request_resolved': `✅ Legitimatie revolutionar/deportat finalizata`,
+      new_request: `🏅 Solicitare legitimatie revolutionar/deportat noua`,
+      request_resolved: `✅ Legitimatie revolutionar/deportat finalizata`,
     };
 
     return this.sendEmail(
       data.recipientEmail,
       subjects[data.emailType],
-      this.generateRevolutionarLegitimationHtml(data)
+      this.generateRevolutionarLegitimationHtml(data),
     );
   }
 
@@ -2169,14 +2276,18 @@ export class EmailService {
     return this.sendEmail(
       data.recipientEmail,
       `📊 Raport zilnic Handicap - ${data.reportDate}`,
-      this.generateHandicapDailyReportHtml(data)
+      this.generateHandicapDailyReportHtml(data),
     );
   }
 
   private generateHandicapDailyReportHtml(data: HandicapDailyReportData): string {
     const { summary } = data;
 
-    const generateRequestTable = (requests: typeof data.activeRequests, title: string, showResolution = false) => {
+    const generateRequestTable = (
+      requests: typeof data.activeRequests,
+      title: string,
+      showResolution = false,
+    ) => {
       if (requests.length === 0) {
         return `
           <div style="margin-bottom: 20px;">
@@ -2186,7 +2297,9 @@ export class EmailService {
         `;
       }
 
-      const rows = requests.map((req: any) => `
+      const rows = requests
+        .map(
+          (req: any) => `
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.type}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.location}</td>
@@ -2196,7 +2309,9 @@ export class EmailService {
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.daysOpen} zile</td>
           ${showResolution ? `<td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${req.resolvedBy || '-'}</td>` : ''}
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       return `
         <div style="margin-bottom: 25px;">
@@ -2231,7 +2346,9 @@ export class EmailService {
         `;
       }
 
-      const rows = data.legitimations.map(leg => `
+      const rows = data.legitimations
+        .map(
+          (leg) => `
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.personName}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.carPlate}</td>
@@ -2239,7 +2356,9 @@ export class EmailService {
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdAt}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdBy}</td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       return `
         <div style="margin-bottom: 25px;">
@@ -2273,7 +2392,9 @@ export class EmailService {
         `;
       }
 
-      const rows = revLegitimations.map(leg => `
+      const rows = revLegitimations
+        .map(
+          (leg) => `
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.personName}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.carPlate}</td>
@@ -2281,7 +2402,9 @@ export class EmailService {
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdAt}</td>
           <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">${leg.createdBy}</td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       return `
         <div style="margin-bottom: 25px;">
@@ -2378,12 +2501,13 @@ export class EmailService {
   async sendWeeklyDailyReportSummary(data: WeeklyDailyReportSummaryData): Promise<boolean> {
     const weekRange = `${this.formatDate(data.weekStartDate)} - ${this.formatDate(data.weekEndDate)}`;
 
-    const dayRows = data.reportsByDay.map(day => {
-      const missingUsers = day.missingUsers || [];
-      const hasMissing = missingUsers.length > 0;
+    const dayRows = data.reportsByDay
+      .map((day) => {
+        const missingUsers = day.missingUsers || [];
+        const hasMissing = missingUsers.length > 0;
 
-      if (day.reports.length === 0 && !hasMissing) {
-        return `
+        if (day.reports.length === 0 && !hasMissing) {
+          return `
           <tr>
             <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
               <strong style="color: #374151;">${day.dayName} (${this.formatDate(day.date)})</strong>
@@ -2391,9 +2515,9 @@ export class EmailService {
             </td>
           </tr>
         `;
-      }
+        }
 
-      const dayHeader = `
+        const dayHeader = `
         <tr>
           <td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
             <strong style="color: #1e40af; font-size: 15px;">${day.dayName} (${this.formatDate(day.date)})</strong>
@@ -2403,7 +2527,9 @@ export class EmailService {
         </tr>
       `;
 
-      const reportRows = day.reports.map(report => `
+        const reportRows = day.reports
+          .map(
+            (report) => `
         <tr>
           <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top; width: 150px;">
             <strong style="color: #374151; font-size: 13px;">${report.userName}</strong>
@@ -2412,31 +2538,40 @@ export class EmailService {
           </td>
           <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top;">
             <div style="color: #374151; font-size: 13px; white-space: pre-line; max-width: 350px;">${report.content}</div>
-            ${report.adminComment ? `
+            ${
+              report.adminComment
+                ? `
               <div style="margin-top: 8px; padding: 8px 12px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
                 <span style="color: #92400e; font-size: 11px; font-weight: 600;">Comentariu Admin${report.adminCommentedBy ? ` (${report.adminCommentedBy})` : ''}:</span>
                 <br/>
                 <span style="color: #78350f; font-size: 12px;">${report.adminComment}</span>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </td>
         </tr>
-      `).join('');
+      `,
+          )
+          .join('');
 
-      // Sectiune cu utilizatori care NU au trimis raportul
-      const missingSection = hasMissing ? `
+        // Sectiune cu utilizatori care NU au trimis raportul
+        const missingSection = hasMissing
+          ? `
         <tr>
           <td colspan="4" style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; background: #fef2f2;">
             <strong style="color: #dc2626; font-size: 13px;">&#9888; Nu au trimis raportul (${missingUsers.length}):</strong>
             <div style="color: #991b1b; font-size: 12px; margin-top: 4px;">
-              ${missingUsers.map(u => `${u.userName} (${u.departmentName})`).join(', ')}
+              ${missingUsers.map((u) => `${u.userName} (${u.departmentName})`).join(', ')}
             </div>
           </td>
         </tr>
-      ` : '';
+      `
+          : '';
 
-      return dayHeader + reportRows + missingSection;
-    }).join('');
+        return dayHeader + reportRows + missingSection;
+      })
+      .join('');
 
     const content = `
       <div style="margin-bottom: 25px;">
@@ -2453,12 +2588,16 @@ export class EmailService {
           <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Utilizatori</div>
           <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalUsers}</div>
         </div>
-        ${data.totalMissing ? `
+        ${
+          data.totalMissing
+            ? `
         <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 15px 20px; border-radius: 10px; flex: 1; text-align: center;">
           <div style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Lipsa Rapoarte</div>
           <div style="color: white; font-size: 28px; font-weight: 700; margin-top: 4px;">${data.totalMissing}</div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
 
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
@@ -2484,7 +2623,7 @@ export class EmailService {
       'Centralizare Saptamanala',
       `Rapoarte Zilnice - ${weekRange}`,
       content,
-      '#3b82f6 0%, #8b5cf6 100%'
+      '#3b82f6 0%, #8b5cf6 100%',
     );
 
     return this.sendEmail(
@@ -2537,7 +2676,9 @@ export class EmailService {
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Raportat de</th>
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Ora</th>
           </tr>
-          ${data.newIssues.map(i => `
+          ${data.newIssues
+            .map(
+              (i) => `
             <tr>
               <td style="padding: 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${i.equipment}${i.isUrgent ? ' <span style="color: red; font-weight: bold;">URGENT</span>' : ''}</td>
@@ -2545,7 +2686,9 @@ export class EmailService {
               <td style="padding: 8px; border: 1px solid #ddd;">${i.creatorName}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${i.createdAt}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </table>
       `;
     }
@@ -2563,14 +2706,18 @@ export class EmailService {
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Rezolutie</th>
           </tr>
-          ${data.resolvedIssues.map(i => `
+          ${data.resolvedIssues
+            .map(
+              (i) => `
             <tr>
               <td style="padding: 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${i.equipment}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${i.resolverName}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${i.resolutionDescription?.substring(0, 100) || '-'}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </table>
       `;
     }
@@ -2589,7 +2736,9 @@ export class EmailService {
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Nr. Auto</th>
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Raportat de</th>
           </tr>
-          ${data.newDamages.map(d => `
+          ${data.newDamages
+            .map(
+              (d) => `
             <tr>
               <td style="padding: 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${d.damagedEquipment}${d.isUrgent ? ' <span style="color: red; font-weight: bold;">URGENT</span>' : ''}</td>
@@ -2597,7 +2746,9 @@ export class EmailService {
               <td style="padding: 8px; border: 1px solid #ddd;">${d.carPlate || '-'}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${d.creatorName}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </table>
       `;
     }
@@ -2615,14 +2766,18 @@ export class EmailService {
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
             <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Tip Rezolutie</th>
           </tr>
-          ${data.resolvedDamages.map(d => `
+          ${data.resolvedDamages
+            .map(
+              (d) => `
             <tr>
               <td style="padding: 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${d.damagedEquipment}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${d.resolverName}</td>
               <td style="padding: 8px; border: 1px solid #ddd;">${d.resolutionType || '-'}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join('')}
         </table>
       `;
     }
@@ -2639,7 +2794,12 @@ export class EmailService {
     return this.sendEmail(
       data.recipientEmail,
       `📋 Rezumat Parcari - ${data.date}`,
-      this.generateBaseTemplate('WorkSchedule', `Rezumat Parcari - ${data.date}`, content, '#1565c0 0%, #0d47a1 100%'),
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        `Rezumat Parcari - ${data.date}`,
+        content,
+        '#1565c0 0%, #0d47a1 100%',
+      ),
     );
   }
 
@@ -2665,7 +2825,11 @@ export class EmailService {
       }
     };
 
-    const getGpsStatusLabel = (gpsStatus: string | null, locationCount: number, stoppedBySystem: boolean): { label: string; color: string; bgColor: string } => {
+    const getGpsStatusLabel = (
+      gpsStatus: string | null,
+      locationCount: number,
+      stoppedBySystem: boolean,
+    ): { label: string; color: string; bgColor: string } => {
       if (stoppedBySystem) {
         return { label: 'Tura Oprita Automat', color: '#c62828', bgColor: '#ffebee' };
       }
@@ -2707,30 +2871,41 @@ export class EmailService {
     `;
 
     // Per-employee sections
-    const employeeSections = data.employees.map(emp => {
-      const statusIcon = emp.hasGpsProblems ? '🔴' : '🟢';
+    const employeeSections = data.employees
+      .map((emp) => {
+        const statusIcon = emp.hasGpsProblems ? '🔴' : '🟢';
 
-      const shiftsHtml = emp.shifts.map((shift, idx) => {
-        const gpsInfo = getGpsStatusLabel(shift.gpsStatus, shift.locationCount, shift.stoppedBySystem);
+        const shiftsHtml = emp.shifts
+          .map((shift, idx) => {
+            const gpsInfo = getGpsStatusLabel(
+              shift.gpsStatus,
+              shift.locationCount,
+              shift.stoppedBySystem,
+            );
 
-        const streetsHtml = shift.streets.length > 0
-          ? `<div style="margin-top: 8px; padding-left: 12px; border-left: 3px solid #e0e0e0;">
+            const streetsHtml =
+              shift.streets.length > 0
+                ? `<div style="margin-top: 8px; padding-left: 12px; border-left: 3px solid #e0e0e0;">
               <div style="font-size: 12px; color: #888; margin-bottom: 4px; font-weight: bold;">Strazi vizitate:</div>
-              ${shift.streets.map(s =>
-                `<div style="font-size: 13px; color: #555; padding: 2px 0;">
+              ${shift.streets
+                .map(
+                  (s) =>
+                    `<div style="font-size: 13px; color: #555; padding: 2px 0;">
                   📍 ${s.streetName} ${s.durationMinutes > 0 ? `<span style="color: #999;">(${formatDuration(s.durationMinutes)})</span>` : ''}
-                </div>`
-              ).join('')}
+                </div>`,
+                )
+                .join('')}
             </div>`
-          : '<div style="font-size: 12px; color: #999; margin-top: 4px; font-style: italic;">Nu sunt strazi inregistrate</div>';
+                : '<div style="font-size: 12px; color: #999; margin-top: 4px; font-style: italic;">Nu sunt strazi inregistrate</div>';
 
-        const autoStopHtml = shift.stoppedBySystem && shift.systemStopReason
-          ? `<div style="margin-top: 6px; padding: 8px; background: #ffebee; border-radius: 4px; font-size: 12px; color: #c62828;">
+            const autoStopHtml =
+              shift.stoppedBySystem && shift.systemStopReason
+                ? `<div style="margin-top: 6px; padding: 8px; background: #ffebee; border-radius: 4px; font-size: 12px; color: #c62828;">
               ⚠️ ${shift.systemStopReason}
             </div>`
-          : '';
+                : '';
 
-        return `
+            return `
           <div style="background: #fafafa; border-radius: 8px; padding: 14px; margin-bottom: 10px; border: 1px solid #eee;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
               <div>
@@ -2750,9 +2925,10 @@ export class EmailService {
             ${streetsHtml}
           </div>
         `;
-      }).join('');
+          })
+          .join('');
 
-      return `
+        return `
         <div style="margin-bottom: 24px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
           <div style="background: ${emp.hasGpsProblems ? '#ffebee' : '#e8f5e9'}; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div>
@@ -2768,7 +2944,8 @@ export class EmailService {
           </div>
         </div>
       `;
-    }).join('');
+      })
+      .join('');
 
     const content = `
       <p style="font-size: 16px;">Buna ziua, <strong>${data.recipientName}</strong>!</p>
@@ -2790,7 +2967,12 @@ export class EmailService {
     return this.sendEmail(
       data.recipientEmail,
       `📍 Raport GPS Zilnic - ${data.reportDate}`,
-      this.generateBaseTemplate('WorkSchedule', `Raport GPS Zilnic - ${data.reportDate}`, content, '#2e7d32 0%, #1b5e20 100%'),
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        `Raport GPS Zilnic - ${data.reportDate}`,
+        content,
+        '#2e7d32 0%, #1b5e20 100%',
+      ),
     );
   }
 
@@ -2801,13 +2983,17 @@ export class EmailService {
 
     // ---- Section 1: Incasari ----
     if (data.cashReport) {
-      const parkingLotRows = data.cashReport.byParkingLot.map(lot => `
+      const parkingLotRows = data.cashReport.byParkingLot
+        .map(
+          (lot) => `
         <tr>
           <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb;">${lot.parkingLotName}</td>
           <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${lot.count}</td>
           <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">${lot.totalAmount.toFixed(2)} RON</td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       sections.push(`
         <div style="margin-bottom: 30px;">
@@ -2868,14 +3054,18 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Raportat</th>
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Ora</th>
               </tr>
-              ${ps.newIssues.map(i => `
+              ${ps.newIssues
+                .map(
+                  (i) => `
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.equipment}${i.isUrgent ? ' <span style="color:red;font-weight:bold;">URGENT</span>' : ''}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.creatorName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.createdAt}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -2891,13 +3081,17 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
               </tr>
-              ${ps.resolvedIssues.map(i => `
+              ${ps.resolvedIssues
+                .map(
+                  (i) => `
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.equipment}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.resolverName}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -2914,14 +3108,18 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Persoana</th>
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Nr. Auto</th>
               </tr>
-              ${ps.newDamages.map(d => `
+              ${ps.newDamages
+                .map(
+                  (d) => `
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.damagedEquipment}${d.isUrgent ? ' <span style="color:red;font-weight:bold;">URGENT</span>' : ''}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.personName || '-'}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.carPlate || '-'}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -2938,14 +3136,18 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Rezolvat de</th>
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Tip</th>
               </tr>
-              ${ps.resolvedDamages.map(d => `
+              ${ps.resolvedDamages
+                .map(
+                  (d) => `
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.damagedEquipment}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.resolverName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.resolutionType || '-'}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -2967,8 +3169,8 @@ export class EmailService {
     if (data.unresolvedItems) {
       const ui = data.unresolvedItems;
       const totalItems = ui.issues.length + ui.damages.length;
-      const urgentIssues = ui.issues.filter(i => i.isUrgent).length;
-      const urgentDamages = ui.damages.filter(d => d.isUrgent).length;
+      const urgentIssues = ui.issues.filter((i) => i.isUrgent).length;
+      const urgentDamages = ui.damages.filter((d) => d.isUrgent).length;
       const totalUrgent = urgentIssues + urgentDamages;
 
       let unresolvedContent = '';
@@ -2991,13 +3193,17 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Echipament</th>
                 <th style="padding: 6px 8px; text-align: center; border: 1px solid #ddd;">Vechime</th>
               </tr>
-              ${ui.issues.map(i => `
+              ${ui.issues
+                .map(
+                  (i) => `
                 <tr style="${i.isUrgent ? 'background:#ffebee;' : ''}">
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.parkingLotName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${i.equipment}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center;">${i.daysOpen} zile${i.isUrgent ? ' ⚠️' : ''}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -3014,14 +3220,18 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Persoana</th>
                 <th style="padding: 6px 8px; text-align: center; border: 1px solid #ddd;">Vechime</th>
               </tr>
-              ${ui.damages.map(d => `
+              ${ui.damages
+                .map(
+                  (d) => `
                 <tr style="${d.isUrgent ? 'background:#ffebee;' : ''}">
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.parkingLotName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.damagedEquipment}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${d.personName}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd; text-align: center;">${d.daysOpen} zile${d.isUrgent ? ' ⚠️' : ''}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -3085,23 +3295,31 @@ export class EmailService {
                 <th style="padding: 5px 6px; text-align: left; border: 1px solid #e5e7eb;">Persoana</th>
                 <th style="padding: 5px 6px; text-align: left; border: 1px solid #e5e7eb;">Vechime</th>
               </tr>
-              ${items.map(r => `
+              ${items
+                .map(
+                  (r) => `
                 <tr>
                   <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.type}</td>
                   <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.location}</td>
                   <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.personName}</td>
                   <td style="padding: 5px 6px; border: 1px solid #e5e7eb;">${r.daysOpen} zile</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
       };
 
-      if (hr.createdToday.length > 0) handicapContent += makeReqTable(hr.createdToday, '🆕 Create azi');
-      if (hr.resolvedToday.length > 0) handicapContent += makeReqTable(hr.resolvedToday, '✅ Finalizate azi');
-      if (hr.expiredRequests.length > 0) handicapContent += makeReqTable(hr.expiredRequests, '🚨 Expirate (>5 zile)');
-      if (hr.activeRequests.length > 0) handicapContent += makeReqTable(hr.activeRequests, '📋 Active');
+      if (hr.createdToday.length > 0)
+        handicapContent += makeReqTable(hr.createdToday, '🆕 Create azi');
+      if (hr.resolvedToday.length > 0)
+        handicapContent += makeReqTable(hr.resolvedToday, '✅ Finalizate azi');
+      if (hr.expiredRequests.length > 0)
+        handicapContent += makeReqTable(hr.expiredRequests, '🚨 Expirate (>5 zile)');
+      if (hr.activeRequests.length > 0)
+        handicapContent += makeReqTable(hr.activeRequests, '📋 Active');
 
       sections.push(`
         <div style="margin-bottom: 30px;">
@@ -3160,27 +3378,34 @@ export class EmailService {
       `;
 
       // Employee summaries (compact)
-      gpsContent += gps.employees.map(emp => {
-        const statusIcon = emp.hasGpsProblems ? '🔴' : '🟢';
-        const shiftsInfo = emp.shifts.map((s, idx) => {
-          const streets = s.streets.length > 0
-            ? s.streets.map(st => `📍 ${st.streetName}`).join(', ')
-            : 'fara strazi';
-          const autoStop = s.stoppedBySystem ? ' <span style="color:#c62828;">⚠️ Oprit automat</span>' : '';
-          return `<div style="font-size: 12px; color: #555; padding: 3px 0;">
+      gpsContent += gps.employees
+        .map((emp) => {
+          const statusIcon = emp.hasGpsProblems ? '🔴' : '🟢';
+          const shiftsInfo = emp.shifts
+            .map((s, idx) => {
+              const streets =
+                s.streets.length > 0
+                  ? s.streets.map((st) => `📍 ${st.streetName}`).join(', ')
+                  : 'fara strazi';
+              const autoStop = s.stoppedBySystem
+                ? ' <span style="color:#c62828;">⚠️ Oprit automat</span>'
+                : '';
+              return `<div style="font-size: 12px; color: #555; padding: 3px 0;">
             Tura ${idx + 1}: ${formatGpsTime(s.startTime)}-${formatGpsTime(s.endTime)} | ${formatDuration(s.durationMinutes)} | ${s.locationCount} loc. | ${s.totalDistanceKm} km${autoStop}
             <div style="font-size: 11px; color: #888; padding-left: 12px;">${streets}</div>
           </div>`;
-        }).join('');
+            })
+            .join('');
 
-        return `
+          return `
           <div style="background: ${emp.hasGpsProblems ? '#fff5f5' : '#f8fdf8'}; border: 1px solid #eee; border-radius: 6px; padding: 10px 14px; margin-bottom: 8px;">
             <div style="font-size: 14px; font-weight: 600;">${statusIcon} ${emp.name} <span style="font-weight:normal;color:#666;font-size:12px;">(${emp.department})</span></div>
             <div style="font-size: 12px; color: #555; margin: 4px 0;">Total: ${formatDuration(emp.totalDurationMinutes)} | ${emp.totalLocations} locatii</div>
             ${shiftsInfo}
           </div>
         `;
-      }).join('');
+        })
+        .join('');
 
       sections.push(`
         <div style="margin-bottom: 30px;">
@@ -3196,12 +3421,16 @@ export class EmailService {
 
     // ---- Section 6: Rapoarte zilnice lipsa ----
     if (data.missingDailyReports.length > 0) {
-      const missingRows = data.missingDailyReports.map(u => `
+      const missingRows = data.missingDailyReports
+        .map(
+          (u) => `
         <tr>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${u.userName}</td>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${u.departmentName}</td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       sections.push(`
         <div style="margin-bottom: 30px;">
@@ -3224,14 +3453,21 @@ export class EmailService {
     }
 
     // ---- Section 7: Procese Verbale ----
-    if (data.pvDisplayReport && (data.pvDisplayReport.todayDays.length > 0 || data.pvDisplayReport.activeSessions > 0)) {
-      const pvRows = data.pvDisplayReport.todayDays.map(d => `
+    if (
+      data.pvDisplayReport &&
+      (data.pvDisplayReport.todayDays.length > 0 || data.pvDisplayReport.activeSessions > 0)
+    ) {
+      const pvRows = data.pvDisplayReport.todayDays
+        .map(
+          (d) => `
         <tr>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">Ziua ${d.dayOrder} - ${d.displayDate}</td>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${d.status}</td>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${[d.controlUser1Name, d.controlUser2Name].filter(Boolean).join(', ') || '-'}</td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       sections.push(`
         <div style="margin-bottom: 30px;">
@@ -3240,7 +3476,9 @@ export class EmailService {
           </div>
           <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
             <p style="margin: 0 0 8px;">Sesiuni active: <strong>${data.pvDisplayReport.activeSessions}</strong> | Zile viitoare: <strong>${data.pvDisplayReport.upcomingDays}</strong> | Finalizate azi: <strong>${data.pvDisplayReport.completedToday}</strong></p>
-            ${pvRows ? `
+            ${
+              pvRows
+                ? `
               <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                 <thead>
                   <tr style="background: #f8f9fa;">
@@ -3251,7 +3489,9 @@ export class EmailService {
                 </thead>
                 <tbody>${pvRows}</tbody>
               </table>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
         </div>
       `);
@@ -3260,8 +3500,10 @@ export class EmailService {
     // ---- Section 8: Control Sesizari ----
     if (data.controlSesizariReport) {
       const cs = data.controlSesizariReport;
-      const zoneColor = (zone: string) => zone === 'ROSU' ? '#ef4444' : zone === 'GALBEN' ? '#f59e0b' : '#64748b';
-      const zoneLabel = (zone: string) => zone === 'ROSU' ? 'Rosu' : zone === 'GALBEN' ? 'Galben' : 'Alb';
+      const zoneColor = (zone: string) =>
+        zone === 'ROSU' ? '#ef4444' : zone === 'GALBEN' ? '#f59e0b' : '#64748b';
+      const zoneLabel = (zone: string) =>
+        zone === 'ROSU' ? 'Rosu' : zone === 'GALBEN' ? 'Galben' : 'Alb';
 
       let csContent = `
         <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
@@ -3292,14 +3534,18 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Locatie</th>
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Creat de</th>
               </tr>
-              ${cs.createdToday.map(s => `
+              ${cs.createdToday
+                .map(
+                  (s) => `
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.type}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;"><span style="color: ${zoneColor(s.zone)}; font-weight: bold;">${zoneLabel(s.zone)}</span></td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.location}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.createdBy}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -3316,14 +3562,18 @@ export class EmailService {
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Locatie</th>
                 <th style="padding: 6px 8px; text-align: left; border: 1px solid #ddd;">Finalizat de</th>
               </tr>
-              ${cs.resolvedToday.map(s => `
+              ${cs.resolvedToday
+                .map(
+                  (s) => `
                 <tr>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.type}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;"><span style="color: ${zoneColor(s.zone)}; font-weight: bold;">${zoneLabel(s.zone)}</span></td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.location}</td>
                   <td style="padding: 6px 8px; border: 1px solid #ddd;">${s.resolvedBy}</td>
                 </tr>
-              `).join('')}
+              `,
+                )
+                .join('')}
             </table>
           </div>
         `;
@@ -3346,11 +3596,15 @@ export class EmailService {
       <p style="font-size: 16px;">Buna seara, <strong>${data.recipientName}</strong>!</p>
       <p style="color: #666;">Acesta este raportul zilnic consolidat pentru <strong>${data.reportDate}</strong>.</p>
 
-      ${sections.length > 0 ? sections.join('') : `
+      ${
+        sections.length > 0
+          ? sections.join('')
+          : `
         <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
           <p style="color: #666; margin: 0;">Nu au fost inregistrate activitati astazi.</p>
         </div>
-      `}
+      `
+      }
 
       <div style="margin-top: 20px; text-align: center;">
         <a href="${this.appUrl}" style="display: inline-block; background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
@@ -3362,7 +3616,12 @@ export class EmailService {
     return this.sendEmail(
       data.recipientEmail,
       `📊 Raport Zilnic Consolidat - ${data.reportDate}`,
-      this.generateBaseTemplate('WorkSchedule', `Raport Zilnic Consolidat - ${data.reportDate}`, content, '#1565c0 0%, #0d47a1 100%'),
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        `Raport Zilnic Consolidat - ${data.reportDate}`,
+        content,
+        '#1565c0 0%, #0d47a1 100%',
+      ),
     );
   }
 
@@ -3416,13 +3675,17 @@ export class EmailService {
 
     // ---- Section 1: Incasari ----
     if (data.weeklyCash) {
-      const lotRows = data.weeklyCash.byParkingLot.map(lot => `
+      const lotRows = data.weeklyCash.byParkingLot
+        .map(
+          (lot) => `
         <tr>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; font-size: 13px;">${lot.parkingLotName}</td>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-size: 13px;">${lot.count}</td>
           <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold; font-size: 13px;">${lot.totalAmount.toFixed(2)} RON</td>
         </tr>
-      `).join('');
+      `,
+        )
+        .join('');
 
       sections.push(`
         <div style="margin-bottom: 25px;">
@@ -3646,11 +3909,15 @@ export class EmailService {
     // ---- Section 8: Concedii ----
     if (data.weeklyLeaveRequests) {
       const wlr = data.weeklyLeaveRequests;
-      const byTypeRows = wlr.byType.map(t => `
+      const byTypeRows = wlr.byType
+        .map(
+          (t) => `
         <span style="display: inline-block; background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 12px; margin: 2px 4px 2px 0;">
           ${t.type}: <strong>${t.count}</strong>
         </span>
-      `).join('');
+      `,
+        )
+        .join('');
 
       sections.push(`
         <div style="margin-bottom: 25px;">
@@ -3715,12 +3982,13 @@ export class EmailService {
     }
 
     // ---- Section 10: Rapoarte Zilnice (existing daily reports per day) ----
-    const dayRows = data.reportsByDay.map(day => {
-      const missingUsers = day.missingUsers || [];
-      const hasMissing = missingUsers.length > 0;
+    const dayRows = data.reportsByDay
+      .map((day) => {
+        const missingUsers = day.missingUsers || [];
+        const hasMissing = missingUsers.length > 0;
 
-      if (day.reports.length === 0 && !hasMissing) {
-        return `
+        if (day.reports.length === 0 && !hasMissing) {
+          return `
           <tr>
             <td colspan="2" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
               <strong style="color: #374151;">${day.dayName} (${this.formatDate(day.date)})</strong>
@@ -3728,9 +3996,9 @@ export class EmailService {
             </td>
           </tr>
         `;
-      }
+        }
 
-      const dayHeader = `
+        const dayHeader = `
         <tr>
           <td colspan="2" style="padding: 12px 15px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
             <strong style="color: #1e40af; font-size: 15px;">${day.dayName} (${this.formatDate(day.date)})</strong>
@@ -3740,7 +4008,9 @@ export class EmailService {
         </tr>
       `;
 
-      const reportRows = day.reports.map(report => `
+        const reportRows = day.reports
+          .map(
+            (report) => `
         <tr>
           <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top; width: 150px;">
             <strong style="color: #374151; font-size: 13px;">${report.userName}</strong>
@@ -3749,30 +4019,39 @@ export class EmailService {
           </td>
           <td style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; vertical-align: top;">
             <div style="color: #374151; font-size: 13px; white-space: pre-line; max-width: 350px;">${report.content}</div>
-            ${report.adminComment ? `
+            ${
+              report.adminComment
+                ? `
               <div style="margin-top: 8px; padding: 8px 12px; background: #fef3c7; border-left: 3px solid #f59e0b; border-radius: 4px;">
                 <span style="color: #92400e; font-size: 11px; font-weight: 600;">Comentariu Admin${report.adminCommentedBy ? ` (${report.adminCommentedBy})` : ''}:</span>
                 <br/>
                 <span style="color: #78350f; font-size: 12px;">${report.adminComment}</span>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </td>
         </tr>
-      `).join('');
+      `,
+          )
+          .join('');
 
-      const missingSection = hasMissing ? `
+        const missingSection = hasMissing
+          ? `
         <tr>
           <td colspan="2" style="padding: 10px 15px; border-bottom: 1px solid #f3f4f6; background: #fef2f2;">
             <strong style="color: #dc2626; font-size: 13px;">&#9888; Nu au trimis raportul (${missingUsers.length}):</strong>
             <div style="color: #991b1b; font-size: 12px; margin-top: 4px;">
-              ${missingUsers.map(u => `${u.userName} (${u.departmentName})`).join(', ')}
+              ${missingUsers.map((u) => `${u.userName} (${u.departmentName})`).join(', ')}
             </div>
           </td>
         </tr>
-      ` : '';
+      `
+          : '';
 
-      return dayHeader + reportRows + missingSection;
-    }).join('');
+        return dayHeader + reportRows + missingSection;
+      })
+      .join('');
 
     sections.push(`
       <div style="margin-bottom: 25px;">
@@ -3817,7 +4096,7 @@ export class EmailService {
       'Raport Saptamanal',
       `Raport Saptamanal Consolidat - ${weekRange}`,
       content,
-      '#3b82f6 0%, #8b5cf6 100%'
+      '#3b82f6 0%, #8b5cf6 100%',
     );
 
     return this.sendEmail(

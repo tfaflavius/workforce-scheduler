@@ -1,12 +1,4 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsNumber,
-  IsOptional,
-  IsIn,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional, IsIn, MaxLength, Min } from 'class-validator';
 
 export class CreateBudgetPositionDto {
   @IsNumber()

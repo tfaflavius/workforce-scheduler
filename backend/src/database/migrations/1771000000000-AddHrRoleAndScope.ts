@@ -41,6 +41,8 @@ export class AddHrRoleAndScope1771000000000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "hr_only_disp_position"`);
-    await queryRunner.query(`ALTER TABLE "users" DROP COLUMN IF EXISTS "hr_visible_department_ids"`);
+    await queryRunner.query(
+      `ALTER TABLE "users" DROP COLUMN IF EXISTS "hr_visible_department_ids"`,
+    );
   }
 }

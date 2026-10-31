@@ -39,18 +39,12 @@ export class EquipmentStockController {
     @Query('category') category?: string,
     @Query('includeInactive') includeInactive?: string,
   ) {
-    return this.equipmentStockService.findAllDefinitions(
-      category,
-      includeInactive === 'true',
-    );
+    return this.equipmentStockService.findAllDefinitions(category, includeInactive === 'true');
   }
 
   @Post('definitions')
   @UseGuards(StockDefinitionAccessGuard)
-  async createDefinition(
-    @Request() req,
-    @Body() dto: CreateStockDefinitionDto,
-  ) {
+  async createDefinition(@Request() req, @Body() dto: CreateStockDefinitionDto) {
     return this.equipmentStockService.createDefinition(dto, req.user.id);
   }
 
@@ -89,11 +83,7 @@ export class EquipmentStockController {
 
   @Patch('entries/:id')
   @UseGuards(EquipmentStockAccessGuard)
-  async updateEntry(
-    @Param('id') id: string,
-    @Request() req,
-    @Body() dto: UpdateStockEntryDto,
-  ) {
+  async updateEntry(@Param('id') id: string, @Request() req, @Body() dto: UpdateStockEntryDto) {
     return this.equipmentStockService.updateEntry(id, dto, req.user.id);
   }
 

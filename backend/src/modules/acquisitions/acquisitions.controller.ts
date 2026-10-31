@@ -19,7 +19,10 @@ import { UserRole } from '../users/entities/user.entity';
 import { CreateBudgetPositionDto, UpdateBudgetPositionDto } from './dto/create-budget-position.dto';
 import { CreateAcquisitionDto, UpdateAcquisitionDto } from './dto/create-acquisition.dto';
 import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/create-invoice.dto';
-import { CreateRevenueCategoryDto, UpdateRevenueCategoryDto } from './dto/create-revenue-category.dto';
+import {
+  CreateRevenueCategoryDto,
+  UpdateRevenueCategoryDto,
+} from './dto/create-revenue-category.dto';
 import { UpsertMonthlyRevenueDto } from './dto/create-monthly-revenue.dto';
 import { BudgetCategory } from './entities/budget-position.entity';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -60,7 +63,11 @@ export class AcquisitionsController {
   }
 
   @Put('budget-positions/:id')
-  updateBudgetPosition(@Param('id') id: string, @Body() dto: UpdateBudgetPositionDto, @Request() req?) {
+  updateBudgetPosition(
+    @Param('id') id: string,
+    @Body() dto: UpdateBudgetPositionDto,
+    @Request() req?,
+  ) {
     this.acquisitionsService.checkAccess(req.user);
     return this.acquisitionsService.updateBudgetPosition(id, dto);
   }

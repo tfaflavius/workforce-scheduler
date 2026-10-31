@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Query, UseGuards, UseInterceptors, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  Request,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -58,10 +67,15 @@ export class ParkingStatsController {
 
   @Post('subscriptions')
   async upsertMonthlySubscriptions(
-    @Body() body: { monthYear: string; entries: Array<{ locationKey: string; subscriptionCount: number }> },
+    @Body()
+    body: { monthYear: string; entries: Array<{ locationKey: string; subscriptionCount: number }> },
     @Request() req,
   ) {
-    return this.parkingStatsService.upsertMonthlySubscriptions(body.monthYear, body.entries, req.user.id);
+    return this.parkingStatsService.upsertMonthlySubscriptions(
+      body.monthYear,
+      body.entries,
+      req.user.id,
+    );
   }
 
   @Get('subscriptions')
@@ -73,13 +87,23 @@ export class ParkingStatsController {
 
   @Post('occupancy')
   async upsertWeeklyOccupancy(
-    @Body() body: {
+    @Body()
+    body: {
       weekStart: string;
-      entries: Array<{ locationKey: string; minOccupancy: number; maxOccupancy: number; avgOccupancy: number }>;
+      entries: Array<{
+        locationKey: string;
+        minOccupancy: number;
+        maxOccupancy: number;
+        avgOccupancy: number;
+      }>;
     },
     @Request() req,
   ) {
-    return this.parkingStatsService.upsertWeeklyOccupancy(body.weekStart, body.entries, req.user.id);
+    return this.parkingStatsService.upsertWeeklyOccupancy(
+      body.weekStart,
+      body.entries,
+      req.user.id,
+    );
   }
 
   @Get('occupancy')

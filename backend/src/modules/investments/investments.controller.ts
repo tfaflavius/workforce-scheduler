@@ -77,9 +77,7 @@ export class InvestmentsController {
    * Anyone with auth can view.
    */
   @Get('annual-budget')
-  async getAnnualBudget(
-    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
-  ) {
+  async getAnnualBudget(@Query('year', new ParseIntPipe({ optional: true })) year?: number) {
     const targetYear = year ?? new Date().getFullYear();
     return this.investmentsService.getAnnualBudget(targetYear);
   }
@@ -99,9 +97,7 @@ export class InvestmentsController {
    * Anyone with auth can view.
    */
   @Get('annual-budget/history')
-  async getAnnualBudgetHistory(
-    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
-  ) {
+  async getAnnualBudgetHistory(@Query('year', new ParseIntPipe({ optional: true })) year?: number) {
     const targetYear = year ?? new Date().getFullYear();
     return this.investmentsService.getAnnualBudgetHistory(targetYear);
   }

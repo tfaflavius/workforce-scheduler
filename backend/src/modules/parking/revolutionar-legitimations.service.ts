@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
@@ -37,7 +43,10 @@ export class RevolutionarLegitimationsService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async create(userId: string, dto: CreateRevolutionarLegitimationDto): Promise<RevolutionarLegitimation> {
+  async create(
+    userId: string,
+    dto: CreateRevolutionarLegitimationDto,
+  ): Promise<RevolutionarLegitimation> {
     const legitimation = this.legitimationRepository.create({
       personName: removeDiacritics(dto.personName),
       cnp: dto.cnp,
@@ -65,13 +74,21 @@ export class RevolutionarLegitimationsService {
     return this.findOne(savedLegitimation.id);
   }
 
-  async update(id: string, userId: string, dto: UpdateRevolutionarLegitimationDto, user: any): Promise<RevolutionarLegitimation> {
+  async update(
+    id: string,
+    userId: string,
+    dto: UpdateRevolutionarLegitimationDto,
+    user: any,
+  ): Promise<RevolutionarLegitimation> {
     // Admin si userii de la departamentul Parcari Handicap pot edita
-    const canEdit = isAdminOrAbove(user.role) ||
+    const canEdit =
+      isAdminOrAbove(user.role) ||
       removeDiacritics(user.department?.name || '') === HANDICAP_PARKING_DEPARTMENT_NAME;
 
     if (!canEdit) {
-      throw new ForbiddenException('Doar administratorii si departamentul Parcari Handicap pot modifica legitimatiile');
+      throw new ForbiddenException(
+        'Doar administratorii si departamentul Parcari Handicap pot modifica legitimatiile',
+      );
     }
 
     const legitimation = await this.findOne(id);
@@ -135,7 +152,10 @@ export class RevolutionarLegitimationsService {
     await this.historyRepository.save(history);
   }
 
-  private async notifyHandicapDepartment(legitimation: RevolutionarLegitimation, creatorUserId: string): Promise<void> {
+  private async notifyHandicapDepartment(
+    legitimation: RevolutionarLegitimation,
+    creatorUserId: string,
+  ): Promise<void> {
     // Gaseste departamentul Parcari Handicap
     const handicapDept = await this.departmentRepository.findOne({
       where: { name: HANDICAP_PARKING_DEPARTMENT_NAME },
@@ -159,7 +179,8 @@ export class RevolutionarLegitimationsService {
     });
 
     const allUsers = [...handicapUsers, ...admins].filter(
-      (user, index, self) => index === self.findIndex(u => u.id === user.id) && user.id !== creatorUserId
+      (user, index, self) =>
+        index === self.findIndex((u) => u.id === user.id) && user.id !== creatorUserId,
     );
 
     if (allUsers.length === 0) {
@@ -171,7 +192,7 @@ export class RevolutionarLegitimationsService {
     const creatorName = creator?.fullName || 'Un utilizator';
 
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = allUsers.map(user => ({
+    const notifications = allUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.LEGITIMATION_ASSIGNED,
       title: 'Solicitare legitimatie revolutionar/deportat noua',
@@ -186,7 +207,10 @@ export class RevolutionarLegitimationsService {
     await this.notificationsService.createMany(notifications);
   }
 
-  private async notifyOnResolution(legitimation: RevolutionarLegitimation, resolverUserId: string): Promise<void> {
+  private async notifyOnResolution(
+    legitimation: RevolutionarLegitimation,
+    resolverUserId: string,
+  ): Promise<void> {
     const resolver = await this.userRepository.findOne({ where: { id: resolverUserId } });
     const resolverName = resolver?.fullName || 'Un utilizator';
 
@@ -209,18 +233,18 @@ export class RevolutionarLegitimationsService {
       const handicapUsers = await this.userRepository.find({
         where: { departmentId: handicapDept.id, isActive: true },
       });
-      usersToNotify.push(...handicapUsers.filter(u => u.id !== resolverUserId));
+      usersToNotify.push(...handicapUsers.filter((u) => u.id !== resolverUserId));
     }
 
     // 3. Toti adminii
     const admins = await this.userRepository.find({
       where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
     });
-    usersToNotify.push(...admins.filter(u => u.id !== resolverUserId));
+    usersToNotify.push(...admins.filter((u) => u.id !== resolverUserId));
 
     // Elimina duplicatele
-    const uniqueUsers = usersToNotify.filter((user, index, self) =>
-      index === self.findIndex(u => u.id === user.id)
+    const uniqueUsers = usersToNotify.filter(
+      (user, index, self) => index === self.findIndex((u) => u.id === user.id),
     );
 
     if (uniqueUsers.length === 0) {
@@ -228,7 +252,7 @@ export class RevolutionarLegitimationsService {
     }
 
     // Trimite notificari in-app (email-urile se trimit doar in digest-ul zilnic)
-    const notifications = uniqueUsers.map(user => ({
+    const notifications = uniqueUsers.map((user) => ({
       userId: user.id,
       type: NotificationType.LEGITIMATION_RESOLVED,
       title: 'Legitimatie revolutionar/deportat finalizata',
@@ -244,7 +268,8 @@ export class RevolutionarLegitimationsService {
   }
 
   async findAll(status?: RevolutionarLegitimationStatus): Promise<RevolutionarLegitimation[]> {
-    const query = this.legitimationRepository.createQueryBuilder('legitimation')
+    const query = this.legitimationRepository
+      .createQueryBuilder('legitimation')
       .leftJoinAndSelect('legitimation.creator', 'creator')
       .leftJoinAndSelect('legitimation.resolver', 'resolver')
       .leftJoinAndSelect('legitimation.lastModifier', 'lastModifier');
@@ -277,7 +302,11 @@ export class RevolutionarLegitimationsService {
     });
   }
 
-  async resolve(id: string, userId: string, dto: ResolveHandicapLegitimationDto): Promise<RevolutionarLegitimation> {
+  async resolve(
+    id: string,
+    userId: string,
+    dto: ResolveHandicapLegitimationDto,
+  ): Promise<RevolutionarLegitimation> {
     const legitimation = await this.findOne(id);
 
     if (legitimation.status === 'FINALIZAT') {
@@ -303,7 +332,11 @@ export class RevolutionarLegitimationsService {
     return this.findOne(id);
   }
 
-  async addComment(legitimationId: string, userId: string, dto: CreateCommentDto): Promise<RevolutionarLegitimationComment> {
+  async addComment(
+    legitimationId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<RevolutionarLegitimationComment> {
     const legitimation = await this.findOne(legitimationId);
 
     const comment = this.commentRepository.create({
@@ -327,7 +360,11 @@ export class RevolutionarLegitimationsService {
     return savedComment;
   }
 
-  private async notifyAboutComment(legitimation: RevolutionarLegitimation, commenterUserId: string, commentContent: string): Promise<void> {
+  private async notifyAboutComment(
+    legitimation: RevolutionarLegitimation,
+    commenterUserId: string,
+    commentContent: string,
+  ): Promise<void> {
     const commenter = await this.userRepository.findOne({ where: { id: commenterUserId } });
     const commenterName = commenter?.fullName || 'Un utilizator';
 
@@ -354,10 +391,12 @@ export class RevolutionarLegitimationsService {
         where: { departmentId: handicapDept.id, isActive: true },
       });
 
-      const toNotify = handicapUsers.filter(u => u.id !== commenterUserId && u.id !== legitimation.createdBy);
+      const toNotify = handicapUsers.filter(
+        (u) => u.id !== commenterUserId && u.id !== legitimation.createdBy,
+      );
 
       if (toNotify.length > 0) {
-        const notifications = toNotify.map(user => ({
+        const notifications = toNotify.map((user) => ({
           userId: user.id,
           type: NotificationType.LEGITIMATION_ASSIGNED,
           title: 'Comentariu nou la legitimatie revolutionar/deportat',
@@ -403,7 +442,8 @@ export class RevolutionarLegitimationsService {
     endDate?: Date;
     status?: RevolutionarLegitimationStatus;
   }): Promise<RevolutionarLegitimation[]> {
-    const query = this.legitimationRepository.createQueryBuilder('legitimation')
+    const query = this.legitimationRepository
+      .createQueryBuilder('legitimation')
       .leftJoinAndSelect('legitimation.creator', 'creator')
       .leftJoinAndSelect('legitimation.resolver', 'resolver');
 

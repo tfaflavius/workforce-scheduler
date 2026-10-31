@@ -13,7 +13,10 @@ import { User, UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
 import { Department } from '../departments/entities/department.entity';
 import { EmailService } from '../../common/email/email.service';
-import { MAINTENANCE_DEPARTMENT_NAME, DISPECERAT_DEPARTMENT_NAME } from './constants/parking.constants';
+import {
+  MAINTENANCE_DEPARTMENT_NAME,
+  DISPECERAT_DEPARTMENT_NAME,
+} from './constants/parking.constants';
 import { removeDiacritics } from '../../common/utils/remove-diacritics';
 import { AuditService } from '../audit/audit.service';
 
@@ -64,13 +67,15 @@ export class ParkingDamagesService {
     await this.notifyManagersAndAdmins(fullDamage, 'CREATED', userId);
 
     // Audit log
-    this.auditService.log({
-      userId,
-      action: 'CREATE',
-      entity: 'ParkingDamage',
-      entityId: fullDamage.id,
-      description: `Raportat prejudiciu parcare: ${fullDamage.damagedEquipment}`,
-    }).catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+    this.auditService
+      .log({
+        userId,
+        action: 'CREATE',
+        entity: 'ParkingDamage',
+        entityId: fullDamage.id,
+        description: `Raportat prejudiciu parcare: ${fullDamage.damagedEquipment}`,
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
 
     return fullDamage;
   }
@@ -106,7 +111,7 @@ export class ParkingDamagesService {
     });
 
     // Exclude actorul din lista de notificati
-    const toNotify = managersAndAdmins.filter(u => u.id !== actorUserId);
+    const toNotify = managersAndAdmins.filter((u) => u.id !== actorUserId);
 
     if (toNotify.length === 0) return;
 
@@ -133,11 +138,12 @@ export class ParkingDamagesService {
         break;
     }
 
-    const notificationType = action === 'RESOLVED'
-      ? NotificationType.PARKING_DAMAGE_RESOLVED
-      : NotificationType.PARKING_DAMAGE_ASSIGNED;
+    const notificationType =
+      action === 'RESOLVED'
+        ? NotificationType.PARKING_DAMAGE_RESOLVED
+        : NotificationType.PARKING_DAMAGE_ASSIGNED;
 
-    const notifications = toNotify.map(user => ({
+    const notifications = toNotify.map((user) => ({
       userId: user.id,
       type: notificationType,
       title,
@@ -157,7 +163,8 @@ export class ParkingDamagesService {
   }
 
   async findAll(status?: ParkingDamageStatus, limit = 1000): Promise<ParkingDamage[]> {
-    const query = this.parkingDamageRepository.createQueryBuilder('damage')
+    const query = this.parkingDamageRepository
+      .createQueryBuilder('damage')
       .leftJoinAndSelect('damage.parkingLot', 'parkingLot')
       .leftJoinAndSelect('damage.creator', 'creator')
       .leftJoinAndSelect('damage.resolver', 'resolver')
@@ -167,14 +174,16 @@ export class ParkingDamagesService {
       query.where('damage.status = :status', { status });
     }
 
-    return query.orderBy('damage.isUrgent', 'DESC')
+    return query
+      .orderBy('damage.isUrgent', 'DESC')
       .addOrderBy('damage.createdAt', 'DESC')
       .take(limit)
       .getMany();
   }
 
   async findUrgent(): Promise<ParkingDamage[]> {
-    return this.parkingDamageRepository.createQueryBuilder('damage')
+    return this.parkingDamageRepository
+      .createQueryBuilder('damage')
       .leftJoinAndSelect('damage.parkingLot', 'parkingLot')
       .leftJoinAndSelect('damage.creator', 'creator')
       .where('damage.isUrgent = :isUrgent', { isUrgent: true })
@@ -256,7 +265,11 @@ export class ParkingDamagesService {
     return this.findOne(id);
   }
 
-  async addComment(damageId: string, userId: string, dto: CreateCommentDto): Promise<ParkingDamageComment> {
+  async addComment(
+    damageId: string,
+    userId: string,
+    dto: CreateCommentDto,
+  ): Promise<ParkingDamageComment> {
     const damage = await this.findOne(damageId);
 
     const comment = this.commentRepository.create({
@@ -277,10 +290,10 @@ export class ParkingDamagesService {
     });
 
     const actor = await this.userRepository.findOne({ where: { id: userId } });
-    const toNotify = managersAndAdmins.filter(u => u.id !== userId);
+    const toNotify = managersAndAdmins.filter((u) => u.id !== userId);
 
     if (toNotify.length > 0) {
-      const notifications = toNotify.map(user => ({
+      const notifications = toNotify.map((user) => ({
         userId: user.id,
         type: NotificationType.PARKING_DAMAGE_ASSIGNED,
         title: 'Comentariu nou la prejudiciu',
@@ -370,7 +383,8 @@ export class ParkingDamagesService {
 
   // Metoda pentru obtinerea tuturor prejudiciilor active (pentru rapoarte/reminder-uri)
   async findAllActive(): Promise<ParkingDamage[]> {
-    return this.parkingDamageRepository.createQueryBuilder('damage')
+    return this.parkingDamageRepository
+      .createQueryBuilder('damage')
       .leftJoinAndSelect('damage.parkingLot', 'parkingLot')
       .leftJoinAndSelect('damage.creator', 'creator')
       .where('damage.status = :status', { status: 'ACTIVE' })

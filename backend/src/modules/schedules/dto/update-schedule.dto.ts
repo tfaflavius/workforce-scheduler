@@ -9,12 +9,18 @@ export class UpdateScheduleDto {
   @IsString()
   status?: string;
 
-  @ApiPropertyOptional({ description: 'Notes related to the approval or rejection', example: 'Approved with minor adjustments' })
+  @ApiPropertyOptional({
+    description: 'Notes related to the approval or rejection',
+    example: 'Approved with minor adjustments',
+  })
   @IsOptional()
   @IsString()
   approvalNotes?: string;
 
-  @ApiPropertyOptional({ description: 'Updated list of shift assignments', type: [ScheduleAssignmentDto] })
+  @ApiPropertyOptional({
+    description: 'Updated list of shift assignments',
+    type: [ScheduleAssignmentDto],
+  })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })

@@ -27,10 +27,7 @@ async function resetManagerPassword() {
     const hashedPassword = await bcrypt.hash('manager123', BCRYPT_SALT_ROUNDS);
 
     // Update password
-    await userRepository.update(
-      { email: 'manager@workforce.com' },
-      { password: hashedPassword }
-    );
+    await userRepository.update({ email: 'manager@workforce.com' }, { password: hashedPassword });
 
     console.log('✅ Password reset successfully');
     console.log('📧 Email: manager@workforce.com');

@@ -27,9 +27,7 @@ export class WorkPositionsController {
   constructor(private readonly workPositionsService: WorkPositionsService) {}
 
   @Get()
-  async findAll(
-    @Query('includeInactive') includeInactive?: string,
-  ): Promise<WorkPosition[]> {
+  async findAll(@Query('includeInactive') includeInactive?: string): Promise<WorkPosition[]> {
     return this.workPositionsService.findAll(includeInactive === 'true');
   }
 

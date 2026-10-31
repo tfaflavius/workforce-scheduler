@@ -82,9 +82,7 @@ export class StorageService {
 
       return url;
     } catch (error) {
-      throw new InternalServerErrorException(
-        `Failed to upload file: ${error.message}`,
-      );
+      throw new InternalServerErrorException(`Failed to upload file: ${error.message}`);
     }
   }
 
@@ -109,9 +107,7 @@ export class StorageService {
       }
       return Buffer.concat(chunks);
     } catch (error) {
-      throw new InternalServerErrorException(
-        `Failed to download file: ${error.message}`,
-      );
+      throw new InternalServerErrorException(`Failed to download file: ${error.message}`);
     }
   }
 
@@ -128,9 +124,7 @@ export class StorageService {
         }),
       );
     } catch (error) {
-      throw new InternalServerErrorException(
-        `Failed to delete file: ${error.message}`,
-      );
+      throw new InternalServerErrorException(`Failed to delete file: ${error.message}`);
     }
   }
 
@@ -160,14 +154,10 @@ export class StorageService {
    */
   private async ensureBucketExists(): Promise<void> {
     try {
-      await this.s3.send(
-        new HeadBucketCommand({ Bucket: this.bucket }),
-      );
+      await this.s3.send(new HeadBucketCommand({ Bucket: this.bucket }));
     } catch (error) {
       if (error.name === 'NotFound' || error.$metadata?.httpStatusCode === 404) {
-        await this.s3.send(
-          new CreateBucketCommand({ Bucket: this.bucket }),
-        );
+        await this.s3.send(new CreateBucketCommand({ Bucket: this.bucket }));
       } else {
         throw error;
       }

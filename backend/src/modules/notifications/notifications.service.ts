@@ -68,7 +68,7 @@ export class NotificationsService {
           );
           // Even if in-app is suppressed, still try push (separate setting)
           if (!createNotificationDto.skipPush) {
-            this.sendPushForNotification(createNotificationDto).catch(err => {
+            this.sendPushForNotification(createNotificationDto).catch((err) => {
               this.logger.warn(`Failed to auto-send push: ${err?.message}`);
             });
           }
@@ -82,11 +82,13 @@ export class NotificationsService {
 
     const notification = this.notificationRepository.create(createNotificationDto);
     const saved = await this.notificationRepository.save(notification);
-    this.logger.log(`Created notification for user ${createNotificationDto.userId}: ${createNotificationDto.title}`);
+    this.logger.log(
+      `Created notification for user ${createNotificationDto.userId}: ${createNotificationDto.title}`,
+    );
 
     // Auto-send push notification (unless explicitly skipped) — pass saved ID for deep linking
     if (!createNotificationDto.skipPush) {
-      this.sendPushForNotification(createNotificationDto, saved.id).catch(err => {
+      this.sendPushForNotification(createNotificationDto, saved.id).catch((err) => {
         this.logger.warn(`Failed to auto-send push: ${err?.message}`);
       });
     }
@@ -97,12 +99,12 @@ export class NotificationsService {
   async createMany(notifications: CreateNotificationDto[]): Promise<Notification[]> {
     // Batch check: get unique userIds, fetch roles, filter
     try {
-      const userIds = [...new Set(notifications.map(n => n.userId))];
+      const userIds = [...new Set(notifications.map((n) => n.userId))];
       const users = await this.userRepository.find({
         where: { id: In(userIds) },
         select: ['id', 'role'],
       });
-      const roleMap = new Map(users.map(u => [u.id, u.role]));
+      const roleMap = new Map(users.map((u) => [u.id, u.role]));
 
       const filtered: CreateNotificationDto[] = [];
       const pushCandidates: CreateNotificationDto[] = [];
@@ -129,13 +131,15 @@ export class NotificationsService {
       // Save in-app notifications
       let saved: Notification[] = [];
       if (filtered.length > 0) {
-        const entities = filtered.map(dto => this.notificationRepository.create(dto));
+        const entities = filtered.map((dto) => this.notificationRepository.create(dto));
         saved = await this.notificationRepository.save(entities);
       }
 
       const suppressed = notifications.length - filtered.length;
       if (suppressed > 0) {
-        this.logger.log(`Created ${saved.length} notifications (${suppressed} suppressed by settings)`);
+        this.logger.log(
+          `Created ${saved.length} notifications (${suppressed} suppressed by settings)`,
+        );
       } else {
         this.logger.log(`Created ${saved.length} notifications`);
       }
@@ -149,10 +153,10 @@ export class NotificationsService {
         }
 
         Promise.all(
-          pushCandidates.map(dto => {
+          pushCandidates.map((dto) => {
             const key = `${dto.userId}:${dto.type}:${dto.title}`;
             const savedId = savedMap.get(key);
-            return this.sendPushForNotification(dto, savedId).catch(err => {
+            return this.sendPushForNotification(dto, savedId).catch((err) => {
               this.logger.warn(`Failed to auto-send push: ${err?.message}`);
             });
           }),
@@ -163,7 +167,7 @@ export class NotificationsService {
     } catch (error) {
       // If check fails, proceed with sending all (safe fallback)
       this.logger.warn(`Failed to check notification settings, sending all: ${error}`);
-      const entities = notifications.map(dto => this.notificationRepository.create(dto));
+      const entities = notifications.map((dto) => this.notificationRepository.create(dto));
       const saved = await this.notificationRepository.save(entities);
       this.logger.log(`Created ${saved.length} notifications`);
 
@@ -174,13 +178,13 @@ export class NotificationsService {
       }
 
       // Still try push for non-skipped
-      const pushCandidates = notifications.filter(dto => !dto.skipPush);
+      const pushCandidates = notifications.filter((dto) => !dto.skipPush);
       if (pushCandidates.length > 0) {
         Promise.all(
-          pushCandidates.map(dto => {
+          pushCandidates.map((dto) => {
             const key = `${dto.userId}:${dto.type}:${dto.title}`;
             const savedId = savedMap.get(key);
-            return this.sendPushForNotification(dto, savedId).catch(err => {
+            return this.sendPushForNotification(dto, savedId).catch((err) => {
               this.logger.warn(`Failed to auto-send push: ${err?.message}`);
             });
           }),
@@ -191,7 +195,10 @@ export class NotificationsService {
     }
   }
 
-  async findAllForUser(userId: string, options?: { unreadOnly?: boolean; limit?: number }): Promise<Notification[]> {
+  async findAllForUser(
+    userId: string,
+    options?: { unreadOnly?: boolean; limit?: number },
+  ): Promise<Notification[]> {
     const query = this.notificationRepository
       .createQueryBuilder('notification')
       .where('notification.userId = :userId', { userId })
@@ -224,10 +231,7 @@ export class NotificationsService {
   }
 
   async markAsRead(id: string, userId: string): Promise<Notification> {
-    await this.notificationRepository.update(
-      { id, userId },
-      { isRead: true, readAt: new Date() },
-    );
+    await this.notificationRepository.update({ id, userId }, { isRead: true, readAt: new Date() });
     const notification = await this.notificationRepository.findOne({ where: { id } });
     if (!notification) {
       throw new NotFoundException(`Notificarea ${id} nu a fost gasita`);
@@ -296,7 +300,7 @@ export class NotificationsService {
   ): Promise<Notification[]> {
     const formatted = formatMonthYear(monthYear);
 
-    const notifications = userIds.map(userId => ({
+    const notifications = userIds.map((userId) => ({
       userId,
       type: NotificationType.SCHEDULE_CREATED,
       title: 'Program nou creat',
@@ -315,7 +319,7 @@ export class NotificationsService {
   ): Promise<Notification[]> {
     const formatted = formatMonthYear(monthYear);
 
-    const notifications = userIds.map(userId => ({
+    const notifications = userIds.map((userId) => ({
       userId,
       type: NotificationType.SCHEDULE_UPDATED,
       title: 'Program actualizat',
@@ -343,12 +347,15 @@ export class NotificationsService {
 
   // ============== PUSH NOTIFICATION HELPERS ==============
 
-  private async sendPushForNotification(dto: CreateNotificationDto, notificationId?: string): Promise<void> {
+  private async sendPushForNotification(
+    dto: CreateNotificationDto,
+    notificationId?: string,
+  ): Promise<void> {
     // If we have a saved notification ID, use the redirect page for deep linking
     // Otherwise fall back to generic page URL
     const url = notificationId
       ? `/notification-redirect/${notificationId}`
-      : (NOTIFICATION_URL_MAP[dto.type] || '/notifications');
+      : NOTIFICATION_URL_MAP[dto.type] || '/notifications';
     await this.pushNotificationService.sendToUser(
       dto.userId,
       dto.title,

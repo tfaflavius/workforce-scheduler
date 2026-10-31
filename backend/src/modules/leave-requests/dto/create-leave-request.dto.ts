@@ -3,7 +3,11 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LeaveType } from '../entities/leave-request.entity';
 
 export class CreateLeaveRequestDto {
-  @ApiProperty({ description: 'Type of leave', enum: ['VACATION', 'MEDICAL', 'BIRTHDAY', 'SPECIAL', 'EXTRA_DAYS'], example: 'VACATION' })
+  @ApiProperty({
+    description: 'Type of leave',
+    enum: ['VACATION', 'MEDICAL', 'BIRTHDAY', 'SPECIAL', 'EXTRA_DAYS'],
+    example: 'VACATION',
+  })
   @IsEnum(['VACATION', 'MEDICAL', 'BIRTHDAY', 'SPECIAL', 'EXTRA_DAYS'])
   leaveType: LeaveType;
 

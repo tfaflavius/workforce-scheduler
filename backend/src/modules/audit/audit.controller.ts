@@ -49,18 +49,12 @@ export class AuditController {
   }
 
   @Get('entity-history')
-  async getEntityHistory(
-    @Query('entity') entity: string,
-    @Query('entityId') entityId: string,
-  ) {
+  async getEntityHistory(@Query('entity') entity: string, @Query('entityId') entityId: string) {
     return this.auditService.getEntityHistory(entity, entityId);
   }
 
   @Get('user-activity')
-  async getUserActivity(
-    @Query('userId') userId: string,
-    @Query('limit') limit?: string,
-  ) {
+  async getUserActivity(@Query('userId') userId: string, @Query('limit') limit?: string) {
     return this.auditService.getUserActivity(userId, limit ? parseInt(limit, 10) : 50);
   }
 }

@@ -35,10 +35,7 @@ const WORKDAY_REPORT_DEPARTMENTS = [
 ];
 
 // Departamente cu obligativitate raport doar in zilele cu tura
-const SCHEDULE_BASED_DEPARTMENTS = [
-  DISPECERAT_DEPARTMENT_NAME,
-  CONTROL_DEPARTMENT_NAME,
-];
+const SCHEDULE_BASED_DEPARTMENTS = [DISPECERAT_DEPARTMENT_NAME, CONTROL_DEPARTMENT_NAME];
 
 @Injectable()
 export class DailyReportsService {
@@ -154,7 +151,11 @@ export class DailyReportsService {
     });
   }
 
-  async findMyReports(userId: string, startDate?: string, endDate?: string): Promise<DailyReport[]> {
+  async findMyReports(
+    userId: string,
+    startDate?: string,
+    endDate?: string,
+  ): Promise<DailyReport[]> {
     const where: any = { userId };
 
     if (startDate && endDate) {
@@ -196,10 +197,7 @@ export class DailyReportsService {
     return query.orderBy('report.date', 'DESC').addOrderBy('user.fullName', 'ASC').getMany();
   }
 
-  async findAllForManager(
-    startDate?: string,
-    endDate?: string,
-  ): Promise<DailyReport[]> {
+  async findAllForManager(startDate?: string, endDate?: string): Promise<DailyReport[]> {
     // Gaseste departamentele Dispecerat, Control si Achizitii
     const dispeceratDept = await this.departmentRepository.findOne({
       where: { name: DISPECERAT_DEPARTMENT_NAME },
@@ -351,7 +349,9 @@ export class DailyReportsService {
       where: { isActive: true },
       relations: ['department'],
     });
-    const nonAdminUsers = allUsers.filter(u => u.role !== UserRole.ADMIN && u.role !== UserRole.MASTER_ADMIN);
+    const nonAdminUsers = allUsers.filter(
+      (u) => u.role !== UserRole.ADMIN && u.role !== UserRole.MASTER_ADMIN,
+    );
 
     // Userii in concediu aprobat pe aceasta data
     const usersOnLeave = await this.leaveRequestRepository
@@ -362,10 +362,10 @@ export class DailyReportsService {
       .andWhere('lr.endDate >= :date', { date })
       .getRawMany();
 
-    const onLeaveUserIds = new Set(usersOnLeave.map(lr => lr.userId));
+    const onLeaveUserIds = new Set(usersOnLeave.map((lr) => lr.userId));
 
     // Filtreaza userii care NU sunt in concediu
-    const availableUsers = nonAdminUsers.filter(u => !onLeaveUserIds.has(u.id));
+    const availableUsers = nonAdminUsers.filter((u) => !onLeaveUserIds.has(u.id));
 
     // Clasificare pe departamente
     const scheduleBased: User[] = [];
@@ -397,7 +397,7 @@ export class DailyReportsService {
 
     // Pentru userii cu program (Dispecerat/Control): verifica daca au tura in acea zi
     // Acestia trimit raport si in sarbatori/weekend daca sunt programati la lucru
-    const scheduleBasedIds = scheduleBased.map(u => u.id);
+    const scheduleBasedIds = scheduleBased.map((u) => u.id);
     const usersWithShifts = new Set<string>();
 
     if (scheduleBasedIds.length > 0) {
@@ -412,14 +412,14 @@ export class DailyReportsService {
         .andWhere('sa.userId IN (:...userIds)', { userIds: scheduleBasedIds })
         .getRawMany();
 
-      assignments.forEach(a => usersWithShifts.add(a.userId));
+      assignments.forEach((a) => usersWithShifts.add(a.userId));
     }
 
-    const scheduleBasedFiltered = scheduleBased.filter(u => usersWithShifts.has(u.id));
+    const scheduleBasedFiltered = scheduleBased.filter((u) => usersWithShifts.has(u.id));
 
     // Deduplicate (un manager din Dispecerat poate aparea in ambele liste)
     const resultMap = new Map<string, User>();
-    [...workdayBased, ...scheduleBasedFiltered].forEach(u => resultMap.set(u.id, u));
+    [...workdayBased, ...scheduleBasedFiltered].forEach((u) => resultMap.set(u.id, u));
 
     return Array.from(resultMap.values());
   }
@@ -431,7 +431,7 @@ export class DailyReportsService {
     const usersWhoShouldReport = await this.getUsersWhoShouldReport(date);
     if (usersWhoShouldReport.length === 0) return [];
 
-    const userIds = usersWhoShouldReport.map(u => u.id);
+    const userIds = usersWhoShouldReport.map((u) => u.id);
 
     // Gaseste cine a trimis deja
     const submittedReports = await this.dailyReportRepository.find({
@@ -443,9 +443,9 @@ export class DailyReportsService {
       select: ['userId'],
     });
 
-    const submittedUserIds = new Set(submittedReports.map(r => r.userId));
+    const submittedUserIds = new Set(submittedReports.map((r) => r.userId));
 
-    return usersWhoShouldReport.filter(u => !submittedUserIds.has(u.id));
+    return usersWhoShouldReport.filter((u) => !submittedUserIds.has(u.id));
   }
 
   /**
@@ -454,8 +454,24 @@ export class DailyReportsService {
   async getMissingReportsForDateRange(
     startDate: string,
     endDate: string,
-  ): Promise<Array<{ date: string; users: Array<{ id: string; fullName: string; department: { id: string; name: string } | null }> }>> {
-    const result: Array<{ date: string; users: Array<{ id: string; fullName: string; department: { id: string; name: string } | null }> }> = [];
+  ): Promise<
+    Array<{
+      date: string;
+      users: Array<{
+        id: string;
+        fullName: string;
+        department: { id: string; name: string } | null;
+      }>;
+    }>
+  > {
+    const result: Array<{
+      date: string;
+      users: Array<{
+        id: string;
+        fullName: string;
+        department: { id: string; name: string } | null;
+      }>;
+    }> = [];
     const current = new Date(startDate + 'T12:00:00');
     const end = new Date(endDate + 'T12:00:00');
 
@@ -466,7 +482,7 @@ export class DailyReportsService {
       if (missingUsers.length > 0) {
         result.push({
           date: dateStr,
-          users: missingUsers.map(u => ({
+          users: missingUsers.map((u) => ({
             id: u.id,
             fullName: u.fullName,
             department: u.department ? { id: u.department.id, name: u.department.name } : null,
@@ -573,7 +589,10 @@ export class DailyReportsService {
 
     // Daca e din Control → verifica daca a lucrat in Dispecerat in acea zi
     if (departmentName === CONTROL_DEPARTMENT_NAME) {
-      const dateStr = typeof reportDate === 'string' ? reportDate : new Date(reportDate).toISOString().split('T')[0];
+      const dateStr =
+        typeof reportDate === 'string'
+          ? reportDate
+          : new Date(reportDate).toISOString().split('T')[0];
 
       const assignment = await this.scheduleAssignmentRepository
         .createQueryBuilder('sa')

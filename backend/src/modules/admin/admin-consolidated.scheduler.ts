@@ -17,9 +17,18 @@ import { DailyReportsService } from '../daily-reports/daily-reports.service';
 import { DailyReport } from '../daily-reports/entities/daily-report.entity';
 import { PvDisplaySession } from '../parking/entities/pv-display-session.entity';
 import { PvDisplayDay } from '../parking/entities/pv-display-day.entity';
-import { HANDICAP_REQUEST_TYPE_LABELS, PV_DAY_STATUS, PV_SESSION_STATUS, PV_DAY_STATUS_LABELS, CONTROL_SESIZARE_TYPE_LABELS } from '../parking/constants/parking.constants';
+import {
+  HANDICAP_REQUEST_TYPE_LABELS,
+  PV_DAY_STATUS,
+  PV_SESSION_STATUS,
+  PV_DAY_STATUS_LABELS,
+  CONTROL_SESIZARE_TYPE_LABELS,
+} from '../parking/constants/parking.constants';
 import { ControlSesizare } from '../parking/entities/control-sesizare.entity';
-import { ShiftSwapRequest, ShiftSwapStatus } from '../shift-swaps/entities/shift-swap-request.entity';
+import {
+  ShiftSwapRequest,
+  ShiftSwapStatus,
+} from '../shift-swaps/entities/shift-swap-request.entity';
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { DomiciliuRequest } from '../parking/entities/domiciliu-request.entity';
 import { EditRequest } from '../parking/entities/edit-request.entity';
@@ -90,7 +99,9 @@ export class AdminConsolidatedScheduler {
       }
 
       const sentCount = await this.sendConsolidatedDaily(managers);
-      this.logger.log(`[Consolidat] Raport dimineata trimis la ${sentCount}/${managers.length} manageri`);
+      this.logger.log(
+        `[Consolidat] Raport dimineata trimis la ${sentCount}/${managers.length} manageri`,
+      );
     } catch (error) {
       this.logger.error(`[Consolidat] Eroare raport dimineata manageri: ${error.message}`);
     }
@@ -104,7 +115,9 @@ export class AdminConsolidatedScheduler {
 
     try {
       const [admins, managers] = await Promise.all([
-        this.userRepository.find({ where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true } }),
+        this.userRepository.find({
+          where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
+        }),
         this.userRepository.find({ where: { role: UserRole.MANAGER, isActive: true } }),
       ]);
 
@@ -115,7 +128,9 @@ export class AdminConsolidatedScheduler {
       }
 
       const sentCount = await this.sendConsolidatedDaily(recipients);
-      this.logger.log(`[Consolidat] Raport seara trimis la ${sentCount}/${recipients.length} (${admins.length} admini, ${managers.length} manageri)`);
+      this.logger.log(
+        `[Consolidat] Raport seara trimis la ${sentCount}/${recipients.length} (${admins.length} admini, ${managers.length} manageri)`,
+      );
     } catch (error) {
       this.logger.error(`[Consolidat] Eroare raport seara: ${error.message}`);
     }
@@ -127,8 +142,17 @@ export class AdminConsolidatedScheduler {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-    const dateStr = today.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const formatTime = (d: Date) => d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Bucharest' });
+    const dateStr = today.toLocaleDateString('ro-RO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+    const formatTime = (d: Date) =>
+      d.toLocaleTimeString('ro-RO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Bucharest',
+      });
 
     // Collect all data in parallel
     const [
@@ -153,7 +177,7 @@ export class AdminConsolidatedScheduler {
 
     // Send emails in parallel for better performance
     const results = await Promise.allSettled(
-      recipients.map(recipient =>
+      recipients.map((recipient) =>
         this.emailService.sendConsolidatedDailyReport({
           recipientEmail: recipient.email,
           recipientName: recipient.fullName,
@@ -170,10 +194,12 @@ export class AdminConsolidatedScheduler {
       ),
     );
 
-    const sentCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
-    const failedCount = results.filter(r => r.status === 'rejected').length;
+    const sentCount = results.filter((r) => r.status === 'fulfilled' && r.value === true).length;
+    const failedCount = results.filter((r) => r.status === 'rejected').length;
     if (failedCount > 0) {
-      this.logger.error(`[Consolidat] ${failedCount} emailuri zilnice esuate din ${recipients.length}`);
+      this.logger.error(
+        `[Consolidat] ${failedCount} emailuri zilnice esuate din ${recipients.length}`,
+      );
     }
 
     return sentCount;
@@ -235,7 +261,7 @@ export class AdminConsolidatedScheduler {
             if (missingUsers.length > 0) {
               missingByDate.set(
                 dateStr,
-                missingUsers.map(u => ({
+                missingUsers.map((u) => ({
                   userName: u.fullName,
                   departmentName: u.department?.name || 'Necunoscut',
                 })),
@@ -252,19 +278,23 @@ export class AdminConsolidatedScheduler {
 
       // Get active admins + managers
       const [admins, managers] = await Promise.all([
-        this.userRepository.find({ where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true } }),
+        this.userRepository.find({
+          where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
+        }),
         this.userRepository.find({ where: { role: UserRole.MANAGER, isActive: true } }),
       ]);
 
       const recipients = [...admins, ...managers];
       if (recipients.length === 0) {
-        this.logger.warn('[Consolidat] Nu exista admini sau manageri activi pentru raport saptamanal');
+        this.logger.warn(
+          '[Consolidat] Nu exista admini sau manageri activi pentru raport saptamanal',
+        );
         return;
       }
 
       // Send weekly emails in parallel with ALL data
       const results = await Promise.allSettled(
-        recipients.map(recipient =>
+        recipients.map((recipient) =>
           this.emailService.sendConsolidatedWeeklyReport({
             ...emailData,
             recipientEmail: recipient.email,
@@ -282,13 +312,17 @@ export class AdminConsolidatedScheduler {
         ),
       );
 
-      const sentCount = results.filter(r => r.status === 'fulfilled' && r.value === true).length;
-      const failedCount = results.filter(r => r.status === 'rejected').length;
+      const sentCount = results.filter((r) => r.status === 'fulfilled' && r.value === true).length;
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
       if (failedCount > 0) {
-        this.logger.error(`[Consolidat] ${failedCount} emailuri saptamanale esuate din ${recipients.length}`);
+        this.logger.error(
+          `[Consolidat] ${failedCount} emailuri saptamanale esuate din ${recipients.length}`,
+        );
       }
 
-      this.logger.log(`[Consolidat] Raport saptamanal trimis la ${sentCount}/${recipients.length} (${admins.length} admini, ${managers.length} manageri)`);
+      this.logger.log(
+        `[Consolidat] Raport saptamanal trimis la ${sentCount}/${recipients.length} (${admins.length} admini, ${managers.length} manageri)`,
+      );
     } catch (error) {
       this.logger.error(`[Consolidat] Eroare raport saptamanal: ${error.message}`);
     }
@@ -308,7 +342,7 @@ export class AdminConsolidatedScheduler {
       return {
         totalAmount: totals.totalAmount,
         collectionCount: totals.count,
-        byParkingLot: totals.byParkingLot.map(lot => ({
+        byParkingLot: totals.byParkingLot.map((lot) => ({
           parkingLotName: lot.parkingLotName,
           totalAmount: lot.totalAmount,
           count: lot.count,
@@ -320,9 +354,22 @@ export class AdminConsolidatedScheduler {
     }
   }
 
-  private async collectParkingData(startOfDay: Date, endOfDay: Date, formatTime: (d: Date) => string) {
+  private async collectParkingData(
+    startOfDay: Date,
+    endOfDay: Date,
+    formatTime: (d: Date) => string,
+  ) {
     try {
-      const [newIssues, resolvedIssues, newDamages, resolvedDamages, unresolvedIssuesCount, unresolvedDamagesCount, urgentIssuesCount, urgentDamagesCount] = await Promise.all([
+      const [
+        newIssues,
+        resolvedIssues,
+        newDamages,
+        resolvedDamages,
+        unresolvedIssuesCount,
+        unresolvedDamagesCount,
+        urgentIssuesCount,
+        urgentDamagesCount,
+      ] = await Promise.all([
         this.parkingIssueRepository.find({
           where: { createdAt: Between(startOfDay, endOfDay) },
           relations: ['parkingLot', 'creator'],
@@ -349,11 +396,17 @@ export class AdminConsolidatedScheduler {
         this.parkingDamageRepository.count({ where: { status: 'ACTIVE' as any, isUrgent: true } }),
       ]);
 
-      const hasData = newIssues.length > 0 || resolvedIssues.length > 0 || newDamages.length > 0 || resolvedDamages.length > 0 || unresolvedIssuesCount > 0 || unresolvedDamagesCount > 0;
+      const hasData =
+        newIssues.length > 0 ||
+        resolvedIssues.length > 0 ||
+        newDamages.length > 0 ||
+        resolvedDamages.length > 0 ||
+        unresolvedIssuesCount > 0 ||
+        unresolvedDamagesCount > 0;
       if (!hasData) return null;
 
       return {
-        newIssues: newIssues.map(i => ({
+        newIssues: newIssues.map((i) => ({
           parkingLotName: i.parkingLot?.name || 'N/A',
           equipment: i.equipment,
           description: i.description,
@@ -361,14 +414,14 @@ export class AdminConsolidatedScheduler {
           createdAt: formatTime(new Date(i.createdAt)),
           isUrgent: i.isUrgent || false,
         })),
-        resolvedIssues: resolvedIssues.map(i => ({
+        resolvedIssues: resolvedIssues.map((i) => ({
           parkingLotName: i.parkingLot?.name || 'N/A',
           equipment: i.equipment,
           resolverName: i.resolver?.fullName || 'N/A',
           resolvedAt: formatTime(new Date(i.resolvedAt)),
           resolutionDescription: i.resolutionDescription,
         })),
-        newDamages: newDamages.map(d => ({
+        newDamages: newDamages.map((d) => ({
           parkingLotName: d.parkingLot?.name || 'N/A',
           damagedEquipment: d.damagedEquipment,
           personName: d.personName,
@@ -378,7 +431,7 @@ export class AdminConsolidatedScheduler {
           createdAt: formatTime(new Date(d.createdAt)),
           isUrgent: d.isUrgent || false,
         })),
-        resolvedDamages: resolvedDamages.map(d => ({
+        resolvedDamages: resolvedDamages.map((d) => ({
           parkingLotName: d.parkingLot?.name || 'N/A',
           damagedEquipment: d.damagedEquipment,
           resolverName: d.resolver?.fullName || 'N/A',
@@ -410,9 +463,11 @@ export class AdminConsolidatedScheduler {
       const now = new Date();
 
       return {
-        issues: activeIssues.map(issue => {
+        issues: activeIssues.map((issue) => {
           const createdAt = new Date(issue.createdAt);
-          const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+          const daysOpen = Math.floor(
+            (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24),
+          );
           return {
             parkingLotName: issue.parkingLot?.name || 'N/A',
             equipment: issue.equipment,
@@ -421,9 +476,11 @@ export class AdminConsolidatedScheduler {
             isUrgent: issue.isUrgent,
           };
         }),
-        damages: activeDamages.map(damage => {
+        damages: activeDamages.map((damage) => {
           const createdAt = new Date(damage.createdAt);
-          const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+          const daysOpen = Math.floor(
+            (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24),
+          );
           return {
             parkingLotName: damage.parkingLot?.name || 'N/A',
             damagedEquipment: damage.damagedEquipment,
@@ -494,8 +551,12 @@ export class AdminConsolidatedScheduler {
         }
       }
 
-      const hasData = createdToday.length > 0 || resolvedToday.length > 0 || allActive.length > 0 ||
-        allHandicapLegitimations.length > 0 || allRevolutionarLegitimations.length > 0;
+      const hasData =
+        createdToday.length > 0 ||
+        resolvedToday.length > 0 ||
+        allActive.length > 0 ||
+        allHandicapLegitimations.length > 0 ||
+        allRevolutionarLegitimations.length > 0;
 
       if (!hasData) return null;
 
@@ -515,21 +576,21 @@ export class AdminConsolidatedScheduler {
 
       return {
         createdToday: createdToday.map(formatRequest),
-        resolvedToday: resolvedToday.map(r => ({
+        resolvedToday: resolvedToday.map((r) => ({
           ...formatRequest(r),
           resolvedBy: r.resolver?.fullName || 'N/A',
           resolutionDescription: r.resolutionDescription || '-',
         })),
         activeRequests: activeNormal.map(formatRequest),
         expiredRequests: expired.map(formatRequest),
-        legitimations: allHandicapLegitimations.map(leg => ({
+        legitimations: allHandicapLegitimations.map((leg) => ({
           personName: leg.personName,
           carPlate: leg.carPlate,
           certificateNumber: leg.handicapCertificateNumber,
           createdAt: new Date(leg.createdAt).toLocaleDateString('ro-RO'),
           createdBy: leg.creator?.fullName || 'N/A',
         })),
-        revolutionarLegitimations: allRevolutionarLegitimations.map(leg => ({
+        revolutionarLegitimations: allRevolutionarLegitimations.map((leg) => ({
           personName: leg.personName,
           carPlate: leg.carPlate,
           lawNumber: leg.lawNumber,
@@ -569,7 +630,7 @@ export class AdminConsolidatedScheduler {
     try {
       const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
       const missingUsers = await this.dailyReportsService.getMissingReports(todayStr);
-      return missingUsers.map(u => ({
+      return missingUsers.map((u) => ({
         userName: u.fullName,
         departmentName: u.department?.name || 'Necunoscut',
       }));
@@ -593,7 +654,8 @@ export class AdminConsolidatedScheduler {
       });
 
       // Zile de azi
-      const todayDays = await this.pvDisplayDayRepository.createQueryBuilder('day')
+      const todayDays = await this.pvDisplayDayRepository
+        .createQueryBuilder('day')
         .leftJoinAndSelect('day.controlUser1', 'cu1')
         .leftJoinAndSelect('day.controlUser2', 'cu2')
         .where('day.displayDate = :today', { today: todayStr })
@@ -601,13 +663,14 @@ export class AdminConsolidatedScheduler {
         .getMany();
 
       // Zile viitoare nefinalizate
-      const upcomingDays = await this.pvDisplayDayRepository.createQueryBuilder('day')
+      const upcomingDays = await this.pvDisplayDayRepository
+        .createQueryBuilder('day')
         .where('day.displayDate > :today', { today: todayStr })
         .andWhere('day.status != :completed', { completed: PV_DAY_STATUS.COMPLETED })
         .getCount();
 
       // Finalizate azi
-      const completedToday = todayDays.filter(d => d.status === PV_DAY_STATUS.COMPLETED).length;
+      const completedToday = todayDays.filter((d) => d.status === PV_DAY_STATUS.COMPLETED).length;
 
       if (activeSessions === 0 && todayDays.length === 0) {
         return null;
@@ -615,9 +678,13 @@ export class AdminConsolidatedScheduler {
 
       return {
         activeSessions,
-        todayDays: todayDays.map(d => ({
+        todayDays: todayDays.map((d) => ({
           dayOrder: d.dayOrder,
-          displayDate: new Date(d.displayDate).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+          displayDate: new Date(d.displayDate).toLocaleDateString('ro-RO', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          }),
           status: PV_DAY_STATUS_LABELS[d.status] || d.status,
           controlUser1Name: d.controlUser1?.fullName,
           controlUser2Name: d.controlUser2?.fullName,
@@ -655,17 +722,17 @@ export class AdminConsolidatedScheduler {
         return null;
       }
 
-      const activeMarcaje = activeTotal.filter(s => s.type === 'MARCAJ').length;
-      const activePanouri = activeTotal.filter(s => s.type === 'PANOU').length;
+      const activeMarcaje = activeTotal.filter((s) => s.type === 'MARCAJ').length;
+      const activePanouri = activeTotal.filter((s) => s.type === 'PANOU').length;
 
       return {
-        createdToday: createdToday.map(s => ({
+        createdToday: createdToday.map((s) => ({
           type: CONTROL_SESIZARE_TYPE_LABELS[s.type] || s.type,
           zone: s.zone,
           location: s.location,
           createdBy: s.creator?.fullName || 'N/A',
         })),
-        resolvedToday: resolvedToday.map(s => ({
+        resolvedToday: resolvedToday.map((s) => ({
           type: CONTROL_SESIZARE_TYPE_LABELS[s.type] || s.type,
           zone: s.zone,
           location: s.location,
@@ -706,15 +773,16 @@ export class AdminConsolidatedScheduler {
       });
     }
 
-    const reportsByDay = days.map(day => ({
+    const reportsByDay = days.map((day) => ({
       dayName: day.dayName,
       date: day.date,
       reports: reports
-        .filter(r => {
-          const reportDate = typeof r.date === 'string' ? r.date : new Date(r.date).toISOString().split('T')[0];
+        .filter((r) => {
+          const reportDate =
+            typeof r.date === 'string' ? r.date : new Date(r.date).toISOString().split('T')[0];
           return reportDate === day.date;
         })
-        .map(r => ({
+        .map((r) => ({
           userName: r.user?.fullName || 'Necunoscut',
           departmentName: r.user?.department?.name || 'Necunoscut',
           content: r.content,
@@ -724,7 +792,7 @@ export class AdminConsolidatedScheduler {
       missingUsers: missingByDate?.get(day.date) || [],
     }));
 
-    const uniqueUsers = new Set(reports.map(r => r.userId));
+    const uniqueUsers = new Set(reports.map((r) => r.userId));
     const totalMissing = missingByDate
       ? Array.from(missingByDate.values()).reduce((sum, users) => sum + users.length, 0)
       : 0;
@@ -751,7 +819,7 @@ export class AdminConsolidatedScheduler {
       return {
         totalAmount: totals.totalAmount,
         collectionCount: totals.count,
-        byParkingLot: totals.byParkingLot.map(lot => ({
+        byParkingLot: totals.byParkingLot.map((lot) => ({
           parkingLotName: lot.parkingLotName,
           totalAmount: lot.totalAmount,
           count: lot.count,
@@ -765,7 +833,16 @@ export class AdminConsolidatedScheduler {
 
   private async collectWeeklyParkingData(weekStart: Date, weekEnd: Date) {
     try {
-      const [newIssues, resolvedIssues, newDamages, resolvedDamages, unresolvedIssues, unresolvedDamages, urgentIssues, urgentDamages] = await Promise.all([
+      const [
+        newIssues,
+        resolvedIssues,
+        newDamages,
+        resolvedDamages,
+        unresolvedIssues,
+        unresolvedDamages,
+        urgentIssues,
+        urgentDamages,
+      ] = await Promise.all([
         this.parkingIssueRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
         this.parkingIssueRepository.count({ where: { resolvedAt: Between(weekStart, weekEnd) } }),
         this.parkingDamageRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
@@ -776,7 +853,13 @@ export class AdminConsolidatedScheduler {
         this.parkingDamageRepository.count({ where: { status: 'ACTIVE' as any, isUrgent: true } }),
       ]);
 
-      const hasData = newIssues > 0 || resolvedIssues > 0 || newDamages > 0 || resolvedDamages > 0 || unresolvedIssues > 0 || unresolvedDamages > 0;
+      const hasData =
+        newIssues > 0 ||
+        resolvedIssues > 0 ||
+        newDamages > 0 ||
+        resolvedDamages > 0 ||
+        unresolvedIssues > 0 ||
+        unresolvedDamages > 0;
       if (!hasData) return null;
 
       return {
@@ -801,7 +884,9 @@ export class AdminConsolidatedScheduler {
 
       const [created, resolved, allActive, handicapLeg, revolutionarLeg] = await Promise.all([
         this.handicapRequestRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
-        this.handicapRequestRepository.count({ where: { status: 'FINALIZAT', resolvedAt: Between(weekStart, weekEnd) } }),
+        this.handicapRequestRepository.count({
+          where: { status: 'FINALIZAT', resolvedAt: Between(weekStart, weekEnd) },
+        }),
         this.handicapRequestRepository.find({ where: { status: 'ACTIVE' } }),
         this.handicapLegitimationRepository.count({ where: { status: 'ACTIVE' } }),
         this.revolutionarLegitimationRepository.count({ where: { status: 'ACTIVE' } }),
@@ -817,7 +902,12 @@ export class AdminConsolidatedScheduler {
         }
       }
 
-      const hasData = created > 0 || resolved > 0 || allActive.length > 0 || handicapLeg > 0 || revolutionarLeg > 0;
+      const hasData =
+        created > 0 ||
+        resolved > 0 ||
+        allActive.length > 0 ||
+        handicapLeg > 0 ||
+        revolutionarLeg > 0;
       if (!hasData) return null;
 
       return {
@@ -837,8 +927,12 @@ export class AdminConsolidatedScheduler {
   private async collectWeeklyDomiciliuData(weekStart: Date, weekEnd: Date) {
     try {
       const [created, resolved, active] = await Promise.all([
-        this.domiciliuRequestRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
-        this.domiciliuRequestRepository.count({ where: { status: 'FINALIZAT' as any, resolvedAt: Between(weekStart, weekEnd) } }),
+        this.domiciliuRequestRepository.count({
+          where: { createdAt: Between(weekStart, weekEnd) },
+        }),
+        this.domiciliuRequestRepository.count({
+          where: { status: 'FINALIZAT' as any, resolvedAt: Between(weekStart, weekEnd) },
+        }),
         this.domiciliuRequestRepository.count({ where: { status: 'ACTIVE' as any } }),
       ]);
       if (created === 0 && resolved === 0 && active === 0) return null;
@@ -853,7 +947,9 @@ export class AdminConsolidatedScheduler {
     try {
       const [created, resolved, active] = await Promise.all([
         this.controlSesizareRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
-        this.controlSesizareRepository.count({ where: { status: 'FINALIZAT' as any, resolvedAt: Between(weekStart, weekEnd) } }),
+        this.controlSesizareRepository.count({
+          where: { status: 'FINALIZAT' as any, resolvedAt: Between(weekStart, weekEnd) },
+        }),
         this.controlSesizareRepository.count({ where: { status: 'ACTIVE' } }),
       ]);
       if (created === 0 && resolved === 0 && active === 0) return null;
@@ -877,11 +973,19 @@ export class AdminConsolidatedScheduler {
             { status: PV_SESSION_STATUS.IN_PROGRESS as any },
           ],
         }),
-        this.pvDisplayDayRepository.createQueryBuilder('day')
-          .where('day.displayDate >= :start AND day.displayDate <= :end', { start: weekStartStr, end: weekEndStr })
+        this.pvDisplayDayRepository
+          .createQueryBuilder('day')
+          .where('day.displayDate >= :start AND day.displayDate <= :end', {
+            start: weekStartStr,
+            end: weekEndStr,
+          })
           .getCount(),
-        this.pvDisplayDayRepository.createQueryBuilder('day')
-          .where('day.displayDate >= :start AND day.displayDate <= :end', { start: weekStartStr, end: weekEndStr })
+        this.pvDisplayDayRepository
+          .createQueryBuilder('day')
+          .where('day.displayDate >= :start AND day.displayDate <= :end', {
+            start: weekStartStr,
+            end: weekEndStr,
+          })
           .andWhere('day.status = :completed', { completed: PV_DAY_STATUS.COMPLETED })
           .getCount(),
       ]);
@@ -900,16 +1004,13 @@ export class AdminConsolidatedScheduler {
       });
 
       const pending = await this.shiftSwapRepository.count({
-        where: [
-          { status: ShiftSwapStatus.PENDING },
-          { status: ShiftSwapStatus.AWAITING_ADMIN },
-        ],
+        where: [{ status: ShiftSwapStatus.PENDING }, { status: ShiftSwapStatus.AWAITING_ADMIN }],
       });
 
       if (requests.length === 0 && pending === 0) return null;
 
-      const approved = requests.filter(r => r.status === ShiftSwapStatus.APPROVED).length;
-      const rejected = requests.filter(r => r.status === ShiftSwapStatus.REJECTED).length;
+      const approved = requests.filter((r) => r.status === ShiftSwapStatus.APPROVED).length;
+      const rejected = requests.filter((r) => r.status === ShiftSwapStatus.REJECTED).length;
 
       return { totalRequests: requests.length, approved, rejected, pending };
     } catch (err) {
@@ -930,8 +1031,8 @@ export class AdminConsolidatedScheduler {
 
       if (requests.length === 0 && pendingTotal === 0) return null;
 
-      const approved = requests.filter(r => r.status === 'APPROVED').length;
-      const rejected = requests.filter(r => r.status === 'REJECTED').length;
+      const approved = requests.filter((r) => r.status === 'APPROVED').length;
+      const rejected = requests.filter((r) => r.status === 'REJECTED').length;
 
       const typeLabels: Record<string, string> = {
         VACATION: 'Concediu Odihna',
@@ -958,8 +1059,12 @@ export class AdminConsolidatedScheduler {
     try {
       const [created, approved, rejected, pending] = await Promise.all([
         this.editRequestRepository.count({ where: { createdAt: Between(weekStart, weekEnd) } }),
-        this.editRequestRepository.count({ where: { status: 'APPROVED' as any, createdAt: Between(weekStart, weekEnd) } }),
-        this.editRequestRepository.count({ where: { status: 'REJECTED' as any, createdAt: Between(weekStart, weekEnd) } }),
+        this.editRequestRepository.count({
+          where: { status: 'APPROVED' as any, createdAt: Between(weekStart, weekEnd) },
+        }),
+        this.editRequestRepository.count({
+          where: { status: 'REJECTED' as any, createdAt: Between(weekStart, weekEnd) },
+        }),
         this.editRequestRepository.count({ where: { status: 'PENDING' as any } }),
       ]);
       if (created === 0 && pending === 0) return null;

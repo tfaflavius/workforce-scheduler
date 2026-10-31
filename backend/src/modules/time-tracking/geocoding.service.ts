@@ -30,7 +30,9 @@ export class GeocodingService {
       return { geocodedCount: 0 };
     }
 
-    this.logger.log(`[Geocode] Processing ${logs.length} un-geocoded logs for entry ${timeEntryId}`);
+    this.logger.log(
+      `[Geocode] Processing ${logs.length} un-geocoded logs for entry ${timeEntryId}`,
+    );
 
     const clusters = this.clusterLocations(logs);
     this.logger.log(`[Geocode] Grouped into ${clusters.length} clusters`);
@@ -44,7 +46,7 @@ export class GeocodingService {
 
       if (address) {
         try {
-          const ids = cluster.map(log => log.id);
+          const ids = cluster.map((log) => log.id);
           await this.locationLogRepository
             .createQueryBuilder()
             .update(LocationLog)
@@ -61,7 +63,9 @@ export class GeocodingService {
       await this.sleep(this.RATE_LIMIT_MS);
     }
 
-    this.logger.log(`[Geocode] Geocoded ${geocodedCount}/${logs.length} logs for entry ${timeEntryId}`);
+    this.logger.log(
+      `[Geocode] Geocoded ${geocodedCount}/${logs.length} logs for entry ${timeEntryId}`,
+    );
     return { geocodedCount };
   }
 
@@ -110,7 +114,8 @@ export class GeocodingService {
       return data.display_name?.split(',').slice(0, 3).join(',').trim() || 'Locatie necunoscuta';
     }
 
-    const road = addr.road || addr.pedestrian || addr.path || addr.residential || addr.cycleway || '';
+    const road =
+      addr.road || addr.pedestrian || addr.path || addr.residential || addr.cycleway || '';
     const houseNumber = addr.house_number || '';
     const suburb = addr.suburb || addr.neighbourhood || '';
     const city = addr.city || addr.town || addr.village || '';
@@ -140,8 +145,10 @@ export class GeocodingService {
     for (let i = 1; i < logs.length; i++) {
       const prev = logs[i - 1];
       const curr = logs[i];
-      const lat1 = Number(prev.latitude), lon1 = Number(prev.longitude);
-      const lat2 = Number(curr.latitude), lon2 = Number(curr.longitude);
+      const lat1 = Number(prev.latitude),
+        lon1 = Number(prev.longitude);
+      const lat2 = Number(curr.latitude),
+        lon2 = Number(curr.longitude);
 
       if (!isFinite(lat2) || !isFinite(lon2)) {
         // Skip invalid coordinates - start new cluster
@@ -150,9 +157,10 @@ export class GeocodingService {
         continue;
       }
 
-      const distance = (!isFinite(lat1) || !isFinite(lon1))
-        ? Infinity
-        : this.haversineDistance(lat1, lon1, lat2, lon2);
+      const distance =
+        !isFinite(lat1) || !isFinite(lon1)
+          ? Infinity
+          : this.haversineDistance(lat1, lon1, lat2, lon2);
 
       if (distance <= this.CLUSTER_RADIUS_M) {
         currentCluster.push(curr);
@@ -184,8 +192,10 @@ export class GeocodingService {
     const dLon = this.toRad(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      Math.cos(this.toRad(lat1)) *
+        Math.cos(this.toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -195,6 +205,6 @@ export class GeocodingService {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
