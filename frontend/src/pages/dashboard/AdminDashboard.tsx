@@ -81,6 +81,11 @@ const AdminDashboard = () => {
   const hasError = isError || (!isLoading && !stats);
 
   // Anunt pontaj + amenzi catre Control & Intretinere
+  // DEZACTIVAT la cerere: butonul "Trimite anunt pontaj + amenzi" nu mai apare in
+  // dashboard. Pontajul pentru Control se face in cealalta aplicatie, deci anuntul nu mai
+  // e relevant. Codul este pastrat (gated cu flag-ul de mai jos) ca sa poata fi reactivat
+  // usor daca va fi nevoie.
+  const SHOW_PONTAJ_AMENZI_ANNOUNCEMENT = false;
   const { notifySuccess, notifyError } = useSnackbar();
   const [announceOpen, setAnnounceOpen] = useState(false);
   const [sendAnnouncement, { isLoading: sendingAnnouncement }] = useSendPontajAmenziAnnouncementMutation();
@@ -136,34 +141,38 @@ const AdminDashboard = () => {
         gradient="#0f172a 0%, #1e293b 100%"
       />
 
-      {/* Anunt pontaj + amenzi catre Control & Intretinere */}
-      <Stack direction="row" justifyContent="flex-end" sx={{ mb: { xs: 2, sm: 3 } }}>
-        <Button
-          variant="outlined"
-          startIcon={<NotifIcon />}
-          onClick={() => setAnnounceOpen(true)}
-          sx={{ fontWeight: 600, borderRadius: 2, textTransform: 'none' }}
-        >
-          Trimite anunt pontaj + amenzi
-        </Button>
-      </Stack>
+      {/* Anunt pontaj + amenzi catre Control & Intretinere — DEZACTIVAT (gated cu flag) */}
+      {SHOW_PONTAJ_AMENZI_ANNOUNCEMENT && (
+        <>
+          <Stack direction="row" justifyContent="flex-end" sx={{ mb: { xs: 2, sm: 3 } }}>
+            <Button
+              variant="outlined"
+              startIcon={<NotifIcon />}
+              onClick={() => setAnnounceOpen(true)}
+              sx={{ fontWeight: 600, borderRadius: 2, textTransform: 'none' }}
+            >
+              Trimite anunt pontaj + amenzi
+            </Button>
+          </Stack>
 
-      <FriendlyDialog
-        open={announceOpen}
-        onClose={() => setAnnounceOpen(false)}
-        icon={<NotifIcon />}
-        variant="info"
-        title="Trimite anunt pontaj + amenzi"
-        onConfirm={handleSendAnnouncement}
-        confirmText={sendingAnnouncement ? 'Se trimite...' : 'Trimite acum'}
-        cancelText="Anuleaza"
-      >
-        <Typography>
-          Se va trimite o notificare in aplicatie SI un email tuturor userilor activi de la
-          <strong> Control</strong> si <strong>Intretinere Parcari</strong>, despre pontajul obligatoriu
-          (pornire/oprire tura) si — pentru Control — despre evidenta amenzilor. Continui?
-        </Typography>
-      </FriendlyDialog>
+          <FriendlyDialog
+            open={announceOpen}
+            onClose={() => setAnnounceOpen(false)}
+            icon={<NotifIcon />}
+            variant="info"
+            title="Trimite anunt pontaj + amenzi"
+            onConfirm={handleSendAnnouncement}
+            confirmText={sendingAnnouncement ? 'Se trimite...' : 'Trimite acum'}
+            cancelText="Anuleaza"
+          >
+            <Typography>
+              Se va trimite o notificare in aplicatie SI un email tuturor userilor activi de la
+              <strong> Control</strong> si <strong>Intretinere Parcari</strong>, despre pontajul obligatoriu
+              (pornire/oprire tura) si — pentru Control — despre evidenta amenzilor. Continui?
+            </Typography>
+          </FriendlyDialog>
+        </>
+      )}
 
       {/* PV Car Status Banner */}
       {carStatus?.carInUse && (
