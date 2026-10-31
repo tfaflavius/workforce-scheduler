@@ -39,13 +39,16 @@ export class GpsTrackingScheduler {
     try {
       // Find all active time entries (started but not stopped)
       // Only for departments that need GPS tracking
+      // Control exclus intentionat: userii de la Control isi fac pontajul si
+      // localizarea GPS printr-o alta aplicatie, deci nu le mai trimitem push-uri
+      // de capturare GPS de aici. Doar Intretinere Parcari ramane urmarit activ.
       const activeEntries = await this.timeEntryRepository
         .createQueryBuilder('entry')
         .leftJoinAndSelect('entry.user', 'user')
         .leftJoinAndSelect('user.department', 'department')
         .where('entry.endTime IS NULL')
         .andWhere('department.name IN (:...deptNames)', {
-          deptNames: ['Intretinere Parcari', 'Control'],
+          deptNames: ['Intretinere Parcari'],
         })
         .getMany();
 

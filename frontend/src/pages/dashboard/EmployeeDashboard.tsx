@@ -138,7 +138,11 @@ const EmployeeDashboard = () => {
   const needsCarStatus = isDispatchDepartment || isControlDepartment || isPvfDepartment || isDomiciliuDepartment || isAchizitiiDepartment;
   const { data: carStatus } = useGetCarStatusTodayQuery(undefined, { skip: !needsCarStatus });
 
-  const hasPontaj = isMaintenanceDepartment || isControlDepartment;
+  // Pontajul (incepere/finalizare tura) + GPS se fac in aceasta aplicatie DOAR pentru
+  // Intretinere Parcari. Userii de la Control folosesc o alta aplicatie pentru GPS si
+  // pontaj, asa ca acest flux (butoane start/stop tura, capturare GPS, sectiunea
+  // "Program lucrat" si notificarile aferente) este oprit pentru ei.
+  const hasPontaj = isMaintenanceDepartment;
 
   // ===== PONTAJ (Time Tracking) =====
   const { data: activeTimer, refetch: refetchActiveTimer } = useGetActiveTimerQuery(undefined, {

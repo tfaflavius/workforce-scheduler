@@ -13,10 +13,23 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { GeocodingService } from './geocoding.service';
+import {
+  CONTROL_DEPARTMENT_NAME,
+  MAINTENANCE_DEPARTMENT_NAME,
+} from '../parking/constants/parking.constants';
 
 @Injectable()
 export class TimeTrackingService {
   private readonly logger = new Logger(TimeTrackingService.name);
+
+  /**
+   * Departamentele pentru care pontajul si capturarea GPS se fac ACTIV in aceasta
+   * aplicatie. Control a fost scos intentionat: userii de la Control folosesc o alta
+   * aplicatie pentru localizare GPS si incepere/finalizare tura, deci aici nu li se mai
+   * trimit push-uri de GPS, alerte sau auto-stop. (Datele istorice din zona de
+   * administrare raman neatinse si vizibile.)
+   */
+  private readonly GPS_FLOW_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME];
 
   constructor(
     @InjectRepository(TimeEntry)
@@ -35,6 +48,19 @@ export class TimeTrackingService {
   ) {}
 
   async startTimer(userId: string, startTimerDto: StartTimerDto): Promise<TimeEntry> {
+    // Userii de la Control isi fac pontajul (incepere/finalizare tura) si localizarea
+    // GPS printr-o alta aplicatie. In aceasta aplicatie fluxul este oprit pentru ei,
+    // deci blocam pornirea unui cronometru la sursa (nu doar in UI).
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['department'],
+    });
+    if (user?.department?.name === CONTROL_DEPARTMENT_NAME) {
+      throw new BadRequestException(
+        'Pontajul si localizarea GPS pentru Control se fac in cealalta aplicatie.',
+      );
+    }
+
     // Check if user already has an active timer
     const activeTimer = await this.timeEntryRepository.findOne({
       where: {
@@ -854,8 +880,9 @@ export class TimeTrackingService {
       .leftJoinAndSelect('user.department', 'department')
       .leftJoinAndSelect('entry.locationLogs', 'logs')
       .where('entry.endTime IS NULL')
+      // Control exclus: pontajul/GPS se fac in cealalta aplicatie (vezi GPS_FLOW_DEPARTMENTS)
       .andWhere('department.name IN (:...deptNames)', {
-        deptNames: ['Intretinere Parcari', 'Control'],
+        deptNames: this.GPS_FLOW_DEPARTMENTS,
       })
       .getMany();
 
@@ -973,8 +1000,9 @@ export class TimeTrackingService {
       .leftJoinAndSelect('user.department', 'department')
       .leftJoinAndSelect('entry.locationLogs', 'logs')
       .where('entry.endTime IS NULL')
+      // Control exclus: pontajul/GPS se fac in cealalta aplicatie (vezi GPS_FLOW_DEPARTMENTS)
       .andWhere('department.name IN (:...deptNames)', {
-        deptNames: ['Intretinere Parcari', 'Control'],
+        deptNames: this.GPS_FLOW_DEPARTMENTS,
       })
       .getMany();
 
@@ -1092,13 +1120,14 @@ export class TimeTrackingService {
   async triggerInstantGpsCapture(): Promise<{ notifiedCount: number; activeCount: number }> {
     try {
       // Find all active time entries for tracked departments
+      // Control exclus: pontajul/GPS se fac in cealalta aplicatie (vezi GPS_FLOW_DEPARTMENTS)
       const activeEntries = await this.timeEntryRepository
         .createQueryBuilder('entry')
         .leftJoinAndSelect('entry.user', 'user')
         .leftJoinAndSelect('user.department', 'department')
         .where('entry.endTime IS NULL')
         .andWhere('department.name IN (:...deptNames)', {
-          deptNames: ['Intretinere Parcari', 'Control'],
+          deptNames: this.GPS_FLOW_DEPARTMENTS,
         })
         .getMany();
 
