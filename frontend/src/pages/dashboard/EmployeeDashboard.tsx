@@ -91,8 +91,20 @@ const WeeklyOverviewChart = React.lazy(() =>
   import('../../components/common/DashboardCharts').then((m) => ({ default: m.WeeklyOverviewChart })),
 );
 
-const LOCATION_TRACKING_INTERVAL_MS = 10 * 60 * 1000;
-const LOCATION_MIN_INTERVAL_MS = 2 * 60 * 1000;
+// Verificarea GPS se face DIN ORA IN ORA (nu la 10 min), si DOAR Luni-Vineri intre
+// 07:30 si 15:30. Backend-ul trimite push-uri orare in aceasta fereastra; aici, cand
+// aplicatia e deschisa, capturam automat tot o data pe ora si doar in fereastra de lucru.
+const LOCATION_TRACKING_INTERVAL_MS = 60 * 60 * 1000;
+const LOCATION_MIN_INTERVAL_MS = 5 * 60 * 1000;
+
+/** True daca momentul curent e in fereastra de verificare GPS: Luni-Vineri, 07:30-15:30. */
+const isWithinGpsWindow = (): boolean => {
+  const now = new Date();
+  const day = now.getDay(); // 0=Duminica .. 6=Sambata
+  if (day < 1 || day > 5) return false;
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  return minutes >= 7 * 60 + 30 && minutes <= 15 * 60 + 30;
+};
 
 const formatElapsed = (totalSeconds: number): string => {
   const h = Math.floor(totalSeconds / 3600);
@@ -248,6 +260,9 @@ const EmployeeDashboard = () => {
 
   const captureLocation = useCallback(
     async (timeEntryId: string, isAutoRecorded: boolean = true, retryCount: number = 0) => {
+      // Capturile AUTOMATE se fac doar in fereastra de lucru (Luni-Vineri 07:30-15:30).
+      // Capturile manuale (pornire/oprire tura, isAutoRecorded=false) nu sunt limitate.
+      if (isAutoRecorded && !isWithinGpsWindow()) return;
       if (!navigator.geolocation) {
         setGpsStatus('unavailable');
         setGpsErrorMessage('Browserul nu suporta localizarea GPS');

@@ -8,19 +8,20 @@ import { NotificationType } from '../notifications/entities/notification.entity'
 import { TimeTrackingService } from './time-tracking.service';
 
 /**
- * GPS Tracking Scheduler
+ * GPS Tracking Scheduler (Intretinere Parcari)
  *
- * Sends silent push notifications every 10 minutes to employees
- * with active time entries (pontaj started, not stopped).
+ * Verificarea GPS se face DIN ORA IN ORA, DOAR Luni-Vineri intre 07:30 si 15:30:
+ * la fiecare ora (07:30, 08:30, ..., 15:30) se trimite un push silent catre angajatii
+ * cu tura activa, care declanseaza Service Worker-ul din browser sa capteze locatia GPS
+ * si sa o trimita in backend. (Pe mobil, push-ul silent este singura metoda sigura de a
+ * obtine GPS cand ecranul e stins.)
  *
- * The push notification triggers the Service Worker in the employee's browser,
- * which then captures GPS location and sends it to the backend.
+ * La 15:30 turele ramase pornite se inchid automat si se calculeaza orele lucrate.
  *
- * This is the only reliable way to get GPS data on mobile phones,
- * because mobile browsers kill JavaScript timers when the screen is off.
+ * Adminii/managerii NU mai primesc notificari per-eveniment (era spam). Toate locatiile +
+ * toate erorile de verificare + angajatii sub 8h ajung intr-un SINGUR raport in-app la 16:00.
  *
- * NOTE: Daily GPS report email was moved to AdminConsolidatedScheduler
- * (consolidated daily report at 20:00).
+ * NOTA: raportul GPS pe email ramane in AdminConsolidatedScheduler (raportul de seara, 20:00).
  */
 @Injectable()
 export class GpsTrackingScheduler {
@@ -33,8 +34,8 @@ export class GpsTrackingScheduler {
     private timeTrackingService: TimeTrackingService,
   ) {}
 
-  // Run every 10 minutes, every day
-  @Cron('*/10 * * * *', { timeZone: 'Europe/Bucharest' })
+  // Din ora in ora, Luni-Vineri, intre 07:30 si 15:30 (07:30, 08:30, ... 15:30).
+  @Cron('30 7-15 * * 1-5', { timeZone: 'Europe/Bucharest' })
   async triggerGpsCapture() {
     try {
       // Find all active time entries (started but not stopped)
@@ -90,38 +91,35 @@ export class GpsTrackingScheduler {
   }
 
   /**
-   * GPS Alert - notify admins/managers when GPS verification fails.
-   * Runs every 30 minutes. If an active shift has no GPS location for 30+ minutes,
-   * the system sends a notification to admins and managers WITHOUT stopping the shift.
+   * La 15:30 (Luni-Vineri) inchide automat turele ramase pornite si calculeaza orele
+   * lucrate. Daca un angajat a iesit sub 8h, este notificat. Fara notificari catre admini.
    */
-  @Cron('*/30 * * * *', { timeZone: 'Europe/Bucharest' })
-  async checkGpsAlerts() {
+  @Cron('30 15 * * 1-5', { timeZone: 'Europe/Bucharest' })
+  async autoCloseShiftsAtEndOfDay() {
     try {
-      const alertCount = await this.timeTrackingService.alertShiftsWithoutGps(30);
-      if (alertCount > 0) {
-        this.logger.warn(`[GPS Alert] Sent ${alertCount} GPS failure alerts to admins/managers`);
+      const closed = await this.timeTrackingService.autoCloseShiftsAtWindowEnd();
+      if (closed > 0) {
+        this.logger.log(`[Auto-close 15:30] ${closed} ture inchise automat la sfarsitul zilei`);
       }
     } catch (error) {
-      this.logger.error(`[GPS Alert] Error: ${error.message}`);
+      this.logger.error(`[Auto-close 15:30] Error: ${error.message}`);
     }
   }
 
   /**
-   * Auto-stop shifts without GPS data.
-   * Runs every 5 minutes. If an active shift has no GPS location for 3 hours (180 min),
-   * the system automatically stops it and notifies admin + employee.
+   * La 16:00 (Luni-Vineri) trimite UN SINGUR raport in-app consolidat catre admini +
+   * manageri: rezumatul locatiilor, toate erorile de verificare GPS si angajatii sub 8h.
+   * Inlocuieste notificarile per-eveniment (care erau spam).
    */
-  @Cron('*/5 * * * *', { timeZone: 'Europe/Bucharest' })
-  async autoStopNoGpsShifts() {
+  @Cron('0 16 * * 1-5', { timeZone: 'Europe/Bucharest' })
+  async sendDailyAdminGpsDigest() {
     try {
-      const stoppedCount = await this.timeTrackingService.autoStopShiftsWithoutGps(180);
-      if (stoppedCount > 0) {
-        this.logger.warn(
-          `[GPS Auto-Stop] Stopped ${stoppedCount} shifts due to 3h+ missing GPS data`,
-        );
+      const sent = await this.timeTrackingService.sendDailyAdminDigest(new Date());
+      if (sent > 0) {
+        this.logger.log(`[Raport 16:00] Raport GPS & pontaj trimis la ${sent} admini/manageri`);
       }
     } catch (error) {
-      this.logger.error(`[GPS Auto-Stop] Error: ${error.message}`);
+      this.logger.error(`[Raport 16:00] Error: ${error.message}`);
     }
   }
 }

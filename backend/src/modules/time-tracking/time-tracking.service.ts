@@ -8,6 +8,7 @@ import { RecordLocationDto } from './dto/record-location.dto';
 import { ReportGpsStatusDto } from './dto/report-gps-status.dto';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
+import { ShiftType } from '../schedules/entities/shift-type.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
@@ -30,6 +31,19 @@ export class TimeTrackingService {
    * administrare raman neatinse si vizibile.)
    */
   private readonly GPS_FLOW_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME];
+
+  /** Pozitia de lucru "Intretinere" (INT) folosita de pontajul automat (vezi migratia
+   * 1771500000000-AddIntretinereWorkPosition). */
+  private readonly INT_WORK_POSITION_ID = '00000000-0000-0000-0000-000000000003';
+
+  /** Marcaj pus pe asignarile create automat din pontaj, ca sa le distingem de cele
+   * facute manual de admin/manager (pe acelea NU le atingem). */
+  private readonly AUTO_PONTAJ_NOTE = 'Pontaj automat';
+
+  /** Program standard Intretinere: 8h intre 07:30 si 15:30. Toleranta sub-8h = 15 min
+   * (sub 7h45 => considerat "a lucrat mai putin de 8 ore"). */
+  private readonly STANDARD_WORK_MINUTES = 8 * 60;
+  private readonly UNDER_8H_TOLERANCE_MIN = 15;
 
   constructor(
     @InjectRepository(TimeEntry)
@@ -79,13 +93,24 @@ export class TimeTrackingService {
       startTime: new Date(),
     });
 
-    return this.timeEntryRepository.save(timeEntry);
+    const saved = await this.timeEntryRepository.save(timeEntry);
+
+    // La inceperea turei, angajatul de la Intretinere este pontat automat si in
+    // programul de lucru (se creeaza o intrare de 8h / 07:30-15:30 pe ziua curenta,
+    // daca nu exista deja una). Best-effort: o eroare aici nu trebuie sa blocheze startul.
+    if (user?.department?.name === MAINTENANCE_DEPARTMENT_NAME) {
+      this.ensureAutoPontajAssignment(userId, new Date()).catch((err) => {
+        this.logger.error(`[Auto-pontaj] Nu s-a putut crea intrarea in program: ${err?.message}`);
+      });
+    }
+
+    return saved;
   }
 
   async stopTimer(userId: string, timeEntryId: string): Promise<any> {
     const timeEntry = await this.timeEntryRepository.findOne({
       where: { id: timeEntryId, userId },
-      relations: ['task', 'user'],
+      relations: ['task', 'user', 'user.department'],
     });
 
     if (!timeEntry) {
@@ -109,6 +134,25 @@ export class TimeTrackingService {
     this.geocodingService.geocodeTimeEntryLocations(savedEntry.id).catch((err) => {
       this.logger.error(`Auto-geocoding failed for entry ${savedEntry.id}: ${err?.message}`);
     });
+
+    // La finalizarea turei: stabileste cate ore a lucrat si actualizeaza intrarea din
+    // programul de lucru + notifica angajatul daca a lucrat mai putin de 8 ore.
+    // (Adminii/managerii NU sunt notificati imediat — primesc totul in raportul de la 16:00.)
+    if (timeEntry.user?.department?.name === MAINTENANCE_DEPARTMENT_NAME) {
+      const actualHours = Math.round((durationMinutes / 60) * 100) / 100;
+      this.updateAutoPontajHours(userId, new Date(timeEntry.startTime), actualHours).catch(
+        (err) => {
+          this.logger.error(
+            `[Auto-pontaj] Nu s-au putut actualiza orele in program: ${err?.message}`,
+          );
+        },
+      );
+      if (durationMinutes < this.STANDARD_WORK_MINUTES - this.UNDER_8H_TOLERANCE_MIN) {
+        this.notifyEmployeeUnder8h(userId, actualHours).catch((err) => {
+          this.logger.error(`[Sub 8h] Notificare angajat esuata: ${err?.message}`);
+        });
+      }
+    }
 
     // Verificare conformitate cu programul
     const scheduleCheck = await this.checkScheduleCompliance(userId, durationMinutes);
@@ -172,9 +216,8 @@ export class TimeTrackingService {
         this.logger.warn(
           `Schedule mismatch for user ${userId}: expected ${expectedHours}h (${expectedMinutes}min), actual ${actualDurationMinutes}min, diff ${difference}min`,
         );
-
-        // Trimit notificari la toti adminii si managerii
-        await this.notifyAdminsAboutMismatch(userId, expectedHours, actualDurationMinutes);
+        // NOTA: nu se mai trimit notificari imediate catre admini/manageri (spam).
+        // Nepotrivirile de ore apar in raportul consolidat in-app de la ora 16:00.
       }
 
       return { mismatch, expectedMinutes, expectedHours };
@@ -406,38 +449,11 @@ export class TimeTrackingService {
         unavailable: 'GPS indisponibil pe dispozitiv',
       };
 
-      try {
-        const admins = await this.userRepository.find({
-          where: [
-            { role: UserRole.ADMIN, isActive: true },
-            { role: UserRole.MASTER_ADMIN, isActive: true },
-            { role: UserRole.MANAGER, isActive: true },
-          ],
-        });
-
-        if (admins.length > 0) {
-          const notifications = admins.map((admin) => ({
-            userId: admin.id,
-            type: NotificationType.GPS_STATUS_ALERT,
-            title: 'Problema GPS angajat',
-            message: `${employeeName}: ${statusLabels[dto.status] || dto.status}${dto.errorMessage ? ` - ${dto.errorMessage}` : ''}`,
-            data: {
-              employeeId: userId,
-              employeeName,
-              gpsStatus: dto.status,
-              errorMessage: dto.errorMessage,
-              timeEntryId,
-            },
-          }));
-
-          await this.notificationsService.createMany(notifications);
-          this.logger.log(
-            `[GPS Status] Alert sent to ${admins.length} admins: ${employeeName} - ${dto.status}`,
-          );
-        }
-      } catch (err) {
-        this.logger.error(`[GPS Status] Failed to send notifications: ${err?.message}`);
-      }
+      // NOTA: NU se mai trimit notificari imediate catre admini/manageri la fiecare
+      // problema GPS (erau "spam cu notificari aiurea"). Toate erorile de verificare GPS
+      // din ziua respectiva sunt adunate si trimise o singura data, intr-un raport
+      // consolidat in-app, la ora 16:00 (vezi sendDailyAdminDigest). Statusul se salveaza
+      // mai sus pe inregistrare, deci apare in raportul zilnic.
 
       // Notify the user themselves so they know to restart location services
       try {
@@ -1217,7 +1233,8 @@ export class TimeTrackingService {
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
 
-    // Find all time entries for the day in tracked departments
+    // Find all time entries for the day in tracked departments (doar Intretinere —
+    // Control isi face pontajul/GPS in cealalta aplicatie, vezi GPS_FLOW_DEPARTMENTS)
     const entries = await this.timeEntryRepository
       .createQueryBuilder('entry')
       .leftJoinAndSelect('entry.user', 'user')
@@ -1226,7 +1243,7 @@ export class TimeTrackingService {
       .where('entry.startTime >= :startOfDay', { startOfDay })
       .andWhere('entry.startTime < :endOfDay', { endOfDay })
       .andWhere('department.name IN (:...deptNames)', {
-        deptNames: ['Intretinere Parcari', 'Control'],
+        deptNames: this.GPS_FLOW_DEPARTMENTS,
       })
       .orderBy('user.fullName', 'ASC')
       .addOrderBy('entry.startTime', 'ASC')
@@ -1411,5 +1428,262 @@ export class TimeTrackingService {
         autoStoppedShifts: totalAutoStopped,
       },
     };
+  }
+
+  // ===== PONTAJ AUTOMAT IN PROGRAMUL DE LUCRU + RAPORT ZILNIC (Intretinere) =====
+
+  /** Data in format YYYY-MM-DD, pe fusul Europe/Bucharest. */
+  private toBucharestDateStr(date: Date): string {
+    return date.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
+  }
+
+  /** Gaseste tipul de tura de 8h (prefera 07:30-15:30). */
+  private async resolve8hShiftTypeId(): Promise<string | null> {
+    const repo = this.workScheduleRepository.manager.getRepository(ShiftType);
+    const preferred = await repo.findOne({
+      where: { shiftPattern: 'SHIFT_8H', startTime: '07:30:00' },
+    });
+    if (preferred) return preferred.id;
+    const anyEight = await repo
+      .createQueryBuilder('st')
+      .where('st.shiftPattern = :p', { p: 'SHIFT_8H' })
+      .andWhere('st.durationHours = 8')
+      .orderBy('st.displayOrder', 'ASC')
+      .getOne();
+    return anyEight?.id || null;
+  }
+
+  /** Id-ul departamentului Intretinere Parcari (sau null daca nu e gasit). */
+  private async resolveMaintenanceDeptId(): Promise<string | null> {
+    try {
+      const rows = await this.workScheduleRepository.manager.query(
+        `SELECT id FROM departments WHERE name = $1 LIMIT 1`,
+        [MAINTENANCE_DEPARTMENT_NAME],
+      );
+      return rows?.[0]?.id || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Gaseste sau creeaza programul APROBAT dedicat pontajului automat, pe luna/anul dat. */
+  private async findOrCreateAutoPontajSchedule(
+    month: number,
+    year: number,
+    createdByUserId: string,
+  ): Promise<WorkSchedule> {
+    const monthName = new Date(year, month - 1).toLocaleDateString('ro-RO', {
+      month: 'long',
+      year: 'numeric',
+    });
+    const name = `Pontaj automat ${monthName}`;
+    const existing = await this.workScheduleRepository.findOne({
+      where: { month, year, name, status: 'APPROVED' },
+    });
+    if (existing) return existing;
+    const deptId = await this.resolveMaintenanceDeptId();
+    const created = this.workScheduleRepository.create({
+      name,
+      month,
+      year,
+      shiftPattern: 'SHIFT_8H',
+      departmentId: deptId || undefined,
+      createdBy: createdByUserId,
+      status: 'APPROVED',
+    });
+    return this.workScheduleRepository.save(created);
+  }
+
+  /**
+   * La inceperea turei (Intretinere): creeaza intrarea de 8h in programul de lucru pe ziua
+   * curenta, DOAR daca nu exista deja o asignare pe acea zi (nu suprascriem ce a facut
+   * manual un admin/manager).
+   */
+  private async ensureAutoPontajAssignment(userId: string, date: Date): Promise<void> {
+    const dateStr = this.toBucharestDateStr(date);
+
+    const existing = await this.scheduleAssignmentRepository
+      .createQueryBuilder('sa')
+      .where('sa.userId = :userId', { userId })
+      .andWhere('sa.shiftDate = :dateStr', { dateStr })
+      .getOne();
+    if (existing) return; // are deja ceva in program pe ziua asta — nu atingem
+
+    const shiftTypeId = await this.resolve8hShiftTypeId();
+    if (!shiftTypeId) {
+      this.logger.warn('[Auto-pontaj] Nu exista un tip de tura de 8h — nu pot crea intrarea.');
+      return;
+    }
+
+    const [year, month] = dateStr.split('-').map(Number);
+    const schedule = await this.findOrCreateAutoPontajSchedule(month, year, userId);
+
+    await this.scheduleAssignmentRepository.save(
+      this.scheduleAssignmentRepository.create({
+        workScheduleId: schedule.id,
+        userId,
+        shiftTypeId,
+        shiftDate: dateStr as any,
+        isRestDay: false,
+        notes: this.AUTO_PONTAJ_NOTE,
+        workPositionId: this.INT_WORK_POSITION_ID,
+      }),
+    );
+    this.logger.log(`[Auto-pontaj] Intrare creata in program pentru ${userId} pe ${dateStr}`);
+  }
+
+  /**
+   * La finalizarea turei: scrie orele reale lucrate pe intrarea de pontaj automat, DOAR
+   * daca a fost creata automat (marcata cu AUTO_PONTAJ_NOTE) — nu atingem asignarile manuale.
+   */
+  private async updateAutoPontajHours(
+    userId: string,
+    startDate: Date,
+    actualHours: number,
+  ): Promise<void> {
+    const dateStr = this.toBucharestDateStr(startDate);
+    const assignment = await this.scheduleAssignmentRepository
+      .createQueryBuilder('sa')
+      .where('sa.userId = :userId', { userId })
+      .andWhere('sa.shiftDate = :dateStr', { dateStr })
+      .getOne();
+    if (!assignment) return;
+    if (!assignment.notes || !assignment.notes.startsWith(this.AUTO_PONTAJ_NOTE)) return;
+    assignment.notes = `${this.AUTO_PONTAJ_NOTE}: ${actualHours}h lucrate`;
+    await this.scheduleAssignmentRepository.save(assignment);
+  }
+
+  /** Notifica angajatul ca a lucrat mai putin de 8 ore (in-app + push). */
+  private async notifyEmployeeUnder8h(userId: string, actualHours: number): Promise<void> {
+    const message = `Ai lucrat ${actualHours}h azi, mai putin decat cele 8 ore de program.`;
+    await this.notificationsService.create({
+      userId,
+      type: NotificationType.TIME_ENTRY_MISMATCH,
+      title: 'Tura sub 8 ore',
+      message,
+      data: { actualHours, under8h: true },
+      skipPush: true,
+    });
+    try {
+      await this.pushNotificationService.sendToUser(
+        userId,
+        'Tura sub 8 ore',
+        message,
+        { type: 'TIME_ENTRY_MISMATCH', actualHours, under8h: true },
+        NotificationType.TIME_ENTRY_MISMATCH,
+      );
+    } catch {
+      // push best-effort
+    }
+  }
+
+  /**
+   * Inchide automat turele ramase pornite la sfarsitul programului (15:30), calculeaza
+   * orele lucrate, actualizeaza programul si notifica angajatul daca a iesit sub 8h.
+   * Rulata de scheduler la 15:30 (Luni-Vineri). Nu trimite notificari catre admini
+   * (totul ajunge in raportul de la 16:00).
+   */
+  async autoCloseShiftsAtWindowEnd(): Promise<number> {
+    const activeEntries = await this.timeEntryRepository
+      .createQueryBuilder('entry')
+      .leftJoinAndSelect('entry.user', 'user')
+      .leftJoinAndSelect('user.department', 'department')
+      .where('entry.endTime IS NULL')
+      .andWhere('department.name IN (:...deptNames)', { deptNames: this.GPS_FLOW_DEPARTMENTS })
+      .getMany();
+
+    if (activeEntries.length === 0) return 0;
+
+    let closed = 0;
+    for (const entry of activeEntries) {
+      const endTime = new Date();
+      const durationMinutes = Math.round(
+        (endTime.getTime() - new Date(entry.startTime).getTime()) / 60000,
+      );
+      entry.endTime = endTime;
+      entry.durationMinutes = durationMinutes;
+      entry.stoppedBySystem = true;
+      entry.systemStopReason = 'Inchidere automata la sfarsitul programului (15:30)';
+      await this.timeEntryRepository.save(entry);
+      closed++;
+
+      this.geocodingService.geocodeTimeEntryLocations(entry.id).catch(() => undefined);
+
+      const actualHours = Math.round((durationMinutes / 60) * 100) / 100;
+      await this.updateAutoPontajHours(entry.userId, new Date(entry.startTime), actualHours).catch(
+        () => undefined,
+      );
+      if (durationMinutes < this.STANDARD_WORK_MINUTES - this.UNDER_8H_TOLERANCE_MIN) {
+        await this.notifyEmployeeUnder8h(entry.userId, actualHours).catch(() => undefined);
+      }
+    }
+    this.logger.log(`[Auto-close 15:30] ${closed} ture inchise automat`);
+    return closed;
+  }
+
+  /**
+   * Trimite O SINGURA notificare in-app consolidata catre admini + manageri (la 16:00),
+   * cu rezumatul locatiilor + toate erorile de verificare GPS + angajatii care au lucrat
+   * sub 8 ore. Inlocuieste notificarile per-eveniment (care erau spam).
+   */
+  async sendDailyAdminDigest(date: Date): Promise<number> {
+    const report = await this.getDailyGpsReport(date);
+    if (!report || report.employees.length === 0) {
+      this.logger.log('[Raport 16:00] Nicio tura azi — nu trimit raport.');
+      return 0;
+    }
+
+    const under8h: string[] = [];
+    const gpsProblems: string[] = [];
+    for (const emp of report.employees) {
+      const hours = Math.round((emp.totalDurationMinutes / 60) * 100) / 100;
+      if (emp.totalDurationMinutes < this.STANDARD_WORK_MINUTES - this.UNDER_8H_TOLERANCE_MIN) {
+        under8h.push(`${emp.name} (${hours}h)`);
+      }
+      if (emp.hasGpsProblems) {
+        gpsProblems.push(emp.name);
+      }
+    }
+
+    const lines: string[] = [];
+    lines.push(`Angajati: ${report.summary.totalEmployees} | Ture: ${report.summary.totalShifts}`);
+    lines.push(
+      gpsProblems.length > 0
+        ? `Probleme GPS: ${gpsProblems.length} (${gpsProblems.join(', ')})`
+        : 'Probleme GPS: niciuna',
+    );
+    if (report.summary.autoStoppedShifts > 0) {
+      lines.push(`Ture inchise automat: ${report.summary.autoStoppedShifts}`);
+    }
+    lines.push(under8h.length > 0 ? `Sub 8h: ${under8h.join(', ')}` : 'Sub 8h: niciun angajat');
+    const message = lines.join('\n');
+
+    const recipients = await this.userRepository.find({
+      where: [
+        { role: UserRole.ADMIN, isActive: true },
+        { role: UserRole.MASTER_ADMIN, isActive: true },
+        { role: UserRole.MANAGER, isActive: true },
+      ],
+    });
+    if (recipients.length === 0) return 0;
+
+    const notifications = recipients.map((r) => ({
+      userId: r.id,
+      type: NotificationType.GPS_STATUS_ALERT,
+      title: `Raport zilnic GPS & pontaj — ${report.date}`,
+      message,
+      data: {
+        reportDate: report.date,
+        summary: report.summary,
+        under8h,
+        gpsProblems,
+        dailyDigest: true,
+      },
+    }));
+    await this.notificationsService.createMany(notifications);
+    this.logger.log(
+      `[Raport 16:00] Trimis la ${recipients.length} admini/manageri (${under8h.length} sub 8h, ${gpsProblems.length} probleme GPS)`,
+    );
+    return recipients.length;
   }
 }
