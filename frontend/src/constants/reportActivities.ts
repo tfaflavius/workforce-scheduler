@@ -24,6 +24,7 @@ export const DEPARTMENT_REPORT_ACTIVITIES: Record<string, string[]> = {
     'Dispecerizare echipaje si monitorizare interventii',
     'Monitorizare camere / sistem si parcari',
     'Comunicare cu colegii din teren si raportare situatii',
+    'Sesizare probleme si defectiuni catre intretinere si firme colaboratoare',
   ],
   [CONTROL_DEPARTMENT_NAME]: [
     'Verificare parcari si legalitate stationare',
@@ -42,6 +43,7 @@ export const DEPARTMENT_REPORT_ACTIVITIES: Record<string, string[]> = {
     'Colectare numerar din aparate',
     'Semnalare / remediere defectiuni',
     'Verificare serii / terminale si stoc echipamente',
+    'Verificare si gestionare aplicatie de control si controlori',
   ],
   [HANDICAP_DEPARTMENT_NAME]: [
     'Verificare solicitari loc parcare handicap',
@@ -54,6 +56,7 @@ export const DEPARTMENT_REPORT_ACTIVITIES: Record<string, string[]> = {
     'Verificare documente si eligibilitate',
     'Deplasare pe teren pentru constatari',
     'Actualizare evidenta si finalizare cereri',
+    'Programare licitatii',
   ],
   [PROCESE_VERBALE_DEPARTMENT_NAME]: [
     'Intocmire procese verbale',
