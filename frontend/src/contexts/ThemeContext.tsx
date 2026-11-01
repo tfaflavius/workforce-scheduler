@@ -156,6 +156,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         shape: {
           borderRadius: 12,
         },
+        transitions: {
+          // Curbe de easing mai fine (decelerare lina) pentru un feel mai rafinat.
+          easing: {
+            easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            easeOut: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            easeIn: 'cubic-bezier(0.4, 0, 1, 1)',
+            sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
+          },
+        },
         components: {
           MuiBackdrop: {
             styleOverrides: {
@@ -173,12 +182,59 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               html: {
                 scrollBehavior: 'smooth',
                 overflowX: 'clip',
+                // Scrollbar fin si tematizat (Firefox)
+                scrollbarWidth: 'thin',
+                scrollbarColor: isLight
+                  ? 'rgba(15, 23, 42, 0.22) transparent'
+                  : 'rgba(255, 255, 255, 0.22) transparent',
               },
               body: {
                 paddingLeft: 'env(safe-area-inset-left)',
                 paddingRight: 'env(safe-area-inset-right)',
                 WebkitOverflowScrolling: 'touch',
                 overscrollBehaviorY: 'auto',
+              },
+              // Scrollbar fin si tematizat (Chrome/Safari/Edge)
+              '*::-webkit-scrollbar': {
+                width: 10,
+                height: 10,
+              },
+              '*::-webkit-scrollbar-track': {
+                background: 'transparent',
+              },
+              '*::-webkit-scrollbar-thumb': {
+                backgroundColor: isLight ? 'rgba(15, 23, 42, 0.20)' : 'rgba(255, 255, 255, 0.20)',
+                borderRadius: 8,
+                border: '2px solid transparent',
+                backgroundClip: 'content-box',
+                transition: 'background-color 0.2s ease',
+              },
+              '*::-webkit-scrollbar-thumb:hover': {
+                backgroundColor: isLight ? 'rgba(15, 23, 42, 0.34)' : 'rgba(255, 255, 255, 0.34)',
+              },
+              // Culoarea de selectie a textului
+              '::selection': {
+                backgroundColor: isLight ? 'rgba(37, 99, 235, 0.18)' : 'rgba(96, 165, 250, 0.30)',
+              },
+              // Focus vizibil, accesibil si discret (doar la navigare cu tastatura)
+              'a:focus-visible, button:focus-visible, [role="button"]:focus-visible, .MuiButtonBase-root:focus-visible':
+                {
+                  outline: `2px solid ${isLight ? 'rgba(37, 99, 235, 0.55)' : 'rgba(96, 165, 250, 0.65)'}`,
+                  outlineOffset: 2,
+                },
+              // Animatie de aparitie refolosibila (subtila)
+              '@keyframes appFadeInUp': {
+                from: { opacity: 0, transform: 'translateY(8px)' },
+                to: { opacity: 1, transform: 'translateY(0)' },
+              },
+              // Respecta preferinta sistemului de a reduce miscarea
+              '@media (prefers-reduced-motion: reduce)': {
+                '*, *::before, *::after': {
+                  animationDuration: '0.001ms !important',
+                  animationIterationCount: '1 !important',
+                  transitionDuration: '0.001ms !important',
+                  scrollBehavior: 'auto !important',
+                },
               },
             },
           },
@@ -189,7 +245,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 padding: '10px 20px',
                 fontSize: 'clamp(0.813rem, 1.5vw, 0.938rem)',
                 minHeight: 44,
-                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                transition:
+                  'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
                 '&:hover': {
                   transform: 'translateY(-1px)',
                   boxShadow: isLight
@@ -197,7 +254,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                     : '0 4px 12px rgba(0, 0, 0, 0.25)',
                 },
                 '&:active': {
-                  transform: 'scale(0.98)',
+                  transform: 'scale(0.97)',
+                  transition: 'transform 0.08s ease',
                 },
               },
               contained: {
@@ -258,7 +316,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 boxShadow: isLight
                   ? '0 1px 2px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.04)'
                   : '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.18)',
-                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                transition:
+                  'transform 0.26s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.26s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.26s ease',
                 backgroundImage: 'none',
                 '&[role="button"], &:has(.MuiCardActionArea-root)': {
                   cursor: 'pointer',
@@ -303,6 +362,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 border: isLight
                   ? '1px solid rgba(15, 23, 42, 0.10)'
                   : '1px solid rgba(255, 255, 255, 0.12)',
+                transition:
+                  'transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease, background-color 0.18s ease',
+                '&.MuiChip-clickable:hover': {
+                  transform: 'translateY(-1px)',
+                  boxShadow: isLight
+                    ? '0 2px 8px rgba(15, 23, 42, 0.12)'
+                    : '0 2px 8px rgba(0, 0, 0, 0.3)',
+                },
+                '&.MuiChip-clickable:active': {
+                  transform: 'scale(0.97)',
+                },
               },
             },
           },
@@ -402,6 +472,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 minHeight: 44,
                 padding: 'clamp(6px, 1vw, 12px) clamp(8px, 1.5vw, 24px)',
                 transition: 'color 0.2s ease, background-color 0.2s ease',
+                borderRadius: '8px 8px 0 0',
+                '&:hover': {
+                  backgroundColor: isLight ? 'rgba(37, 99, 235, 0.06)' : 'rgba(96, 165, 250, 0.10)',
+                },
                 '&.Mui-selected': {
                   fontWeight: 600,
                 },
@@ -494,8 +568,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               root: {
                 minHeight: 44,
                 WebkitTapHighlightColor: 'transparent',
+                transition:
+                  'background-color 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1)',
                 '&:hover': {
                   backgroundColor: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+                  transform: 'translateX(3px)',
                 },
                 '&.Mui-selected': {
                   backgroundColor: isLight ? 'rgba(37, 99, 235, 0.08)' : 'rgba(59, 130, 246, 0.14)',
