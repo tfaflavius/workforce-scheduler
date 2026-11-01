@@ -56,6 +56,21 @@ export class DailyReportsController {
     return this.dailyReportsService.getMissingReportsForDateRange(startDate, endDate);
   }
 
+  // Statistici proprii (user): cate rapoarte a trimis / nu a trimis luna curenta
+  @Get('my-stats')
+  getMyStats(@Request() req) {
+    return this.dailyReportsService.getMyMonthlyReportStats(req.user.id);
+  }
+
+  // Statistici per user pentru admini/manageri (luna curenta). Managerul nu se vede pe el.
+  @Get('stats/users')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  getUserStats(@Request() req) {
+    const excludeUserId = isAdminOrAbove(req.user.role) ? undefined : req.user.id;
+    return this.dailyReportsService.getMonthlyReportStatsPerUser(excludeUserId);
+  }
+
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)

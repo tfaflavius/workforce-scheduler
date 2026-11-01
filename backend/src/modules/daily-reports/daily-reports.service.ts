@@ -496,6 +496,190 @@ export class DailyReportsService {
     return result;
   }
 
+  // ============== STATISTICI RAPOARTE (trimise / netrimise — luna curenta) ==============
+
+  /** Data de azi in format YYYY-MM-DD pe fusul Europe/Bucharest. */
+  private bucharestTodayStr(): string {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
+  }
+
+  /** Zilele (YYYY-MM-DD) din luna data, pana cel mult azi inclusiv. */
+  private monthDaysUpToToday(year: number, month: number): string[] {
+    const todayStr = this.bucharestTodayStr();
+    const days: string[] = [];
+    const daysInMonth = new Date(year, month, 0).getDate(); // month = 1-12
+    for (let d = 1; d <= daysInMonth; d++) {
+      const ds = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      if (ds > todayStr) break;
+      days.push(ds);
+    }
+    return days;
+  }
+
+  private dateToStr(v: unknown): string {
+    return (v instanceof Date ? v.toISOString() : String(v)).slice(0, 10);
+  }
+
+  /**
+   * Statistici pentru UN user pe luna curenta: cate rapoarte a trimis si cate NU a trimis
+   * (doar zilele in care trebuia sa raporteze), plus lista zilelor netrimise. "Netrimis" se
+   * numara doar pentru zilele STRICT inainte de azi (ziua curenta nu conteaza inca).
+   */
+  async getMyMonthlyReportStats(userId: string): Promise<{
+    submittedCount: number;
+    missingCount: number;
+    missingDates: string[];
+  }> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['department'],
+    });
+    if (!user || user.role === UserRole.ADMIN || user.role === UserRole.MASTER_ADMIN) {
+      return { submittedCount: 0, missingCount: 0, missingDates: [] };
+    }
+
+    const todayStr = this.bucharestTodayStr();
+    const [year, month] = todayStr.split('-').map(Number);
+    const days = this.monthDaysUpToToday(year, month);
+    if (days.length === 0) return { submittedCount: 0, missingCount: 0, missingDates: [] };
+
+    const firstDay = days[0];
+    const lastDay = days[days.length - 1];
+
+    const leaves = await this.leaveRequestRepository
+      .createQueryBuilder('lr')
+      .where('lr.userId = :userId', { userId })
+      .andWhere('lr.status = :status', { status: 'APPROVED' })
+      .andWhere('lr.startDate <= :lastDay', { lastDay })
+      .andWhere('lr.endDate >= :firstDay', { firstDay })
+      .getMany();
+    const isOnLeave = (ds: string): boolean =>
+      leaves.some((lr) => ds >= this.dateToStr(lr.startDate) && ds <= this.dateToStr(lr.endDate));
+
+    const deptName = user.department?.name;
+    const scheduleBased = deptName ? SCHEDULE_BASED_DEPARTMENTS.includes(deptName) : false;
+    let workdayBased = false;
+    if (!scheduleBased) {
+      if (user.role === UserRole.MANAGER) workdayBased = true;
+      else if (deptName && WORKDAY_REPORT_DEPARTMENTS.includes(deptName)) workdayBased = true;
+    }
+    if (!scheduleBased && !workdayBased) {
+      return { submittedCount: 0, missingCount: 0, missingDates: [] };
+    }
+
+    let shiftDays = new Set<string>();
+    if (scheduleBased) {
+      const assignments = await this.scheduleAssignmentRepository
+        .createQueryBuilder('sa')
+        .innerJoin('sa.schedule', 'ws')
+        .select('sa.shiftDate', 'shiftDate')
+        .where('sa.userId = :userId', { userId })
+        .andWhere('sa.shiftDate BETWEEN :firstDay AND :lastDay', { firstDay, lastDay })
+        .andWhere('sa.isRestDay = false')
+        .andWhere('sa.leaveType IS NULL')
+        .andWhere('ws.status = :st', { st: 'APPROVED' })
+        .getRawMany();
+      shiftDays = new Set(assignments.map((a) => this.dateToStr(a.shiftDate)));
+    }
+
+    const requiredDays = days.filter((ds) => {
+      if (isOnLeave(ds)) return false;
+      if (scheduleBased) return shiftDays.has(ds);
+      return isWorkingDay(ds);
+    });
+
+    const submitted = await this.dailyReportRepository
+      .createQueryBuilder('r')
+      .select('r.date', 'date')
+      .where('r.userId = :userId', { userId })
+      .andWhere('r.status = :st', { st: DailyReportStatus.SUBMITTED })
+      .andWhere('r.date BETWEEN :firstDay AND :lastDay', { firstDay, lastDay })
+      .getRawMany();
+    const submittedDays = new Set(submitted.map((r) => this.dateToStr(r.date)));
+
+    const submittedCount = requiredDays.filter((ds) => submittedDays.has(ds)).length;
+    const missingDates = requiredDays.filter((ds) => ds < todayStr && !submittedDays.has(ds));
+
+    return { submittedCount, missingCount: missingDates.length, missingDates };
+  }
+
+  /**
+   * Statistici per user pentru admini/manageri (luna curenta): cate rapoarte a trimis si
+   * cate NU a trimis fiecare user care trebuia sa raporteze. `excludeUserId` scoate un user
+   * din lista (managerul nu se vede pe el insusi).
+   */
+  async getMonthlyReportStatsPerUser(excludeUserId?: string): Promise<
+    Array<{
+      userId: string;
+      fullName: string;
+      department: string | null;
+      submittedCount: number;
+      missingCount: number;
+    }>
+  > {
+    const todayStr = this.bucharestTodayStr();
+    const [year, month] = todayStr.split('-').map(Number);
+    const days = this.monthDaysUpToToday(year, month);
+    if (days.length === 0) return [];
+
+    const firstDay = days[0];
+    const lastDay = days[days.length - 1];
+
+    const requiredByUser = new Map<string, Set<string>>();
+    const userMap = new Map<string, User>();
+    for (const ds of days) {
+      const users = await this.getUsersWhoShouldReport(ds);
+      for (const u of users) {
+        if (!requiredByUser.has(u.id)) requiredByUser.set(u.id, new Set());
+        requiredByUser.get(u.id)!.add(ds);
+        if (!userMap.has(u.id)) userMap.set(u.id, u);
+      }
+    }
+
+    const submitted = await this.dailyReportRepository
+      .createQueryBuilder('r')
+      .select('r.userId', 'userId')
+      .addSelect('r.date', 'date')
+      .where('r.status = :st', { st: DailyReportStatus.SUBMITTED })
+      .andWhere('r.date BETWEEN :firstDay AND :lastDay', { firstDay, lastDay })
+      .getRawMany();
+    const submittedByUser = new Map<string, Set<string>>();
+    for (const row of submitted) {
+      if (!submittedByUser.has(row.userId)) submittedByUser.set(row.userId, new Set());
+      submittedByUser.get(row.userId)!.add(this.dateToStr(row.date));
+    }
+
+    const result: Array<{
+      userId: string;
+      fullName: string;
+      department: string | null;
+      submittedCount: number;
+      missingCount: number;
+    }> = [];
+
+    for (const [uid, reqDays] of requiredByUser) {
+      if (excludeUserId && uid === excludeUserId) continue;
+      const u = userMap.get(uid)!;
+      const subDays = submittedByUser.get(uid) || new Set<string>();
+      let submittedCount = 0;
+      let missingCount = 0;
+      for (const ds of reqDays) {
+        if (subDays.has(ds)) submittedCount++;
+        else if (ds < todayStr) missingCount++;
+      }
+      result.push({
+        userId: uid,
+        fullName: u.fullName,
+        department: u.department?.name || null,
+        submittedCount,
+        missingCount,
+      });
+    }
+
+    result.sort((a, b) => b.missingCount - a.missingCount || a.fullName.localeCompare(b.fullName));
+    return result;
+  }
+
   // ============== NOTIFICARI ==============
 
   private async notifyOnSubmission(report: DailyReport, userId: string): Promise<void> {

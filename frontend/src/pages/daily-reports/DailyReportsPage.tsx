@@ -25,6 +25,9 @@ import {
   Collapse,
   IconButton,
   Divider,
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
 } from '@mui/material';
 import {
   Description as ReportIcon,
@@ -51,7 +54,14 @@ import {
   useGetMissingReportsQuery,
   useUpdateDailyReportMutation,
   useAddAdminCommentMutation,
+  useGetMyReportStatsQuery,
+  useGetUserReportStatsQuery,
 } from '../../store/api/dailyReports.api';
+import {
+  getActivitiesForDepartment,
+  composeReportContent,
+  parseReportContent,
+} from '../../constants/reportActivities';
 import { useGetUsersQuery } from '../../store/api/users.api';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import { useUnsavedChanges } from '../../hooks/useUnsavedChanges';
@@ -100,11 +110,39 @@ const DailyReportsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
 
   // My report state
-  const [reportContent, setReportContent] = useState('');
+  const [reportContent, setReportContent] = useState(''); // folosit ca fallback (dept fara activitati)
   const [isEditing, setIsEditing] = useState(false);
 
+  // Raportul pe baza de casute (activitati bifate + text liber optional "Altele")
+  const departmentName = user?.department?.name;
+  const reportActivities = useMemo(
+    () => getActivitiesForDepartment(departmentName),
+    [departmentName],
+  );
+  const usesChecklist = reportActivities.length > 0;
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+  const [otherChecked, setOtherChecked] = useState(false);
+  const [otherText, setOtherText] = useState('');
+
+  const toggleActivity = (activity: string) => {
+    setSelectedActivities((prev) =>
+      prev.includes(activity) ? prev.filter((a) => a !== activity) : [...prev, activity],
+    );
+  };
+
+  // Exista continut de raportat? (pentru validare + avertisment la inchidere)
+  const hasReportInput = usesChecklist
+    ? selectedActivities.length > 0 || (otherChecked && otherText.trim().length > 0)
+    : reportContent.trim().length > 0;
+
+  // Continutul final (text) trimis catre backend
+  const buildReportContent = (): string =>
+    usesChecklist
+      ? composeReportContent(selectedActivities, otherChecked ? otherText : '')
+      : reportContent;
+
   // Warn if user tries to close tab with unsaved report
-  useUnsavedChanges(reportContent.trim().length > 0 && isEditing);
+  useUnsavedChanges(hasReportInput && isEditing);
 
   // Admin comment state
   const [commentingReportId, setCommentingReportId] = useState<string | null>(null);
@@ -217,12 +255,27 @@ const DailyReportsPage: React.FC = () => {
   const [updateReport, { isLoading: updating }] = useUpdateDailyReportMutation();
   const [addComment, { isLoading: commenting }] = useAddAdminCommentMutation();
 
-  // Initialize report content from today's report
+  // Statistici rapoarte (luna curenta)
+  const { data: myStats } = useGetMyReportStatsQuery(undefined, { skip: isAdmin });
+  const { data: userStats } = useGetUserReportStatsQuery(undefined, { skip: !canViewAll });
+  const [userStatsExpanded, setUserStatsExpanded] = useState(true);
+
+  // Initialize report content from today's report (draft)
   useEffect(() => {
     if (todayReport && todayReport.status === 'DRAFT') {
-      setReportContent(todayReport.content || '');
+      if (usesChecklist) {
+        const { selected, otherText: parsedOther } = parseReportContent(
+          todayReport.content,
+          reportActivities,
+        );
+        setSelectedActivities(selected);
+        setOtherText(parsedOther);
+        setOtherChecked(parsedOther.trim().length > 0);
+      } else {
+        setReportContent(todayReport.content || '');
+      }
     }
-  }, [todayReport]);
+  }, [todayReport, usesChecklist, reportActivities]);
 
   // Handle notification navigation — set calendar to the correct date
   useEffect(() => {
@@ -295,20 +348,21 @@ const DailyReportsPage: React.FC = () => {
 
   // Handlers
   const handleSaveDraft = async () => {
-    if (!reportContent.trim()) {
-      notifyError('Scrie continutul raportului inainte de a salva.');
+    if (!hasReportInput) {
+      notifyError('Bifeaza cel putin o activitate (sau scrie la "Altele") inainte de a salva.');
       return;
     }
+    const content = buildReportContent();
     try {
       if (todayReport && todayReport.status === 'DRAFT') {
         await updateReport({
           id: todayReport.id,
-          data: { content: reportContent, status: 'DRAFT' },
+          data: { content, status: 'DRAFT' },
         }).unwrap();
       } else {
         await createReport({
           date: getTodayDateString(),
-          content: reportContent,
+          content,
           status: 'DRAFT',
         }).unwrap();
       }
@@ -320,20 +374,21 @@ const DailyReportsPage: React.FC = () => {
   };
 
   const handleSubmitReport = async () => {
-    if (!reportContent.trim()) {
-      notifyError('Scrie continutul raportului inainte de a-l trimite.');
+    if (!hasReportInput) {
+      notifyError('Bifeaza cel putin o activitate (sau scrie la "Altele") inainte de a trimite.');
       return;
     }
+    const content = buildReportContent();
     try {
       if (todayReport && todayReport.status === 'DRAFT') {
         await updateReport({
           id: todayReport.id,
-          data: { content: reportContent, status: 'SUBMITTED' },
+          data: { content, status: 'SUBMITTED' },
         }).unwrap();
       } else {
         await createReport({
           date: getTodayDateString(),
-          content: reportContent,
+          content,
           status: 'SUBMITTED',
         }).unwrap();
       }
@@ -494,6 +549,44 @@ const DailyReportsPage: React.FC = () => {
   const renderMyReport = () => (
     <Fade in>
       <Box>
+        {/* Rezumat rapoarte luna curenta (trimise / netrimise) */}
+        {myStats && (myStats.submittedCount > 0 || myStats.missingCount > 0) && (
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  flexWrap: 'wrap',
+                  mb: myStats.missingDates.length ? 1 : 0,
+                }}
+              >
+                <ReportIcon color="action" />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Rapoarte luna aceasta
+                </Typography>
+                <Chip
+                  label={`Trimise: ${myStats.submittedCount}`}
+                  color="success"
+                  size="small"
+                  sx={{ ml: { sm: 'auto' } }}
+                />
+                <Chip
+                  label={`Netrimise: ${myStats.missingCount}`}
+                  color={myStats.missingCount > 0 ? 'error' : 'default'}
+                  size="small"
+                />
+              </Box>
+              {myStats.missingDates.length > 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Zile fara raport: {myStats.missingDates.map((d) => formatDate(d)).join(', ')}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Today's report card */}
         <Card
           sx={{
@@ -581,22 +674,66 @@ const DailyReportsPage: React.FC = () => {
             ) : (
               /* Report form */
               <Box>
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={6}
-                  maxRows={15}
-                  placeholder="Descrie activitatile realizate astazi..."
-                  value={reportContent}
-                  onChange={(e) => setReportContent(e.target.value)}
-                  aria-label="Continutul raportului zilnic"
-                  sx={{
-                    mb: 2,
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                    },
-                  }}
-                />
+                {usesChecklist ? (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                      Bifeaza activitatile de astazi (cate vrei)
+                    </Typography>
+                    <FormGroup>
+                      {reportActivities.map((activity) => (
+                        <FormControlLabel
+                          key={activity}
+                          control={
+                            <Checkbox
+                              checked={selectedActivities.includes(activity)}
+                              onChange={() => toggleActivity(activity)}
+                            />
+                          }
+                          label={activity}
+                        />
+                      ))}
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={otherChecked}
+                            onChange={(e) => setOtherChecked(e.target.checked)}
+                          />
+                        }
+                        label="Altele (optional)"
+                      />
+                    </FormGroup>
+                    <Collapse in={otherChecked}>
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        maxRows={8}
+                        placeholder="Scrie aici alte activitati (optional)..."
+                        value={otherText}
+                        onChange={(e) => setOtherText(e.target.value)}
+                        aria-label="Alte activitati"
+                        sx={{ mt: 1, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                      />
+                    </Collapse>
+                  </Box>
+                ) : (
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={6}
+                    maxRows={15}
+                    placeholder="Descrie activitatile realizate astazi..."
+                    value={reportContent}
+                    onChange={(e) => setReportContent(e.target.value)}
+                    aria-label="Continutul raportului zilnic"
+                    sx={{
+                      mb: 2,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                      },
+                    }}
+                  />
+                )}
 
                 <Box
                   sx={{
@@ -620,7 +757,7 @@ const DailyReportsPage: React.FC = () => {
                     variant="contained"
                     startIcon={<SendIcon />}
                     onClick={handleSubmitReport}
-                    disabled={creating || updating || !reportContent.trim()}
+                    disabled={creating || updating || !hasReportInput}
                     size={isMobile ? 'small' : 'medium'}
                     sx={{
                       fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -769,6 +906,81 @@ const DailyReportsPage: React.FC = () => {
   const renderAllReports = () => (
     <Fade in>
       <Box>
+        {/* Statistici rapoarte per angajat (luna curenta) */}
+        {userStats && userStats.length > 0 && (
+          <Card sx={{ mb: 3, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+              <Box
+                sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }}
+                onClick={() => setUserStatsExpanded((v) => !v)}
+              >
+                <ReportIcon color="action" />
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  Rapoarte per angajat — luna curenta
+                </Typography>
+                <IconButton size="small" sx={{ ml: 'auto' }} aria-label="Extinde/restrange">
+                  <ChevronRightIcon
+                    sx={{ transform: userStatsExpanded ? 'rotate(90deg)' : 'none', transition: '0.2s' }}
+                  />
+                </IconButton>
+              </Box>
+              <Collapse in={userStatsExpanded}>
+                <Box sx={{ mt: 1.5 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      fontWeight: 600,
+                      px: 1,
+                      py: 0.5,
+                      color: 'text.secondary',
+                    }}
+                  >
+                    <Box sx={{ flex: 1 }}>Angajat</Box>
+                    <Box sx={{ width: 84, textAlign: 'center' }}>Trimise</Box>
+                    <Box sx={{ width: 84, textAlign: 'center' }}>Netrimise</Box>
+                  </Box>
+                  <Divider />
+                  {userStats.map((u) => (
+                    <Box
+                      key={u.userId}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 1,
+                        py: 0.75,
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 500, wordBreak: 'break-word' }}>
+                          {u.fullName}
+                        </Typography>
+                        {u.department && (
+                          <Typography variant="caption" color="text.secondary">
+                            {u.department}
+                          </Typography>
+                        )}
+                      </Box>
+                      <Box sx={{ width: 84, textAlign: 'center' }}>
+                        <Chip label={u.submittedCount} color="success" size="small" variant="outlined" />
+                      </Box>
+                      <Box sx={{ width: 84, textAlign: 'center' }}>
+                        <Chip
+                          label={u.missingCount}
+                          color={u.missingCount > 0 ? 'error' : 'default'}
+                          size="small"
+                          variant={u.missingCount > 0 ? 'filled' : 'outlined'}
+                        />
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Collapse>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Month selector + filters row */}
         <Card sx={{ mb: 3, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
           <CardContent sx={{ p: { xs: 2, sm: 3 } }}>

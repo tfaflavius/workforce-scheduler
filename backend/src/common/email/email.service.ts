@@ -653,6 +653,38 @@ export class EmailService {
     return this.sendEmail(to, subject, html, true);
   }
 
+  /**
+   * Reminder catre angajat ca nu a trimis raportul zilnic, cu numarul total de rapoarte
+   * netrimise din luna curenta.
+   */
+  async sendMissingReportReminder(
+    to: string,
+    name: string,
+    missingThisMonth: number,
+  ): Promise<boolean> {
+    const subject = 'Raport zilnic netrimis';
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a2e;">
+        <div style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; padding: 20px 24px; border-radius: 8px 8px 0 0;">
+          <h2 style="margin: 0; font-size: 18px;">Raport zilnic netrimis</h2>
+        </div>
+        <div style="border: 1px solid #eee; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
+          <p>Buna, ${name},</p>
+          <p>Nu ai trimis raportul zilnic pentru astazi. Te rugam sa il completezi din aplicatie.</p>
+          <p style="background: #fff3e0; padding: 12px 16px; border-radius: 6px; font-weight: bold;">
+            Rapoarte netrimise luna aceasta: ${missingThisMonth}
+          </p>
+          <p>
+            <a href="${this.appUrl}/daily-reports" style="display: inline-block; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+              Completeaza raportul
+            </a>
+          </p>
+        </div>
+      </div>
+    `;
+    return this.sendEmail(to, subject, html);
+  }
+
   // ============== SCHEDULE EMAILS ==============
 
   private generateScheduleHtml(data: ScheduleEmailData): string {

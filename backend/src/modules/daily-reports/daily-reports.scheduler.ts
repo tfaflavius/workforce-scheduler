@@ -7,6 +7,7 @@ import { User, UserRole } from '../users/entities/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
+import { EmailService } from '../../common/email/email.service';
 
 @Injectable()
 export class DailyReportsScheduler {
@@ -16,6 +17,7 @@ export class DailyReportsScheduler {
     private readonly dailyReportsService: DailyReportsService,
     private readonly notificationsService: NotificationsService,
     private readonly pushNotificationService: PushNotificationService,
+    private readonly emailService: EmailService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
@@ -141,8 +143,27 @@ export class DailyReportsScheduler {
       );
     }
 
+    // Email catre fiecare user fara raport, cu numarul total de rapoarte netrimise luna aceasta
+    // (+1 pentru ziua de azi, care tocmai a fost constatata ca netrimisa).
+    let emailsSent = 0;
+    for (const u of missingUsers) {
+      if (!u.email) continue;
+      try {
+        const stats = await this.dailyReportsService.getMyMonthlyReportStats(u.id);
+        const missingThisMonth = stats.missingCount + 1;
+        const ok = await this.emailService.sendMissingReportReminder(
+          u.email,
+          u.fullName,
+          missingThisMonth,
+        );
+        if (ok) emailsSent++;
+      } catch (err) {
+        this.logger.error(`Eroare email raport lipsa pentru ${u.fullName}: ${err.message}`);
+      }
+    }
+
     this.logger.log(
-      `Notificari lipsa raport trimise: ${notifications.length} la admini/manageri, ${userNotifications.length} la userii fara raport`,
+      `Notificari lipsa raport trimise: ${notifications.length} la admini/manageri, ${userNotifications.length} la userii fara raport, ${emailsSent} emailuri`,
     );
   }
 

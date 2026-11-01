@@ -8,10 +8,31 @@ import type {
   MissingReportsByDate,
 } from '../../types/daily-report.types';
 
+export interface MyReportStats {
+  submittedCount: number;
+  missingCount: number;
+  missingDates: string[];
+}
+
+export interface UserReportStat {
+  userId: string;
+  fullName: string;
+  department: string | null;
+  submittedCount: number;
+  missingCount: number;
+}
+
 export const dailyReportsApi = createApi({
   reducerPath: 'dailyReportsApi',
   baseQuery: createAuthBaseQuery('/daily-reports'),
-  tagTypes: ['DailyReports', 'MyDailyReports', 'TodayReport', 'MissingReports'],
+  tagTypes: [
+    'DailyReports',
+    'MyDailyReports',
+    'TodayReport',
+    'MissingReports',
+    'MyReportStats',
+    'UserReportStats',
+  ],
   keepUnusedDataFor: 120, // 2 min
   endpoints: (builder) => ({
     // Creaza sau actualizeaza raportul zilnic
@@ -21,7 +42,13 @@ export const dailyReportsApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['DailyReports', 'MyDailyReports', 'TodayReport'],
+      invalidatesTags: [
+        'DailyReports',
+        'MyDailyReports',
+        'TodayReport',
+        'MyReportStats',
+        'UserReportStats',
+      ],
     }),
 
     // Raportul de azi al userului curent
@@ -58,7 +85,25 @@ export const dailyReportsApi = createApi({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: ['DailyReports', 'MyDailyReports', 'TodayReport'],
+      invalidatesTags: [
+        'DailyReports',
+        'MyDailyReports',
+        'TodayReport',
+        'MyReportStats',
+        'UserReportStats',
+      ],
+    }),
+
+    // Statistici proprii (user): trimise / netrimise luna curenta
+    getMyReportStats: builder.query<MyReportStats, void>({
+      query: () => '/my-stats',
+      providesTags: ['MyReportStats'],
+    }),
+
+    // Statistici per user (admin/manager): trimise / netrimise luna curenta
+    getUserReportStats: builder.query<UserReportStat[], void>({
+      query: () => '/stats/users',
+      providesTags: ['UserReportStats'],
     }),
 
     // Rapoarte lipsa (admin/manager)
@@ -90,4 +135,6 @@ export const {
   useGetMissingReportsQuery,
   useUpdateDailyReportMutation,
   useAddAdminCommentMutation,
+  useGetMyReportStatsQuery,
+  useGetUserReportStatsQuery,
 } = dailyReportsApi;
