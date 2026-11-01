@@ -189,64 +189,67 @@ const ScheduleMobileCard: React.FC<ScheduleMobileCardProps> = ({
                 })}
               </Stack>
 
-              {/* Mini calendar for tablet/mobile - all days with horizontal scroll */}
+              {/* Mini calendar for tablet/mobile - grid care se infasoara (7 pe rand),
+                  ca sa incapa TOATE zilele fara scroll orizontal / taiere */}
               <Box sx={{ mt: 1 }}>
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
                   Calendar (luna completa):
                 </Typography>
-                <Box sx={{
-                  overflowX: 'auto',
-                  WebkitOverflowScrolling: 'touch',
-                  touchAction: 'pan-x',
-                  pb: 1,
-                  '&::-webkit-scrollbar': { height: 6 },
-                  '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 3 },
-                }}>
-                  <Stack direction="row" spacing={0.25} sx={{ minWidth: 'max-content' }}>
-                    {calendarDays.map(({ date, day, isWeekend }) => {
-                      const assignments = userAssignments[date];
-                      const firstAssignment = assignments?.[0];
-                      const shiftInfo = firstAssignment ? getExistingShiftInfo(firstAssignment.notes) : null;
-                      const workPos = firstAssignment?.workPosition;
-                      const hasMultiple = assignments && assignments.length > 1;
-                      return (
-                        <Box
-                          key={date}
-                          sx={{
-                            minWidth: isLandscape ? 32 : 28,
-                            width: isLandscape ? 32 : 28,
-                            height: isLandscape ? (hasMultiple ? 48 : 36) : (hasMultiple ? 44 : 32),
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: 0.5,
-                            bgcolor: shiftInfo ? shiftInfo.color : (isWeekend ? 'grey.200' : 'grey.100'),
-                            color: shiftInfo ? 'white' : 'text.secondary',
-                            fontSize: isLandscape ? '0.6rem' : '0.55rem',
-                            fontWeight: 'bold',
-                            flexShrink: 0,
-                          }}
-                        >
-                          <span style={{ fontSize: isLandscape ? '0.5rem' : '0.45rem', opacity: 0.8 }}>{day}</span>
-                          <span style={{ fontSize: isLandscape ? '0.6rem' : '0.55rem' }}>{shiftInfo?.label || '-'}</span>
-                          {workPos && (
-                            <span style={{ fontSize: isLandscape ? '0.4rem' : '0.35rem', opacity: 0.9 }}>
-                              {workPos.shortName || workPos.name?.substring(0, 3)}
-                            </span>
-                          )}
-                          {hasMultiple && assignments.slice(1).map((a, i) => {
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(7, 1fr)',
+                    gap: 0.5,
+                  }}
+                >
+                  {calendarDays.map(({ date, day, isWeekend }) => {
+                    const assignments = userAssignments[date];
+                    const firstAssignment = assignments?.[0];
+                    const shiftInfo = firstAssignment ? getExistingShiftInfo(firstAssignment.notes) : null;
+                    const workPos = firstAssignment?.workPosition;
+                    const hasMultiple = assignments && assignments.length > 1;
+                    return (
+                      <Box
+                        key={date}
+                        sx={{
+                          minWidth: 0,
+                          width: '100%',
+                          minHeight: isLandscape ? (hasMultiple ? 50 : 40) : hasMultiple ? 46 : 36,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderRadius: 0.75,
+                          px: 0.25,
+                          py: 0.5,
+                          overflow: 'hidden',
+                          bgcolor: shiftInfo ? shiftInfo.color : isWeekend ? 'grey.200' : 'grey.100',
+                          color: shiftInfo ? 'white' : 'text.secondary',
+                          fontSize: '0.6rem',
+                          fontWeight: 'bold',
+                          lineHeight: 1.15,
+                          textAlign: 'center',
+                        }}
+                      >
+                        <span style={{ fontSize: '0.5rem', opacity: 0.8 }}>{day}</span>
+                        <span style={{ fontSize: '0.6rem' }}>{shiftInfo?.label || '-'}</span>
+                        {workPos && (
+                          <span style={{ fontSize: '0.4rem', opacity: 0.9 }}>
+                            {workPos.shortName || workPos.name?.substring(0, 3)}
+                          </span>
+                        )}
+                        {hasMultiple &&
+                          assignments.slice(1).map((a, i) => {
                             const si = getExistingShiftInfo(a.notes);
                             return (
-                              <span key={i} style={{ fontSize: isLandscape ? '0.4rem' : '0.35rem', opacity: 0.85 }}>
+                              <span key={i} style={{ fontSize: '0.4rem', opacity: 0.85 }}>
                                 {si.label} {a.workPosition?.shortName || ''}
                               </span>
                             );
                           })}
-                        </Box>
-                      );
-                    })}
-                  </Stack>
+                      </Box>
+                    );
+                  })}
                 </Box>
               </Box>
             </Box>
