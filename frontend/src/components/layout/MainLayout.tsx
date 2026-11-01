@@ -1227,11 +1227,12 @@ export const MainLayout = () => {
           </Fade>
         )}
 
-        <Fade in={true} timeout={300} key={location.pathname}>
-          <Box>
-            <Outlet />
-          </Box>
-        </Fade>
+        <Box
+          key={location.pathname}
+          sx={{ animation: 'appFadeInUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both' }}
+        >
+          <Outlet />
+        </Box>
       </Box>
 
       {/* Mobile Bottom Navigation */}

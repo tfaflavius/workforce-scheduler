@@ -65,6 +65,10 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                   theme.palette.mode === 'light'
                     ? `0 8px 24px ${alpha(color, 0.2)}, 0 0 0 1px ${alpha(color, 0.1)}`
                     : `0 8px 24px ${alpha(color, 0.35)}, 0 0 0 1px ${alpha(color, 0.2)}`,
+                '& .stat-card-icon': {
+                  transform: 'scale(1.08)',
+                  boxShadow: `0 6px 18px ${alpha(color, 0.35)}`,
+                },
               }
             : {},
           '&:active': onClick
@@ -174,6 +178,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
               )}
             </Box>
             <Box
+              className="stat-card-icon"
               sx={{
                 p: { xs: 0.75, sm: 1, md: 2 },
                 borderRadius: '50%',
@@ -187,6 +192,7 @@ export const StatCard: React.FC<StatCardProps> = React.memo(({
                 },
                 boxShadow: `0 4px 14px ${alpha(color, 0.25)}`,
                 border: `2px solid ${alpha(color, 0.15)}`,
+                transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease',
               }}
             >
               {icon}

@@ -623,6 +623,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
             },
           },
+          MuiSkeleton: {
+            defaultProps: {
+              // Animatie "wave" (mai fina decat pulse) pentru toate starile de incarcare
+              animation: 'wave',
+            },
+            styleOverrides: {
+              root: {
+                backgroundColor: isLight ? 'rgba(15, 23, 42, 0.07)' : 'rgba(255, 255, 255, 0.08)',
+              },
+            },
+          },
         },
       }),
     [mode, isLight]

@@ -2,6 +2,9 @@
 export { StatCard } from './StatCard';
 export type { StatCardProps } from './StatCard';
 
+export { Reveal } from './Reveal';
+export type { RevealProps } from './Reveal';
+
 export { GradientHeader } from './GradientHeader';
 export type { GradientHeaderProps } from './GradientHeader';
 
