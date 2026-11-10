@@ -61,6 +61,8 @@ export enum NotificationType {
   // Control sesizari notifications
   CONTROL_SESIZARE_ASSIGNED = 'CONTROL_SESIZARE_ASSIGNED',
   CONTROL_SESIZARE_RESOLVED = 'CONTROL_SESIZARE_RESOLVED',
+  // Rezumatul zilnic de la 08:00 (toate problemele deschise intr-o singura notificare)
+  DAILY_DIGEST = 'DAILY_DIGEST',
 }
 
 @Entity('notifications')

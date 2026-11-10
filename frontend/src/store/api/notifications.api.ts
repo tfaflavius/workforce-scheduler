@@ -42,7 +42,8 @@ export type NotificationType =
   | 'DAILY_REPORT_COMMENTED'
   | 'DAILY_REPORT_MISSING'
   | 'TIME_ENTRY_MISMATCH'
-  | 'GPS_STATUS_ALERT';
+  | 'GPS_STATUS_ALERT'
+  | 'DAILY_DIGEST';
 
 export interface NotificationData {
   scheduleId?: string;

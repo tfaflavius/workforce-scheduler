@@ -30,6 +30,8 @@ import { ParkingModule } from '../parking/parking.module';
 import { TimeTrackingModule } from '../time-tracking/time-tracking.module';
 import { DailyReportsModule } from '../daily-reports/daily-reports.module';
 import { AdminConsolidatedScheduler } from './admin-consolidated.scheduler';
+import { DailyDigestScheduler } from './daily-digest.scheduler';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { SearchController } from './search.controller';
 import { DashboardController } from './dashboard.controller';
 
@@ -65,11 +67,12 @@ import { DashboardController } from './dashboard.controller';
     ParkingModule,
     TimeTrackingModule,
     DailyReportsModule,
+    NotificationsModule,
     // Provides ControlNotesService so the dashboard can reuse the same
     // matrix logic (which already excludes DISP days from the divisor).
     ControlNotesModule,
   ],
   controllers: [SearchController, DashboardController],
-  providers: [AdminConsolidatedScheduler],
+  providers: [AdminConsolidatedScheduler, DailyDigestScheduler],
 })
 export class AdminModule {}

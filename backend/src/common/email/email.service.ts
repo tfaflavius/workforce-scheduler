@@ -502,6 +502,9 @@ export class EmailService {
   private appUrl: string;
   private lastEmailSentAt: number = 0;
   private readonly MIN_EMAIL_INTERVAL_MS = 600; // Resend rate limit: max 2 req/sec
+  // Coada care serializeaza trimiterile: fara ea, emailurile pornite in paralel asteptau
+  // acelasi delay si plecau simultan, depasind limita Resend.
+  private sendQueue: Promise<unknown> = Promise.resolve();
 
   // Lista de email-uri/domenii de test - nu se trimit email-uri automate la acestea
   private readonly testEmailPatterns: string[] = [
@@ -620,6 +623,13 @@ export class EmailService {
       return false;
     }
 
+    const run = this.sendQueue.then(() => this.sendEmailNow(to, subject, html));
+    this.sendQueue = run.catch(() => undefined);
+    return run;
+  }
+
+  private async sendEmailNow(to: string, subject: string, html: string): Promise<boolean> {
+    if (!this.resend) return false;
     // Rate limiting: Resend permite max 2 req/sec - asteptam intre emailuri
     const now = Date.now();
     const timeSinceLastEmail = now - this.lastEmailSentAt;
@@ -4135,6 +4145,104 @@ export class EmailService {
       data.recipientEmail,
       `📊 Raport Saptamanal Consolidat - ${weekRange}`,
       html,
+    );
+  }
+
+  // ============== NOTIFICARE GENERICA (eveniment nou) ==============
+
+  private escapeHtml(value: string): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Email trimis automat pentru fiecare notificare noua (aceeasi informatie ca push-ul).
+   */
+  async sendNotificationEmail(data: {
+    recipientEmail: string;
+    recipientName: string;
+    title: string;
+    message: string;
+    path?: string;
+  }): Promise<boolean> {
+    const link = `${this.appUrl}${data.path || '/notifications'}`;
+    const content = `
+      <p>Buna ${this.escapeHtml(data.recipientName)},</p>
+      <h2 style="color: #1976D2; margin: 20px 0 10px 0; font-size: 18px;">${this.escapeHtml(data.title)}</h2>
+      <p style="white-space: pre-line;">${this.escapeHtml(data.message)}</p>
+      <p style="margin-top: 30px;">
+        <a href="${link}" style="display: inline-block; background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Deschide in aplicatie
+        </a>
+      </p>
+    `;
+    return this.sendEmail(
+      data.recipientEmail,
+      data.title,
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        'Notificare noua',
+        content,
+        '#2196F3 0%, #1976D2 100%',
+      ),
+    );
+  }
+
+  // ============== REZUMAT ZILNIC 08:00 ==============
+
+  /**
+   * Un singur email pe zi (08:00) cu toate problemele ramase deschise / din perioada trecuta.
+   */
+  async sendDailyDigestEmail(data: {
+    recipientEmail: string;
+    recipientName: string;
+    dateLabel: string;
+    periodLabel: string;
+    sections: Array<{ title: string; summary?: string; items: string[]; moreCount?: number }>;
+  }): Promise<boolean> {
+    const sectionsHtml = data.sections
+      .map((sec) => {
+        const items = sec.items
+          .map((i) => `<li style="margin-bottom: 4px;">${this.escapeHtml(i)}</li>`)
+          .join('');
+        const more =
+          sec.moreCount && sec.moreCount > 0
+            ? `<p style="color: #666; font-size: 13px; margin: 4px 0 0 0;">... si inca ${sec.moreCount} (vezi in aplicatie)</p>`
+            : '';
+        return `
+          <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #1976D2; border-radius: 4px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #1976D2;">${this.escapeHtml(sec.title)}</h3>
+            ${sec.summary ? `<p style="margin: 0 0 8px 0; font-weight: bold;">${this.escapeHtml(sec.summary)}</p>` : ''}
+            ${items ? `<ul style="margin: 0; padding-left: 20px; font-size: 14px;">${items}</ul>` : ''}
+            ${more}
+          </div>`;
+      })
+      .join('');
+
+    const content = `
+      <p>Buna ${this.escapeHtml(data.recipientName)},</p>
+      <p>Acesta este rezumatul zilnic cu toate problemele care necesita atentie (${this.escapeHtml(data.periodLabel)}).
+      Pe parcursul zilei primesti notificari doar pentru evenimentele noi.</p>
+      ${sectionsHtml}
+      <p style="margin-top: 30px;">
+        <a href="${this.appUrl}/dashboard" style="display: inline-block; background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Deschide aplicatia
+        </a>
+      </p>
+    `;
+    return this.sendEmail(
+      data.recipientEmail,
+      `Rezumat zilnic - ${data.dateLabel}`,
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        `Rezumat zilnic - ${this.escapeHtml(data.dateLabel)}`,
+        content,
+        '#2196F3 0%, #1976D2 100%',
+      ),
     );
   }
 }

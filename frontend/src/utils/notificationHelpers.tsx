@@ -19,6 +19,7 @@ import {
   CarCrash as DamageIcon,
   GpsFixed as GpsIcon,
   Timer as TimerIcon,
+  Summarize as DigestIcon,
 } from '@mui/icons-material';
 import type { Notification, NotificationType } from '../store/api/notifications.api';
 import { isAdminOrAbove } from './roleHelpers';
@@ -91,6 +92,8 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
       return <TimerIcon color="warning" fontSize={fontSize} />;
     case 'GPS_STATUS_ALERT':
       return <GpsIcon color="error" fontSize={fontSize} />;
+    case 'DAILY_DIGEST':
+      return <DigestIcon color="primary" fontSize={fontSize} />;
     case 'DAILY_REPORT_SUBMITTED':
       return <DailyReportIcon color="info" fontSize={fontSize} />;
     case 'DAILY_REPORT_COMMENTED':
@@ -189,6 +192,10 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     // Shift reminder
     case 'SHIFT_REMINDER':
       return { path: '/my-schedule' };
+
+    // Rezumat zilnic 08:00 — deschide lista completa de notificari
+    case 'DAILY_DIGEST':
+      return { path: '/notifications' };
 
     // Employee absent
     case 'EMPLOYEE_ABSENT':

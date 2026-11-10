@@ -14,10 +14,8 @@ import { HandicapRequest } from './entities/handicap-request.entity';
 import { HandicapLegitimation } from './entities/handicap-legitimation.entity';
 import { RevolutionarLegitimation } from './entities/revolutionar-legitimation.entity';
 import {
-  MAINTENANCE_DEPARTMENT_NAME,
   HANDICAP_PARKING_DEPARTMENT_NAME,
   HANDICAP_REQUEST_TYPE_LABELS,
-  DISPECERAT_DEPARTMENT_NAME,
 } from './constants/parking.constants';
 
 @Injectable()
@@ -62,42 +60,10 @@ export class ParkingUrgentScheduler {
     }
   }
 
-  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 08:00 - notificari catre Dispecerat + Intretinere (doar asignat)
-  // Adminii si Managerii primesc raport consolidat separat
-  @Cron('0 8 * * 1-5', { timeZone: 'Europe/Bucharest' })
-  async handleNotifyUrgentMorning() {
-    this.logger.log('Trimitere notificari 08:00 (Dispecerat + Intretinere)...');
-
-    try {
-      // Notificari in-app
-      await this.parkingIssuesService.notifyUrgentIssues();
-
-      // Trimite emailuri cu reminder-uri - doar Dispecerat + Intretinere
-      await this.sendUnresolvedItemsReminderEmails();
-
-      this.logger.log('Notificari 08:00 trimise cu succes');
-    } catch (error) {
-      this.logger.error('Eroare la trimiterea notificarilor 08:00:', error);
-    }
-  }
-
-  // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 13:00 - notificari catre Dispecerat + Intretinere (doar asignat)
-  @Cron('0 13 * * 1-5', { timeZone: 'Europe/Bucharest' })
-  async handleNotifyUrgentAfternoon() {
-    this.logger.log('Trimitere notificari 13:00 (Dispecerat + Intretinere)...');
-
-    try {
-      // Notificari in-app
-      await this.parkingIssuesService.notifyUrgentIssues();
-
-      // Trimite emailuri cu reminder-uri - doar Dispecerat + Intretinere
-      await this.sendUnresolvedItemsReminderEmails();
-
-      this.logger.log('Notificari 13:00 trimise cu succes');
-    } catch (error) {
-      this.logger.error('Eroare la trimiterea notificarilor 13:00:', error);
-    }
-  }
+  // NOTA: reminder-ele de la 08:00 si 13:00 (in-app pentru fiecare problema urgenta +
+  // email cu toate problemele nerezolvate) au fost eliminate - erau spam zilnic.
+  // Toate problemele deschise ajung acum intr-un SINGUR rezumat la 08:00
+  // (vezi DailyDigestScheduler din modulul admin).
 
   // Ruleaza doar in zilele lucratoare (Luni-Vineri) la 09:00 pentru raportul Handicap catre Parcari Handicap
   // Adminii si Managerii primesc datele handicap in raportul consolidat
@@ -111,120 +77,6 @@ export class ParkingUrgentScheduler {
     } catch (error) {
       this.logger.error('Eroare la trimiterea raportului Handicap:', error);
     }
-  }
-
-  /**
-   * Trimite emailuri cu reminder-uri pentru probleme si prejudicii nerezolvate
-   * Doar catre Dispecerat si Intretinere Parcari (doar asignat)
-   * Adminii si Managerii primesc datele in raportul consolidat
-   */
-  private async sendUnresolvedItemsReminderEmails(): Promise<void> {
-    // Obtine toate problemele si prejudiciile active
-    const activeIssues = await this.parkingIssuesService.findAll('ACTIVE');
-    const activeDamages = await this.parkingDamagesService.findAllActive();
-
-    if (activeIssues.length === 0 && activeDamages.length === 0) {
-      this.logger.log('Nu exista probleme sau prejudicii nerezolvate');
-      return;
-    }
-
-    const now = new Date();
-
-    // Formateaza problemele pentru email (cu assignedTo pentru filtrare)
-    const allUnresolvedIssues = activeIssues.map((issue) => {
-      const createdAt = new Date(issue.createdAt);
-      const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      return {
-        id: issue.id,
-        parkingLotName: issue.parkingLot?.name || 'N/A',
-        equipment: issue.equipment,
-        createdAt: createdAt.toLocaleDateString('ro-RO'),
-        daysOpen,
-        isUrgent: issue.isUrgent,
-        assignedTo: issue.assignedTo,
-      };
-    });
-
-    // Formateaza prejudiciile pentru email
-    const allUnresolvedDamages = activeDamages.map((damage) => {
-      const createdAt = new Date(damage.createdAt);
-      const daysOpen = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-      return {
-        parkingLotName: damage.parkingLot?.name || 'N/A',
-        damagedEquipment: damage.damagedEquipment,
-        personName: damage.personName,
-        carPlate: damage.carPlate,
-        createdAt: createdAt.toLocaleDateString('ro-RO'),
-        daysOpen,
-        isUrgent: damage.isUrgent,
-      };
-    });
-
-    // Obtine departamentele
-    const dispeceratDept = await this.departmentRepository.findOne({
-      where: { name: DISPECERAT_DEPARTMENT_NAME },
-    });
-
-    const maintenanceDept = await this.departmentRepository.findOne({
-      where: { name: MAINTENANCE_DEPARTMENT_NAME },
-    });
-
-    const dispeceratUsers = dispeceratDept
-      ? await this.userRepository.find({
-          where: { departmentId: dispeceratDept.id, isActive: true },
-        })
-      : [];
-
-    const maintenanceUsers = maintenanceDept
-      ? await this.userRepository.find({
-          where: { departmentId: maintenanceDept.id, isActive: true },
-        })
-      : [];
-
-    let sentCount = 0;
-    const processedUserIds = new Set<string>();
-
-    // Helper pentru a trimite email si a evita duplicate
-    const sendEmailToUser = async (
-      user: User,
-      issues: typeof allUnresolvedIssues,
-      damages: typeof allUnresolvedDamages,
-    ) => {
-      if (processedUserIds.has(user.id)) return;
-      if (issues.length === 0 && damages.length === 0) return;
-
-      processedUserIds.add(user.id);
-
-      // Exclude assignedTo din obiectele trimise
-      const cleanIssues = issues.map(({ assignedTo, ...rest }) => rest);
-
-      const success = await this.emailService.sendUnresolvedItemsReminder({
-        recipientEmail: user.email,
-        recipientName: user.fullName,
-        unresolvedIssues: cleanIssues,
-        unresolvedDamages: damages,
-      });
-      if (success) sentCount++;
-    };
-
-    // 1. Dispecerat - primesc TOATE
-    for (const user of dispeceratUsers) {
-      await sendEmailToUser(user, allUnresolvedIssues, allUnresolvedDamages);
-    }
-
-    // 2. Intretinere Parcari - primesc DOAR problemele asignate lor
-    for (const user of maintenanceUsers) {
-      const userAssignedIssues = allUnresolvedIssues.filter(
-        (issue) => issue.assignedTo === user.id,
-      );
-      await sendEmailToUser(user, userAssignedIssues, []);
-    }
-
-    const totalRecipients = processedUserIds.size;
-    this.logger.log(
-      `Reminder-uri trimise catre ${sentCount}/${totalRecipients} utilizatori ` +
-        `(Dispecerat: ${dispeceratUsers.length}, Intretinere: ${maintenanceUsers.length})`,
-    );
   }
 
   /**

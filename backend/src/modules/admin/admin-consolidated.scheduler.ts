@@ -37,7 +37,6 @@ import { EditRequest } from '../parking/entities/edit-request.entity';
  * Admin & Manager Consolidated Scheduler
  *
  * Sends consolidated email reports:
- * 1. Manager morning report (Mon-Fri 08:00) — consolidated to managers only
  * 2. Daily consolidated report (Mon-Fri 20:00) — consolidated to admins + managers
  * 3. Weekly consolidated report (Friday 20:30) — weekly summary to admins + managers
  */
@@ -82,30 +81,8 @@ export class AdminConsolidatedScheduler {
     private readonly editRequestRepository: Repository<EditRequest>,
   ) {}
 
-  // ============== CRON 1: Raport zilnic consolidat DIMINEATA — doar Manageri (08:00) ==============
-
-  @Cron('0 8 * * 1-5', { timeZone: 'Europe/Bucharest' })
-  async handleManagerMorningReport() {
-    this.logger.log('[Consolidat] Generare raport dimineata pentru manageri...');
-
-    try {
-      const managers = await this.userRepository.find({
-        where: { role: UserRole.MANAGER, isActive: true },
-      });
-
-      if (managers.length === 0) {
-        this.logger.warn('[Consolidat] Nu exista manageri activi');
-        return;
-      }
-
-      const sentCount = await this.sendConsolidatedDaily(managers);
-      this.logger.log(
-        `[Consolidat] Raport dimineata trimis la ${sentCount}/${managers.length} manageri`,
-      );
-    } catch (error) {
-      this.logger.error(`[Consolidat] Eroare raport dimineata manageri: ${error.message}`);
-    }
-  }
+  // NOTA: raportul de dimineata (08:00) pentru manageri a fost eliminat - se suprapunea
+  // cu rezumatul zilnic de la 08:00 (DailyDigestScheduler).
 
   // ============== CRON 2: Raport zilnic consolidat SEARA — Admini + Manageri (20:00) ==============
 

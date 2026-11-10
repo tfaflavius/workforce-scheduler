@@ -18,8 +18,8 @@ import { TimeTrackingService } from './time-tracking.service';
  *
  * La 15:30 turele ramase pornite se inchid automat si se calculeaza orele lucrate.
  *
- * Adminii/managerii NU mai primesc notificari per-eveniment (era spam). Toate locatiile +
- * toate erorile de verificare + angajatii sub 8h ajung intr-un SINGUR raport in-app la 16:00.
+ * Adminii/managerii NU mai primesc notificari per-eveniment (era spam). Toate erorile de
+ * verificare GPS + angajatii sub 8h ajung in rezumatul zilnic de la 08:00 (push + email).
  *
  * NOTA: raportul GPS pe email ramane in AdminConsolidatedScheduler (raportul de seara, 20:00).
  */
@@ -106,20 +106,7 @@ export class GpsTrackingScheduler {
     }
   }
 
-  /**
-   * La 16:00 (Luni-Vineri) trimite UN SINGUR raport in-app consolidat catre admini +
-   * manageri: rezumatul locatiilor, toate erorile de verificare GPS si angajatii sub 8h.
-   * Inlocuieste notificarile per-eveniment (care erau spam).
-   */
-  @Cron('0 16 * * 1-5', { timeZone: 'Europe/Bucharest' })
-  async sendDailyAdminGpsDigest() {
-    try {
-      const sent = await this.timeTrackingService.sendDailyAdminDigest(new Date());
-      if (sent > 0) {
-        this.logger.log(`[Raport 16:00] Raport GPS & pontaj trimis la ${sent} admini/manageri`);
-      }
-    } catch (error) {
-      this.logger.error(`[Raport 16:00] Error: ${error.message}`);
-    }
-  }
+  // NOTA: raportul GPS de la 16:00 a fost mutat in rezumatul zilnic de la 08:00
+  // (DailyDigestScheduler) - adminii si managerii primesc toate problemele GPS din
+  // ziua precedenta intr-o singura notificare (push + email).
 }

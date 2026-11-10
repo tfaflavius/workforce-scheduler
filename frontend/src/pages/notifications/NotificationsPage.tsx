@@ -274,13 +274,17 @@ const NotificationsPage: React.FC = () => {
                             <Typography
                               variant="caption"
                               color="text.secondary"
-                              sx={{
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                lineHeight: 1.5,
-                              }}
+                              sx={
+                                notif.type === 'DAILY_DIGEST'
+                                  ? { display: 'block', whiteSpace: 'pre-line', lineHeight: 1.5 }
+                                  : {
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                      lineHeight: 1.5,
+                                    }
+                              }
                             >
                               {notif.message}
                             </Typography>

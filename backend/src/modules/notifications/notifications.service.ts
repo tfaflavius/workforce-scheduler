@@ -7,6 +7,7 @@ import { NotificationSettingCheckService } from './notification-setting-check.se
 import { PushNotificationService } from './push-notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { formatMonthYear } from '../../common/utils/romanian-months';
+import { EmailService } from '../../common/email/email.service';
 
 // URL mapping per notification type - used for push notification click navigation
 const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
@@ -34,7 +35,39 @@ const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
   [NotificationType.CONTROL_SESIZARE_ASSIGNED]: '/control-sesizari',
   [NotificationType.CONTROL_SESIZARE_RESOLVED]: '/control-sesizari',
   [NotificationType.LEAVE_OVERLAP_WARNING]: '/leave-requests',
+  [NotificationType.DAILY_DIGEST]: '/notifications',
 };
+
+/**
+ * Tipuri de notificari pentru care NU se trimite emailul automat:
+ * - au deja email dedicat (schimburi tura, concedii, cereri editare, programe, anunturi)
+ *   -> altfel ar veni doua emailuri pentru acelasi eveniment;
+ * - rapoartele zilnice raman exact cum erau;
+ * - GPS / pontaj ajung doar in rezumatul zilnic de la 08:00 (admin + manager).
+ */
+const EMAIL_EXCLUDED_TYPES = new Set<NotificationType>([
+  NotificationType.SHIFT_SWAP_REQUEST,
+  NotificationType.SHIFT_SWAP_RESPONSE,
+  NotificationType.SHIFT_SWAP_ACCEPTED,
+  NotificationType.SHIFT_SWAP_APPROVED,
+  NotificationType.SHIFT_SWAP_REJECTED,
+  NotificationType.LEAVE_REQUEST_CREATED,
+  NotificationType.LEAVE_REQUEST_APPROVED,
+  NotificationType.LEAVE_REQUEST_REJECTED,
+  NotificationType.EDIT_REQUEST_CREATED,
+  NotificationType.EDIT_REQUEST_APPROVED,
+  NotificationType.EDIT_REQUEST_REJECTED,
+  NotificationType.SCHEDULE_CREATED,
+  NotificationType.SCHEDULE_UPDATED,
+  NotificationType.SCHEDULE_APPROVED,
+  NotificationType.SCHEDULE_REJECTED,
+  NotificationType.GENERAL,
+  NotificationType.DAILY_REPORT_SUBMITTED,
+  NotificationType.DAILY_REPORT_COMMENTED,
+  NotificationType.DAILY_REPORT_MISSING,
+  NotificationType.GPS_STATUS_ALERT,
+  NotificationType.TIME_ENTRY_MISMATCH,
+]);
 
 @Injectable()
 export class NotificationsService {
@@ -47,6 +80,7 @@ export class NotificationsService {
     private userRepository: Repository<User>,
     private settingCheck: NotificationSettingCheckService,
     private pushNotificationService: PushNotificationService,
+    private emailService: EmailService,
   ) {}
 
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification | null> {
@@ -93,6 +127,8 @@ export class NotificationsService {
       });
     }
 
+    this.sendEmailsForNotifications([createNotificationDto]);
+
     return saved;
   }
 
@@ -135,6 +171,8 @@ export class NotificationsService {
         saved = await this.notificationRepository.save(entities);
       }
 
+      this.sendEmailsForNotifications(filtered);
+
       const suppressed = notifications.length - filtered.length;
       if (suppressed > 0) {
         this.logger.log(
@@ -176,6 +214,8 @@ export class NotificationsService {
       for (const s of saved) {
         savedMap.set(`${s.userId}:${s.type}:${s.title}`, s.id);
       }
+
+      this.sendEmailsForNotifications(notifications);
 
       // Still try push for non-skipped
       const pushCandidates = notifications.filter((dto) => !dto.skipPush);
@@ -343,6 +383,38 @@ export class NotificationsService {
       message: `Tura ta ${shiftType} incepe in curand (${shiftTime}).`,
       data: { shiftDate, shiftTime, shiftType },
     });
+  }
+
+  // ============== EMAIL HELPERS ==============
+
+  /**
+   * Trimite cate un email pentru fiecare notificare noua (fire-and-forget).
+   * Emailurile sunt puse in coada in EmailService, deci nu blocheaza raspunsul.
+   */
+  private sendEmailsForNotifications(dtos: CreateNotificationDto[]): void {
+    const eligible = dtos.filter((d) => !d.skipEmail && !EMAIL_EXCLUDED_TYPES.has(d.type));
+    if (eligible.length === 0) return;
+
+    (async () => {
+      const userIds = [...new Set(eligible.map((d) => d.userId))];
+      const users = await this.userRepository.find({
+        where: { id: In(userIds), isActive: true },
+        select: ['id', 'email', 'fullName'],
+      });
+      const userMap = new Map(users.map((u) => [u.id, u]));
+      for (const dto of eligible) {
+        const user = userMap.get(dto.userId);
+        if (!user?.email) continue;
+        await this.emailService
+          .sendNotificationEmail({
+            recipientEmail: user.email,
+            recipientName: user.fullName || user.email,
+            title: dto.title,
+            message: dto.message,
+          })
+          .catch((err) => this.logger.warn(`Failed to send notification email: ${err?.message}`));
+      }
+    })().catch((err) => this.logger.warn(`Failed to prepare notification emails: ${err?.message}`));
   }
 
   // ============== PUSH NOTIFICATION HELPERS ==============

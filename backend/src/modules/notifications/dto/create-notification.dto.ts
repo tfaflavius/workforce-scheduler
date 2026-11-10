@@ -34,4 +34,9 @@ export class CreateNotificationDto {
   @IsOptional()
   @IsBoolean()
   skipPush?: boolean;
+
+  /** Nu trimite email pentru aceasta notificare (ex: emailul e trimis separat). */
+  @IsOptional()
+  @IsBoolean()
+  skipEmail?: boolean;
 }
