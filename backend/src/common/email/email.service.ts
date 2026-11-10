@@ -381,6 +381,10 @@ export interface ConsolidatedDailyReportData {
   // Sectiune 5: GPS
   gpsReport: Omit<DailyGpsReportData, 'recipientEmail' | 'recipientName' | 'reportDate'> | null;
   // Sectiune 6: Rapoarte zilnice lipsa
+  submittedDailyReports?: Array<{
+    userName: string;
+    departmentName: string;
+  }>;
   missingDailyReports: Array<{
     userName: string;
     departmentName: string;
@@ -3462,6 +3466,38 @@ export class EmailService {
     }
 
     // ---- Section 6: Rapoarte zilnice lipsa ----
+    if (data.submittedDailyReports && data.submittedDailyReports.length > 0) {
+      const submittedRows = data.submittedDailyReports
+        .map(
+          (u) => `
+        <tr>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${u.userName}</td>
+          <td style="padding: 6px 10px; border-bottom: 1px solid #e5e7eb;">${u.departmentName}</td>
+        </tr>
+      `,
+        )
+        .join('');
+
+      sections.push(`
+        <div style="margin-bottom: 30px;">
+          <div style="background: linear-gradient(135deg, #22c55e, #16a34a); padding: 12px 18px; border-radius: 8px 8px 0 0;">
+            <h3 style="color: white; margin: 0; font-size: 16px;">✅ Rapoarte Zilnice Trimise (${data.submittedDailyReports.length})</h3>
+          </div>
+          <div style="border: 1px solid #e5e7eb; border-top: none; padding: 16px; border-radius: 0 0 8px 8px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <thead>
+                <tr style="background: #f0fdf4;">
+                  <th style="padding: 8px 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Utilizator</th>
+                  <th style="padding: 8px 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Departament</th>
+                </tr>
+              </thead>
+              <tbody>${submittedRows}</tbody>
+            </table>
+          </div>
+        </div>
+      `);
+    }
+
     if (data.missingDailyReports.length > 0) {
       const missingRows = data.missingDailyReports
         .map(

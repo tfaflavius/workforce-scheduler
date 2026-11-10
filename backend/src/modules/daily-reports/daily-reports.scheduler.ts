@@ -22,6 +22,58 @@ export class DailyReportsScheduler {
     private readonly userRepository: Repository<User>,
   ) {}
 
+  // ============== CRON ZILNIC 20:00: Raport pentru admini — cine a trimis / cine nu ==============
+
+  @Cron('0 20 * * *', { timeZone: 'Europe/Bucharest' })
+  async handleAdminEveningReportSummary() {
+    try {
+      const sent = await this.sendAdminReportSummary();
+      this.logger.log(`[Rapoarte 20:00] Raport trimis la ${sent} admini`);
+    } catch (error) {
+      this.logger.error(`[Rapoarte 20:00] Eroare: ${error.message}`);
+    }
+  }
+
+  /**
+   * O singura notificare (in-app + push) pentru admini, la 20:00, cu lista celor care au
+   * trimis raportul zilnic si a celor care nu l-au trimis. Lista apare si in emailul
+   * consolidat de seara (20:00), deci nu se trimite email separat.
+   */
+  async sendAdminReportSummary(): Promise<number> {
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
+    const { submitted, missing } = await this.dailyReportsService.getDailyReportStatus(today);
+    if (submitted.length === 0 && missing.length === 0) return 0;
+
+    const admins = await this.userRepository.find({
+      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
+    });
+    if (admins.length === 0) return 0;
+
+    const names = (users: User[]) => users.map((u) => u.fullName).join(', ');
+    const message = [
+      `Au trimis (${submitted.length}): ${submitted.length > 0 ? names(submitted) : '-'}`,
+      `Nu au trimis (${missing.length}): ${missing.length > 0 ? names(missing) : '-'}`,
+    ].join('\n');
+    const [y, m, d] = today.split('-');
+
+    await this.notificationsService.createMany(
+      admins.map((a) => ({
+        userId: a.id,
+        type: NotificationType.DAILY_REPORT_MISSING,
+        title: `Rapoarte zilnice ${d}.${m}.${y}: ${submitted.length} trimise, ${missing.length} lipsa`,
+        message: message.slice(0, 2000),
+        data: {
+          date: today,
+          submittedCount: submitted.length,
+          missingCount: missing.length,
+          adminEveningSummary: true,
+          fullMessage: true,
+        },
+      })),
+    );
+    return admins.length;
+  }
+
   // ============== CRON ZILNIC: Verificare rapoarte lipsa (notificari in-app + push) ==============
 
   @Cron('0 21 * * *', { timeZone: 'Europe/Bucharest' })
@@ -58,11 +110,8 @@ export class DailyReportsScheduler {
 
     const message = `${missingUsers.length} utilizator(i) nu au trimis raportul zilnic: ${shortList}.`;
 
-    // Notifica adminii
-    const admins = await this.userRepository.find({
-      where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
-    });
-
+    // Adminii primesc raportul de la 20:00 (cine a trimis / cine nu) — nu mai sunt
+    // notificati si aici. Managerii raman notificati ca inainte.
     const managers = await this.userRepository.find({
       where: { role: UserRole.MANAGER, isActive: true },
     });
@@ -70,23 +119,7 @@ export class DailyReportsScheduler {
     const notifications: any[] = [];
     const pushUserIds: string[] = [];
 
-    for (const admin of admins) {
-      notifications.push({
-        userId: admin.id,
-        type: NotificationType.DAILY_REPORT_MISSING,
-        title: 'Rapoarte zilnice lipsa',
-        message,
-        data: {
-          date: today,
-          missingCount: missingUsers.length,
-          missingUserIds: missingUsers.map((u) => u.id),
-        },
-        skipPush: true, // Push sent separately below with custom message
-      });
-      pushUserIds.push(admin.id);
-    }
-
-    // Notifica managerii (evita duplicate)
+    // Notifica managerii
     for (const manager of managers) {
       if (pushUserIds.includes(manager.id)) continue;
       notifications.push({

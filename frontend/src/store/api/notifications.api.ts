@@ -46,6 +46,7 @@ export type NotificationType =
   | 'DAILY_DIGEST';
 
 export interface NotificationData {
+  fullMessage?: boolean;
   scheduleId?: string;
   shiftSwapId?: string;
   leaveRequestId?: string;

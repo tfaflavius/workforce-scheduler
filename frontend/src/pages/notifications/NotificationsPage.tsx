@@ -275,7 +275,7 @@ const NotificationsPage: React.FC = () => {
                               variant="caption"
                               color="text.secondary"
                               sx={
-                                notif.type === 'DAILY_DIGEST'
+                                notif.type === 'DAILY_DIGEST' || notif.data?.fullMessage
                                   ? { display: 'block', whiteSpace: 'pre-line', lineHeight: 1.5 }
                                   : {
                                       display: '-webkit-box',

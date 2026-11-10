@@ -164,7 +164,8 @@ export class AdminConsolidatedScheduler {
           unresolvedItems: unresolvedData,
           handicapReport: handicapData,
           gpsReport: gpsData,
-          missingDailyReports: missingReportsData,
+          submittedDailyReports: missingReportsData.submitted,
+          missingDailyReports: missingReportsData.missing,
           pvDisplayReport: pvDisplayData,
           controlSesizariReport: controlSesizariData,
         }),
@@ -606,14 +607,15 @@ export class AdminConsolidatedScheduler {
   private async collectMissingReportsData(today: Date) {
     try {
       const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
-      const missingUsers = await this.dailyReportsService.getMissingReports(todayStr);
-      return missingUsers.map((u) => ({
+      const { submitted, missing } = await this.dailyReportsService.getDailyReportStatus(todayStr);
+      const toRow = (u: User) => ({
         userName: u.fullName,
         departmentName: u.department?.name || 'Necunoscut',
-      }));
+      });
+      return { submitted: submitted.map(toRow), missing: missing.map(toRow) };
     } catch (err) {
       this.logger.error(`[Admin Consolidat] Eroare colectare rapoarte lipsa: ${err.message}`);
-      return [];
+      return { submitted: [], missing: [] };
     }
   }
 

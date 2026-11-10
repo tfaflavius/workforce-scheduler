@@ -449,6 +449,30 @@ export class DailyReportsService {
   }
 
   /**
+   * Cine a trimis si cine NU a trimis raportul zilnic pentru o data (folosit de raportul
+   * de seara pentru admini).
+   */
+  async getDailyReportStatus(date: string): Promise<{ submitted: User[]; missing: User[] }> {
+    const usersWhoShouldReport = await this.getUsersWhoShouldReport(date);
+    if (usersWhoShouldReport.length === 0) return { submitted: [], missing: [] };
+
+    const submittedReports = await this.dailyReportRepository.find({
+      where: {
+        date: date as any,
+        status: DailyReportStatus.SUBMITTED,
+        userId: In(usersWhoShouldReport.map((u) => u.id)),
+      },
+      select: ['userId'],
+    });
+    const submittedIds = new Set(submittedReports.map((r) => r.userId));
+    const byName = (a: User, b: User) => (a.fullName || '').localeCompare(b.fullName || '');
+    return {
+      submitted: usersWhoShouldReport.filter((u) => submittedIds.has(u.id)).sort(byName),
+      missing: usersWhoShouldReport.filter((u) => !submittedIds.has(u.id)).sort(byName),
+    };
+  }
+
+  /**
    * Returneaza rapoartele lipsa pentru un interval de date
    */
   async getMissingReportsForDateRange(
@@ -694,23 +718,8 @@ export class DailyReportsService {
       const notificationsToCreate: any[] = [];
       const pushUserIds: string[] = [];
 
-      // 1. Notifica TOTI adminii activi
-      const admins = await this.userRepository.find({
-        where: { role: In([UserRole.ADMIN, UserRole.MASTER_ADMIN]), isActive: true },
-      });
-
-      for (const admin of admins) {
-        if (admin.id === userId) continue; // Nu te notifica pe tine insuti
-        notificationsToCreate.push({
-          userId: admin.id,
-          type: NotificationType.DAILY_REPORT_SUBMITTED,
-          title: 'Raport zilnic nou',
-          message: `${user.fullName} a trimis raportul zilnic pentru ${this.formatDate(report.date)}.`,
-          data: { dailyReportId: report.id, reportUserId: user.id, reportDate: report.date },
-          skipPush: true,
-        });
-        pushUserIds.push(admin.id);
-      }
+      // Adminii NU mai sunt notificati la fiecare raport trimis — primesc un singur
+      // raport seara la 20:00 cu cine a trimis si cine nu (DailyReportsScheduler).
 
       // 2. Notifica manageri pe baza regulilor
       const shouldNotifyManagers = await this.shouldNotifyManagers(user, report.date);
