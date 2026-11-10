@@ -579,7 +579,7 @@ const UsersPage: React.FC = () => {
             ) : (
               <Stack spacing={1.5} sx={{ width: '100%' }}>
                 {paginatedUsers.map((user, index) => (
-                  <Grow in={true} timeout={300 + index * 50} key={user.id}>
+                  <Grow in={true} timeout={Math.min(300 + index * 50, 600)} key={user.id}>
                     <Card
                       sx={{
                         width: '100%',

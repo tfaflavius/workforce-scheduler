@@ -47,6 +47,7 @@ const getCategoryFromType = (type: NotificationType): string => {
   if (type.startsWith('PARKING') || type.startsWith('EDIT_REQUEST')) return 'Parcari';
   if (type.startsWith('DAILY_REPORT')) return 'Rapoarte Zilnice';
   if (type === 'EMPLOYEE_ABSENT') return 'Prezenta';
+  if (type === 'DAILY_DIGEST') return 'Rezumat';
   return 'General';
 };
 
@@ -200,7 +201,7 @@ const NotificationsPage: React.FC = () => {
         />
       ) : (
         Object.entries(grouped).map(([dateLabel, notifs], groupIdx) => (
-          <Fade key={dateLabel} in={true} timeout={500 + groupIdx * 100}>
+          <Fade key={dateLabel} in={true} timeout={Math.min(500 + groupIdx * 100, 800)}>
             <Box sx={{ mb: 3 }}>
               <Typography
                 variant="subtitle2"

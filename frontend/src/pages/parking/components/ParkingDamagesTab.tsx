@@ -217,7 +217,7 @@ const ParkingDamagesTab: React.FC<ParkingDamagesTabProps> = ({ initialOpenId, on
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()).padStart(2, '0')}`;
 
   const renderDamageCard = (damage: ParkingDamage, index: number) => (
-    <Grow in={true} timeout={300 + index * 50} key={damage.id}>
+    <Grow in={true} timeout={Math.min(300 + index * 50, 600)} key={damage.id}>
       <Card
         onClick={() => handleShowDetails(damage)}
         sx={{

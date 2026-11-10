@@ -187,7 +187,7 @@ const AdminDashboard = () => {
             </Typography>
             {carStatus.days.map((day) => (
               <Typography key={day.id} variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                {day.displayDate} — {[day.controlUser1Name, day.controlUser2Name].filter(Boolean).join(', ')} • Estimativ pana la {day.estimatedReturn}
+                {String(day.displayDate).slice(0, 10).split('-').reverse().join('.')} — {[day.controlUser1Name, day.controlUser2Name].filter(Boolean).join(', ')} • Estimativ pana la {day.estimatedReturn}
               </Typography>
             ))}
           </Alert>

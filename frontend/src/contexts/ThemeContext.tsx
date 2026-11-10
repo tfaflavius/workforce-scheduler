@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline, alpha } from '@mui/material';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -409,6 +409,28 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
               },
             },
           },
+          // Acelasi aspect pentru TOATE campurile (select, autocomplete, date picker),
+          // nu doar TextField — altfel select-urile erau transparente (gri pe fundal).
+          MuiOutlinedInput: {
+            styleOverrides: {
+              root: {
+                borderRadius: 10,
+                backgroundColor: isLight ? '#ffffff' : 'rgba(255, 255, 255, 0.03)',
+                transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: isLight ? 'rgba(15, 23, 42, 0.16)' : 'rgba(255, 255, 255, 0.18)',
+                },
+                '&:hover:not(.Mui-disabled) .MuiOutlinedInput-notchedOutline': {
+                  borderColor: isLight ? 'rgba(15, 23, 42, 0.28)' : 'rgba(255, 255, 255, 0.28)',
+                },
+                '&.Mui-focused': {
+                  boxShadow: isLight
+                    ? '0 0 0 3px rgba(37, 99, 235, 0.14)'
+                    : '0 0 0 3px rgba(59, 130, 246, 0.18)',
+                },
+              },
+            },
+          },
           MuiDialog: {
             styleOverrides: {
               paper: {
@@ -511,9 +533,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           },
           MuiAlert: {
             styleOverrides: {
-              root: {
-                borderRadius: 12,
-                borderLeft: '4px solid',
+              // Bordura subtire in culoarea alertei (fara accentul lateral gros care,
+              // cu colturile rotunjite, aparea ca o paranteza curbata)
+              root: ({ ownerState, theme: t }) => {
+                const key = (ownerState.severity || 'info') as 'success' | 'info' | 'warning' | 'error';
+                return {
+                  borderRadius: 12,
+                  border: '1px solid',
+                  borderColor: alpha(t.palette[key].main, isLight ? 0.28 : 0.4),
+                  alignItems: 'center',
+                };
               },
             },
           },

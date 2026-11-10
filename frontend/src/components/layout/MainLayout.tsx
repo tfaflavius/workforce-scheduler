@@ -94,6 +94,20 @@ import { isAdminOrAbove as checkIsAdminOrAbove } from '../../utils/roleHelpers';
 import { preloadRoute } from '../../utils/routePreloader';
 
 // Responsive drawer width based on screen size
+
+// Titluri pentru paginile care nu apar in meniul lateral (altfel bara de sus scria "WorkSchedule")
+const EXTRA_PAGE_TITLES: Record<string, string> = {
+  '/notifications': 'Notificari',
+  '/profile': 'Profil',
+  '/leave-requests': 'Concediile Mele',
+  '/shift-swaps': 'Schimburi Ture',
+  '/my-schedule': 'Programul Meu',
+  '/schedules/create': 'Program Nou',
+  '/schedules/bulk': 'Programe in Masa',
+  '/schedules/pending': 'Programe in Asteptare',
+  '/schedules/rejected': 'Programe Respinse',
+};
+
 const getDrawerWidth = (isTablet: boolean) => isTablet ? 220 : 260;
 
 interface MenuItem {
@@ -658,7 +672,7 @@ export const MainLayout = () => {
                       px: { xs: 1.5, sm: 2 },
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
-                        bgcolor: alpha(group.color, 0.06),
+                        bgcolor: 'action.hover',
                       },
                     }}
                   >
@@ -666,12 +680,10 @@ export const MainLayout = () => {
                       primary={group.label}
                       primaryTypographyProps={{
                         fontWeight: 700,
-                        color: alpha(group.color, 0.8),
+                        color: 'text.secondary',
                         textTransform: 'uppercase',
                         letterSpacing: '0.08em',
-                        fontSize: '0.65rem',
-                        borderBottom: `1px solid ${alpha(group.color, 0.12)}`,
-                        pb: 0.25,
+                        fontSize: '0.68rem',
                         display: 'inline-block',
                       }}
                     />
@@ -681,7 +693,7 @@ export const MainLayout = () => {
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          bgcolor: group.color,
+                          bgcolor: 'primary.main',
                           mr: 1,
                         }}
                       />
@@ -689,7 +701,7 @@ export const MainLayout = () => {
                     <ExpandMoreIcon
                       sx={{
                         fontSize: '1.2rem',
-                        color: alpha(group.color, 0.6),
+                        color: 'text.disabled',
                         transform: isSectionOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                         transition: 'transform 0.25s ease',
                       }}
@@ -704,7 +716,7 @@ export const MainLayout = () => {
                         const isActive = location.pathname === item.path;
                         const idx = globalIndex++;
                         return (
-                          <Fade in={true} key={item.path} style={{ transitionDelay: `${idx * 30}ms` }}>
+                          <Fade in={true} key={item.path} style={{ transitionDelay: `${Math.min(idx * 30, 300)}ms` }}>
                             <ListItem disablePadding sx={{ py: 0.25 }}>
                               <ListItemButton
                                 onClick={() => handleNavigate(item.path)}
@@ -1042,7 +1054,9 @@ export const MainLayout = () => {
               fontWeight: 600,
             }}
           >
-            {filteredMenuItems.find((item) => item.path === location.pathname)?.text || 'WorkSchedule'}
+            {filteredMenuItems.find((item) => item.path === location.pathname)?.text ||
+              EXTRA_PAGE_TITLES[location.pathname] ||
+              'WorkSchedule'}
           </Typography>
 
           {/* Global Search */}

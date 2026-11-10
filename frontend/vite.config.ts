@@ -84,13 +84,26 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-mui': ['@mui/material', '@mui/icons-material'],
-          'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
-          'vendor-charts': ['chart.js', 'react-chartjs-2'],
-          'vendor-maps': ['leaflet', 'react-leaflet'],
-          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+        // Functie (nu obiect): grupeaza DOAR pachetele din node_modules. Varianta cu obiect
+        // muta si helper-ele comune (vite/preload-helper, @babel/runtime) in vendor-pdf,
+        // iar atunci fiecare pagina - si pornirea aplicatiei - descarca ~400KB de PDF.
+        manualChunks(id: string) {
+          // Helper-ele comune (folosite de toate paginile) merg in chunk-ul de baza,
+          // altfel Rollup le lipeste de un vendor greu si il incarca la pornire.
+          if (id.includes('vite/preload-helper') || id.includes('commonjsHelpers') || id.includes('@babel/runtime')) {
+            return 'vendor-react';
+          }
+          if (!id.includes('node_modules')) return undefined;
+          const pkg = id.split('node_modules/').pop()!;
+          if (/^(react|react-dom|react-router|react-router-dom|scheduler)\//.test(pkg)) return 'vendor-react';
+          if (/^@mui\/(material|system|utils|base|styled-engine|private-theming|core-downloads-tracker)\//.test(pkg) || /^@emotion\//.test(pkg)) return 'vendor-mui';
+          if (/^@mui\/icons-material\//.test(pkg)) return 'vendor-mui-icons';
+          if (/^(@reduxjs\/toolkit|react-redux|redux|immer|reselect)\//.test(pkg)) return 'vendor-redux';
+          if (/^@supabase\//.test(pkg)) return 'vendor-supabase';
+          if (/^(chart\.js|react-chartjs-2)\//.test(pkg)) return 'vendor-charts';
+          if (/^(leaflet|react-leaflet|@react-leaflet)\//.test(pkg)) return 'vendor-maps';
+          if (/^(jspdf|jspdf-autotable)\//.test(pkg)) return 'vendor-pdf';
+          return undefined;
         },
       },
     },

@@ -156,7 +156,7 @@ const CashCollectionsTab: React.FC = () => {
   const formatCurrency = (amount: number) => formatRON(amount);
 
   const renderCollectionCard = (collection: CashCollection, index: number) => (
-    <Grow in={true} timeout={300 + index * 50} key={collection.id}>
+    <Grow in={true} timeout={Math.min(300 + index * 50, 600)} key={collection.id}>
       <Card
         sx={{
           mb: 2,

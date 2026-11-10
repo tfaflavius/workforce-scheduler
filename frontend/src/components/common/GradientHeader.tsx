@@ -27,9 +27,11 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
   // Compact mode: on mobile, after scrolling 30px, shrink the header
   const isCompact = !disableCompact && isMobile && scrollY > 30;
 
-  // Build default gradient from theme palette
-  const defaultGradient = `${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%`;
-  const resolvedGradient = gradient || defaultGradient;
+  // Acelasi gradient de brand pe toate paginile (inainte fiecare pagina avea alta culoare,
+  // ceea ce facea aplicatia sa para "petice"). Prop-ul `gradient` e pastrat pentru
+  // compatibilitate, dar ignorat intentionat.
+  void gradient;
+  const resolvedGradient = '#1e40af 0%, #2563eb 55%, #3b82f6 100%';
 
   // Adjust gradient for dark mode — use darker variants for better contrast
   const effectiveGradient =
@@ -42,20 +44,20 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
       : resolvedGradient;
 
   return (
-    <Fade in={true} timeout={600}>
+    <Fade in={true} timeout={250}>
       <Box
         sx={{
           mb: { xs: 2, sm: 3 },
           p: isCompact
             ? { xs: 1.25, sm: 2 }
-            : { xs: 2, sm: 2.5, md: 3 },
+            : { xs: 1.75, sm: 2.25, md: 2.75 },
           background: `linear-gradient(135deg, ${effectiveGradient})`,
           borderRadius: { xs: 2, sm: 3 },
           color: 'white',
           position: 'relative',
           overflow: 'hidden',
           border: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+          boxShadow: '0 6px 20px rgba(30, 64, 175, 0.18)',
           // Smooth compact transition
           transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}

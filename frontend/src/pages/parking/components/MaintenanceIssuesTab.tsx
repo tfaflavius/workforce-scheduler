@@ -68,7 +68,7 @@ const MaintenanceIssuesTab: React.FC = () => {
   const urgentCount = useMemo(() => activeIssues.filter(i => i.isUrgent).length, [activeIssues]);
 
   const renderIssueCard = (issue: ParkingIssue, index: number) => (
-    <Grow in={true} key={issue.id} style={{ transformOrigin: '0 0 0', transitionDelay: `${index * 50}ms` }}>
+    <Grow in={true} key={issue.id} style={{ transformOrigin: '0 0 0', transitionDelay: `${Math.min(index * 50, 300)}ms` }}>
       <Card
         sx={{
           mb: { xs: 1.5, sm: 2 },

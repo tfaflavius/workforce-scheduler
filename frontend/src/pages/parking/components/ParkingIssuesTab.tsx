@@ -215,7 +215,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
   const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()).padStart(2, '0')}`;
 
   const renderIssueCard = (issue: ParkingIssue, index: number) => (
-    <Grow in={true} key={issue.id} style={{ transformOrigin: '0 0 0', transitionDelay: `${index * 50}ms` }}>
+    <Grow in={true} key={issue.id} style={{ transformOrigin: '0 0 0', transitionDelay: `${Math.min(index * 50, 300)}ms` }}>
       <Card
         sx={{
           mb: { xs: 1.5, sm: 2 },
@@ -471,7 +471,7 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
           </TableHead>
           <TableBody>
             {(items || issues).map((issue, index) => (
-              <Fade in={true} key={issue.id} style={{ transitionDelay: `${index * 30}ms` }}>
+              <Fade in={true} key={issue.id} style={{ transitionDelay: `${Math.min(index * 30, 300)}ms` }}>
                 <TableRow
                   sx={{
                     bgcolor: issue.isUrgent ? alpha(theme.palette.error.main, 0.05) : 'inherit',

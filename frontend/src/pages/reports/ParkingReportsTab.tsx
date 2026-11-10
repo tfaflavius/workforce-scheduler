@@ -534,7 +534,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
 
   // Render mobile card for each item
   const renderIssueCard = (issue: typeof filteredIssues[0], index: number) => (
-    <Grow in timeout={200 + index * 50} key={issue.id}>
+    <Grow in timeout={Math.min(200 + index * 50, 500)} key={issue.id}>
       <Card
         sx={{
           mb: 1.5,
@@ -590,7 +590,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   );
 
   const renderDamageCard = (damage: typeof filteredDamages[0], index: number) => (
-    <Grow in timeout={200 + index * 50} key={damage.id}>
+    <Grow in timeout={Math.min(200 + index * 50, 500)} key={damage.id}>
       <Card
         sx={{
           mb: 1.5,
@@ -639,7 +639,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
   );
 
   const renderCollectionCard = (collection: typeof allCollections[0], index: number) => (
-    <Grow in timeout={200 + index * 50} key={collection.id}>
+    <Grow in timeout={Math.min(200 + index * 50, 500)} key={collection.id}>
       <Card
         sx={{
           mb: 1.5,
@@ -862,7 +862,7 @@ const ParkingReportsTab: React.FC<ParkingReportsTabProps> = ({
       <Grid container spacing={1.5} sx={{ mb: 2 }}>
         {reportTypes.map((report, index) => (
           <Grid key={report.id} size={{ xs: 6, sm: 6, md: 4 }}>
-            <Grow in timeout={300 + index * 100}>
+            <Grow in timeout={Math.min(300 + index * 100, 600)}>
               <Card
                 onClick={() => setSelectedReport(report.id)}
                 sx={{
