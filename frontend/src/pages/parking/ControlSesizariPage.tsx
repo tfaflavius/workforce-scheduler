@@ -969,10 +969,6 @@ const ControlSesizariPage: React.FC = () => {
   const isMaintenanceUser = user?.role === 'USER' && user?.department?.name === MAINTENANCE_DEPARTMENT_NAME;
   const canCreate = !isMaintenanceUser; // Intretinere Parcari users cannot create sesizari
 
-  if (!hasAccess) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   const { data: sesizari = [], isLoading } = useGetControlSesizariQuery(
     statusFilter ? { status: statusFilter } : undefined
   );
@@ -1014,6 +1010,11 @@ const ControlSesizariPage: React.FC = () => {
       return matchesType && matchesSearch;
     });
   }, [sesizari, tabValue, debouncedSearch, tabConfig]);
+
+  // Access control redirect — kept after all hooks (Rules of Hooks)
+  if (!hasAccess) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <Box sx={{ p: { xs: 0, sm: 1 }, maxWidth: '100%', overflow: 'hidden' }}>

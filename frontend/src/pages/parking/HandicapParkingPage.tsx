@@ -1276,10 +1276,6 @@ const HandicapParkingPage: React.FC = () => {
   const canEditHandicap = isAdmin || isHandicapDepartmentUser;
   const canCreate = !isMaintenanceUser; // Intretinere Parcari users cannot create requests
 
-  if (!hasAccess) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   const { data: requests = [], isLoading } = useGetHandicapRequestsQuery(
     statusFilter ? { status: statusFilter } : undefined
   );
@@ -1774,6 +1770,11 @@ const HandicapParkingPage: React.FC = () => {
 
   // State for export all dialog
   const [exportAllOpen, setExportAllOpen] = useState(false);
+
+  // Access control redirect — kept after all hooks (Rules of Hooks)
+  if (!hasAccess) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <Box sx={{ p: { xs: 0, sm: 1 }, maxWidth: '100%', overflow: 'hidden' }}>

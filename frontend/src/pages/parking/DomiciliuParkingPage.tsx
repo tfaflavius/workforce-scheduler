@@ -1494,10 +1494,6 @@ const DomiciliuParkingPage: React.FC = () => {
     user?.role === 'MANAGER' ||
     (user?.department?.name && ALLOWED_DEPARTMENTS.includes(user.department.name));
 
-  if (!hasAccess) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   const { data: requests = [], isLoading } = useGetDomiciliuRequestsQuery(
     statusFilter ? { status: statusFilter } : undefined
   );
@@ -1566,6 +1562,11 @@ const DomiciliuParkingPage: React.FC = () => {
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   }, []);
+
+  // Access control redirect — kept after all hooks (Rules of Hooks)
+  if (!hasAccess) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <Box sx={{ p: { xs: 0, sm: 1 }, maxWidth: '100%', overflow: 'hidden' }}>
