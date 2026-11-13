@@ -31,6 +31,7 @@ import { controlNotesApi } from './api/controlNotes.api';
 import { userDashboardApi } from './api/userDashboard.api';
 import { mobileDevicesApi } from './api/mobileDevices.api';
 import { parkingLevelsApi } from './api/parkingLevels.api';
+import { holidayPreferencesApi } from './api/holidayPreferences.api';
 
 export const store = configureStore({
   reducer: {
@@ -65,6 +66,7 @@ export const store = configureStore({
     [userDashboardApi.reducerPath]: userDashboardApi.reducer,
     [mobileDevicesApi.reducerPath]: mobileDevicesApi.reducer,
     [parkingLevelsApi.reducerPath]: parkingLevelsApi.reducer,
+    [holidayPreferencesApi.reducerPath]: holidayPreferencesApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -98,6 +100,7 @@ export const store = configureStore({
       userDashboardApi.middleware,
       mobileDevicesApi.middleware,
       parkingLevelsApi.middleware,
+      holidayPreferencesApi.middleware,
     ),
 });
 

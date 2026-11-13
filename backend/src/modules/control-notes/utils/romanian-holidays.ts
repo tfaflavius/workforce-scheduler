@@ -6,7 +6,7 @@
 
 /** Calculate Orthodox Easter Sunday using the Meeus/Jones/Butcher algorithm
  * adapted for the Julian-to-Gregorian conversion. Returns a Date in UTC. */
-function orthodoxEaster(year: number): Date {
+export function orthodoxEaster(year: number): Date {
   const a = year % 4;
   const b = year % 7;
   const c = year % 19;

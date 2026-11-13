@@ -43,6 +43,7 @@ import {
   BeachAccess as BeachIcon,
   LocalParking as ParkingIcon,
   Layers as LayersIcon,
+  Celebration as HolidayIcon,
   Accessible as HandicapIcon,
   Home as HomeIcon,
   Description as DailyReportIcon,
@@ -271,6 +272,13 @@ export const MainLayout = () => {
       icon: <BeachIcon />,
       path: '/leave-requests',
       roles: ['USER', 'MANAGER'],
+    },
+    {
+      text: 'Sarbatori',
+      icon: <HolidayIcon />,
+      path: '/sarbatori',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
+      requiresDepartments: [DISPECERAT_DEPARTMENT_NAME],
     },
     {
       text: 'Raport Zilnic',
@@ -626,7 +634,7 @@ export const MainLayout = () => {
           // Define sections with labels and accent colors
           const sections: { label: string; paths: string[]; color: string }[] = [
             { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: theme.palette.primary.main },
-            { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/schedules'], color: theme.palette.info.main },
+            { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/sarbatori', '/schedules'], color: theme.palette.info.main },
             { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/admin/edit-requests', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: theme.palette.secondary.main },
             { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari', '/stoc-echipamente', '/note-constatare'], color: theme.palette.success.main },
           ];
