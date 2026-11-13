@@ -126,12 +126,12 @@ const DayEditor = ({
       return (
         <Stack
           key={date}
-          direction={{ xs: 'column', sm: 'row' }}
+          direction={{ xs: 'column', md: 'row' }}
           spacing={1}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
+          alignItems={{ xs: 'stretch', md: 'center' }}
           justifyContent="space-between"
         >
-          <Stack direction={{ xs: 'row', sm: 'column' }} spacing={{ xs: 1, sm: 0 }} alignItems={{ xs: 'baseline', sm: 'flex-start' }} sx={{ minWidth: 150 }}>
+          <Stack direction={{ xs: 'row', md: 'column' }} spacing={{ xs: 1, md: 0 }} alignItems={{ xs: 'baseline', md: 'flex-start' }} sx={{ minWidth: 150 }}>
             <Typography fontWeight={600}>{label}</Typography>
             {holiday && (
               <Typography variant="caption" color="text.secondary">
@@ -145,18 +145,18 @@ const DayEditor = ({
             disabled={disabled}
             value={value[date] ?? null}
             onChange={(_, v: HolidayChoice | null) => onChange(date, v)}
-            sx={{ width: { xs: '100%', sm: 'auto' } }}
+            sx={{ width: { xs: '100%', md: 'auto' } }}
           >
             {CHOICES.map((c) => (
               <ToggleButton
                 key={c.value}
                 value={c.value}
                 sx={{
-                  flex: { xs: 1, sm: 'initial' },
-                  px: { xs: 0.5, sm: 1.5 },
-                  minWidth: { xs: 0, sm: 72 },
+                  flex: { xs: 1, md: 'initial' },
+                  px: { xs: 0.5, md: 1.5 },
+                  minWidth: { xs: 0, md: 72 },
                   minHeight: 40,
-                  fontSize: { xs: '0.8rem', sm: '0.8125rem' },
+                  fontSize: { xs: '0.8rem', md: '0.8125rem' },
                   textTransform: 'none',
                   '&.Mui-selected, &.Mui-selected:hover': {
                     bgcolor: alpha(c.color, 0.16),
@@ -373,7 +373,7 @@ const HolidayPreferencesPage = () => {
                 <Card>
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                      <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
+                      <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.05rem', md: '1.25rem' } }}>
                         Preferintele mele
                       </Typography>
                       <Button
@@ -423,18 +423,18 @@ const HolidayPreferencesPage = () => {
                   sx={{
                     display: 'grid',
                     gap: 1.5,
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: `repeat(${Math.min(data.days.length, 4)}, 1fr)` },
+                    gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: `repeat(${Math.min(data.days.length, 4)}, 1fr)` },
                   }}
                 >
                   {daySummary.map((d) => (
-                    <Paper key={d.date} variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 3 }}>
+                    <Paper key={d.date} variant="outlined" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: 3 }}>
                       <Typography fontWeight={700}>{d.label}</Typography>
                       {d.holiday && (
                         <Typography variant="caption" color="text.secondary">
                           {d.holiday}
                         </Typography>
                       )}
-                      <Stack spacing={{ xs: 0.75, sm: 1 }} sx={{ mt: { xs: 1, sm: 1.5 } }}>
+                      <Stack spacing={{ xs: 0.75, md: 1 }} sx={{ mt: { xs: 1, md: 1.5 } }}>
                         {CHOICES.map((c) => (
                           <Box key={c.value}>
                             <Stack direction="row" spacing={1} alignItems="center">
@@ -547,7 +547,7 @@ const HolidayPreferencesPage = () => {
                     <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
                       Administrare perioada
                     </Typography>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }} sx={{ mb: 2 }}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ md: 'center' }} sx={{ mb: 2 }}>
                       <TextField
                         type="date"
                         size="small"
@@ -604,7 +604,7 @@ const HolidayPreferencesPage = () => {
                         ))}
                       </Stack>
                     )}
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5}>
                       <Button
                         variant="outlined"
                         color={locked ? 'success' : 'warning'}

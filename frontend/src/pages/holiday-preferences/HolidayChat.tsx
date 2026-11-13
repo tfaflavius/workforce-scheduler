@@ -69,7 +69,7 @@ const HolidayChat = ({
       <CardContent>
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
           <ChatIcon color="primary" />
-          <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
+          <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.05rem', md: '1.25rem' } }}>
             Discutie
           </Typography>
           {messages.length > 0 && (
@@ -85,9 +85,9 @@ const HolidayChat = ({
         <Box
           ref={listRef}
           sx={{
-            maxHeight: { xs: '55vh', sm: 380 },
+            maxHeight: { xs: '55vh', md: 380 },
             minHeight: 120,
-            p: { xs: 1, sm: 1.5 },
+            p: { xs: 1, md: 1.5 },
             WebkitOverflowScrolling: 'touch',
             overflowY: 'auto',
             borderRadius: 2,
@@ -112,7 +112,7 @@ const HolidayChat = ({
                   <Box key={m.id} sx={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
                     <Box
                       sx={{
-                        maxWidth: { xs: '88%', sm: '75%' },
+                        maxWidth: { xs: '88%', md: '75%' },
                         px: 1.5,
                         py: 1,
                         borderRadius: 2.5,
