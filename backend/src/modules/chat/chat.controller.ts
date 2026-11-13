@@ -48,7 +48,7 @@ export class ChatController {
 
   @Post('conversations/:id/messages')
   send(@Param('id') id: string, @Body() dto: SendChatMessageDto, @Request() req) {
-    return this.service.sendMessage(id, dto.message, req.user);
+    return this.service.sendMessage(id, dto.message, req.user, dto.targetDepartmentIds);
   }
 
   @Delete('messages/:id')

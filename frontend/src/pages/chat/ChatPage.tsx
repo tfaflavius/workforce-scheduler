@@ -6,7 +6,11 @@ import {
   Button,
   Card,
   CircularProgress,
+  Checkbox,
   Divider,
+  FormControl,
+  MenuItem,
+  Select,
   IconButton,
   InputAdornment,
   List,
@@ -30,6 +34,7 @@ import {
   Edit as NewIcon,
   DeleteOutline as DeleteIcon,
   Forum as ChatIcon,
+  SubdirectoryArrowRight as RouteIcon,
 } from '@mui/icons-material';
 import { FriendlyDialog, EmptyState } from '../../components/common';
 import { useSnackbar } from '../../contexts/SnackbarContext';
@@ -43,6 +48,22 @@ import {
   type ChatConversationSummary,
 } from '../../store/api/chat.api';
 import { useAppSelector } from '../../store/hooks';
+
+/** Eticheta "De la -> Catre" pentru mesajele trimise intre departamente. */
+const routeLabel = (
+  m: { fromDepartment?: string | null; toDepartments?: string[]; alsoVisibleTo?: string[] },
+  groupName: string,
+) => {
+  const to = m.toDepartments || [];
+  if (to.length === 0) return '';
+  const internal = to.length === 1 && to[0] === groupName && (!m.fromDepartment || m.fromDepartment === groupName);
+  const also = m.alsoVisibleTo?.length ? ` · vad si: ${m.alsoVisibleTo.join(', ')}` : '';
+  if (internal && !also) return '';
+  const toText = to.length > 3 ? `${to.length} departamente` : to.join(', ');
+  const sameDept = to.length === 1 && m.fromDepartment === to[0];
+  if (sameDept) return `In ${toText}${also}`;
+  return `${m.fromDepartment ? `${m.fromDepartment} → ` : '→ '}${toText}${also}`;
+};
 
 const initials = (name: string) =>
   name
@@ -228,6 +249,12 @@ const ChatThread = ({
   const isTouch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const messages = data?.messages ?? [];
   const canWrite = data?.canWrite ?? conv.canWrite;
+  const compose = data?.compose ?? null;
+  // Destinatarii alesi (doar in grupurile de departament); implicit grupul curent
+  const [picked, setPicked] = useState<{ convId: string; ids: string[] } | null>(null);
+  const targetIds = picked?.convId === conv.id ? picked.ids : (compose?.defaultTargetIds ?? []);
+  const setTargets = (ids: string[]) => setPicked({ convId: conv.id, ids });
+  const optionName = (id: string) => compose?.options.find((o) => o.id === id)?.name || '';
 
   useEffect(() => {
     const el = listRef.current;
@@ -238,7 +265,11 @@ const ChatThread = ({
     const clean = text.trim();
     if (!clean || sending) return;
     try {
-      await send({ id: conv.id, message: clean }).unwrap();
+      if (compose && targetIds.length === 0) {
+        notifyError('Alege departamentul catre care trimiti');
+        return;
+      }
+      await send({ id: conv.id, message: clean, targetDepartmentIds: compose ? targetIds : undefined }).unwrap();
       setText('');
     } catch (err: unknown) {
       notifyError((err as { data?: { message?: string } })?.data?.message || 'Mesajul nu a putut fi trimis');
@@ -339,6 +370,14 @@ const ChatThread = ({
                           {m.userName}
                         </Typography>
                       )}
+                      {routeLabel(m, conv.title) && (
+                        <Stack direction="row" spacing={0.5} alignItems="flex-start" sx={{ opacity: mine ? 0.85 : 0.75, mb: 0.25 }}>
+                          <RouteIcon sx={{ fontSize: 13, mt: '2px' }} />
+                          <Typography variant="caption" sx={{ fontSize: 11, lineHeight: 1.35 }}>
+                            {routeLabel(m, conv.title)}
+                          </Typography>
+                        </Stack>
+                      )}
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                         {m.message}
                       </Typography>
@@ -375,6 +414,52 @@ const ChatThread = ({
 
       {/* Scriere */}
       {canWrite ? (
+        <Box>
+          {compose && compose.options.length > 0 && (
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ px: 1.25, pt: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                Catre:
+              </Typography>
+              <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
+                <Select
+                  multiple={compose.multi}
+                  displayEmpty
+                  value={compose.multi ? targetIds : targetIds[0] || ''}
+                  onChange={(e) => {
+                    const v = e.target.value as string | string[];
+                    if (!compose.multi) return setTargets(v ? [v as string] : []);
+                    const arr = v as string[];
+                    if (arr.includes('__all')) {
+                      setTargets(targetIds.length === compose.options.length ? [] : compose.options.map((o) => o.id));
+                    } else {
+                      setTargets(arr);
+                    }
+                  }}
+                  renderValue={(sel) => {
+                    const ids = Array.isArray(sel) ? sel : sel ? [sel] : [];
+                    if (ids.length === 0) return <em>Alege departamentul</em>;
+                    if (compose.multi && ids.length > 1 && ids.length === compose.options.length) return 'Toate departamentele';
+                    return ids.map(optionName).join(', ');
+                  }}
+                  sx={{ fontSize: 14, '& .MuiSelect-select': { py: 0.75 } }}
+                  MenuProps={{ PaperProps: { sx: { maxHeight: 360 } } }}
+                >
+                  {compose.multi && compose.options.length > 1 && (
+                    <MenuItem value="__all" dense>
+                      <Checkbox size="small" checked={targetIds.length === compose.options.length} />
+                      <strong>Toate departamentele</strong>
+                    </MenuItem>
+                  )}
+                  {compose.options.map((o) => (
+                    <MenuItem key={o.id} value={o.id} dense>
+                      {compose.multi && <Checkbox size="small" checked={targetIds.includes(o.id)} />}
+                      {o.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
+          )}
         <Stack direction="row" spacing={1} alignItems="flex-end" sx={{ p: 1.25 }}>
           <TextField
             fullWidth
@@ -403,6 +488,7 @@ const ChatThread = ({
             {sending ? <CircularProgress size={20} /> : <SendIcon />}
           </IconButton>
         </Stack>
+        </Box>
       ) : (
         <Typography variant="body2" color="text.secondary" sx={{ p: 1.5, textAlign: 'center' }}>
           Doar managerii si adminii pot scrie in Anunturi.

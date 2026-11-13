@@ -22,11 +22,22 @@ export interface ChatMessageItem {
   userRole?: string;
   message: string;
   createdAt: string;
+  /** Grupuri de departament: de unde si catre cine a fost trimis mesajul */
+  fromDepartment?: string | null;
+  toDepartments?: string[];
+  alsoVisibleTo?: string[];
+}
+
+export interface ChatComposeInfo {
+  multi: boolean;
+  options: Array<{ id: string; name: string }>;
+  defaultTargetIds: string[];
 }
 
 export interface ChatMessagesResponse {
   canWrite: boolean;
   hasMore: boolean;
+  compose?: ChatComposeInfo | null;
   messages: ChatMessageItem[];
 }
 
@@ -70,8 +81,12 @@ export const chatApi = createApi({
         }
       },
     }),
-    sendChatMessage: builder.mutation<ChatMessagesResponse, { id: string; message: string }>({
-      query: ({ id, message }) => ({ url: `/conversations/${id}/messages`, method: 'POST', body: { message } }),
+    sendChatMessage: builder.mutation<ChatMessagesResponse, { id: string; message: string; targetDepartmentIds?: string[] }>({
+      query: ({ id, message, targetDepartmentIds }) => ({
+        url: `/conversations/${id}/messages`,
+        method: 'POST',
+        body: { message, targetDepartmentIds },
+      }),
       invalidatesTags: (_r, _e, { id }) => [{ type: 'Messages', id }, 'Conversations'],
     }),
     deleteChatMessage: builder.mutation<{ ok: boolean }, { id: string; conversationId: string }>({

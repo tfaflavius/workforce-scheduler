@@ -67,6 +67,14 @@ export class ChatMessage {
   @Column({ type: 'text' })
   message: string;
 
+  /** Grupuri de departament: departamentele catre care a fost trimis mesajul. */
+  @Column({ name: 'target_dept_ids', type: 'jsonb', nullable: true, default: null })
+  targetDeptIds: string[] | null;
+
+  /** Grupuri de departament: departamentele care vad mesajul (target + expeditor + reguli). */
+  @Column({ name: 'audience_dept_ids', type: 'jsonb', nullable: true, default: null })
+  audienceDeptIds: string[] | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
