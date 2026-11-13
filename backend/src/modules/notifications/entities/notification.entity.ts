@@ -65,6 +65,8 @@ export enum NotificationType {
   DAILY_DIGEST = 'DAILY_DIGEST',
   // Mesaj nou in chat-ul de sarbatori (Dispecerat)
   HOLIDAY_CHAT_MESSAGE = 'HOLIDAY_CHAT_MESSAGE',
+  // Mesaj nou in chat-ul aplicatiei (privat / departament / anunturi)
+  CHAT_MESSAGE = 'CHAT_MESSAGE',
 }
 
 @Entity('notifications')

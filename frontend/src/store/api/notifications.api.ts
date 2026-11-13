@@ -44,10 +44,12 @@ export type NotificationType =
   | 'TIME_ENTRY_MISMATCH'
   | 'GPS_STATUS_ALERT'
   | 'DAILY_DIGEST'
-  | 'HOLIDAY_CHAT_MESSAGE';
+  | 'HOLIDAY_CHAT_MESSAGE'
+  | 'CHAT_MESSAGE';
 
 export interface NotificationData {
   periodId?: string;
+  conversationId?: string;
   groupKey?: string;
   fullMessage?: boolean;
   scheduleId?: string;

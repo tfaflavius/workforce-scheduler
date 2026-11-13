@@ -50,6 +50,7 @@ const EquipmentStockPage = lazy(() => import('../pages/equipment-stock/Equipment
 const MobileDevicesPage = lazy(() => import('../pages/mobile-devices/MobileDevicesPage'));
 const ParkingLevelsPage = lazy(() => import('../pages/parking-levels/ParkingLevelsPage'));
 const HolidayPreferencesPage = lazy(() => import('../pages/holiday-preferences/HolidayPreferencesPage'));
+const ChatPage = lazy(() => import('../pages/chat/ChatPage'));
 const ControlNotesPage = lazy(() => import('../pages/control-notes/ControlNotesPage'));
 const NotFoundPage = lazy(() => import('../pages/common/NotFoundPage'));
 
@@ -223,6 +224,9 @@ export const AppRoutes = () => {
 
         {/* Parking - Dispecerat, Manager, Admin */}
         <Route path="/parking" element={<SafePage><ParkingPage /></SafePage>} />
+
+        {/* Chat in aplicatie - toti utilizatorii */}
+        <Route path="/chat" element={<SafePage><ChatPage /></SafePage>} />
 
         {/* Preferinte de sarbatori - Dispecerat, Manager, Admin (acces verificat in backend) */}
         <Route path="/sarbatori" element={<SafePage><HolidayPreferencesPage /></SafePage>} />

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useGetChatUnreadCountQuery } from '../../store/api/chat.api';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import {
@@ -44,6 +45,7 @@ import {
   LocalParking as ParkingIcon,
   Layers as LayersIcon,
   Celebration as HolidayIcon,
+  Forum as ChatIcon,
   Accessible as HandicapIcon,
   Home as HomeIcon,
   Description as DailyReportIcon,
@@ -99,6 +101,7 @@ import { preloadRoute } from '../../utils/routePreloader';
 // Titluri pentru paginile care nu apar in meniul lateral (altfel bara de sus scria "WorkSchedule")
 const EXTRA_PAGE_TITLES: Record<string, string> = {
   '/notifications': 'Notificari',
+  '/chat': 'Mesaje',
   '/profile': 'Profil',
   '/leave-requests': 'Concediile Mele',
   '/shift-swaps': 'Schimburi Ture',
@@ -201,16 +204,24 @@ export const MainLayout = () => {
     pollingInterval: dashboardPollingInterval,
   });
 
-  // Badge counts for nav items (admin only)
+  // Mesaje necitite in chat (toti utilizatorii)
+  const { data: chatUnread } = useGetChatUnreadCountQuery(undefined, {
+    skip: !user,
+    pollingInterval: 30000,
+  });
+
+  // Badge counts for nav items (admin only + chat pentru toti)
   const navBadges = useMemo((): Record<string, number> => {
-    if (!dashboardStats) return {};
+    const chat = { '/chat': chatUnread?.count || 0 };
+    if (!dashboardStats) return chat;
     return {
+      ...chat,
       '/admin/shift-swaps': dashboardStats.shiftSwaps?.pendingAdmin || 0,
       '/admin/leave-requests': dashboardStats.leaveRequests?.pending || 0,
       '/admin/edit-requests': dashboardStats.parking?.pendingEditRequests || 0,
       '/schedules': dashboardStats.schedules?.pending || 0,
     };
-  }, [dashboardStats]);
+  }, [dashboardStats, chatUnread]);
 
   // Count users per department (memoized)
   const deptUserCounts = useMemo(() =>
@@ -272,6 +283,12 @@ export const MainLayout = () => {
       icon: <BeachIcon />,
       path: '/leave-requests',
       roles: ['USER', 'MANAGER'],
+    },
+    {
+      text: 'Mesaje',
+      icon: <ChatIcon />,
+      path: '/chat',
+      roles: ['ADMIN', 'MANAGER', 'USER', 'RESURSE_UMANE'],
     },
     {
       text: 'Sarbatori',
@@ -635,7 +652,7 @@ export const MainLayout = () => {
         {(() => {
           // Define sections with labels and accent colors
           const sections: { label: string; paths: string[]; color: string }[] = [
-            { label: 'Principal', paths: ['/dashboard', '/my-schedule', '/daily-reports'], color: theme.palette.primary.main },
+            { label: 'Principal', paths: ['/dashboard', '/chat', '/my-schedule', '/daily-reports'], color: theme.palette.primary.main },
             { label: 'Operatiuni', paths: ['/shift-swaps', '/leave-requests', '/sarbatori', '/schedules'], color: theme.palette.info.main },
             { label: 'Administrare', paths: ['/admin/shift-swaps', '/admin/leave-requests', '/admin/pontaj', '/admin/edit-requests', '/reports', '/users', '/incasari-cheltuieli', '/admin/permissions'], color: theme.palette.secondary.main },
             { label: 'Parcari', paths: ['/parking', '/parking/handicap', '/parking/domiciliu', '/procese-verbale', '/parcometre', '/achizitii', '/control-sesizari', '/stoc-echipamente', '/note-constatare'], color: theme.palette.success.main },

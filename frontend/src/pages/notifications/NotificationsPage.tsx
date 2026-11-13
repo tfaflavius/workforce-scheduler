@@ -49,6 +49,7 @@ const getCategoryFromType = (type: NotificationType): string => {
   if (type === 'EMPLOYEE_ABSENT') return 'Prezenta';
   if (type === 'DAILY_DIGEST') return 'Rezumat';
   if (type === 'HOLIDAY_CHAT_MESSAGE') return 'Sarbatori';
+  if (type === 'CHAT_MESSAGE') return 'Mesaje';
   return 'General';
 };
 

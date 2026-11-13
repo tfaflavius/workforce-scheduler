@@ -1,3 +1,4 @@
+import { useGetChatUnreadCountQuery } from '../../store/api/chat.api';
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { preloadRoute } from '../../utils/routePreloader';
@@ -12,7 +13,7 @@ import {
   CalendarMonth as CalendarIcon,
   Description as DailyReportIcon,
   Notifications as NotificationsIcon,
-  Person as PersonIcon,
+  Forum as ChatIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { useAppSelector } from '../../store/hooks';
@@ -33,6 +34,7 @@ const MobileBottomNav: React.FC = () => {
   const { data: unreadCount = 0 } = useGetUnreadCountQuery(undefined, {
     pollingInterval: 30000,
   });
+  const { data: chatUnread } = useGetChatUnreadCountQuery(undefined, { pollingInterval: 30000 });
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN';
   const isManager = user?.role === 'MANAGER';
@@ -73,14 +75,16 @@ const MobileBottomNav: React.FC = () => {
       badge: unreadCount,
     });
 
+    // "Mesaje" in locul lui "Profil" (profilul ramane in avatarul din dreapta sus si in meniu)
     items.push({
-      label: 'Profil',
-      icon: <PersonIcon />,
-      path: '/profile',
+      label: 'Mesaje',
+      icon: <ChatIcon />,
+      path: '/chat',
+      badge: chatUnread?.count || 0,
     });
 
     return items;
-  }, [isAdmin, isManager, unreadCount]);
+  }, [isAdmin, isManager, unreadCount, chatUnread]);
 
   const isActive = (path: string) => location.pathname === path;
 

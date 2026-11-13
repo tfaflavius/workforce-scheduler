@@ -96,6 +96,7 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
     case 'DAILY_DIGEST':
       return <DigestIcon color="primary" fontSize={fontSize} />;
     case 'HOLIDAY_CHAT_MESSAGE':
+    case 'CHAT_MESSAGE':
       return <HolidayChatIcon color="primary" fontSize={fontSize} />;
     case 'DAILY_REPORT_SUBMITTED':
       return <DailyReportIcon color="info" fontSize={fontSize} />;
@@ -201,6 +202,9 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
       return { path: '/notifications' };
 
     // Mesaj nou in chat-ul de sarbatori -> deschide perioada respectiva
+    case 'CHAT_MESSAGE':
+      return { path: '/chat', state: { conversationId: data?.conversationId } };
+
     case 'HOLIDAY_CHAT_MESSAGE':
       return { path: '/sarbatori', state: { periodId: data?.periodId, groupKey: data?.groupKey, openChat: true } };
 
