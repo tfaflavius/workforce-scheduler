@@ -1,3 +1,6 @@
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+import { Department } from '../departments/entities/department.entity';
 import {
   Injectable,
   Logger,
@@ -9,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -33,6 +36,7 @@ export class UsersService {
     private readonly emailService: EmailService,
     private readonly configService: ConfigService,
     private readonly auditService: AuditService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createUserDto: CreateUserDto, requestingUserId?: string): Promise<User> {
@@ -180,8 +184,17 @@ export class UsersService {
       }
     }
 
+    const before = {
+      departmentId: user.departmentId,
+      role: user.role,
+      managerDepartmentIds: user.managerDepartmentIds,
+    };
     Object.assign(user, updateUserDto);
     const savedUser = await this.userRepository.save(user);
+
+    this.notifyAccountChanges(savedUser, before, requestingUser?.id).catch((err) =>
+      this.logger.warn(`Account change notification failed: ${err?.message}`),
+    );
 
     // Audit log
     if (Object.keys(changes).length > 0) {
@@ -198,6 +211,58 @@ export class UsersService {
     }
 
     return savedUser;
+  }
+
+  /** Anunta omul cand i se schimba departamentul, rolul sau departamentele gestionate. */
+  private async notifyAccountChanges(
+    user: User,
+    before: { departmentId: string | null; role: string; managerDepartmentIds: string[] | null },
+    actorId?: string,
+  ): Promise<void> {
+    if (actorId && actorId === user.id) return; // modificarile facute de el insusi
+    const deptRepo = this.userRepository.manager.getRepository(Department);
+    const deptName = async (id?: string | null) =>
+      id ? (await deptRepo.findOne({ where: { id } }))?.name || 'departament' : null;
+    const lines: string[] = [];
+
+    if ((before.departmentId || null) !== (user.departmentId || null)) {
+      const now = await deptName(user.departmentId);
+      const old = await deptName(before.departmentId);
+      lines.push(
+        now
+          ? `Ai fost mutat in departamentul ${now}${old ? ` (inainte: ${old})` : ''}.`
+          : `Nu mai faci parte din departamentul ${old}.`,
+      );
+    }
+    if (before.role !== user.role) {
+      lines.push(
+        `Rolul tau a fost schimbat din ${roleLabel(before.role)} in ${roleLabel(user.role)}.`,
+      );
+    }
+    const sameScope =
+      JSON.stringify([...(before.managerDepartmentIds || [])].sort()) ===
+      JSON.stringify([...(user.managerDepartmentIds || [])].sort());
+    if (user.role === UserRole.MANAGER && !sameScope) {
+      const ids = user.managerDepartmentIds || [];
+      const names = ids.length
+        ? (await deptRepo.find({ where: { id: In(ids) } })).map((d) => d.name).join(', ')
+        : 'toate departamentele';
+      lines.push(`Gestionezi acum: ${names}.`);
+    }
+    if (lines.length === 0) return;
+
+    await this.notificationsService.create({
+      userId: user.id,
+      type: NotificationType.ACCOUNT_UPDATED,
+      title: 'Contul tau a fost actualizat',
+      message: lines.join(' '),
+      data: {
+        departmentId: user.departmentId,
+        role: user.role,
+        previousRole: before.role,
+        previousDepartmentId: before.departmentId,
+      },
+    });
   }
 
   async remove(id: string, requestingUserId?: string): Promise<void> {
@@ -454,4 +519,15 @@ export class UsersService {
       byDepartment,
     };
   }
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  USER: 'Utilizator',
+  MANAGER: 'Manager',
+  ADMIN: 'Administrator',
+  MASTER_ADMIN: 'Master Admin',
+  RESURSE_UMANE: 'Resurse Umane',
+};
+function roleLabel(role: string): string {
+  return ROLE_LABELS[role] || role;
 }

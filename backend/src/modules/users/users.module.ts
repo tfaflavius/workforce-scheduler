@@ -1,3 +1,4 @@
+import { NotificationsModule } from '../notifications/notifications.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
@@ -7,7 +8,7 @@ import { SupabaseModule } from '../../common/supabase/supabase.module';
 import { EmailModule } from '../../common/email/email.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), SupabaseModule, EmailModule],
+  imports: [TypeOrmModule.forFeature([User]), SupabaseModule, EmailModule, NotificationsModule],
   controllers: [UsersController],
   providers: [UsersService],
   exports: [UsersService],

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { getTimeAgo } from '../../utils/getTimeAgo';
 import {
   Badge,
@@ -30,7 +30,8 @@ import {
   useMarkAllAsReadMutation,
   type Notification,
 } from '../../store/api/notifications.api';
-import { useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { initializeAuth } from '../../store/slices/auth.slice';
 import { getNotificationIcon, getNotificationPath, isNotificationNavigable } from '../../utils/notificationHelpers';
 import { useSmartPolling } from '../../hooks/useSmartPolling';
 
@@ -52,6 +53,20 @@ export const NotificationBell: React.FC = React.memo(() => {
     undefined,
     { pollingInterval: notifPollingInterval }
   );
+  // Cand adminul ii schimba omului departamentul sau rolul, reincarcam profilul ca
+  // meniurile si drepturile sa se actualizeze fara deconectare.
+  const dispatch = useAppDispatch();
+  const handledAccountUpdate = useRef<string | null>(null);
+  useEffect(() => {
+    const latest = notifications.find((n) => n.type === 'ACCOUNT_UPDATED' && !n.isRead);
+    if (!latest || handledAccountUpdate.current === latest.id) return;
+    const first = handledAccountUpdate.current === null;
+    handledAccountUpdate.current = latest.id;
+    if (!first || Date.now() - new Date(latest.createdAt).getTime() < 10 * 60 * 1000) {
+      dispatch(initializeAuth());
+    }
+  }, [notifications, dispatch]);
+
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();
 

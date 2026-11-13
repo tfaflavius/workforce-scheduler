@@ -67,6 +67,10 @@ export enum NotificationType {
   HOLIDAY_CHAT_MESSAGE = 'HOLIDAY_CHAT_MESSAGE',
   // Mesaj nou in chat-ul aplicatiei (privat / departament / anunturi)
   CHAT_MESSAGE = 'CHAT_MESSAGE',
+  // Angajatului i s-a schimbat departamentul / rolul / departamentele gestionate
+  ACCOUNT_UPDATED = 'ACCOUNT_UPDATED',
+  // Managerul: un angajat din departamentele lui a facut o actiune
+  TEAM_ACTIVITY = 'TEAM_ACTIVITY',
 }
 
 @Entity('notifications')

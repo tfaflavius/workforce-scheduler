@@ -241,6 +241,9 @@ export const NOTIFICATION_TYPE_DEFINITIONS: NotificationTypeDefinition[] = [
   { key: 'DAILY_DIGEST', label: 'Rezumat zilnic (08:00)', category: 'Sistem' },
   { key: 'CHAT_MESSAGE', label: 'Mesaj nou in chat', category: 'Sistem' },
   { key: 'HOLIDAY_CHAT_MESSAGE', label: 'Mesaj nou in discutia de sarbatori', category: 'Sistem' },
+  { key: 'ACCOUNT_UPDATED', label: 'Schimbare departament / rol', category: 'Sistem' },
+  { key: 'TEAM_ACTIVITY', label: 'Activitatea angajatilor (manageri)', category: 'Sistem' },
+  { key: 'DOMICILIU_SIGN_PLACEMENT', label: 'Montare indicator Domiciliu', category: 'Sistem' },
 ];
 
 export const NOTIFICATION_TYPE_LABELS: Record<string, string> = Object.fromEntries(

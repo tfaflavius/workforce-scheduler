@@ -21,6 +21,8 @@ import {
   Timer as TimerIcon,
   Summarize as DigestIcon,
   Forum as HolidayChatIcon,
+  ManageAccounts as AccountIcon,
+  Groups as TeamIcon,
 } from '@mui/icons-material';
 import type { Notification, NotificationType } from '../store/api/notifications.api';
 import { isAdminOrAbove } from './roleHelpers';
@@ -72,6 +74,12 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
       return <DomiciliuIcon color="primary" fontSize={fontSize} />;
     case 'DOMICILIU_REQUEST_DEADLINE_APPROACHING':
       return <DomiciliuIcon color="error" fontSize={fontSize} />;
+    case 'DOMICILIU_SIGN_PLACEMENT':
+      return <DomiciliuIcon color="warning" fontSize={fontSize} />;
+    case 'ACCOUNT_UPDATED':
+      return <AccountIcon color="primary" fontSize={fontSize} />;
+    case 'TEAM_ACTIVITY':
+      return <TeamIcon color="info" fontSize={fontSize} />;
     case 'LEGITIMATION_ASSIGNED':
     case 'LEGITIMATION_RESOLVED':
       return <LegitimationIcon color="secondary" fontSize={fontSize} />;
@@ -140,7 +148,7 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     // Leave request notifications
     case 'LEAVE_REQUEST_CREATED':
     case 'LEAVE_OVERLAP_WARNING':
-      return { path: isAdmin ? '/admin/leave-requests' : '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
+      return { path: isAdminOrManager ? '/admin/leave-requests' : '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
     case 'LEAVE_REQUEST_APPROVED':
     case 'LEAVE_REQUEST_REJECTED':
       return { path: '/leave-requests', state: { highlightRequestId: data?.leaveRequestId } };
@@ -164,11 +172,16 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     case 'DOMICILIU_REQUEST_ASSIGNED':
     case 'DOMICILIU_REQUEST_RESOLVED':
     case 'DOMICILIU_REQUEST_DEADLINE_APPROACHING':
+    case 'DOMICILIU_SIGN_PLACEMENT':
       return { path: '/parking/domiciliu', state: { openRequestId: data?.domiciliuRequestId } };
 
     // Handicap legitimation notifications
     case 'LEGITIMATION_ASSIGNED':
     case 'LEGITIMATION_RESOLVED':
+      // Legitimatiile de revolutionar sunt pe tab-ul urmator (4)
+      if (data?.revolutionarLegitimationId) {
+        return { path: '/parking/handicap', state: { openRevolutionarLegitimationId: data.revolutionarLegitimationId, tab: 4 } };
+      }
       return { path: '/parking/handicap', state: { openLegitimationId: data?.handicapLegitimationId, tab: 3 } };
 
     // Control sesizari notifications
@@ -212,6 +225,20 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     case 'EMPLOYEE_ABSENT':
       return { path: '/schedules' };
 
+    // GPS / pontaj: pagina de pontaj e doar pentru admin
+    case 'GPS_STATUS_ALERT':
+    case 'TIME_ENTRY_MISMATCH':
+      return isAdmin ? { path: '/admin/pontaj' } : null;
+
+    // Schimbare departament / rol
+    case 'ACCOUNT_UPDATED':
+      return { path: '/profile' };
+
+    // Activitatea angajatilor (manager) si anunturi generale: pagina din notificare
+    case 'TEAM_ACTIVITY':
+    case 'GENERAL':
+      return data?.url ? { path: data.url as string } : null;
+
     // Daily report notifications — navigate to the correct date and open the report
     case 'DAILY_REPORT_SUBMITTED':
     case 'DAILY_REPORT_COMMENTED':
@@ -226,6 +253,9 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
       }
       if (data?.controlSesizareId) {
         return { path: '/control-sesizari', state: { openSesizareId: data.controlSesizareId } };
+      }
+      if (typeof data?.url === 'string' && data.url.startsWith('/')) {
+        return { path: data.url };
       }
       return null;
   }

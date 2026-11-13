@@ -45,7 +45,10 @@ export type NotificationType =
   | 'GPS_STATUS_ALERT'
   | 'DAILY_DIGEST'
   | 'HOLIDAY_CHAT_MESSAGE'
-  | 'CHAT_MESSAGE';
+  | 'CHAT_MESSAGE'
+  | 'DOMICILIU_SIGN_PLACEMENT'
+  | 'ACCOUNT_UPDATED'
+  | 'TEAM_ACTIVITY';
 
 export interface NotificationData {
   periodId?: string;
