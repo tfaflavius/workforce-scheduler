@@ -10,6 +10,8 @@ import { WorkSchedule } from '../schedules/entities/work-schedule.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { SchedulesModule } from '../schedules/schedules.module';
 import { LeaveRequestsModule } from '../leave-requests/leave-requests.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { Notification } from '../notifications/entities/notification.entity';
 import { HolidayPreferencesService } from './holiday-preferences.service';
 import { HolidayPreferencesController } from './holiday-preferences.controller';
 
@@ -24,9 +26,11 @@ import { HolidayPreferencesController } from './holiday-preferences.controller';
       ShiftType,
       WorkSchedule,
       ScheduleAssignment,
+      Notification,
     ]),
     SchedulesModule,
     LeaveRequestsModule,
+    NotificationsModule,
   ],
   controllers: [HolidayPreferencesController],
   providers: [HolidayPreferencesService],

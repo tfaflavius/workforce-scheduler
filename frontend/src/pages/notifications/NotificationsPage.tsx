@@ -48,6 +48,7 @@ const getCategoryFromType = (type: NotificationType): string => {
   if (type.startsWith('DAILY_REPORT')) return 'Rapoarte Zilnice';
   if (type === 'EMPLOYEE_ABSENT') return 'Prezenta';
   if (type === 'DAILY_DIGEST') return 'Rezumat';
+  if (type === 'HOLIDAY_CHAT_MESSAGE') return 'Sarbatori';
   return 'General';
 };
 

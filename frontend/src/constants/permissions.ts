@@ -239,6 +239,7 @@ export const NOTIFICATION_TYPE_DEFINITIONS: NotificationTypeDefinition[] = [
   { key: 'TIME_ENTRY_MISMATCH', label: 'Nepotrivire pontaj', category: 'Sistem' },
   { key: 'GPS_STATUS_ALERT', label: 'Alerta status GPS', category: 'Sistem' },
   { key: 'DAILY_DIGEST', label: 'Rezumat zilnic (08:00)', category: 'Sistem' },
+  { key: 'HOLIDAY_CHAT_MESSAGE', label: 'Mesaj nou in discutia de sarbatori', category: 'Sistem' },
 ];
 
 export const NOTIFICATION_TYPE_LABELS: Record<string, string> = Object.fromEntries(

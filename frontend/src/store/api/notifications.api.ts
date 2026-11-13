@@ -43,9 +43,11 @@ export type NotificationType =
   | 'DAILY_REPORT_MISSING'
   | 'TIME_ENTRY_MISMATCH'
   | 'GPS_STATUS_ALERT'
-  | 'DAILY_DIGEST';
+  | 'DAILY_DIGEST'
+  | 'HOLIDAY_CHAT_MESSAGE';
 
 export interface NotificationData {
+  periodId?: string;
   fullMessage?: boolean;
   scheduleId?: string;
   shiftSwapId?: string;

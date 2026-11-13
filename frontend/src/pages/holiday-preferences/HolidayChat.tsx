@@ -44,6 +44,7 @@ const HolidayChat = ({
   const [postMessage, { isLoading: sending }] = usePostHolidayMessageMutation();
   const [deleteMessage] = useDeleteHolidayMessageMutation();
   const [text, setText] = useState('');
+  const isTouch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const listRef = useRef<HTMLDivElement>(null);
 
   // Deruleaza la ultimul mesaj cand apar mesaje noi
@@ -66,23 +67,29 @@ const HolidayChat = ({
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
           <ChatIcon color="primary" />
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
             Discutie
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            obiectii si intelegeri pentru aceasta perioada - raman salvate aici
-          </Typography>
+          {messages.length > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              ({messages.length})
+            </Typography>
+          )}
         </Stack>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          Obiectii si intelegeri pentru aceasta perioada. Mesajele raman salvate aici.
+        </Typography>
 
         <Box
           ref={listRef}
           sx={{
-            maxHeight: 380,
+            maxHeight: { xs: '55vh', sm: 380 },
             minHeight: 120,
+            p: { xs: 1, sm: 1.5 },
+            WebkitOverflowScrolling: 'touch',
             overflowY: 'auto',
-            p: 1.5,
             borderRadius: 2,
             bgcolor: alpha(theme.palette.primary.main, 0.03),
             border: `1px solid ${theme.palette.divider}`,
@@ -114,49 +121,47 @@ const HolidayChat = ({
                         bgcolor: mine ? 'primary.main' : 'background.paper',
                         color: mine ? 'primary.contrastText' : 'text.primary',
                         border: mine ? 'none' : `1px solid ${theme.palette.divider}`,
-                        position: 'relative',
                         '&:hover .msg-del': { opacity: 1 },
                       }}
                     >
-                      <Stack direction="row" spacing={1} alignItems="baseline" justifyContent="space-between">
+                      <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
                         <Typography variant="caption" fontWeight={700} sx={{ opacity: 0.9 }}>
                           {mine ? 'Tu' : m.userName}
                           {isBoss && !mine && ' (coordonator)'}
                         </Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                          {formatTime(m.createdAt)}
-                        </Typography>
+                        <Stack direction="row" spacing={0.25} alignItems="center">
+                          <Typography variant="caption" sx={{ opacity: 0.7, whiteSpace: 'nowrap' }}>
+                            {formatTime(m.createdAt)}
+                          </Typography>
+                          {(mine || canModerate) && (
+                            <Tooltip title="Sterge mesajul">
+                              <IconButton
+                                className="msg-del"
+                                size="small"
+                                aria-label="Sterge mesajul"
+                                onClick={() =>
+                                  deleteMessage({ periodId, messageId: m.id })
+                                    .unwrap()
+                                    .catch(() => notifyError('Mesajul nu a putut fi sters'))
+                                }
+                                sx={{
+                                  p: 0.25,
+                                  ml: 0.25,
+                                  color: 'inherit',
+                                  opacity: isTouch ? 0.6 : 0,
+                                  transition: 'opacity 0.15s',
+                                  '&:hover': { opacity: 1 },
+                                }}
+                              >
+                                <DeleteIcon sx={{ fontSize: 16 }} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Stack>
                       </Stack>
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', mt: 0.25 }}>
                         {m.message}
                       </Typography>
-                      {(mine || canModerate) && (
-                        <Tooltip title="Sterge mesajul">
-                          <IconButton
-                            className="msg-del"
-                            size="small"
-                            onClick={() =>
-                              deleteMessage({ periodId, messageId: m.id })
-                                .unwrap()
-                                .catch(() => notifyError('Mesajul nu a putut fi sters'))
-                            }
-                            sx={{
-                              position: 'absolute',
-                              top: -10,
-                              [mine ? 'left' : 'right']: -10,
-                              opacity: { xs: 1, md: 0 },
-                              transition: 'opacity 0.15s',
-                              bgcolor: 'background.paper',
-                              boxShadow: 1,
-                              width: 24,
-                              height: 24,
-                              '&:hover': { bgcolor: 'background.paper', color: 'error.main' },
-                            }}
-                          >
-                            <DeleteIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
-                        </Tooltip>
-                      )}
                     </Box>
                   </Box>
                 );
@@ -171,16 +176,18 @@ const HolidayChat = ({
             multiline
             maxRows={4}
             size="small"
-            placeholder="Scrie un mesaj... (Enter trimite, Shift+Enter rand nou)"
+            placeholder={isTouch ? 'Scrie un mesaj...' : 'Scrie un mesaj... (Enter trimite, Shift+Enter rand nou)'}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              // Pe telefon Enter face rand nou; trimiterea se face cu butonul
+              if (e.key === 'Enter' && !e.shiftKey && !isTouch) {
                 e.preventDefault();
                 send();
               }
             }}
-            inputProps={{ maxLength: 2000 }}
+            inputProps={{ maxLength: 2000, enterKeyHint: 'send' }}
+            sx={{ '& .MuiInputBase-input': { fontSize: 16 } }}
           />
           <IconButton
             color="primary"

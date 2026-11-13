@@ -36,6 +36,7 @@ const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
   [NotificationType.CONTROL_SESIZARE_RESOLVED]: '/control-sesizari',
   [NotificationType.LEAVE_OVERLAP_WARNING]: '/leave-requests',
   [NotificationType.DAILY_DIGEST]: '/notifications',
+  [NotificationType.HOLIDAY_CHAT_MESSAGE]: '/sarbatori',
 };
 
 /**
@@ -67,6 +68,8 @@ const EMAIL_EXCLUDED_TYPES = new Set<NotificationType>([
   NotificationType.DAILY_REPORT_MISSING,
   NotificationType.GPS_STATUS_ALERT,
   NotificationType.TIME_ENTRY_MISMATCH,
+  // Chat sarbatori: doar in-app + push, fara email (ar fi prea multe)
+  NotificationType.HOLIDAY_CHAT_MESSAGE,
 ]);
 
 @Injectable()

@@ -20,6 +20,8 @@ import { SchedulesService } from '../schedules/schedules.service';
 import { LeaveRequestsService } from '../leave-requests/leave-requests.service';
 import { orthodoxEaster } from '../control-notes/utils/romanian-holidays';
 import { DISPECERAT_DEPARTMENT_NAME } from '../parking/constants/parking.constants';
+import { NotificationsService } from '../notifications/notifications.service';
+import { Notification, NotificationType } from '../notifications/entities/notification.entity';
 
 const MANAGEMENT_ROLES: string[] = [UserRole.MANAGER, UserRole.ADMIN, UserRole.MASTER_ADMIN];
 const DEFAULT_WORK_POSITION_ID = '00000000-0000-0000-0000-000000000001'; // Dispecerat
@@ -89,6 +91,9 @@ export class HolidayPreferencesService {
     private readonly assignmentRepo: Repository<ScheduleAssignment>,
     private readonly schedulesService: SchedulesService,
     private readonly leaveRequestsService: LeaveRequestsService,
+    private readonly notificationsService: NotificationsService,
+    @InjectRepository(Notification)
+    private readonly notificationRepo: Repository<Notification>,
   ) {}
 
   // ============== ACCES ==============
@@ -277,6 +282,18 @@ export class HolidayPreferencesService {
   async listMessages(periodId: string, requester: { id: string; role: string }) {
     await this.assertCanView(requester);
     await this.getPeriodOrFail(periodId);
+    // Cine deschide discutia a "citit" notificarile de chat pentru aceasta perioada
+    await this.notificationRepo
+      .createQueryBuilder()
+      .update(Notification)
+      .set({ isRead: true, readAt: () => 'CURRENT_TIMESTAMP' } as any)
+      .where('user_id = :userId AND type = :type AND is_read = false', {
+        userId: requester.id,
+        type: NotificationType.HOLIDAY_CHAT_MESSAGE,
+      })
+      .andWhere("data->>'periodId' = :periodId", { periodId })
+      .execute()
+      .catch((err) => this.logger.warn(`Mark chat notifications read failed: ${err?.message}`));
     const messages = await this.messageRepo.find({
       where: { periodId },
       relations: ['user'],
@@ -302,7 +319,55 @@ export class HolidayPreferencesService {
     await this.messageRepo.save(
       this.messageRepo.create({ periodId, userId: me.id, message: clean }),
     );
+    const period = await this.getPeriodOrFail(periodId);
+    this.notifyChatMessage(period, me, clean).catch((err) =>
+      this.logger.warn(`Holiday chat notification failed: ${err?.message}`),
+    );
     return this.listMessages(periodId, requester);
+  }
+
+  /**
+   * Notifica (in-app + push, fara email) dispecerii si managerii Dispeceratului despre
+   * un mesaj nou. Anti-spam: fiecare primeste cel mult O notificare necitita pe perioada;
+   * urmatoarea vine abia dupa ce a deschis discutia (care marcheaza notificarea citita).
+   */
+  private async notifyChatMessage(period: HolidayPeriod, author: User, text: string) {
+    const dept = await this.getDispeceratDepartment();
+    if (!dept) return;
+    const recipients = await this.userRepo.find({
+      where: [
+        { departmentId: dept.id, isActive: true, role: UserRole.USER },
+        { departmentId: dept.id, isActive: true, role: UserRole.MANAGER },
+        ...(dept.managerId ? [{ id: dept.managerId, isActive: true }] : []),
+      ],
+      select: ['id'],
+    });
+    const ids = [...new Set(recipients.map((r) => r.id))].filter((id) => id !== author.id);
+    if (ids.length === 0) return;
+
+    const alreadyUnread = await this.notificationRepo
+      .createQueryBuilder('n')
+      .select('n.userId', 'userId')
+      .where('n.userId IN (:...ids)', { ids })
+      .andWhere('n.type = :type', { type: NotificationType.HOLIDAY_CHAT_MESSAGE })
+      .andWhere('n.isRead = false')
+      .andWhere("n.data->>'periodId' = :periodId", { periodId: period.id })
+      .getRawMany();
+    const skip = new Set(alreadyUnread.map((r) => r.userId));
+    const targets = ids.filter((id) => !skip.has(id));
+    if (targets.length === 0) return;
+
+    const preview = text.length > 120 ? `${text.slice(0, 117)}...` : text;
+    await this.notificationsService.createMany(
+      targets.map((userId) => ({
+        userId,
+        type: NotificationType.HOLIDAY_CHAT_MESSAGE,
+        title: `Mesaj nou - ${period.name}`,
+        message: `${author.fullName}: ${preview}`,
+        data: { periodId: period.id, url: '/sarbatori' },
+        skipEmail: true,
+      })),
+    );
   }
 
   /** Autorul isi poate sterge mesajul; managerul/adminul pot sterge orice mesaj. */

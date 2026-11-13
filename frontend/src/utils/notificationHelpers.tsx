@@ -20,6 +20,7 @@ import {
   GpsFixed as GpsIcon,
   Timer as TimerIcon,
   Summarize as DigestIcon,
+  Forum as HolidayChatIcon,
 } from '@mui/icons-material';
 import type { Notification, NotificationType } from '../store/api/notifications.api';
 import { isAdminOrAbove } from './roleHelpers';
@@ -94,6 +95,8 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
       return <GpsIcon color="error" fontSize={fontSize} />;
     case 'DAILY_DIGEST':
       return <DigestIcon color="primary" fontSize={fontSize} />;
+    case 'HOLIDAY_CHAT_MESSAGE':
+      return <HolidayChatIcon color="primary" fontSize={fontSize} />;
     case 'DAILY_REPORT_SUBMITTED':
       return <DailyReportIcon color="info" fontSize={fontSize} />;
     case 'DAILY_REPORT_COMMENTED':
@@ -196,6 +199,10 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     // Rezumat zilnic 08:00 — deschide lista completa de notificari
     case 'DAILY_DIGEST':
       return { path: '/notifications' };
+
+    // Mesaj nou in chat-ul de sarbatori -> deschide perioada respectiva
+    case 'HOLIDAY_CHAT_MESSAGE':
+      return { path: '/sarbatori', state: { periodId: data?.periodId, openChat: true } };
 
     // Employee absent
     case 'EMPLOYEE_ABSENT':

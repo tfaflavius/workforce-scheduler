@@ -63,6 +63,8 @@ export enum NotificationType {
   CONTROL_SESIZARE_RESOLVED = 'CONTROL_SESIZARE_RESOLVED',
   // Rezumatul zilnic de la 08:00 (toate problemele deschise intr-o singura notificare)
   DAILY_DIGEST = 'DAILY_DIGEST',
+  // Mesaj nou in chat-ul de sarbatori (Dispecerat)
+  HOLIDAY_CHAT_MESSAGE = 'HOLIDAY_CHAT_MESSAGE',
 }
 
 @Entity('notifications')

@@ -1,4 +1,5 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -130,29 +131,33 @@ const DayEditor = ({
           alignItems={{ xs: 'stretch', sm: 'center' }}
           justifyContent="space-between"
         >
-          <Box sx={{ minWidth: 150 }}>
+          <Stack direction={{ xs: 'row', sm: 'column' }} spacing={{ xs: 1, sm: 0 }} alignItems={{ xs: 'baseline', sm: 'flex-start' }} sx={{ minWidth: 150 }}>
             <Typography fontWeight={600}>{label}</Typography>
             {holiday && (
               <Typography variant="caption" color="text.secondary">
                 {holiday}
               </Typography>
             )}
-          </Box>
+          </Stack>
           <ToggleButtonGroup
             exclusive
             size="small"
             disabled={disabled}
             value={value[date] ?? null}
             onChange={(_, v: HolidayChoice | null) => onChange(date, v)}
-            sx={{ flexWrap: 'wrap' }}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
           >
             {CHOICES.map((c) => (
               <ToggleButton
                 key={c.value}
                 value={c.value}
                 sx={{
-                  px: 1.5,
-                  minWidth: 72,
+                  flex: { xs: 1, sm: 'initial' },
+                  px: { xs: 0.5, sm: 1.5 },
+                  minWidth: { xs: 0, sm: 72 },
+                  minHeight: 40,
+                  fontSize: { xs: '0.8rem', sm: '0.8125rem' },
+                  textTransform: 'none',
                   '&.Mui-selected, &.Mui-selected:hover': {
                     bgcolor: alpha(c.color, 0.16),
                     color: c.color,
@@ -178,7 +183,11 @@ const HolidayPreferencesPage = () => {
   const dispatch = useAppDispatch();
 
   const { data: periods = [], isLoading: loadingPeriods } = useGetHolidayPeriodsQuery();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const location = useLocation();
+  const navState = location.state as { periodId?: string; openChat?: boolean } | null;
+  const [selectedId, setSelectedId] = useState<string | null>(navState?.periodId || null);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const [pendingChatScroll, setPendingChatScroll] = useState(!!navState?.openChat);
   useEffect(() => {
     if (!selectedId && periods.length > 0) {
       const today = new Date().toISOString().slice(0, 10);
@@ -191,6 +200,18 @@ const HolidayPreferencesPage = () => {
     skip: !selectedId,
     pollingInterval: 30000,
   });
+
+  // Venit dintr-o notificare de chat: deruleaza la discutie dupa ce se incarca perioada
+  useEffect(() => {
+    if (pendingChatScroll && data) {
+      const t = setTimeout(() => {
+        chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setPendingChatScroll(false);
+        window.history.replaceState({}, document.title);
+      }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [pendingChatScroll, data]);
 
   const [savePrefs, { isLoading: saving }] = useSaveHolidayPreferencesMutation();
   const [updatePeriod, { isLoading: updatingPeriod }] = useUpdateHolidayPeriodMutation();
@@ -351,12 +372,14 @@ const HolidayPreferencesPage = () => {
               {isDispatcher && (
                 <Card>
                   <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                      <Typography variant="h6" fontWeight={700}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                      <Typography variant="h6" fontWeight={700} sx={{ fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
                         Preferintele mele
                       </Typography>
                       <Button
                         variant="contained"
+                        size={isMobile ? 'small' : 'medium'}
+                        sx={{ flexShrink: 0 }}
                         startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <SaveIcon />}
                         disabled={locked || saving || !myDirty}
                         onClick={async () => {
@@ -383,6 +406,13 @@ const HolidayPreferencesPage = () => {
                 </Card>
               )}
 
+              {/* Pe telefon discutia vine imediat dupa propriile alegeri (sumarul e lung) */}
+              {isMobile && (
+                <Box ref={chatRef} sx={{ scrollMarginTop: 80 }}>
+                <HolidayChat periodId={data.period.id} currentUserId={data.currentUserId} canModerate={data.canManage} />
+              </Box>
+              )}
+
               {/* Sumar pe zile */}
               <Box>
                 <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5 }}>
@@ -397,14 +427,14 @@ const HolidayPreferencesPage = () => {
                   }}
                 >
                   {daySummary.map((d) => (
-                    <Paper key={d.date} variant="outlined" sx={{ p: 2, borderRadius: 3 }}>
+                    <Paper key={d.date} variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 3 }}>
                       <Typography fontWeight={700}>{d.label}</Typography>
                       {d.holiday && (
                         <Typography variant="caption" color="text.secondary">
                           {d.holiday}
                         </Typography>
                       )}
-                      <Stack spacing={1} sx={{ mt: 1.5 }}>
+                      <Stack spacing={{ xs: 0.75, sm: 1 }} sx={{ mt: { xs: 1, sm: 1.5 } }}>
                         {CHOICES.map((c) => (
                           <Box key={c.value}>
                             <Stack direction="row" spacing={1} alignItems="center">
@@ -431,8 +461,12 @@ const HolidayPreferencesPage = () => {
                 </Box>
               </Box>
 
-              {/* Chat-ul perioadei */}
-              <HolidayChat periodId={data.period.id} currentUserId={data.currentUserId} canModerate={data.canManage} />
+              {/* Chat-ul perioadei (pe desktop dupa sumar) */}
+              {!isMobile && (
+                <Box ref={chatRef} sx={{ scrollMarginTop: 80 }}>
+                <HolidayChat periodId={data.period.id} currentUserId={data.currentUserId} canModerate={data.canManage} />
+              </Box>
+              )}
 
               {/* Tabel complet (desktop) */}
               {!isMobile && (
@@ -517,6 +551,7 @@ const HolidayPreferencesPage = () => {
                       <TextField
                         type="date"
                         size="small"
+                        fullWidth={isMobile}
                         label="De la"
                         InputLabelProps={{ shrink: true }}
                         value={periodDates.startDate}
@@ -525,6 +560,7 @@ const HolidayPreferencesPage = () => {
                       <TextField
                         type="date"
                         size="small"
+                        fullWidth={isMobile}
                         label="Pana la"
                         InputLabelProps={{ shrink: true }}
                         value={periodDates.endDate}
@@ -548,6 +584,11 @@ const HolidayPreferencesPage = () => {
                         Salveaza datele
                       </Button>
                     </Stack>
+                    {isMobile && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Modifica preferintele unui dispecer:
+                      </Typography>
+                    )}
                     {isMobile && (
                       <Stack direction="row" flexWrap="wrap" useFlexGap spacing={1} sx={{ mb: 2 }}>
                         {data.users.map((u) => (
