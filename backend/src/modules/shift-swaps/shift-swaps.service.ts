@@ -1,3 +1,4 @@
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 import {
   Injectable,
   NotFoundException,
@@ -1077,7 +1078,11 @@ export class ShiftSwapsService {
       where: { role: UserRole.MANAGER, isActive: true },
     });
 
+    // Managerii cu departamente alocate primesc doar daca schimbul ii priveste
+    const swapDeptIds = [requester?.departmentId, approvedResponder?.departmentId];
     for (const manager of managers) {
+      const scope = managerDeptScope(manager);
+      if (scope && !swapDeptIds.some((d) => inManagerScope(scope, d))) continue;
       await this.notificationsService.create({
         userId: manager.id,
         type: 'SHIFT_SWAP_APPROVED' as any,

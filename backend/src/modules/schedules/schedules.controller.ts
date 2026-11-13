@@ -1,3 +1,4 @@
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 import {
   Controller,
   Get,
@@ -76,8 +77,16 @@ export class SchedulesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.schedulesService.findOne(id);
+  async findOne(@Param('id') id: string, @Request() req) {
+    const schedule = await this.schedulesService.findOne(id);
+    // Managerul cu departamente alocate vede doar asignarile din departamentele lui
+    const scope = managerDeptScope(req.user);
+    if (scope) {
+      schedule.assignments = (schedule.assignments || []).filter((a) =>
+        inManagerScope(scope, a.user?.departmentId),
+      );
+    }
+    return schedule;
   }
 
   @Get(':id/validate')
@@ -123,7 +132,7 @@ export class SchedulesController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  remove(@Param('id') id: string) {
-    return this.schedulesService.delete(id);
+  remove(@Param('id') id: string, @Request() req) {
+    return this.schedulesService.delete(id, req.user.id);
   }
 }

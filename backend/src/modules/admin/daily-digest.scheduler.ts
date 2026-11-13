@@ -19,6 +19,7 @@ import { TimeTrackingService } from '../time-tracking/time-tracking.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { EmailService } from '../../common/email/email.service';
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 import {
   DISPECERAT_DEPARTMENT_NAME,
   MAINTENANCE_DEPARTMENT_NAME,
@@ -171,14 +172,30 @@ export class DailyDigestScheduler {
 
     // Admin + Manager: tot
     if (adminsAndManagers.length > 0) {
-      const managementSections = [
+      const gpsEntries = await this.collectGpsEntries(gpsDays);
+      const commonSections = [
         issuesSection(activeIssues, 'Probleme parcari nerezolvate'),
         damagesSection(activeDamages),
         await this.collectRequestsSection(),
-        await this.collectApprovalsSection(),
-        await this.collectGpsSection(gpsDays),
       ];
-      for (const u of adminsAndManagers) add(u, managementSections);
+      const managementSections = [
+        ...commonSections,
+        await this.collectApprovalsSection(),
+        this.gpsSection(gpsEntries),
+      ];
+      for (const u of adminsAndManagers) {
+        // Managerii cu departamente alocate: aprobari + GPS doar din departamentele lor
+        const scope = managerDeptScope(u);
+        if (!scope) {
+          add(u, managementSections);
+          continue;
+        }
+        add(u, [
+          ...commonSections,
+          await this.collectApprovalsSection(scope),
+          this.gpsSection(gpsEntries.filter((e) => inManagerScope(scope, e.departmentId))),
+        ]);
+      }
     }
 
     // Dispecerat: toate problemele + prejudiciile
@@ -292,10 +309,14 @@ export class DailyDigestScheduler {
     }
   }
 
-  private async collectApprovalsSection(): Promise<DigestSection | null> {
+  private async collectApprovalsSection(scope?: string[] | null): Promise<DigestSection | null> {
     try {
       const [leaves, swaps, edits] = await Promise.all([
-        this.leaveRequestRepository.count({ where: { status: 'PENDING' } }),
+        this.leaveRequestRepository.count({
+          where: scope
+            ? { status: 'PENDING', user: { departmentId: In(scope) } }
+            : { status: 'PENDING' },
+        }),
         this.shiftSwapRepository.count({ where: { status: ShiftSwapStatus.AWAITING_ADMIN } }),
         this.editRequestRepository.count({ where: { status: 'PENDING' } }),
       ]);
@@ -312,9 +333,10 @@ export class DailyDigestScheduler {
   }
 
   /** Toate problemele GPS / pontaj din zilele lucratoare trecute (doar admin + manager). */
-  private async collectGpsSection(days: Date[]): Promise<DigestSection | null> {
-    const lines: string[] = [];
-    let problemCount = 0;
+  private async collectGpsEntries(
+    days: Date[],
+  ): Promise<Array<{ departmentId: string | null; line: string }>> {
+    const entries: Array<{ departmentId: string | null; line: string }> = [];
     for (const day of days) {
       try {
         const report = await this.timeTrackingService.getDailyGpsReport(day);
@@ -342,15 +364,25 @@ export class DailyDigestScheduler {
             problems.push(`sub 8h (${hours}h)`);
           }
           if (problems.length > 0) {
-            problemCount++;
-            lines.push(`${report.date} - ${emp.name}: ${[...new Set(problems)].join('; ')}`);
+            entries.push({
+              departmentId: emp.departmentId,
+              line: `${report.date} - ${emp.name}: ${[...new Set(problems)].join('; ')}`,
+            });
           }
         }
       } catch (err) {
         this.logger.error(`[Rezumat] Eroare GPS: ${err?.message}`);
       }
     }
-    if (lines.length === 0) return null;
-    return this.section('GPS & pontaj', `${problemCount} situatii`, lines);
+    return entries;
+  }
+
+  private gpsSection(entries: Array<{ line: string }>): DigestSection | null {
+    if (entries.length === 0) return null;
+    return this.section(
+      'GPS & pontaj',
+      `${entries.length} situatii`,
+      entries.map((e) => e.line),
+    );
   }
 }

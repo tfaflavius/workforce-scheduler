@@ -8,6 +8,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { PushNotificationService } from '../notifications/push-notification.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { EmailService } from '../../common/email/email.service';
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 
 @Injectable()
 export class DailyReportsScheduler {
@@ -99,56 +100,55 @@ export class DailyReportsScheduler {
     const missingNames = missingUsers.map((u) => u.fullName).join(', ');
     this.logger.log(`Utilizatori fara raport zilnic (${missingUsers.length}): ${missingNames}`);
 
-    // Construieste lista scurta de nume pt mesaj
-    const shortList =
-      missingUsers.length <= 3
-        ? missingUsers.map((u) => u.fullName).join(', ')
-        : `${missingUsers
-            .slice(0, 3)
-            .map((u) => u.fullName)
-            .join(', ')} si alti ${missingUsers.length - 3}`;
-
-    const message = `${missingUsers.length} utilizator(i) nu au trimis raportul zilnic: ${shortList}.`;
+    // Lista scurta de nume pt mesaj
+    const buildMessage = (list: User[]) => {
+      const shortList =
+        list.length <= 3
+          ? list.map((u) => u.fullName).join(', ')
+          : `${list
+              .slice(0, 3)
+              .map((u) => u.fullName)
+              .join(', ')} si alti ${list.length - 3}`;
+      return `${list.length} utilizator(i) nu au trimis raportul zilnic: ${shortList}.`;
+    };
 
     // Adminii primesc raportul de la 20:00 (cine a trimis / cine nu) — nu mai sunt
-    // notificati si aici. Managerii raman notificati ca inainte.
+    // notificati si aici. Managerii raman notificati; cei cu departamente alocate
+    // vad doar oamenii din departamentele lor.
     const managers = await this.userRepository.find({
       where: { role: UserRole.MANAGER, isActive: true },
     });
 
     const notifications: any[] = [];
-    const pushUserIds: string[] = [];
-
-    // Notifica managerii
     for (const manager of managers) {
-      if (pushUserIds.includes(manager.id)) continue;
+      const scope = managerDeptScope(manager);
+      const list = missingUsers.filter((u) => inManagerScope(scope, u.departmentId));
+      if (list.length === 0) continue;
       notifications.push({
         userId: manager.id,
         type: NotificationType.DAILY_REPORT_MISSING,
         title: 'Rapoarte zilnice lipsa',
-        message,
+        message: buildMessage(list),
         data: {
           date: today,
-          missingCount: missingUsers.length,
-          missingUserIds: missingUsers.map((u) => u.id),
+          missingCount: list.length,
+          missingUserIds: list.map((u) => u.id),
         },
-        skipPush: true, // Push sent separately below with custom message
+        skipPush: true, // Push trimis separat mai jos
       });
-      pushUserIds.push(manager.id);
     }
 
     if (notifications.length > 0) {
       await this.notificationsService.createMany(notifications);
-    }
-
-    if (pushUserIds.length > 0) {
-      await this.pushNotificationService.sendToUsers(
-        pushUserIds,
-        'Rapoarte zilnice lipsa',
-        `${missingUsers.length} utilizator(i) nu au trimis raportul zilnic.`,
-        { type: 'DAILY_REPORT_MISSING', date: today },
-        NotificationType.DAILY_REPORT_MISSING,
-      );
+      for (const n of notifications) {
+        await this.pushNotificationService.sendToUsers(
+          [n.userId],
+          'Rapoarte zilnice lipsa',
+          `${n.data.missingCount} utilizator(i) nu au trimis raportul zilnic.`,
+          { type: 'DAILY_REPORT_MISSING', date: today },
+          NotificationType.DAILY_REPORT_MISSING,
+        );
+      }
     }
 
     // Notifica si userii insisi ca nu au trimis raportul

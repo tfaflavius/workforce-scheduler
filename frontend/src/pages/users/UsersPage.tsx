@@ -133,6 +133,10 @@ const UsersPage: React.FC = () => {
 
   const pendingUsersCount = allUsers?.filter(u => !u.isActive).length || 0;
   const { data: departments } = useGetDepartmentsQuery();
+  const managerScopeLabel = (ids?: string[] | null) =>
+    ids && ids.length > 0
+      ? ids.map((id) => departments?.find((d) => d.id === id)?.name || '?').join(', ')
+      : 'Toate departamentele';
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateUser, { isLoading: isUpdating }] = useUpdateUserMutation();
   const [toggleStatus] = useToggleUserStatusMutation();
@@ -637,6 +641,14 @@ const UsersPage: React.FC = () => {
                                   size="small"
                                   sx={{ fontWeight: 600, fontSize: '0.75rem' }}
                                 />
+                                {user.role === 'MANAGER' && (
+                                  <Chip
+                                    label={managerScopeLabel(user.managerDepartmentIds)}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ fontSize: '0.75rem', maxWidth: '100%' }}
+                                  />
+                                )}
                                 <UserStatusChip isActive={user.isActive} />
                               </Stack>
                             </Box>
@@ -778,6 +790,18 @@ const UsersPage: React.FC = () => {
                                 size="small"
                                 sx={{ fontWeight: 600 }}
                               />
+                              {user.role === 'MANAGER' && (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  display="block"
+                                  sx={{ mt: 0.5, maxWidth: 180 }}
+                                  noWrap
+                                  title={managerScopeLabel(user.managerDepartmentIds)}
+                                >
+                                  {managerScopeLabel(user.managerDepartmentIds)}
+                                </Typography>
+                              )}
                             </TableCell>
                             <TableCell>
                               {user.department ? user.department.name : '-'}
@@ -908,6 +932,7 @@ const UsersPage: React.FC = () => {
                 departmentId: editUser.departmentId || '',
                 hrVisibleDepartmentIds: editUser.hrVisibleDepartmentIds || [],
                 hrOnlyDispPosition: editUser.hrOnlyDispPosition || false,
+                managerDepartmentIds: editUser.managerDepartmentIds || null,
               } : undefined}
               onSubmit={handleEditSubmit}
               onCancel={() => {

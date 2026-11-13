@@ -21,6 +21,7 @@ import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.en
 import { Department } from '../departments/entities/department.entity';
 import { EmailService } from '../../common/email/email.service';
 import { AuditService } from '../audit/audit.service';
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 
 // Default days per leave type
 const DEFAULT_LEAVE_DAYS: Record<LeaveType, number> = {
@@ -234,6 +235,7 @@ export class LeaveRequestsService {
   async getAllRequests(
     status?: LeaveRequestStatus,
     pagination?: { page: number; limit: number },
+    scope?: string[] | null,
   ): Promise<{
     data: LeaveRequest[];
     meta?: { page: number; limit: number; total: number; totalPages: number };
@@ -241,6 +243,10 @@ export class LeaveRequestsService {
     const where: any = {};
     if (status) {
       where.status = status;
+    }
+    // Manager cu departamente alocate: doar cererile din departamentele lui
+    if (scope && scope.length > 0) {
+      where.user = { departmentId: In(scope) };
     }
 
     if (pagination) {
@@ -358,8 +364,44 @@ export class LeaveRequestsService {
     return overlaps;
   }
 
+  /** Managerii cu departamente alocate pot gestiona doar cererile din departamentele lor. */
+  private async assertManagerScope(actorId: string, request: LeaveRequest): Promise<void> {
+    const actor = await this.userRepository.findOne({ where: { id: actorId } });
+    const scope = managerDeptScope(actor);
+    if (!scope) return;
+    const deptId =
+      request.user?.departmentId ??
+      (await this.userRepository.findOne({ where: { id: request.userId } }))?.departmentId;
+    if (!inManagerScope(scope, deptId)) {
+      throw new ForbiddenException('Nu ai acces la cererile din acest departament');
+    }
+  }
+
+  /**
+   * Managerii care trebuie anuntati pentru un departament: managerul setat pe departament
+   * plus managerii care au acel departament alocat explicit.
+   */
+  private async managerIdsForDepartment(
+    departmentId: string,
+    excludeUserId?: string,
+  ): Promise<string[]> {
+    const ids = new Set<string>();
+    const dept = await this.departmentRepository.findOne({ where: { id: departmentId } });
+    if (dept?.managerId) ids.add(dept.managerId);
+    const managers = await this.userRepository.find({
+      where: { role: UserRole.MANAGER, isActive: true },
+    });
+    for (const m of managers) {
+      const scope = managerDeptScope(m);
+      if (scope && scope.includes(departmentId)) ids.add(m.id);
+    }
+    if (excludeUserId) ids.delete(excludeUserId);
+    return [...ids];
+  }
+
   async respond(id: string, adminId: string, dto: RespondLeaveRequestDto): Promise<LeaveRequest> {
     const request = await this.findOne(id);
+    await this.assertManagerScope(adminId, request);
 
     if (request.status !== 'PENDING') {
       throw new BadRequestException('Aceasta cerere a fost deja procesata');
@@ -495,6 +537,7 @@ export class LeaveRequestsService {
     dto: AdminEditLeaveRequestDto,
   ): Promise<LeaveRequest> {
     const request = await this.findOne(id);
+    await this.assertManagerScope(adminId, request);
     const wasApproved = request.status === 'APPROVED';
 
     const newStartDate = dto.startDate ? new Date(dto.startDate) : new Date(request.startDate);
@@ -616,6 +659,7 @@ export class LeaveRequestsService {
 
   async adminDelete(id: string, adminId: string): Promise<void> {
     const request = await this.findOne(id);
+    await this.assertManagerScope(adminId, request);
 
     const userId = request.userId;
     const leaveType = request.leaveType;
@@ -968,29 +1012,31 @@ export class LeaveRequestsService {
 
     const department = await this.departmentRepository.findOne({
       where: { id: request.user.departmentId },
-      relations: ['manager'],
     });
-
-    if (!department?.managerId || department.managerId === request.userId) return;
+    if (!department) return;
+    const managerIds = await this.managerIdsForDepartment(department.id, request.userId);
+    if (managerIds.length === 0) return;
 
     const startDate = new Date(request.startDate).toLocaleDateString('ro-RO');
     const endDate = new Date(request.endDate).toLocaleDateString('ro-RO');
 
-    await this.notificationsService.create({
-      userId: department.managerId,
-      type: NotificationType.LEAVE_REQUEST_APPROVED,
-      title: 'Concediu Aprobat in Departament',
-      message: `${request.user.fullName} din departamentul ${department.name} are ${LEAVE_TYPE_LABELS[request.leaveType]} aprobat pentru ${startDate} - ${endDate}`,
-      data: {
-        leaveRequestId: request.id,
-        userId: request.userId,
-        userName: request.user.fullName,
-        leaveType: request.leaveType,
-        startDate: request.startDate,
-        endDate: request.endDate,
-        departmentName: department.name,
-      },
-    });
+    for (const managerId of managerIds) {
+      await this.notificationsService.create({
+        userId: managerId,
+        type: NotificationType.LEAVE_REQUEST_APPROVED,
+        title: 'Concediu Aprobat in Departament',
+        message: `${request.user.fullName} din departamentul ${department.name} are ${LEAVE_TYPE_LABELS[request.leaveType]} aprobat pentru ${startDate} - ${endDate}`,
+        data: {
+          leaveRequestId: request.id,
+          userId: request.userId,
+          userName: request.user.fullName,
+          leaveType: request.leaveType,
+          startDate: request.startDate,
+          endDate: request.endDate,
+          departmentName: department.name,
+        },
+      });
+    }
   }
 
   private async notifyAboutCancellation(
@@ -1039,12 +1085,10 @@ export class LeaveRequestsService {
 
     // Managerul departamentului: trebuie sa refaca programul pentru acea perioada
     if (user?.departmentId) {
-      const department = await this.departmentRepository.findOne({
-        where: { id: user.departmentId },
-      });
-      if (department?.managerId && department.managerId !== request.userId) {
+      const managerIds = await this.managerIdsForDepartment(user.departmentId, request.userId);
+      for (const managerId of managerIds) {
         await this.notificationsService.create({
-          userId: department.managerId,
+          userId: managerId,
           type: NotificationType.LEAVE_REQUEST_REJECTED,
           title: 'Concediu Anulat in Departament',
           message: `Concediul (${label}) lui ${user.fullName} pentru ${startDate} - ${endDate} a fost anulat. Verifica programul pentru acea perioada.${reason ? ` Motiv: ${reason}` : ''}`,

@@ -1,3 +1,4 @@
+import { managerDeptScope } from '../../common/utils/manager-scope';
 import {
   BadRequestException,
   ForbiddenException,
@@ -227,13 +228,15 @@ export class HolidayPreferencesService {
     const me = await this.loadUser(requester.id);
     const groups = await this.getGroups();
     if (this.isManagement(me)) {
-      const own = this.groupKeyForDepartment(me.department);
-      const group =
-        groups.find((g) => g.key === requestedKey) ||
-        groups.find((g) => g.key === own) ||
-        groups[0];
-      if (!group) throw new NotFoundException('Nu exista departamente cu angajati');
-      return { me, group, groups };
+      // Managerul cu departamente alocate vede doar grupurile departamentelor lui
+      const scope = managerDeptScope(me);
+      const visible = scope
+        ? groups.filter((g) => g.departmentIds.some((d) => scope.includes(d)))
+        : groups;
+      if (scope && visible.length === 0) {
+        throw new ForbiddenException('Nu ai departamente cu angajati alocate');
+      }
+      return this.pickManagementGroup(me, visible, requestedKey);
     }
     const key = this.groupKeyForDepartment(me.department);
     const group = groups.find((g) => g.key === key);
@@ -241,6 +244,14 @@ export class HolidayPreferencesService {
       throw new ForbiddenException('Modulul de sarbatori necesita un departament');
     }
     return { me, group, groups: [group] };
+  }
+
+  private pickManagementGroup(me: User, groups: HolidayGroup[], requestedKey?: string) {
+    const own = this.groupKeyForDepartment(me.department);
+    const group =
+      groups.find((g) => g.key === requestedKey) || groups.find((g) => g.key === own) || groups[0];
+    if (!group) throw new NotFoundException('Nu exista departamente cu angajati');
+    return { me, group, groups };
   }
 
   private async groupUsers(group: HolidayGroup) {
@@ -369,6 +380,10 @@ export class HolidayPreferencesService {
     if (!target || !group || target.role !== UserRole.USER) {
       throw new BadRequestException('Utilizatorul nu face parte dintr-un departament cu sarbatori');
     }
+    const scope = managerDeptScope(me);
+    if (scope && !group.departmentIds.some((d) => scope.includes(d))) {
+      throw new ForbiddenException('Nu ai acces la acest departament');
+    }
 
     if (!manage) {
       if (targetUserId !== me.id) {
@@ -480,6 +495,11 @@ export class HolidayPreferencesService {
   ) {
     const depts = await this.departmentRepo.find({ where: { id: In(group.departmentIds) } });
     const managerIds = depts.map((d) => d.managerId).filter(Boolean);
+    // + managerii care au alocat explicit unul dintre departamentele grupului
+    const scopedManagers = (
+      await this.userRepo.find({ where: { role: UserRole.MANAGER, isActive: true } })
+    ).filter((m) => (managerDeptScope(m) || []).some((d) => group.departmentIds.includes(d)));
+    for (const m of scopedManagers) managerIds.push(m.id);
     const recipients = await this.userRepo.find({
       where: [
         { departmentId: In(group.departmentIds), isActive: true, role: UserRole.USER },

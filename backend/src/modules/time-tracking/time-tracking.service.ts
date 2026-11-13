@@ -1,3 +1,4 @@
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, In } from 'typeorm';
@@ -253,19 +254,21 @@ export class TimeTrackingService {
         return;
       }
 
-      const notifications = adminsAndManagers.map((admin) => ({
-        userId: admin.id,
-        type: NotificationType.TIME_ENTRY_MISMATCH,
-        title: 'Nepotrivire ore pontaj',
-        message: `${userName} a lucrat ${actualHours}h, dar programul prevedea ${expectedHours}h.`,
-        data: {
-          employeeId: userId,
-          employeeName: userName,
-          expectedHours,
-          actualHours,
-          actualMinutes,
-        },
-      }));
+      const notifications = adminsAndManagers
+        .filter((r) => inManagerScope(managerDeptScope(r), user?.departmentId))
+        .map((admin) => ({
+          userId: admin.id,
+          type: NotificationType.TIME_ENTRY_MISMATCH,
+          title: 'Nepotrivire ore pontaj',
+          message: `${userName} a lucrat ${actualHours}h, dar programul prevedea ${expectedHours}h.`,
+          data: {
+            employeeId: userId,
+            employeeName: userName,
+            expectedHours,
+            actualHours,
+            actualMinutes,
+          },
+        }));
 
       await this.notificationsService.createMany(notifications);
       this.logger.log(`Sent mismatch notifications to ${adminsAndManagers.length} admins/managers`);
@@ -993,19 +996,21 @@ export class TimeTrackingService {
         });
 
         if (admins.length > 0) {
-          const notifications = admins.map((admin) => ({
-            userId: admin.id,
-            type: NotificationType.GPS_STATUS_ALERT,
-            title: 'Tura oprita automat - lipsa GPS',
-            message: `${employeeName}: ${reason}`,
-            data: {
-              employeeId: entry.userId,
-              employeeName,
-              timeEntryId: entry.id,
-              autoStopped: true,
-            },
-            skipPush: true, // GPS push handled separately below
-          }));
+          const notifications = admins
+            .filter((r) => inManagerScope(managerDeptScope(r), entry.user?.departmentId))
+            .map((admin) => ({
+              userId: admin.id,
+              type: NotificationType.GPS_STATUS_ALERT,
+              title: 'Tura oprita automat - lipsa GPS',
+              message: `${employeeName}: ${reason}`,
+              data: {
+                employeeId: entry.userId,
+                employeeName,
+                timeEntryId: entry.id,
+                autoStopped: true,
+              },
+              skipPush: true, // GPS push handled separately below
+            }));
 
           await this.notificationsService.createMany(notifications);
         }
@@ -1100,20 +1105,22 @@ export class TimeTrackingService {
         });
 
         if (admins.length > 0) {
-          const notifications = admins.map((admin) => ({
-            userId: admin.id,
-            type: NotificationType.GPS_STATUS_ALERT,
-            title: 'Verificare GPS esuata',
-            message: alertMessage,
-            data: {
-              employeeId: entry.userId,
-              employeeName,
-              timeEntryId: entry.id,
-              autoStopped: false,
-              minutesWithoutGps: minutesWithout,
-            },
-            skipPush: true, // GPS alerts - push disabled by default
-          }));
+          const notifications = admins
+            .filter((r) => inManagerScope(managerDeptScope(r), entry.user?.departmentId))
+            .map((admin) => ({
+              userId: admin.id,
+              type: NotificationType.GPS_STATUS_ALERT,
+              title: 'Verificare GPS esuata',
+              message: alertMessage,
+              data: {
+                employeeId: entry.userId,
+                employeeName,
+                timeEntryId: entry.id,
+                autoStopped: false,
+                minutesWithoutGps: minutesWithout,
+              },
+              skipPush: true, // GPS alerts - push disabled by default
+            }));
 
           await this.notificationsService.createMany(notifications);
           alertCount++;
@@ -1267,6 +1274,7 @@ export class TimeTrackingService {
     const employees: Array<{
       name: string;
       department: string;
+      departmentId: string | null;
       totalDurationMinutes: number;
       totalLocations: number;
       hasGpsProblems: boolean;
@@ -1404,6 +1412,7 @@ export class TimeTrackingService {
       employees.push({
         name: employeeName,
         department,
+        departmentId: firstEntry.user?.departmentId || null,
         totalDurationMinutes: totalDuration,
         totalLocations: totalLocs,
         hasGpsProblems: hasProblems,
@@ -1633,30 +1642,43 @@ export class TimeTrackingService {
       return 0;
     }
 
-    const under8h: string[] = [];
-    const gpsProblems: string[] = [];
-    for (const emp of report.employees) {
-      const hours = Math.round((emp.totalDurationMinutes / 60) * 100) / 100;
-      if (emp.totalDurationMinutes < this.STANDARD_WORK_MINUTES - this.UNDER_8H_TOLERANCE_MIN) {
-        under8h.push(`${emp.name} (${hours}h)`);
+    const buildDigest = (emps: typeof report.employees, useSummary = false) => {
+      const under8h: string[] = [];
+      const gpsProblems: string[] = [];
+      for (const emp of emps) {
+        const hours = Math.round((emp.totalDurationMinutes / 60) * 100) / 100;
+        if (emp.totalDurationMinutes < this.STANDARD_WORK_MINUTES - this.UNDER_8H_TOLERANCE_MIN) {
+          under8h.push(`${emp.name} (${hours}h)`);
+        }
+        if (emp.hasGpsProblems) {
+          gpsProblems.push(emp.name);
+        }
       }
-      if (emp.hasGpsProblems) {
-        gpsProblems.push(emp.name);
+      const autoStopped = useSummary
+        ? report.summary.autoStoppedShifts
+        : emps.reduce((n, e) => n + e.shifts.filter((sh) => sh.stoppedBySystem).length, 0);
+      const totalShifts = useSummary
+        ? report.summary.totalShifts
+        : emps.reduce((n, e) => n + e.shifts.length, 0);
+      const lines: string[] = [];
+      lines.push(
+        `Angajati: ${useSummary ? report.summary.totalEmployees : emps.length} | Ture: ${totalShifts}`,
+      );
+      lines.push(
+        gpsProblems.length > 0
+          ? `Probleme GPS: ${gpsProblems.length} (${gpsProblems.join(', ')})`
+          : 'Probleme GPS: niciuna',
+      );
+      if (autoStopped > 0) {
+        lines.push(`Ture inchise automat: ${autoStopped}`);
       }
-    }
+      lines.push(under8h.length > 0 ? `Sub 8h: ${under8h.join(', ')}` : 'Sub 8h: niciun angajat');
+      return { message: lines.join('\n'), under8h, gpsProblems };
+    };
 
-    const lines: string[] = [];
-    lines.push(`Angajati: ${report.summary.totalEmployees} | Ture: ${report.summary.totalShifts}`);
-    lines.push(
-      gpsProblems.length > 0
-        ? `Probleme GPS: ${gpsProblems.length} (${gpsProblems.join(', ')})`
-        : 'Probleme GPS: niciuna',
-    );
-    if (report.summary.autoStoppedShifts > 0) {
-      lines.push(`Ture inchise automat: ${report.summary.autoStoppedShifts}`);
-    }
-    lines.push(under8h.length > 0 ? `Sub 8h: ${under8h.join(', ')}` : 'Sub 8h: niciun angajat');
-    const message = lines.join('\n');
+    const full = buildDigest(report.employees, true);
+    const under8h = full.under8h;
+    const gpsProblems = full.gpsProblems;
 
     const recipients = await this.userRepository.find({
       where: [
@@ -1667,19 +1689,30 @@ export class TimeTrackingService {
     });
     if (recipients.length === 0) return 0;
 
-    const notifications = recipients.map((r) => ({
-      userId: r.id,
-      type: NotificationType.GPS_STATUS_ALERT,
-      title: `Raport zilnic GPS & pontaj — ${report.date}`,
-      message,
-      data: {
-        reportDate: report.date,
-        summary: report.summary,
-        under8h,
-        gpsProblems,
-        dailyDigest: true,
-      },
-    }));
+    // Managerii cu departamente alocate primesc doar angajatii din departamentele lor
+    const notifications: any[] = [];
+    for (const r of recipients) {
+      const scope = managerDeptScope(r);
+      const emps = scope
+        ? report.employees.filter((e) => inManagerScope(scope, e.departmentId))
+        : report.employees;
+      if (emps.length === 0) continue;
+      const d = scope ? buildDigest(emps) : full;
+      notifications.push({
+        userId: r.id,
+        type: NotificationType.GPS_STATUS_ALERT,
+        title: `Raport zilnic GPS & pontaj — ${report.date}`,
+        message: d.message,
+        data: {
+          reportDate: report.date,
+          summary: report.summary,
+          under8h: d.under8h,
+          gpsProblems: d.gpsProblems,
+          dailyDigest: true,
+        },
+      });
+    }
+    if (notifications.length === 0) return 0;
     await this.notificationsService.createMany(notifications);
     this.logger.log(
       `[Raport 16:00] Trimis la ${recipients.length} admini/manageri (${under8h.length} sub 8h, ${gpsProblems.length} probleme GPS)`,

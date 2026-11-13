@@ -165,7 +165,14 @@ const BulkSchedulePage: React.FC = () => {
 
   // Filtram angajatii si managerii, sortam dupa departament
   const eligibleUsers = useMemo(() => {
-    const filtered = users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
+    // Managerul cu departamente alocate vede doar oamenii din departamentele lui
+    const scope = currentUser?.role === 'MANAGER' && currentUser.managerDepartmentIds?.length
+      ? currentUser.managerDepartmentIds
+      : null;
+    const filtered = users.filter(u =>
+      (u.role === 'USER' || u.role === 'MANAGER') &&
+      (!scope || (!!u.departmentId && scope.includes(u.departmentId))),
+    );
     const departmentOrder: Record<string, number> = {
       [DISPECERAT_DEPARTMENT_NAME]: 1,
       [CONTROL_DEPARTMENT_NAME]: 2,
@@ -178,7 +185,7 @@ const BulkSchedulePage: React.FC = () => {
       return a.fullName.localeCompare(b.fullName);
     });
     return filtered;
-  }, [users]);
+  }, [users, currentUser]);
 
   // Grupeaza utilizatorii pe departamente
   const usersByDepartment = useMemo(() => {

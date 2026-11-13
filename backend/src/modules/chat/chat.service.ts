@@ -1,3 +1,4 @@
+import { managerDeptScope } from '../../common/utils/manager-scope';
 import {
   BadRequestException,
   ForbiddenException,
@@ -111,7 +112,9 @@ export class ChatService {
 
   /** Departamentele ale caror grupuri le vede omul. */
   private async visibleDepartmentIds(me: User): Promise<string[]> {
-    if (this.isAdmin(me)) {
+    // Managerul pe "toate departamentele" vede toate grupurile, ca adminul
+    const allDepts = this.isAdmin(me) || (me.role === UserRole.MANAGER && !managerDeptScope(me));
+    if (allDepts) {
       const rows = await this.deptRepo
         .createQueryBuilder('d')
         .innerJoin(User, 'u', 'u.departmentId = d.id AND u.isActive = true')
@@ -124,6 +127,7 @@ export class ChatService {
     if (me.departmentId) ids.add(me.departmentId);
     const managed = await this.deptRepo.find({ where: { managerId: me.id }, select: ['id'] });
     managed.forEach((d) => ids.add(d.id));
+    (managerDeptScope(me) || []).forEach((d) => ids.add(d));
     return [...ids];
   }
 
@@ -164,6 +168,13 @@ export class ChatService {
       });
       ids = users.map((u) => u.id);
       if (dept?.managerId) ids.push(dept.managerId);
+      // + managerii care au departamentul alocat explicit
+      const managers = await this.userRepo.find({
+        where: { role: UserRole.MANAGER, isActive: true },
+      });
+      for (const m of managers) {
+        if ((managerDeptScope(m) || []).includes(conv.departmentId!)) ids.push(m.id);
+      }
     } else {
       const users = await this.userRepo.find({ where: { isActive: true }, select: ['id'] });
       ids = users.map((u) => u.id);

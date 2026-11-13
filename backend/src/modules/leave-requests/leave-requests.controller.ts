@@ -1,3 +1,4 @@
+import { managerDeptScope } from '../../common/utils/manager-scope';
 import {
   Controller,
   Get,
@@ -53,6 +54,7 @@ export class LeaveRequestsController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   getAllRequests(
+    @Request() req,
     @Query('status') status?: LeaveRequestStatus,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -64,7 +66,7 @@ export class LeaveRequestsController {
             limit: Math.min(500, Math.max(1, parseInt(limit || '100', 10) || 100)),
           }
         : undefined;
-    return this.leaveRequestsService.getAllRequests(status, pagination);
+    return this.leaveRequestsService.getAllRequests(status, pagination, managerDeptScope(req.user));
   }
 
   @Get('user/:userId/balance')

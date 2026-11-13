@@ -1,3 +1,4 @@
+import { managerDeptScope } from '../../common/utils/manager-scope';
 import {
   Controller,
   Get,
@@ -52,8 +53,16 @@ export class DailyReportsController {
   @Get('missing')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  getMissingReports(@Query('startDate') startDate: string, @Query('endDate') endDate: string) {
-    return this.dailyReportsService.getMissingReportsForDateRange(startDate, endDate);
+  getMissingReports(
+    @Request() req,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.dailyReportsService.getMissingReportsForDateRange(
+      startDate,
+      endDate,
+      managerDeptScope(req.user),
+    );
   }
 
   // Statistici proprii (user): cate rapoarte a trimis / nu a trimis luna curenta
@@ -68,7 +77,10 @@ export class DailyReportsController {
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   getUserStats(@Request() req) {
     const excludeUserId = isAdminOrAbove(req.user.role) ? undefined : req.user.id;
-    return this.dailyReportsService.getMonthlyReportStatsPerUser(excludeUserId);
+    return this.dailyReportsService.getMonthlyReportStatsPerUser(
+      excludeUserId,
+      managerDeptScope(req.user),
+    );
   }
 
   @Get()
@@ -85,7 +97,11 @@ export class DailyReportsController {
       return this.dailyReportsService.findAllForAdmin(startDate, endDate, userId, departmentId);
     }
     // Manager - rapoarte filtrate (Dispecerat + Control(DISP) + Achizitii)
-    return this.dailyReportsService.findAllForManager(startDate, endDate);
+    return this.dailyReportsService.findAllForManager(
+      startDate,
+      endDate,
+      managerDeptScope(req.user),
+    );
   }
 
   @Patch(':id')

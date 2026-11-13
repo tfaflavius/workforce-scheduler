@@ -14,6 +14,7 @@ import {
   ListItemText,
   FormControlLabel,
   Switch,
+  Box,
 } from '@mui/material';
 import { useGetDepartmentsQuery } from '../../store/api/departmentsApi';
 import type { CreateUserRequest, UpdateUserRequest } from '../../store/api/users.api';
@@ -51,6 +52,8 @@ export const UserForm: React.FC<UserFormProps> = ({
     birthDate: initialData?.birthDate || '',
     hrVisibleDepartmentIds: initialData?.hrVisibleDepartmentIds || [],
     hrOnlyDispPosition: initialData?.hrOnlyDispPosition || false,
+    managerDepartmentIds: (initialData?.managerDepartmentIds || []) as string[],
+    managerAllDepartments: !(initialData?.managerDepartmentIds?.length),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -67,6 +70,8 @@ export const UserForm: React.FC<UserFormProps> = ({
         birthDate: initialData.birthDate || '',
         hrVisibleDepartmentIds: initialData.hrVisibleDepartmentIds || [],
         hrOnlyDispPosition: initialData.hrOnlyDispPosition || false,
+        managerDepartmentIds: initialData.managerDepartmentIds || [],
+        managerAllDepartments: !initialData.managerDepartmentIds?.length,
       });
     }
   }, [initialData]);
@@ -98,6 +103,14 @@ export const UserForm: React.FC<UserFormProps> = ({
       newErrors.role = 'Rolul este obligatoriu';
     }
 
+    if (
+      formData.role === 'MANAGER' &&
+      !formData.managerAllDepartments &&
+      formData.managerDepartmentIds.length === 0
+    ) {
+      newErrors.managerDepartmentIds = 'Alege cel putin un departament';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -114,7 +127,12 @@ export const UserForm: React.FC<UserFormProps> = ({
         return;
       }
       // Campurile HR se trimit separat, doar pentru rolul RESURSE_UMANE
-      if (key === 'hrVisibleDepartmentIds' || key === 'hrOnlyDispPosition') {
+      if (
+        key === 'hrVisibleDepartmentIds' ||
+        key === 'hrOnlyDispPosition' ||
+        key === 'managerDepartmentIds' ||
+        key === 'managerAllDepartments'
+      ) {
         return;
       }
       if (value !== '' && value !== null && value !== undefined) {
@@ -126,6 +144,13 @@ export const UserForm: React.FC<UserFormProps> = ({
     if (formData.role === 'RESURSE_UMANE') {
       cleanedData.hrVisibleDepartmentIds = formData.hrVisibleDepartmentIds;
       cleanedData.hrOnlyDispPosition = formData.hrOnlyDispPosition;
+    }
+
+    // Departamentele alocate managerului (null = toate departamentele)
+    if (formData.role === 'MANAGER') {
+      cleanedData.managerDepartmentIds = formData.managerAllDepartments
+        ? null
+        : formData.managerDepartmentIds;
     }
 
     onSubmit(cleanedData);
@@ -268,6 +293,65 @@ export const UserForm: React.FC<UserFormProps> = ({
               label="Doar turele de Dispecerat (pozitia DISP)"
             />
           </>
+        )}
+
+        {/* Departamentele pe care le gestioneaza managerul */}
+        {formData.role === 'MANAGER' &&
+          (currentUserRole === 'ADMIN' || currentUserRole === 'MASTER_ADMIN') && (
+          <Box
+            sx={{
+              border: 1,
+              borderColor: errors.managerDepartmentIds ? 'error.main' : 'divider',
+              borderRadius: 2,
+              p: 1.5,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.managerAllDepartments}
+                  onChange={(e) => {
+                    setFormData({ ...formData, managerAllDepartments: e.target.checked });
+                    if (errors.managerDepartmentIds) setErrors({ ...errors, managerDepartmentIds: '' });
+                  }}
+                />
+              }
+              label="Gestioneaza toate departamentele"
+            />
+            {!formData.managerAllDepartments && (
+              <FormControl fullWidth error={!!errors.managerDepartmentIds}>
+                <InputLabel>Departamente alocate</InputLabel>
+                <Select
+                  multiple
+                  value={formData.managerDepartmentIds}
+                  onChange={(e) => {
+                    setFormData({ ...formData, managerDepartmentIds: e.target.value as string[] });
+                    if (errors.managerDepartmentIds) setErrors({ ...errors, managerDepartmentIds: '' });
+                  }}
+                  input={<OutlinedInput label="Departamente alocate" />}
+                  renderValue={(selected) =>
+                    (selected as string[])
+                      .map((id) => departments?.find((d) => d.id === id)?.name || id)
+                      .join(', ')
+                  }
+                >
+                  {departments?.map((dept) => (
+                    <MenuItem key={dept.id} value={dept.id}>
+                      <Checkbox checked={formData.managerDepartmentIds.includes(dept.id)} />
+                      <ListItemText primary={dept.name} />
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {errors.managerDepartmentIds ||
+                    'Programe, concedii, rapoarte, pontaj, notificari si sarbatori doar pentru aceste departamente'}
+                </FormHelperText>
+              </FormControl>
+            )}
+          </Box>
         )}
 
         <FormControl fullWidth error={!!errors.departmentId}>

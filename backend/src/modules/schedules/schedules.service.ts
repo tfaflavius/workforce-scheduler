@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, DataSource } from 'typeorm';
 import { WorkSchedule } from './entities/work-schedule.entity';
@@ -30,7 +37,30 @@ export class SchedulesService {
     private readonly auditService: AuditService,
   ) {}
 
+  /**
+   * Managerii cu departamente alocate pot crea/modifica/sterge program doar pentru
+   * userii din departamentele lor. Managerii pe "toate departamentele" si adminii nu
+   * sunt restrictionati.
+   */
+  private async assertManagerCanEditUsers(actorId: string | undefined, userIds: string[]) {
+    if (!actorId || userIds.length === 0) return;
+    const actor = await this.userRepository.findOne({ where: { id: actorId } });
+    const scope = managerDeptScope(actor);
+    if (!scope) return;
+    const users = await this.userRepository.find({ where: { id: In([...new Set(userIds)]) } });
+    const outside = users.filter((u) => !inManagerScope(scope, u.departmentId));
+    if (outside.length > 0) {
+      throw new ForbiddenException(
+        `Nu ai acces la departamentul pentru: ${outside.map((u) => u.fullName).join(', ')}`,
+      );
+    }
+  }
+
   async create(userId: string, createScheduleDto: CreateScheduleDto): Promise<WorkSchedule> {
+    await this.assertManagerCanEditUsers(
+      userId,
+      (createScheduleDto.assignments || []).map((a) => a.userId),
+    );
     // Parse monthYear (YYYY-MM) into separate month and year
     const [year, month] = createScheduleDto.monthYear.split('-').map(Number);
 
@@ -297,6 +327,13 @@ export class SchedulesService {
       }
     }
 
+    // MANAGER cu departamente alocate: vede doar asignarile din departamentele lui
+    let managerScope: string[] | null = null;
+    if (filters?.userRole === 'MANAGER' && filters?.userId) {
+      const mgr = await this.userRepository.findOne({ where: { id: filters.userId } });
+      managerScope = managerDeptScope(mgr);
+    }
+
     // Safety cap: limit to 200 schedules max
     query.take(200);
 
@@ -320,6 +357,17 @@ export class SchedulesService {
             const dispOk = !hrOnlyDisp || a.workPosition?.shortName === 'DISP';
             return inDept && dispOk;
           });
+          return schedule;
+        })
+        .filter((schedule) => schedule.assignments.length > 0);
+    }
+
+    if (managerScope) {
+      return schedules
+        .map((schedule) => {
+          schedule.assignments = (schedule.assignments || []).filter(
+            (a) => !!a.user && inManagerScope(managerScope, a.user.departmentId),
+          );
           return schedule;
         })
         .filter((schedule) => schedule.assignments.length > 0);
@@ -355,6 +403,12 @@ export class SchedulesService {
     updaterUserId?: string,
   ): Promise<WorkSchedule> {
     const schedule = await this.findOne(id);
+    if (updateScheduleDto.assignments) {
+      await this.assertManagerCanEditUsers(
+        updaterUserId,
+        updateScheduleDto.assignments.map((a) => a.userId),
+      );
+    }
 
     // Userii efectiv modificati in acest update (folositi pentru notificari scoped +
     // decizia de "split" a statusului). Programul reincarcat/returnat poate fi altul
@@ -829,6 +883,10 @@ export class SchedulesService {
 
   async delete(id: string, userId?: string): Promise<void> {
     const schedule = await this.findOne(id);
+    await this.assertManagerCanEditUsers(
+      userId,
+      (schedule.assignments || []).map((a) => a.userId),
+    );
 
     if (schedule.status === 'APPROVED' || schedule.status === 'ACTIVE') {
       throw new BadRequestException('Nu se pot sterge programele aprobate sau active');

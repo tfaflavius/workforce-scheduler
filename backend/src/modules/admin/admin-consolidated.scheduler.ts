@@ -8,6 +8,7 @@ import { ParkingDamage } from '../parking/entities/parking-damage.entity';
 import { HandicapRequest } from '../parking/entities/handicap-request.entity';
 import { HandicapLegitimation } from '../parking/entities/handicap-legitimation.entity';
 import { RevolutionarLegitimation } from '../parking/entities/revolutionar-legitimation.entity';
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 import { EmailService } from '../../common/email/email.service';
 import { CashCollectionsService } from '../parking/cash-collections.service';
 import { ParkingIssuesService } from '../parking/parking-issues.service';
@@ -153,6 +154,11 @@ export class AdminConsolidatedScheduler {
     ]);
 
     // Send emails in parallel for better performance
+    // Managerii cu departamente alocate vad rapoartele zilnice doar din departamentele lor
+    const scoped = (recipient: User, rows: Array<{ departmentId: string | null }>) => {
+      const scope = managerDeptScope(recipient);
+      return scope ? rows.filter((r) => inManagerScope(scope, r.departmentId)) : rows;
+    };
     const results = await Promise.allSettled(
       recipients.map((recipient) =>
         this.emailService.sendConsolidatedDailyReport({
@@ -164,8 +170,8 @@ export class AdminConsolidatedScheduler {
           unresolvedItems: unresolvedData,
           handicapReport: handicapData,
           gpsReport: gpsData,
-          submittedDailyReports: missingReportsData.submitted,
-          missingDailyReports: missingReportsData.missing,
+          submittedDailyReports: scoped(recipient, missingReportsData.submitted) as any,
+          missingDailyReports: scoped(recipient, missingReportsData.missing) as any,
           pvDisplayReport: pvDisplayData,
           controlSesizariReport: controlSesizariData,
         }),
@@ -228,7 +234,10 @@ export class AdminConsolidatedScheduler {
       ]);
 
       // Calculate missing reports per day (sequential — each day depends on DB state)
-      const missingByDate = new Map<string, Array<{ userName: string; departmentName: string }>>();
+      const missingByDate = new Map<
+        string,
+        Array<{ userName: string; departmentName: string; departmentId: string | null }>
+      >();
       const current = new Date(monday);
       while (current <= friday) {
         const dateStr = current.toISOString().split('T')[0];
@@ -242,6 +251,7 @@ export class AdminConsolidatedScheduler {
                 missingUsers.map((u) => ({
                   userName: u.fullName,
                   departmentName: u.department?.name || 'Necunoscut',
+                  departmentId: u.departmentId || null,
                 })),
               );
             }
@@ -253,6 +263,28 @@ export class AdminConsolidatedScheduler {
       }
 
       const emailData = this.buildWeeklyEmailData(allReports, mondayStr, fridayStr, missingByDate);
+      // Managerii cu departamente alocate: rapoartele/lipsurile doar din departamentele lor
+      const weeklyDataFor = (recipient: User) => {
+        const scope = managerDeptScope(recipient);
+        if (!scope) return emailData;
+        const filteredMissing = new Map(
+          [...missingByDate.entries()]
+            .map(
+              ([d, users]) =>
+                [d, users.filter((u) => inManagerScope(scope, u.departmentId))] as [
+                  string,
+                  typeof users,
+                ],
+            )
+            .filter(([, users]) => users.length > 0),
+        );
+        return this.buildWeeklyEmailData(
+          allReports.filter((r) => inManagerScope(scope, r.user?.departmentId)),
+          mondayStr,
+          fridayStr,
+          filteredMissing,
+        );
+      };
 
       // Get active admins + managers
       const [admins, managers] = await Promise.all([
@@ -274,7 +306,7 @@ export class AdminConsolidatedScheduler {
       const results = await Promise.allSettled(
         recipients.map((recipient) =>
           this.emailService.sendConsolidatedWeeklyReport({
-            ...emailData,
+            ...weeklyDataFor(recipient),
             recipientEmail: recipient.email,
             recipientName: recipient.fullName,
             weeklyCash: weeklyCashData,
@@ -611,6 +643,7 @@ export class AdminConsolidatedScheduler {
       const toRow = (u: User) => ({
         userName: u.fullName,
         departmentName: u.department?.name || 'Necunoscut',
+        departmentId: u.departmentId || null,
       });
       return { submitted: submitted.map(toRow), missing: missing.map(toRow) };
     } catch (err) {

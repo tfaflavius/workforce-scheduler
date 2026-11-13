@@ -18,6 +18,7 @@ export interface User {
   lastLogin: string | null;
   hrVisibleDepartmentIds?: string[];
   hrOnlyDispPosition?: boolean;
+  managerDepartmentIds?: string[] | null;
   department?: {
     id: string;
     name: string;
@@ -33,6 +34,7 @@ export interface CreateUserRequest {
   departmentId?: string;
   hrVisibleDepartmentIds?: string[];
   hrOnlyDispPosition?: boolean;
+  managerDepartmentIds?: string[] | null;
 }
 
 export interface UpdateUserRequest {
@@ -45,6 +47,7 @@ export interface UpdateUserRequest {
   birthDate?: string;
   hrVisibleDepartmentIds?: string[];
   hrOnlyDispPosition?: boolean;
+  managerDepartmentIds?: string[] | null;
 }
 
 export interface ChangePasswordRequest {

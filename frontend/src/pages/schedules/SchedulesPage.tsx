@@ -209,8 +209,15 @@ const SchedulesPage: React.FC = () => {
 
   // Filter only employees and managers
   const eligibleUsers = useMemo(() => {
-    return users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
-  }, [users]);
+    // Managerul cu departamente alocate vede doar oamenii din departamentele lui
+    const scope = user?.role === 'MANAGER' && user.managerDepartmentIds?.length
+      ? user.managerDepartmentIds
+      : null;
+    return users.filter(u =>
+      (u.role === 'USER' || u.role === 'MANAGER') &&
+      (!scope || (!!u.departmentId && scope.includes(u.departmentId))),
+    );
+  }, [users, user]);
 
   // Extract unique department list
   const departments = useMemo(() => {

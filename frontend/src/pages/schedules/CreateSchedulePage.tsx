@@ -225,7 +225,14 @@ const CreateSchedulePage: React.FC = () => {
 
   // Filtram doar angajatii si managerii (nu adminii) si sortam dupa departament
   const eligibleUsers = useMemo(() => {
-    const filtered = users.filter(u => u.role === 'USER' || u.role === 'MANAGER');
+    // Managerul cu departamente alocate vede doar oamenii din departamentele lui
+    const scope = currentUser?.role === 'MANAGER' && currentUser.managerDepartmentIds?.length
+      ? currentUser.managerDepartmentIds
+      : null;
+    const filtered = users.filter(u =>
+      (u.role === 'USER' || u.role === 'MANAGER') &&
+      (!scope || (!!u.departmentId && scope.includes(u.departmentId))),
+    );
 
     // Sortare dupa departament: Dispecerat → Control → Intretinere Parcari
     const departmentOrder: Record<string, number> = {
@@ -251,7 +258,7 @@ const CreateSchedulePage: React.FC = () => {
     });
 
     return filtered;
-  }, [users]);
+  }, [users, currentUser]);
 
   // Obtine utilizatorul selectat
   const selectedUser = useMemo(() => {

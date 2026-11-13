@@ -19,6 +19,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   lastLogin: string | null;
+  managerDepartmentIds?: string[] | null;
 }
 
 export interface LoginRequest {

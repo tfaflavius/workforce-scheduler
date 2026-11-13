@@ -7,6 +7,7 @@ import { UpdateDailyReportDto } from './dto/update-daily-report.dto';
 import { AdminCommentDto } from './dto/admin-comment.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { isAdminOrAbove } from '../../common/utils/role-hierarchy';
+import { managerDeptScope, inManagerScope } from '../../common/utils/manager-scope';
 import { Department } from '../departments/entities/department.entity';
 import { ScheduleAssignment } from '../schedules/entities/schedule-assignment.entity';
 import { WorkPosition } from '../schedules/entities/work-position.entity';
@@ -197,7 +198,25 @@ export class DailyReportsService {
     return query.orderBy('report.date', 'DESC').addOrderBy('user.fullName', 'ASC').getMany();
   }
 
-  async findAllForManager(startDate?: string, endDate?: string): Promise<DailyReport[]> {
+  async findAllForManager(
+    startDate?: string,
+    endDate?: string,
+    scope?: string[] | null,
+  ): Promise<DailyReport[]> {
+    // Manager cu departamente alocate: vede rapoartele DOAR din departamentele lui
+    if (scope && scope.length > 0) {
+      const q = this.dailyReportRepository
+        .createQueryBuilder('report')
+        .leftJoinAndSelect('report.user', 'user')
+        .leftJoinAndSelect('user.department', 'department')
+        .leftJoinAndSelect('report.adminCommentedBy', 'commentedBy')
+        .where('report.status = :status', { status: DailyReportStatus.SUBMITTED })
+        .andWhere('user.departmentId IN (:...scope)', { scope });
+      if (startDate && endDate) {
+        q.andWhere('report.date BETWEEN :startDate AND :endDate', { startDate, endDate });
+      }
+      return q.orderBy('report.date', 'DESC').addOrderBy('user.fullName', 'ASC').getMany();
+    }
     // Gaseste departamentele Dispecerat, Control si Achizitii
     const dispeceratDept = await this.departmentRepository.findOne({
       where: { name: DISPECERAT_DEPARTMENT_NAME },
@@ -478,6 +497,7 @@ export class DailyReportsService {
   async getMissingReportsForDateRange(
     startDate: string,
     endDate: string,
+    scope?: string[] | null,
   ): Promise<
     Array<{
       date: string;
@@ -501,7 +521,9 @@ export class DailyReportsService {
 
     while (current <= end) {
       const dateStr = current.toISOString().split('T')[0];
-      const missingUsers = await this.getMissingReports(dateStr);
+      const missingUsers = (await this.getMissingReports(dateStr)).filter((u) =>
+        inManagerScope(scope ?? null, u.departmentId),
+      );
 
       if (missingUsers.length > 0) {
         result.push({
@@ -632,7 +654,10 @@ export class DailyReportsService {
    * cate NU a trimis fiecare user care trebuia sa raporteze. `excludeUserId` scoate un user
    * din lista (managerul nu se vede pe el insusi).
    */
-  async getMonthlyReportStatsPerUser(excludeUserId?: string): Promise<
+  async getMonthlyReportStatsPerUser(
+    excludeUserId?: string,
+    scope?: string[] | null,
+  ): Promise<
     Array<{
       userId: string;
       fullName: string;
@@ -684,6 +709,7 @@ export class DailyReportsService {
     for (const [uid, reqDays] of requiredByUser) {
       if (excludeUserId && uid === excludeUserId) continue;
       const u = userMap.get(uid)!;
+      if (!inManagerScope(scope ?? null, u.departmentId)) continue;
       const subDays = submittedByUser.get(uid) || new Set<string>();
       let submittedCount = 0;
       let missingCount = 0;
@@ -723,12 +749,17 @@ export class DailyReportsService {
 
       // 2. Notifica manageri pe baza regulilor
       const shouldNotifyManagers = await this.shouldNotifyManagers(user, report.date);
+      const allManagers = await this.userRepository.find({
+        where: { role: UserRole.MANAGER, isActive: true },
+      });
+      // Managerii cu departamente alocate primesc doar pentru departamentele lor;
+      // cei pe "toate departamentele" urmeaza regulile existente.
+      const managers = allManagers.filter((m) => {
+        const scope = managerDeptScope(m);
+        return scope ? inManagerScope(scope, user.departmentId) : shouldNotifyManagers;
+      });
 
-      if (shouldNotifyManagers) {
-        const managers = await this.userRepository.find({
-          where: { role: UserRole.MANAGER, isActive: true },
-        });
-
+      if (managers.length > 0) {
         for (const manager of managers) {
           if (manager.id === userId) continue;
           // Evita duplicate (daca managerul e si admin)

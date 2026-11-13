@@ -80,4 +80,14 @@ export class UpdateUserDto {
   @IsBoolean()
   @IsOptional()
   hrOnlyDispPosition?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Manager only: departamentele gestionate (null = toate departamentele)',
+    type: [String],
+    nullable: true,
+  })
+  @IsArray()
+  @IsUUID('all', { each: true })
+  @IsOptional()
+  managerDepartmentIds?: string[] | null;
 }

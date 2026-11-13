@@ -91,6 +91,14 @@ export class User {
   @Column({ name: 'hr_only_disp_position', type: 'boolean', default: false })
   hrOnlyDispPosition: boolean;
 
+  /**
+   * Doar pentru MANAGER: departamentele pe care le gestioneaza. NULL (sau gol) = toate
+   * departamentele (comportamentul initial). Limiteaza programele, concediile, schimburile
+   * de tura, rapoartele zilnice, pontajul/GPS, notificarile, rezumatul, Sarbatori si chat.
+   */
+  @Column({ name: 'manager_department_ids', type: 'jsonb', nullable: true, default: null })
+  managerDepartmentIds: string[] | null;
+
   /** Brute-force protection: failed login attempts counter */
   @Column({ name: 'failed_login_attempts', default: 0 })
   failedLoginAttempts: number;
