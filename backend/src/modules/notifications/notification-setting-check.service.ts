@@ -6,14 +6,7 @@ import { UserRole } from '../users/entities/user.entity';
 
 // Notification types that have push DISABLED by default (when no DB setting exists).
 // Admin can enable these via the Permisiuni page.
-const PUSH_DISABLED_BY_DEFAULT = new Set([
-  'GPS_STATUS_ALERT',
-  'TIME_ENTRY_MISMATCH',
-  'HANDICAP_REQUEST_ASSIGNED',
-  'HANDICAP_REQUEST_RESOLVED',
-  'LEGITIMATION_ASSIGNED',
-  'LEGITIMATION_RESOLVED',
-]);
+const PUSH_DISABLED_BY_DEFAULT = new Set(['GPS_STATUS_ALERT', 'TIME_ENTRY_MISMATCH']);
 
 @Injectable()
 export class NotificationSettingCheckService {

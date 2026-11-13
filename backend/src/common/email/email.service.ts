@@ -4228,6 +4228,49 @@ export class EmailService {
     );
   }
 
+  // ============== PROBLEME FINALIZATE — EMAIL DE SEARA (20:00) ==============
+
+  /** Un singur email seara cu toate problemele rezolvate azi despre care omul a fost notificat. */
+  async sendResolvedSummaryEmail(data: {
+    recipientEmail: string;
+    recipientName: string;
+    dateLabel: string;
+    sections: Array<{ title: string; items: string[] }>;
+  }): Promise<boolean> {
+    const total = data.sections.reduce((n, s) => n + s.items.length, 0);
+    const sectionsHtml = data.sections
+      .map(
+        (sec) => `
+          <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #2E7D32; border-radius: 4px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #2E7D32;">${this.escapeHtml(sec.title)} (${sec.items.length})</h3>
+            <ul style="margin: 0; padding-left: 20px; font-size: 14px;">${sec.items
+              .map((i) => `<li style="margin-bottom: 4px;">${this.escapeHtml(i)}</li>`)
+              .join('')}</ul>
+          </div>`,
+      )
+      .join('');
+    const content = `
+      <p>Buna ${this.escapeHtml(data.recipientName)},</p>
+      <p>Astazi au fost finalizate ${total} probleme despre care ai fost notificat in aplicatie:</p>
+      ${sectionsHtml}
+      <p style="margin-top: 30px;">
+        <a href="${this.appUrl}/notifications" style="display: inline-block; background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+          Deschide in aplicatie
+        </a>
+      </p>
+    `;
+    return this.sendEmail(
+      data.recipientEmail,
+      `Probleme finalizate azi (${total}) - ${data.dateLabel}`,
+      this.generateBaseTemplate(
+        'WorkSchedule',
+        `Probleme finalizate - ${this.escapeHtml(data.dateLabel)}`,
+        content,
+        '#43A047 0%, #2E7D32 100%',
+      ),
+    );
+  }
+
   // ============== REZUMAT ZILNIC 08:00 ==============
 
   /**

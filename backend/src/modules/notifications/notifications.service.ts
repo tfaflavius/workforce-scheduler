@@ -62,6 +62,16 @@ const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
  * - rapoartele zilnice raman exact cum erau;
  * - GPS / pontaj ajung doar in rezumatul zilnic de la 08:00 (admin + manager).
  */
+/** Problemele finalizate: un singur email seara la 20:00 (ResolvedSummaryScheduler). */
+export const RESOLVED_NOTIFICATION_TYPES: NotificationType[] = [
+  NotificationType.PARKING_ISSUE_RESOLVED,
+  NotificationType.PARKING_DAMAGE_RESOLVED,
+  NotificationType.HANDICAP_REQUEST_RESOLVED,
+  NotificationType.DOMICILIU_REQUEST_RESOLVED,
+  NotificationType.LEGITIMATION_RESOLVED,
+  NotificationType.CONTROL_SESIZARE_RESOLVED,
+];
+
 const EMAIL_EXCLUDED_TYPES = new Set<NotificationType>([
   NotificationType.SHIFT_SWAP_REQUEST,
   NotificationType.SHIFT_SWAP_RESPONSE,
@@ -89,6 +99,8 @@ const EMAIL_EXCLUDED_TYPES = new Set<NotificationType>([
   NotificationType.CHAT_MESSAGE,
   // Activitatea echipei: doar in-app + push (ar fi prea multe emailuri)
   NotificationType.TEAM_ACTIVITY,
+  // Problemele finalizate: in-app + push imediat, emailul vine centralizat la 20:00
+  ...RESOLVED_NOTIFICATION_TYPES,
 ]);
 
 @Injectable()
