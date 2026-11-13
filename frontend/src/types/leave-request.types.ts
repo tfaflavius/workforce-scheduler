@@ -1,6 +1,6 @@
 export type LeaveType = 'VACATION' | 'MEDICAL' | 'BIRTHDAY' | 'SPECIAL' | 'EXTRA_DAYS';
 
-export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
 
 export interface LeaveRequest {
   id: string;
@@ -77,4 +77,5 @@ export const LEAVE_STATUS_LABELS: Record<LeaveRequestStatus, string> = {
   PENDING: 'In Asteptare',
   APPROVED: 'Aprobat',
   REJECTED: 'Respins',
+  CANCELLED: 'Anulat',
 };

@@ -41,6 +41,7 @@ import {
   EventBusy as EventBusyIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  EventBusy as CancelLeaveIcon,
 } from '@mui/icons-material';
 import { GradientHeader, StatCard, EmptyState, TableSkeleton, FriendlyDialog } from '../../components/common';
 import {
@@ -49,7 +50,10 @@ import {
   useLazyCheckOverlapsQuery,
   useAdminEditLeaveRequestMutation,
   useAdminDeleteLeaveRequestMutation,
+  useAdminCancelLeaveRequestMutation,
 } from '../../store/api/leaveRequests.api';
+import { schedulesApi } from '../../store/api/schedulesApi';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import type {
   LeaveRequest,
   LeaveType,
@@ -139,6 +143,13 @@ export const AdminLeaveRequestsPage = () => {
   const [checkOverlaps] = useLazyCheckOverlapsQuery();
   const [adminEdit, { isLoading: editing }] = useAdminEditLeaveRequestMutation();
   const [adminDelete, { isLoading: deleting }] = useAdminDeleteLeaveRequestMutation();
+  const [adminCancel, { isLoading: cancelling }] = useAdminCancelLeaveRequestMutation();
+  const dispatch = useAppDispatch();
+  const { user: currentUser } = useAppSelector((state) => state.auth);
+  // Doar adminii pot anula un concediu deja aprobat
+  const canCancelApproved = currentUser?.role === 'ADMIN' || currentUser?.role === 'MASTER_ADMIN';
+  const [cancelRequest, setCancelRequest] = useState<LeaveRequest | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
 
   // Auto-switch to the correct tab, highlight, and open detail dialog from notification
   useEffect(() => {
@@ -147,7 +158,7 @@ export const AdminLeaveRequestsPage = () => {
       const request = allRequests.find((r) => r.id === highlightRequestId);
       if (request) {
         // Switch to the correct tab based on status
-        const tabIndex = request.status === 'PENDING' ? 0 : request.status === 'APPROVED' ? 1 : 2;
+        const tabIndex = request.status === 'PENDING' ? 0 : request.status === 'APPROVED' ? 1 : request.status === 'CANCELLED' ? 3 : 2;
         setTabValue(tabIndex);
         setHighlightedId(highlightRequestId);
 
@@ -179,6 +190,10 @@ export const AdminLeaveRequestsPage = () => {
   );
   const rejectedRequests = useMemo(
     () => allRequests.filter((r) => r.status === 'REJECTED'),
+    [allRequests]
+  );
+  const cancelledRequests = useMemo(
+    () => allRequests.filter((r) => r.status === 'CANCELLED'),
     [allRequests]
   );
 
@@ -301,6 +316,32 @@ export const AdminLeaveRequestsPage = () => {
     }
   };
 
+  // Cancel (anulare concediu aprobat) handlers
+  const handleOpenCancel = (request: LeaveRequest) => {
+    setCancelRequest(request);
+    setCancelReason('');
+  };
+
+  const handleCloseCancel = () => {
+    setCancelRequest(null);
+    setCancelReason('');
+  };
+
+  const handleSubmitCancel = async () => {
+    if (!cancelRequest) return;
+    try {
+      await adminCancel({ id: cancelRequest.id, reason: cancelReason.trim() || undefined }).unwrap();
+      // Concediul dispare din program -> reincarcam si programele
+      dispatch(schedulesApi.util.invalidateTags(['Schedule']));
+      notifySuccess('Concediul a fost anulat. Angajatul a fost anuntat, iar zilele au revenit in sold.');
+      handleCloseCancel();
+      setViewDialogOpen(false);
+    } catch (err: unknown) {
+      const msg = (err as { data?: { message?: string } })?.data?.message;
+      notifyError(msg || 'Eroare la anularea concediului');
+    }
+  };
+
   const getDisplayedRequests = () => {
     switch (tabValue) {
       case 0:
@@ -309,6 +350,8 @@ export const AdminLeaveRequestsPage = () => {
         return approvedRequests;
       case 2:
         return rejectedRequests;
+      case 3:
+        return cancelledRequests;
       default:
         return [];
     }
@@ -424,13 +467,23 @@ export const AdminLeaveRequestsPage = () => {
             </Stack>
           }
         />
+        <Tab
+          label={
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <span>Anulate</span>
+              {cancelledRequests.length > 0 && (
+                <Chip label={cancelledRequests.length} size="small" sx={{ height: 20, fontSize: '0.7rem' }} />
+              )}
+            </Stack>
+          }
+        />
       </Tabs>
 
       {/* Requests List */}
       {displayedRequests.length === 0 ? (
         <EmptyState
           icon={<EventBusyIcon sx={{ fontSize: 64, color: tabValue === 0 ? '#d97706' : tabValue === 1 ? '#059669' : '#dc2626' }} />}
-          title={tabValue === 0 ? 'Nicio cerere in asteptare' : tabValue === 1 ? 'Nicio cerere aprobata' : 'Nicio cerere respinsa'}
+          title={tabValue === 0 ? 'Nicio cerere in asteptare' : tabValue === 1 ? 'Nicio cerere aprobata' : tabValue === 3 ? 'Niciun concediu anulat' : 'Nicio cerere respinsa'}
           description={tabValue === 0 ? 'Nu ai cereri de concediu de procesat momentan.' : 'Nu exista cereri in aceasta categorie.'}
           illustration="noItems"
         />
@@ -550,6 +603,17 @@ export const AdminLeaveRequestsPage = () => {
                         size="small"
                       />
                     )}
+                    {canCancelApproved && request.status === 'APPROVED' && (
+                      <Tooltip title="Anuleaza concediul">
+                        <IconButton
+                          color="warning"
+                          onClick={(e) => { e.stopPropagation(); handleOpenCancel(request); }}
+                          size="small"
+                        >
+                          <CancelLeaveIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     <Tooltip title="Editeaza">
                       <IconButton
                         color="primary"
@@ -573,11 +637,11 @@ export const AdminLeaveRequestsPage = () => {
 
                 {request.adminMessage && (
                   <Alert
-                    severity={request.status === 'APPROVED' ? 'success' : 'error'}
+                    severity={request.status === 'APPROVED' ? 'success' : request.status === 'CANCELLED' ? 'warning' : 'error'}
                     sx={{ mt: 2 }}
                   >
                     <Typography variant="body2">
-                      <strong>Mesaj:</strong> {request.adminMessage}
+                      <strong>{request.status === 'CANCELLED' ? 'Motivul anularii:' : 'Mesaj:'}</strong> {request.adminMessage}
                     </Typography>
                   </Alert>
                 )}
@@ -597,6 +661,16 @@ export const AdminLeaveRequestsPage = () => {
         actions={
           <>
             <Button onClick={() => setViewDialogOpen(false)}>Inchide</Button>
+            {canCancelApproved && viewRequest?.status === 'APPROVED' && (
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={() => handleOpenCancel(viewRequest)}
+                startIcon={<CancelLeaveIcon />}
+              >
+                Anuleaza concediul
+              </Button>
+            )}
             {viewRequest?.status === 'PENDING' && (
               <>
                 <Button
@@ -662,9 +736,9 @@ export const AdminLeaveRequestsPage = () => {
               )}
             </Paper>
             {viewRequest.adminMessage && (
-              <Alert severity={viewRequest.status === 'APPROVED' ? 'success' : 'error'}>
+              <Alert severity={viewRequest.status === 'APPROVED' ? 'success' : viewRequest.status === 'CANCELLED' ? 'warning' : 'error'}>
                 <Typography variant="body2">
-                  <strong>Mesaj:</strong> {viewRequest.adminMessage}
+                  <strong>{viewRequest.status === 'CANCELLED' ? 'Motivul anularii:' : 'Mesaj:'}</strong> {viewRequest.adminMessage}
                 </Typography>
               </Alert>
             )}
@@ -892,6 +966,49 @@ export const AdminLeaveRequestsPage = () => {
               Aceasta cerere este <strong>aprobata</strong>. Stergerea va reversa automat zilele din balanta si va elimina concediul din programul de lucru.
             </Alert>
           )}
+        </Stack>
+      </FriendlyDialog>
+
+      {/* Cancel Approved Leave Dialog */}
+      <FriendlyDialog
+        open={!!cancelRequest}
+        onClose={handleCloseCancel}
+        icon={<CancelLeaveIcon />}
+        variant="warning"
+        title="Anuleaza Concediul Aprobat"
+        subtitle="Cererea ramane in istoric ca Anulata"
+        maxWidth="xs"
+        onConfirm={handleSubmitCancel}
+        confirmText="Anuleaza concediul"
+        confirmLoading={cancelling}
+      >
+        <Stack spacing={2}>
+          {cancelRequest && (
+            <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+              <Typography variant="body2">
+                <strong>Angajat:</strong> {cancelRequest.user?.fullName || 'N/A'}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Tip:</strong> {LEAVE_TYPE_LABELS[cancelRequest.leaveType]}
+              </Typography>
+              <Typography variant="body2">
+                <strong>Perioada:</strong> {formatDate(cancelRequest.startDate)} - {formatDate(cancelRequest.endDate)} ({calculateDays(cancelRequest.startDate, cancelRequest.endDate)} zile)
+              </Typography>
+            </Paper>
+          )}
+          <Alert severity="info">
+            Zilele revin in soldul angajatului, concediul dispare din program, iar angajatul si managerul departamentului sunt anuntati (notificare + email).
+          </Alert>
+          <TextField
+            label="Motivul anularii (recomandat)"
+            placeholder="Ex: avem nevoie de personal in perioada respectiva"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            multiline
+            minRows={2}
+            fullWidth
+            inputProps={{ maxLength: 1000 }}
+          />
         </Stack>
       </FriendlyDialog>
     </Box>

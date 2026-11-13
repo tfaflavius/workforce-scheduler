@@ -480,6 +480,7 @@ const ReportsPage: React.FC = () => {
     'PENDING': [255, 152, 0],   // Orange
     'APPROVED': [76, 175, 80],  // Green
     'REJECTED': [244, 67, 54],  // Red
+    'CANCELLED': [120, 120, 120], // Gri - aprobat apoi anulat
   };
 
   const swapStatusColorMap: Record<ShiftSwapStatus, [number, number, number]> = {

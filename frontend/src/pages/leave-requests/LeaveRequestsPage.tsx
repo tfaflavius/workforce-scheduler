@@ -552,7 +552,7 @@ export const LeaveRequestsPage = () => {
 
                 {request.adminMessage && (
                   <Alert
-                    severity={request.status === 'APPROVED' ? 'success' : 'error'}
+                    severity={request.status === 'APPROVED' ? 'success' : request.status === 'CANCELLED' ? 'warning' : 'error'}
                     sx={{ mt: 2 }}
                   >
                     <Typography variant="body2">

@@ -571,6 +571,49 @@ export class LeaveRequestsService {
     return this.findOne(id);
   }
 
+  /**
+   * Admin anuleaza o cerere de concediu DEJA APROBATA (ex: e nevoie de angajat in
+   * perioada respectiva). Spre deosebire de stergere, cererea ramane in istoric cu
+   * statusul CANCELLED si motivul anularii. Zilele revin in sold, concediul dispare
+   * din program, iar angajatul (si managerul departamentului) sunt anuntati.
+   */
+  async adminCancel(id: string, adminId: string, reason?: string): Promise<LeaveRequest> {
+    const request = await this.findOne(id);
+
+    if (request.status !== 'APPROVED') {
+      throw new BadRequestException('Doar cererile de concediu aprobate pot fi anulate');
+    }
+
+    const cleanReason = reason?.trim() || undefined;
+
+    await this.reverseApprovedLeaveRequest(request);
+
+    request.status = 'CANCELLED';
+    request.adminId = adminId;
+    request.adminMessage = cleanReason as any;
+    request.respondedAt = new Date();
+    await this.leaveRequestRepository.save(request);
+
+    try {
+      await this.notifyAboutCancellation(request, adminId, cleanReason);
+    } catch (err) {
+      this.logger.error(`Failed to notify about leave cancellation: ${err?.message}`);
+    }
+
+    this.auditService
+      .log({
+        userId: adminId,
+        action: 'UPDATE',
+        entity: 'LeaveRequest',
+        entityId: id,
+        description: `Anulata cerere concediu aprobata: ${request.leaveType} (${toISODateString(request.startDate)} - ${toISODateString(request.endDate)})${cleanReason ? ` - motiv: ${cleanReason}` : ''}`,
+        changes: { status: { old: 'APPROVED', new: 'CANCELLED' } },
+      })
+      .catch((err) => this.logger.warn(`Audit log failed: ${err.message}`));
+
+    return this.findOne(id);
+  }
+
   async adminDelete(id: string, adminId: string): Promise<void> {
     const request = await this.findOne(id);
 
@@ -717,36 +760,33 @@ export class LeaveRequestsService {
       .andWhere('year = :year', { year })
       .execute();
 
-    // 2. Delete/reset schedule assignments for the leave period
-    const startDate = new Date(request.startDate);
-    const endDate = new Date(request.endDate);
-    const current = new Date(startDate);
+    // 2. Scoate concediul din program pentru TOATE zilele perioadei (inclusiv weekend):
+    //  - rand creat doar pentru concediu (fara program)        -> sters
+    //  - tura "Concediu 12H/8H" pusa din editorul de program    -> stearsa (zi libera)
+    //  - tura normala suprascrisa la aprobare (isRestDay=true) -> refacuta (ora din tipul turei)
+    // Anterior se cautau doar zilele lucratoare cu isRestDay=true, iar tura refacuta ramanea
+    // fara orar (notes=null), deci nu mai aparea corect in program.
+    const startStr = toISODateString(request.startDate);
+    const endStr = toISODateString(request.endDate);
+    const assignments = await this.scheduleAssignmentRepository
+      .createQueryBuilder('sa')
+      .leftJoinAndSelect('sa.shiftType', 'st')
+      .where('sa.userId = :userId', { userId: request.userId })
+      .andWhere('sa.shiftDate BETWEEN :start AND :end', { start: startStr, end: endStr })
+      .andWhere("(sa.isRestDay = true OR sa.notes ILIKE 'Concediu%' OR st.name ILIKE '%concediu%')")
+      .getMany();
 
-    while (current <= endDate) {
-      const dayOfWeek = current.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        const assignment = await this.scheduleAssignmentRepository.findOne({
-          where: {
-            userId: request.userId,
-            shiftDate: current,
-            isRestDay: true,
-          },
-        });
-
-        if (assignment) {
-          if (!assignment.workScheduleId) {
-            // Created solely for leave → delete entirely
-            await this.scheduleAssignmentRepository.remove(assignment);
-          } else {
-            // Existing schedule assignment was overwritten → revert
-            assignment.isRestDay = false;
-            assignment.leaveType = null as any;
-            assignment.notes = null as any;
-            await this.scheduleAssignmentRepository.save(assignment);
-          }
-        }
+    for (const assignment of assignments) {
+      const isVacationShift = !!assignment.shiftType?.name?.toLowerCase().includes('concediu');
+      if (!assignment.workScheduleId || isVacationShift || !assignment.shiftType) {
+        await this.scheduleAssignmentRepository.remove(assignment);
+      } else {
+        const hhmm = (t?: string) => (t ? String(t).slice(0, 5) : '');
+        assignment.isRestDay = false;
+        assignment.leaveType = null as any;
+        assignment.notes = `${hhmm(assignment.shiftType.startTime)}-${hhmm(assignment.shiftType.endTime)}`;
+        await this.scheduleAssignmentRepository.save(assignment);
       }
-      current.setDate(current.getDate() + 1);
     }
   }
 
@@ -951,5 +991,73 @@ export class LeaveRequestsService {
         departmentName: department.name,
       },
     });
+  }
+
+  private async notifyAboutCancellation(
+    request: LeaveRequest,
+    adminId: string,
+    reason?: string,
+  ): Promise<void> {
+    const startDate = new Date(request.startDate).toLocaleDateString('ro-RO');
+    const endDate = new Date(request.endDate).toLocaleDateString('ro-RO');
+    const label = LEAVE_TYPE_LABELS[request.leaveType];
+    const admin = await this.userRepository.findOne({ where: { id: adminId } });
+    const message =
+      `Cererea ta de ${label} pentru ${startDate} - ${endDate}, aprobata anterior, a fost anulata` +
+      `${admin?.fullName ? ` de ${admin.fullName}` : ''}. Zilele au revenit in soldul tau, iar perioada ` +
+      `apare din nou in program ca zile de lucru/libere.${reason ? ` Motiv: ${reason}` : ''}`;
+
+    // Angajat: in-app + push (automat) + email
+    await this.notificationsService.create({
+      userId: request.userId,
+      type: NotificationType.LEAVE_REQUEST_REJECTED,
+      title: 'Concediu Anulat',
+      message,
+      data: {
+        leaveRequestId: request.id,
+        leaveType: request.leaveType,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        cancelled: true,
+        adminMessage: reason,
+      },
+    });
+
+    const user = await this.userRepository.findOne({
+      where: { id: request.userId },
+      relations: ['department'],
+    });
+    if (user?.email) {
+      await this.emailService.sendNotificationEmail({
+        recipientEmail: user.email,
+        recipientName: user.fullName,
+        title: `Concediu anulat: ${startDate} - ${endDate}`,
+        message,
+        path: '/leave-requests',
+      });
+    }
+
+    // Managerul departamentului: trebuie sa refaca programul pentru acea perioada
+    if (user?.departmentId) {
+      const department = await this.departmentRepository.findOne({
+        where: { id: user.departmentId },
+      });
+      if (department?.managerId && department.managerId !== request.userId) {
+        await this.notificationsService.create({
+          userId: department.managerId,
+          type: NotificationType.LEAVE_REQUEST_REJECTED,
+          title: 'Concediu Anulat in Departament',
+          message: `Concediul (${label}) lui ${user.fullName} pentru ${startDate} - ${endDate} a fost anulat. Verifica programul pentru acea perioada.${reason ? ` Motiv: ${reason}` : ''}`,
+          data: {
+            leaveRequestId: request.id,
+            userId: request.userId,
+            userName: user.fullName,
+            startDate: request.startDate,
+            endDate: request.endDate,
+            cancelled: true,
+          },
+        });
+      }
+    }
   }
 }

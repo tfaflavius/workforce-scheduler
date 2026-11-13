@@ -130,6 +130,16 @@ export const leaveRequestsApi = createApi({
       }),
       invalidatesTags: ['LeaveRequests', 'MyLeaveRequests', 'LeaveBalance'],
     }),
+
+    // Admin anuleaza un concediu deja aprobat (ramane in istoric ca CANCELLED)
+    adminCancelLeaveRequest: builder.mutation<LeaveRequest, { id: string; reason?: string }>({
+      query: ({ id, reason }) => ({
+        url: `/${id}/admin-cancel`,
+        method: 'PATCH',
+        body: { reason },
+      }),
+      invalidatesTags: ['LeaveRequests', 'MyLeaveRequests', 'LeaveBalance'],
+    }),
   }),
 });
 
@@ -147,4 +157,5 @@ export const {
   useGetApprovedLeavesByMonthQuery,
   useAdminEditLeaveRequestMutation,
   useAdminDeleteLeaveRequestMutation,
+  useAdminCancelLeaveRequestMutation,
 } = leaveRequestsApi;

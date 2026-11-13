@@ -12,7 +12,9 @@ import { User } from '../../users/entities/user.entity';
 
 export type LeaveType = 'VACATION' | 'MEDICAL' | 'BIRTHDAY' | 'SPECIAL' | 'EXTRA_DAYS';
 
-export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+// CANCELLED = aprobata initial, apoi anulata de admin (zilele revin in sold, concediul
+// dispare din program, cererea ramane in istoric cu motivul in adminMessage)
+export type LeaveRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
 
 @Entity('leave_requests')
 @Index('IDX_leave_user_status', ['userId', 'status'])
