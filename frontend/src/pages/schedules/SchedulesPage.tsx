@@ -50,6 +50,14 @@ import type { HighlightScheduleState } from '../../types/navigation.types';
 import type { CalendarDay } from './components/scheduleHelpers';
 import type { User } from '../../store/api/users.api';
 
+// Prioritatea statusului cand un user apare in mai multe programe din aceeasi luna
+const STATUS_PRIORITY: Record<string, number> = {
+  PENDING_APPROVAL: 4,
+  REJECTED: 3,
+  DRAFT: 2,
+  APPROVED: 1,
+};
+
 // Virtualized mobile card list — only renders visible cards
 const VirtualizedMobileCards = React.memo(({
   filteredUsers,
@@ -289,12 +297,22 @@ const SchedulesPage: React.FC = () => {
     schedules.forEach(schedule => {
       if (schedule.assignments) {
         schedule.assignments.forEach(assignment => {
-          if (!userAssignmentsMap[assignment.userId]) {
+          const existingEntry = userAssignmentsMap[assignment.userId];
+          if (!existingEntry) {
             userAssignmentsMap[assignment.userId] = {
               assignments: {},
               scheduleId: schedule.id,
               status: schedule.status,
             };
+          } else if (
+            // Daca userul are asignari in mai multe programe, afisam statusul "cel mai
+            // putin final" (Asteapta aprobare > Draft/Respins > Aprobat). Altfel o modificare
+            // trimisa spre aprobare aparea "Aprobat" din cauza unui program mai vechi.
+            STATUS_PRIORITY[schedule.status] > STATUS_PRIORITY[existingEntry.status || ''] ||
+            !existingEntry.status
+          ) {
+            existingEntry.status = schedule.status;
+            existingEntry.scheduleId = schedule.id;
           }
           // Normalize date to avoid timezone issues
           const normalizedDate = assignment.shiftDate.split('T')[0];

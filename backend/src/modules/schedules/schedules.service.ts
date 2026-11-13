@@ -445,10 +445,30 @@ export class SchedulesService {
             .andWhere('user_id = :userId', { userId: affectedUserId })
             .execute();
 
-          // Also delete from ANY other schedule for the same dates (UNIQUE: user_id + shift_date)
+          // Sterge TOATE asignarile userului din aceeasi luna, din ORICE program.
+          // Editorul (CreateSchedulePage / BulkSchedulePage) trimite intotdeauna luna
+          // completa a userului, deci tot ce nu e in DTO trebuie sa dispara.
+          // Anterior stergeam doar datele prezente in DTO: o zi pusa pe "liber" (absenta din
+          // DTO) ramanea cu tura veche daca acea tura statea in ALT program al lunii (ex.
+          // dupa un split anterior). Bug raportat: Lit Alexandru — duminica 15 nu devenea
+          // libera, iar userul aparea "Aprobat" in loc de "Asteapta aprobare".
+          const monthStart = `${schedule.year}-${String(schedule.month).padStart(2, '0')}-01`;
+          const monthEndDate = new Date(Date.UTC(schedule.year, schedule.month, 0));
+          const monthEnd = monthEndDate.toISOString().slice(0, 10);
+          await queryRunner.manager
+            .createQueryBuilder()
+            .delete()
+            .from('schedule_assignments')
+            .where('user_id = :userId', { userId: affectedUserId })
+            .andWhere('shift_date BETWEEN :monthStart AND :monthEnd', { monthStart, monthEnd })
+            .execute();
+
+          // Si datele din DTO din afara lunii programului (siguranta pentru UNIQUE
+          // user_id + shift_date)
           const userDates = updateScheduleDto.assignments
             .filter((a) => a.userId === affectedUserId)
-            .map((a) => new Date(a.shiftDate).toISOString().split('T')[0]);
+            .map((a) => new Date(a.shiftDate).toISOString().split('T')[0])
+            .filter((d) => d < monthStart || d > monthEnd);
 
           if (userDates.length > 0) {
             await queryRunner.manager
