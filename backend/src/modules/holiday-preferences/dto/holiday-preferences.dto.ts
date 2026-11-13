@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsNotEmpty,
   IsIn,
   IsOptional,
   IsString,
@@ -44,4 +45,11 @@ export class UpdateHolidayPeriodDto {
   @IsOptional()
   @IsIn(['OPEN', 'LOCKED'])
   status?: 'OPEN' | 'LOCKED';
+}
+
+export class PostHolidayMessageDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(2000)
+  message: string;
 }

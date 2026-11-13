@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 /**
  * Preferinte de sarbatori pentru Dispecerat (Craciun / Revelion / Paste):
  * perioade generate automat pe an + preferinta fiecarui dispecer pe zi
- * (Concediu / Zi / Noapte / Orice).
+ * (Concediu / Zi / Noapte / Orice) + chat pe fiecare perioada.
  */
 export class CreateHolidayPreferences1771700000000 implements MigrationInterface {
   name = 'CreateHolidayPreferences1771700000000';
@@ -49,9 +49,30 @@ export class CreateHolidayPreferences1771700000000 implements MigrationInterface
       CREATE UNIQUE INDEX IF NOT EXISTS "UQ_holiday_pref_period_user_date"
       ON "holiday_preferences" ("period_id", "user_id", "date")
     `);
+
+    // Chat-ul fiecarei perioade (obiectii / intelegeri intre dispeceri)
+    await queryRunner.query(`
+      CREATE TABLE IF NOT EXISTS "holiday_messages" (
+        "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+        "period_id" uuid NOT NULL,
+        "user_id" uuid NOT NULL,
+        "message" text NOT NULL,
+        "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PK_holiday_messages" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_holiday_msg_period" FOREIGN KEY ("period_id")
+          REFERENCES "holiday_periods"("id") ON DELETE CASCADE,
+        CONSTRAINT "FK_holiday_msg_user" FOREIGN KEY ("user_id")
+          REFERENCES "users"("id") ON DELETE CASCADE
+      )
+    `);
+    await queryRunner.query(`
+      CREATE INDEX IF NOT EXISTS "IDX_holiday_messages_period_created"
+      ON "holiday_messages" ("period_id", "created_at")
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE IF EXISTS "holiday_messages"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "holiday_preferences"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "holiday_periods"`);
   }

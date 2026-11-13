@@ -48,10 +48,19 @@ export interface CreateLeaveResult {
   results: Array<{ userName: string; startDate: string; endDate: string; ok: boolean; error?: string }>;
 }
 
+export interface HolidayMessage {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole?: string;
+  message: string;
+  createdAt: string;
+}
+
 export const holidayPreferencesApi = createApi({
   reducerPath: 'holidayPreferencesApi',
   baseQuery: createAuthBaseQuery('/holiday-preferences'),
-  tagTypes: ['HolidayPeriods', 'HolidayPeriod'],
+  tagTypes: ['HolidayPeriods', 'HolidayPeriod', 'HolidayMessages'],
   endpoints: (builder) => ({
     getHolidayPeriods: builder.query<HolidayPeriod[], void>({
       query: () => '/periods',
@@ -82,6 +91,18 @@ export const holidayPreferencesApi = createApi({
     createHolidayLeaveRequests: builder.mutation<CreateLeaveResult, string>({
       query: (id) => ({ url: `/periods/${id}/create-leave-requests`, method: 'POST' }),
     }),
+    getHolidayMessages: builder.query<HolidayMessage[], string>({
+      query: (id) => `/periods/${id}/messages`,
+      providesTags: (_r, _e, id) => [{ type: 'HolidayMessages', id }],
+    }),
+    postHolidayMessage: builder.mutation<HolidayMessage[], { periodId: string; message: string }>({
+      query: ({ periodId, message }) => ({ url: `/periods/${periodId}/messages`, method: 'POST', body: { message } }),
+      invalidatesTags: (_r, _e, { periodId }) => [{ type: 'HolidayMessages', id: periodId }],
+    }),
+    deleteHolidayMessage: builder.mutation<HolidayMessage[], { periodId: string; messageId: string }>({
+      query: ({ periodId, messageId }) => ({ url: `/periods/${periodId}/messages/${messageId}`, method: 'DELETE' }),
+      invalidatesTags: (_r, _e, { periodId }) => [{ type: 'HolidayMessages', id: periodId }],
+    }),
   }),
 });
 
@@ -92,4 +113,7 @@ export const {
   useUpdateHolidayPeriodMutation,
   useApplyHolidayToScheduleMutation,
   useCreateHolidayLeaveRequestsMutation,
+  useGetHolidayMessagesQuery,
+  usePostHolidayMessageMutation,
+  useDeleteHolidayMessageMutation,
 } = holidayPreferencesApi;

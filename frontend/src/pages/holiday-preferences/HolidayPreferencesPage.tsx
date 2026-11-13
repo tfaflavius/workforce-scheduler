@@ -39,6 +39,7 @@ import {
   ErrorOutline as ErrIcon,
 } from '@mui/icons-material';
 import { GradientHeader, FriendlyDialog, EmptyState } from '../../components/common';
+import HolidayChat from './HolidayChat';
 import { useSnackbar } from '../../contexts/SnackbarContext';
 import { useAppDispatch } from '../../store/hooks';
 import { schedulesApi } from '../../store/api/schedulesApi';
@@ -429,6 +430,9 @@ const HolidayPreferencesPage = () => {
                   ))}
                 </Box>
               </Box>
+
+              {/* Chat-ul perioadei */}
+              <HolidayChat periodId={data.period.id} currentUserId={data.currentUserId} canModerate={data.canManage} />
 
               {/* Tabel complet (desktop) */}
               {!isMobile && (

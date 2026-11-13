@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HolidayPeriod } from './entities/holiday-period.entity';
 import { HolidayPreference } from './entities/holiday-preference.entity';
+import { HolidayMessage } from './entities/holiday-message.entity';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { ShiftType } from '../schedules/entities/shift-type.entity';
@@ -17,6 +18,7 @@ import { HolidayPreferencesController } from './holiday-preferences.controller';
     TypeOrmModule.forFeature([
       HolidayPeriod,
       HolidayPreference,
+      HolidayMessage,
       User,
       Department,
       ShiftType,

@@ -1,11 +1,26 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { HolidayPreferencesService } from './holiday-preferences.service';
-import { SaveHolidayPreferencesDto, UpdateHolidayPeriodDto } from './dto/holiday-preferences.dto';
+import {
+  PostHolidayMessageDto,
+  SaveHolidayPreferencesDto,
+  UpdateHolidayPeriodDto,
+} from './dto/holiday-preferences.dto';
 
 @ApiTags('Holiday Preferences')
 @ApiBearerAuth('JWT')
@@ -23,6 +38,22 @@ export class HolidayPreferencesController {
   @Get('periods/:id')
   details(@Param('id') id: string, @Request() req) {
     return this.service.getPeriodDetails(id, req.user);
+  }
+
+  // Chat-ul perioadei (Dispecerat + manager + admin)
+  @Get('periods/:id/messages')
+  messages(@Param('id') id: string, @Request() req) {
+    return this.service.listMessages(id, req.user);
+  }
+
+  @Post('periods/:id/messages')
+  postMessage(@Param('id') id: string, @Body() dto: PostHolidayMessageDto, @Request() req) {
+    return this.service.postMessage(id, dto.message, req.user);
+  }
+
+  @Delete('periods/:id/messages/:messageId')
+  deleteMessage(@Param('id') id: string, @Param('messageId') messageId: string, @Request() req) {
+    return this.service.deleteMessage(id, messageId, req.user);
   }
 
   // Dispecerul isi salveaza propriul rand

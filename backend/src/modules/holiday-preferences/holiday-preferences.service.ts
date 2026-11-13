@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Between, In, Repository } from 'typeorm';
 import { HolidayPeriod, HolidayPeriodKey } from './entities/holiday-period.entity';
 import { HolidayChoice, HolidayPreference } from './entities/holiday-preference.entity';
+import { HolidayMessage } from './entities/holiday-message.entity';
 import { SaveHolidayPreferencesDto, UpdateHolidayPeriodDto } from './dto/holiday-preferences.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
@@ -74,6 +75,8 @@ export class HolidayPreferencesService {
     private readonly periodRepo: Repository<HolidayPeriod>,
     @InjectRepository(HolidayPreference)
     private readonly prefRepo: Repository<HolidayPreference>,
+    @InjectRepository(HolidayMessage)
+    private readonly messageRepo: Repository<HolidayMessage>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     @InjectRepository(Department)
@@ -266,6 +269,56 @@ export class HolidayPreferencesService {
     }
 
     return this.getPeriodDetails(periodId, requester);
+  }
+
+  // ============== CHAT ==============
+
+  /** Toate mesajele perioadei, in ordine cronologica (raman salvate permanent). */
+  async listMessages(periodId: string, requester: { id: string; role: string }) {
+    await this.assertCanView(requester);
+    await this.getPeriodOrFail(periodId);
+    const messages = await this.messageRepo.find({
+      where: { periodId },
+      relations: ['user'],
+      order: { createdAt: 'ASC' },
+      take: 1000,
+    });
+    return messages.map((m) => ({
+      id: m.id,
+      userId: m.userId,
+      userName: m.user?.fullName || 'Utilizator',
+      userRole: m.user?.role,
+      message: m.message,
+      createdAt: m.createdAt,
+    }));
+  }
+
+  /** Oricine are acces la modul poate scrie, si dupa ce perioada a fost inchisa. */
+  async postMessage(periodId: string, text: string, requester: { id: string; role: string }) {
+    const me = await this.assertCanView(requester);
+    await this.getPeriodOrFail(periodId);
+    const clean = (text || '').trim();
+    if (!clean) throw new BadRequestException('Mesajul este gol');
+    await this.messageRepo.save(
+      this.messageRepo.create({ periodId, userId: me.id, message: clean }),
+    );
+    return this.listMessages(periodId, requester);
+  }
+
+  /** Autorul isi poate sterge mesajul; managerul/adminul pot sterge orice mesaj. */
+  async deleteMessage(
+    periodId: string,
+    messageId: string,
+    requester: { id: string; role: string },
+  ) {
+    const me = await this.assertCanView(requester);
+    const msg = await this.messageRepo.findOne({ where: { id: messageId, periodId } });
+    if (!msg) throw new NotFoundException('Mesajul nu a fost gasit');
+    if (msg.userId !== me.id && !this.isManagement(me)) {
+      throw new ForbiddenException('Poti sterge doar mesajele tale');
+    }
+    await this.messageRepo.remove(msg);
+    return this.listMessages(periodId, requester);
   }
 
   // ============== PRECOMPLETARE PROGRAM ==============
