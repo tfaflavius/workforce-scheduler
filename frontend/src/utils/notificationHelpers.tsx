@@ -202,7 +202,7 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
 
     // Mesaj nou in chat-ul de sarbatori -> deschide perioada respectiva
     case 'HOLIDAY_CHAT_MESSAGE':
-      return { path: '/sarbatori', state: { periodId: data?.periodId, openChat: true } };
+      return { path: '/sarbatori', state: { periodId: data?.periodId, groupKey: data?.groupKey, openChat: true } };
 
     // Employee absent
     case 'EMPLOYEE_ABSENT':

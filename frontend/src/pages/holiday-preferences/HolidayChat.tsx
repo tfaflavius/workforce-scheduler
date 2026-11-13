@@ -31,16 +31,20 @@ const formatTime = (iso: string) => {
  */
 const HolidayChat = ({
   periodId,
+  group,
+  groupName,
   currentUserId,
   canModerate,
 }: {
   periodId: string;
+  group: string;
+  groupName: string;
   currentUserId: string;
   canModerate: boolean;
 }) => {
   const theme = useTheme();
   const { notifyError } = useSnackbar();
-  const { data: messages = [], isLoading } = useGetHolidayMessagesQuery(periodId, { pollingInterval: 10000 });
+  const { data: messages = [], isLoading } = useGetHolidayMessagesQuery({ periodId, group }, { pollingInterval: 10000 });
   const [postMessage, { isLoading: sending }] = usePostHolidayMessageMutation();
   const [deleteMessage] = useDeleteHolidayMessageMutation();
   const [text, setText] = useState('');
@@ -51,13 +55,13 @@ const HolidayChat = ({
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [messages.length, periodId]);
+  }, [messages.length, periodId, group]);
 
   const send = async () => {
     const clean = text.trim();
     if (!clean || sending) return;
     try {
-      await postMessage({ periodId, message: clean }).unwrap();
+      await postMessage({ periodId, group, message: clean }).unwrap();
       setText('');
     } catch (err: unknown) {
       notifyError((err as { data?: { message?: string } })?.data?.message || 'Mesajul nu a putut fi trimis');
@@ -79,7 +83,7 @@ const HolidayChat = ({
           )}
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          Obiectii si intelegeri pentru aceasta perioada. Mesajele raman salvate aici.
+          Discutia colegilor din {groupName} pentru aceasta perioada. Mesajele raman salvate aici.
         </Typography>
 
         <Box
@@ -140,7 +144,7 @@ const HolidayChat = ({
                                 size="small"
                                 aria-label="Sterge mesajul"
                                 onClick={() =>
-                                  deleteMessage({ periodId, messageId: m.id })
+                                  deleteMessage({ periodId, group, messageId: m.id })
                                     .unwrap()
                                     .catch(() => notifyError('Mesajul nu a putut fi sters'))
                                 }

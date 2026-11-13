@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsIn,
   IsOptional,
@@ -41,10 +42,15 @@ export class UpdateHolidayPeriodDto {
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   endDate?: string;
+}
 
-  @IsOptional()
-  @IsIn(['OPEN', 'LOCKED'])
-  status?: 'OPEN' | 'LOCKED';
+export class SetHolidayGroupLockDto {
+  @IsString()
+  @IsNotEmpty()
+  group: string;
+
+  @IsBoolean()
+  locked: boolean;
 }
 
 export class PostHolidayMessageDto {

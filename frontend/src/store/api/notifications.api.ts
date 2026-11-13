@@ -48,6 +48,7 @@ export type NotificationType =
 
 export interface NotificationData {
   periodId?: string;
+  groupKey?: string;
   fullMessage?: boolean;
   scheduleId?: string;
   shiftSwapId?: string;

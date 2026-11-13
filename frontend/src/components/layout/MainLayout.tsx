@@ -278,7 +278,6 @@ export const MainLayout = () => {
       icon: <HolidayIcon />,
       path: '/sarbatori',
       roles: ['ADMIN', 'MANAGER', 'USER'],
-      requiresDepartments: [DISPECERAT_DEPARTMENT_NAME],
     },
     {
       text: 'Raport Zilnic',
@@ -445,6 +444,9 @@ export const MainLayout = () => {
       }
       return true;
     }
+
+    // Sarbatori: orice angajat care are un departament (fiecare vede doar grupul lui)
+    if (item.path === '/sarbatori') return !!user.department;
 
     // USER - verificari multiple
     // 1. Verifica excludeDepartments - daca departamentul user-ului e exclus, nu vede

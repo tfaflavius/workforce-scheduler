@@ -12,7 +12,7 @@ import { User } from '../../users/entities/user.entity';
 
 /** Mesaj in chat-ul unei perioade de sarbatori (obiectii, intelegeri intre colegi). */
 @Entity('holiday_messages')
-@Index('IDX_holiday_messages_period_created', ['periodId', 'createdAt'])
+@Index('IDX_holiday_messages_period_group', ['periodId', 'groupKey', 'createdAt'])
 export class HolidayMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,6 +23,10 @@ export class HolidayMessage {
   @ManyToOne(() => HolidayPeriod, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'period_id' })
   period: HolidayPeriod;
+
+  /** Grupul (departamentul) in care a fost scris mesajul - fiecare grup are discutia lui. */
+  @Column({ name: 'group_key', type: 'varchar', length: 60 })
+  groupKey: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;

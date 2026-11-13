@@ -13,7 +13,7 @@ export type HolidayPeriodStatus = 'OPEN' | 'LOCKED';
 /**
  * Perioada de sarbatori pentru care dispecerii isi aleg preferintele
  * (Craciun / Revelion / Paste). Perioadele se genereaza automat pe an; managerul
- * sau adminul pot ajusta datele si pot bloca perioada dupa ce s-au pus de acord.
+ * sau adminul pot ajusta datele si pot inchide perioada pe fiecare departament.
  */
 @Entity('holiday_periods')
 @Index('UQ_holiday_period_key_year', ['key', 'year'], { unique: true })
@@ -36,8 +36,13 @@ export class HolidayPeriod {
   @Column({ name: 'end_date', type: 'date' })
   endDate: string;
 
+  /** Pastrat pentru compatibilitate; inchiderea se face acum pe grup (lockedGroups). */
   @Column({ type: 'varchar', length: 10, default: 'OPEN' })
   status: HolidayPeriodStatus;
+
+  /** Grupurile (departamentele) pentru care perioada este inchisa. */
+  @Column({ name: 'locked_groups', type: 'jsonb', default: () => "'[]'" })
+  lockedGroups: string[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

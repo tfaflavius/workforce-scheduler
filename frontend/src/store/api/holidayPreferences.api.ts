@@ -12,7 +12,20 @@ export interface HolidayPeriod {
   startDate: string;
   endDate: string;
   status: 'OPEN' | 'LOCKED';
-  respondedUsers?: number;
+  lockedGroups?: string[];
+  /** Inchisa pentru grupul curent */
+  locked?: boolean;
+}
+
+export interface HolidayGroupInfo {
+  key: string;
+  name: string;
+}
+
+export interface HolidayPeriodsResponse {
+  periods: HolidayPeriod[];
+  groups: HolidayGroupInfo[];
+  groupKey: string;
 }
 
 export interface HolidayPreference {
@@ -31,6 +44,9 @@ export interface HolidayPeriodDetails {
   preferences: HolidayPreference[];
   canManage: boolean;
   currentUserId: string;
+  group: HolidayGroupInfo & { choices: HolidayChoice[]; office: boolean };
+  groups: HolidayGroupInfo[];
+  locked: boolean;
 }
 
 export interface SavePreferencesPayload {
@@ -62,13 +78,13 @@ export const holidayPreferencesApi = createApi({
   baseQuery: createAuthBaseQuery('/holiday-preferences'),
   tagTypes: ['HolidayPeriods', 'HolidayPeriod', 'HolidayMessages'],
   endpoints: (builder) => ({
-    getHolidayPeriods: builder.query<HolidayPeriod[], void>({
-      query: () => '/periods',
+    getHolidayPeriods: builder.query<HolidayPeriodsResponse, string | undefined>({
+      query: (group) => ({ url: '/periods', params: group ? { group } : undefined }),
       providesTags: ['HolidayPeriods'],
     }),
-    getHolidayPeriod: builder.query<HolidayPeriodDetails, string>({
-      query: (id) => `/periods/${id}`,
-      providesTags: (_r, _e, id) => [{ type: 'HolidayPeriod', id }],
+    getHolidayPeriod: builder.query<HolidayPeriodDetails, { id: string; group?: string }>({
+      query: ({ id, group }) => ({ url: `/periods/${id}`, params: group ? { group } : undefined }),
+      providesTags: (_r, _e, { id }) => [{ type: 'HolidayPeriod', id }],
     }),
     saveHolidayPreferences: builder.mutation<HolidayPeriodDetails, SavePreferencesPayload>({
       query: ({ periodId, userId, preferences }) => ({
@@ -78,30 +94,39 @@ export const holidayPreferencesApi = createApi({
       }),
       invalidatesTags: (_r, _e, { periodId }) => [{ type: 'HolidayPeriod', id: periodId }, 'HolidayPeriods'],
     }),
+    setHolidayGroupLock: builder.mutation<HolidayPeriodDetails, { id: string; group: string; locked: boolean }>({
+      query: ({ id, group, locked }) => ({ url: `/periods/${id}/lock`, method: 'PATCH', body: { group, locked } }),
+      invalidatesTags: (_r, _e, { id }) => [{ type: 'HolidayPeriod', id }, 'HolidayPeriods'],
+    }),
     updateHolidayPeriod: builder.mutation<
       HolidayPeriod,
-      { id: string; startDate?: string; endDate?: string; status?: 'OPEN' | 'LOCKED' }
+      { id: string; startDate?: string; endDate?: string }
     >({
       query: ({ id, ...body }) => ({ url: `/periods/${id}`, method: 'PATCH', body }),
       invalidatesTags: (_r, _e, { id }) => [{ type: 'HolidayPeriod', id }, 'HolidayPeriods'],
     }),
-    applyHolidayToSchedule: builder.mutation<ApplyScheduleResult, string>({
-      query: (id) => ({ url: `/periods/${id}/apply-schedule`, method: 'POST' }),
+    applyHolidayToSchedule: builder.mutation<ApplyScheduleResult, { id: string; group: string }>({
+      query: ({ id, group }) => ({ url: `/periods/${id}/apply-schedule`, method: 'POST', params: { group } }),
     }),
-    createHolidayLeaveRequests: builder.mutation<CreateLeaveResult, string>({
-      query: (id) => ({ url: `/periods/${id}/create-leave-requests`, method: 'POST' }),
+    createHolidayLeaveRequests: builder.mutation<CreateLeaveResult, { id: string; group: string }>({
+      query: ({ id, group }) => ({ url: `/periods/${id}/create-leave-requests`, method: 'POST', params: { group } }),
     }),
-    getHolidayMessages: builder.query<HolidayMessage[], string>({
-      query: (id) => `/periods/${id}/messages`,
-      providesTags: (_r, _e, id) => [{ type: 'HolidayMessages', id }],
+    getHolidayMessages: builder.query<HolidayMessage[], { periodId: string; group: string }>({
+      query: ({ periodId, group }) => ({ url: `/periods/${periodId}/messages`, params: { group } }),
+      providesTags: (_r, _e, { periodId, group }) => [{ type: 'HolidayMessages', id: `${periodId}:${group}` }],
     }),
-    postHolidayMessage: builder.mutation<HolidayMessage[], { periodId: string; message: string }>({
-      query: ({ periodId, message }) => ({ url: `/periods/${periodId}/messages`, method: 'POST', body: { message } }),
-      invalidatesTags: (_r, _e, { periodId }) => [{ type: 'HolidayMessages', id: periodId }],
+    postHolidayMessage: builder.mutation<HolidayMessage[], { periodId: string; group: string; message: string }>({
+      query: ({ periodId, group, message }) => ({
+        url: `/periods/${periodId}/messages`,
+        method: 'POST',
+        params: { group },
+        body: { message },
+      }),
+      invalidatesTags: (_r, _e, { periodId, group }) => [{ type: 'HolidayMessages', id: `${periodId}:${group}` }],
     }),
-    deleteHolidayMessage: builder.mutation<HolidayMessage[], { periodId: string; messageId: string }>({
+    deleteHolidayMessage: builder.mutation<HolidayMessage[], { periodId: string; group: string; messageId: string }>({
       query: ({ periodId, messageId }) => ({ url: `/periods/${periodId}/messages/${messageId}`, method: 'DELETE' }),
-      invalidatesTags: (_r, _e, { periodId }) => [{ type: 'HolidayMessages', id: periodId }],
+      invalidatesTags: (_r, _e, { periodId, group }) => [{ type: 'HolidayMessages', id: `${periodId}:${group}` }],
     }),
   }),
 });
@@ -111,6 +136,7 @@ export const {
   useGetHolidayPeriodQuery,
   useSaveHolidayPreferencesMutation,
   useUpdateHolidayPeriodMutation,
+  useSetHolidayGroupLockMutation,
   useApplyHolidayToScheduleMutation,
   useCreateHolidayLeaveRequestsMutation,
   useGetHolidayMessagesQuery,

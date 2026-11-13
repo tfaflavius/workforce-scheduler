@@ -9,6 +9,7 @@ import {
   Chip,
   CircularProgress,
   Divider,
+  MenuItem,
   Paper,
   Stack,
   Tab,
@@ -50,6 +51,7 @@ import {
   useGetHolidayPeriodQuery,
   useSaveHolidayPreferencesMutation,
   useUpdateHolidayPeriodMutation,
+  useSetHolidayGroupLockMutation,
   useApplyHolidayToScheduleMutation,
   useCreateHolidayLeaveRequestsMutation,
   type HolidayChoice,
@@ -110,12 +112,14 @@ const ChoiceChip = ({ choice, size = 'small' }: { choice?: HolidayChoice; size?:
 const DayEditor = ({
   days,
   period,
+  choices,
   value,
   onChange,
   disabled,
 }: {
   days: string[];
   period: HolidayPeriod;
+  choices: HolidayChoice[];
   value: Record<string, HolidayChoice | null>;
   onChange: (date: string, choice: HolidayChoice | null) => void;
   disabled?: boolean;
@@ -147,7 +151,7 @@ const DayEditor = ({
             onChange={(_, v: HolidayChoice | null) => onChange(date, v)}
             sx={{ width: { xs: '100%', md: 'auto' } }}
           >
-            {CHOICES.map((c) => (
+            {CHOICES.filter((c) => choices.includes(c.value)).map((c) => (
               <ToggleButton
                 key={c.value}
                 value={c.value}
@@ -182,9 +186,14 @@ const HolidayPreferencesPage = () => {
   const { notifySuccess, notifyError } = useSnackbar();
   const dispatch = useAppDispatch();
 
-  const { data: periods = [], isLoading: loadingPeriods } = useGetHolidayPeriodsQuery();
   const location = useLocation();
-  const navState = location.state as { periodId?: string; openChat?: boolean } | null;
+  const navState = location.state as { periodId?: string; groupKey?: string; openChat?: boolean } | null;
+  // Grupul (departamentul): angajatii il au fix, managerul/adminul il pot schimba
+  const [groupKey, setGroupKey] = useState<string | undefined>(navState?.groupKey);
+  const { data: periodsData, isLoading: loadingPeriods } = useGetHolidayPeriodsQuery(groupKey);
+  const periods = periodsData?.periods ?? [];
+  const groups = periodsData?.groups ?? [];
+  const activeGroup = groupKey || periodsData?.groupKey;
   const [selectedId, setSelectedId] = useState<string | null>(navState?.periodId || null);
   const chatRef = useRef<HTMLDivElement>(null);
   const [pendingChatScroll, setPendingChatScroll] = useState(!!navState?.openChat);
@@ -196,10 +205,10 @@ const HolidayPreferencesPage = () => {
   }, [periods, selectedId]);
 
   // Reincarcare la 30s: fiecare vede ce pun colegii aproape in timp real
-  const { data, isFetching } = useGetHolidayPeriodQuery(selectedId!, {
-    skip: !selectedId,
-    pollingInterval: 30000,
-  });
+  const { data, isFetching } = useGetHolidayPeriodQuery(
+    { id: selectedId!, group: activeGroup },
+    { skip: !selectedId || !activeGroup, pollingInterval: 30000 },
+  );
 
   // Venit dintr-o notificare de chat: deruleaza la discutie dupa ce se incarca perioada
   useEffect(() => {
@@ -215,6 +224,7 @@ const HolidayPreferencesPage = () => {
 
   const [savePrefs, { isLoading: saving }] = useSaveHolidayPreferencesMutation();
   const [updatePeriod, { isLoading: updatingPeriod }] = useUpdateHolidayPeriodMutation();
+  const [setGroupLock, { isLoading: lockingGroup }] = useSetHolidayGroupLockMutation();
   const [applySchedule, { isLoading: applying }] = useApplyHolidayToScheduleMutation();
   const [createLeaves, { isLoading: creatingLeaves }] = useCreateHolidayLeaveRequestsMutation();
 
@@ -226,8 +236,10 @@ const HolidayPreferencesPage = () => {
     return m;
   }, [data]);
 
-  const isDispatcher = !!data?.users.some((u) => u.id === data.currentUserId);
-  const locked = data?.period.status === 'LOCKED';
+  const isGroupMember = !!data?.users.some((u) => u.id === data.currentUserId);
+  const locked = !!data?.locked;
+  const groupChoices = data?.group.choices ?? CHOICES.map((c) => c.value);
+  const visibleChoices = CHOICES.filter((c) => groupChoices.includes(c.value));
 
   // ---- Propriul rand ----
   const [myDraft, setMyDraft] = useState<Record<string, HolidayChoice | null>>({});
@@ -270,7 +282,7 @@ const HolidayPreferencesPage = () => {
     if (!data || !confirmAction) return;
     try {
       if (confirmAction === 'schedule') {
-        const r = await applySchedule(data.period.id).unwrap();
+        const r = await applySchedule({ id: data.period.id, group: data.group.key }).unwrap();
         dispatch(schedulesApi.util.invalidateTags(['Schedule']));
         setResultDialog({
           title: r.status === 'APPROVED' ? 'Program precompletat si aprobat' : 'Program precompletat si trimis spre aprobare',
@@ -280,7 +292,7 @@ const HolidayPreferencesPage = () => {
           })),
         });
       } else {
-        const r = await createLeaves(data.period.id).unwrap();
+        const r = await createLeaves({ id: data.period.id, group: data.group.key }).unwrap();
         dispatch(leaveRequestsApi.util.invalidateTags(['LeaveRequests']));
         setResultDialog({
           title: 'Cereri de concediu create (in asteptare)',
@@ -303,7 +315,7 @@ const HolidayPreferencesPage = () => {
       const groups: Record<HolidayChoice | 'NONE', string[]> = { LEAVE: [], DAY: [], NIGHT: [], ANY: [], NONE: [] };
       data.users.forEach((u) => {
         const c = prefMap[u.id]?.[date];
-        groups[c || 'NONE'].push(u.fullName);
+        (groups[c || 'NONE'] ||= []).push(u.fullName);
       });
       return { date, ...dayInfo(date, data.period, i), groups };
     });
@@ -320,10 +332,31 @@ const HolidayPreferencesPage = () => {
   return (
     <Box>
       <GradientHeader
-        title="Sarbatori Dispecerat"
+        title={data?.group ? `Sarbatori - ${data.group.name}` : 'Sarbatori'}
         subtitle="Alege cum vrei turele si concediul de sarbatori si vezi ce au ales colegii"
         icon={<HolidayIcon />}
       />
+
+      {/* Managerul / adminul aleg departamentul */}
+      {groups.length > 1 && (
+        <TextField
+          select
+          size="small"
+          label="Departament"
+          value={activeGroup || ''}
+          onChange={(e) => {
+            setGroupKey(e.target.value);
+            setMyDirty(false);
+          }}
+          sx={{ mb: 2, minWidth: { xs: '100%', md: 320 } }}
+        >
+          {groups.map((g) => (
+            <MenuItem key={g.key} value={g.key}>
+              {g.name}
+            </MenuItem>
+          ))}
+        </TextField>
+      )}
 
       {periods.length === 0 ? (
         <EmptyState icon={<HolidayIcon sx={{ fontSize: 64 }} />} title="Nicio perioada de sarbatori" description="Perioadele apar automat." />
@@ -346,7 +379,7 @@ const HolidayPreferencesPage = () => {
                 value={p.id}
                 label={
                   <Stack direction="row" spacing={0.75} alignItems="center">
-                    {p.status === 'LOCKED' && <LockIcon sx={{ fontSize: 16 }} />}
+                    {p.locked && <LockIcon sx={{ fontSize: 16 }} />}
                     <span>{p.name}</span>
                   </Stack>
                 }
@@ -365,11 +398,11 @@ const HolidayPreferencesPage = () => {
                 {data.days[0].split('-').reverse().join('.')} - {data.days[data.days.length - 1].split('-').reverse().join('.')}).{' '}
                 {locked
                   ? 'Perioada este inchisa - doar managerul mai poate modifica preferintele.'
-                  : 'Alege pentru fiecare zi: Concediu, Zi, Noapte sau Orice. Colegii vad ce alegi, ca sa va puteti intelege.'}
+                  : `Alege pentru fiecare zi: ${visibleChoices.map((c) => c.label).join(', ')}. Colegii din ${data.group.name} vad ce alegi, ca sa va puteti intelege.`}
               </Alert>
 
               {/* Preferintele mele */}
-              {isDispatcher && (
+              {isGroupMember && (
                 <Card>
                   <CardContent>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1} sx={{ mb: 2 }}>
@@ -395,6 +428,7 @@ const HolidayPreferencesPage = () => {
                     <DayEditor
                       days={data.days}
                       period={data.period}
+                      choices={groupChoices}
                       value={myDraft}
                       disabled={locked}
                       onChange={(date, choice) => {
@@ -409,7 +443,13 @@ const HolidayPreferencesPage = () => {
               {/* Pe telefon discutia vine imediat dupa propriile alegeri (sumarul e lung) */}
               {isMobile && (
                 <Box ref={chatRef} sx={{ scrollMarginTop: 80 }}>
-                <HolidayChat periodId={data.period.id} currentUserId={data.currentUserId} canModerate={data.canManage} />
+                <HolidayChat
+                  periodId={data.period.id}
+                  group={data.group.key}
+                  groupName={data.group.name}
+                  currentUserId={data.currentUserId}
+                  canModerate={data.canManage}
+                />
               </Box>
               )}
 
@@ -435,15 +475,15 @@ const HolidayPreferencesPage = () => {
                         </Typography>
                       )}
                       <Stack spacing={{ xs: 0.75, md: 1 }} sx={{ mt: { xs: 1, md: 1.5 } }}>
-                        {CHOICES.map((c) => (
+                        {visibleChoices.map((c) => (
                           <Box key={c.value}>
                             <Stack direction="row" spacing={1} alignItems="center">
                               <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: c.color }} />
                               <Typography variant="body2" fontWeight={600}>
-                                {c.label}: {d.groups[c.value].length}
+                                {c.label}: {(d.groups[c.value] || []).length}
                               </Typography>
                             </Stack>
-                            {d.groups[c.value].length > 0 && (
+                            {(d.groups[c.value] || []).length > 0 && (
                               <Typography variant="body2" color="text.secondary" sx={{ pl: 2.25 }}>
                                 {d.groups[c.value].join(', ')}
                               </Typography>
@@ -464,7 +504,13 @@ const HolidayPreferencesPage = () => {
               {/* Chat-ul perioadei (pe desktop dupa sumar) */}
               {!isMobile && (
                 <Box ref={chatRef} sx={{ scrollMarginTop: 80 }}>
-                <HolidayChat periodId={data.period.id} currentUserId={data.currentUserId} canModerate={data.canManage} />
+                <HolidayChat
+                  periodId={data.period.id}
+                  group={data.group.key}
+                  groupName={data.group.name}
+                  currentUserId={data.currentUserId}
+                  canModerate={data.canManage}
+                />
               </Box>
               )}
 
@@ -475,7 +521,7 @@ const HolidayPreferencesPage = () => {
                     <Typography variant="body2" color="text.secondary">
                       Legenda:
                     </Typography>
-                    {CHOICES.map((c) => (
+                    {visibleChoices.map((c) => (
                       <Stack key={c.value} direction="row" spacing={0.75} alignItems="center">
                         <ChoiceChip choice={c.value} />
                         <Typography variant="body2">{c.label}</Typography>
@@ -486,7 +532,7 @@ const HolidayPreferencesPage = () => {
                     <Table size="small">
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 700 }}>Dispecer</TableCell>
+                          <TableCell sx={{ fontWeight: 700 }}>Coleg</TableCell>
                           {daySummary.map((d) => (
                             <TableCell key={d.date} align="center" sx={{ fontWeight: 700 }}>
                               {d.label}
@@ -544,8 +590,12 @@ const HolidayPreferencesPage = () => {
               {data.canManage && (
                 <Card>
                   <CardContent>
-                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+                    <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5 }}>
                       Administrare perioada
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Datele perioadei sunt comune tuturor departamentelor. Inchiderea, precompletarea si
+                      cererile de concediu se aplica doar pentru {data.group.name}.
                     </Typography>
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ md: 'center' }} sx={{ mb: 2 }}>
                       <TextField
@@ -586,7 +636,7 @@ const HolidayPreferencesPage = () => {
                     </Stack>
                     {isMobile && (
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        Modifica preferintele unui dispecer:
+                        Modifica preferintele unui coleg:
                       </Typography>
                     )}
                     {isMobile && (
@@ -609,10 +659,14 @@ const HolidayPreferencesPage = () => {
                         variant="outlined"
                         color={locked ? 'success' : 'warning'}
                         startIcon={locked ? <LockOpenIcon /> : <LockIcon />}
-                        disabled={updatingPeriod}
+                        disabled={lockingGroup}
                         onClick={async () => {
-                          await updatePeriod({ id: data.period.id, status: locked ? 'OPEN' : 'LOCKED' }).unwrap();
-                          notifySuccess(locked ? 'Perioada a fost redeschisa' : 'Perioada a fost inchisa');
+                          await setGroupLock({ id: data.period.id, group: data.group.key, locked: !locked }).unwrap();
+                          notifySuccess(
+                            locked
+                              ? `Perioada a fost redeschisa pentru ${data.group.name}`
+                              : `Perioada a fost inchisa pentru ${data.group.name}`,
+                          );
                         }}
                       >
                         {locked ? 'Redeschide perioada' : 'Inchide perioada'}
@@ -653,6 +707,7 @@ const HolidayPreferencesPage = () => {
           <DayEditor
             days={data.days}
             period={data.period}
+            choices={groupChoices}
             value={editDraft}
             onChange={(date, choice) => setEditDraft((d) => ({ ...d, [date]: choice }))}
           />
@@ -673,8 +728,9 @@ const HolidayPreferencesPage = () => {
       >
         {confirmAction === 'schedule' ? (
           <Typography variant="body2">
-            Zilele marcate <strong>Zi</strong> devin tura 07-19, <strong>Noapte</strong> tura 19-07, iar{' '}
-            <strong>Concediu</strong> apare ca CO in program. Zilele cu <strong>Orice</strong> sau necompletate si restul lunii
+            Pentru colegii din <strong>{data?.group.name}</strong>: zilele marcate <strong>Zi</strong> /{' '}
+            <strong>Noapte</strong> primesc tura obisnuita a fiecaruia (cea mai frecventa din program), iar{' '}
+            <strong>Concediu</strong> apare ca CO. Zilele cu <strong>Orice</strong> sau necompletate si restul lunii
             raman neschimbate. Programul modificat de un manager se trimite spre aprobare; cel modificat de un admin e aprobat
             direct.
           </Typography>

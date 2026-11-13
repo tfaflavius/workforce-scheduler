@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import { HolidayPreferencesService } from './holiday-preferences.service';
 import {
   PostHolidayMessageDto,
   SaveHolidayPreferencesDto,
+  SetHolidayGroupLockDto,
   UpdateHolidayPeriodDto,
 } from './dto/holiday-preferences.dto';
 
@@ -29,26 +31,31 @@ import {
 export class HolidayPreferencesController {
   constructor(private readonly service: HolidayPreferencesService) {}
 
-  // Dispecerat + manager + admin (verificat in service)
+  // Toate departamentele; angajatii vad doar grupul lor (verificat in service)
   @Get('periods')
-  list(@Request() req) {
-    return this.service.listPeriods(req.user);
+  list(@Query('group') group: string, @Request() req) {
+    return this.service.listPeriods(req.user, group);
   }
 
   @Get('periods/:id')
-  details(@Param('id') id: string, @Request() req) {
-    return this.service.getPeriodDetails(id, req.user);
+  details(@Param('id') id: string, @Query('group') group: string, @Request() req) {
+    return this.service.getPeriodDetails(id, req.user, group);
   }
 
   // Chat-ul perioadei (Dispecerat + manager + admin)
   @Get('periods/:id/messages')
-  messages(@Param('id') id: string, @Request() req) {
-    return this.service.listMessages(id, req.user);
+  messages(@Param('id') id: string, @Query('group') group: string, @Request() req) {
+    return this.service.listMessages(id, req.user, group);
   }
 
   @Post('periods/:id/messages')
-  postMessage(@Param('id') id: string, @Body() dto: PostHolidayMessageDto, @Request() req) {
-    return this.service.postMessage(id, dto.message, req.user);
+  postMessage(
+    @Param('id') id: string,
+    @Query('group') group: string,
+    @Body() dto: PostHolidayMessageDto,
+    @Request() req,
+  ) {
+    return this.service.postMessage(id, dto.message, req.user, group);
   }
 
   @Delete('periods/:id/messages/:messageId')
@@ -80,15 +87,22 @@ export class HolidayPreferencesController {
     return this.service.updatePeriod(id, dto);
   }
 
+  // Inchide / redeschide perioada pentru un departament (grup)
+  @Patch('periods/:id/lock')
+  @Roles(UserRole.MANAGER)
+  setLock(@Param('id') id: string, @Body() dto: SetHolidayGroupLockDto, @Request() req) {
+    return this.service.setGroupLock(id, dto.group, dto.locked, req.user);
+  }
+
   @Post('periods/:id/apply-schedule')
   @Roles(UserRole.MANAGER)
-  applySchedule(@Param('id') id: string, @Request() req) {
-    return this.service.applyToSchedule(id, req.user);
+  applySchedule(@Param('id') id: string, @Query('group') group: string, @Request() req) {
+    return this.service.applyToSchedule(id, req.user, group);
   }
 
   @Post('periods/:id/create-leave-requests')
   @Roles(UserRole.MANAGER)
-  createLeaveRequests(@Param('id') id: string, @Request() req) {
-    return this.service.createLeaveRequests(id, req.user);
+  createLeaveRequests(@Param('id') id: string, @Query('group') group: string, @Request() req) {
+    return this.service.createLeaveRequests(id, req.user, group);
   }
 }
