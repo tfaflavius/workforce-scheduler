@@ -21,6 +21,15 @@ import type { CreateUserRequest, UpdateUserRequest } from '../../store/api/users
 import DatePickerField from '../common/DatePickerField';
 import { removeDiacritics } from '../../utils/removeDiacritics';
 
+const AUTO_SCHEDULE_OPTIONS = [
+  { start: '06:00', label: '06:00 - 14:00' },
+  { start: '07:30', label: '07:30 - 15:30' },
+  { start: '08:00', label: '08:00 - 16:00' },
+  { start: '09:00', label: '09:00 - 17:00' },
+  { start: '13:00', label: '13:00 - 21:00' },
+  { start: '14:00', label: '14:00 - 22:00' },
+];
+
 interface UserFormProps {
   initialData?: Partial<CreateUserRequest & UpdateUserRequest & { id: string }>;
   onSubmit: (data: CreateUserRequest | UpdateUserRequest) => void;
@@ -54,6 +63,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     hrOnlyDispPosition: initialData?.hrOnlyDispPosition || false,
     managerDepartmentIds: (initialData?.managerDepartmentIds || []) as string[],
     managerAllDepartments: !(initialData?.managerDepartmentIds?.length),
+    autoScheduleStart: initialData?.autoScheduleStart || '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,6 +82,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         hrOnlyDispPosition: initialData.hrOnlyDispPosition || false,
         managerDepartmentIds: initialData.managerDepartmentIds || [],
         managerAllDepartments: !initialData.managerDepartmentIds?.length,
+        autoScheduleStart: initialData.autoScheduleStart || '',
       });
     }
   }, [initialData]);
@@ -131,7 +142,8 @@ export const UserForm: React.FC<UserFormProps> = ({
         key === 'hrVisibleDepartmentIds' ||
         key === 'hrOnlyDispPosition' ||
         key === 'managerDepartmentIds' ||
-        key === 'managerAllDepartments'
+        key === 'managerAllDepartments' ||
+        key === 'autoScheduleStart'
       ) {
         return;
       }
@@ -144,6 +156,14 @@ export const UserForm: React.FC<UserFormProps> = ({
     if (formData.role === 'RESURSE_UMANE') {
       cleanedData.hrVisibleDepartmentIds = formData.hrVisibleDepartmentIds;
       cleanedData.hrOnlyDispPosition = formData.hrOnlyDispPosition;
+    }
+
+    // Program fix automat (gol = fara program individual)
+    if (
+      (formData.role === 'USER' || formData.role === 'MANAGER') &&
+      (currentUserRole === 'ADMIN' || currentUserRole === 'MASTER_ADMIN')
+    ) {
+      cleanedData.autoScheduleStart = formData.autoScheduleStart || null;
     }
 
     // Departamentele alocate managerului (null = toate departamentele)
@@ -293,6 +313,31 @@ export const UserForm: React.FC<UserFormProps> = ({
               label="Doar turele de Dispecerat (pozitia DISP)"
             />
           </>
+        )}
+
+        {/* Program fix automat in fiecare luna */}
+        {(formData.role === 'USER' || formData.role === 'MANAGER') &&
+          (currentUserRole === 'ADMIN' || currentUserRole === 'MASTER_ADMIN') && (
+          <FormControl fullWidth>
+            <InputLabel>Program fix automat</InputLabel>
+            <Select
+              value={formData.autoScheduleStart}
+              label="Program fix automat"
+              onChange={(e) => setFormData({ ...formData, autoScheduleStart: e.target.value as string })}
+            >
+              <MenuItem value="">
+                <em>Nu (sau dupa departament)</em>
+              </MenuItem>
+              {AUTO_SCHEDULE_OPTIONS.map((o) => (
+                <MenuItem key={o.start} value={o.start}>
+                  {o.label}
+                </MenuItem>
+              ))}
+            </Select>
+            <FormHelperText>
+              Se completeaza singur in fiecare luna, in zilele lucratoare (fara sarbatori si concedii)
+            </FormHelperText>
+          </FormControl>
         )}
 
         {/* Departamentele pe care le gestioneaza managerul */}

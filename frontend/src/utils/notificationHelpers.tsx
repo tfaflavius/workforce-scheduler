@@ -23,6 +23,7 @@ import {
   Forum as HolidayChatIcon,
   ManageAccounts as AccountIcon,
   Groups as TeamIcon,
+  AccessTime as TimeRequestIcon,
 } from '@mui/icons-material';
 import type { Notification, NotificationType } from '../store/api/notifications.api';
 import { isAdminOrAbove } from './roleHelpers';
@@ -80,6 +81,12 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
       return <AccountIcon color="primary" fontSize={fontSize} />;
     case 'TEAM_ACTIVITY':
       return <TeamIcon color="info" fontSize={fontSize} />;
+    case 'SCHEDULE_TIME_REQUEST':
+      return <TimeRequestIcon color="warning" fontSize={fontSize} />;
+    case 'SCHEDULE_TIME_REQUEST_APPROVED':
+      return <TimeRequestIcon color="success" fontSize={fontSize} />;
+    case 'SCHEDULE_TIME_REQUEST_REJECTED':
+      return <TimeRequestIcon color="error" fontSize={fontSize} />;
     case 'LEGITIMATION_ASSIGNED':
     case 'LEGITIMATION_RESOLVED':
       return <LegitimationIcon color="secondary" fontSize={fontSize} />;
@@ -229,6 +236,12 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
     case 'GPS_STATUS_ALERT':
     case 'TIME_ENTRY_MISMATCH':
       return isAdmin ? { path: '/admin/pontaj' } : null;
+
+    // Cereri de program la alta ora
+    case 'SCHEDULE_TIME_REQUEST':
+    case 'SCHEDULE_TIME_REQUEST_APPROVED':
+    case 'SCHEDULE_TIME_REQUEST_REJECTED':
+      return { path: '/ora-program' };
 
     // Schimbare departament / rol
     case 'ACCOUNT_UPDATED':

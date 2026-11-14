@@ -42,6 +42,9 @@ const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
   [NotificationType.DAILY_REPORT_MISSING]: '/daily-reports',
   [NotificationType.ACCOUNT_UPDATED]: '/profile',
   [NotificationType.TEAM_ACTIVITY]: '/notifications',
+  [NotificationType.SCHEDULE_TIME_REQUEST]: '/ora-program',
+  [NotificationType.SCHEDULE_TIME_REQUEST_APPROVED]: '/ora-program',
+  [NotificationType.SCHEDULE_TIME_REQUEST_REJECTED]: '/ora-program',
   [NotificationType.EDIT_REQUEST_CREATED]: '/admin/edit-requests',
   [NotificationType.EDIT_REQUEST_APPROVED]: '/admin/edit-requests',
   [NotificationType.EDIT_REQUEST_REJECTED]: '/admin/edit-requests',
@@ -99,6 +102,10 @@ const EMAIL_EXCLUDED_TYPES = new Set<NotificationType>([
   NotificationType.CHAT_MESSAGE,
   // Activitatea echipei: doar in-app + push (ar fi prea multe emailuri)
   NotificationType.TEAM_ACTIVITY,
+  // Cererile de alta ora: ca la concedii, doar in-app + push
+  NotificationType.SCHEDULE_TIME_REQUEST,
+  NotificationType.SCHEDULE_TIME_REQUEST_APPROVED,
+  NotificationType.SCHEDULE_TIME_REQUEST_REJECTED,
   // Problemele finalizate: in-app + push imediat, emailul vine centralizat la 20:00
   ...RESOLVED_NOTIFICATION_TYPES,
 ]);

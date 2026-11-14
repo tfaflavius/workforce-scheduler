@@ -933,6 +933,7 @@ const UsersPage: React.FC = () => {
                 hrVisibleDepartmentIds: editUser.hrVisibleDepartmentIds || [],
                 hrOnlyDispPosition: editUser.hrOnlyDispPosition || false,
                 managerDepartmentIds: editUser.managerDepartmentIds || null,
+                autoScheduleStart: editUser.autoScheduleStart || null,
               } : undefined}
               onSubmit={handleEditSubmit}
               onCancel={() => {

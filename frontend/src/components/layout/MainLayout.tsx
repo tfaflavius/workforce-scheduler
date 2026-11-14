@@ -45,6 +45,7 @@ import {
   LocalParking as ParkingIcon,
   Layers as LayersIcon,
   Celebration as HolidayIcon,
+  AccessTime as TimeRequestIcon,
   Forum as ChatIcon,
   Accessible as HandicapIcon,
   Home as HomeIcon,
@@ -102,6 +103,7 @@ import { preloadRoute } from '../../utils/routePreloader';
 const EXTRA_PAGE_TITLES: Record<string, string> = {
   '/notifications': 'Notificari',
   '/chat': 'Mesaje',
+  '/ora-program': 'Ora program',
   '/profile': 'Profil',
   '/leave-requests': 'Concediile Mele',
   '/shift-swaps': 'Schimburi Ture',
@@ -127,6 +129,14 @@ interface MenuItem {
 // Departamente care nu au acces la Schimburi Ture si Programul Meu
 const PARKING_ONLY_DEPARTMENTS = [MAINTENANCE_DEPARTMENT_NAME, HANDICAP_DEPARTMENT_NAME, DOMICILIU_DEPARTMENT_NAME];
 // Departamente care nu au acces la Schimburi Ture (dar vad Programul Meu)
+// Departamentele cu program de birou precompletat automat (07:30-15:30)
+const AUTO_SCHEDULE_DEPARTMENTS = [
+  PROCESE_VERBALE_DEPARTMENT_NAME,
+  ACHIZITII_DEPARTMENT_NAME,
+  PARCOMETRE_DEPARTMENT_NAME,
+  HANDICAP_DEPARTMENT_NAME,
+  DOMICILIU_DEPARTMENT_NAME,
+];
 const NO_SHIFT_SWAP_DEPARTMENTS = [...PARKING_ONLY_DEPARTMENTS, PROCESE_VERBALE_DEPARTMENT_NAME, PARCOMETRE_DEPARTMENT_NAME, ACHIZITII_DEPARTMENT_NAME];
 
 export const MainLayout = () => {
@@ -289,6 +299,12 @@ export const MainLayout = () => {
       icon: <ChatIcon />,
       path: '/chat',
       roles: ['ADMIN', 'MANAGER', 'USER', 'RESURSE_UMANE'],
+    },
+    {
+      text: 'Ora program',
+      icon: <TimeRequestIcon />,
+      path: '/ora-program',
+      roles: ['ADMIN', 'MANAGER', 'USER'],
     },
     {
       text: 'Sarbatori',
@@ -460,6 +476,11 @@ export const MainLayout = () => {
         return false;
       }
       return true;
+    }
+
+    // Ora program: doar angajatii cu program fix automat
+    if (item.path === '/ora-program') {
+      return !!user.autoScheduleStart || AUTO_SCHEDULE_DEPARTMENTS.includes(userDepartment);
     }
 
     // Sarbatori: orice angajat care are un departament (fiecare vede doar grupul lui)

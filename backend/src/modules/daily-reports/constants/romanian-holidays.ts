@@ -1,12 +1,14 @@
 /**
  * Sarbatori legale in Romania (2024-2027)
- * Include: 1-2 Ianuarie, 24 Ianuarie, Vinerea Mare, Paste Ortodox (Duminica+Luni),
+ * Include: 1-2 Ianuarie, 6-7 Ianuarie (Boboteaza, Sf. Ioan), 24 Ianuarie, Vinerea Mare, Paste Ortodox (Duminica+Luni),
  * 1 Mai, 1 Iunie, Rusalii (Duminica+Luni), 15 August, 30 Noiembrie, 1 Decembrie, 25-26 Decembrie
  */
 export const ROMANIAN_PUBLIC_HOLIDAYS: string[] = [
   // 2024
   '2024-01-01',
   '2024-01-02',
+  '2024-01-06', // Boboteaza
+  '2024-01-07', // Sf. Ioan Botezatorul
   '2024-01-24',
   '2024-05-01',
   '2024-05-03', // Vinerea Mare
@@ -24,6 +26,8 @@ export const ROMANIAN_PUBLIC_HOLIDAYS: string[] = [
   // 2025
   '2025-01-01',
   '2025-01-02',
+  '2025-01-06', // Boboteaza
+  '2025-01-07', // Sf. Ioan Botezatorul
   '2025-01-24',
   '2025-04-18', // Vinerea Mare
   '2025-04-20',
@@ -41,6 +45,8 @@ export const ROMANIAN_PUBLIC_HOLIDAYS: string[] = [
   // 2026
   '2026-01-01',
   '2026-01-02',
+  '2026-01-06', // Boboteaza
+  '2026-01-07', // Sf. Ioan Botezatorul
   '2026-01-24',
   '2026-04-10', // Vinerea Mare
   '2026-04-12',
@@ -57,6 +63,8 @@ export const ROMANIAN_PUBLIC_HOLIDAYS: string[] = [
   // 2027
   '2027-01-01',
   '2027-01-02',
+  '2027-01-06', // Boboteaza
+  '2027-01-07', // Sf. Ioan Botezatorul
   '2027-01-24',
   '2027-04-30', // Vinerea Mare
   '2027-05-01', // Paste Ortodox Duminica (+ 1 Mai)

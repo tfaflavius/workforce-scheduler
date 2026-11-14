@@ -33,6 +33,7 @@ import { mobileDevicesApi } from './api/mobileDevices.api';
 import { parkingLevelsApi } from './api/parkingLevels.api';
 import { holidayPreferencesApi } from './api/holidayPreferences.api';
 import { chatApi } from './api/chat.api';
+import { scheduleTimeRequestsApi } from './api/scheduleTimeRequests.api';
 
 export const store = configureStore({
   reducer: {
@@ -69,6 +70,7 @@ export const store = configureStore({
     [parkingLevelsApi.reducerPath]: parkingLevelsApi.reducer,
     [holidayPreferencesApi.reducerPath]: holidayPreferencesApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
+    [scheduleTimeRequestsApi.reducerPath]: scheduleTimeRequestsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -104,6 +106,7 @@ export const store = configureStore({
       parkingLevelsApi.middleware,
       holidayPreferencesApi.middleware,
       chatApi.middleware,
+      scheduleTimeRequestsApi.middleware,
     ),
 });
 

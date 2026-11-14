@@ -48,7 +48,10 @@ export type NotificationType =
   | 'CHAT_MESSAGE'
   | 'DOMICILIU_SIGN_PLACEMENT'
   | 'ACCOUNT_UPDATED'
-  | 'TEAM_ACTIVITY';
+  | 'TEAM_ACTIVITY'
+  | 'SCHEDULE_TIME_REQUEST'
+  | 'SCHEDULE_TIME_REQUEST_APPROVED'
+  | 'SCHEDULE_TIME_REQUEST_REJECTED';
 
 export interface NotificationData {
   periodId?: string;

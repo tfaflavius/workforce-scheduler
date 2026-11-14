@@ -7,6 +7,8 @@ import { ShiftType } from './entities/shift-type.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { isWorkingDay } from '../daily-reports/constants/romanian-holidays';
+import { ScheduleTimeRequest } from './entities/schedule-time-request.entity';
+import { autoNote, DEFAULT_OFFICE_START, endOf8h } from './auto-schedule.constants';
 import {
   PROCESE_VERBALE_DEPARTMENT_NAME,
   ACHIZITII_DEPARTMENT_NAME,
@@ -48,14 +50,93 @@ export class OfficeSchedulePrefillService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(LeaveRequest)
     private readonly leaveRequestRepository: Repository<LeaveRequest>,
+    @InjectRepository(ScheduleTimeRequest)
+    private readonly timeRequestRepository: Repository<ScheduleTimeRequest>,
   ) {}
+
+  /** Are program fix automat: departament de birou sau ora setata individual. */
+  isAutoScheduleUser(user: {
+    autoScheduleStart?: string | null;
+    department?: { name?: string } | null;
+  }) {
+    return (
+      !!user.autoScheduleStart || this.OFFICE_DEPARTMENTS.includes(user.department?.name || '')
+    );
+  }
+
+  /** Ora obisnuita de inceput a programului automat al omului. */
+  defaultStartFor(user: { autoScheduleStart?: string | null }): string {
+    return user.autoScheduleStart || DEFAULT_OFFICE_START;
+  }
+
+  /** Data de azi (Europe/Bucharest), YYYY-MM-DD. */
+  todayStr(): string {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Europe/Bucharest' });
+  }
+
+  /** Tipul de tura de 8h care incepe la `start`; il creeaza daca lipseste. */
+  async shiftTypeFor(start: string): Promise<ShiftType | null> {
+    const found = await this.shiftTypeRepository.findOne({
+      where: { shiftPattern: 'SHIFT_8H', startTime: `${start}:00` },
+    });
+    if (found) return found;
+    const end = endOf8h(start);
+    try {
+      return await this.shiftTypeRepository.save(
+        this.shiftTypeRepository.create({
+          name: `Zi ${start}-${end}`,
+          shiftPattern: 'SHIFT_8H',
+          startTime: `${start}:00`,
+          endTime: `${end}:00`,
+          durationHours: 8,
+          isNightShift: false,
+        }),
+      );
+    } catch (err) {
+      this.logger.warn(`[Prefill] Nu pot crea tura ${start}-${end}: ${err?.message}`);
+      return null;
+    }
+  }
+
+  /** Programul APROBAT dedicat precompletarii pe luna (il creeaza daca lipseste). */
+  async monthSchedule(
+    year: number,
+    month: number,
+    fallbackCreatorId: string,
+  ): Promise<WorkSchedule> {
+    const monthName = new Date(year, month - 1).toLocaleDateString('ro-RO', {
+      month: 'long',
+      year: 'numeric',
+    });
+    const name = `Program birou ${monthName}`;
+    const existing = await this.scheduleRepository.findOne({
+      where: { month, year, name, status: 'APPROVED' },
+    });
+    if (existing) return existing;
+    const creatorId = await this.resolveCreatorId(fallbackCreatorId);
+    return this.scheduleRepository.save(
+      this.scheduleRepository.create({
+        name,
+        month,
+        year,
+        shiftPattern: 'SHIFT_8H',
+        createdBy: creatorId,
+        status: 'APPROVED',
+      }),
+    );
+  }
 
   private pad(n: number): string {
     return String(n).padStart(2, '0');
   }
 
   private dateToStr(v: unknown): string {
-    return (v instanceof Date ? v.toISOString() : String(v)).slice(0, 10);
+    // Coloanele "date" vin din driver ca Date la miezul noptii LOCAL: folosim componentele
+    // locale (toISOString ar muta ziua inapoi pe un server care nu e pe UTC).
+    if (v instanceof Date) {
+      return `${v.getFullYear()}-${this.pad(v.getMonth() + 1)}-${this.pad(v.getDate())}`;
+    }
+    return String(v).slice(0, 10);
   }
 
   /** Anul/luna curente pe fusul Europe/Bucharest. */
@@ -76,36 +157,34 @@ export class OfficeSchedulePrefillService {
       .leftJoinAndSelect('u.department', 'd')
       .where('u.isActive = true')
       .andWhere('u.role IN (:...roles)', { roles: [UserRole.USER, UserRole.MANAGER] })
-      .andWhere('d.name IN (:...depts)', { depts: this.OFFICE_DEPARTMENTS })
+      .andWhere('(d.name IN (:...depts) OR u.autoScheduleStart IS NOT NULL)', {
+        depts: this.OFFICE_DEPARTMENTS,
+      })
       .getMany();
 
     if (users.length === 0) {
       return { created: 0, users: 0 };
     }
 
-    // 2. Tipul de tura 8h 07:30-15:30 (fallback: orice tura de 8h)
-    const shiftType =
-      (await this.shiftTypeRepository.findOne({
-        where: { shiftPattern: 'SHIFT_8H', startTime: '07:30:00' },
-      })) ||
-      (await this.shiftTypeRepository
-        .createQueryBuilder('st')
-        .where('st.shiftPattern = :p', { p: 'SHIFT_8H' })
-        .andWhere('st.durationHours = 8')
-        .orderBy('st.displayOrder', 'ASC')
-        .getOne());
-
-    if (!shiftType) {
+    // 2. Tipurile de tura de 8h, dupa ora de inceput (07:30 implicit, 08:00 etc.)
+    const shiftCache = new Map<string, ShiftType | null>();
+    const shiftFor = async (start: string) => {
+      if (!shiftCache.has(start)) shiftCache.set(start, await this.shiftTypeFor(start));
+      return shiftCache.get(start)!;
+    };
+    if (!(await shiftFor(DEFAULT_OFFICE_START))) {
       this.logger.warn('[Prefill birou] Nu exista un tip de tura de 8h — nu pot precompleta.');
       return { created: 0, users: users.length };
     }
 
     // 3. Zilele lucratoare din luna (exclude weekend + sarbatori legale)
     const daysInMonth = new Date(year, month, 0).getDate();
+    const today = this.todayStr();
     const workingDays: string[] = [];
     for (let d = 1; d <= daysInMonth; d++) {
       const ds = `${year}-${this.pad(month)}-${this.pad(d)}`;
-      if (isWorkingDay(ds)) workingDays.push(ds);
+      // In luna curenta nu completam zilele trecute (doar de azi inainte)
+      if (isWorkingDay(ds) && ds >= today) workingDays.push(ds);
     }
     if (workingDays.length === 0) {
       return { created: 0, users: users.length };
@@ -120,10 +199,20 @@ export class OfficeSchedulePrefillService {
       .createQueryBuilder('sa')
       .select('sa.userId', 'userId')
       .addSelect('sa.shiftDate', 'shiftDate')
+      .addSelect('sa.notes', 'notes')
       .where('sa.userId IN (:...userIds)', { userIds })
       .andWhere('sa.shiftDate BETWEEN :f AND :l', { f: firstDay, l: lastDay })
       .getRawMany();
     const existingSet = new Set(existing.map((r) => `${r.userId}|${this.dateToStr(r.shiftDate)}`));
+    // Cei cu program fix individual (nu din departamentele de birou) care au deja un program
+    // facut manual in luna asta: nu completam nimic peste (zilele goale pot fi libere date de manager)
+    const manualMonth = new Set(
+      existing
+        .filter((r) => !String(r.notes || '').startsWith('Program auto'))
+        .map((r) => r.userId as string),
+    );
+    const skipUser = (u: User) =>
+      !this.OFFICE_DEPARTMENTS.includes(u.department?.name || '') && manualMonth.has(u.id);
 
     // 5. Concediile aprobate care se suprapun cu luna
     const leaves = await this.leaveRequestRepository
@@ -142,42 +231,52 @@ export class OfficeSchedulePrefillService {
     const isOnLeave = (uid: string, ds: string): boolean =>
       (leaveByUser.get(uid) || []).some((r) => ds >= r.s && ds <= r.e);
 
-    // 6. Gaseste/creeaza programul APROBAT dedicat precompletarii de birou pe luna respectiva
-    const monthName = new Date(year, month - 1).toLocaleDateString('ro-RO', {
-      month: 'long',
-      year: 'numeric',
-    });
-    const name = `Program birou ${monthName}`;
-    let schedule = await this.scheduleRepository.findOne({
-      where: { month, year, name, status: 'APPROVED' },
-    });
-    if (!schedule) {
-      const creatorId = await this.resolveCreatorId(users[0].id);
-      schedule = await this.scheduleRepository.save(
-        this.scheduleRepository.create({
-          name,
-          month,
-          year,
-          shiftPattern: 'SHIFT_8H',
-          createdBy: creatorId,
-          status: 'APPROVED',
-        }),
-      );
-    }
+    // 6. Cererile aprobate de alta ora care se suprapun cu luna
+    const timeRequests = await this.timeRequestRepository
+      .createQueryBuilder('tr')
+      .where('tr.userId IN (:...userIds)', { userIds })
+      .andWhere('tr.status = :s', { s: 'APPROVED' })
+      .andWhere('tr.startDate <= :l', { l: lastDay })
+      .andWhere('tr.endDate >= :f', { f: firstDay })
+      .orderBy('tr.reviewedAt', 'ASC')
+      .getMany();
+    const startOn = (u: User, ds: string): string => {
+      let start = this.defaultStartFor(u);
+      for (const tr of timeRequests) {
+        if (
+          tr.userId === u.id &&
+          ds >= this.dateToStr(tr.startDate) &&
+          ds <= this.dateToStr(tr.endDate)
+        ) {
+          start = tr.startTime; // ultima aprobata castiga
+        }
+      }
+      return start;
+    };
+
+    // Programul APROBAT dedicat precompletarii pe luna respectiva
+    const schedule = await this.monthSchedule(year, month, users[0].id);
 
     // 7. Construieste asignarile lipsa (zile lucratoare, fara concediu, fara asignare existenta)
     const toCreate: Array<Record<string, unknown>> = [];
     for (const u of users) {
+      if (skipUser(u)) continue;
       for (const ds of workingDays) {
         if (existingSet.has(`${u.id}|${ds}`)) continue;
         if (isOnLeave(u.id, ds)) continue;
+        let start = startOn(u, ds);
+        let st = await shiftFor(start);
+        if (!st) {
+          start = DEFAULT_OFFICE_START;
+          st = (await shiftFor(start))!;
+        }
         toCreate.push({
           workScheduleId: schedule.id,
           userId: u.id,
-          shiftTypeId: shiftType.id,
+          shiftTypeId: st.id,
           shiftDate: ds,
           isRestDay: false,
-          notes: 'Program auto',
+          notes: autoNote(start),
           workPositionId: this.PROGRAM_POSITION_ID,
         });
       }
@@ -202,6 +301,78 @@ export class OfficeSchedulePrefillService {
       `[Prefill birou] ${year}-${this.pad(month)}: ${toCreate.length} asignari create pentru ${users.length} angajati de birou`,
     );
     return { created: toCreate.length, users: users.length };
+  }
+
+  /**
+   * Aplica o cerere aprobata de alta ora: in zilele lucratoare din interval (de azi inainte,
+   * fara concediu) programul automat al omului trece pe noua ora. Zilele fara program primesc
+   * unul nou; zilele cu program pus manual de manager/admin nu se ating.
+   */
+  async applyTimeRequest(
+    req: ScheduleTimeRequest,
+  ): Promise<{ updated: number; created: number; skipped: number }> {
+    const st = await this.shiftTypeFor(req.startTime);
+    if (!st) throw new Error('Nu exista tura pentru ora ceruta');
+    const today = this.todayStr();
+    const from = this.dateToStr(req.startDate);
+    const to = this.dateToStr(req.endDate);
+
+    const leaves = await this.leaveRequestRepository
+      .createQueryBuilder('lr')
+      .where('lr.userId = :u', { u: req.userId })
+      .andWhere('lr.status = :s', { s: 'APPROVED' })
+      .andWhere('lr.startDate <= :to', { to })
+      .andWhere('lr.endDate >= :from', { from })
+      .getMany();
+    const onLeave = (ds: string) =>
+      leaves.some((l) => ds >= this.dateToStr(l.startDate) && ds <= this.dateToStr(l.endDate));
+
+    let updated = 0;
+    let created = 0;
+    let skipped = 0;
+    const d = new Date(`${from}T12:00:00Z`);
+    const end = new Date(`${to}T12:00:00Z`);
+    for (; d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      const ds = d.toISOString().slice(0, 10);
+      if (ds < today || !isWorkingDay(ds) || onLeave(ds)) continue;
+      const existing = await this.assignmentRepository.find({
+        where: { userId: req.userId, shiftDate: ds as any },
+      });
+      if (existing.length === 0) {
+        const [y, m] = ds.split('-').map(Number);
+        const schedule = await this.monthSchedule(y, m, req.reviewedBy || req.userId);
+        await this.assignmentRepository
+          .createQueryBuilder()
+          .insert()
+          .into(ScheduleAssignment)
+          .values({
+            workScheduleId: schedule.id,
+            userId: req.userId,
+            shiftTypeId: st.id,
+            shiftDate: ds,
+            isRestDay: false,
+            notes: autoNote(req.startTime),
+            workPositionId: this.PROGRAM_POSITION_ID,
+          } as any)
+          .orIgnore()
+          .execute();
+        created++;
+        continue;
+      }
+      const auto = existing.filter((a) => (a.notes || '').startsWith('Program auto'));
+      if (auto.length === 0) {
+        skipped++;
+        continue;
+      }
+      for (const a of auto) {
+        await this.assignmentRepository.update(a.id, {
+          shiftTypeId: st.id,
+          notes: autoNote(req.startTime),
+        });
+        updated++;
+      }
+    }
+    return { updated, created, skipped };
   }
 
   /** Alege un admin ca "creator" al programului; cade pe un fallback daca nu gaseste. */

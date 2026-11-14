@@ -25,6 +25,7 @@ const EditSchedulePage = lazy(() => import('../pages/schedules/EditSchedulePage'
 const PendingSchedulesPage = lazy(() => import('../pages/schedules/PendingSchedulesPage'));
 const RejectedSchedulesPage = lazy(() => import('../pages/schedules/RejectedSchedulesPage'));
 const MySchedulePage = lazy(() => import('../pages/schedules/MySchedulePage'));
+const ScheduleTimePage = lazy(() => import('../pages/schedule-time/ScheduleTimePage'));
 const ShiftSwapsPage = lazy(() => import('../pages/shift-swaps/ShiftSwapsPage'));
 const AdminShiftSwapsPage = lazy(() => import('../pages/shift-swaps/AdminShiftSwapsPage'));
 const LeaveRequestsPage = lazy(() => import('../pages/leave-requests/LeaveRequestsPage'));
@@ -113,6 +114,7 @@ export const AppRoutes = () => {
 
         {/* My Schedule - for employees */}
         <Route path="/my-schedule" element={<SafePage><MySchedulePage /></SafePage>} />
+        <Route path="/ora-program" element={<SafePage><ScheduleTimePage /></SafePage>} />
 
         {/* Shift Swaps - for all users */}
         <Route path="/shift-swaps" element={<SafePage><ShiftSwapsPage /></SafePage>} />

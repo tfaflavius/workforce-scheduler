@@ -13,6 +13,9 @@ import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OfficeSchedulePrefillService } from './office-schedule-prefill.service';
 import { OfficeSchedulePrefillScheduler } from './office-schedule-prefill.scheduler';
+import { ScheduleTimeRequest } from './entities/schedule-time-request.entity';
+import { ScheduleTimeRequestsService } from './schedule-time-requests.service';
+import { ScheduleTimeRequestsController } from './schedule-time-requests.controller';
 
 @Module({
   imports: [
@@ -23,15 +26,17 @@ import { OfficeSchedulePrefillScheduler } from './office-schedule-prefill.schedu
       WorkPosition,
       User,
       LeaveRequest,
+      ScheduleTimeRequest,
     ]),
     NotificationsModule,
   ],
-  controllers: [SchedulesController, WorkPositionsController],
+  controllers: [SchedulesController, WorkPositionsController, ScheduleTimeRequestsController],
   providers: [
     SchedulesService,
     WorkPositionsService,
     OfficeSchedulePrefillService,
     OfficeSchedulePrefillScheduler,
+    ScheduleTimeRequestsService,
   ],
   exports: [SchedulesService, WorkPositionsService],
 })

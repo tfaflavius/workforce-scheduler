@@ -99,6 +99,20 @@ export class User {
   @Column({ name: 'manager_department_ids', type: 'jsonb', nullable: true, default: null })
   managerDepartmentIds: string[] | null;
 
+  /**
+   * Program fix automat in fiecare luna (ora de inceput, 8 ore), ex. "07:30" sau "08:00".
+   * NULL = nu are program fix individual (angajatii din departamentele de birou primesc
+   * oricum 07:30-15:30).
+   */
+  @Column({
+    name: 'auto_schedule_start',
+    type: 'varchar',
+    length: 5,
+    nullable: true,
+    default: null,
+  })
+  autoScheduleStart: string | null;
+
   /** Brute-force protection: failed login attempts counter */
   @Column({ name: 'failed_login_attempts', default: 0 })
   failedLoginAttempts: number;

@@ -55,6 +55,8 @@ const SPECIAL: Record<string, { text: string; url?: string | null }> = {
     url: '/parking',
   },
   'POST edit-requests': { text: 'a cerut o modificare de date', url: null },
+  // cererea de alta ora isi trimite singura notificarea catre manageri
+  'POST schedule-time-requests': { text: '', url: null },
 };
 
 /** Modulul (prefixul rutei) -> ce anume s-a modificat si unde se vede. */
@@ -106,6 +108,11 @@ const MODULES: Array<{ prefix: string; noun: string; url: string | null }> = [
   { prefix: 'shift-swaps', noun: 'un schimb de tura', url: '/shift-swaps' },
   { prefix: 'holiday-preferences', noun: 'preferintele de sarbatori', url: '/sarbatori' },
   { prefix: 'schedules', noun: 'un program', url: '/schedules' },
+  {
+    prefix: 'schedule-time-requests',
+    noun: 'o cerere de program la alta ora',
+    url: '/ora-program',
+  },
 ];
 
 export interface ActivityDescription {
@@ -121,6 +128,7 @@ export function describeActivity(method: string, routePath: string): ActivityDes
   if (IGNORED.some((r) => r.test(route))) return null;
 
   const special = SPECIAL[`${m} ${route}`];
+  if (special && !special.text) return null;
   if (special) return { text: special.text, url: special.url ?? null };
 
   const mod = MODULES.find((x) => route === x.prefix || route.startsWith(`${x.prefix}/`));

@@ -1,4 +1,6 @@
+import { AUTO_SCHEDULE_STARTS } from '../../schedules/auto-schedule.constants';
 import {
+  IsIn,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -80,4 +82,8 @@ export class CreateUserDto {
   @IsUUID('all', { each: true })
   @IsOptional()
   managerDepartmentIds?: string[] | null;
+
+  @IsOptional()
+  @IsIn([...AUTO_SCHEDULE_STARTS, null])
+  autoScheduleStart?: string | null;
 }

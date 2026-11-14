@@ -243,6 +243,9 @@ export const NOTIFICATION_TYPE_DEFINITIONS: NotificationTypeDefinition[] = [
   { key: 'HOLIDAY_CHAT_MESSAGE', label: 'Mesaj nou in discutia de sarbatori', category: 'Sistem' },
   { key: 'ACCOUNT_UPDATED', label: 'Schimbare departament / rol', category: 'Sistem' },
   { key: 'TEAM_ACTIVITY', label: 'Activitatea angajatilor (manageri)', category: 'Sistem' },
+  { key: 'SCHEDULE_TIME_REQUEST', label: 'Cerere program la alta ora', category: 'Sistem' },
+  { key: 'SCHEDULE_TIME_REQUEST_APPROVED', label: 'Cerere program aprobata', category: 'Sistem' },
+  { key: 'SCHEDULE_TIME_REQUEST_REJECTED', label: 'Cerere program respinsa', category: 'Sistem' },
   { key: 'DOMICILIU_SIGN_PLACEMENT', label: 'Montare indicator Domiciliu', category: 'Sistem' },
 ];
 

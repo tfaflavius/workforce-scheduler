@@ -20,6 +20,7 @@ export interface User {
   updatedAt: string;
   lastLogin: string | null;
   managerDepartmentIds?: string[] | null;
+  autoScheduleStart?: string | null;
 }
 
 export interface LoginRequest {
