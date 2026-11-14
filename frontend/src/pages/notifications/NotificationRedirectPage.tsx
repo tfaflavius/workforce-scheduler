@@ -37,7 +37,8 @@ const NotificationRedirectPage: React.FC = () => {
       if (navInfo) {
         navigate(navInfo.path, { state: navInfo.state, replace: true });
       } else {
-        navigate('/notifications', { replace: true });
+        // Fara pagina asociata: deschidem notificarea cu tot textul
+        navigate('/notifications', { replace: true, state: { expandId: notification.id } });
       }
     }
   }, [notification, userRole, navigate, markAsRead]);

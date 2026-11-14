@@ -27,7 +27,7 @@ import {
   Campaign as CampaignIcon,
 } from '@mui/icons-material';
 import BroadcastDialog from '../../components/notifications/BroadcastDialog';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { EmptyState } from '../../components/common';
 import {
   useGetNotificationsQuery,
@@ -99,9 +99,34 @@ const NotificationsPage: React.FC = () => {
     return groups;
   }, [notifications]);
 
+  // Notificarile fara pagina asociata se deschid pe loc, ca sa se vada tot textul
+  const location = useLocation();
+  const expandId = (location.state as { expandId?: string } | null)?.expandId;
+  const [expandedSet, setExpanded] = useState<Set<string>>(new Set());
+  // Notificarea deschisa din clopotel / push apare direct cu tot textul
+  const expanded = useMemo(() => {
+    if (!expandId) return expandedSet;
+    const next = new Set(expandedSet);
+    next.add(expandId);
+    return next;
+  }, [expandedSet, expandId]);
+  const toggleExpanded = (id: string) => {
+    if (expandId) navigate(location.pathname, { replace: true, state: null });
+    setExpanded(() => {
+      const next = new Set(expanded);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.isRead) {
-      await markAsRead(notification.id);
+      markAsRead(notification.id);
+    }
+    if (!isNotificationNavigable(notification, userRole)) {
+      toggleExpanded(notification.id);
+      return;
     }
 
     // Navigate to the relevant page based on notification type and user role
@@ -144,9 +169,9 @@ const NotificationsPage: React.FC = () => {
         <Card sx={{ mb: { xs: 2, sm: 3 } }}>
           <CardContent sx={{ py: 1.5, px: 2 }}>
             <Stack
-              direction={{ xs: 'column', sm: 'row' }}
+              direction={{ xs: 'column', md: 'row' }}
               justifyContent="space-between"
-              alignItems={{ xs: 'stretch', sm: 'center' }}
+              alignItems={{ xs: 'stretch', md: 'center' }}
               spacing={1.5}
             >
               <ToggleButtonGroup
@@ -172,7 +197,13 @@ const NotificationsPage: React.FC = () => {
                 </ToggleButton>
               </ToggleButtonGroup>
 
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Stack
+                direction="row"
+                spacing={1}
+                flexWrap="wrap"
+                useFlexGap
+                justifyContent={{ xs: 'flex-start', md: 'flex-end' }}
+              >
                 {canBroadcast && (
                   <Button
                     size="small"
@@ -238,6 +269,9 @@ const NotificationsPage: React.FC = () => {
                 {notifs.map((notif) => {
                   const category = getCategoryFromType(notif.type);
                   const navigable = isNotificationNavigable(notif, userRole);
+                  const full =
+                    notif.type === 'DAILY_DIGEST' || !!notif.data?.fullMessage || expanded.has(notif.id);
+                  const longText = (notif.message?.length || 0) > 110 || notif.message?.includes('\n');
                   return (
                     <Card
                       key={notif.id}
@@ -250,7 +284,7 @@ const NotificationsPage: React.FC = () => {
                         }
                       }}
                       sx={{
-                        cursor: navigable ? 'pointer' : 'default',
+                        cursor: navigable || longText ? 'pointer' : 'default',
                         transition: 'all 0.2s ease',
                         bgcolor: notif.isRead ? 'background.paper' : alpha(theme.palette.primary.main, 0.04),
                         borderLeft: notif.isRead ? 'none' : `3px solid ${theme.palette.primary.main}`,
@@ -271,8 +305,8 @@ const NotificationsPage: React.FC = () => {
                               <Typography
                                 variant="body2"
                                 fontWeight={notif.isRead ? 500 : 700}
-                                noWrap
-                                sx={{ flex: 1 }}
+                                noWrap={!full}
+                                sx={{ flex: 1, ...(full ? { wordBreak: 'break-word' } : {}) }}
                               >
                                 {notif.title}
                               </Typography>
@@ -294,8 +328,8 @@ const NotificationsPage: React.FC = () => {
                               variant="caption"
                               color="text.secondary"
                               sx={
-                                notif.type === 'DAILY_DIGEST' || notif.data?.fullMessage
-                                  ? { display: 'block', whiteSpace: 'pre-line', lineHeight: 1.5 }
+                                full
+                                  ? { display: 'block', whiteSpace: 'pre-line', lineHeight: 1.5, wordBreak: 'break-word' }
                                   : {
                                       display: '-webkit-box',
                                       WebkitLineClamp: 2,
@@ -307,9 +341,16 @@ const NotificationsPage: React.FC = () => {
                             >
                               {notif.message}
                             </Typography>
-                            <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block', fontSize: '0.65rem' }}>
-                              {getTimeAgo(notif.createdAt)}
-                            </Typography>
+                            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 0.5 }}>
+                              <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.65rem' }}>
+                                {getTimeAgo(notif.createdAt)}
+                              </Typography>
+                              {!navigable && longText && notif.type !== 'DAILY_DIGEST' && !notif.data?.fullMessage && (
+                                <Typography variant="caption" color="primary" fontWeight={600} sx={{ fontSize: '0.7rem' }}>
+                                  {expanded.has(notif.id) ? 'Mai putin' : 'Citeste tot'}
+                                </Typography>
+                              )}
+                            </Stack>
                           </Box>
                           <Tooltip title="Sterge">
                             <IconButton

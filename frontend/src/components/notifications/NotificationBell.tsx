@@ -87,6 +87,9 @@ export const NotificationBell: React.FC = React.memo(() => {
     const navInfo = getNotificationPath(notification, userRole);
     if (navInfo) {
       navigate(navInfo.path, { state: navInfo.state });
+    } else {
+      // Fara pagina asociata: o deschidem pe pagina de notificari cu tot textul
+      navigate('/notifications', { state: { expandId: notification.id } });
     }
 
     handleClose();
