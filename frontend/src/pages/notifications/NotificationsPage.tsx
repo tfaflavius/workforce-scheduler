@@ -66,7 +66,7 @@ const NotificationsPage: React.FC = () => {
 
   const { data: notifications = [], isLoading } = useGetNotificationsQuery(
     { limit: 100, unreadOnly: filter === 'unread' },
-    { pollingInterval: 30000 }
+    { skipPollingIfUnfocused: true, pollingInterval: 30000 }
   );
   const [markAsRead] = useMarkAsReadMutation();
   const [markAllAsRead] = useMarkAllAsReadMutation();

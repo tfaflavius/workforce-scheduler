@@ -32,9 +32,9 @@ const MobileBottomNav: React.FC = () => {
   const location = useLocation();
   const { user } = useAppSelector((state) => state.auth);
   const { data: unreadCount = 0 } = useGetUnreadCountQuery(undefined, {
-    pollingInterval: 30000,
+    skipPollingIfUnfocused: true, pollingInterval: 30000,
   });
-  const { data: chatUnread } = useGetChatUnreadCountQuery(undefined, { pollingInterval: 30000 });
+  const { data: chatUnread } = useGetChatUnreadCountQuery(undefined, { skipPollingIfUnfocused: true, pollingInterval: 30000 });
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN';
   const isManager = user?.role === 'MANAGER';

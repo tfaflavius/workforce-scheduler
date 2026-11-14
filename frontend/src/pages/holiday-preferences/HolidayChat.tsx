@@ -44,7 +44,7 @@ const HolidayChat = ({
 }) => {
   const theme = useTheme();
   const { notifyError } = useSnackbar();
-  const { data: messages = [], isLoading } = useGetHolidayMessagesQuery({ periodId, group }, { pollingInterval: 10000 });
+  const { data: messages = [], isLoading } = useGetHolidayMessagesQuery({ periodId, group }, { skipPollingIfUnfocused: true, pollingInterval: 10000 });
   const [postMessage, { isLoading: sending }] = usePostHolidayMessageMutation();
   const [deleteMessage] = useDeleteHolidayMessageMutation();
   const [text, setText] = useState('');

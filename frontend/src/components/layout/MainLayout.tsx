@@ -211,13 +211,13 @@ export const MainLayout = () => {
   const dashboardPollingInterval = useSmartPolling(60000);
   const { data: dashboardStats } = useGetDashboardStatsQuery(undefined, {
     skip: !isAdmin,
-    pollingInterval: dashboardPollingInterval,
+    skipPollingIfUnfocused: true, pollingInterval: dashboardPollingInterval,
   });
 
   // Mesaje necitite in chat (toti utilizatorii)
   const { data: chatUnread } = useGetChatUnreadCountQuery(undefined, {
     skip: !user,
-    pollingInterval: 30000,
+    skipPollingIfUnfocused: true, pollingInterval: 30000,
   });
 
   // Badge counts for nav items (admin only + chat pentru toti)

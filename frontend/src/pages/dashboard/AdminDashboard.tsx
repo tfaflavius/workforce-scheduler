@@ -75,7 +75,7 @@ const AdminDashboard = () => {
 
   const adminPollingInterval = useSmartPolling(60000);
   const { data: stats, isLoading, isError } = useGetDashboardStatsQuery(undefined, {
-    pollingInterval: adminPollingInterval,
+    skipPollingIfUnfocused: true, pollingInterval: adminPollingInterval,
   });
 
   const hasError = isError || (!isLoading && !stats);

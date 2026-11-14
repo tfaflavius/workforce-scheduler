@@ -51,7 +51,7 @@ const PvMarketplaceTab: React.FC = () => {
     refetchOnFocus: true,
     refetchOnMountOrArgChange: 30,
     refetchOnReconnect: true,
-    pollingInterval: 60000,
+    skipPollingIfUnfocused: true, pollingInterval: 60000,
   });
   const [claimDay] = useClaimDayMutation();
   const [claimingDayId, setClaimingDayId] = useState<string | null>(null);

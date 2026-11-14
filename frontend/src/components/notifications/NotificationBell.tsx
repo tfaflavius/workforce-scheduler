@@ -47,11 +47,11 @@ export const NotificationBell: React.FC = React.memo(() => {
   const notifPollingInterval = useSmartPolling(30000);
   const { data: notifications = [], isLoading } = useGetNotificationsQuery(
     { limit: 10 },
-    { pollingInterval: notifPollingInterval }
+    { skipPollingIfUnfocused: true, pollingInterval: notifPollingInterval }
   );
   const { data: unreadCount = 0 } = useGetUnreadCountQuery(
     undefined,
-    { pollingInterval: notifPollingInterval }
+    { skipPollingIfUnfocused: true, pollingInterval: notifPollingInterval }
   );
   // Cand adminul ii schimba omului departamentul sau rolul, reincarcam profilul ca
   // meniurile si drepturile sa se actualizeze fara deconectare.

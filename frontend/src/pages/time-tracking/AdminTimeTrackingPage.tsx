@@ -204,10 +204,10 @@ const AdminTimeTrackingPage: React.FC = () => {
 
   // ===== QUERIES =====
   const { data: stats, isLoading: statsLoading } = useGetAdminTimeTrackingStatsQuery(undefined, {
-    pollingInterval: 30000,
+    skipPollingIfUnfocused: true, pollingInterval: 30000,
   });
   const { data: activeTimers = [], isLoading: activeLoading, refetch: refetchActive } = useGetAdminActiveTimersQuery(undefined, {
-    pollingInterval: 30000,
+    skipPollingIfUnfocused: true, pollingInterval: 30000,
   });
   const [requestInstantLocations, { isLoading: isRequestingLocations }] = useRequestInstantLocationsMutation();
   const { data: departmentUsers = [] } = useGetAdminDepartmentUsersQuery();
