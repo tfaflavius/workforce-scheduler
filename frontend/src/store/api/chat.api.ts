@@ -26,6 +26,8 @@ export interface ChatMessageItem {
   fromDepartment?: string | null;
   toDepartments?: string[];
   alsoVisibleTo?: string[];
+  /** Mesajul la care se raspunde (citat deasupra) */
+  replyTo?: { id: string; userName: string; text: string; deleted?: boolean };
 }
 
 export interface ChatComposeInfo {
@@ -37,6 +39,8 @@ export interface ChatComposeInfo {
 export interface ChatMessagesResponse {
   canWrite: boolean;
   hasMore: boolean;
+  /** Conversatii private: pana unde a citit celalalt (pentru "Vazut") */
+  otherReadAt?: string | null;
   compose?: ChatComposeInfo | null;
   messages: ChatMessageItem[];
 }
@@ -87,11 +91,11 @@ export const chatApi = createApi({
         }
       },
     }),
-    sendChatMessage: builder.mutation<ChatMessagesResponse, { id: string; message: string; targetDepartmentIds?: string[] }>({
-      query: ({ id, message, targetDepartmentIds }) => ({
+    sendChatMessage: builder.mutation<ChatMessagesResponse, { id: string; message: string; targetDepartmentIds?: string[]; replyToId?: string }>({
+      query: ({ id, message, targetDepartmentIds, replyToId }) => ({
         url: `/conversations/${id}/messages`,
         method: 'POST',
-        body: { message, targetDepartmentIds },
+        body: { message, targetDepartmentIds, replyToId },
       }),
       invalidatesTags: (_r, _e, { id }) => [{ type: 'Messages', id }, 'Conversations'],
     }),

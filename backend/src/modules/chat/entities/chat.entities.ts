@@ -75,6 +75,10 @@ export class ChatMessage {
   @Column({ name: 'audience_dept_ids', type: 'jsonb', nullable: true, default: null })
   audienceDeptIds: string[] | null;
 
+  /** Mesajul la care se raspunde (citat deasupra). */
+  @Column({ name: 'reply_to_id', type: 'uuid', nullable: true, default: null })
+  replyToId: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }

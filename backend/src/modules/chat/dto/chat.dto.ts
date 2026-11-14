@@ -20,6 +20,11 @@ export class SendChatMessageDto {
   @ArrayMaxSize(50)
   @IsUUID('all', { each: true })
   targetDepartmentIds?: string[];
+
+  /** Raspuns la un mesaj anume (optional). */
+  @IsOptional()
+  @IsUUID()
+  replyToId?: string;
 }
 
 export class StartDirectChatDto {

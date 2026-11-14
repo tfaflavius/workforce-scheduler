@@ -367,7 +367,23 @@ export class ChatService {
         take: PAGE_SIZE,
       });
     }
-    if (!before) await this.markRead(conversationId, me.id);
+    if (!before) {
+      // Conversatie privata: anuntam celalalt om ca i-am vazut mesajele (doar cand chiar
+      // erau mesaje noi de la el, ca sa nu se creeze o bucla de reimprospatari).
+      let seenNew = false;
+      if (conv.type === 'DIRECT') {
+        const newestOther = rows.find((m) => m.userId !== me.id);
+        if (newestOther) {
+          const prev = await this.readRepo.findOne({ where: { conversationId, userId: me.id } });
+          seenNew = !prev || prev.lastReadAt < newestOther.createdAt;
+          if (seenNew) {
+            await this.markRead(conversationId, me.id);
+            this.realtime?.emit([newestOther.userId], 'chat', { conversationId });
+          }
+        }
+      }
+      if (!seenNew) await this.markRead(conversationId, me.id);
+    }
 
     // Etichete "De la -> Catre" pentru mesajele din grupuri
     const deptName = new Map<string, string>();
@@ -379,7 +395,32 @@ export class ChatService {
     const names = (ids: string[] | null) =>
       (ids || []).map((id) => deptName.get(id)).filter((n): n is string => !!n);
 
+    // Mesajele citate (raspunsuri)
+    const replyIds = [...new Set(rows.map((m) => m.replyToId).filter((x): x is string => !!x))];
+    const replyMap = new Map<string, { id: string; userName: string; text: string }>();
+    if (replyIds.length) {
+      const quoted = await this.msgRepo.find({ where: { id: In(replyIds) }, relations: ['user'] });
+      quoted.forEach((q) =>
+        replyMap.set(q.id, {
+          id: q.id,
+          userName: q.user?.fullName || 'Utilizator',
+          text: q.message.length > 160 ? `${q.message.slice(0, 160)}…` : q.message,
+        }),
+      );
+    }
+
+    // Conversatii private: pana unde a citit celalalt (pentru "Vazut")
+    let otherReadAt: Date | null = null;
+    if (conv.type === 'DIRECT') {
+      const otherId = conv.directKey?.split(':').find((id) => id !== me.id);
+      if (otherId) {
+        const r = await this.readRepo.findOne({ where: { conversationId, userId: otherId } });
+        otherReadAt = r?.lastReadAt ?? null;
+      }
+    }
+
     return {
+      otherReadAt,
       canWrite,
       hasMore: rows.length === PAGE_SIZE,
       compose: conv.type === 'DEPARTMENT' && canWrite ? await this.composeInfo(me, conv) : null,
@@ -394,6 +435,16 @@ export class ChatService {
           userRole: m.user?.role,
           message: m.message,
           createdAt: m.createdAt,
+          ...(m.replyToId
+            ? {
+                replyTo: replyMap.get(m.replyToId) || {
+                  id: m.replyToId,
+                  userName: '',
+                  text: '',
+                  deleted: true,
+                },
+              }
+            : {}),
           ...(routed
             ? {
                 fromDepartment: fromName,
@@ -440,6 +491,24 @@ export class ChatService {
     return [...aud];
   }
 
+  /** Mesajul citat trebuie sa fie vizibil in conversatia curenta (altfel e ignorat). */
+  private async visibleMessageId(
+    conv: ChatConversation,
+    messageId: string,
+  ): Promise<string | null> {
+    if (conv.type === 'DEPARTMENT') {
+      const hit = await this.msgRepo
+        .createQueryBuilder('m')
+        .innerJoin(ChatConversation, 'c', 'c.id = :cid', { cid: conv.id })
+        .where(DEPT_FEED_SQL)
+        .andWhere('m.id = :mid', { mid: messageId })
+        .getCount();
+      return hit ? messageId : null;
+    }
+    const hit = await this.msgRepo.count({ where: { id: messageId, conversationId: conv.id } });
+    return hit ? messageId : null;
+  }
+
   private async markRead(conversationId: string, userId: string) {
     await this.readRepo
       .createQueryBuilder()
@@ -466,6 +535,7 @@ export class ChatService {
     text: string,
     requester: Requester,
     targetDepartmentIds?: string[],
+    replyToId?: string,
   ) {
     const me = await this.loadMe(requester);
     const conv = await this.getConversationOrFail(conversationId);
@@ -479,6 +549,7 @@ export class ChatService {
     }
     const clean = (text || '').trim();
     if (!clean) throw new BadRequestException('Mesajul este gol');
+    const replyTo = replyToId ? await this.visibleMessageId(conv, replyToId) : null;
 
     if (conv.type === 'DEPARTMENT') {
       const compose = await this.composeInfo(me, conv);
@@ -502,6 +573,7 @@ export class ChatService {
           message: clean,
           targetDeptIds: targets,
           audienceDeptIds: audience,
+          replyToId: replyTo,
         }),
       );
       const convs = await this.ensureDepartmentConversations(audience);
@@ -514,7 +586,9 @@ export class ChatService {
       return this.getMessages(conversationId, requester);
     }
 
-    await this.msgRepo.save(this.msgRepo.create({ conversationId, userId: me.id, message: clean }));
+    await this.msgRepo.save(
+      this.msgRepo.create({ conversationId, userId: me.id, message: clean, replyToId: replyTo }),
+    );
     conv.lastMessageAt = new Date();
     await this.convRepo.save(conv);
 
