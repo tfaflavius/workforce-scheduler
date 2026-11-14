@@ -25,6 +25,7 @@ export class OfficeSchedulePrefillScheduler implements OnApplicationBootstrap {
       this.logger.log(
         `[Prefill birou] Lunar ${year}-${month}: ${res.created} asignari, ${res.users} angajati`,
       );
+      await this.prefillService.notifyPrefilledMonth(year, month);
     } catch (error) {
       this.logger.error(`[Prefill birou] Eroare lunar: ${error.message}`);
     }
@@ -40,6 +41,8 @@ export class OfficeSchedulePrefillScheduler implements OnApplicationBootstrap {
           `[Prefill birou] La pornire ${year}-${month}: ${res.created} asignari create`,
         );
       }
+      // Anunta si pe cei completati recent (o singura data pe luna)
+      await this.prefillService.notifyPrefilledMonth(year, month);
     } catch (error) {
       this.logger.error(`[Prefill birou] Eroare la pornire: ${error.message}`);
     }

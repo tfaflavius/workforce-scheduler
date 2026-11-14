@@ -9,6 +9,8 @@ import { LeaveRequest } from '../leave-requests/entities/leave-request.entity';
 import { isWorkingDay } from '../daily-reports/constants/romanian-holidays';
 import { ScheduleTimeRequest } from './entities/schedule-time-request.entity';
 import { autoNote, DEFAULT_OFFICE_START, endOf8h } from './auto-schedule.constants';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 import {
   PROCESE_VERBALE_DEPARTMENT_NAME,
   ACHIZITII_DEPARTMENT_NAME,
@@ -52,6 +54,7 @@ export class OfficeSchedulePrefillService {
     private readonly leaveRequestRepository: Repository<LeaveRequest>,
     @InjectRepository(ScheduleTimeRequest)
     private readonly timeRequestRepository: Repository<ScheduleTimeRequest>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   /** Are program fix automat: departament de birou sau ora setata individual. */
@@ -373,6 +376,62 @@ export class OfficeSchedulePrefillService {
       }
     }
     return { updated, created, skipped };
+  }
+
+  /**
+   * Anunta in aplicatie (in-app + push) pe fiecare om caruia i s-a completat automat
+   * programul pe luna: o singura notificare pe luna. Doar pentru programul completat in
+   * ultimele 2 zile (ca sa nu anunte din nou lunile vechi la repornirea serverului).
+   */
+  async notifyPrefilledMonth(year: number, month: number): Promise<number> {
+    const monthKey = `${year}-${this.pad(month)}`;
+    const rows: Array<{ user_id: string; notes: string; days: number }> =
+      await this.assignmentRepository.query(
+        `SELECT sa.user_id, sa.notes, COUNT(*)::int AS days
+           FROM schedule_assignments sa
+           JOIN users u ON u.id = sa.user_id AND u.is_active = true
+          WHERE sa.notes LIKE 'Program auto%'
+            AND to_char(sa.shift_date, 'YYYY-MM') = $1
+            AND sa.user_id IN (
+              SELECT user_id FROM schedule_assignments
+               WHERE notes LIKE 'Program auto%'
+                 AND to_char(shift_date, 'YYYY-MM') = $1
+                 AND created_at >= NOW() - INTERVAL '2 days')
+            AND sa.user_id NOT IN (
+              SELECT user_id FROM notifications
+               WHERE type = $2 AND data->>'autoScheduleMonth' = $1)
+          GROUP BY sa.user_id, sa.notes`,
+        [monthKey, NotificationType.SCHEDULE_CREATED],
+      );
+    if (rows.length === 0) return 0;
+
+    const byUser = new Map<string, Array<{ interval: string; days: number }>>();
+    for (const r of rows) {
+      const interval = String(r.notes).replace('Program auto', '').trim() || '07:30-15:30';
+      byUser.set(r.user_id, [...(byUser.get(r.user_id) || []), { interval, days: Number(r.days) }]);
+    }
+    const monthName = new Date(year, month - 1).toLocaleDateString('ro-RO', {
+      month: 'long',
+      year: 'numeric',
+    });
+    await this.notificationsService.createMany(
+      [...byUser.entries()].map(([userId, parts]) => {
+        const total = parts.reduce((n, p) => n + p.days, 0);
+        const detail =
+          parts.length === 1
+            ? `${parts[0].interval}, ${total} zile lucratoare`
+            : parts.map((p) => `${p.interval} (${p.days} zile)`).join(', ');
+        return {
+          userId,
+          type: NotificationType.SCHEDULE_CREATED,
+          title: `Programul pe ${monthName} este gata`,
+          message: `Programul tau pe ${monthName} a fost facut automat: ${detail}. Daca ai nevoie de alta ora, o poti cere din "Ora program".`,
+          data: { autoScheduleMonth: monthKey, monthYear: monthKey, url: '/my-schedule' },
+        };
+      }),
+    );
+    this.logger.log(`[Prefill] Notificati ${byUser.size} angajati pentru ${monthKey}`);
+    return byUser.size;
   }
 
   /** Alege un admin ca "creator" al programului; cade pe un fallback daca nu gaseste. */
