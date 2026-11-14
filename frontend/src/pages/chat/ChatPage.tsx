@@ -50,6 +50,10 @@ import {
 import { useAppSelector } from '../../store/hooks';
 
 /** Eticheta "De la -> Catre" pentru mesajele trimise intre departamente. */
+
+/** Ciornele de mesaje, pe conversatie (cat timp aplicatia e deschisa). */
+const drafts = new Map<string, string>();
+
 const routeLabel = (
   m: { fromDepartment?: string | null; toDepartments?: string[]; alsoVisibleTo?: string[] },
   groupName: string,
@@ -244,7 +248,13 @@ const ChatThread = ({
   const { data, isLoading } = useGetChatMessagesQuery(conv.id, { skipPollingIfUnfocused: true, pollingInterval: 5000 });
   const [send, { isLoading: sending }] = useSendChatMessageMutation();
   const [del] = useDeleteChatMessageMutation();
-  const [text, setText] = useState('');
+  // Ciorna se pastreaza pe conversatie (nu se pierde daca ecranul se reincarca/redeseneaza)
+  const [text, setTextState] = useState(() => drafts.get(conv.id) || '');
+  const setText = (v: string) => {
+    if (v) drafts.set(conv.id, v);
+    else drafts.delete(conv.id);
+    setTextState(v);
+  };
   const listRef = useRef<HTMLDivElement>(null);
   const isTouch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const messages = data?.messages ?? [];
@@ -466,17 +476,18 @@ const ChatThread = ({
             multiline
             maxRows={4}
             size="small"
-            placeholder={isTouch ? 'Scrie un mesaj...' : 'Scrie un mesaj... (Enter trimite, Shift+Enter rand nou)'}
+            placeholder={isTouch ? 'Scrie un mesaj si apasa Trimite' : 'Scrie un mesaj... (Enter trimite, Shift+Enter rand nou)'}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !isTouch) {
+              // Pe telefon tasta Enter scrie "Trimite" (enterKeyHint) -> trimite mesajul
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 submit();
               }
             }}
             inputProps={{ maxLength: 4000, enterKeyHint: 'send' }}
-            sx={{ '& .MuiInputBase-input': { fontSize: 16 } }}
+            sx={{ flex: 1, minWidth: 0, '& .MuiInputBase-input': { fontSize: '16px !important' } }}
           />
           <IconButton
             color="primary"
