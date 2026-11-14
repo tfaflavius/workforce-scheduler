@@ -14,6 +14,10 @@ import { NotificationsService } from './notifications.service';
 import { PushNotificationService } from './push-notification.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Public } from '../auth/decorators/public.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/entities/user.entity';
+import { BroadcastDto } from './dto/broadcast.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 interface PushSubscriptionBody {
@@ -59,6 +63,14 @@ export class NotificationsController {
   @Patch(':id/read')
   markAsRead(@Param('id') id: string, @Request() req) {
     return this.notificationsService.markAsRead(id, req.user.id);
+  }
+
+  /** Admin: anunt catre toti utilizatorii activi (in-app + push + email). */
+  @Post('broadcast')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN)
+  broadcast(@Body() dto: BroadcastDto, @Request() req) {
+    return this.notificationsService.broadcast(dto.title, dto.message, req.user.id, dto.url);
   }
 
   @Post('mark-all-read')

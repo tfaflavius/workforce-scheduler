@@ -24,7 +24,9 @@ import {
   DeleteSweep as DeleteSweepIcon,
   FilterList as FilterIcon,
   OpenInNew as OpenInNewIcon,
+  Campaign as CampaignIcon,
 } from '@mui/icons-material';
+import BroadcastDialog from '../../components/notifications/BroadcastDialog';
 import { useNavigate } from 'react-router-dom';
 import { EmptyState } from '../../components/common';
 import {
@@ -57,6 +59,8 @@ const NotificationsPage: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useAppSelector((state) => state.auth);
+  const canBroadcast = user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN';
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
   const userRole = user?.role;
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
@@ -127,6 +131,7 @@ const NotificationsPage: React.FC = () => {
 
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
+      {canBroadcast && <BroadcastDialog open={broadcastOpen} onClose={() => setBroadcastOpen(false)} />}
       <GradientHeader
         title="Notificari"
         subtitle={`${unreadCount} necitite din ${notifications.length} total`}
@@ -167,7 +172,18 @@ const NotificationsPage: React.FC = () => {
                 </ToggleButton>
               </ToggleButtonGroup>
 
-              <Stack direction="row" spacing={1}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {canBroadcast && (
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<CampaignIcon />}
+                    onClick={() => setBroadcastOpen(true)}
+                    sx={{ textTransform: 'none', fontSize: '0.8rem' }}
+                  >
+                    Anunt catre toti
+                  </Button>
+                )}
                 {unreadCount > 0 && (
                   <Button
                     size="small"

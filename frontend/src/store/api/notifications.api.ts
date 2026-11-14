@@ -132,6 +132,11 @@ export const notificationsApi = createApi({
       ],
     }),
 
+    broadcastNotification: builder.mutation<{ sent: number }, { title: string; message: string; url?: string }>({
+      query: (body) => ({ url: '/notifications/broadcast', method: 'POST', body }),
+      invalidatesTags: [{ type: 'Notification', id: 'LIST' }, 'UnreadCount'],
+    }),
+
     markAllAsRead: builder.mutation<void, void>({
       query: () => ({
         url: '/notifications/mark-all-read',
@@ -208,6 +213,7 @@ export const {
   useGetNotificationByIdQuery,
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
+  useBroadcastNotificationMutation,
   useDeleteNotificationMutation,
   useDeleteAllReadMutation,
   // Push hooks

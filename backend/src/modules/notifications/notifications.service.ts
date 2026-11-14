@@ -451,6 +451,51 @@ export class NotificationsService {
     })().catch((err) => this.logger.warn(`Failed to prepare notification emails: ${err?.message}`));
   }
 
+  /** Anunt general catre toti utilizatorii activi: in aplicatie, push si email. */
+  async broadcast(
+    title: string,
+    message: string,
+    senderId: string,
+    url?: string,
+  ): Promise<{ sent: number }> {
+    const users = await this.userRepository.find({
+      where: { isActive: true },
+      select: ['id', 'email', 'fullName'],
+    });
+    if (users.length === 0) return { sent: 0 };
+    await this.createMany(
+      users.map((u) => ({
+        userId: u.id,
+        type: NotificationType.GENERAL,
+        title: title.trim(),
+        message: message.trim(),
+        data: { broadcast: true, senderId, ...(url ? { url } : {}) },
+      })),
+    );
+    // GENERAL nu trimite email automat, asa ca anuntul isi trimite singur emailurile
+    (async () => {
+      let ok = 0;
+      for (const u of users) {
+        if (!u.email) continue;
+        const sent = await this.emailService
+          .sendNotificationEmail({
+            recipientEmail: u.email,
+            recipientName: u.fullName || u.email,
+            title: title.trim(),
+            message: message.trim(),
+          })
+          .catch((err) => {
+            this.logger.warn(`[Anunt] Email esuat pentru ${u.email}: ${err?.message}`);
+            return false;
+          });
+        if (sent) ok++;
+      }
+      this.logger.log(`[Anunt] Emailuri trimise: ${ok}/${users.length}`);
+    })().catch((err) => this.logger.warn(`[Anunt] Eroare emailuri: ${err?.message}`));
+    this.logger.log(`[Anunt] "${title}" trimis la ${users.length} utilizatori`);
+    return { sent: users.length };
+  }
+
   // ============== PUSH NOTIFICATION HELPERS ==============
 
   private async sendPushForNotification(
