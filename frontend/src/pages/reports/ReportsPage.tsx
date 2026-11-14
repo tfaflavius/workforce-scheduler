@@ -2010,7 +2010,7 @@ const ReportsPage: React.FC = () => {
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'grey.50' }}>
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+          gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
           gap: { xs: 1.5, sm: 2 },
         }}>
           <Box textAlign="center">
@@ -2138,7 +2138,7 @@ const ReportsPage: React.FC = () => {
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'grey.50' }}>
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+          gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
           gap: { xs: 1.5, sm: 2 },
         }}>
           <Box textAlign="center">

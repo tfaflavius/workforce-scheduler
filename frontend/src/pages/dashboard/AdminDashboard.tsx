@@ -342,7 +342,7 @@ const AdminDashboard = () => {
                   <Box
                     sx={{
                       display: 'grid',
-                      gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+                      gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' },
                       gap: { xs: 1, sm: 1.5 },
                     }}
                   >
@@ -399,7 +399,7 @@ const AdminDashboard = () => {
                   <Box
                     sx={{
                       display: 'grid',
-                      gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+                      gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' },
                       gap: { xs: 1, sm: 1.5 },
                     }}
                   >

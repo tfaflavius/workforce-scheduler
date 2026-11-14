@@ -294,25 +294,25 @@ const ParkingIssuesTab: React.FC<ParkingIssuesTabProps> = ({ initialOpenId, onOp
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' },
+                gridTemplateColumns: { xs: 'minmax(0, 1fr) minmax(0, 1fr)', md: 'repeat(3, minmax(0, 1fr))' },
                 gap: { xs: 0.75, sm: 1 },
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
                 <EquipmentIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
-                <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }} noWrap>
+                <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary', minWidth: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'break-word' }}>
                   {issue.equipment}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
                 <CompanyIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
-                <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }} noWrap>
+                <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary', minWidth: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', wordBreak: 'break-word' }}>
                   {issue.contactedCompany}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, gridColumn: { xs: 'span 2', sm: 'auto' } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0, gridColumn: { xs: 'span 2', md: 'auto' } }}>
                 <TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'text.secondary' }} />
-                <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary' }}>
+                <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: 'text.secondary', whiteSpace: 'nowrap' }}>
                   {formatDateShort(issue.createdAt)}
                 </Typography>
               </Box>

@@ -1073,7 +1073,7 @@ const EmployeeDashboard = () => {
                     Incasari — Total {deptStats.revenueYTD.year}
                   </Typography>
                 </Stack>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' }, gap: { xs: 1, sm: 1.5 } }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' }, gap: { xs: 1, sm: 1.5 } }}>
                   <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.success.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.success.main, 0.2)}` }}>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                       Incasari cash
@@ -1114,7 +1114,7 @@ const EmployeeDashboard = () => {
                     Note de Constatare — {deptStats.controlNotes.year}
                   </Typography>
                 </Stack>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)' }, gap: { xs: 1, sm: 1.5 } }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' }, gap: { xs: 1, sm: 1.5 } }}>
                   <Box sx={{ p: { xs: 1, sm: 1.25 }, bgcolor: alpha(theme.palette.primary.main, 0.08), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}` }}>
                     <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: { xs: '0.65rem', sm: '0.72rem' } }}>
                       Total note
