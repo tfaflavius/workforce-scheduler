@@ -5,7 +5,6 @@ import {
   Paper,
   Stack,
   Chip,
-  CircularProgress,
   Alert,
   Card,
   CardContent,
@@ -24,6 +23,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useGetSchedulesQuery } from '../../store/api/schedulesApi';
 import { useGetUsersQuery } from '../../store/api/users.api';
+import ListSkeleton from '../../components/common/ListSkeleton';
 
 const RejectedSchedulesPage: React.FC = () => {
   const theme = useTheme();
@@ -65,9 +65,7 @@ const RejectedSchedulesPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

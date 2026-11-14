@@ -7,7 +7,6 @@ import {
   Divider,
   Stack,
   Chip,
-  CircularProgress,
   Alert,
   Card,
   CardContent,
@@ -30,6 +29,7 @@ import { UserStatusChip } from '../../components/users/UserStatusChip';
 import { PushNotificationSettings } from '../../components/notifications/PushNotificationSettings';
 import { getRoleLabel, getRoleBadgeColor } from '../../utils/roleHelpers';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import ListSkeleton from '../../components/common/ListSkeleton';
 
 const UserProfilePage: React.FC = () => {
   const theme = useTheme();
@@ -55,9 +55,7 @@ const UserProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

@@ -21,6 +21,11 @@ import type {
 
 export const acquisitionsApi = createApi({
   reducerPath: 'acquisitionsApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery('/acquisitions'),
   tagTypes: ['BudgetPositions', 'Acquisitions', 'Invoices', 'Summary', 'RevenueCategories', 'RevenueSummary'],
   keepUnusedDataFor: 300, // 5 min

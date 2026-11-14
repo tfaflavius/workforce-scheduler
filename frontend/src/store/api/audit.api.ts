@@ -36,6 +36,11 @@ export interface AuditLogFilters {
 
 export const auditApi = createApi({
   reducerPath: 'auditApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['AuditLog'],
   keepUnusedDataFor: 60, // 1 min — audit data is time-sensitive

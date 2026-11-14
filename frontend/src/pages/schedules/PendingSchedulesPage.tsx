@@ -35,6 +35,7 @@ import {
 } from '../../store/api/schedulesApi';
 import type { WorkSchedule } from '../../types/schedule.types';
 import { useSnackbar } from '../../contexts/SnackbarContext';
+import ListSkeleton from '../../components/common/ListSkeleton';
 
 const PendingSchedulesPage = () => {
   const theme = useTheme();
@@ -89,9 +90,7 @@ const PendingSchedulesPage = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

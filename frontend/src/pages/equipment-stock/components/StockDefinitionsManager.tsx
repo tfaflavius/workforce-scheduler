@@ -12,7 +12,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  CircularProgress,
   Alert,
   Stack,
   Chip,
@@ -40,6 +39,7 @@ import {
   useDeleteDefinitionMutation,
 } from '../../../store/api/equipmentStock.api';
 import type { StockDefinitionItem } from '../../../store/api/equipmentStock.api';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const CATEGORY_OPTIONS = [
   { value: 'PARCARI_ETAJATE', label: 'Parcari Etajate' },
@@ -163,9 +163,7 @@ const StockDefinitionsManager: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

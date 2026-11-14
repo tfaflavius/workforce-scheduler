@@ -57,6 +57,7 @@ import {
   type HolidayChoice,
   type HolidayPeriod,
 } from '../../store/api/holidayPreferences.api';
+import ListSkeleton from '../../components/common/ListSkeleton';
 
 // ---- Optiuni ----
 const CHOICES: Array<{ value: HolidayChoice; label: string; short: string; color: string }> = [
@@ -323,9 +324,7 @@ const HolidayPreferencesPage = () => {
 
   if (loadingPeriods) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

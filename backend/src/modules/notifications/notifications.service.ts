@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Notification, NotificationType } from './entities/notification.entity';
@@ -7,6 +7,7 @@ import { NotificationSettingCheckService } from './notification-setting-check.se
 import { PushNotificationService } from './push-notification.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { formatMonthYear } from '../../common/utils/romanian-months';
+import { RealtimeService } from '../../common/realtime/realtime.service';
 import { EmailService } from '../../common/email/email.service';
 
 // URL mapping per notification type - used for push notification click navigation
@@ -122,6 +123,7 @@ export class NotificationsService {
     private settingCheck: NotificationSettingCheckService,
     private pushNotificationService: PushNotificationService,
     private emailService: EmailService,
+    @Optional() private readonly realtime?: RealtimeService,
   ) {}
 
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification | null> {
@@ -157,6 +159,7 @@ export class NotificationsService {
 
     const notification = this.notificationRepository.create(createNotificationDto);
     const saved = await this.notificationRepository.save(notification);
+    this.realtime?.emit([saved.userId], 'notification', { type: saved.type });
     this.logger.log(
       `Created notification for user ${createNotificationDto.userId}: ${createNotificationDto.title}`,
     );
@@ -210,6 +213,10 @@ export class NotificationsService {
       if (filtered.length > 0) {
         const entities = filtered.map((dto) => this.notificationRepository.create(dto));
         saved = await this.notificationRepository.save(entities);
+        this.realtime?.emit(
+          saved.map((n) => n.userId),
+          'notification',
+        );
       }
 
       this.sendEmailsForNotifications(filtered);

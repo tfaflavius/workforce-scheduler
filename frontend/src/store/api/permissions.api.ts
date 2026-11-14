@@ -57,6 +57,11 @@ export interface CreateContactFirmRequest {
 
 export const permissionsApi = createApi({
   reducerPath: 'permissionsApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['Permission', 'UserOverride', 'TaskFlow', 'PermissionSummary', 'EmailRule', 'NotificationSetting', 'Equipment', 'ContactFirm'],
   keepUnusedDataFor: 600, // 10 min — config data changes rarely

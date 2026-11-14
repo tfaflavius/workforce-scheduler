@@ -33,6 +33,7 @@ import {
 import type { PvSigningDay } from '../../../types/pv-signing.types';
 import { PV_DAY_STATUS_LABELS, PV_DAY_STATUS_COLORS } from '../../../types/pv-signing.types';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const PvSigningMyDaysTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -97,9 +98,7 @@ const PvSigningMyDaysTab: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

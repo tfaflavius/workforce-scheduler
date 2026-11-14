@@ -245,7 +245,7 @@ const ChatThread = ({
   const { notifyError } = useSnackbar();
   const { user } = useAppSelector((s) => s.auth);
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'MASTER_ADMIN';
-  const { data, isLoading } = useGetChatMessagesQuery(conv.id, { skipPollingIfUnfocused: true, pollingInterval: 5000 });
+  const { data, isLoading } = useGetChatMessagesQuery(conv.id, { skipPollingIfUnfocused: true, pollingInterval: 15000 });
   const [send, { isLoading: sending }] = useSendChatMessageMutation();
   const [del] = useDeleteChatMessageMutation();
   // Ciorna se pastreaza pe conversatie (nu se pierde daca ecranul se reincarca/redeseneaza)
@@ -517,7 +517,7 @@ const ChatPage = () => {
   const navState = location.state as { conversationId?: string } | null;
   const { notifyError } = useSnackbar();
 
-  const { data: conversations = [], isLoading } = useGetConversationsQuery(undefined, { skipPollingIfUnfocused: true, pollingInterval: 15000 });
+  const { data: conversations = [], isLoading } = useGetConversationsQuery(undefined, { skipPollingIfUnfocused: true, pollingInterval: 30000 });
   const [selectedId, setSelectedId] = useState<string | null>(navState?.conversationId || null);
   const [newOpen, setNewOpen] = useState(false);
   const [userSearch, setUserSearch] = useState('');

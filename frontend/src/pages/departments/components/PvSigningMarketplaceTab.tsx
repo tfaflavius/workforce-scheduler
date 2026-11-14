@@ -7,7 +7,6 @@ import {
   Button,
   Chip,
   Stack,
-  CircularProgress,
   Alert,
   alpha,
   Avatar,
@@ -37,6 +36,7 @@ import type { PvSigningDay, AdminAssignPvSigningDayDto } from '../../../types/pv
 import { PV_DAY_STATUS_COLORS } from '../../../types/pv-signing.types';
 import { MAINTENANCE_DEPARTMENT_NAME } from '../../../constants/departments';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const PvSigningMarketplaceTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -93,9 +93,7 @@ const PvSigningMarketplaceTab: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

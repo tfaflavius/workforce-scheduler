@@ -93,6 +93,7 @@ import { ParkingLevelsModule } from './modules/parking-levels/parking-levels.mod
 import { HolidayPreferencesModule } from './modules/holiday-preferences/holiday-preferences.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { TeamActivityModule } from './modules/team-activity/team-activity.module';
+import { RealtimeModule } from './common/realtime/realtime.module';
 import { ControlInspectionNote } from './modules/control-notes/entities/control-inspection-note.entity';
 import { AuditLog } from './modules/audit/entities/audit-log.entity';
 import { envValidationSchema } from './config/env.validation';
@@ -218,6 +219,7 @@ import { envValidationSchema } from './config/env.validation';
     HolidayPreferencesModule,
     ChatModule,
     TeamActivityModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

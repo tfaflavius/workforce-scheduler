@@ -29,6 +29,12 @@ import type {
 
 export const parkingApi = createApi({
   reducerPath: 'parkingApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
+  keepUnusedDataFor: 300,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['ParkingLots', 'PaymentMachines', 'ParkingIssues', 'ParkingDamages', 'CashCollections', 'IssueComments', 'DamageComments', 'IssueHistory', 'DamageHistory', 'EditRequests', 'ParkingMeters'],
   endpoints: (builder) => ({

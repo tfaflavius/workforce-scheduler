@@ -71,6 +71,12 @@ export interface TodayDispatcher {
 
 export const schedulesApi = createApi({
   reducerPath: 'schedulesApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
+  keepUnusedDataFor: 300,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['Schedule', 'ShiftType', 'WorkPosition'],
   endpoints: (builder) => ({

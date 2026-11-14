@@ -7,7 +7,6 @@ import {
   Button,
   Chip,
   Stack,
-  CircularProgress,
   Alert,
   alpha,
   Avatar,
@@ -37,6 +36,7 @@ import type { PvDisplayDay, AdminAssignPvDayDto } from '../../../types/pv-displa
 import { PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
 import { CONTROL_DEPARTMENT_NAME } from '../../../constants/departments';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const PvMarketplaceTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -95,9 +95,7 @@ const PvMarketplaceTab: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

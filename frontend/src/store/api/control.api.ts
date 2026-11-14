@@ -14,6 +14,11 @@ import type { ParkingHistory, CreateCommentDto } from '../../types/parking.types
 
 export const controlApi = createApi({
   reducerPath: 'controlApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['ControlSesizari', 'ControlComments', 'ControlHistory'],
   keepUnusedDataFor: 180, // 3 min

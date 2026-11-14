@@ -14,7 +14,6 @@ import {
   Chip,
   Alert,
   Snackbar,
-  CircularProgress,
   Tooltip,
   IconButton,
 } from '@mui/material';
@@ -37,6 +36,7 @@ import {
   NOTIFICATION_CATEGORY_COLORS,
   ROLES,
 } from '../../../constants/permissions';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 interface LocalChange {
   inAppEnabled?: boolean;
@@ -155,9 +155,7 @@ const NotificationSettingsTab = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

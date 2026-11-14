@@ -306,9 +306,9 @@ const IncasariCheltuieliPage: React.FC = () => {
             boxShadow: '2px 0 4px rgba(0,0,0,0.08)',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: isChild ? 600 : 700, fontSize: isChild ? '0.8rem' : undefined }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: { xs: 'flex-start', md: 'center' }, justifyContent: 'space-between', gap: 0.5 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="body2" sx={{ fontWeight: isChild ? 600 : 700, fontSize: isChild ? '0.8rem' : undefined, overflowWrap: 'break-word' }}>
                 {cat.categoryName}
               </Typography>
               {cat.parkingLotId && (

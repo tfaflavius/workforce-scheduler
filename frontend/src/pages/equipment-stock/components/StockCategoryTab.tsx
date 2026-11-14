@@ -14,7 +14,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  CircularProgress,
   Alert,
   Stack,
   Chip,
@@ -50,6 +49,7 @@ import {
 } from '../../../store/api/equipmentStock.api';
 import type { StockEntryItem } from '../../../store/api/equipmentStock.api';
 import type { StockCategory } from '../../../constants/equipmentStock';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 interface StockCategoryTabProps {
   category: StockCategory;
@@ -180,9 +180,7 @@ const StockCategoryTab: React.FC<StockCategoryTabProps> = ({ category, canEdit }
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

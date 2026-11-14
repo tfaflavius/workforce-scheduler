@@ -13,6 +13,11 @@ export interface Department {
 
 export const departmentsApi = createApi({
   reducerPath: 'departmentsApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['Department'],
   keepUnusedDataFor: 300, // 5 min — departments rarely change

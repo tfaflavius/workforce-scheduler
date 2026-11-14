@@ -13,7 +13,6 @@ import {
   Avatar,
   Card,
   CardContent,
-  CircularProgress,
   Divider,
   List,
   ListItem,
@@ -34,6 +33,7 @@ import { useGetSummaryQuery, useGetTaskFlowsQuery } from '../../../store/api/per
 import DepartmentFlowOverview from './DepartmentFlowOverview';
 import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const getRoleColor = (role: string) => {
   switch (role) {
@@ -85,9 +85,7 @@ const UsersDepartmentsTab = () => {
 
   if (usersLoading || deptsLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

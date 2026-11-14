@@ -58,6 +58,7 @@ import {
   PV_DAY_STATUS_LABELS,
   PV_DAY_STATUS_COLORS,
 } from '../../../types/pv-display.types';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 interface PvSessionsTabProps {
   initialExpandedSessionId?: string;
@@ -227,9 +228,7 @@ const PvSessionsTab: React.FC<PvSessionsTabProps> = ({ initialExpandedSessionId 
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

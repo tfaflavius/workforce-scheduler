@@ -34,6 +34,7 @@ import {
 import type { PvDisplayDay } from '../../../types/pv-display.types';
 import { PV_DAY_STATUS_LABELS, PV_DAY_STATUS_COLORS } from '../../../types/pv-display.types';
 import { useSnackbar } from '../../../contexts/SnackbarContext';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const PvMyDaysTab: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
@@ -98,9 +99,7 @@ const PvMyDaysTab: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
+import compression from 'compression';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -17,6 +18,19 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
       crossOriginEmbedderPolicy: false,
+    }),
+  );
+
+  // Raspunsuri comprimate (gzip/brotli) — listele JSON ajung de 5-10x mai mici pe telefon.
+  // Fluxul in timp real (/api/events, text/event-stream) NU se comprima, altfel s-ar bloca.
+  app.use(
+    compression({
+      threshold: 1024,
+      filter: (req, res) => {
+        if (req.path?.startsWith('/api/events')) return false;
+        if (String(res.getHeader('Content-Type') || '').includes('text/event-stream')) return false;
+        return compression.filter(req, res);
+      },
     }),
   );
 

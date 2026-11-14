@@ -14,7 +14,6 @@ import {
   Chip,
   Alert,
   Snackbar,
-  CircularProgress,
   Tooltip,
   IconButton,
   alpha,
@@ -38,6 +37,7 @@ import {
   ROLES,
 } from '../../../constants/permissions';
 import type { BulkUpdateItem } from '../../../types/permission.types';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const PermissionMatrixTab = () => {
   const theme = useTheme();
@@ -141,9 +141,7 @@ const PermissionMatrixTab = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

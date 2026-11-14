@@ -17,7 +17,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  CircularProgress,
   Alert,
   Snackbar,
   Divider,
@@ -54,6 +53,7 @@ import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 import DepartmentFlowCard from './DepartmentFlowCard';
 import type { TaskFlowRule, CreateTaskFlowRequest } from '../../../types/permission.types';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const ROLES = [
   { key: 'MASTER_ADMIN', label: 'Master Admin' },
@@ -249,9 +249,7 @@ const TaskFlowsTab = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 

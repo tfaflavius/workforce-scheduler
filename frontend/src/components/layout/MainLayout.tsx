@@ -1,3 +1,4 @@
+import { useRealtimeEvents } from '../../hooks/useRealtimeEvents';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useGetChatUnreadCountQuery } from '../../store/api/chat.api';
@@ -149,6 +150,35 @@ export const MainLayout = () => {
 
   // Smart scroll restoration — saves position on leave, restores on back
   useScrollRestoration();
+
+  // Notificari si chat in timp real (semnal de la server -> reincarcare pe loc)
+  useRealtimeEvents();
+
+  // Paginile folosite des se descarca discret in fundal dupa ce aplicatia s-a incarcat,
+  // ca la apasarea din meniu sa se deschida imediat (fara asteptare pe 4G).
+  useEffect(() => {
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    if (conn?.saveData) return;
+    const run = () => {
+      const pages = [
+        () => import('../../pages/schedules/SchedulesPage'),
+        () => import('../../pages/schedules/MySchedulePage'),
+        () => import('../../pages/notifications/NotificationsPage'),
+        () => import('../../pages/chat/ChatPage'),
+        () => import('../../pages/leave-requests/LeaveRequestsPage'),
+        () => import('../../pages/daily-reports/DailyReportsPage'),
+        () => import('../../pages/parking/ParkingPage'),
+        () => import('../../pages/shift-swaps/ShiftSwapsPage'),
+      ];
+      // una cate una, ca sa nu concureze cu datele paginii curente
+      pages.reduce((p, load) => p.then(() => load().then(() => undefined, () => undefined)), Promise.resolve());
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    const t = w.requestIdleCallback ? w.requestIdleCallback(run, { timeout: 5000 }) : window.setTimeout(run, 3000);
+    return () => {
+      if (!w.requestIdleCallback) window.clearTimeout(t);
+    };
+  }, []);
 
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
 

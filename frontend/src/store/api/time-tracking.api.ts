@@ -18,6 +18,11 @@ import type {
 
 export const timeTrackingApi = createApi({
   reducerPath: 'timeTrackingApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['TimeEntry', 'ActiveTimer', 'LocationLog', 'AdminActiveTimer', 'AdminTimeEntry', 'AdminStats', 'AdminUsers', 'RouteData'],
   keepUnusedDataFor: 120, // 2 min

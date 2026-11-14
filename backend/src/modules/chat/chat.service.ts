@@ -1,11 +1,13 @@
 import { managerDeptScope } from '../../common/utils/manager-scope';
 import { chatAudienceNames } from './chat-routing';
+import { RealtimeService } from '../../common/realtime/realtime.service';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, LessThan, Repository } from 'typeorm';
@@ -69,6 +71,7 @@ export class ChatService {
     @InjectRepository(Notification)
     private readonly notificationRepo: Repository<Notification>,
     private readonly notificationsService: NotificationsService,
+    @Optional() private readonly realtime?: RealtimeService,
   ) {}
 
   // ============== HELPERS ==============
@@ -523,6 +526,9 @@ export class ChatService {
 
   private async notify(conv: ChatConversation, author: User, text: string) {
     const ids = await this.recipientsOf(conv, author.id);
+    // Semnal in timp real: conversatia se actualizeaza pe loc la toti (si pe celelalte
+    // dispozitive ale autorului), chiar daca notificarea e "stransa" cu una necitita
+    this.realtime?.emit([...ids, author.id], 'chat', { conversationId: conv.id });
     if (ids.length === 0) return;
     const alreadyUnread = await this.notificationRepo
       .createQueryBuilder('n')
@@ -587,6 +593,7 @@ export class ChatService {
     }
     recipient.delete(author.id);
     const ids = [...recipient.keys()].filter((id) => !!recipient.get(id));
+    this.realtime?.emit([...ids, author.id], 'chat', {});
     if (ids.length === 0) return;
 
     const alreadyUnread = await this.notificationRepo

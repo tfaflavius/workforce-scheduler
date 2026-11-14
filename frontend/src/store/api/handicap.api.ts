@@ -28,6 +28,11 @@ import type { ParkingHistory, CreateCommentDto } from '../../types/parking.types
 
 export const handicapApi = createApi({
   reducerPath: 'handicapApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   tagTypes: ['HandicapRequests', 'HandicapComments', 'HandicapHistory', 'HandicapLegitimations', 'HandicapLegitimationComments', 'HandicapLegitimationHistory', 'RevolutionarLegitimations', 'RevolutionarLegitimationComments', 'RevolutionarLegitimationHistory'],
   keepUnusedDataFor: 180, // 3 min

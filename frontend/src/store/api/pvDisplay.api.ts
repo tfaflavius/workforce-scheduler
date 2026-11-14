@@ -15,6 +15,11 @@ import type {
 
 export const pvDisplayApi = createApi({
   reducerPath: 'pvDisplayApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   keepUnusedDataFor: 180, // 3 min
   tagTypes: ['PvSessions', 'PvDays', 'PvComments', 'PvHistory', 'PvControlUsers'],

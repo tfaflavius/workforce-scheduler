@@ -55,6 +55,11 @@ export interface ControlNotesMyStats {
 
 export const controlNotesApi = createApi({
   reducerPath: 'controlNotesApi',
+  // Date proaspete: reincarcare la revenirea in aplicatie / reconectare si la intrarea pe
+  // o pagina daca datele au peste 30s; pastrate in memorie 5 min ca paginile sa apara imediat.
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMountOrArgChange: 30,
   baseQuery: createAuthBaseQuery(),
   keepUnusedDataFor: 300, // 5 min — keep matrix warm so switching tabs is instant
   tagTypes: ['ControlNotesMatrix'],

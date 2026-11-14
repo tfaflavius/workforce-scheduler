@@ -17,7 +17,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  CircularProgress,
   Alert,
   Snackbar,
   Divider,
@@ -56,6 +55,7 @@ import {
 import { getRoleLabel } from '../../../utils/roleHelpers';
 import { removeDiacritics } from '../../../utils/removeDiacritics';
 import type { EmailNotificationRule, CreateEmailRuleRequest } from '../../../types/permission.types';
+import ListSkeleton from '../../../components/common/ListSkeleton';
 
 const ROLES = [
   { key: 'MASTER_ADMIN', label: 'Master Admin' },
@@ -189,9 +189,7 @@ const EmailNotificationRulesTab = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
+      <ListSkeleton />
     );
   }
 
