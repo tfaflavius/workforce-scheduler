@@ -200,22 +200,30 @@ export class OfficeSchedulePrefillService {
     // 4. Asignarile deja existente ale acestor useri in luna (orice program) — nu le atingem
     const existing = await this.assignmentRepository
       .createQueryBuilder('sa')
+      .leftJoin('sa.schedule', 'ws')
       .select('sa.userId', 'userId')
       .addSelect('sa.shiftDate', 'shiftDate')
       .addSelect('sa.notes', 'notes')
+      .addSelect('ws.name', 'scheduleName')
+      .addSelect('sa.workScheduleId', 'workScheduleId')
       .where('sa.userId IN (:...userIds)', { userIds })
       .andWhere('sa.shiftDate BETWEEN :f AND :l', { f: firstDay, l: lastDay })
       .getRawMany();
     const existingSet = new Set(existing.map((r) => `${r.userId}|${this.dateToStr(r.shiftDate)}`));
-    // Cei cu program fix individual (nu din departamentele de birou) care au deja un program
-    // facut manual in luna asta: nu completam nimic peste (zilele goale pot fi libere date de manager)
+    // Program pus manual de manager/admin in luna asta (nu cel automat, nu concediile):
+    // pentru acei oameni nu completam nimic peste — zilele goale pot fi libere date de manager.
     const manualMonth = new Set(
       existing
-        .filter((r) => !String(r.notes || '').startsWith('Program auto'))
+        .filter(
+          (r) =>
+            !!r.workScheduleId &&
+            !String(r.scheduleName || '').startsWith('Program birou') &&
+            !String(r.notes || '').startsWith('Program auto') &&
+            !String(r.notes || '').startsWith('Concediu'),
+        )
         .map((r) => r.userId as string),
     );
-    const skipUser = (u: User) =>
-      !this.OFFICE_DEPARTMENTS.includes(u.department?.name || '') && manualMonth.has(u.id);
+    const skipUser = (u: User) => manualMonth.has(u.id);
 
     // 5. Concediile aprobate care se suprapun cu luna
     const leaves = await this.leaveRequestRepository
