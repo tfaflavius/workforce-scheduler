@@ -2,7 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
  * A doua trecere pentru programul fix automat: potrivire si cand numele din aplicatie are
- * un prenume in plus (ex. "Borz Mircea Radu", "Puscas Bogdan Lucian") + Dobre Gabriel.
+ * un prenume in plus (ex. "Borz Mircea Radu", "Puscas Bogdan Lucian") (Dobre Gabriel: scos, are program facut de manager).
  * Seteaza doar unde nu exista deja o ora; daca un nume se potriveste cu mai multi oameni,
  * nu atinge nimic (se seteaza din Utilizatori).
  */
@@ -15,7 +15,6 @@ const AUTO_USERS: Array<{ name: string; start: string }> = [
   { name: 'Mircea Borz', start: '07:30' },
   { name: 'Mariana Borz', start: '07:30' },
   { name: 'Mircea Olah', start: '07:30' },
-  { name: 'Dobre Gabriel', start: '07:30' },
   { name: 'Kelemen Laszlo', start: '08:00' },
 ];
 
