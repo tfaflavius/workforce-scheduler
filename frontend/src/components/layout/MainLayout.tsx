@@ -30,6 +30,7 @@ import {
   Zoom,
   CircularProgress,
 } from '@mui/material';
+import { BRAND_GRADIENT, BRAND_GRADIENT_SOFT } from '../../theme/brand';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
@@ -598,7 +599,7 @@ export const MainLayout = () => {
               width: { xs: 36, sm: 40 },
               height: { xs: 36, sm: 40 },
               borderRadius: 2,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              background: BRAND_GRADIENT,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -613,7 +614,7 @@ export const MainLayout = () => {
             sx={{
               fontWeight: 700,
               fontSize: { xs: '1rem', sm: '1.1rem' },
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              background: BRAND_GRADIENT,
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -805,20 +806,16 @@ export const MainLayout = () => {
                                   mx: 0.5,
                                   py: { xs: 1, sm: 1.25 },
                                   px: { xs: 1.5, sm: 2 },
-                                  bgcolor: isActive
-                                    ? alpha(group.color, 0.12)
-                                    : 'transparent',
-                                  color: isActive ? 'text.primary' : 'text.primary',
+                                  bgcolor: 'transparent',
+                                  color: 'text.primary',
                                   transition: 'all 0.2s ease-in-out',
+                                  // Elementul activ: pastila cu gradientul de brand, text alb
                                   ...(isActive && {
-                                    borderLeft: `3px solid ${group.color}`,
-                                    boxShadow: `0 2px 12px ${alpha(group.color, 0.2)}`,
-                                    background: `linear-gradient(90deg, ${alpha(group.color, 0.12)} 0%, ${alpha(group.color, 0.04)} 100%)`,
+                                    background: BRAND_GRADIENT_SOFT,
+                                    boxShadow: `0 6px 16px ${alpha(theme.palette.primary.main, 0.32)}`,
                                   }),
                                   '&:hover': {
-                                    bgcolor: isActive
-                                      ? alpha(group.color, 0.18)
-                                      : alpha(theme.palette.primary.main, 0.06),
+                                    bgcolor: isActive ? undefined : alpha(theme.palette.primary.main, 0.06),
                                     transform: 'translateX(4px)',
                                   },
                                   '&:active': {
@@ -828,13 +825,10 @@ export const MainLayout = () => {
                               >
                                 <ListItemIcon
                                   sx={{
-                                    color: isActive ? group.color : 'text.secondary',
+                                    color: isActive ? '#fff' : group.color,
                                     minWidth: { xs: 36, sm: 40 },
                                     '& .MuiSvgIcon-root': {
                                       fontSize: { xs: '1.25rem', sm: '1.4rem' },
-                                      ...(isActive && {
-                                        filter: `drop-shadow(0 0 6px ${alpha(group.color, 0.4)})`,
-                                      }),
                                     },
                                   }}
                                 >
@@ -846,7 +840,7 @@ export const MainLayout = () => {
                                     fontSize: { xs: '0.8rem', sm: '0.875rem' },
                                     fontWeight: isActive ? 700 : 500,
                                     noWrap: true,
-                                    color: isActive ? group.color : 'text.primary',
+                                    color: isActive ? '#fff' : 'text.primary',
                                   }}
                                 />
                                 {navBadges[item.path] > 0 && (
@@ -1243,8 +1237,8 @@ export const MainLayout = () => {
           // overrides `padding-bottom` at sm/md breakpoints. Use pt/px/pb separately.
           pt: { xs: 1.5, sm: 2, md: 3 },
           px: { xs: 1.5, sm: 2, md: 3 },
-          // Bottom padding must exceed MobileBottomNav height (56px + safe-area)
-          pb: { xs: 'calc(32px + 56px + env(safe-area-inset-bottom, 0px))', lg: 3 },
+          // Bottom padding must exceed MobileBottomNav height (60px + safe-area)
+          pb: { xs: 'calc(32px + 60px + env(safe-area-inset-bottom, 0px))', lg: 3 },
           width: { xs: '100%', lg: `calc(100% - ${drawerWidth}px)` },
           mt: { xs: '56px', sm: '64px' },
           // Don't constrain height — let content flow naturally for proper iOS scroll

@@ -247,8 +247,8 @@ const ParkingPage: React.FC = () => {
             mb: { xs: 2, sm: 3 },
             p: { xs: 2, sm: 2.5, md: 3 },
             background: theme.palette.mode === 'light'
-              ? 'linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%)'
-              : 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)',
+              ? 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 48%, #0ea5e9 100%)'
+              : 'linear-gradient(135deg, #172554 0%, #1d4ed8 55%, #0284c7 100%)',
             borderRadius: { xs: 2, sm: 3 },
             color: 'white',
             position: 'relative',

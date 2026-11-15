@@ -268,11 +268,11 @@ export const ResetPasswordPage = () => {
                   fontWeight: 700,
                   textTransform: 'none',
                   borderRadius: 2.5,
-                  background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
                   boxShadow: '0 4px 14px rgba(29, 78, 216, 0.4)',
                   transition: 'all 0.3s ease',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #1e40af 0%, #1e3a5f 100%)',
+                    background: 'linear-gradient(135deg, #1d4ed8 0%, #0284c7 100%)',
                     boxShadow: '0 6px 20px rgba(29, 78, 216, 0.5)',
                     transform: 'translateY(-2px)',
                   },

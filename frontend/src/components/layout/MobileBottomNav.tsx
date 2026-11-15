@@ -1,4 +1,5 @@
 import { useGetChatUnreadCountQuery } from '../../store/api/chat.api';
+import { BRAND_GRADIENT_SOFT } from '../../theme/brand';
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { preloadRoute } from '../../utils/routePreloader';
@@ -98,10 +99,11 @@ const MobileBottomNav: React.FC = () => {
         right: 0,
         zIndex: 1200,
         display: { xs: 'flex', lg: 'none' },
-        height: 'calc(56px + env(safe-area-inset-bottom))',
+        height: 'calc(60px + env(safe-area-inset-bottom))',
         paddingBottom: 'env(safe-area-inset-bottom)',
-        bgcolor: alpha(theme.palette.background.paper, 0.92),
-        backdropFilter: 'blur(12px)',
+        bgcolor: alpha(theme.palette.background.paper, 0.82),
+        backdropFilter: 'saturate(180%) blur(16px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(16px)',
         borderTop: `1px solid ${alpha(theme.palette.divider, 0.12)}`,
         boxShadow: `0 -2px 12px ${alpha(theme.palette.common.black, 0.08)}`,
         justifyContent: 'space-around',
@@ -125,7 +127,7 @@ const MobileBottomNav: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               flex: 1,
-              height: 56,
+              height: 60,
               cursor: 'pointer',
               position: 'relative',
               transition: 'color 0.2s ease',
@@ -136,21 +138,6 @@ const MobileBottomNav: React.FC = () => {
               },
             }}
           >
-            {/* Active indicator dot */}
-            {active && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 2,
-                  width: 4,
-                  height: 4,
-                  borderRadius: '50%',
-                  bgcolor: theme.palette.primary.main,
-                  boxShadow: `0 0 6px ${alpha(theme.palette.primary.main, 0.6)}`,
-                }}
-              />
-            )}
-
             <Badge
               badgeContent={item.badge || 0}
               color="error"
@@ -166,11 +153,21 @@ const MobileBottomNav: React.FC = () => {
                 },
               }}
             >
+              {/* Elementul activ: iconita intr-o pastila cu gradient de brand */}
               <Box
                 sx={{
+                  width: 52,
+                  height: 28,
+                  borderRadius: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: active ? BRAND_GRADIENT_SOFT : 'transparent',
+                  color: active ? '#fff' : 'inherit',
+                  boxShadow: active ? `0 4px 12px ${alpha(theme.palette.primary.main, 0.35)}` : 'none',
+                  transition: 'background 0.25s ease, box-shadow 0.25s ease',
                   '& .MuiSvgIcon-root': {
-                    fontSize: active ? '1.5rem' : '1.35rem',
-                    transition: 'font-size 0.2s ease',
+                    fontSize: '1.3rem',
                   },
                 }}
               >
@@ -183,7 +180,7 @@ const MobileBottomNav: React.FC = () => {
               sx={{
                 fontSize: '0.6rem',
                 fontWeight: active ? 700 : 500,
-                mt: 0.25,
+                mt: 0.4,
                 lineHeight: 1,
                 letterSpacing: active ? '0.02em' : 0,
               }}

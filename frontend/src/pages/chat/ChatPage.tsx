@@ -876,7 +876,7 @@ const ChatPage = () => {
 
   // Inaltimea zonei de chat: ecran minus antetul aplicatiei (si bara de jos pe telefon)
   const paneHeight = isMobile
-    ? 'calc(100dvh - 64px - 56px - env(safe-area-inset-bottom) - 100px)'
+    ? 'calc(100dvh - 64px - 60px - env(safe-area-inset-bottom) - 100px)'
     : 'calc(100vh - 64px - 88px)';
 
   return (

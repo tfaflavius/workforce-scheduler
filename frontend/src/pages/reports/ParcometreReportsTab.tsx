@@ -359,7 +359,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
           sx={{
             p: { xs: 2, sm: 3 },
             mb: 3,
-            background: `linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)`,
+            background: `linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)`,
             color: 'white',
             borderRadius: 3,
             position: 'relative',
@@ -589,7 +589,7 @@ const ParcometreReportsTab: React.FC<ParcometreReportsTabProps> = (_props) => {
               position: 'fixed',
               bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
               right: 16,
-              background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+              background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
             }}
             onClick={() => setExportDrawerOpen(true)}
           >

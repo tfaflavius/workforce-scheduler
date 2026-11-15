@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Typography, Fade, useTheme, useMediaQuery } from '@mui/material';
 import { useScrollPosition } from '../../hooks/useScrollPosition';
+import { BRAND_GRADIENT, BRAND_GRADIENT_DARK, BRAND_GLOW } from '../../theme/brand';
 
 export interface GradientHeaderProps {
   title: string;
@@ -31,17 +32,7 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
   // ceea ce facea aplicatia sa para "petice"). Prop-ul `gradient` e pastrat pentru
   // compatibilitate, dar ignorat intentionat.
   void gradient;
-  const resolvedGradient = '#1e40af 0%, #2563eb 55%, #3b82f6 100%';
-
-  // Adjust gradient for dark mode — use darker variants for better contrast
-  const effectiveGradient =
-    theme.palette.mode === 'dark'
-      ? resolvedGradient
-          .replace(theme.palette.primary.main, theme.palette.primary.dark)
-          .replace(theme.palette.secondary.main, theme.palette.secondary.dark)
-          .replace(theme.palette.success.main, theme.palette.success.dark)
-          .replace(theme.palette.info.main, theme.palette.info.dark)
-      : resolvedGradient;
+  const background = theme.palette.mode === 'dark' ? BRAND_GRADIENT_DARK : BRAND_GRADIENT;
 
   return (
     <Fade in={true} timeout={250}>
@@ -51,13 +42,13 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
           p: isCompact
             ? { xs: 1.25, sm: 2 }
             : { xs: 1.75, sm: 2.25, md: 2.75 },
-          background: `linear-gradient(135deg, ${effectiveGradient})`,
-          borderRadius: { xs: 2, sm: 3 },
+          background,
+          borderRadius: { xs: 3, sm: 4 },
           color: 'white',
           position: 'relative',
           overflow: 'hidden',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 6px 20px rgba(30, 64, 175, 0.18)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          boxShadow: BRAND_GLOW,
           // Smooth compact transition
           transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
@@ -75,53 +66,39 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
               pointerEvents: 'none',
             }}
           >
-            {/* Diagonal line 1 */}
+            {/* Cercuri luminoase decorative */}
             <Box
               sx={{
                 position: 'absolute',
-                top: '-20%',
-                right: '10%',
-                width: 1,
-                height: '140%',
-                background: 'rgba(255, 255, 255, 0.08)',
-                transform: 'rotate(25deg)',
-              }}
-            />
-            {/* Diagonal line 2 */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '-20%',
-                right: '25%',
-                width: 1,
-                height: '140%',
-                background: 'rgba(255, 255, 255, 0.05)',
-                transform: 'rotate(25deg)',
-              }}
-            />
-            {/* Diagonal line 3 */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '-20%',
-                right: '40%',
-                width: 1,
-                height: '140%',
-                background: 'rgba(255, 255, 255, 0.03)',
-                transform: 'rotate(25deg)',
-              }}
-            />
-            {/* Blurred glow spot */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '30%',
-                right: '-5%',
-                width: 120,
-                height: 120,
+                top: -60,
+                right: -40,
+                width: 200,
+                height: 200,
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.06)',
-                filter: 'blur(40px)',
+                background: 'radial-gradient(circle, rgba(103, 232, 249, 0.45) 0%, transparent 70%)',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: -80,
+                right: '28%',
+                width: 180,
+                height: 180,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 70%)',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 28,
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                display: { xs: 'none', sm: 'block' },
               }}
             />
           </Box>

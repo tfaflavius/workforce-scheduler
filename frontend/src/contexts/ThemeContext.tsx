@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline, alpha } from '@mui/material';
+import { BRAND_GRADIENT_SOFT, BRAND_GRADIENT_DARK } from '../theme/brand';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -189,6 +190,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                   : 'rgba(255, 255, 255, 0.22) transparent',
               },
               body: {
+                // Fundal cu doua "lumini" discrete (albastru + cyan), fixe la derulare
+                backgroundImage: isLight
+                  ? 'radial-gradient(900px 520px at -10% -10%, rgba(37, 99, 235, 0.10), transparent 60%), radial-gradient(800px 480px at 110% 0%, rgba(14, 165, 233, 0.10), transparent 60%)'
+                  : 'radial-gradient(900px 520px at -10% -10%, rgba(37, 99, 235, 0.16), transparent 60%), radial-gradient(800px 480px at 110% 0%, rgba(14, 165, 233, 0.10), transparent 60%)',
+                backgroundAttachment: 'fixed',
+                backgroundRepeat: 'no-repeat',
                 paddingLeft: 'env(safe-area-inset-left)',
                 paddingRight: 'env(safe-area-inset-right)',
                 WebkitOverflowScrolling: 'touch',
@@ -241,7 +248,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiButton: {
             styleOverrides: {
               root: {
-                borderRadius: 10,
+                borderRadius: 12,
                 padding: '10px 20px',
                 fontSize: 'clamp(0.813rem, 1.5vw, 0.938rem)',
                 minHeight: 44,
@@ -263,7 +270,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                   ? '0 2px 8px rgba(15, 23, 42, 0.1)'
                   : '0 2px 8px rgba(0, 0, 0, 0.2)',
                 '&.MuiButton-containedPrimary': {
-                  backgroundImage: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  backgroundImage: isLight ? BRAND_GRADIENT_SOFT : BRAND_GRADIENT_DARK,
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.30)',
+                  '&:hover': { boxShadow: '0 6px 20px rgba(37, 99, 235, 0.38)' },
+                  '&.Mui-disabled': { backgroundImage: 'none' },
                 },
                 '&.MuiButton-containedSecondary': {
                   backgroundImage: 'linear-gradient(135deg, #475569 0%, #334155 100%)',
@@ -306,7 +316,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiCard: {
             styleOverrides: {
               root: {
-                borderRadius: 16,
+                borderRadius: 20,
                 overflow: 'hidden',
                 maxWidth: '100%',
                 contain: 'content',
@@ -314,8 +324,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                   ? '1px solid rgba(15, 23, 42, 0.08)'
                   : '1px solid rgba(255, 255, 255, 0.08)',
                 boxShadow: isLight
-                  ? '0 1px 2px rgba(15, 23, 42, 0.05), 0 2px 8px rgba(15, 23, 42, 0.04)'
-                  : '0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.18)',
+                  ? '0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(30, 58, 138, 0.06)'
+                  : '0 2px 4px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.22)',
                 transition:
                   'transform 0.26s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.26s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.26s ease',
                 backgroundImage: 'none',
@@ -372,6 +382,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 },
                 '&.MuiChip-clickable:active': {
                   transform: 'scale(0.97)',
+                },
+                '&.MuiChip-filledPrimary': {
+                  backgroundImage: BRAND_GRADIENT_SOFT,
+                  border: 'none',
                 },
               },
             },
@@ -434,7 +448,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           MuiDialog: {
             styleOverrides: {
               paper: {
-                borderRadius: 16,
+                borderRadius: 20,
                 padding: '4px',
                 border: isLight
                   ? '1px solid rgba(15, 23, 42, 0.08)'
@@ -510,7 +524,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                 height: 3,
                 borderRadius: '3px 3px 0 0',
                 // Blue-only gradient — no purple to keep things professional
-                backgroundImage: 'linear-gradient(90deg, #60a5fa 0%, #2563eb 100%)',
+                backgroundImage: 'linear-gradient(90deg, #2563eb 0%, #0ea5e9 100%)',
               },
             },
           },
@@ -635,6 +649,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           },
           MuiFab: {
             styleOverrides: {
+              primary: {
+                backgroundImage: BRAND_GRADIENT_SOFT,
+                boxShadow: '0 8px 22px rgba(37, 99, 235, 0.35)',
+              },
               root: {
                 boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
                 transition: 'transform 0.2s ease, box-shadow 0.2s ease',
