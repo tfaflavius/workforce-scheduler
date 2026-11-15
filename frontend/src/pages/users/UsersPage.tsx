@@ -285,9 +285,9 @@ const UsersPage: React.FC = () => {
           />
 
           <Stack
-            direction={{ xs: 'column', sm: 'row' }}
+            direction={{ xs: 'column', md: 'row' }}
             justifyContent="space-between"
-            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            alignItems={{ xs: 'flex-start', md: 'center' }}
             spacing={2}
             sx={{ position: 'relative' }}
           >
@@ -297,7 +297,7 @@ const UsersPage: React.FC = () => {
                   p: { xs: 1.5, sm: 2 },
                   borderRadius: 2,
                   bgcolor: 'rgba(255,255,255,0.15)',
-                  display: { xs: 'none', sm: 'flex' },
+                  display: { xs: 'none', md: 'flex' },
                 }}
               >
                 <PeopleIcon sx={{ fontSize: { sm: 32, md: 40 } }} />

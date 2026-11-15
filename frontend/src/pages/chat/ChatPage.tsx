@@ -52,6 +52,7 @@ import {
   type ChatMessageItem,
 } from '../../store/api/chat.api';
 import { useAppSelector } from '../../store/hooks';
+import { BRAND_GRADIENT_SOFT, nameColor, nameGradient } from '../../theme/brand';
 
 /** Eticheta "De la -> Catre" pentru mesajele trimise intre departamente. */
 
@@ -98,19 +99,43 @@ const ConvAvatar = ({ conv }: { conv: ChatConversationSummary }) => {
   const theme = useTheme();
   if (conv.type === 'ANNOUNCEMENTS') {
     return (
-      <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.15), color: 'warning.dark' }}>
+      <Avatar
+        sx={{
+          background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+          color: '#fff',
+          boxShadow: `0 4px 12px ${alpha(theme.palette.warning.main, 0.35)}`,
+        }}
+      >
         <AnnouncementIcon />
       </Avatar>
     );
   }
   if (conv.type === 'DEPARTMENT') {
     return (
-      <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.12), color: 'primary.main' }}>
+      <Avatar
+        sx={{
+          background: BRAND_GRADIENT_SOFT,
+          color: '#fff',
+          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
+        }}
+      >
         <GroupIcon />
       </Avatar>
     );
   }
-  return <Avatar sx={{ bgcolor: 'primary.main', fontSize: '0.95rem' }}>{initials(conv.title)}</Avatar>;
+  return (
+    <Avatar
+      sx={{
+        background: nameGradient(conv.title),
+        color: '#fff',
+        fontSize: '0.95rem',
+        fontWeight: 700,
+        boxShadow: `0 4px 12px ${alpha('#0f172a', 0.15)}`,
+      }}
+    >
+      {initials(conv.title)}
+    </Avatar>
+  );
 };
 
 // ---------------- Lista conversatii ----------------
@@ -129,6 +154,7 @@ const ConversationList = ({
   onNew: () => void;
   loading: boolean;
 }) => {
+  const theme = useTheme();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<ConvFilter>('all');
   const unreadConvs = conversations.filter((c) => c.unreadCount > 0).length;
@@ -203,7 +229,17 @@ const ConversationList = ({
                 key={c.id}
                 selected={c.id === selectedId}
                 onClick={() => onSelect(c.id)}
-                sx={{ py: 1.25, alignItems: 'flex-start' }}
+                sx={{
+                  py: 1.25,
+                  mx: 0.75,
+                  my: 0.25,
+                  borderRadius: 3,
+                  alignItems: 'flex-start',
+                  '&.Mui-selected': {
+                    bgcolor: alpha(theme.palette.primary.main, 0.08),
+                    boxShadow: `inset 3px 0 0 ${theme.palette.primary.main}`,
+                  },
+                }}
               >
                 <ListItemAvatar sx={{ mt: 0.25 }}>
                   <ConvAvatar conv={c} />
@@ -244,8 +280,9 @@ const ConversationList = ({
                             height: 22,
                             px: 0.75,
                             borderRadius: 11,
-                            bgcolor: 'primary.main',
-                            color: 'primary.contrastText',
+                            background: BRAND_GRADIENT_SOFT,
+                            color: '#fff',
+                            boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.35)}`,
                             fontSize: 12,
                             fontWeight: 700,
                             display: 'flex',
@@ -413,7 +450,16 @@ const ChatThread = ({
   return (
     <Stack sx={{ height: '100%', minHeight: 0 }}>
       {/* Antet */}
-      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ px: 1.5, py: 1.25 }}>
+      <Stack
+        direction="row"
+        spacing={1.25}
+        alignItems="center"
+        sx={{
+          px: 1.5,
+          py: 1.25,
+          background: `linear-gradient(90deg, ${alpha(theme.palette.primary.main, 0.07)} 0%, ${alpha('#0ea5e9', 0.04)} 100%)`,
+        }}
+      >
         {showBack && (
           <IconButton onClick={onBack} edge="start" aria-label="Inapoi la conversatii">
             <BackIcon />
@@ -443,7 +489,9 @@ const ChatThread = ({
             overflowY: 'auto',
             px: { xs: 1, md: 2 },
             py: 1.5,
-            bgcolor: alpha(theme.palette.primary.main, 0.025),
+            bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.03 : 0.05),
+            backgroundImage: `radial-gradient(${alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.09 : 0.14)} 1px, transparent 1px)`,
+            backgroundSize: '18px 18px',
             WebkitOverflowScrolling: 'touch',
           }}
         >
@@ -479,7 +527,16 @@ const ChatThread = ({
                       <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
                         <Typography
                           variant="caption"
-                          sx={{ px: 1.5, py: 0.25, borderRadius: 2, bgcolor: 'background.paper', color: 'text.secondary', boxShadow: 1 }}
+                          sx={{
+                            px: 1.5,
+                            py: 0.35,
+                            borderRadius: 10,
+                            bgcolor: alpha(theme.palette.background.paper, 0.85),
+                            backdropFilter: 'blur(6px)',
+                            color: 'text.secondary',
+                            fontWeight: 600,
+                            boxShadow: `0 2px 8px ${alpha('#0f172a', 0.08)}`,
+                          }}
                         >
                           {dayLabel(m.createdAt)}
                         </Typography>
@@ -489,7 +546,9 @@ const ChatThread = ({
                       {showAvatars && !mine && (
                         <Box sx={{ width: 28, flexShrink: 0 }}>
                           {!joinNext && (
-                            <Avatar sx={{ width: 28, height: 28, fontSize: '0.7rem', bgcolor: 'primary.main' }}>
+                            <Avatar
+                              sx={{ width: 28, height: 28, fontSize: '0.7rem', fontWeight: 700, color: '#fff', background: nameGradient(m.userName) }}
+                            >
                               {initials(m.userName)}
                             </Avatar>
                           )}
@@ -509,16 +568,30 @@ const ChatThread = ({
                           ...(mine
                             ? { borderTopRightRadius: corner, borderBottomRightRadius: joinNext ? corner : undefined }
                             : { borderTopLeftRadius: corner, borderBottomLeftRadius: joinNext ? corner : undefined }),
-                          bgcolor: mine ? 'primary.main' : 'background.paper',
-                          color: mine ? 'primary.contrastText' : 'text.primary',
-                          border: mine ? 'none' : `1px solid ${theme.palette.divider}`,
-                          boxShadow: highlightId === m.id ? `0 0 0 3px ${alpha(theme.palette.warning.main, 0.7)}` : 'none',
+                          background: mine ? BRAND_GRADIENT_SOFT : theme.palette.mode === 'dark' ? '#334155' : theme.palette.background.paper,
+                          color: mine ? '#fff' : 'text.primary',
+                          border: 'none',
+                          boxShadow:
+                            highlightId === m.id
+                              ? `0 0 0 3px ${alpha(theme.palette.warning.main, 0.7)}`
+                              : mine
+                                ? `0 4px 14px ${alpha(theme.palette.primary.main, 0.25)}`
+                                : `0 2px 10px ${alpha('#0f172a', theme.palette.mode === 'light' ? 0.07 : 0.3)}`,
                           transition: 'box-shadow 0.3s',
+                          // Mesajele care tocmai au sosit apar cu o mica animatie
+                          ...(Date.now() - +new Date(m.createdAt) < 15000 && {
+                            animation: 'chatPop 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
+                            transformOrigin: mine ? 'bottom right' : 'bottom left',
+                          }),
+                          '@keyframes chatPop': {
+                            from: { opacity: 0, transform: 'translateY(8px) scale(0.96)' },
+                            to: { opacity: 1, transform: 'none' },
+                          },
                           '&:hover .msg-act': { opacity: 1 },
                         }}
                       >
                         {showName && (
-                          <Typography variant="caption" fontWeight={700} color="primary.main" component="div">
+                          <Typography variant="caption" fontWeight={700} component="div" sx={{ color: nameColor(m.userName) }}>
                             {m.userName}
                           </Typography>
                         )}
@@ -786,7 +859,12 @@ const ChatThread = ({
               sx={{
                 flex: 1,
                 minWidth: 0,
-                '& .MuiInputBase-root': { borderRadius: 3 },
+                '& .MuiInputBase-root': {
+                  borderRadius: 6,
+                  bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'light' ? 0.04 : 0.08),
+                  px: 2,
+                },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
                 '& .MuiInputBase-input': { fontSize: '16px !important' },
               }}
             />
@@ -799,9 +877,12 @@ const ChatThread = ({
                 width: 44,
                 height: 44,
                 flexShrink: 0,
-                bgcolor: text.trim() ? 'primary.main' : alpha(theme.palette.primary.main, 0.1),
-                color: text.trim() ? 'primary.contrastText' : undefined,
-                '&:hover': { bgcolor: text.trim() ? 'primary.dark' : alpha(theme.palette.primary.main, 0.15) },
+                background: text.trim() ? BRAND_GRADIENT_SOFT : alpha(theme.palette.primary.main, 0.1),
+                color: text.trim() ? '#fff' : undefined,
+                boxShadow: text.trim() ? `0 6px 16px ${alpha(theme.palette.primary.main, 0.4)}` : 'none',
+                transform: text.trim() ? 'scale(1)' : 'scale(0.92)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                '&:hover': { background: text.trim() ? BRAND_GRADIENT_SOFT : alpha(theme.palette.primary.main, 0.15) },
                 '&.Mui-disabled': { bgcolor: alpha(theme.palette.primary.main, 0.08) },
               }}
             >

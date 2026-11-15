@@ -799,7 +799,7 @@ const CreateSchedulePage: React.FC = () => {
           </Button>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant={isMobile ? 'h6' : 'h5'} noWrap>Creare Program de Lucru</Typography>
-            <Typography variant="caption" color="text.secondary" noWrap>
+            <Typography variant="caption" color="text.secondary" component="div">
               Creeaza programul lunar pentru un user sau manager
             </Typography>
           </Box>

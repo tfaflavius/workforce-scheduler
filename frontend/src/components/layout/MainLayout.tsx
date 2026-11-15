@@ -1085,10 +1085,22 @@ export const MainLayout = () => {
         sx={{
           width: { lg: `calc(100% - ${drawerWidth}px)` },
           ml: { lg: `${drawerWidth}px` },
-          bgcolor: alpha(theme.palette.background.paper, 0.8),
-          backdropFilter: 'blur(8px)',
+          bgcolor: alpha(theme.palette.background.paper, 0.72),
+          backdropFilter: 'saturate(180%) blur(16px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(16px)',
           color: 'text.primary',
           borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          // Linie fina cu gradientul de brand sub bara de sus
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: -1,
+            height: 2,
+            background: BRAND_GRADIENT_SOFT,
+            opacity: 0.55,
+          },
         }}
       >
         <Toolbar
