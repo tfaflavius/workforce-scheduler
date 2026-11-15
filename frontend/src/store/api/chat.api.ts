@@ -15,6 +15,15 @@ export interface ChatConversationSummary {
   unreadCount: number;
 }
 
+export const CHAT_REACTIONS = ['👍', '❤️', '😂', '😮', '🙏', '✅'] as const;
+
+export interface ChatReactionSummary {
+  emoji: string;
+  count: number;
+  mine: boolean;
+  names: string[];
+}
+
 export interface ChatMessageItem {
   id: string;
   userId: string;
@@ -26,6 +35,8 @@ export interface ChatMessageItem {
   fromDepartment?: string | null;
   toDepartments?: string[];
   alsoVisibleTo?: string[];
+  /** Reactiile (emoji) la mesaj */
+  reactions?: ChatReactionSummary[];
   /** Mesajul la care se raspunde (citat deasupra) */
   replyTo?: { id: string; userName: string; text: string; deleted?: boolean };
 }
@@ -103,10 +114,49 @@ export const chatApi = createApi({
       query: ({ id }) => ({ url: `/messages/${id}`, method: 'DELETE' }),
       invalidatesTags: (_r, _e, { conversationId }) => [{ type: 'Messages', id: conversationId }, 'Conversations'],
     }),
+    toggleChatReaction: builder.mutation<
+      { ok: boolean; active: boolean },
+      { messageId: string; conversationId: string; emoji: string; myName?: string }
+    >({
+      query: ({ messageId, conversationId, emoji }) => ({
+        url: `/messages/${messageId}/reactions`,
+        method: 'POST',
+        body: { conversationId, emoji },
+      }),
+      // Actualizare instanta pe ecran; serverul confirma in fundal
+      async onQueryStarted({ messageId, conversationId, emoji, myName }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          chatApi.util.updateQueryData('getChatMessages', conversationId, (draft) => {
+            const m = draft.messages.find((x) => x.id === messageId);
+            if (!m) return;
+            const list = m.reactions || (m.reactions = []);
+            const item = list.find((r) => r.emoji === emoji);
+            if (item?.mine) {
+              item.count -= 1;
+              item.mine = false;
+              if (myName) item.names = item.names.filter((n) => n !== myName);
+              if (item.count <= 0) m.reactions = list.filter((r) => r !== item);
+            } else if (item) {
+              item.count += 1;
+              item.mine = true;
+              if (myName) item.names.push(myName);
+            } else {
+              list.push({ emoji, count: 1, mine: true, names: myName ? [myName] : [] });
+            }
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
   }),
 });
 
 export const {
+  useToggleChatReactionMutation,
   useGetConversationsQuery,
   useGetChatUnreadCountQuery,
   useGetChatUsersQuery,

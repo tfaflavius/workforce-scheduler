@@ -67,6 +67,7 @@ import { useGetMyControlNotesStatsQuery } from '../../store/api/controlNotes.api
 import { useAppSelector } from '../../store/hooks';
 import type { WorkSchedule, ScheduleAssignment } from '../../types/schedule.types';
 import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
+import { greetingFor } from '../../utils/greeting';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
 import {
@@ -591,7 +592,8 @@ const EmployeeDashboard = () => {
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
       {/* Header */}
       <GradientHeader
-        title={`Buna, ${user?.fullName?.split(' ')[0] || 'User'}!`}
+        title={greetingFor(user?.fullName)}
+        showClock
         subtitle={`${new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} — ${departmentName}`}
         icon={<TrendingIcon />}
         gradient={deptGradients[departmentName] || '#3b82f6 0%, #64748b 100%'}

@@ -31,3 +31,13 @@ export class StartDirectChatDto {
   @IsUUID()
   userId: string;
 }
+
+export class ToggleReactionDto {
+  /** Conversatia in care omul vede mesajul (pentru verificarea accesului) */
+  @IsUUID()
+  conversationId: string;
+
+  @IsString()
+  @MaxLength(16)
+  emoji: string;
+}

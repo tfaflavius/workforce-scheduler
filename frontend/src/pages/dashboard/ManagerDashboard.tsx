@@ -43,6 +43,7 @@ import {
   useGetUrgentDamagesQuery,
   useGetCashCollectionTotalsQuery,
 } from '../../store/api/parking.api';
+import { greetingFor } from '../../utils/greeting';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { DashboardSkeleton } from '../../components/common/DashboardSkeleton';
 import { useGetCarStatusTodayQuery } from '../../store/api/pvDisplay.api';
@@ -95,7 +96,8 @@ const ManagerDashboard = () => {
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
       <GradientHeader
-        title="Dashboard Manager"
+        title={greetingFor(user?.fullName)}
+        showClock
         subtitle={todayDateStr}
         icon={<GroupsIcon />}
         gradient="#0f172a 0%, #1e293b 100%"

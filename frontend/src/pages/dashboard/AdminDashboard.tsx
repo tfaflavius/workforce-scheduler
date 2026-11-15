@@ -49,6 +49,8 @@ import {
   Savings as SavingsIcon,
 } from '@mui/icons-material';
 import { useGetDashboardStatsQuery, useSendPontajAmenziAnnouncementMutation } from '../../store/api/dashboard.api';
+import { useAppSelector } from '../../store/hooks';
+import { greetingFor } from '../../utils/greeting';
 import { GradientHeader } from '../../components/common/GradientHeader';
 import { FriendlyDialog } from '../../components/common';
 import { useSnackbar } from '../../contexts/SnackbarContext';
@@ -64,6 +66,7 @@ const WeeklyOverviewChart = React.lazy(() =>
 );
 
 const AdminDashboard = () => {
+  const { user } = useAppSelector((state) => state.auth);
   const navigate = useNavigate();
   const theme = useTheme();
 
@@ -135,7 +138,8 @@ const AdminDashboard = () => {
   return (
     <Box sx={{ width: '100%', p: { xs: 0, sm: 1 } }}>
       <GradientHeader
-        title="Dashboard"
+        title={greetingFor(user?.fullName)}
+        showClock
         subtitle={new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         icon={<TrendingIcon />}
         gradient="#0f172a 0%, #1e293b 100%"

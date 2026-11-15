@@ -83,6 +83,30 @@ export class ChatMessage {
   createdAt: Date;
 }
 
+/** Emoji-urile permise ca reactii la mesaje. */
+export const CHAT_REACTIONS = ['👍', '❤️', '😂', '😮', '🙏', '✅'] as const;
+
+/** Reactiile la mesaje (un om poate pune fiecare emoji o singura data pe un mesaj). */
+@Entity('chat_reactions')
+@Index(['messageId', 'userId', 'emoji'], { unique: true })
+export class ChatReaction {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Index()
+  @Column({ name: 'message_id', type: 'uuid' })
+  messageId: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
+
+  @Column({ type: 'varchar', length: 16 })
+  emoji: string;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+}
+
 /** Pana unde a citit fiecare om fiecare conversatie (pentru mesajele necitite). */
 @Entity('chat_reads')
 export class ChatRead {

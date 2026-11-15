@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ChatService } from './chat.service';
-import { SendChatMessageDto, StartDirectChatDto } from './dto/chat.dto';
+import { SendChatMessageDto, StartDirectChatDto, ToggleReactionDto } from './dto/chat.dto';
 
 @ApiTags('Chat')
 @ApiBearerAuth('JWT')
@@ -55,6 +55,11 @@ export class ChatController {
       dto.targetDepartmentIds,
       dto.replyToId,
     );
+  }
+
+  @Post('messages/:id/reactions')
+  react(@Param('id') id: string, @Body() dto: ToggleReactionDto, @Request() req) {
+    return this.service.toggleReaction(id, dto.conversationId, dto.emoji, req.user);
   }
 
   @Delete('messages/:id')

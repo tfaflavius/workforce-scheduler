@@ -11,7 +11,48 @@ export interface GradientHeaderProps {
   children?: React.ReactNode;
   /** Disable compact-on-scroll behavior */
   disableCompact?: boolean;
+  /** Ceas live (ora:minut) in dreapta antetului */
+  showClock?: boolean;
 }
+
+/** Ceas care se actualizeaza singur, cu doua puncte care clipesc. */
+const LiveClock = () => {
+  const [now, setNow] = React.useState(() => new Date());
+  React.useEffect(() => {
+    const t = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  return (
+    <Box
+      sx={{
+        px: { xs: 1.25, sm: 1.75 },
+        py: { xs: 0.5, sm: 0.75 },
+        borderRadius: 3,
+        bgcolor: 'rgba(255, 255, 255, 0.16)',
+        border: '1px solid rgba(255, 255, 255, 0.25)',
+        backdropFilter: 'blur(8px)',
+        fontWeight: 800,
+        fontSize: { xs: '1.1rem', sm: '1.5rem' },
+        fontVariantNumeric: 'tabular-nums',
+        letterSpacing: '0.02em',
+        flexShrink: 0,
+        lineHeight: 1.2,
+      }}
+      aria-label={`Ora ${hh}:${mm}`}
+    >
+      {hh}
+      <Box
+        component="span"
+        sx={{ animation: 'clockBlink 1s steps(2, start) infinite', '@keyframes clockBlink': { to: { visibility: 'hidden' } } }}
+      >
+        :
+      </Box>
+      {mm}
+    </Box>
+  );
+};
 
 export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
   title,
@@ -20,6 +61,7 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
   gradient,
   children,
   disableCompact = false,
+  showClock = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -165,6 +207,7 @@ export const GradientHeader: React.FC<GradientHeaderProps> = React.memo(({
                 </Typography>
               )}
             </Box>
+            {showClock && !isCompact && <LiveClock />}
           </Box>
 
           {children && !isCompact && (

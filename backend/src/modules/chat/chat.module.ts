@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ChatConversation, ChatMessage, ChatRead } from './entities/chat.entities';
+import { ChatConversation, ChatMessage, ChatRead, ChatReaction } from './entities/chat.entities';
 import { User } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { Notification } from '../notifications/entities/notification.entity';
@@ -14,6 +14,7 @@ import { ChatController } from './chat.controller';
       ChatConversation,
       ChatMessage,
       ChatRead,
+      ChatReaction,
       User,
       Department,
       Notification,

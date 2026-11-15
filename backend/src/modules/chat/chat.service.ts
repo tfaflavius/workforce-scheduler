@@ -11,7 +11,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, LessThan, Repository } from 'typeorm';
-import { ChatConversation, ChatMessage, ChatRead } from './entities/chat.entities';
+import {
+  CHAT_REACTIONS,
+  ChatConversation,
+  ChatMessage,
+  ChatReaction,
+  ChatRead,
+} from './entities/chat.entities';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Department } from '../departments/entities/department.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -72,6 +78,9 @@ export class ChatService {
     private readonly notificationRepo: Repository<Notification>,
     private readonly notificationsService: NotificationsService,
     @Optional() private readonly realtime?: RealtimeService,
+    @Optional()
+    @InjectRepository(ChatReaction)
+    private readonly reactionRepo?: Repository<ChatReaction>,
   ) {}
 
   // ============== HELPERS ==============
@@ -419,6 +428,38 @@ export class ChatService {
       }
     }
 
+    // Reactiile (emoji) grupate pe mesaj
+    const reactionMap = new Map<
+      string,
+      Array<{ emoji: string; count: number; mine: boolean; names: string[] }>
+    >();
+    if (this.reactionRepo && rows.length) {
+      const reactions = await this.reactionRepo
+        .createQueryBuilder('r')
+        .leftJoin(User, 'u', 'u.id = r.userId')
+        .select([
+          'r.messageId AS "messageId"',
+          'r.emoji AS emoji',
+          'r.userId AS "userId"',
+          'u.fullName AS "name"',
+        ])
+        .where('r.messageId IN (:...ids)', { ids: rows.map((m) => m.id) })
+        .orderBy('r.createdAt', 'ASC')
+        .getRawMany<{ messageId: string; emoji: string; userId: string; name: string | null }>();
+      for (const r of reactions) {
+        const list = reactionMap.get(r.messageId) || [];
+        let item = list.find((x) => x.emoji === r.emoji);
+        if (!item) {
+          item = { emoji: r.emoji, count: 0, mine: false, names: [] };
+          list.push(item);
+        }
+        item.count++;
+        if (r.userId === me.id) item.mine = true;
+        if (r.name) item.names.push(r.name);
+        reactionMap.set(r.messageId, list);
+      }
+    }
+
     return {
       otherReadAt,
       canWrite,
@@ -435,6 +476,7 @@ export class ChatService {
           userRole: m.user?.role,
           message: m.message,
           createdAt: m.createdAt,
+          ...(reactionMap.has(m.id) ? { reactions: reactionMap.get(m.id) } : {}),
           ...(m.replyToId
             ? {
                 replyTo: replyMap.get(m.replyToId) || {
@@ -711,6 +753,42 @@ export class ChatService {
     );
   }
 
+  /** Pune sau scoate o reactie (emoji) la un mesaj. */
+  async toggleReaction(
+    messageId: string,
+    conversationId: string,
+    emoji: string,
+    requester: Requester,
+  ) {
+    if (!this.reactionRepo) throw new BadRequestException('Reactiile nu sunt disponibile');
+    if (!(CHAT_REACTIONS as readonly string[]).includes(emoji)) {
+      throw new BadRequestException('Reactie necunoscuta');
+    }
+    const me = await this.loadMe(requester);
+    const conv = await this.getConversationOrFail(conversationId);
+    const { canRead } = await this.access(conv, me);
+    if (!canRead) throw new ForbiddenException('Nu ai acces la aceasta conversatie');
+    if (!(await this.visibleMessageId(conv, messageId))) {
+      throw new NotFoundException('Mesajul nu a fost gasit');
+    }
+    const existing = await this.reactionRepo.findOne({
+      where: { messageId, userId: me.id, emoji },
+    });
+    if (existing) await this.reactionRepo.remove(existing);
+    else {
+      await this.reactionRepo
+        .createQueryBuilder()
+        .insert()
+        .into(ChatReaction)
+        .values({ messageId, userId: me.id, emoji })
+        .orIgnore()
+        .execute();
+    }
+    const ids = await this.recipientsOf(conv, me.id);
+    this.realtime?.emit([...ids, me.id], 'chat', { conversationId: conv.id });
+    return { ok: true, active: !existing };
+  }
+
   async deleteMessage(messageId: string, requester: Requester) {
     const me = await this.loadMe(requester);
     const msg = await this.msgRepo.findOne({ where: { id: messageId } });
@@ -718,6 +796,7 @@ export class ChatService {
     if (msg.userId !== me.id && !this.isAdmin(me)) {
       throw new ForbiddenException('Poti sterge doar mesajele tale');
     }
+    await this.reactionRepo?.delete({ messageId: msg.id });
     await this.msgRepo.remove(msg);
     return { ok: true };
   }

@@ -17,6 +17,7 @@ import {
   ListItemText,
   Stack,
   TextField,
+  Tooltip,
   Typography,
   alpha,
   useMediaQuery,
@@ -38,6 +39,7 @@ import {
   Done as SentIcon,
   KeyboardArrowDown as DownIcon,
   Check as CheckIcon,
+  AddReactionOutlined as AddReactionIcon,
 } from '@mui/icons-material';
 import { FriendlyDialog, EmptyState } from '../../components/common';
 import { useSnackbar } from '../../contexts/SnackbarContext';
@@ -46,6 +48,8 @@ import {
   useGetChatMessagesQuery,
   useSendChatMessageMutation,
   useDeleteChatMessageMutation,
+  useToggleChatReactionMutation,
+  CHAT_REACTIONS,
   useGetChatUsersQuery,
   useStartDirectChatMutation,
   type ChatConversationSummary,
@@ -358,6 +362,46 @@ const ChatThread = ({
   const [highlightId, setHighlightId] = useState<string | null>(null);
   // Pe telefon: atingi un mesaj -> apar butoanele Raspunde / Sterge
   const [actionId, setActionId] = useState<string | null>(null);
+  const [react] = useToggleChatReactionMutation();
+  const haptic = (ms = 10) => {
+    if (isTouch && 'vibrate' in navigator) navigator.vibrate(ms);
+  };
+  const toggleReaction = (m: ChatMessageItem, emoji: string) => {
+    haptic();
+    setActionId(null);
+    react({ messageId: m.id, conversationId: conv.id, emoji, myName: user?.fullName })
+      .unwrap()
+      .catch(() => notifyError('Reactia nu a putut fi salvata'));
+  };
+  // Glisare spre dreapta pe un mesaj (telefon) = raspunde
+  const [swipe, setSwipe] = useState<{ id: string; dx: number } | null>(null);
+  const touchStart = useRef<{ x: number; y: number; id: string; horizontal: boolean | null } | null>(null);
+  const justSwiped = useRef(false);
+  const onBubbleTouchStart = (m: ChatMessageItem, e: React.TouchEvent) => {
+    if (!canWrite) return;
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY, id: m.id, horizontal: null };
+  };
+  const onBubbleTouchMove = (e: React.TouchEvent) => {
+    const st = touchStart.current;
+    if (!st) return;
+    const t = e.touches[0];
+    const dx = t.clientX - st.x;
+    const dy = t.clientY - st.y;
+    if (st.horizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) st.horizontal = Math.abs(dx) > Math.abs(dy);
+    if (!st.horizontal || dx <= 0) return;
+    const capped = Math.min(dx, 90);
+    if (capped >= 64 && (swipe?.dx ?? 0) < 64) haptic(15);
+    setSwipe({ id: st.id, dx: capped });
+  };
+  const onBubbleTouchEnd = (m: ChatMessageItem) => {
+    const done = swipe?.id === m.id && swipe.dx >= 64;
+    if (swipe) justSwiped.current = true;
+    touchStart.current = null;
+    setSwipe(null);
+    if (done) startReply(m);
+    window.setTimeout(() => (justSwiped.current = false), 50);
+  };
   // Butonul "mesaje noi" cand omul a derulat in sus
   const [atBottom, setAtBottom] = useState(true);
   const [newBelow, setNewBelow] = useState(0);
@@ -542,7 +586,38 @@ const ChatThread = ({
                         </Typography>
                       </Box>
                     )}
-                    <Box sx={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: 0.75 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: mine ? 'flex-end' : 'flex-start',
+                        alignItems: 'flex-end',
+                        gap: 0.75,
+                        position: 'relative',
+                        transform: swipe?.id === m.id ? `translateX(${swipe.dx}px)` : 'none',
+                        transition: swipe?.id === m.id ? 'none' : 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)',
+                      }}
+                    >
+                      {swipe?.id === m.id && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            left: -swipe.dx + 4,
+                            top: '50%',
+                            transform: `translateY(-50%) scale(${0.6 + Math.min(swipe.dx / 64, 1) * 0.4})`,
+                            opacity: Math.min(swipe.dx / 64, 1),
+                            width: 30,
+                            height: 30,
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: swipe.dx >= 64 ? BRAND_GRADIENT_SOFT : alpha(theme.palette.primary.main, 0.15),
+                            color: swipe.dx >= 64 ? '#fff' : 'primary.main',
+                          }}
+                        >
+                          <ReplyIcon sx={{ fontSize: 18 }} />
+                        </Box>
+                      )}
                       {showAvatars && !mine && (
                         <Box sx={{ width: 28, flexShrink: 0 }}>
                           {!joinNext && (
@@ -556,7 +631,16 @@ const ChatThread = ({
                       )}
                       <Box
                         onDoubleClick={() => !isTouch && canWrite && startReply(m)}
-                        onClick={() => isTouch && (canWrite || mine) && setActionId((a) => (a === m.id ? null : m.id))}
+                        onClick={() => {
+                          if (justSwiped.current) return;
+                          if (isTouch && (canWrite || mine)) {
+                            haptic(8);
+                            setActionId((a) => (a === m.id ? null : m.id));
+                          }
+                        }}
+                        onTouchStart={(e) => onBubbleTouchStart(m, e)}
+                        onTouchMove={onBubbleTouchMove}
+                        onTouchEnd={() => onBubbleTouchEnd(m)}
                         sx={{
                           cursor: isTouch ? 'pointer' : 'default',
                           WebkitTapHighlightColor: 'transparent',
@@ -655,6 +739,17 @@ const ChatThread = ({
                             <IconButton
                               className="msg-act"
                               size="small"
+                              aria-label="Adauga reactie"
+                              onClick={() => setActionId((a) => (a === m.id ? null : m.id))}
+                              sx={{ p: 0.25, color: 'inherit', opacity: actionId === m.id ? 1 : 0, transition: 'opacity 0.15s' }}
+                            >
+                              <AddReactionIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          )}
+                          {canWrite && !isTouch && (
+                            <IconButton
+                              className="msg-act"
+                              size="small"
                               aria-label="Raspunde"
                               onClick={() => startReply(m)}
                               sx={{ p: 0.25, color: 'inherit', opacity: 0, transition: 'opacity 0.15s' }}
@@ -684,6 +779,110 @@ const ChatThread = ({
                         </Stack>
                       </Box>
                     </Box>
+                    {/* Reactiile puse (atingi ca sa pui/scoti si tu) */}
+                    {!!m.reactions?.length && (
+                      <Stack
+                        direction="row"
+                        flexWrap="wrap"
+                        useFlexGap
+                        spacing={0.5}
+                        justifyContent={mine ? 'flex-end' : 'flex-start'}
+                        sx={{ mt: -0.5, pl: showAvatars && !mine ? 4.5 : 1, pr: mine ? 1 : 0, position: 'relative', zIndex: 1 }}
+                      >
+                        {m.reactions.map((r) => (
+                          <Tooltip key={r.emoji} title={r.names.join(', ')} disableInteractive>
+                            <Box
+                              component="button"
+                              type="button"
+                              disabled={!canWrite}
+                              onClick={() => toggleReaction(m, r.emoji)}
+                              sx={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 0.4,
+                                px: 0.9,
+                                height: 24,
+                                borderRadius: 12,
+                                fontSize: 13,
+                                fontFamily: 'inherit',
+                                cursor: canWrite ? 'pointer' : 'default',
+                                border: '1px solid',
+                                borderColor: r.mine ? 'primary.main' : 'divider',
+                                bgcolor: r.mine ? alpha(theme.palette.primary.main, 0.12) : 'background.paper',
+                                color: 'text.primary',
+                                boxShadow: `0 1px 4px ${alpha('#0f172a', 0.1)}`,
+                                animation: 'reactPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                '@keyframes reactPop': { from: { transform: 'scale(0.4)' }, to: { transform: 'scale(1)' } },
+                                transition: 'transform 0.15s',
+                                '&:active': { transform: 'scale(0.9)' },
+                              }}
+                            >
+                              <span>{r.emoji}</span>
+                              {r.count > 1 && (
+                                <Typography component="span" sx={{ fontSize: 11, fontWeight: 700 }}>
+                                  {r.count}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Tooltip>
+                        ))}
+                      </Stack>
+                    )}
+                    {actionId === m.id && canWrite && (
+                      <Stack
+                        direction="row"
+                        spacing={0.25}
+                        justifyContent={mine ? 'flex-end' : 'flex-start'}
+                        sx={{ mt: 0.75, pl: showAvatars && !mine ? 4.5 : 0 }}
+                      >
+                        <Stack
+                          direction="row"
+                          spacing={0.25}
+                          sx={{
+                            px: 0.75,
+                            py: 0.5,
+                            borderRadius: 6,
+                            bgcolor: 'background.paper',
+                            boxShadow: `0 6px 20px ${alpha('#0f172a', 0.18)}`,
+                            animation: 'pickerIn 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+                            '@keyframes pickerIn': {
+                              from: { opacity: 0, transform: 'translateY(6px) scale(0.9)' },
+                              to: { opacity: 1, transform: 'none' },
+                            },
+                          }}
+                        >
+                          {CHAT_REACTIONS.map((emoji, k) => {
+                            const on = m.reactions?.some((r) => r.emoji === emoji && r.mine);
+                            return (
+                              <Box
+                                key={emoji}
+                                component="button"
+                                type="button"
+                                aria-label={`Reactie ${emoji}`}
+                                onClick={() => toggleReaction(m, emoji)}
+                                sx={{
+                                  width: 36,
+                                  height: 36,
+                                  border: 'none',
+                                  borderRadius: '50%',
+                                  fontSize: 22,
+                                  lineHeight: 1,
+                                  cursor: 'pointer',
+                                  bgcolor: on ? alpha(theme.palette.primary.main, 0.15) : 'transparent',
+                                  animation: `pickerEmoji 0.3s ${k * 0.03}s both cubic-bezier(0.34, 1.56, 0.64, 1)`,
+                                  '@keyframes pickerEmoji': { from: { transform: 'scale(0)' }, to: { transform: 'scale(1)' } },
+                                  transition: 'transform 0.15s',
+                                  '&:hover': { transform: 'scale(1.25)' },
+                                  '&:active': { transform: 'scale(0.9)' },
+                                }}
+                              >
+                                {emoji}
+                              </Box>
+                            );
+                          })}
+                        </Stack>
+                      </Stack>
+                    )}
                     {isTouch && actionId === m.id && (
                       <Stack
                         direction="row"

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
 import {
   Box,
   Card,
@@ -35,6 +36,9 @@ interface StatusDistributionProps {
   icon?: React.ReactNode;
   height?: number | { xs?: number; sm?: number; md?: number };
 }
+
+/** Numarul din mijlocul graficului creste animat de la 0 (hook-ul nu poate sta dupa return-ul conditionat). */
+const CountUpNumber = ({ value }: { value: number }) => <>{useCountUp(value, 900, 150)}</>;
 
 export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.memo(({ data, title, icon, height }) => {
   const theme = useTheme();
@@ -112,7 +116,7 @@ export const StatusDistributionChart: React.FC<StatusDistributionProps> = React.
               }}
             >
               <Typography variant="h5" fontWeight={800} color="text.primary" sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                {total}
+                <CountUpNumber value={total} />
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
                 Total
