@@ -1073,15 +1073,7 @@ export class LeaveRequestsService {
       where: { id: request.userId },
       relations: ['department'],
     });
-    if (user?.email) {
-      await this.emailService.sendNotificationEmail({
-        recipientEmail: user.email,
-        recipientName: user.fullName,
-        title: `Concediu anulat: ${startDate} - ${endDate}`,
-        message,
-        path: '/leave-requests',
-      });
-    }
+    // Fara email pe loc: anularea apare in "Rezumatul zilei" de la 20:00 (push-ul vine imediat).
 
     // Managerul departamentului: trebuie sa refaca programul pentru acea perioada
     if (user?.departmentId) {

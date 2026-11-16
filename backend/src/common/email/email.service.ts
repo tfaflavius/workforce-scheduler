@@ -500,6 +500,12 @@ export interface ConsolidatedWeeklyReportData {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
+  /**
+   * Emailurile trimise pe loc la fiecare concediu / schimb de tura / cerere de editare sunt
+   * oprite: in aplicatie vine push imediat, iar pe email totul vine o data, la 20:00
+   * (Rezumatul zilei). Se pot reporni cu variabila INSTANT_ACTIVITY_EMAILS=true.
+   */
+  private readonly instantActivityEmails = process.env.INSTANT_ACTIVITY_EMAILS === 'true';
   private resend: Resend | null = null;
   private fromEmail: string;
   private isEnabled: boolean;
@@ -906,6 +912,7 @@ export class EmailService {
   }
 
   async sendLeaveRequestNotification(data: LeaveRequestEmailData): Promise<boolean> {
+    if (!this.instantActivityEmails) return true;
     const subjects: Record<string, string> = {
       submitted: `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} inregistrata`,
       approved: `Cerere de ${this.getLeaveTypeLabel(data.leaveType)} aprobata ✅`,
@@ -929,6 +936,7 @@ export class EmailService {
     endDate: string,
     totalDays: number,
   ): Promise<boolean> {
+    if (!this.instantActivityEmails) return true;
     const content = `
       <p style="font-size: 16px;">Buna ziua, <strong>${approverName}</strong>!</p>
 
@@ -1403,6 +1411,7 @@ export class EmailService {
   }
 
   async sendShiftSwapNotification(data: ShiftSwapEmailData): Promise<boolean> {
+    if (!this.instantActivityEmails) return true;
     const subjects: Record<string, string> = {
       new_request: `🔄 Cerere de schimb de tura de la ${data.requesterName}`,
       response_accepted: `✅ ${data.responderName} a acceptat schimbul de tura`,
@@ -1644,6 +1653,7 @@ export class EmailService {
   }
 
   async sendEditRequestNotification(data: EditRequestEmailData): Promise<boolean> {
+    if (!this.instantActivityEmails) return true;
     let statusText = '';
     let statusColor = '#ff9800';
     let gradientColors = '#ff9800 0%, #f57c00 100%';
@@ -4241,8 +4251,8 @@ export class EmailService {
     const sectionsHtml = data.sections
       .map(
         (sec) => `
-          <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #2E7D32; border-radius: 4px;">
-            <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #2E7D32;">${this.escapeHtml(sec.title)} (${sec.items.length})</h3>
+          <div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #2563eb; border-radius: 4px;">
+            <h3 style="margin: 0 0 8px 0; font-size: 16px; color: #1d4ed8;">${this.escapeHtml(sec.title)} (${sec.items.length})</h3>
             <ul style="margin: 0; padding-left: 20px; font-size: 14px;">${sec.items
               .map((i) => `<li style="margin-bottom: 4px;">${this.escapeHtml(i)}</li>`)
               .join('')}</ul>
@@ -4251,22 +4261,22 @@ export class EmailService {
       .join('');
     const content = `
       <p>Buna ${this.escapeHtml(data.recipientName)},</p>
-      <p>Astazi au fost finalizate ${total} probleme despre care ai fost notificat in aplicatie:</p>
+      <p>Acesta este rezumatul zilei: tot ce ti-a fost notificat azi in aplicatie (${total}) - probleme create si alocate, rezolvate, solicitari si tot ce s-a finalizat.</p>
       ${sectionsHtml}
       <p style="margin-top: 30px;">
-        <a href="${this.appUrl}/notifications" style="display: inline-block; background: linear-gradient(135deg, #43A047 0%, #2E7D32 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
+        <a href="${this.appUrl}/notifications" style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
           Deschide in aplicatie
         </a>
       </p>
     `;
     return this.sendEmail(
       data.recipientEmail,
-      `Probleme finalizate azi (${total}) - ${data.dateLabel}`,
+      `Rezumatul zilei (${total}) - ${data.dateLabel}`,
       this.generateBaseTemplate(
         'WorkSchedule',
-        `Probleme finalizate - ${this.escapeHtml(data.dateLabel)}`,
+        `Rezumatul zilei - ${this.escapeHtml(data.dateLabel)}`,
         content,
-        '#43A047 0%, #2E7D32 100%',
+        '#2563eb 0%, #0ea5e9 100%',
       ),
     );
   }

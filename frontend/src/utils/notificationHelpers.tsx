@@ -81,6 +81,8 @@ export const getNotificationIcon = (type: NotificationType, size: 'small' | 'def
       return <AccountIcon color="primary" fontSize={fontSize} />;
     case 'TEAM_ACTIVITY':
       return <TeamIcon color="info" fontSize={fontSize} />;
+    case 'DAILY_SUMMARY':
+      return <DigestIcon color="success" fontSize={fontSize} />;
     case 'SCHEDULE_TIME_REQUEST':
       return <TimeRequestIcon color="warning" fontSize={fontSize} />;
     case 'SCHEDULE_TIME_REQUEST_APPROVED':
@@ -249,6 +251,7 @@ export const getNotificationPath = (notification: Notification, userRole?: strin
 
     // Activitatea angajatilor (manager) si anunturi generale: pagina din notificare
     case 'TEAM_ACTIVITY':
+    case 'DAILY_SUMMARY':
     case 'GENERAL':
       return data?.url ? { path: data.url as string } : null;
 

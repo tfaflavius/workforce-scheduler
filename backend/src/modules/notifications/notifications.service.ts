@@ -43,6 +43,7 @@ const NOTIFICATION_URL_MAP: Partial<Record<NotificationType, string>> = {
   [NotificationType.DAILY_REPORT_MISSING]: '/daily-reports',
   [NotificationType.ACCOUNT_UPDATED]: '/profile',
   [NotificationType.TEAM_ACTIVITY]: '/notifications',
+  [NotificationType.DAILY_SUMMARY]: '/notifications',
   [NotificationType.SCHEDULE_TIME_REQUEST]: '/ora-program',
   [NotificationType.SCHEDULE_TIME_REQUEST_APPROVED]: '/ora-program',
   [NotificationType.SCHEDULE_TIME_REQUEST_REJECTED]: '/ora-program',
@@ -76,40 +77,13 @@ export const RESOLVED_NOTIFICATION_TYPES: NotificationType[] = [
   NotificationType.CONTROL_SESIZARE_RESOLVED,
 ];
 
-const EMAIL_EXCLUDED_TYPES = new Set<NotificationType>([
-  NotificationType.SHIFT_SWAP_REQUEST,
-  NotificationType.SHIFT_SWAP_RESPONSE,
-  NotificationType.SHIFT_SWAP_ACCEPTED,
-  NotificationType.SHIFT_SWAP_APPROVED,
-  NotificationType.SHIFT_SWAP_REJECTED,
-  NotificationType.LEAVE_REQUEST_CREATED,
-  NotificationType.LEAVE_REQUEST_APPROVED,
-  NotificationType.LEAVE_REQUEST_REJECTED,
-  NotificationType.EDIT_REQUEST_CREATED,
-  NotificationType.EDIT_REQUEST_APPROVED,
-  NotificationType.EDIT_REQUEST_REJECTED,
-  NotificationType.SCHEDULE_CREATED,
-  NotificationType.SCHEDULE_UPDATED,
-  NotificationType.SCHEDULE_APPROVED,
-  NotificationType.SCHEDULE_REJECTED,
-  NotificationType.GENERAL,
-  NotificationType.DAILY_REPORT_SUBMITTED,
-  NotificationType.DAILY_REPORT_COMMENTED,
-  NotificationType.DAILY_REPORT_MISSING,
-  NotificationType.GPS_STATUS_ALERT,
-  NotificationType.TIME_ENTRY_MISMATCH,
-  // Chat sarbatori: doar in-app + push, fara email (ar fi prea multe)
-  NotificationType.HOLIDAY_CHAT_MESSAGE,
-  NotificationType.CHAT_MESSAGE,
-  // Activitatea echipei: doar in-app + push (ar fi prea multe emailuri)
-  NotificationType.TEAM_ACTIVITY,
-  // Cererile de alta ora: ca la concedii, doar in-app + push
-  NotificationType.SCHEDULE_TIME_REQUEST,
-  NotificationType.SCHEDULE_TIME_REQUEST_APPROVED,
-  NotificationType.SCHEDULE_TIME_REQUEST_REJECTED,
-  // Problemele finalizate: in-app + push imediat, emailul vine centralizat la 20:00
-  ...RESOLVED_NOTIFICATION_TYPES,
-]);
+/**
+ * Email imediat (pe fiecare eveniment) doar pentru schimbarile de cont.
+ * Restul (probleme create/alocate/rezolvate, solicitari, concedii, schimburi, programe etc.)
+ * vin in aplicatie ca notificare push in timp real, iar pe email O SINGURA DATA, seara la
+ * 20:00, in "Rezumatul zilei" (DailySummaryScheduler).
+ */
+const IMMEDIATE_EMAIL_TYPES = new Set<NotificationType>([NotificationType.ACCOUNT_UPDATED]);
 
 @Injectable()
 export class NotificationsService {
@@ -440,7 +414,7 @@ export class NotificationsService {
    * Emailurile sunt puse in coada in EmailService, deci nu blocheaza raspunsul.
    */
   private sendEmailsForNotifications(dtos: CreateNotificationDto[]): void {
-    const eligible = dtos.filter((d) => !d.skipEmail && !EMAIL_EXCLUDED_TYPES.has(d.type));
+    const eligible = dtos.filter((d) => !d.skipEmail && IMMEDIATE_EMAIL_TYPES.has(d.type));
     if (eligible.length === 0) return;
 
     (async () => {

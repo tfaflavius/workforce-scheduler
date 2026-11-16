@@ -71,6 +71,8 @@ export enum NotificationType {
   ACCOUNT_UPDATED = 'ACCOUNT_UPDATED',
   // Managerul: un angajat din departamentele lui a facut o actiune
   TEAM_ACTIVITY = 'TEAM_ACTIVITY',
+  // Rezumatul zilei (push la 20:00, odata cu emailul)
+  DAILY_SUMMARY = 'DAILY_SUMMARY',
   // Cereri de program la alta ora (angajatii cu program fix automat)
   SCHEDULE_TIME_REQUEST = 'SCHEDULE_TIME_REQUEST',
   SCHEDULE_TIME_REQUEST_APPROVED = 'SCHEDULE_TIME_REQUEST_APPROVED',
