@@ -32,6 +32,8 @@ export interface ShiftColleague {
 export interface ColleaguesResponse {
   today: ShiftColleague[];
   tomorrow: ShiftColleague[];
+  /** Userii de la Dispecerat: cine intra in tura urmatoare (dupa tura lor de azi) */
+  next?: ShiftColleague[];
   userPosition: string | null;
 }
 

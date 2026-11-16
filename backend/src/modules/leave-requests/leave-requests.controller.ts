@@ -94,8 +94,11 @@ export class LeaveRequestsController {
   @Get('approved-by-month')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.USER)
-  getApprovedByMonth(@Query('monthYear') monthYear: string) {
-    return this.leaveRequestsService.getApprovedByMonth(monthYear);
+  async getApprovedByMonth(@Query('monthYear') monthYear: string, @Request() req) {
+    const all = await this.leaveRequestsService.getApprovedByMonth(monthYear);
+    // Userii simpli vad doar propriile concedii (programul colegilor e vizibil doar
+    // managerilor si adminilor)
+    return req.user?.role === UserRole.USER ? all.filter((l) => l.userId === req.user.id) : all;
   }
 
   @Get(':id')

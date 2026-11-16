@@ -52,22 +52,26 @@ export class SchedulesController {
   }
 
   @Get('stats/dashboard')
+  @Roles(UserRole.MANAGER)
   getDashboardStats() {
     return this.schedulesService.getDashboardStats();
   }
 
   @Get('today/dispatchers')
+  @Roles(UserRole.MANAGER)
   getTodayDispatchers() {
     return this.schedulesService.getTodayDispatcherAssignments();
   }
 
   @Get('today/colleagues')
   getTodayColleagues(@Request() req) {
-    return this.schedulesService.getColleaguesByPosition(req.user.id);
+    return this.schedulesService.getColleaguesByPosition(req.user.id, req.user.role);
   }
 
   @Get('month/colleagues')
   getMonthlyColleagues(@Request() req, @Query('monthYear') monthYear: string) {
+    // Userii simpli nu vad colegii pe toata luna (doar azi, din "today/colleagues")
+    if (req.user?.role === UserRole.USER) return { userPosition: null, days: [] };
     return this.schedulesService.getMonthlyColleaguesByPosition(req.user.id, monthYear);
   }
 
@@ -79,6 +83,11 @@ export class SchedulesController {
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req) {
     const schedule = await this.schedulesService.findOne(id);
+    // Userul simplu vede doar propriile ture
+    if (req.user?.role === UserRole.USER) {
+      schedule.assignments = (schedule.assignments || []).filter((a) => a.userId === req.user.id);
+      return schedule;
+    }
     // Managerul cu departamente alocate vede doar asignarile din departamentele lui
     const scope = managerDeptScope(req.user);
     if (scope) {

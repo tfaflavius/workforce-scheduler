@@ -1372,7 +1372,8 @@ export class SchedulesService {
    */
   async getColleaguesByPosition(
     userId: string,
-  ): Promise<{ today: any[]; tomorrow: any[]; userPosition: string | null }> {
+    role?: string,
+  ): Promise<{ today: any[]; tomorrow: any[]; next?: any[]; userPosition: string | null }> {
     const now = new Date();
     const romaniaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Bucharest' }));
     const todayStr = romaniaTime.toISOString().split('T')[0];
@@ -1465,6 +1466,26 @@ export class SchedulesService {
       fetchColleagues(todayStr),
       fetchColleagues(tomorrowStr),
     ]);
+
+    // Userii simpli (Dispecerat / Control) vad DOAR ziua de azi:
+    // - colegii din aceeasi tura cu ei
+    // - Dispecerat: si cine intra in tura urmatoare (dupa tura lor)
+    // Daca nu lucreaza azi, nu vad nimic.
+    if (role === 'USER') {
+      const mine = today.find((c) => c.isCurrentUser);
+      if (!mine) return { today: [], tomorrow: [], next: [], userPosition: positionCode };
+      const sameShift = today.filter(
+        (c) => c.startTime === mine.startTime && c.endTime === mine.endTime,
+      );
+      let next: any[] = [];
+      if (positionCode === 'DISP') {
+        const later = today.filter((c) => (c.startTime || '') > (mine.startTime || ''));
+        const pool = later.length ? later : tomorrow; // dupa tura de noapte urmeaza tura de dimineata
+        const firstStart = pool.map((c) => c.startTime || '').sort()[0];
+        next = pool.filter((c) => (c.startTime || '') === firstStart && !c.isCurrentUser);
+      }
+      return { today: sameShift, tomorrow: [], next, userPosition: positionCode };
+    }
 
     return { today, tomorrow, userPosition: positionCode };
   }

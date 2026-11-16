@@ -139,6 +139,8 @@ const EmployeeDashboard = () => {
 
   const isDispatchDepartment = departmentName === DISPECERAT_DEPARTMENT_NAME || departmentName === CONTROL_DEPARTMENT_NAME;
   const { data: colleaguesData } = useGetShiftColleaguesQuery(undefined, { skip: !isDispatchDepartment });
+  // Doar azi: colegii din tura ta si (la Dispecerat) cine urmeaza in tura urmatoare
+  const nextShift = colleaguesData?.next ?? [];
 
   const isMaintenanceDepartment = departmentName === MAINTENANCE_DEPARTMENT_NAME;
   const isControlDepartment = departmentName === CONTROL_DEPARTMENT_NAME;
@@ -1207,7 +1209,7 @@ const EmployeeDashboard = () => {
                             }
                             secondary={
                               <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
-                                <Chip icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />} label={`${colleague.startTime} - ${colleague.endTime}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' }, '& .MuiChip-icon': { color: 'white' } }} />
+                                <Chip icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />} label={`${(colleague.startTime || "").slice(0, 5)} - ${(colleague.endTime || "").slice(0, 5)}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' }, '& .MuiChip-icon': { color: 'white' } }} />
                                 <Chip label={colleague.shiftCode || colleague.shiftType} size="small" sx={{ bgcolor: colleague.shiftCode === 'Z' ? '#d97706' : colleague.shiftCode === 'N' ? '#64748b' : '#059669', color: colleague.shiftCode === 'Z' ? '#000' : '#fff', fontWeight: 700, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }} />
                               </Stack>
                             }
@@ -1217,11 +1219,11 @@ const EmployeeDashboard = () => {
                     </List>
                   ) : (
                     <Box sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2, p: 2, textAlign: 'center' }}>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>Nu exista colegi programati astazi.</Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.9 }}>Nu esti programat pe tura astazi.</Typography>
                     </Box>
                   )}
-                  {/* Tomorrow */}
-                  {colleaguesData.tomorrow.length > 0 && (
+                  {/* Tura urmatoare (Dispecerat) */}
+                  {nextShift.length > 0 && (
                     <>
                       <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }} sx={{ mt: 2.5, mb: { xs: 1.5, sm: 2 } }}>
                         <Box sx={{ p: { xs: 1, sm: 1.5 }, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.15)', display: 'flex' }}>
@@ -1229,16 +1231,16 @@ const EmployeeDashboard = () => {
                         </Box>
                         <Box sx={{ minWidth: 0 }}>
                           <Typography variant="h6" fontWeight="bold" sx={{ fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.25rem' } }}>
-                            Maine — {(() => { const t = new Date(); t.setDate(t.getDate() + 1); return t.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' }); })()}
+                            Urmeaza in tura urmatoare
                           </Typography>
                           <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                            {`${colleaguesData.tomorrow.length} ${colleaguesData.tomorrow.length === 1 ? 'persoana' : 'persoane'}`}
+                            {`${nextShift.length} ${nextShift.length === 1 ? 'persoana' : 'persoane'}`}
                           </Typography>
                         </Box>
                       </Stack>
                       <List sx={{ py: 0 }}>
-                        {colleaguesData.tomorrow.map((colleague, index) => (
-                          <ListItem key={colleague.id} sx={{ bgcolor: colleague.isCurrentUser ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)', borderRadius: 2, mb: index < colleaguesData.tomorrow.length - 1 ? 0.75 : 0, px: { xs: 1, sm: 2 }, py: { xs: 0.75, sm: 1 }, border: colleague.isCurrentUser ? '1px solid rgba(255,255,255,0.3)' : 'none' }}>
+                        {nextShift.map((colleague, index) => (
+                          <ListItem key={colleague.id} sx={{ bgcolor: colleague.isCurrentUser ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)', borderRadius: 2, mb: index < nextShift.length - 1 ? 0.75 : 0, px: { xs: 1, sm: 2 }, py: { xs: 0.75, sm: 1 }, border: colleague.isCurrentUser ? '1px solid rgba(255,255,255,0.3)' : 'none' }}>
                             <ListItemAvatar sx={{ minWidth: { xs: 40, sm: 56 } }}>
                               <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 } }}>
                                 <PersonIcon sx={{ fontSize: { xs: 18, sm: 24 } }} />
@@ -1253,7 +1255,7 @@ const EmployeeDashboard = () => {
                               }
                               secondary={
                                 <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }} flexWrap="wrap">
-                                  <Chip icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />} label={`${colleague.startTime} - ${colleague.endTime}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' }, '& .MuiChip-icon': { color: 'white' } }} />
+                                  <Chip icon={<TimeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: 'white !important' }} />} label={`${(colleague.startTime || "").slice(0, 5)} - ${(colleague.endTime || "").slice(0, 5)}`} size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' }, '& .MuiChip-icon': { color: 'white' } }} />
                                   <Chip label={colleague.shiftCode || colleague.shiftType} size="small" sx={{ bgcolor: colleague.shiftCode === 'Z' ? '#d97706' : colleague.shiftCode === 'N' ? '#64748b' : '#059669', color: colleague.shiftCode === 'Z' ? '#000' : '#fff', fontWeight: 700, height: { xs: 24, sm: 28 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }} />
                                 </Stack>
                               }
