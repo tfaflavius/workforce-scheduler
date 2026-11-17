@@ -90,6 +90,8 @@ const dayInfo = (date: string, period: HolidayPeriod, index: number) => {
   if (period.key === 'PASTE') {
     holiday = ['Vinerea Mare', 'Sambata Mare', 'Paste', 'A doua zi de Paste'][index];
   }
+  // Zilele de weekend adaugate dupa sarbatoare (ex: duminica 3 ian dupa Anul Nou)
+  if (!holiday && (d.getUTCDay() === 0 || d.getUTCDay() === 6)) holiday = 'Weekend';
   return { label, holiday };
 };
 

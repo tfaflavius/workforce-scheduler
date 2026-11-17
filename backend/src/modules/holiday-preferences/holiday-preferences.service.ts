@@ -82,8 +82,24 @@ export function daysBetween(start: string, end: string): string[] {
   return out;
 }
 
-/** Perioadele implicite pentru un an. Revelion Y = 31.12.Y - 02.01.Y+1. */
-export function defaultPeriods(
+/**
+ * Daca dupa ultima zi a sarbatorii urmeaza zile de weekend (sambata/duminica), perioada
+ * continua si cu ele. Ex: Revelion 2026-2027 se termina sambata 2 ian -> se adauga si
+ * duminica 3 ian.
+ */
+export function extendOverWeekend(endDate: string): string {
+  let end = new Date(`${endDate}T00:00:00Z`);
+  for (;;) {
+    const next = addDays(end, 1);
+    const dow = next.getUTCDay(); // 0 = duminica, 6 = sambata
+    if (dow !== 0 && dow !== 6) break;
+    end = next;
+  }
+  return iso(end);
+}
+
+/** Perioadele de baza (fara weekendul de dupa). Revelion Y = 31.12.Y - 02.01.Y+1. */
+function basePeriods(
   year: number,
 ): Array<{ key: HolidayPeriodKey; name: string; startDate: string; endDate: string }> {
   const easter = orthodoxEaster(year);
@@ -107,6 +123,23 @@ export function defaultPeriods(
       endDate: iso(utc(year + 1, 1, 2)),
     },
   ];
+}
+
+/** Perioadele implicite pentru un an, extinse peste weekendul care urmeaza sarbatorii. */
+export function defaultPeriods(
+  year: number,
+): Array<{
+  key: HolidayPeriodKey;
+  name: string;
+  startDate: string;
+  endDate: string;
+  baseEndDate: string;
+}> {
+  return basePeriods(year).map((p) => ({
+    ...p,
+    endDate: extendOverWeekend(p.endDate),
+    baseEndDate: p.endDate,
+  }));
 }
 
 @Injectable()
@@ -268,7 +301,7 @@ export class HolidayPreferencesService {
   private async ensurePeriods(): Promise<void> {
     const year = new Date().getFullYear();
     for (const y of [year, year + 1]) {
-      for (const p of defaultPeriods(y)) {
+      for (const { baseEndDate, ...p } of defaultPeriods(y)) {
         await this.periodRepo
           .createQueryBuilder()
           .insert()
@@ -276,6 +309,20 @@ export class HolidayPreferencesService {
           .values({ ...p, year: y, status: 'OPEN' })
           .orIgnore()
           .execute();
+        // Perioadele create inainte de regula cu weekendul: le extindem doar daca au inca
+        // data de sfarsit implicita (nu atingem perioadele modificate manual de admin)
+        if (p.endDate !== baseEndDate) {
+          await this.periodRepo
+            .createQueryBuilder()
+            .update(HolidayPeriod)
+            .set({ endDate: p.endDate })
+            .where('key = :key AND year = :year AND end_date = :base', {
+              key: p.key,
+              year: y,
+              base: baseEndDate,
+            })
+            .execute();
+        }
       }
     }
   }
