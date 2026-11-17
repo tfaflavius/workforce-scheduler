@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class BroadcastDto {
   @IsString()
@@ -15,4 +15,9 @@ export class BroadcastDto {
   @IsString()
   @Matches(/^\/[a-z0-9/-]*$/i)
   url?: string;
+
+  /** Trimite anuntul si pe email (implicit da, pentru compatibilitate) */
+  @IsOptional()
+  @IsBoolean()
+  sendEmail?: boolean;
 }

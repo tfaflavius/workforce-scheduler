@@ -142,7 +142,7 @@ export const notificationsApi = createApi({
       ],
     }),
 
-    broadcastNotification: builder.mutation<{ sent: number }, { title: string; message: string; url?: string }>({
+    broadcastNotification: builder.mutation<{ sent: number }, { title: string; message: string; url?: string; sendEmail?: boolean }>({
       query: (body) => ({ url: '/notifications/broadcast', method: 'POST', body }),
       invalidatesTags: [{ type: 'Notification', id: 'LIST' }, 'UnreadCount'],
     }),

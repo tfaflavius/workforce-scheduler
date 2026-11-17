@@ -70,7 +70,13 @@ export class NotificationsController {
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
   broadcast(@Body() dto: BroadcastDto, @Request() req) {
-    return this.notificationsService.broadcast(dto.title, dto.message, req.user.id, dto.url);
+    return this.notificationsService.broadcast(
+      dto.title,
+      dto.message,
+      req.user.id,
+      dto.url,
+      dto.sendEmail !== false,
+    );
   }
 
   @Post('mark-all-read')

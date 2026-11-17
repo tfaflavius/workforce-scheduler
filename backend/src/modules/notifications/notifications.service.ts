@@ -445,6 +445,7 @@ export class NotificationsService {
     message: string,
     senderId: string,
     url?: string,
+    sendEmail = true,
   ): Promise<{ sent: number }> {
     const users = await this.userRepository.find({
       where: { isActive: true },
@@ -461,6 +462,11 @@ export class NotificationsService {
       })),
     );
     // GENERAL nu trimite email automat, asa ca anuntul isi trimite singur emailurile
+    // (doar daca adminul a bifat "si pe email")
+    if (!sendEmail) {
+      this.logger.log(`[Anunt] "${title}" trimis in aplicatie la ${users.length} utilizatori`);
+      return { sent: users.length };
+    }
     (async () => {
       let ok = 0;
       for (const u of users) {
